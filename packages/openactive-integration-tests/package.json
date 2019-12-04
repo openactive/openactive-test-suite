@@ -1,0 +1,24 @@
+{
+  "name": "openactive-integration-tests",
+  "version": "1.0.0",
+  "description": "OpenActive booking system integration tests",
+  "main": "app.js",
+  "scripts": {
+    "start": "echo \"Error: package contains only tests\" && exit 1",
+    "test": "./node_modules/.bin/mocha --reporter spec",
+    "debug": "node --inspect-brk -i app.js"
+  },
+  "author": "Nick Evans",
+  "license": "MIT",
+  "dependencies": {
+    "@openactive/data-models": "^1.5.5",
+    "config": "^3.2.4",
+    "fs-extra": "^7.0.1",
+    "mustache": "^3.1.0",
+    "sync-request": "^6.0.0"
+  },
+  "devDependencies": {
+    "chakram": "^1.5.0",
+    "mocha": "^6.2.2"
+  }
+}
