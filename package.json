@@ -2,9 +2,12 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "lerna": "^3.19.0"
+    "lerna": "^3.19.0",
+    "prettier": "^1.19.1"
   },
   "scripts": {
-    "lerna": "lerna"
+    "lerna": "lerna",
+    "prettier": "prettier --check \"packages/**/*.js\" \"packages/**/*.json\"",
+    "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\""
   }
 }
