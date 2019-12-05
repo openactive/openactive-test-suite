@@ -4,6 +4,7 @@ const mustache = require("mustache");
 const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
+const TestHelper = require("./test-helper");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
@@ -203,6 +204,8 @@ var testWithData = function(dataItem) {
         }
       };
 
+      const testHelper = new TestHelper(logger);
+
       before(function() {
         logger.log(
           "\n\n** Test Event **: \n\n" + JSON.stringify(testEvent, null, 2)
@@ -214,210 +217,59 @@ var testWithData = function(dataItem) {
           uuidv5.URL
         ); //TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
 
-        var orderResponse = chakram
-          .get(MICROSERVICE_BASE + "get-order/" + uuid)
-          .then(function(respObj) {
-            var rpdeItem = respObj.body;
-            logger.log(
-              "\n\n** Orders RPDE excerpt **: \n\n" +
-                JSON.stringify(rpdeItem, null, 2)
-            );
+        const orderResponse = testHelper.getOrder(uuid).then(res => {
+          ({ ordersFeedUpdate } = res);
+        });
 
-            ordersFeedUpdate = respObj;
-          });
+        const apiResponse = (async () => {
+          ({ opportunityId, offerId, sellerId } = await testHelper.getMatch(
+            eventName
+          ));
 
-        var apiResponse = chakram
-          .get(MICROSERVICE_BASE + "get-match/" + encodeURIComponent(eventName))
-          .then(function(respObj) {
-            var rpdeItem = respObj.body;
-            logger.log(
-              "\n\n** Opportunity RPDE excerpt **: \n\n" +
-                JSON.stringify(rpdeItem, null, 2)
-            );
+          ({
+            c1Response,
+            totalPaymentDue
+          } = await testHelper.putOrderQuoteTemplate(uuid, {
+            opportunityId,
+            offerId,
+            sellerId,
+            uuid
+          }));
 
-            opportunityId = rpdeItem.data["@id"]; // TODO : Support duel feeds: .subEvent[0]
-            offerId = rpdeItem.data.superEvent.offers[0]["@id"];
-            sellerId = rpdeItem.data.superEvent.organizer["@id"];
-
-            logger.log(`opportunityId: ${opportunityId}; offerId: ${offerId}`);
-          })
-          .then(x =>
-            chakram.put(
-              BOOKING_API_BASE + "order-quote-templates/" + uuid,
-              bookingRequest(logger, c1req, {
-                opportunityId,
-                offerId,
-                sellerId,
-                uuid
-              }),
-              {
-                headers: MEDIA_TYPE_HEADERS
-              }
-            )
-          )
-          .then(function(respObj) {
-            c1Response = respObj;
-            logger.log(
-              "\n\n** C1 response: ** \n\n" +
-                JSON.stringify(c1Response.body, null, 2)
-            );
-            totalPaymentDue = c1Response.body.totalPaymentDue.price;
-          })
-          .then(x =>
-            chakram.put(
-              BOOKING_API_BASE + "order-quotes/" + uuid,
-              bookingRequest(logger, c2req, {
-                opportunityId,
-                offerId,
-                sellerId,
-                uuid
-              }),
-              {
-                headers: MEDIA_TYPE_HEADERS
-              }
-            )
-          )
-          .then(function(respObj) {
-            c2Response = respObj;
-            logger.log(
-              "\n\n** C2 response: ** \n\n" +
-                JSON.stringify(c2Response.body, null, 2)
-            );
-            totalPaymentDue = c2Response.body.totalPaymentDue.price;
-          })
-          .then(x =>
-            chakram.put(
-              BOOKING_API_BASE + "orders/" + uuid,
-              bookingRequest(
-                logger,
-                breq,
-                {
-                  opportunityId,
-                  offerId,
-                  sellerId,
-                  uuid,
-                  totalPaymentDue
-                },
-                true
-              ),
-              {
-                headers: MEDIA_TYPE_HEADERS
-              }
-            )
-          )
-          .then(function(respObj) {
-            bResponse = respObj;
-            logger.log(
-              "\n\n** B response: **\n\n" +
-                JSON.stringify(bResponse.body, null, 2)
-            );
-            orderItemId = bResponse.body.orderedItem
-              ? bResponse.body.orderedItem[0]["@id"]
-              : "NONE";
-          })
-          .then(x =>
-            chakram.patch(
-              BOOKING_API_BASE + "orders/" + uuid,
-              bookingRequest(logger, ureq, {
-                orderItemId
-              }),
-              {
-                headers: MEDIA_TYPE_HEADERS
-              }
-            )
-          )
-          .then(function(respObj) {
-            uResponse = respObj;
-            if (uResponse.body) {
-              logger.log(
-                "\n\n** Order Cancellation response: **\n\n" +
-                  JSON.stringify(uResponse.body, null, 2)
-              );
-            } else {
-              logger.log(
-                "\n\n** Order Cancellation response: **\n\nNO CONTENT"
-              );
+          ({ c2Response, totalPaymentDue } = await testHelper.putOrderQuote(
+            uuid,
+            {
+              opportunityId,
+              offerId,
+              sellerId,
+              uuid
             }
-          });
+          ));
 
-        delay(500)
-          .then(x =>
-            chakram.post(
-              BOOKING_API_BASE + "test-interface/scheduledsession",
-              testEvent,
-              {
-                headers: MEDIA_TYPE_HEADERS
-              }
-            )
-          )
-          .then(function(respObj) {
-            if (respObj.body) {
-              logger.log(
-                "\n\n** Test Interface POST response: " +
-                  respObj.response.statusCode +
-                  " **\n\n" +
-                  JSON.stringify(respObj.body, null, 2)
-              );
-            } else {
-              logger.log(
-                "\n\n** Test Interface POST response: " +
-                  respObj.response.statusCode +
-                  " **\n\nNO CONTENT"
-              );
-            }
-          });
+          ({ bResponse, orderItemId } = await testHelper.putOrder(uuid, {
+            opportunityId,
+            offerId,
+            sellerId,
+            uuid,
+            totalPaymentDue
+          }));
+
+          ({ uResponse } = await testHelper.cancelOrder(uuid, {
+            orderItemId
+          }));
+        })();
+
+        (async () => {
+          await testHelper.delay(500);
+          await testHelper.createScheduledSession(testEvent);
+        })();
 
         return chakram.all([apiResponse, orderResponse]);
       });
 
-      after(function() {
-        return chakram
-          .delete(
-            BOOKING_API_BASE +
-              "test-interface/scheduledsession/" +
-              encodeURIComponent(eventName),
-            null,
-            {
-              headers: MEDIA_TYPE_HEADERS
-            }
-          )
-          .then(function(respObj) {
-            if (respObj.body) {
-              logger.log(
-                "\n\n** Test Interface DELETE response: " +
-                  respObj.response.statusCode +
-                  " **\n\n" +
-                  JSON.stringify(respObj.body, null, 2)
-              );
-            } else {
-              logger.log(
-                "\n\n** Test Interface DELETE response: " +
-                  respObj.response.statusCode +
-                  " **\n\nNO CONTENT"
-              );
-            }
-          })
-          .then(x =>
-            chakram.delete(BOOKING_API_BASE + "orders/" + uuid, null, {
-              headers: MEDIA_TYPE_HEADERS
-            })
-          )
-          .then(function(respObj) {
-            if (respObj.body) {
-              logger.log(
-                "\n\n** Orders DELETE response: " +
-                  respObj.response.statusCode +
-                  " **\n\n" +
-                  JSON.stringify(respObj.body, null, 2)
-              );
-            } else {
-              logger.log(
-                "\n\n** Orders DELETE response: " +
-                  respObj.response.statusCode +
-                  " **\n\nNO CONTENT"
-              );
-            }
-          });
+      after(async function() {
+        await testHelper.deleteScheduledSession(eventName);
+        await testHelper.deleteOrder(uuid);
       });
 
       it("should return 200 on success", function() {
