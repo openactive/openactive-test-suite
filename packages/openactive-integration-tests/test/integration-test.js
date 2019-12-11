@@ -66,6 +66,8 @@ describe("Create test event", function() {
   };
 
   before(function() {
+    const testHelper = new TestHelper(null);
+
     apiResponse = chakram.get(MICROSERVICE_BASE + "get-match/Testevent2");
 
     delay(500).then(x =>
@@ -73,7 +75,7 @@ describe("Create test event", function() {
         BOOKING_API_BASE + "test-interface/scheduledsession",
         testEvent,
         {
-          headers: MEDIA_TYPE_HEADERS
+          headers: testHelper.createHeaders()
         }
       )
     );
@@ -82,13 +84,15 @@ describe("Create test event", function() {
   });
 
   after(function() {
+    const testHelper = new TestHelper(null);
+
     var name = testEvent.superEvent.name;
     return chakram.delete(
       BOOKING_API_BASE +
         "test-interface/scheduledsession/" +
         encodeURIComponent(name),
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: testHelper.createHeaders()
       }
     );
   });
@@ -255,21 +259,28 @@ var testWithData = function(dataItem) {
           }));
 
           ({ uResponse } = await testHelper.cancelOrder(uuid, {
-            orderItemId
+            orderItemId,
+            sellerId
           }));
         })();
 
         (async () => {
           await testHelper.delay(500);
-          await testHelper.createScheduledSession(testEvent);
+          await testHelper.createScheduledSession(testEvent, {
+            sellerId
+          });
         })();
 
         return chakram.all([apiResponse, orderResponse]);
       });
 
       after(async function() {
-        await testHelper.deleteScheduledSession(eventName);
-        await testHelper.deleteOrder(uuid);
+        await testHelper.deleteScheduledSession(eventName, {
+          sellerId
+        });
+        await testHelper.deleteOrder(uuid, {
+          sellerId
+        });
       });
 
       it("should return 200 on success", function() {

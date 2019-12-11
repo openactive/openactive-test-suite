@@ -59,19 +59,20 @@ nSQL().createDatabase({
 
 function getRPDE(url, cb) {
   var headers = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-    "Cache-Control": "max-age=0"
+    'Accept': 'application/json, application/vnd.openactive.booking+json; version=1',
+    'Cache-Control' : 'max-age=0',
+    'X-OpenActive-Test-Client-Id': 'test',
   };
   var options = {
+    'url': url,
     method: "get",
     headers: headers
   };
-  request.get({ url }, function(error, response, body) {
+  request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
       cb(JSON.parse(body));
     } else {
-      console.log("Error for RPDE page: " + error);
+      console.log("Error for RPDE page: " + error + ". Response: " + body);
       // Fake next page to force retry, after a delay
       setTimeout(cb({ next: url, items: [] }), 5000);
     }
