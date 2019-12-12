@@ -59,12 +59,13 @@ nSQL().createDatabase({
 
 function getRPDE(url, cb) {
   var headers = {
-    'Accept': 'application/json, application/vnd.openactive.booking+json; version=1',
-    'Cache-Control' : 'max-age=0',
-    'X-OpenActive-Test-Client-Id': 'test',
+    Accept:
+      "application/json, application/vnd.openactive.booking+json; version=1",
+    "Cache-Control": "max-age=0",
+    "X-OpenActive-Test-Client-Id": "test"
   };
   var options = {
-    'url': url,
+    url: url,
     method: "get",
     headers: headers
   };

@@ -28,20 +28,20 @@ describe("Create test event", function() {
   };
 
   before(async function() {
-    let prom = testHelper.getMatch('Testevent2');
+    let prom = testHelper.getMatch("Testevent2");
 
-    testHelper.delay(500).then(x =>
-                      testHelper.createScheduledSession(testEvent, {})
-    );
+    testHelper
+      .delay(500)
+      .then(x => testHelper.createScheduledSession(testEvent, {}));
 
-    ({apiResponse} = await prom);
+    ({ apiResponse } = await prom);
 
     return apiResponse;
   });
 
   after(async function() {
     var name = testEvent.superEvent.name;
-    let {respObj} = await testHelper.deleteScheduledSession(name);
+    let { respObj } = await testHelper.deleteScheduledSession(name);
 
     return respObj;
   });

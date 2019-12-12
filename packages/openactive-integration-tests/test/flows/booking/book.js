@@ -1,13 +1,14 @@
 const chakram = require("chakram");
 const RequestHelper = require("../../helpers/request-helper");
 const Logger = require("../../helpers/logger");
+const withData = require("leche").withData;
 
 const expect = chakram.expect;
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
-var data = [
-  {
+var data = {
+  "single session, 5 spaces, free": {
     title: "Single session, 5 spaces, free",
     name: "OpenActiveTestEvent2",
     price: 0,
@@ -29,7 +30,7 @@ var data = [
       maximumAttendeeCapacity: 5
     }
   },
-  {
+  "single session, 5 spaces, non-free": {
     title: "Single session, 5 spaces, non-free",
     name: "OpenActiveTestEvent1",
     price: 14.95,
@@ -51,195 +52,190 @@ var data = [
       maximumAttendeeCapacity: 5
     }
   }
-];
-var testWithData = function(dataItem) {
-  return function() {
-    describe("Basic end-to-end booking", function() {
-      this.timeout(10000);
+};
 
-      var testEvent = dataItem.event;
-      var price = dataItem.price;
-      var eventName = dataItem.name;
+withData(data, function(dataItem) {
+  describe("Basic end-to-end booking", function() {
+    this.timeout(10000);
 
-      var opportunityId;
-      var offerId;
-      var sellerId;
-      var uuid;
-      var totalPaymentDue;
-      var orderItemId;
+    var testEvent = dataItem.event;
+    var price = dataItem.price;
+    var eventName = dataItem.name;
 
-      var c1Response;
-      var c2Response;
-      var bResponse;
-      var uResponse;
-      var ordersFeedUpdate;
+    var opportunityId;
+    var offerId;
+    var sellerId;
+    var uuid;
+    var totalPaymentDue;
+    var orderItemId;
 
-      const logger = new Logger(dataItem.title);
+    var c1Response;
+    var c2Response;
+    var bResponse;
+    var uResponse;
+    var ordersFeedUpdate;
 
-      const testHelper = new RequestHelper(logger);
+    const logger = new Logger(dataItem.title);
 
-      before(function() {
-        logger.log(
-          "\n\n** Test Event **: \n\n" + JSON.stringify(testEvent, null, 2)
-        );
+    const testHelper = new RequestHelper(logger);
 
-        uuid = testHelper.uuid();
+    before(function() {
+      logger.log(
+        "\n\n** Test Event **: \n\n" + JSON.stringify(testEvent, null, 2)
+      );
 
-        const orderResponse = testHelper.getOrder(uuid).then(res => {
-          ({ ordersFeedUpdate } = res);
-        });
+      uuid = testHelper.uuid();
 
-        const apiResponse = (async () => {
-          ({ opportunityId, offerId, sellerId } = await testHelper.getMatch(
-            eventName
-          ));
+      const orderResponse = testHelper.getOrder(uuid).then(res => {
+        ({ ordersFeedUpdate } = res);
+      });
 
-          ({
-            c1Response,
-            totalPaymentDue
-          } = await testHelper.putOrderQuoteTemplate(uuid, {
+      const apiResponse = (async () => {
+        ({ opportunityId, offerId, sellerId } = await testHelper.getMatch(
+          eventName
+        ));
+
+        ({
+          c1Response,
+          totalPaymentDue
+        } = await testHelper.putOrderQuoteTemplate(uuid, {
+          opportunityId,
+          offerId,
+          sellerId,
+          uuid
+        }));
+
+        ({ c2Response, totalPaymentDue } = await testHelper.putOrderQuote(
+          uuid,
+          {
             opportunityId,
             offerId,
             sellerId,
             uuid
-          }));
+          }
+        ));
 
-          ({ c2Response, totalPaymentDue } = await testHelper.putOrderQuote(
-            uuid,
-            {
-              opportunityId,
-              offerId,
-              sellerId,
-              uuid
-            }
-          ));
+        ({ bResponse, orderItemId } = await testHelper.putOrder(uuid, {
+          opportunityId,
+          offerId,
+          sellerId,
+          uuid,
+          totalPaymentDue
+        }));
 
-          ({ bResponse, orderItemId } = await testHelper.putOrder(uuid, {
-            opportunityId,
-            offerId,
-            sellerId,
-            uuid,
-            totalPaymentDue
-          }));
+        ({ uResponse } = await testHelper.cancelOrder(uuid, {
+          orderItemId,
+          sellerId
+        }));
+      })();
 
-          ({ uResponse } = await testHelper.cancelOrder(uuid, {
-            orderItemId,
-            sellerId
-          }));
-        })();
-
-        (async () => {
-          await testHelper.delay(500);
-          await testHelper.createScheduledSession(testEvent, {
-            sellerId
-          });
-        })();
-
-        return chakram.all([apiResponse, orderResponse]);
-      });
-
-      after(async function() {
-        await testHelper.deleteScheduledSession(eventName, {
+      (async () => {
+        await testHelper.delay(500);
+        await testHelper.createScheduledSession(testEvent, {
           sellerId
         });
-        await testHelper.deleteOrder(uuid, {
-          sellerId
-        });
-      });
+      })();
 
-      it("should return 200 on success", function() {
-        expect(c1Response).to.have.status(200);
-        expect(c2Response).to.have.status(200);
-        expect(bResponse).to.have.status(200);
-        return chakram.wait();
-      });
+      return chakram.all([apiResponse, orderResponse]);
+    });
 
-      it("should return newly created event", function() {
-        expect(c1Response).to.have.json(
-          "orderedItem[0].orderedItem.@type",
-          "ScheduledSession"
-        );
-        expect(c1Response).to.have.json(
-          "orderedItem[0].orderedItem.superEvent.name",
-          eventName
-        );
-        return chakram.wait();
+    after(async function() {
+      await testHelper.deleteScheduledSession(eventName, {
+        sellerId
       });
-
-      it("offer should have price of " + price, function() {
-        expect(c1Response).to.have.json(
-          "orderedItem[0].acceptedOffer.price",
-          price
-        );
-        expect(c2Response).to.have.json(
-          "orderedItem[0].acceptedOffer.price",
-          price
-        );
-        expect(bResponse).to.have.json(
-          "orderedItem[0].acceptedOffer.price",
-          price
-        );
-        return chakram.wait();
-      });
-
-      it("Order or OrderQuote should have one orderedItem", function() {
-        expect(c1Response).to.have.schema("orderedItem", {
-          minItems: 1,
-          maxItems: 1
-        });
-        expect(c2Response).to.have.schema("orderedItem", {
-          minItems: 1,
-          maxItems: 1
-        });
-        expect(bResponse).to.have.schema("orderedItem", {
-          minItems: 1,
-          maxItems: 1
-        });
-        return chakram.wait();
-      });
-
-      it("Result from B should OrderConfirmed orderItemStatus", function() {
-        return expect(bResponse).to.have.json(
-          "orderedItem[0].orderItemStatus",
-          "https://openactive.io/OrderConfirmed"
-        );
-      });
-
-      it("Orders feed result should have one orderedItem", function() {
-        return expect(ordersFeedUpdate).to.have.schema("data.orderedItem", {
-          minItems: 1,
-          maxItems: 1
-        });
-      });
-
-      it("Orders feed OrderItem should correct price of " + price, function() {
-        return expect(ordersFeedUpdate).to.have.json(
-          "data.orderedItem[0].acceptedOffer.price",
-          price
-        );
-      });
-
-      it("Orders feed totalPaymentDue should be correct", function() {
-        return expect(ordersFeedUpdate).to.have.json(
-          "data.totalPaymentDue.price",
-          0
-        );
-      });
-
-      it("Order Cancellation return 204 on success", function() {
-        return expect(uResponse).to.have.status(204);
-      });
-
-      it("Orders feed should have CustomerCancelled as orderItemStatus", function() {
-        return expect(ordersFeedUpdate).to.have.json(
-          "data.orderedItem[0].orderItemStatus",
-          "https://openactive.io/CustomerCancelled"
-        );
+      await testHelper.deleteOrder(uuid, {
+        sellerId
       });
     });
-  };
-};
 
-data.forEach(function(dataItem) {
-  describe(dataItem.title, testWithData(dataItem));
+    it("should return 200 on success", function() {
+      expect(c1Response).to.have.status(200);
+      expect(c2Response).to.have.status(200);
+      expect(bResponse).to.have.status(200);
+      return chakram.wait();
+    });
+
+    it("should return newly created event", function() {
+      expect(c1Response).to.have.json(
+        "orderedItem[0].orderedItem.@type",
+        "ScheduledSession"
+      );
+      expect(c1Response).to.have.json(
+        "orderedItem[0].orderedItem.superEvent.name",
+        eventName
+      );
+      return chakram.wait();
+    });
+
+    it("offer should have price of " + price, function() {
+      expect(c1Response).to.have.json(
+        "orderedItem[0].acceptedOffer.price",
+        price
+      );
+      expect(c2Response).to.have.json(
+        "orderedItem[0].acceptedOffer.price",
+        price
+      );
+      expect(bResponse).to.have.json(
+        "orderedItem[0].acceptedOffer.price",
+        price
+      );
+      return chakram.wait();
+    });
+
+    it("Order or OrderQuote should have one orderedItem", function() {
+      expect(c1Response).to.have.schema("orderedItem", {
+        minItems: 1,
+        maxItems: 1
+      });
+      expect(c2Response).to.have.schema("orderedItem", {
+        minItems: 1,
+        maxItems: 1
+      });
+      expect(bResponse).to.have.schema("orderedItem", {
+        minItems: 1,
+        maxItems: 1
+      });
+      return chakram.wait();
+    });
+
+    it("Result from B should OrderConfirmed orderItemStatus", function() {
+      return expect(bResponse).to.have.json(
+        "orderedItem[0].orderItemStatus",
+        "https://openactive.io/OrderConfirmed"
+      );
+    });
+
+    it("Orders feed result should have one orderedItem", function() {
+      return expect(ordersFeedUpdate).to.have.schema("data.orderedItem", {
+        minItems: 1,
+        maxItems: 1
+      });
+    });
+
+    it("Orders feed OrderItem should correct price of " + price, function() {
+      return expect(ordersFeedUpdate).to.have.json(
+        "data.orderedItem[0].acceptedOffer.price",
+        price
+      );
+    });
+
+    it("Orders feed totalPaymentDue should be correct", function() {
+      return expect(ordersFeedUpdate).to.have.json(
+        "data.totalPaymentDue.price",
+        0
+      );
+    });
+
+    it("Order Cancellation return 204 on success", function() {
+      return expect(uResponse).to.have.status(204);
+    });
+
+    it("Orders feed should have CustomerCancelled as orderItemStatus", function() {
+      return expect(ordersFeedUpdate).to.have.json(
+        "data.orderedItem[0].orderItemStatus",
+        "https://openactive.io/CustomerCancelled"
+      );
+    });
+  });
 });

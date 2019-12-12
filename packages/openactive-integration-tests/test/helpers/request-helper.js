@@ -30,9 +30,9 @@ class RequestHelper {
 
   createHeaders(sellerId) {
     return {
-      'Content-Type': 'application/vnd.openactive.booking+json; version=1',
-      'X-OpenActive-Test-Client-Id': 'test',
-      'X-OpenActive-Test-Seller-Id': sellerId
+      "Content-Type": "application/vnd.openactive.booking+json; version=1",
+      "X-OpenActive-Test-Client-Id": "test",
+      "X-OpenActive-Test-Seller-Id": sellerId
     };
   }
 
@@ -58,9 +58,9 @@ class RequestHelper {
 
     this.log(
       "\n\n** Orders RPDE excerpt " +
-      ordersFeedUpdate.response.statusCode +
-      "**: \n\n" +
-      JSON.stringify(rpdeItem, null, 2)
+        ordersFeedUpdate.response.statusCode +
+        "**: \n\n" +
+        JSON.stringify(rpdeItem, null, 2)
     );
 
     return {
@@ -149,9 +149,9 @@ class RequestHelper {
 
     this.log(
       "\n\n** B response:" +
-      bResponse.response.statusCode +
-      " **\n\n" +
-      JSON.stringify(bResponse.body, null, 2)
+        bResponse.response.statusCode +
+        " **\n\n" +
+        JSON.stringify(bResponse.body, null, 2)
     );
     const orderItemId =
       bResponse.body && bResponse.body.orderedItem
@@ -176,8 +176,8 @@ class RequestHelper {
     if (uResponse.body) {
       this.log(
         "\n\n** Order Cancellation response: " +
-        respObj.response.statusCode +
-        " **\n\n" +
+          respObj.response.statusCode +
+          " **\n\n" +
           JSON.stringify(uResponse.body, null, 2)
       );
     } else {
@@ -244,7 +244,7 @@ class RequestHelper {
       );
     }
 
-    return {respObj};
+    return { respObj };
   }
 
   async deleteOrder(uuid, params) {
@@ -283,7 +283,7 @@ class RequestHelper {
   uuid(sellerId = null) {
     return uuidv5(
       "https://www.example.com/example/id/" +
-      Math.floor(Math.random() * 100000),
+        Math.floor(Math.random() * 100000),
       uuidv5.URL
     ); //TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
   }

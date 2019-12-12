@@ -1,2 +1,2 @@
-const logger = require('./logger');
-const RequestHelper = require('./request-helper');
+const logger = require("./logger");
+const RequestHelper = require("./request-helper");
