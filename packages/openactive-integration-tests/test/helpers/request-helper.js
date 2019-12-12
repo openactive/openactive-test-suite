@@ -12,12 +12,12 @@ var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
 };
 
-const c1req = require("./c1-req.json");
-const c2req = require("./c2-req.json");
-const breq = require("./b-req.json");
-const ureq = require("./u-req.json");
+const c1req = require("../templates/c1-req.json");
+const c2req = require("../templates/c2-req.json");
+const breq = require("../templates/b-req.json");
+const ureq = require("../templates/u-req.json");
 
-class TestHelper {
+class RequestHelper {
   constructor(logger) {
     this.logger = logger;
   }
@@ -57,7 +57,10 @@ class TestHelper {
     const rpdeItem = ordersFeedUpdate.body;
 
     this.log(
-      "\n\n** Orders RPDE excerpt **: \n\n" + JSON.stringify(rpdeItem, null, 2)
+      "\n\n** Orders RPDE excerpt " +
+      ordersFeedUpdate.response.statusCode +
+      "**: \n\n" +
+      JSON.stringify(rpdeItem, null, 2)
     );
 
     return {
@@ -77,13 +80,18 @@ class TestHelper {
         JSON.stringify(rpdeItem, null, 2)
     );
 
-    const opportunityId = rpdeItem.data["@id"]; // TODO : Support duel feeds: .subEvent[0]
-    const offerId = rpdeItem.data.superEvent.offers[0]["@id"];
-    const sellerId = rpdeItem.data.superEvent.organizer["@id"];
+    let opportunityId, offerId, sellerId;
+
+    if (rpdeItem) {
+      opportunityId = rpdeItem.data["@id"]; // TODO : Support duel feeds: .subEvent[0]
+      offerId = rpdeItem.data.superEvent.offers[0]["@id"];
+      sellerId = rpdeItem.data.superEvent.organizer["@id"];
+    }
 
     this.log(`opportunityId: ${opportunityId}; offerId: ${offerId}`);
 
     return {
+      apiResponse: respObj,
       opportunityId,
       offerId,
       sellerId
@@ -140,7 +148,10 @@ class TestHelper {
     );
 
     this.log(
-      "\n\n** B response: **\n\n" + JSON.stringify(bResponse.body, null, 2)
+      "\n\n** B response:" +
+      bResponse.response.statusCode +
+      " **\n\n" +
+      JSON.stringify(bResponse.body, null, 2)
     );
     const orderItemId =
       bResponse.body && bResponse.body.orderedItem
@@ -164,7 +175,9 @@ class TestHelper {
 
     if (uResponse.body) {
       this.log(
-        "\n\n** Order Cancellation response: **\n\n" +
+        "\n\n** Order Cancellation response: " +
+        respObj.response.statusCode +
+        " **\n\n" +
           JSON.stringify(uResponse.body, null, 2)
       );
     } else {
@@ -200,10 +213,12 @@ class TestHelper {
       );
     }
 
-    return !!respObj.body;
+    return {
+      respObj
+    };
   }
 
-  async deleteScheduledSession(eventName, params) {
+  async deleteScheduledSession(eventName, params = {}) {
     const respObj = await chakram.delete(
       BOOKING_API_BASE +
         "test-interface/scheduledsession/" +
@@ -229,7 +244,7 @@ class TestHelper {
       );
     }
 
-    return !!respObj.body;
+    return {respObj};
   }
 
   async deleteOrder(uuid, params) {
@@ -264,6 +279,14 @@ class TestHelper {
       setTimeout(resolve.bind(null, v), t);
     });
   }
+
+  uuid(sellerId = null) {
+    return uuidv5(
+      "https://www.example.com/example/id/" +
+      Math.floor(Math.random() * 100000),
+      uuidv5.URL
+    ); //TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
+  }
 }
 
-module.exports = TestHelper;
+module.exports = RequestHelper;

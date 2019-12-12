@@ -1,126 +1,10 @@
-const assert = require("assert");
 const chakram = require("chakram");
-const mustache = require("mustache");
-const uuidv5 = require("uuid/v5");
-const fs = require("fs");
-const config = require("config");
-const TestHelper = require("./test-helper");
+const RequestHelper = require("../../helpers/request-helper");
+const Logger = require("../../helpers/logger");
+
+const expect = chakram.expect;
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-
-const c1req = require("./c1-req.json");
-const c2req = require("./c2-req.json");
-const breq = require("./b-req.json");
-const ureq = require("./u-req.json");
-
-var BOOKING_API_BASE = config.get("tests.bookingApiBase");
-var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
-
-var MEDIA_TYPE_HEADERS = {
-  "Content-Type": "application/vnd.openactive.booking+json; version=1"
-};
-
-var expect = chakram.expect;
-
-function bookingRequest(logger, templateJson, replacementMap, removePayment) {
-  if (typeof replacementMap.totalPaymentDue !== "undefined")
-    templateJson.totalPaymentDue.price = replacementMap.totalPaymentDue;
-  var template = JSON.stringify(templateJson, null, 2);
-
-  var req = mustache.render(template, replacementMap);
-
-  logger.log("\n\n** REQUEST **: \n\n" + req);
-
-  jsonResult = JSON.parse(req);
-  if (removePayment) delete jsonResult.payment;
-  return jsonResult;
-}
-
-function delay(t, v) {
-  return new Promise(function(resolve) {
-    setTimeout(resolve.bind(null, v), t);
-  });
-}
-
-describe("Create test event", function() {
-  this.timeout(10000);
-
-  var apiResponse;
-
-  var testEvent = {
-    "@context": "https://openactive.io/",
-    "@type": "ScheduledSession",
-    superEvent: {
-      "@type": "SessionSeries",
-      name: "Testevent2",
-      offers: [
-        {
-          "@type": "Offer",
-          price: 14.95
-        }
-      ]
-    },
-    startDate: "2019-11-20T17:26:16.0731663+00:00",
-    endDate: "2019-11-20T19:12:16.0731663+00:00",
-    maximumAttendeeCapacity: 5
-  };
-
-  before(function() {
-    const testHelper = new TestHelper(null);
-
-    apiResponse = chakram.get(MICROSERVICE_BASE + "get-match/Testevent2");
-
-    delay(500).then(x =>
-      chakram.post(
-        BOOKING_API_BASE + "test-interface/scheduledsession",
-        testEvent,
-        {
-          headers: testHelper.createHeaders()
-        }
-      )
-    );
-
-    return apiResponse;
-  });
-
-  after(function() {
-    const testHelper = new TestHelper(null);
-
-    var name = testEvent.superEvent.name;
-    return chakram.delete(
-      BOOKING_API_BASE +
-        "test-interface/scheduledsession/" +
-        encodeURIComponent(name),
-      {
-        headers: testHelper.createHeaders()
-      }
-    );
-  });
-
-  it("should return 200 on success", function() {
-    return expect(apiResponse).to.have.status(200);
-  });
-
-  it("should return newly created event", function() {
-    expect(apiResponse).to.have.json("data.@type", "ScheduledSession");
-    expect(apiResponse).to.have.json("data.superEvent.name", "Testevent2");
-    return chakram.wait();
-  });
-
-  it("should have one offer", function() {
-    return expect(apiResponse).to.have.schema("data.superEvent.offers", {
-      minItems: 1,
-      maxItems: 1
-    });
-  });
-
-  it("offer should have price of 14.95", function() {
-    return expect(apiResponse).to.have.json(
-      "data.superEvent.offers[0].price",
-      14.95
-    );
-  });
-});
 
 var data = [
   {
@@ -190,36 +74,16 @@ var testWithData = function(dataItem) {
       var uResponse;
       var ordersFeedUpdate;
 
-      var logger = {
-        workingLog: "",
-        flush: function() {
-          var filename = "./output/" + dataItem.title + ".txt";
-          fs.writeFile(filename, this.workingLog, function(err) {
-            if (err) {
-              return console.log(err);
-            }
+      const logger = new Logger(dataItem.title);
 
-            //console.log("FILE SAVED: " + filename);
-          });
-        },
-        log: function(text) {
-          this.workingLog += text + "\n";
-          this.flush(); // TODO: Do we need to flush on each write?
-        }
-      };
-
-      const testHelper = new TestHelper(logger);
+      const testHelper = new RequestHelper(logger);
 
       before(function() {
         logger.log(
           "\n\n** Test Event **: \n\n" + JSON.stringify(testEvent, null, 2)
         );
 
-        uuid = uuidv5(
-          "https://www.example.com/example/id/" +
-            Math.floor(Math.random() * 100000),
-          uuidv5.URL
-        ); //TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
+        uuid = testHelper.uuid();
 
         const orderResponse = testHelper.getOrder(uuid).then(res => {
           ({ ordersFeedUpdate } = res);
