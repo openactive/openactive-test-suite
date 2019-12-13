@@ -9,5 +9,6 @@
     "lerna": "lerna",
     "prettier": "prettier --check \"packages/**/*.js\" \"packages/**/*.json\"",
     "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\""
-  }
+  },
+  "dependencies": {}
 }

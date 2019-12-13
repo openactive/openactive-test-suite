@@ -1,5 +1,6 @@
 const chakram = require("chakram");
 const RequestHelper = require("../../helpers/request-helper");
+const validationHelper = require("../../helpers/validation-helper");
 const Logger = require("../../helpers/logger");
 const withData = require("leche").withData;
 
@@ -58,9 +59,7 @@ withData(data, function(dataItem) {
   describe("Basic end-to-end booking", function() {
     this.timeout(10000);
 
-    var testEvent = dataItem.event;
-    var price = dataItem.price;
-    var eventName = dataItem.name;
+    const { event: testEvent, price, name: eventName } = dataItem;
 
     var opportunityId;
     var offerId;
@@ -237,5 +236,17 @@ withData(data, function(dataItem) {
         "https://openactive.io/CustomerCancelled"
       );
     });
+
+    validationHelper.validate(() => c1Response.body, "C1", {
+      validationMode: "C1Response"
+    });
+    validationHelper.validate(() => c2Response.body, "C2", {
+      validationMode: "C2Response"
+    });
+    validationHelper.validate(() => bResponse.body, "B", {
+      validationMode: "BResponse"
+    });
+
+    validationHelper.validate(() => ordersFeedUpdate.body, "Orders feed");
   });
 });
