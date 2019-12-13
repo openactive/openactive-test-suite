@@ -1,7 +1,7 @@
 const chakram = require("chakram");
 const RequestHelper = require("../../helpers/request-helper");
 const Logger = require("../../helpers/logger");
-const sharedValidationTests = require("../../shared/validation");
+const sharedValidationTests = require("../../shared-behaviours/validation");
 const withData = require("leche").withData;
 
 const expect = chakram.expect;
