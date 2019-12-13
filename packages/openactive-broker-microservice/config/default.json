@@ -1,6 +1,6 @@
 {
   "microservice": {
-    "bookingApiBase": "https://localhost:44307/api/openbooking/",
-    "openFeedBase": "https://localhost:44307/feeds/"
+    "bookingApiBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/openbooking/",
+    "openFeedBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/feeds/"
   }
 }

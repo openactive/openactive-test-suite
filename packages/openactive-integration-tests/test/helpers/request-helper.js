@@ -12,14 +12,28 @@ var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
 };
 
-const c1req = require("./c1-req.json");
-const c2req = require("./c2-req.json");
-const breq = require("./b-req.json");
-const ureq = require("./u-req.json");
+const c1req = require("../templates/c1-req.json");
+const c2req = require("../templates/c2-req.json");
+const breq = require("../templates/b-req.json");
+const ureq = require("../templates/u-req.json");
 
-class TestHelper {
+class RequestHelper {
   constructor(logger) {
     this.logger = logger;
+  }
+
+  log(msg) {
+    if (!this.logger) return;
+
+    this.logger.log(msg);
+  }
+
+  createHeaders(sellerId) {
+    return {
+      "Content-Type": "application/vnd.openactive.booking+json; version=1",
+      "X-OpenActive-Test-Client-Id": "test",
+      "X-OpenActive-Test-Seller-Id": sellerId
+    };
   }
 
   bookingTemplate(logger, templateJson, replacementMap, removePayment) {
@@ -42,8 +56,11 @@ class TestHelper {
     );
     const rpdeItem = ordersFeedUpdate.body;
 
-    this.logger.log(
-      "\n\n** Orders RPDE excerpt **: \n\n" + JSON.stringify(rpdeItem, null, 2)
+    this.log(
+      "\n\n** Orders RPDE excerpt " +
+        ordersFeedUpdate.response.statusCode +
+        "**: \n\n" +
+        JSON.stringify(rpdeItem, null, 2)
     );
 
     return {
@@ -58,18 +75,23 @@ class TestHelper {
     );
     const rpdeItem = respObj.body;
 
-    this.logger.log(
+    this.log(
       "\n\n** Opportunity RPDE excerpt **: \n\n" +
         JSON.stringify(rpdeItem, null, 2)
     );
 
-    const opportunityId = rpdeItem.data["@id"]; // TODO : Support duel feeds: .subEvent[0]
-    const offerId = rpdeItem.data.superEvent.offers[0]["@id"];
-    const sellerId = rpdeItem.data.superEvent.organizer["@id"];
+    let opportunityId, offerId, sellerId;
 
-    this.logger.log(`opportunityId: ${opportunityId}; offerId: ${offerId}`);
+    if (rpdeItem) {
+      opportunityId = rpdeItem.data["@id"]; // TODO : Support duel feeds: .subEvent[0]
+      offerId = rpdeItem.data.superEvent.offers[0]["@id"];
+      sellerId = rpdeItem.data.superEvent.organizer["@id"];
+    }
+
+    this.log(`opportunityId: ${opportunityId}; offerId: ${offerId}`);
 
     return {
+      apiResponse: respObj,
       opportunityId,
       offerId,
       sellerId
@@ -81,11 +103,11 @@ class TestHelper {
       BOOKING_API_BASE + "order-quote-templates/" + uuid,
       this.bookingTemplate(this.logger, c1req, params),
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
-    this.logger.log(
+    this.log(
       "\n\n** C1 response: ** \n\n" + JSON.stringify(c1Response.body, null, 2)
     );
     const totalPaymentDue = c1Response.body.totalPaymentDue.price;
@@ -101,11 +123,11 @@ class TestHelper {
       BOOKING_API_BASE + "order-quotes/" + uuid,
       this.bookingTemplate(this.logger, c2req, params),
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
-    this.logger.log(
+    this.log(
       "\n\n** C2 response: ** \n\n" + JSON.stringify(c2Response.body, null, 2)
     );
     const totalPaymentDue = c2Response.body.totalPaymentDue.price;
@@ -121,12 +143,15 @@ class TestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       this.bookingTemplate(this.logger, breq, params, true),
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
-    this.logger.log(
-      "\n\n** B response: **\n\n" + JSON.stringify(bResponse.body, null, 2)
+    this.log(
+      "\n\n** B response:" +
+        bResponse.response.statusCode +
+        " **\n\n" +
+        JSON.stringify(bResponse.body, null, 2)
     );
     const orderItemId =
       bResponse.body && bResponse.body.orderedItem
@@ -144,17 +169,19 @@ class TestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       this.bookingTemplate(this.logger, ureq, params),
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
     if (uResponse.body) {
-      this.logger.log(
-        "\n\n** Order Cancellation response: **\n\n" +
+      this.log(
+        "\n\n** Order Cancellation response: " +
+          respObj.response.statusCode +
+          " **\n\n" +
           JSON.stringify(uResponse.body, null, 2)
       );
     } else {
-      this.logger.log("\n\n** Order Cancellation response: **\n\nNO CONTENT");
+      this.log("\n\n** Order Cancellation response: **\n\nNO CONTENT");
     }
 
     return {
@@ -162,80 +189,82 @@ class TestHelper {
     };
   }
 
-  async createScheduledSession(event) {
+  async createScheduledSession(event, params) {
     const respObj = await chakram.post(
       BOOKING_API_BASE + "test-interface/scheduledsession",
       event,
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
     if (respObj.body) {
-      this.logger.log(
+      this.log(
         "\n\n** Test Interface POST response: " +
           respObj.response.statusCode +
           " **\n\n" +
           JSON.stringify(respObj.body, null, 2)
       );
     } else {
-      this.logger.log(
+      this.log(
         "\n\n** Test Interface POST response: " +
           respObj.response.statusCode +
           " **\n\nNO CONTENT"
       );
     }
 
-    return !!respObj.body;
+    return {
+      respObj
+    };
   }
 
-  async deleteScheduledSession(eventName) {
+  async deleteScheduledSession(eventName, params = {}) {
     const respObj = await chakram.delete(
       BOOKING_API_BASE +
         "test-interface/scheduledsession/" +
         encodeURIComponent(eventName),
       null,
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
     if (respObj.body) {
-      this.logger.log(
+      this.log(
         "\n\n** Test Interface DELETE response: " +
           respObj.response.statusCode +
           " **\n\n" +
           JSON.stringify(respObj.body, null, 2)
       );
     } else {
-      this.logger.log(
+      this.log(
         "\n\n** Test Interface DELETE response: " +
           respObj.response.statusCode +
           " **\n\nNO CONTENT"
       );
     }
 
-    return !!respObj.body;
+    return { respObj };
   }
 
-  async deleteOrder(uuid) {
+  async deleteOrder(uuid, params) {
     const respObj = await chakram.delete(
       BOOKING_API_BASE + "orders/" + uuid,
       null,
       {
-        headers: MEDIA_TYPE_HEADERS
+        headers: this.createHeaders(params.sellerId)
       }
     );
 
     if (respObj.body) {
-      this.logger.log(
+      this.log(
         "\n\n** Orders DELETE response: " +
           respObj.response.statusCode +
           " **\n\n" +
           JSON.stringify(respObj.body, null, 2)
       );
     } else {
-      this.logger.log(
+      this.log(
         "\n\n** Orders DELETE response: " +
           respObj.response.statusCode +
           " **\n\nNO CONTENT"
@@ -250,6 +279,14 @@ class TestHelper {
       setTimeout(resolve.bind(null, v), t);
     });
   }
+
+  uuid(sellerId = null) {
+    return uuidv5(
+      "https://www.example.com/example/id/" +
+        Math.floor(Math.random() * 100000),
+      uuidv5.URL
+    ); //TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
+  }
 }
 
-module.exports = TestHelper;
+module.exports = RequestHelper;

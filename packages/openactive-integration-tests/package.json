@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "chakram": "^1.5.0",
+    "leche": "^2.3.0",
     "mocha": "^6.2.2"
   }
 }

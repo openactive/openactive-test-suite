@@ -14,7 +14,7 @@
     "@nano-sql/core": "^2.3.7",
     "config": "^3.2.4",
     "debug": "~2.6.9",
-    "express": "~4.16.0",
+    "express": "^4.17.1",
     "morgan": "~1.9.0",
     "request": "^2.88.0"
   }
