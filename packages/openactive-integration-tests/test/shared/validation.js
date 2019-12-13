@@ -1,14 +1,13 @@
 const assert = require("assert");
-const { validate: validateData } = require("@openactive/data-model-validator");
+const { validate } = require("@openactive/data-model-validator");
 
-// we use a getter method as we aren't able to get the test scope from here
-function validate(getter, name, options = {}) {
+function shouldBeValidResponse(getter, name, options = {}) {
   let results = null;
   let doValidate = async () => {
     if (results) return results;
 
     let value = getter();
-    results = await validateData(value, options);
+    results = await validate(value, options);
     return results;
   };
 
@@ -45,5 +44,5 @@ function validate(getter, name, options = {}) {
 }
 
 module.exports = {
-  validate
+  shouldBeValidResponse
 };

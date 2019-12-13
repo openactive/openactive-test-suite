@@ -1,7 +1,7 @@
 const chakram = require("chakram");
 const RequestHelper = require("../../helpers/request-helper");
-const validationHelper = require("../../helpers/validation-helper");
 const Logger = require("../../helpers/logger");
+const sharedValidationTests = require("../../shared/validation");
 const withData = require("leche").withData;
 
 const expect = chakram.expect;
@@ -237,16 +237,16 @@ withData(data, function(dataItem) {
       );
     });
 
-    validationHelper.validate(() => c1Response.body, "C1", {
+    sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", {
       validationMode: "C1Response"
     });
-    validationHelper.validate(() => c2Response.body, "C2", {
+    sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", {
       validationMode: "C2Response"
     });
-    validationHelper.validate(() => bResponse.body, "B", {
+    sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", {
       validationMode: "BResponse"
     });
 
-    validationHelper.validate(() => ordersFeedUpdate.body, "Orders feed");
+    sharedValidationTests.shouldBeValidResponse(() => ordersFeedUpdate.body, "Orders feed");
   });
 });
