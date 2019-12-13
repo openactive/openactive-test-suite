@@ -1,6 +1,7 @@
 const chakram = require("chakram");
 const RequestHelper = require("../../helpers/request-helper");
 const Logger = require("../../helpers/logger");
+const sharedValidationTests = require("../../shared-behaviours/validation");
 const withData = require("leche").withData;
 
 const expect = chakram.expect;
@@ -58,9 +59,7 @@ withData(data, function(dataItem) {
   describe("Basic end-to-end booking", function() {
     this.timeout(10000);
 
-    var testEvent = dataItem.event;
-    var price = dataItem.price;
-    var eventName = dataItem.name;
+    const { event: testEvent, price, name: eventName } = dataItem;
 
     var opportunityId;
     var offerId;
@@ -237,5 +236,17 @@ withData(data, function(dataItem) {
         "https://openactive.io/CustomerCancelled"
       );
     });
+
+    sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", {
+      validationMode: "C1Response"
+    });
+    sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", {
+      validationMode: "C2Response"
+    });
+    sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", {
+      validationMode: "BResponse"
+    });
+
+    sharedValidationTests.shouldBeValidResponse(() => ordersFeedUpdate.body, "Orders feed");
   });
 });

@@ -11,6 +11,7 @@
   "author": "Nick Evans",
   "license": "MIT",
   "dependencies": {
+    "@openactive/data-model-validator": "^2.0.0",
     "@openactive/data-models": "^1.5.5",
     "config": "^3.2.4",
     "fs-extra": "^7.0.1",
