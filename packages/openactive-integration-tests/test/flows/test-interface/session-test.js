@@ -4,8 +4,6 @@ const chakram = require("chakram");
 const expect = chakram.expect;
 
 describe("Create test event", function() {
-  // this.timeout(10000);
-
   const testHelper = new RequestHelper(null);
   var apiResponse;
 
@@ -35,15 +33,11 @@ describe("Create test event", function() {
       .then(x => testHelper.createScheduledSession(testEvent, {}));
 
     ({ apiResponse } = await prom);
-
-    // return apiResponse;
   });
 
   afterAll(async function() {
     var name = testEvent.superEvent.name;
     let { respObj } = await testHelper.deleteScheduledSession(name);
-
-    // return respObj;
   });
 
   it("should return 200 on success", function() {

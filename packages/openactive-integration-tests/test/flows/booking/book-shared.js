@@ -39,9 +39,8 @@ function performTests(dataItem) {
 
       uuid = testHelper.uuid();
 
+      // get the getMatch in before we create the session (helps with race conditions)
       performGetMatch();
-
-      await testHelper.delay(500);
 
       let session = await testHelper.createScheduledSession(testEvent, {
         sellerId
@@ -64,17 +63,9 @@ function performTests(dataItem) {
     });
 
     const performGetMatch = pMemoize(async function performGetMatch() {
-      // if (opportunityId) return;
-
-      // await testHelper.delay(500);
-
-      console.log("getting match");
-
       ({ opportunityId, offerId, sellerId } = await testHelper.getMatch(
         eventName
       ));
-
-      console.log("got match");
     });
 
     const performC1 = pMemoize(async function performC1() {
