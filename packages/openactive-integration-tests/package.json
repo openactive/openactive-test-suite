@@ -5,9 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "echo \"Error: package contains only tests\" && exit 1",
-    "test": "jest --reporter spec --recursive true ",
-    "debug": "node --inspect-brk -i app.js",
-    "jest": "jest"
+    "test": "jest"
   },
   "author": "Nick Evans",
   "license": "MIT",
