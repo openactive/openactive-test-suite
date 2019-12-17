@@ -15,30 +15,23 @@ function shouldBeValidResponse(getter, name, options = {}) {
     it("passes validation checks", async function() {
       let results = await doValidate();
 
-      results = results.filter(result => result.severity == "failure");
+      let errors = results
+        .filter(result => result.severity === "failure")
+        .map(result => {
+          return `${result.path}: ${result.message.split("\n")[0]}`;
+        });
 
-      results = results.map(result => {
-        return `${result.path}: ${result.message.split("\n")[0]}`;
-      });
+      let warnings = results
+        .filter(result => result.severity === "warning")
+        .map(result => {
+          return `${result.path}: ${result.message.split("\n")[0]}`;
+        });
 
-      if (results.length === 0) return;
+      console.warn(warnings.join("\n"));
 
-      throw new Error(results.join("\n"));
-    });
-
-    it("passes optional validation checks (warnings)", async function() {
-      let results = await doValidate();
-
-      results = results.filter(result => result.severity == "warning");
-
-      results = results.map(result => {
-        return `${result.path}: ${result.message.split("\n")[0]}`;
-      });
-
-      if (results.length === 0) return;
-
-      this.skip();
-      throw new Error(results.join("\n"));
+      if (errors.length > 0) {
+        throw new Error(errors.join("\n"));
+      }
     });
   });
 }

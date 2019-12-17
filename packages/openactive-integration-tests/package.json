@@ -5,8 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "echo \"Error: package contains only tests\" && exit 1",
-    "test": "./node_modules/.bin/mocha --reporter spec",
-    "debug": "node --inspect-brk -i app.js"
+    "test": "jest"
   },
   "author": "Nick Evans",
   "license": "MIT",
@@ -16,11 +15,22 @@
     "config": "^3.2.4",
     "fs-extra": "^7.0.1",
     "mustache": "^3.1.0",
+    "p-memoize": "^3.1.0",
     "sync-request": "^6.0.0"
   },
   "devDependencies": {
     "chakram": "^1.5.0",
-    "leche": "^2.3.0",
-    "mocha": "^6.2.2"
+    "jest": "^24.9.0",
+    "jest-spec-reporter": "^1.0.10"
+  },
+  "jest": {
+    "verbose": false,
+    "testMatch": [
+      "**/*-test.[tj]s?(x)"
+    ],
+    "reporters": [
+      "jest-spec-reporter",
+      "default"
+    ]
   }
 }
