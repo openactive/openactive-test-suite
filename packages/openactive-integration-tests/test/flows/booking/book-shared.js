@@ -51,7 +51,6 @@ function performTests(dataItem) {
 
     afterAll(async function() {
       // by the end, it should have done this already, but let's force it through if it hasn't
-      // await getOrderPromise;
 
       await testHelper.deleteScheduledSession(eventName, {
         sellerId
