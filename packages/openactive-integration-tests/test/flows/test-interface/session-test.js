@@ -63,9 +63,6 @@ describe("Create test event", function() {
   });
 
   it("offer should have price of 14.95", function() {
-     expect(apiResponse).to.have.json(
-      "data.superEvent.offers[0].price",
-      14.95
-    );
+    expect(apiResponse).to.have.json("data.superEvent.offers[0].price", 14.95);
   });
 });
