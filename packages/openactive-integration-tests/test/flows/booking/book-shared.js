@@ -137,143 +137,152 @@ function performTests(dataItem) {
       await getOrderPromise;
     });
 
-    it("c1 should return 200 on success", async function() {
-      await performC1();
 
-      expect(c1Response).to.have.status(200);
-    });
-    it("c2 should return 200 on success", async function() {
-      await performC2();
-
-      expect(c2Response).to.have.status(200);
-    });
-    it("c1 should return 200 on success", async function() {
-      await performB();
-
-      expect(bResponse).to.have.status(200);
-    });
-
-    it("c1 should return newly created event", async function() {
-      await performC1();
-
-      expect(c1Response).to.have.json(
-        "orderedItem[0].orderedItem.@type",
-        "ScheduledSession",
-      );
-      expect(c1Response).to.have.json(
-        "orderedItem[0].orderedItem.superEvent.name",
-        eventName,
-      );
-    });
-
-    it("offer should have price of " + price, async function() {
-      await performC1();
-
-      expect(c1Response).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        price,
-      );
-      expect(c2Response).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        price,
-      );
-      expect(bResponse).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        price,
-      );
-    });
-
-    it("C1 Order or OrderQuote should have one orderedItem", async function() {
-      await performC1();
-
-      expect(c1Response).to.have.schema("orderedItem", {
-        minItems: 1,
-        maxItems: 1,
+    describe('C1', function() {
+      beforeAll(async function() {
+        await performC1();
       });
-    });
 
-    it("C2 Order or OrderQuote should have one orderedItem", async function() {
-      await performC2();
-
-      expect(c2Response).to.have.schema("orderedItem", {
-        minItems: 1,
-        maxItems: 1,
+      it("should return 200 on success", async function() {
+        expect(c1Response).to.have.status(200);
       });
-    });
-    it("B Order or OrderQuote should have one orderedItem", async function() {
-      await performB();
 
-      expect(bResponse).to.have.schema("orderedItem", {
-        minItems: 1,
-        maxItems: 1,
+      it("should return 200 on success", async function() {
+        expect(bResponse).to.have.status(200);
       });
-    });
 
-    it("Result from B should OrderConfirmed orderItemStatus", async function() {
-      await performB();
-
-      return expect(bResponse).to.have.json(
-        "orderedItem[0].orderItemStatus",
-        "https://openactive.io/OrderConfirmed",
-      );
-    });
-
-    it("Orders feed result should have one orderedItem", async function() {
-      await performGetFeedUpdate();
-
-      return expect(ordersFeedUpdate).to.have.schema("data.orderedItem", {
-        minItems: 1,
-        maxItems: 1,
+      it("should return newly created event", async function() {
+        expect(c1Response).to.have.json(
+          "orderedItem[0].orderedItem.@type",
+          "ScheduledSession",
+        );
+        expect(c1Response).to.have.json(
+          "orderedItem[0].orderedItem.superEvent.name",
+          eventName,
+        );
       });
-    });
 
-    it("Orders feed OrderItem should correct price of " + price,
-      async function() {
-        await performGetFeedUpdate();
-
-        return expect(ordersFeedUpdate).to.have.json(
-          "data.orderedItem[0].acceptedOffer.price",
+      it("offer should have price of " + price, async function() {
+        expect(c1Response).to.have.json(
+          "orderedItem[0].acceptedOffer.price",
           price,
         );
       });
 
-    it("Orders feed totalPaymentDue should be correct", async function() {
-      await performGetFeedUpdate();
+      it("C1 Order or OrderQuote should have one orderedItem", async function() {
+        expect(c1Response).to.have.schema("orderedItem", {
+          minItems: 1,
+          maxItems: 1,
+        });
+      });
 
-      return expect(ordersFeedUpdate).to.have.json(
-        "data.totalPaymentDue.price",
-        0,
-      );
+      sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", {
+        validationMode: "C1Response",
+      });
     });
 
-    it("Order Cancellation return 204 on success", async function() {
-      await performU();
+    describe('C2', function() {
+      beforeAll(async function() {
+        await performC2();
+      });
 
-      return expect(uResponse).to.have.status(204);
-    });
+      it("should return 200 on success", async function() {
+        expect(c2Response).to.have.status(200);
+      });
 
-    it("Orders feed should have CustomerCancelled as orderItemStatus",
-      async function() {
-        await performGetFeedUpdate();
-
-        return expect(ordersFeedUpdate).to.have.json(
-          "data.orderedItem[0].orderItemStatus",
-          "https://openactive.io/CustomerCancelled",
+      it("offer should have price of " + price, async function() {
+        expect(c2Response).to.have.json(
+          "orderedItem[0].acceptedOffer.price",
+          price,
         );
       });
 
-    sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", {
-      validationMode: "C1Response",
-    });
-    sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", {
-      validationMode: "C2Response",
-    });
-    sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", {
-      validationMode: "BResponse",
+      it("Order or OrderQuote should have one orderedItem", async function() {
+        expect(c2Response).to.have.schema("orderedItem", {
+          minItems: 1,
+          maxItems: 1,
+        });
+      });
+
+      sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", {
+        validationMode: "C2Response",
+      });
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => ordersFeedUpdate.body,
-      "Orders feed");
+    describe('B', function() {
+      beforeAll(async function() {
+        await performB();
+      });
+
+      it("should have price of " + price, async function() {
+        expect(bResponse).to.have.json(
+          "orderedItem[0].acceptedOffer.price",
+          price,
+        );
+      });
+
+      it("B Order or OrderQuote should have one orderedItem", async function() {
+        expect(bResponse).to.have.schema("orderedItem", {
+          minItems: 1,
+          maxItems: 1,
+        });
+      });
+
+      it("Result from B should OrderConfirmed orderItemStatus", async function() {
+        return expect(bResponse).to.have.json(
+          "orderedItem[0].orderItemStatus",
+          "https://openactive.io/OrderConfirmed",
+        );
+      });
+
+      sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", {
+        validationMode: "BResponse",
+      });
+    });
+
+    describe('Orders Feed', function() {
+      beforeAll(async function() {
+        await performGetFeedUpdate();
+      });
+
+      it("Orders feed result should have one orderedItem", async function() {
+        return expect(ordersFeedUpdate).to.have.schema("data.orderedItem", {
+          minItems: 1,
+          maxItems: 1,
+        });
+      });
+
+      it("Orders feed OrderItem should correct price of " + price,
+        async function() {
+          return expect(ordersFeedUpdate).to.have.json(
+            "data.orderedItem[0].acceptedOffer.price",
+            price,
+          );
+        });
+
+      it("Orders feed totalPaymentDue should be correct", async function() {
+        return expect(ordersFeedUpdate).to.have.json(
+          "data.totalPaymentDue.price",
+          0,
+        );
+      });
+
+      it("Order Cancellation return 204 on success", async function() {
+        return expect(uResponse).to.have.status(204);
+      });
+
+      it("Orders feed should have CustomerCancelled as orderItemStatus",
+        async function() {
+          return expect(ordersFeedUpdate).to.have.json(
+            "data.orderedItem[0].orderItemStatus",
+            "https://openactive.io/CustomerCancelled",
+          );
+        });
+
+      sharedValidationTests.shouldBeValidResponse(() => ordersFeedUpdate.body,
+        "Orders feed");
+    });
+
   });
 }
 
