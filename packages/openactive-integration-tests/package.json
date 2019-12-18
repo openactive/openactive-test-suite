@@ -12,8 +12,10 @@
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.0",
     "@openactive/data-models": "^1.5.5",
+    "axios": "^0.19.0",
     "config": "^3.2.4",
     "fs-extra": "^7.0.1",
+    "moment": "^2.24.0",
     "mustache": "^3.1.0",
     "p-memoize": "^3.1.0",
     "sync-request": "^6.0.0"
@@ -31,6 +33,10 @@
     "reporters": [
       "jest-spec-reporter",
       "default"
-    ]
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>test/setup.js"
+    ],
+    "maxWorkers": 32
   }
 }

@@ -1,15 +1,16 @@
+const moment = require("moment");
 const bookingShared = require("./book-shared");
 
 let testEvent = {
   title: "Single session, 5 spaces, non-free",
-  name: "OpenActiveTestEvent1",
+  name: "OA-Test-ConfAvail-Confirmed",
   price: 14.95,
   event: {
     "@context": "https://openactive.io/",
     "@type": "ScheduledSession",
     superEvent: {
       "@type": "SessionSeries",
-      name: "OpenActiveTestEvent1",
+      name: "OA-Test-ConfAvail-Confirmed",
       offers: [
         {
           "@type": "Offer",
@@ -17,10 +18,18 @@ let testEvent = {
         }
       ]
     },
-    startDate: "2019-11-20T17:26:16.0731663+00:00",
-    endDate: "2019-11-20T19:12:16.0731663+00:00",
+    startDate: moment()
+      .add(6, "d")
+      .format(),
+    endDate: moment()
+      .add(7, "d")
+      .format(),
     maximumAttendeeCapacity: 5
   }
 };
 
-bookingShared.performTests(testEvent);
+describe("Confirm Availability", function() {
+  describe("Availabilty Confirmed", function() {
+    bookingShared.performTests(testEvent);
+  });
+});
