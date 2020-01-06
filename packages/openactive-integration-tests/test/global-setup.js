@@ -8,7 +8,7 @@ var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
 async function ping() {
   let response = await axios.get(MICROSERVICE_BASE + "health-check/");
 
-  assert.strictEqual(response.data, "openactive-broker2");
+  assert.strictEqual(response.data, "openactive-broker");
 
   return true;
 }
