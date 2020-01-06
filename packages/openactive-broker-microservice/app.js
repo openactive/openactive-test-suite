@@ -4,6 +4,11 @@ var request = require("request");
 var nSQL = require("@nano-sql/core").nSQL;
 const config = require("config");
 
+var PORT = 3000;
+var BOOKING_API_BASE = config.get("microservice.bookingApiBase");
+var FEED_BASE = config.get("microservice.openFeedBase");
+var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
+
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env["PORT"] = 3000;
 
@@ -13,11 +18,6 @@ if (REQUEST_LOGGING_ENABLED) {
   app.use(logger("dev"));
 }
 app.use(express.json());
-
-var PORT = 3000;
-var BOOKING_API_BASE = config.get("microservice.bookingApiBase");
-var FEED_BASE = config.get("microservice.openFeedBase");
-var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
 
 nSQL().createDatabase({
   tables: [
