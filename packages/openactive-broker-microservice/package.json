@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "node --inspect-brk -i app.js"
   },
-  "author": "Nick Evans",
+  "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
     "@nano-sql/core": "^2.3.7",

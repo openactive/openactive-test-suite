@@ -7,7 +7,7 @@
     "start": "echo \"Error: package contains only tests\" && exit 1",
     "test": "jest"
   },
-  "author": "Nick Evans",
+  "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.0",
