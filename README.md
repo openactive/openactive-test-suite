@@ -17,7 +17,8 @@ Configure the endpoint urls in:
 
 # Installation
  - `npm install`
- - `npm run lerna bootstrap`
+ 
+This will install the dependencies needed for both packages.
 
 ## Running
 
