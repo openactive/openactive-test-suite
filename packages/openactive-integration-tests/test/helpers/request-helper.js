@@ -69,9 +69,9 @@ class RequestHelper {
     };
   }
 
-  async getMatch(eventName) {
+  async getMatch(eventId) {
     const respObj = await chakram.get(
-      MICROSERVICE_BASE + "get-match/" + encodeURIComponent(eventName)
+      MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId)
     );
     const rpdeItem = respObj.body;
 
@@ -218,11 +218,11 @@ class RequestHelper {
     };
   }
 
-  async deleteScheduledSession(eventName, params = {}) {
+  async deleteScheduledSession(eventId, params = {}) {
     const respObj = await chakram.delete(
       BOOKING_API_BASE +
         "test-interface/scheduledsession/" +
-        encodeURIComponent(eventName),
+        encodeURIComponent(eventId),
       null,
       {
         headers: this.createHeaders(params.sellerId)

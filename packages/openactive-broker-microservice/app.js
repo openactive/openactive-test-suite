@@ -19,6 +19,12 @@ if (REQUEST_LOGGING_ENABLED) {
 }
 app.use(express.json());
 
+// nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
+sessionSeriesMap = {};
+sessionSeriesRpdeMap = {};
+scheduledSessionsMap = {};
+scheduledSessionsRpdeMap = {};
+
 nSQL().createDatabase({
   tables: [
     {
@@ -88,6 +94,16 @@ function getBaseUrl(url) {
     return url.substring(0, url.indexOf("/", url.indexOf("//") + 2));
   } else {
     return "";
+  }
+}
+
+function getOpportunityById(opportunityId) {
+  if (scheduledSessionsMap[opportunityId] && sessionSeriesMap[scheduledSessionsMap[opportunityId].superEvent]) {
+    return Object.assign(
+      {},
+      scheduledSessionsMap[opportunityId],
+      { superEvent: sessionSeriesMap[scheduledSessionsMap[opportunityId].superEvent] }
+    )
   }
 }
 
@@ -187,30 +203,48 @@ app.get("/health-check", function(req, res) {
   res.send("openactive-broker");
 });
 
-app.get("/get-match/:expression", function(req, res) {
+function getMatch(req, res, useCache) {
   // respond with json
-  if (req.params.expression) {
-    var expression = req.params.expression;
+  if (req.params.id) {
+    var id = req.params.id;
 
-    console.log("listening for " + expression);
+    var cachedResponse = getOpportunityById(id);
 
-    // Stash the response and reply later when an event comes through (kill any existing expression still waiting)
-    if (responses[expression] && responses[expression] !== null)
-      responses[expression].end();
-    responses[expression] = {
-      send: function(json) {
-        responses[expression] = null;
-        res.json(json);
-        res.end();
-      },
-      end: function() {
-        res.end();
-      },
-      res
-    };
+    if (useCache && cachedResponse) {
+      console.log("used cached response for " + id);
+      res.json({ data: cachedResponse });
+      res.end();
+      
+    } else {
+      console.log("listening for " + id);
+
+      // Stash the response and reply later when an event comes through (kill any existing id still waiting)
+      if (responses[id] && responses[id] !== null)
+        responses[id].end();
+      responses[id] = {
+        send: function(json) {
+          responses[id] = null;
+          res.json(json);
+          res.end();
+        },
+        end: function() {
+          res.end();
+        },
+        res
+      };
+    }
+
   } else {
-    res.send("Expression not valid");
+    res.send("id not valid");
   }
+}
+
+app.get("/get-cached-opportunity/:id", function(req, res) {
+  getMatch(req, res, true);
+});
+
+app.get("/get-opportunity/:id", function(req, res) {
+  getMatch(req, res, false);
 });
 
 var orderResponses = {
@@ -252,8 +286,7 @@ getRPDE("http://localhost:" + PORT + "/feeds/scheduled-sessions", monitorPage);
 
 getRPDE(BOOKING_API_BASE + "orders-rpde", monitorOrdersPage);
 
-// nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
-sessionSeriesMap = {};
+
 
 function ingestSessionSeriesPage(rpde, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
@@ -273,11 +306,15 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
     jsonLd: item.state == "deleted" ? null : item.data
   }));
 
-  newItems.forEach(item => {
-    if (item.deleted) {
-      delete sessionSeriesMap[item.jsonLdId];
+  rpde.items.forEach(item => {
+    if (item.state == "deleted") {
+      var jsonLdId = sessionSeriesRpdeMap[item.id];
+      delete sessionSeriesMap[jsonLdId];
+      delete sessionSeriesRpdeMap[item.id];
     } else {
-      sessionSeriesMap[item.jsonLdId] = item.jsonLd;
+      var jsonLdId = item.data['@id'];
+      sessionSeriesRpdeMap[item.id] = jsonLdId;
+      sessionSeriesMap[jsonLdId] = item.data;
     }
   });
 
@@ -319,6 +356,18 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
     );
   }
 
+  rpde.items.forEach(item => {
+    if (item.state == "deleted") {
+      var jsonLdId = scheduledSessionsRpdeMap[item.id];
+      delete scheduledSessionsMap[jsonLdId];
+      delete scheduledSessionsRpdeMap[item.id];
+    } else {
+      var jsonLdId = item.data['@id'];
+      scheduledSessionsRpdeMap[item.id] = jsonLdId;
+      scheduledSessionsMap[jsonLdId] = item.data;
+    }
+  });
+
   nSQL("ScheduledSessions")
     .query(
       "upsert",
@@ -354,12 +403,12 @@ function monitorPage(rpde, pageNumber) {
   rpde.items.forEach(item => {
     // TODO: make this regex loop (note ignore deleted items)
     if (item.data && item.data.superEvent) {
-      if (responses[item.data.superEvent.name]) {
-        responses[item.data.superEvent.name].send(item);
+      if (responses[item.data['@id']]) {
+        responses[item.data['@id']].send(item);
 
-        console.log("seen and dispatched " + item.data.superEvent.name);
+        console.log("seen and dispatched " + item.data['@id']);
       } else {
-        console.log("saw " + item.data.superEvent.name);
+        console.log("saw " + item.data['@id']);
       }
     }
   });

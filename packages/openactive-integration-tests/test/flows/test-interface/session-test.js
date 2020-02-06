@@ -6,6 +6,7 @@ const expect = chakram.expect;
 describe("Create test event", function() {
   const testHelper = new RequestHelper(null);
   var apiResponse;
+  var eventId;
 
   var testEvent = {
     "@context": "https://openactive.io/",
@@ -26,18 +27,16 @@ describe("Create test event", function() {
   };
 
   beforeAll(async function() {
-    let prom = testHelper.getMatch("Testevent2");
 
-    testHelper
-      .delay(500)
-      .then(x => testHelper.createScheduledSession(testEvent, {}));
+    let session = await testHelper.createScheduledSession(testEvent, {});
 
-    ({ apiResponse } = await prom);
+    eventId = session.respObj.body['@id'];
+
+    ({ apiResponse } = await testHelper.getMatch(eventId));
   });
 
   afterAll(async function() {
-    var name = testEvent.superEvent.name;
-    let { respObj } = await testHelper.deleteScheduledSession(name);
+    let { respObj } = await testHelper.deleteScheduledSession(eventId);
   });
 
   it("should return 200 on success", function() {

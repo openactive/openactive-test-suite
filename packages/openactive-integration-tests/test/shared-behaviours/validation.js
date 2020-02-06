@@ -1,7 +1,7 @@
 const assert = require("assert");
 const { validate } = require("@openactive/data-model-validator");
 
-function shouldBeValidResponse(getter, name, options = {}) {
+function shouldBeValidResponse(getter, name, logger, options = {}) {
   let results = null;
   let doValidate = async () => {
     if (results) return results;
@@ -18,16 +18,19 @@ function shouldBeValidResponse(getter, name, options = {}) {
       let errors = results
         .filter(result => result.severity === "failure")
         .map(result => {
-          return `${result.path}: ${result.message.split("\n")[0]}`;
+          return `FAILURE: ${result.path}: ${result.message.split("\n")[0]}`;
         });
 
       let warnings = results
         .filter(result => result.severity === "warning")
         .map(result => {
-          return `${result.path}: ${result.message.split("\n")[0]}`;
+          return `WARNING: ${result.path}: ${result.message.split("\n")[0]}`;
         });
 
-      console.warn(warnings.join("\n"));
+      // TODO: These are currently printed randomly in the output, where they should be grouped with the tests
+      // console.warn(warnings.join("\n"));
+
+      logger.log("\n\n" + errors.join("\n") + "\n" + warnings.join("\n") + "\n\n")
 
       if (errors.length > 0) {
         throw new Error(errors.join("\n"));

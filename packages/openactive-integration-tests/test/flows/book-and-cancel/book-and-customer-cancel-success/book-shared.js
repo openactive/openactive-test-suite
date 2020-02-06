@@ -9,6 +9,7 @@ const sharedValidationTests = require("../../../shared-behaviours/validation");
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
 
+  var eventId;
   var opportunityId;
   var offerId;
   var sellerId;
@@ -23,7 +24,7 @@ function performTests(dataItem) {
   var getOrderPromise;
   var ordersFeedUpdate;
 
-  const logger = new Logger(dataItem.title);
+  const logger = new Logger(dataItem.name);
 
   const testHelper = new RequestHelper(logger);
 
@@ -34,12 +35,13 @@ function performTests(dataItem) {
 
     uuid = testHelper.uuid();
 
-    // get the getMatch in before we create the session (helps with race conditions)
-    performGetMatch();
-
     let session = await testHelper.createScheduledSession(testEvent, {
       sellerId
     });
+
+    eventId = session.respObj.body['@id'];
+
+    await performGetMatch();
 
     return chakram.wait();
   });
@@ -47,7 +49,7 @@ function performTests(dataItem) {
   afterAll(async function() {
     // by the end, it should have done this already, but let's force it through if it hasn't
 
-    await testHelper.deleteScheduledSession(eventName, {
+    await testHelper.deleteScheduledSession(eventId, {
       sellerId
     });
     await testHelper.deleteOrder(uuid, {
@@ -58,7 +60,7 @@ function performTests(dataItem) {
 
   const performGetMatch = pMemoize(async function performGetMatch() {
     ({ opportunityId, offerId, sellerId } = await testHelper.getMatch(
-      eventName
+      eventId
     ));
   });
 
@@ -153,7 +155,7 @@ function performTests(dataItem) {
       });
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", {
+    sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", logger, {
       validationMode: "C1Response"
     });
   });
@@ -181,7 +183,7 @@ function performTests(dataItem) {
       });
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", {
+    sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", logger, {
       validationMode: "C2Response"
     });
   });
@@ -216,7 +218,7 @@ function performTests(dataItem) {
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", {
+    sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", logger, {
       validationMode: "BResponse"
     });
   });
@@ -262,8 +264,9 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => ordersFeedUpdate.body,
-      "Orders feed"
+      () => ordersFeedUpdate.body.data,
+      "Orders feed",
+      logger
     );
   });
 }
