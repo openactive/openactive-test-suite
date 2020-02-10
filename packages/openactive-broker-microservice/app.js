@@ -5,7 +5,7 @@ var nSQL = require("@nano-sql/core").nSQL;
 const config = require("config");
 
 var PORT = 3000;
-var BOOKING_API_BASE = config.get("microservice.bookingApiBase");
+var BOOKING_API_BASE = config.get("microservice.pollOrdersBookingFeed") ? config.get("microservice.bookingApiBase") : null;
 var FEED_BASE = config.get("microservice.openFeedBase");
 var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
 
@@ -51,7 +51,8 @@ nSQL().createDatabase({
         "jsonLdId:string": {},
         "feedModified:int": {},
         "jsonLd:obj": {},
-        "jsonLdParentId:string": {}
+        "jsonLdParentId:string": {},
+        "parentIngested:bool": {}
       },
       indexes: {
         "jsonLdParentId:string": {
@@ -130,7 +131,11 @@ app.get("/feeds/scheduled-sessions", function(req, res) {
     ])
     .where(
       afterTimestamp != null
-        ? [
+        ?
+        [ 
+          ["parentIngested", "=", true],
+          "AND",
+          [
             [
               [
                 ["feedModified", "=", afterTimestamp],
@@ -143,7 +148,9 @@ app.get("/feeds/scheduled-sessions", function(req, res) {
             "AND",
             ["feedModified", "<=", Date.now()] // Only show items that have been updated and are ready for display
           ]
-        : true
+        ]
+        :
+        ["parentIngested", "=", true]
     )
     .orderBy({ feedModified: "asc", jsonLdId: "asc" })
     .limit(PAGE_SIZE)
@@ -284,7 +291,9 @@ getRPDE(FEED_BASE + "scheduled-sessions", ingestScheduledSessionPage);
 getRPDE("http://localhost:" + PORT + "/feeds/scheduled-sessions", monitorPage);
 //});
 
-getRPDE(BOOKING_API_BASE + "orders-rpde", monitorOrdersPage);
+// Only poll orders feed if enabled
+if (BOOKING_API_BASE != null)
+  getRPDE(BOOKING_API_BASE + "orders-rpde", monitorOrdersPage);
 
 
 
@@ -302,7 +311,7 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
     modified: item.modified,
     deleted: item.state == "deleted",
     feedModified: Date.now() + 1000, // 1 second in the future
-    jsonLdId: item.state == "deleted" ? null : item.data["@id"],
+    jsonLdId: item.state == "deleted" ? null : item.data['@id'] || item.data['id'],
     jsonLd: item.state == "deleted" ? null : item.data
   }));
 
@@ -312,7 +321,7 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
       delete sessionSeriesMap[jsonLdId];
       delete sessionSeriesRpdeMap[item.id];
     } else {
-      var jsonLdId = item.data['@id'];
+      var jsonLdId = item.data['@id'] || item.data['id'];
       sessionSeriesRpdeMap[item.id] = jsonLdId;
       sessionSeriesMap[jsonLdId] = item.data;
     }
@@ -325,14 +334,15 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
       // Update any children that reference this parent
       nSQL("ScheduledSessions")
         .query("upsert", {
-          feedModified: Date.now() + 1000 // 1 second in the future
+          feedModified: Date.now() + 1000, // 1 second in the future
+          parentIngested: true
         })
         .where([
           "jsonLdParentId",
           "IN",
           rpde.items
             .filter(item => item.state != "deleted")
-            .map(item => item.data["@id"])
+            .map(item => item.data['@id'] || item.data['id'])
         ])
         .exec()
         .then(() => {
@@ -362,7 +372,7 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
       delete scheduledSessionsMap[jsonLdId];
       delete scheduledSessionsRpdeMap[item.id];
     } else {
-      var jsonLdId = item.data['@id'];
+      var jsonLdId = item.data['@id'] || item.data['id'];
       scheduledSessionsRpdeMap[item.id] = jsonLdId;
       scheduledSessionsMap[jsonLdId] = item.data;
     }
@@ -376,9 +386,10 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
         modified: item.modified,
         deleted: item.state == "deleted",
         feedModified: Date.now() + 1000, // 1 second in the future,
-        jsonLdId: item.state == "deleted" ? null : item.data["@id"],
+        jsonLdId: item.state == "deleted" ? null : item.data['@id'] || item.data['id'],
         jsonLd: item.state == "deleted" ? null : item.data,
-        jsonLdParentId: item.state == "deleted" ? null : item.data.superEvent
+        jsonLdParentId: item.state == "deleted" ? null : item.data.superEvent,
+        parentIngested: typeof sessionSeriesMap[item.data.superEvent] !== "undefined"
       }))
     )
     .exec()
@@ -403,17 +414,18 @@ function monitorPage(rpde, pageNumber) {
   rpde.items.forEach(item => {
     // TODO: make this regex loop (note ignore deleted items)
     if (item.data && item.data.superEvent) {
-      if (responses[item.data['@id']]) {
-        responses[item.data['@id']].send(item);
+      var id = item.data['@id'] || item.data['id'];
+      if (responses[id]) {
+        responses[id].send(item);
 
-        console.log("seen and dispatched " + item.data['@id']);
+        console.log("seen and dispatched " + id);
       } else {
-        console.log("saw " + item.data['@id']);
+        console.log("saw " + id);
       }
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, monitorPage), 200);
+  setTimeout(x => getRPDE(rpde.next, monitorPage), 5000);
 }
 
 function monitorOrdersPage(rpde, pageNumber) {
