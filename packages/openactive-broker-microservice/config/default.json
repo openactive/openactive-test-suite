@@ -1,7 +1,8 @@
 {
   "microservice": {
     "bookingApiBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/openbooking/",
-    "openFeedBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/feeds/"
+    "openFeedBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/feeds/",
+    "pollOrdersBookingFeed": true
   },
   "requestLogging": false
 }
