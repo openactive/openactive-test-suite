@@ -32,7 +32,7 @@ npm run start
 
 ### Tests
 ```bash
-cd packages/openactive-integeration-tests
+cd packages/openactive-integration-tests
 npm run test
 ```
 
