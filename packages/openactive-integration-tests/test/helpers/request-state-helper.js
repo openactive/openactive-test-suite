@@ -46,7 +46,7 @@ class RequestStateHelper {
   }
 
   async deleteScheduledSession() {
-    await state.deleteScheduledSession(eventId, {
+    await this.requestHelper.deleteScheduledSession(eventId, {
       sellerId
     });
   }
