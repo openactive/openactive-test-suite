@@ -37,7 +37,7 @@ class RequestHelper {
   }
 
   bookingTemplate(logger, templateJson, replacementMap, removePayment) {
-    if (typeof replacementMap.totalPaymentDue !== "undefined")
+    if (typeof replacementMap.totalPaymentDue !== "undefined" && templateJson.totalPaymentDue)
       templateJson.totalPaymentDue.price = replacementMap.totalPaymentDue;
     var template = JSON.stringify(templateJson, null, 2);
 

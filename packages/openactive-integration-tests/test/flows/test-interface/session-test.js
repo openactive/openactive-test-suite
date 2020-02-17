@@ -27,10 +27,9 @@ describe("Create test event", function() {
   };
 
   beforeAll(async function() {
-
     let session = await testHelper.createScheduledSession(testEvent, {});
 
-    eventId = session.respObj.body['@id'];
+    eventId = session.respObj.body["@id"];
 
     ({ apiResponse } = await testHelper.getMatch(eventId));
   });

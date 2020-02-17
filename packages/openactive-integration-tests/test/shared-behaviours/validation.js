@@ -30,7 +30,9 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
       // TODO: These are currently printed randomly in the output, where they should be grouped with the tests
       // console.warn(warnings.join("\n"));
 
-      logger.log("\n\n" + errors.join("\n") + "\n" + warnings.join("\n") + "\n\n")
+      logger.log(
+        "\n\n" + errors.join("\n") + "\n" + warnings.join("\n") + "\n\n"
+      );
 
       if (errors.length > 0) {
         throw new Error(errors.join("\n"));
