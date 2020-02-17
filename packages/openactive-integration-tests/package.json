@@ -16,7 +16,6 @@
     "config": "^3.2.4",
     "fs-extra": "^7.0.1",
     "moment": "^2.24.0",
-    "mustache": "^3.1.0",
     "p-memoize": "^3.1.0",
     "sync-request": "^6.0.0"
   },
@@ -38,6 +37,7 @@
       "<rootDir>test/setup.js"
     ],
     "globalSetup": "<rootDir>test/global-setup.js",
-    "maxWorkers": 32
+    "maxWorkers": 32,
+    "testTimeout": 15000
   }
 }
