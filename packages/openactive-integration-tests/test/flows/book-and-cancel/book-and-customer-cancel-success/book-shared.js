@@ -2,7 +2,7 @@ const chakram = require("chakram");
 const expect = chakram.expect;
 
 const Logger = require("../../../helpers/logger");
-const {RequestStateHelper} = require("../../../helpers/request-state-helper");
+const {RequestState} = require("../../../helpers/request-state");
 const {FlowHelper} = require("../../../helpers/flow-helper");
 const sharedValidationTests = require("../../../shared-behaviours/validation");
 
@@ -11,7 +11,7 @@ function performTests(dataItem) {
 
   const logger = new Logger(dataItem.name);
 
-  const state = new RequestStateHelper(logger);
+  const state = new RequestState(logger);
   const flow = new FlowHelper(state);
 
   beforeAll(async function() {

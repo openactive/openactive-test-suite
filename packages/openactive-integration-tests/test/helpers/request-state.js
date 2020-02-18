@@ -1,7 +1,7 @@
 const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 
-class RequestStateHelper {
+class RequestState {
   constructor (logger) {
     this.requestHelper = new RequestHelper(logger);
     this.logger = logger;
@@ -129,5 +129,5 @@ class RequestStateHelper {
 }
 
 module.exports = {
-  RequestStateHelper
+  RequestState
 };
