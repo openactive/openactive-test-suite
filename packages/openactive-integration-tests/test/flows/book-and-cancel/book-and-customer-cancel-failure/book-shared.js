@@ -134,7 +134,7 @@ function performTests(dataItem) {
     });
 
     it("Result from B should OrderItemConfirmed orderItemStatus", function() {
-      return expect(state.bResponse).to.have.json(
+      expect(state.bResponse).to.have.json(
         "orderedItem[0].orderItemStatus",
         "https://openactive.io/OrderItemConfirmed"
       );
