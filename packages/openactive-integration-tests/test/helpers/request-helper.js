@@ -7,6 +7,7 @@ const config = require("config");
 
 var BOOKING_API_BASE = config.get("tests.bookingApiBase");
 var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
+var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
 
 var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
@@ -156,7 +157,12 @@ class RequestHelper {
   }
 
   async createScheduledSession(event, params) {
-    const respObj = await chakram.post(
+    const respObj = USE_RANDOM_OPPORTUNITIES ? 
+    await chakram.get(
+      "http://localhost:3000/get-random-opportunity"
+    ) 
+    : 
+    await chakram.post(
       BOOKING_API_BASE + "test-interface/scheduledsession",
       event,
       {

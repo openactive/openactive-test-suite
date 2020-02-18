@@ -263,7 +263,7 @@ app.get("/get-opportunity/:id", function(req, res) {
 
 app.get("/get-random-opportunity", function(req, res) {
   var randomOpportunity = getRandomBookableOpportunity();
-  console.log("Random Bookable Opportunity: " + randomOpportunity['@id']);
+  console.log("Random Bookable Opportunity: " + randomOpportunity);
   res.json({ 
     "@context": "https://openactive.io/",
     "@type": "ScheduledSession",
