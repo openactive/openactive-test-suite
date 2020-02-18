@@ -6,8 +6,14 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
   let doValidate = async () => {
     if (results) return results;
 
+    let optionsWithRemoteJson = Object.assign({  
+      loadRemoteJson: true,
+      remoteJsonCachePath: '/tmp',
+      remoteJsonCacheTimeToLive: 3600
+    }, options);
+
     let value = getter();
-    results = await validate(value, options);
+    results = await validate(value, optionsWithRemoteJson);
     return results;
   };
 
@@ -30,7 +36,9 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
       // TODO: These are currently printed randomly in the output, where they should be grouped with the tests
       // console.warn(warnings.join("\n"));
 
-      logger.log("\n\n" + errors.join("\n") + "\n" + warnings.join("\n") + "\n\n")
+      logger.log(
+        "\n\n" + errors.join("\n") + "\n" + warnings.join("\n") + "\n\n"
+      );
 
       if (errors.length > 0) {
         throw new Error(errors.join("\n"));
