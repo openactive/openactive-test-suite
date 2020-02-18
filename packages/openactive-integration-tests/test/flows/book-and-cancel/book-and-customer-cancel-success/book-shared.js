@@ -68,11 +68,7 @@ function performTests(dataItem) {
       });
     });
 
-    sharedValidationTests.shouldBeValidResponse(
-      () => state.c1Response.body,
-      "C1",
-      logger,
-      {
+    sharedValidationTests.shouldBeValidResponse(() => state.c1Response.body, "C1", logger, {
         validationMode: "C1Response"
       }
     );
@@ -134,21 +130,16 @@ function performTests(dataItem) {
       });
     });
 
-    it("Result from B should OrderConfirmed orderItemStatus", function() {
+    it("Result from B should OrderItemConfirmed orderItemStatus", function() {
       expect(state.bResponse).to.have.json(
         "orderedItem[0].orderItemStatus",
-        "https://openactive.io/OrderConfirmed"
+        "https://openactive.io/OrderItemConfirmed"
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(
-      () => state.bResponse.body,
-      "B",
-      logger,
-      {
-        validationMode: "BResponse"
-      }
-    );
+    sharedValidationTests.shouldBeValidResponse(() => state.bResponse.body, "B", logger, {
+      validationMode: "BResponse"
+    });
   });
 
   describe("Orders Feed", function() {
@@ -191,11 +182,9 @@ function performTests(dataItem) {
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(
-      () => state.ordersFeedUpdate.body.data,
-      "Orders feed",
-      logger
-    );
+    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate.body.data, "Orders feed", logger, {
+      validationMode: "OrdersFeed",
+    });
   });
 }
 

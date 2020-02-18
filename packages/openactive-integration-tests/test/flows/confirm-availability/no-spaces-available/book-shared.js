@@ -42,7 +42,7 @@ function performTests(dataItem) {
     });
 
     it("should return a OpportunityIsFullError error", async function() {
-      return expect(state.c1Response).to.have.json(
+      expect(state.c1Response).to.have.json(
         "@type",
         "OpportunityIsFullError"
       );
