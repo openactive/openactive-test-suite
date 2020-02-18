@@ -189,6 +189,8 @@ class RequestHelper {
   }
 
   async deleteScheduledSession(eventId, params = {}) {
+    if (USE_RANDOM_OPPORTUNITIES) return null;
+    
     const respObj = await chakram.delete(
       BOOKING_API_BASE +
         "test-interface/scheduledsession/" +
