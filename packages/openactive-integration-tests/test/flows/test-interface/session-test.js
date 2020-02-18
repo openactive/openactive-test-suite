@@ -1,10 +1,10 @@
-const RequestHelper = require("../../helpers/request-helper");
+const {RequestState} = require("../../helpers/request-state");
 
 const chakram = require("chakram");
 const expect = chakram.expect;
 
 describe("Create test event", function() {
-  const testHelper = new RequestHelper(null);
+  const testHelper = new RequestState(null);
   var apiResponse;
   var eventId;
 
@@ -27,12 +27,9 @@ describe("Create test event", function() {
   };
 
   beforeAll(async function() {
-
     let session = await testHelper.createScheduledSession(testEvent, {});
 
-    eventId = session.respObj.body['@id'];
-
-    ({ apiResponse } = await testHelper.getMatch(eventId));
+    ({ apiResponse } = await testHelper.getMatch(session.eventId));
   });
 
   afterAll(async function() {

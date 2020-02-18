@@ -1,276 +1,203 @@
 const chakram = require("chakram");
 const expect = chakram.expect;
-const pMemoize = require("p-memoize");
-const RequestHelper = require("../../../helpers/request-helper");
 const Logger = require("../../../helpers/logger");
+const {RequestState} = require("../../../helpers/request-state");
+const {FlowHelper} = require("../../../helpers/flow-helper");
 const sharedValidationTests = require("../../../shared-behaviours/validation");
 
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
 
-  var eventId;
-  var opportunityId;
-  var offerId;
-  var sellerId;
-  var uuid;
-  var totalPaymentDue;
-  var orderItemId;
-
-  var c1Response;
-  var c2Response;
-  var bResponse;
-  var uResponse;
-  var getOrderPromise;
-  var ordersFeedUpdate;
-
   const logger = new Logger(dataItem.name);
 
-  const testHelper = new RequestHelper(logger);
+  const state = new RequestState(logger);
+  const flow = new FlowHelper(state);
 
   beforeAll(async function() {
     logger.log(
       "\n\n** Test Event **: \n\n" + JSON.stringify(testEvent, null, 2)
     );
 
-    uuid = testHelper.uuid();
-
-    let session = await testHelper.createScheduledSession(testEvent, {
-      sellerId
-    });
-
-    eventId = session.respObj.body['@id'];
-
-    await performGetMatch();
+    await state.createScheduledSession(testEvent);
+    await flow.getMatch();
 
     return chakram.wait();
   });
 
   afterAll(async function() {
-    // by the end, it should have done this already, but let's force it through if it hasn't
+    await state.deleteScheduledSession();
 
-    await testHelper.deleteScheduledSession(eventId, {
-      sellerId
-    });
-    await testHelper.deleteOrder(uuid, {
-      sellerId
+    await testHelper.deleteOrder(state.uuid, {
+      sellerId: state.sellerId
     });
     return chakram.wait();
   });
 
-  const performGetMatch = pMemoize(async function performGetMatch() {
-    ({ opportunityId, offerId, sellerId } = await testHelper.getMatch(
-      eventId
-    ));
-  });
-
-  const performC1 = pMemoize(async function performC1() {
-    await performGetMatch();
-
-    ({ c1Response, totalPaymentDue } = await testHelper.putOrderQuoteTemplate(
-      uuid,
-      {
-        opportunityId,
-        offerId,
-        sellerId,
-        uuid
-      }
-    ));
-  });
-
-  const performC2 = pMemoize(async function performC2() {
-    await performC1();
-
-    ({ c2Response, totalPaymentDue } = await testHelper.putOrderQuote(uuid, {
-      opportunityId,
-      offerId,
-      sellerId,
-      uuid
-    }));
-  });
-
-  const performB = pMemoize(async function performB() {
-    getOrderPromise = testHelper.getOrder(uuid).then(res => {
-      ({ ordersFeedUpdate } = res);
-    });
-
-    await performC2();
-
-    ({ bResponse, orderItemId } = await testHelper.putOrder(uuid, {
-      opportunityId,
-      offerId,
-      sellerId,
-      uuid,
-      totalPaymentDue
-    }));
-  });
-
-  // cancel
-  const performU = pMemoize(async function performU() {
-    await performB();
-
-    ({ uResponse } = await testHelper.cancelOrder(uuid, {
-      orderItemId,
-      sellerId
-    }));
-  });
-
-  const performGetFeedUpdate = pMemoize(async function performGetFeedUpdate() {
-    await performU();
-
-    await getOrderPromise;
-  });
-
   describe("C1", function() {
     beforeAll(async function() {
-      await performC1();
+      await flow.C1();
     });
 
-    it("should return 200 on success", async function() {
-      expect(c1Response).to.have.status(200);
+    it("should return 200 on success", function() {
+      expect(state.c1Response).to.have.status(200);
     });
 
-    it("should return 200 on success", async function() {
-      expect(bResponse).to.have.status(200);
-    });
-
-    it("should return newly created event", async function() {
-      expect(c1Response).to.have.json(
+    it("should return newly created event", function() {
+      expect(state.c1Response).to.have.json(
         "orderedItem[0].orderedItem.@type",
         "ScheduledSession"
       );
-      expect(c1Response).to.have.json(
+      expect(state.c1Response).to.have.json(
         "orderedItem[0].orderedItem.superEvent.name",
         eventName
       );
     });
 
-    it("offer should have price of " + price, async function() {
-      expect(c1Response).to.have.json(
+    it("offer should have price of " + price, function() {
+      expect(state.c1Response).to.have.json(
         "orderedItem[0].acceptedOffer.price",
         price
       );
     });
 
-    it("C1 Order or OrderQuote should have one orderedItem", async function() {
-      expect(c1Response).to.have.schema("orderedItem", {
+    it("C1 Order or OrderQuote should have one orderedItem", function() {
+      expect(state.c1Response).to.have.schema("orderedItem", {
         minItems: 1,
         maxItems: 1
       });
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => c1Response.body, "C1", logger, {
-      validationMode: "C1Response"
-    });
+    sharedValidationTests.shouldBeValidResponse(
+      () => state.c1Response.body,
+      "C1",
+      logger,
+      {
+        validationMode: "c1Response"
+      }
+    );
   });
 
   describe("C2", function() {
     beforeAll(async function() {
-      await performC2();
+      await flow.C2();
     });
 
-    it("should return 200 on success", async function() {
-      expect(c2Response).to.have.status(200);
+    it("should return 200 on success", function() {
+      expect(state.c2Response).to.have.status(200);
     });
 
-    it("offer should have price of " + price, async function() {
-      expect(c2Response).to.have.json(
+    it("offer should have price of " + price, function() {
+      expect(state.c2Response).to.have.json(
         "orderedItem[0].acceptedOffer.price",
         price
       );
     });
 
-    it("Order or OrderQuote should have one orderedItem", async function() {
-      expect(c2Response).to.have.schema("orderedItem", {
+    it("Order or OrderQuote should have one orderedItem", function() {
+      expect(state.c2Response).to.have.schema("orderedItem", {
         minItems: 1,
         maxItems: 1
       });
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => c2Response.body, "C2", logger, {
-      validationMode: "C2Response"
-    });
+    sharedValidationTests.shouldBeValidResponse(
+      () => state.c2Response.body,
+      "C2",
+      logger,
+      {
+        validationMode: "c2Response"
+      }
+    );
   });
 
   describe("B", function() {
     beforeAll(async function() {
-      await performB();
+      await flow.B();
     });
 
-    it("should have price of " + price, async function() {
-      expect(bResponse).to.have.json(
+    it("should return 200 on success", function() {
+      expect(state.bResponse).to.have.status(200);
+    });
+
+    it("should have price of " + price, function() {
+      expect(state.bResponse).to.have.json(
         "orderedItem[0].acceptedOffer.price",
         price
       );
     });
 
-    it("B Order or OrderQuote should have one orderedItem", async function() {
-      expect(bResponse).to.have.schema("orderedItem", {
+    it("B Order or OrderQuote should have one orderedItem", function() {
+      expect(state.bResponse).to.have.schema("orderedItem", {
         minItems: 1,
         maxItems: 1
       });
     });
 
-    it("Result from B should OrderItemConfirmed orderItemStatus", async function() {
-      return expect(bResponse).to.have.json(
+    it("Result from B should OrderItemConfirmed orderItemStatus", function() {
+      expect(state.bResponse).to.have.json(
         "orderedItem[0].orderItemStatus",
         "https://openactive.io/OrderItemConfirmed"
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => bResponse.body, "B", logger, {
-      validationMode: "BResponse"
-    });
+    sharedValidationTests.shouldBeValidResponse(
+      () => state.bResponse.body,
+      "B",
+      logger,
+      {
+        validationMode: "bResponse"
+      }
+    );
   });
 
   describe("Orders Feed", function() {
     beforeAll(async function() {
-      await performGetFeedUpdate();
+      await flow.getFeedUpdate();
     });
 
-    it("Orders feed result should have one orderedItem", async function() {
-      return expect(ordersFeedUpdate).to.have.schema("data.orderedItem", {
+    it("Orders feed result should have one orderedItem", function() {
+      expect(state.ordersFeedUpdate).to.have.schema("data.orderedItem", {
         minItems: 1,
         maxItems: 1
       });
     });
 
     it(
-      "Orders feed OrderItem should correct price of " + price,
-      async function() {
-        expect(ordersFeedUpdate).to.have.json(
+      "Orders feed OrderItem should correct price of " + price, function() {
+        expect(state.ordersFeedUpdate).to.have.json(
           "data.orderedItem[0].acceptedOffer.price",
           price
         );
       }
     );
 
-    it("Orders feed totalPaymentDue should be correct", async function() {
-      expect(ordersFeedUpdate).to.have.json("data.totalPaymentDue.price", 0);
+    it("Orders feed totalPaymentDue should be correct", function() {
+      expect(state.ordersFeedUpdate).to.have.json("data.totalPaymentDue.price", 0);
     });
 
-    it("Order Cancellation return 204 on success", async function() {
-      expect(uResponse).to.have.status(204);
+    it("Order Cancellation return 204 on success", function() {
+      expect(state.uResponse).to.have.status(204);
     });
 
-    it("Orders feed should have CustomerCancelled as orderItemStatus", async function() {
-      expect(ordersFeedUpdate).to.have.json(
+    it("Orders feed should have CustomerCancelled as orderItemStatus", function() {
+      expect(state.ordersFeedUpdate).to.have.json(
         "data.orderedItem[0].orderItemStatus",
         "https://openactive.io/CustomerCancelled"
       );
     });
 
-    it("Order Cancellation return 400 on error", async function() {
-      expect(uResponse).to.have.status(400);
+    it("Order Cancellation return 400 on error", function() {
+      expect(state.uResponse).to.have.status(400);
     });
 
-    it("Order Cancellation should return CancellationNotPermittedError", async function() {
-      expect(uResponse).to.have.json("@type", "CancellationNotPermittedError");
+    it("Order Cancellation should return CancellationNotPermittedError", function() {
+      expect(state.uResponse).to.have.json("@type", "CancellationNotPermittedError");
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => ordersFeedUpdate.body.data,
+      () => state.ordersFeedUpdate.body.data,
       "Orders feed",
-      logger, 
+      logger,
       {
         validationMode: "OrdersFeed",
       }
