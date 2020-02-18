@@ -1,7 +1,6 @@
-const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 
-class DefaultFlowHelper {
+class FlowHelper {
   constructor (helper) {
     this.helper = helper;
   }
@@ -9,9 +8,7 @@ class DefaultFlowHelper {
   log (msg) {
     this.helper.logger.log(msg);
   }
-}
 
-class FlowHelper extends DefaultFlowHelper {
   getMatch = pMemoize(async getMatch => {
     return this.helper.getMatch();
   });
@@ -50,6 +47,5 @@ class FlowHelper extends DefaultFlowHelper {
 }
 
 module.exports = {
-  DefaultFlowHelper,
   FlowHelper
 };
