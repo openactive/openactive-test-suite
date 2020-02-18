@@ -425,7 +425,7 @@ function monitorPage(rpde, pageNumber) {
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, monitorPage), 5000);
+  setTimeout(x => getRPDE(rpde.next, monitorPage), 200);
 }
 
 function monitorOrdersPage(rpde, pageNumber) {

@@ -6,8 +6,14 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
   let doValidate = async () => {
     if (results) return results;
 
+    let optionsWithRemoteJson = Object.assign({  
+      loadRemoteJson: true,
+      remoteJsonCachePath: '/tmp',
+      remoteJsonCacheTimeToLive: 3600
+    }, options);
+
     let value = getter();
-    results = await validate(value, options);
+    results = await validate(value, optionsWithRemoteJson);
     return results;
   };
 

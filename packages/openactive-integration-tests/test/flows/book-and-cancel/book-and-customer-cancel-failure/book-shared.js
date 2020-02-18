@@ -210,10 +210,10 @@ function performTests(dataItem) {
       });
     });
 
-    it("Result from B should OrderConfirmed orderItemStatus", async function() {
+    it("Result from B should OrderItemConfirmed orderItemStatus", async function() {
       return expect(bResponse).to.have.json(
         "orderedItem[0].orderItemStatus",
-        "https://openactive.io/OrderConfirmed"
+        "https://openactive.io/OrderItemConfirmed"
       );
     });
 
@@ -270,7 +270,10 @@ function performTests(dataItem) {
     sharedValidationTests.shouldBeValidResponse(
       () => ordersFeedUpdate.body.data,
       "Orders feed",
-      logger
+      logger, 
+      {
+        validationMode: "OrdersFeed",
+      }
     );
   });
 }
