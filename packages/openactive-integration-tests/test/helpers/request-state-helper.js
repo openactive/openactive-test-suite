@@ -31,15 +31,11 @@ class RequestStateHelper {
   }
 
   async deleteScheduledSession() {
-    await this.requestHelper.deleteScheduledSession(eventId, {
-      sellerId
+    await this.requestHelper.deleteScheduledSession(this.eventId, {
+      sellerId: this.sellerId
     });
   }
 
-  /**
-   * Assigns rpdeItem, ordersFeedUpdate
-   * @returns {Promise<RequestStateHelper>}
-   */
   async getOrder () {
     let result = await this.requestHelper.getOrder(this.uuid);
 
@@ -54,10 +50,6 @@ class RequestStateHelper {
     return this.ordersFeedUpdate.body;
   }
 
-  /**
-   * Assigns apiResponse, opportunityId,  offerId, sellerId
-   * @returns {Promise<RequestStateHelper>}
-   */
   async getMatch () {
     let result = await this.requestHelper.getMatch(this.eventId);
 
@@ -84,10 +76,6 @@ class RequestStateHelper {
     return this.apiResponse.body.data.superEvent.organizer["@id"];
   }
 
-  /**
-   * Assigns c1Response, totalPaymentDue
-   * @returns {Promise<RequestStateHelper>}
-   */
   async putOrderQuoteTemplate () {
     let result = await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
 
@@ -104,10 +92,6 @@ class RequestStateHelper {
     return response.body.totalPaymentDue.price;
   }
 
-  /**
-   * Assigns c2Response, totalPaymentDue
-   * @returns {Promise<RequestStateHelper>}
-   */
   async putOrderQuote () {
     let result = await this.requestHelper.putOrderQuote(this.uuid, this);
 
@@ -116,10 +100,6 @@ class RequestStateHelper {
     return this;
   }
 
-  /**
-   * Assigns bResponse, orderItemId
-   * @returns {Promise<RequestStateHelper>}
-   */
   async putOrder () {
     let result = await this.requestHelper.putOrder(this.uuid, this);
 
@@ -139,10 +119,6 @@ class RequestStateHelper {
     }
   }
 
-  /**
-   * Assigns uResponse
-   * @returns {Promise<RequestStateHelper>}
-   */
   async cancelOrder () {
     let result = await this.requestHelper.cancelOrder(this.uuid, this);
 
