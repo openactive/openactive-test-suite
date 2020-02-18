@@ -85,7 +85,7 @@ function getRPDE(url, cb) {
     } else {
       console.log("Error for RPDE page: " + error + ". Response: " + body);
       // Fake next page to force retry, after a delay
-      setTimeout(cb({ next: url, items: [] }), 5000);
+      setTimeout(x => getRPDE(url, cb), 5000);
     }
   });
 }
@@ -96,6 +96,13 @@ function getBaseUrl(url) {
   } else {
     return "";
   }
+}
+
+var bookableOpportunityIds = [];
+
+function getRandomBookableOpportunity() {
+  if (bookableOpportunityIds.length == 0) return null;
+  return bookableOpportunityIds[Math.floor(Math.random() * bookableOpportunityIds.length)];
 }
 
 function getOpportunityById(opportunityId) {
@@ -254,6 +261,17 @@ app.get("/get-opportunity/:id", function(req, res) {
   getMatch(req, res, false);
 });
 
+app.get("/get-random-opportunity", function(req, res) {
+  var randomOpportunity = getRandomBookableOpportunity();
+  console.log("Random Bookable Opportunity: " + randomOpportunity['@id']);
+  res.json({ 
+    "@context": "https://openactive.io/",
+    "@type": "ScheduledSession",
+    "@id": randomOpportunity
+  });
+  res.end();
+});
+
 var orderResponses = {
   /* Keyed by expression =*/
 };
@@ -389,7 +407,7 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
         jsonLdId: item.state == "deleted" ? null : item.data['@id'] || item.data['id'],
         jsonLd: item.state == "deleted" ? null : item.data,
         jsonLdParentId: item.state == "deleted" ? null : item.data.superEvent,
-        parentIngested: typeof sessionSeriesMap[item.data.superEvent] !== "undefined"
+        parentIngested: item.state == "deleted" ? false : typeof sessionSeriesMap[item.data.superEvent] !== "undefined"
       }))
     )
     .exec()
@@ -415,6 +433,11 @@ function monitorPage(rpde, pageNumber) {
     // TODO: make this regex loop (note ignore deleted items)
     if (item.data && item.data.superEvent) {
       var id = item.data['@id'] || item.data['id'];
+
+      if (Date.parse(item.data.startDate) > new Date(Date.now() + ( 3600 * 1000 * 24)) ) {
+        bookableOpportunityIds.push(id);
+      }
+
       if (responses[id]) {
         responses[id].send(item);
 
