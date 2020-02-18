@@ -63,10 +63,7 @@ class RequestHelper {
         JSON.stringify(rpdeItem, null, 2)
     );
 
-    return {
-      rpdeItem,
-      ordersFeedUpdate
-    };
+    return ordersFeedUpdate;
   }
 
   async getMatch(eventId) {
@@ -80,22 +77,7 @@ class RequestHelper {
         JSON.stringify(rpdeItem, null, 2)
     );
 
-    let opportunityId, offerId, sellerId;
-
-    if (rpdeItem) {
-      opportunityId = rpdeItem.data["@id"]; // TODO : Support duel feeds: .subEvent[0]
-      offerId = rpdeItem.data.superEvent.offers[0]["@id"];
-      sellerId = rpdeItem.data.superEvent.organizer["@id"];
-    }
-
-    this.log(`opportunityId: ${opportunityId}; offerId: ${offerId}`);
-
-    return {
-      apiResponse: respObj,
-      opportunityId,
-      offerId,
-      sellerId
-    };
+    return respObj;
   }
 
   async putOrderQuoteTemplate(uuid, params) {
@@ -110,12 +92,8 @@ class RequestHelper {
     this.log(
       "\n\n** C1 response: ** \n\n" + JSON.stringify(c1Response.body, null, 2)
     );
-    const totalPaymentDue = c1Response.body.totalPaymentDue.price;
 
-    return {
-      c1Response,
-      totalPaymentDue
-    };
+    return c1Response;
   }
 
   async putOrderQuote(uuid, params) {
@@ -130,12 +108,7 @@ class RequestHelper {
     this.log(
       "\n\n** C2 response: ** \n\n" + JSON.stringify(c2Response.body, null, 2)
     );
-    const totalPaymentDue = c2Response.body.totalPaymentDue.price;
-
-    return {
-      c2Response,
-      totalPaymentDue
-    };
+    return c2Response;
   }
 
   async putOrder(uuid, params) {
@@ -147,21 +120,15 @@ class RequestHelper {
       }
     );
 
+
     this.log(
       "\n\n** B response:" +
         bResponse.response.statusCode +
         " **\n\n" +
         JSON.stringify(bResponse.body, null, 2)
     );
-    const orderItemId =
-      bResponse.body && bResponse.body.orderedItem
-        ? bResponse.body.orderedItem[0]["@id"]
-        : "NONE";
 
-    return {
-      bResponse,
-      orderItemId
-    };
+    return bResponse;
   }
 
   async cancelOrder(uuid, params) {
@@ -172,6 +139,7 @@ class RequestHelper {
         headers: this.createHeaders(params.sellerId)
       }
     );
+
 
     if (uResponse.body) {
       this.log(
@@ -184,9 +152,7 @@ class RequestHelper {
       this.log("\n\n** Order Cancellation response: **\n\nNO CONTENT");
     }
 
-    return {
-      uResponse
-    };
+    return uResponse;
   }
 
   async createScheduledSession(event, params) {
@@ -213,9 +179,7 @@ class RequestHelper {
       );
     }
 
-    return {
-      respObj
-    };
+    return respObj;
   }
 
   async deleteScheduledSession(eventId, params = {}) {
@@ -244,7 +208,7 @@ class RequestHelper {
       );
     }
 
-    return { respObj };
+    return respObj;
   }
 
   async deleteOrder(uuid, params) {

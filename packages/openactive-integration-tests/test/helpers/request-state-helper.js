@@ -13,21 +13,6 @@ class RequestStateHelper {
     this.logger.log(msg);
   }
 
-  // var eventId;
-  // var opportunityId;
-  // var offerId;
-  // var sellerId;
-  // var uuid;
-  // var totalPaymentDue;
-  // var orderItemId;
-  //
-  // var c1Response;
-  // var c2Response;
-  // var bResponse;
-  // var uResponse;
-  // var getOrderPromise;
-  // var ordersFeedUpdate;
-
   get uuid() {
     if (this._uuid) return this._uuid;
 
@@ -40,7 +25,7 @@ class RequestStateHelper {
       sellerId: this.sellerId
     });
 
-    this.eventId = session.respObj.body["@id"];
+    this.eventId = session.body["@id"];
 
     return session;
   }
@@ -57,9 +42,16 @@ class RequestStateHelper {
    */
   async getOrder () {
     let result = await this.requestHelper.getOrder(this.uuid);
-    Object.assign(this, result);
+
+    this.ordersFeedUpdate = result;
 
     return this;
+  }
+
+  get rpdeItem() {
+    if (!this.ordersFeedUpdate) return;
+
+    return this.ordersFeedUpdate.body;
   }
 
   /**
@@ -68,8 +60,28 @@ class RequestStateHelper {
    */
   async getMatch () {
     let result = await this.requestHelper.getMatch(this.eventId);
-    Object.assign(this, result);
+
+    this.apiResponse = result;
+
     return this;
+  }
+
+  get opportunityId() {
+    if (!this.apiResponse) return;
+
+    return this.apiResponse.body.data["@id"];
+  }
+
+  get offerId() {
+    if (!this.apiResponse) return;
+
+    return this.apiResponse.body.data.superEvent.offers[0]["@id"];
+  }
+
+  get sellerId() {
+    if (!this.apiResponse) return;
+
+    return this.apiResponse.body.data.superEvent.organizer["@id"];
   }
 
   /**
@@ -78,8 +90,18 @@ class RequestStateHelper {
    */
   async putOrderQuoteTemplate () {
     let result = await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
-    Object.assign(this, result);
+
+    this.c1Response = result;
+
     return this;
+  }
+
+  get totalPaymentDue() {
+    let response = this.c2Response || this.c1Response;
+
+    if (!response) return;
+
+    return response.body.totalPaymentDue.price;
   }
 
   /**
@@ -88,7 +110,9 @@ class RequestStateHelper {
    */
   async putOrderQuote () {
     let result = await this.requestHelper.putOrderQuote(this.uuid, this);
-    Object.assign(this, result);
+
+    this.c2Response = result;
+
     return this;
   }
 
@@ -98,8 +122,21 @@ class RequestStateHelper {
    */
   async putOrder () {
     let result = await this.requestHelper.putOrder(this.uuid, this);
-    Object.assign(this, result);
+
+    this.bResponse = result;
+
     return this;
+  }
+
+  get orderItemId() {
+    if (!this.bResponse) return;
+
+    if (this.bResponse.body && this.bResponse.body.orderedItem) {
+      return this.bResponse.body.orderedItem[0]["@id"]
+    }
+    else {
+      return "NONE";
+    }
   }
 
   /**
@@ -108,7 +145,9 @@ class RequestStateHelper {
    */
   async cancelOrder () {
     let result = await this.requestHelper.cancelOrder(this.uuid, this);
-    Object.assign(this, result);
+
+    this.uResponse = result;
+
     return this;
   }
 }
