@@ -72,7 +72,7 @@ function performTests(dataItem) {
       "C1",
       logger,
       {
-        validationMode: "c1Response"
+        validationMode: "C1Response"
       }
     );
   });
@@ -105,7 +105,7 @@ function performTests(dataItem) {
       "C2",
       logger,
       {
-        validationMode: "c2Response"
+        validationMode: "C2Response"
       }
     );
   });
@@ -145,7 +145,7 @@ function performTests(dataItem) {
       "B",
       logger,
       {
-        validationMode: "bResponse"
+        validationMode: "BResponse"
       }
     );
   });
