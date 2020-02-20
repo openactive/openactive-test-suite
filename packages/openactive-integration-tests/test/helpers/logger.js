@@ -19,12 +19,18 @@ class BaseLogger {
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     let fields = {
-      status: response.response.statusCode,
-      statusMessage: response.response.statusMessage,
-      responseTime: response.responseTime,
       body: response.body,
-      headers: response.response.headers
+      responseTime: response.responseTime,
     };
+
+    if (response.response) {
+      fields = {
+        ...fields,
+        status: response.response.statusCode,
+        statusMessage: response.response.statusMessage,
+        headers: response.response.headers
+      }
+    }
 
     Object.assign(this.flow[stage].response, fields);
   }
@@ -45,6 +51,18 @@ class BaseLogger {
 
     await fs.writeFile(this.metaPath, json);
   }
+
+  get suiteName() {
+    throw Error('suiteName unimplemented');
+  }
+
+  get metaPath() {
+    return `./output/meta/${this.suiteName}.json`;
+  }
+
+  get markdownPath() {
+    return `./output/${this.suiteName}.md`;
+  }
 }
 
 class Logger extends BaseLogger {
@@ -61,19 +79,8 @@ class Logger extends BaseLogger {
     });
   }
 
-  async flush() {
-    var filename = "./output/" + this.title + ".txt";
-    await fs.writeFile(filename, this.workingLog);
-  }
-  log(text) {
-    this.workingLog += text + "\n";
-    this.flush(); // TODO: Do we need to flush on each write?
-  }
-
-  get metaPath() {
-    let name = this.suite.getFullName();
-
-    return `./output/meta/${name}.json`;
+  get suiteName() {
+    return this.suite.getFullName()
   }
 }
 
@@ -91,8 +98,8 @@ class ReporterLogger extends BaseLogger {
     Object.assign(this, data);
   }
 
-  get metaPath() {
-    return `./output/meta/${this.testName}.json`;
+  get suiteName() {
+    return this.testName;
   }
 
   recordTestResult(stage, data) {

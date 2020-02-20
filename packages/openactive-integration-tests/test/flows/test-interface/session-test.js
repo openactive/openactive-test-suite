@@ -6,7 +6,9 @@ const expect = chakram.expect;
 
 describe("Test interface", function() {
   describe("Create test event", function() {
-    const logger = new Logger('TestInterface-testevent', this);
+    const logger = new Logger('TestInterface-testevent', this, {
+      description: `Test suite to determine that the test interface functions as expected. This tests out creating a new event, retrieving it and checking that it all looks correct.`
+    });
     const testHelper = new RequestState(logger);
     var apiResponse;
     var eventId;

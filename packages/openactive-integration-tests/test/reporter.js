@@ -12,6 +12,7 @@ class Reporter {
   }
 
   async onRunStart(test, results) {
+    await mkdirp('./output');
     await mkdirp('./output/meta');
     await rmfr('./output/meta/*.json', {glob: true});
   }
@@ -34,8 +35,6 @@ class Reporter {
         }
 
         await logger.writeMeta();
-
-        console.log('generating report');
 
         let reportGenerator = new ReportGenerator(logger);
         await reportGenerator.report();

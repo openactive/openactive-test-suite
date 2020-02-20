@@ -1,1 +1,0 @@
-window.logger = 'lorem imsum';

@@ -23,12 +23,6 @@ class RequestHelper {
     this.logger = logger;
   }
 
-  log(msg) {
-    if (!this.logger) return;
-
-    this.logger.log(msg);
-  }
-
   createHeaders(sellerId) {
     return {
       "Content-Type": "application/vnd.openactive.booking+json; version=1",
@@ -44,8 +38,6 @@ class RequestHelper {
 
     var req = mustache.render(template, replacementMap);
 
-    logger.log("\n\n** REQUEST **: \n\n" + req);
-
     let jsonResult = JSON.parse(req);
     if (removePayment) delete jsonResult.payment;
     return jsonResult;
@@ -57,12 +49,7 @@ class RequestHelper {
     );
     const rpdeItem = ordersFeedUpdate.body;
 
-    this.log(
-      "\n\n** Orders RPDE excerpt " +
-        ordersFeedUpdate.response.statusCode +
-        "**: \n\n" +
-        JSON.stringify(rpdeItem, null, 2)
-    );
+    this.logger && this.logger.recordResponse('get-order', ordersFeedUpdate);
 
     return ordersFeedUpdate;
   }
@@ -73,10 +60,7 @@ class RequestHelper {
     );
     const rpdeItem = respObj.body;
 
-    this.log(
-      "\n\n** Opportunity RPDE excerpt **: \n\n" +
-        JSON.stringify(rpdeItem, null, 2)
-    );
+    this.logger && this.logger.recordResponse('get-match', respObj);
 
     return respObj;
   }
@@ -96,10 +80,6 @@ class RequestHelper {
 
     this.logger && this.logger.recordResponse('C1', c1Response);
 
-    this.log(
-      "\n\n** C1 response: ** \n\n" + JSON.stringify(c1Response.body, null, 2)
-    );
-
     return c1Response;
   }
 
@@ -118,9 +98,6 @@ class RequestHelper {
 
     this.logger && this.logger.recordResponse('C2', c2Response);
 
-    this.log(
-      "\n\n** C2 response: ** \n\n" + JSON.stringify(c2Response.body, null, 2)
-    );
     return c2Response;
   }
 
@@ -139,13 +116,6 @@ class RequestHelper {
 
     this.logger && this.logger.recordResponse('B', payload);
 
-    this.log(
-      "\n\n** B response:" +
-        bResponse.response.statusCode +
-        " **\n\n" +
-        JSON.stringify(bResponse.body, null, 2)
-    );
-
     return bResponse;
   }
 
@@ -163,17 +133,6 @@ class RequestHelper {
     );
 
     this.logger && this.logger.recordResponse('U', payload);
-
-    if (uResponse.body) {
-      this.log(
-        "\n\n** Order Cancellation response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(uResponse.body, null, 2)
-      );
-    } else {
-      this.log("\n\n** Order Cancellation response: **\n\nNO CONTENT");
-    }
 
     return uResponse;
   }
@@ -195,21 +154,6 @@ class RequestHelper {
       );
     }
 
-    if (respObj.body) {
-      this.log(
-        "\n\n** Test Interface POST response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(respObj.body, null, 2)
-      );
-    } else {
-      this.log(
-        "\n\n** Test Interface POST response: " +
-          respObj.response.statusCode +
-          " **\n\nNO CONTENT"
-      );
-    }
-
     this.logger && this.logger.recordResponse('create-session', respObj);
 
     return respObj;
@@ -228,21 +172,6 @@ class RequestHelper {
       }
     );
 
-    if (respObj.body) {
-      this.log(
-        "\n\n** Test Interface DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(respObj.body, null, 2)
-      );
-    } else {
-      this.log(
-        "\n\n** Test Interface DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\nNO CONTENT"
-      );
-    }
-
     this.logger && this.logger.recordResponse('delete-session', respObj);
 
     return respObj;
@@ -256,21 +185,6 @@ class RequestHelper {
         headers: this.createHeaders(params.sellerId)
       }
     );
-
-    if (respObj.body) {
-      this.log(
-        "\n\n** Orders DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(respObj.body, null, 2)
-      );
-    } else {
-      this.log(
-        "\n\n** Orders DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\nNO CONTENT"
-      );
-    }
 
     this.logger && this.logger.recordResponse('delete-order', respObj);
 

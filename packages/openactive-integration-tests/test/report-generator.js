@@ -74,7 +74,7 @@ class ReportGenerator {
 
     let data = template(this.logger);
 
-    await fs.writeFile(`./output/${this.logger.testName}.md`, data);
+    await fs.writeFile(this.logger.markdownPath, data);
   }
 
   async report() {
