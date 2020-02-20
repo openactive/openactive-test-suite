@@ -15,13 +15,31 @@ async function ping() {
   return true;
 }
 
+class Reporter {
+  onRunStart() {
+    console.log('run')
+    process.exit();
+  }
+  onTestStart() {
+    console.log('test start')
+    process.exit();
+  }
+  onTestResult() {
+    console.log('test result')
+    process.exit();
+  }
+  onRunComplete() {
+    console.log('run complete')
+    process.exit();
+  }
+}
+
 module.exports = async () => {
+  global.abc = 'it works!'
+
   try {
     await ping();
   } catch (error) {
-    console.error(
-      "The broker microservice is unreachable. This is a pre-requisite for the test suite."
-    );
-    throw error;
+    throw new Error("The broker microservice is unreachable. This is a pre-requisite for the test suite. \n" + error);
   }
 };

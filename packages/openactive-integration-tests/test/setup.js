@@ -1,3 +1,9 @@
-window.ROOT_DIR = __dirname;
+jasmine.getEnv().addReporter({
+  specStarted: result => jasmine.currentTest = result,
+  specDone: result => jasmine.currentTest = result,
+});
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+
+const reporter = require('./reporter');
+
+jasmine.getEnv().addReporter(new reporter());

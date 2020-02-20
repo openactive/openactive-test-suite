@@ -12,14 +12,13 @@
   "dependencies": {
     "@babel/core": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
-    "@openactive/data-model-validator": "^2.0.1",
-    "@openactive/data-models": "^2.0.51",
     "@openactive/data-model-validator": "^2.0.12",
     "@openactive/data-models": "^2.0.63",
     "axios": "^0.19.0",
     "babel-jest": "^25.1.0",
     "config": "^3.2.4",
     "fs-extra": "^7.0.1",
+    "mkdirp": "^1.0.3",
     "moment": "^2.24.0",
     "mustache": "^3.1.0",
     "p-memoize": "^3.1.0",
@@ -38,13 +37,15 @@
     ],
     "reporters": [
       "jest-spec-reporter",
+      "<rootDir>test/reporter.js",
       "default"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>test/setup.js"
     ],
     "globalSetup": "<rootDir>test/global-setup.js",
-    "maxWorkers": 32,
+    "globalTeardown": "<rootDir>test/global-teardown.js",
+    "maxWorkers": 4,
     "testTimeout": 15000
   }
 }

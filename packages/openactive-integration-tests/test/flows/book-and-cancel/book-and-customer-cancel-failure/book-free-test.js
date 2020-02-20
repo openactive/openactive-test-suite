@@ -30,6 +30,6 @@ let testEvent = {
 
 describe("Book and Cancel", function() {
   describe("Book and Customer Cancel Failure Without Payment", function() {
-    bookingShared.performTests(testEvent);
+    bookingShared.performTests.bind(this)(testEvent);
   });
 });

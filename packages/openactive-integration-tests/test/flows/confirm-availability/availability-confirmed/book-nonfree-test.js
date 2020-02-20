@@ -30,6 +30,6 @@ let testEvent = {
 
 describe("Confirm Availability", function() {
   describe("Availabilty Confirmed", function() {
-    bookingShared.performTests(testEvent);
+    bookingShared.performTests.bind(this)(testEvent);
   });
 });

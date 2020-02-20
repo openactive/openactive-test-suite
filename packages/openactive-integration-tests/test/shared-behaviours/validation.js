@@ -6,7 +6,7 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
   let doValidate = async () => {
     if (results) return results;
 
-    let optionsWithRemoteJson = Object.assign({  
+    let optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
       remoteJsonCachePath: '/tmp',
       remoteJsonCacheTimeToLive: 3600
@@ -20,6 +20,8 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
   describe("validation of " + name, function() {
     it("passes validation checks", async function() {
       let results = await doValidate();
+
+      logger.recordResponseValidations(name, results);
 
       let errors = results
         .filter(result => result.severity === "failure")
