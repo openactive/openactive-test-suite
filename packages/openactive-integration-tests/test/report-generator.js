@@ -18,14 +18,6 @@ class ReportGenerator {
       return chalkFn(options.fn(this));
     });
 
-    Handlebars.registerHelper("if", function(conditional, options) {
-      if (options.hash.desired === options.hash.type) {
-        options.fn(this);
-      } else {
-        options.inverse(this);
-      }
-    });
-
     Handlebars.registerHelper("validationIcon", function(severity, options) {
       switch (severity) {
         case "warning":
