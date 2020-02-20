@@ -10,7 +10,7 @@ function performTests(dataItem) {
 
   const logger = new Logger(dataItem.name, this, {
     description: `
-End to end booking and cancellation which will fail as Opportunity.startDate is in the past, which means it is not possible to cancel.
+End to end booking and cancellation. Cancellation is expected to fail as Opportunity.startDate is in the past.
 `
   });
 

@@ -18,6 +18,7 @@ class Reporter {
   onTestStart(test) {
 
   }
+
   async onTestResult(test, testResult, aggregatedResults) {
     try {
       let testResults = testResult.testResults;
@@ -29,7 +30,6 @@ class Reporter {
         await logger.load();
 
         for (let testResult of groupedTests) {
-          // console.log(testResult.title);
           logger.recordTestResult(testResult.ancestorTitles[2], testResult);
         }
 
@@ -42,6 +42,7 @@ class Reporter {
       }
     }
     catch(exception) {
+      console.log(testResult);
       console.error('err', exception);
     }
   }

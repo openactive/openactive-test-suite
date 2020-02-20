@@ -12,8 +12,6 @@ class BaseLogger {
     if (!this.flow[stage].request) this.flow[stage].request = {};
 
     this.flow[stage].request = request;
-
-    this.writeMeta();
   }
 
   recordResponse(stage, response) {
@@ -29,8 +27,6 @@ class BaseLogger {
     };
 
     Object.assign(this.flow[stage].response, fields);
-
-    this.writeMeta();
   }
 
   recordResponseValidations(stage, data) {
@@ -38,8 +34,6 @@ class BaseLogger {
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     this.flow[stage].response.validations = data;
-
-    this.writeMeta();
   }
 
   async writeMeta() {
@@ -61,13 +55,15 @@ class Logger extends BaseLogger {
     this.workingLog = "";
 
     meta && Object.assign(this, meta);
+
+    afterAll && afterAll(() => {
+      return this.writeMeta();
+    });
   }
 
   async flush() {
     var filename = "./output/" + this.title + ".txt";
     await fs.writeFile(filename, this.workingLog);
-
-    // await this.writeMeta();
   }
   log(text) {
     this.workingLog += text + "\n";
