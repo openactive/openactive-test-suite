@@ -39,9 +39,7 @@
       "**/*-test.[tj]s?(x)"
     ],
     "reporters": [
-      "jest-spec-reporter",
-      "<rootDir>test/reporter.js",
-      "default"
+      "<rootDir>test/reporter.js"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>test/setup.js"
