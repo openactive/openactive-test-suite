@@ -32,8 +32,10 @@ class ReportGenerator {
           return "⚠️";
         case "failure":
           return "❗️";
+        case "suggestion":
+          return "📝";
         default:
-          return "✅";
+          return "❔";
       }
     });
 

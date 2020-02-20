@@ -21,19 +21,15 @@ class Reporter {
   async onTestResult(test, testResult, aggregatedResults) {
     try {
       let testResults = testResult.testResults;
-      let types = _.chain(testResults).
-        map((spec) => spec.ancestorTitles.slice(0, 2)).
-        uniq().
-        value();
 
-      for (let type of types) {
-        let testName = type.join(" ");
+      let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 2).join(" "));
+
+      for (let [testName, groupedTests] of Object.entries(grouped)) {
         let logger = new ReporterLogger(testName);
         await logger.load();
 
-        for (let testResult of testResults) {
-          if (!_.isEqual(type, testResult.ancestorTitles.slice(0, 2))) continue;
-
+        for (let testResult of groupedTests) {
+          // console.log(testResult.title);
           logger.recordTestResult(testResult.ancestorTitles[2], testResult);
         }
 
