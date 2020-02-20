@@ -31,7 +31,7 @@ class ReportGenerator {
         case "warning":
           return "⚠️";
         case "failure":
-          return "❗️";
+          return "❌️";
         case "suggestion":
           return "📝";
         default:
@@ -42,7 +42,7 @@ class ReportGenerator {
     Handlebars.registerHelper("specIcon", function(severity, options) {
       switch (severity) {
         case "failed":
-          return "❗️";
+          return "❌️";
         case "passed":
           return "✅";
         default:
@@ -52,6 +52,10 @@ class ReportGenerator {
 
     Handlebars.registerHelper("firstLine", function(message, options) {
       return message.split("\n")[0];
+    });
+
+    Handlebars.registerHelper("json", function(data, options) {
+      return JSON.stringify(data, null, 4);
     });
   }
 
@@ -73,8 +77,17 @@ class ReportGenerator {
     }
   }
 
+  async writeMarkdown() {
+    let template = await this.getTemplate('report.md');
+
+    let data = template(this.logger);
+
+    await fs.writeFile(`./output/${this.logger.testName}.md`, data);
+  }
+
   async report() {
     await this.outputConsole();
+    await this.writeMarkdown();
   }
 
 }

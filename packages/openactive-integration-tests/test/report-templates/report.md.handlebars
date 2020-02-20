@@ -1,0 +1,26 @@
+# {{{ title }}}
+
+{{{ description }}}
+
+Flows:
+{{#each flow}}
+## {{{ @key }}}
+### Request
+```json
+{{{ json request }}}
+```
+### Response
+{{{ response.status }}}
+```json
+{{{ json response.body }}}
+```
+### Validations
+{{#each response.validations}}
+* {{{ validationIcon severity }}} {{{firstLine message}}}
+{{/each}}
+### Specs
+{{#each response.specs}}
+* {{{ specIcon status }}} {{{firstLine title}}}
+{{/each}}
+
+{{/each}}
