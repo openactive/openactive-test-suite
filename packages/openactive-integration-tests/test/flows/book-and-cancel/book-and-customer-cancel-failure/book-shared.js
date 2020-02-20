@@ -8,7 +8,11 @@ const sharedValidationTests = require("../../../shared-behaviours/validation");
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
 
-  const logger = new Logger(dataItem.name, this);
+  const logger = new Logger(dataItem.name, this, {
+    description: `
+End to end booking and cancellation which will fail as Opportunity.startDate is in the past, which means it is not possible to cancel.
+`
+  });
 
   const state = new RequestState(logger);
   const flow = new FlowHelper(state);

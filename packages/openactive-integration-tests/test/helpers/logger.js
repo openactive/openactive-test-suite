@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const {promises: fs} = require("fs");
 
 // abstract class, implement shared methods
@@ -35,20 +36,24 @@ class BaseLogger {
   }
 
   async writeMeta() {
-    let data = JSON.stringify({
-      flow: this.flow
-    }, null, 4);
+    let data = _(this).omit([
+      'suite'
+    ]);
 
-    await fs.writeFile(this.metaPath, data);
+    let json = JSON.stringify(data, null, 4);
+
+    await fs.writeFile(this.metaPath, json);
   }
 }
 
 class Logger extends BaseLogger {
-  constructor(title, suite) {
+  constructor(title, suite, meta) {
     super();
     this.title = title;
     this.suite = suite;
     this.workingLog = "";
+
+    meta && Object.assign(this, meta);
   }
 
   async flush() {
@@ -93,7 +98,6 @@ class ReporterLogger extends BaseLogger {
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
 
     this.flow[stage].response.specs.push(data);
-
   }
 }
 
