@@ -1,5 +1,7 @@
 const _ = require('lodash');
+const chalk = require('chalk');
 const mkdirp = require('mkdirp');
+const moment = require('moment');
 const rmfr = require('rmfr');
 
 const {ReporterLogger} = require('./helpers/logger');
@@ -46,7 +48,39 @@ class Reporter {
     }
   }
 
-  onRunComplete() {
+  // based on https://github.com/pierreroth64/jest-spec-reporter/blob/master/lib/jest-spec-reporter.js
+  onRunComplete(test, results) {
+    const {
+      numFailedTests,
+      numPassedTests,
+      numPendingTests,
+      testResults,
+      numTotalTests,
+      startTime
+    } = results;
+    console.log(chalk.white(`Ran ${numTotalTests} tests in ${testDuration()}`));
+    if (numPassedTests) {
+      console.log(chalk.green(
+        `✅ ${numPassedTests} passing`
+      ));
+    }
+    if (numFailedTests) {
+      console.log(chalk.red(
+        `❌ ${numFailedTests} failing`
+      ));
+    }
+    if (numPendingTests) {
+      console.log(chalk.yellow(
+        `– ${numPendingTests} pending`
+      ));
+    }
+
+    function testDuration() {
+      const delta = moment.duration(moment() - new Date(startTime));
+      const seconds = delta.seconds();
+      const millis = delta.milliseconds();
+      return `${seconds}.${millis} s`;
+    }
   }
 }
 
