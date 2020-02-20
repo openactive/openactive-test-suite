@@ -10,17 +10,20 @@ Flows:
 {{{ json request }}}
 ```
 ### Response
-{{{ response.status }}}
+Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Responded in {{{ response.responseTime}}}ms
 ```json
 {{{ json response.body }}}
 ```
+{{#if response.validations }}
 ### Validations
 {{#each response.validations}}
 * {{{ validationIcon severity }}} {{{firstLine message}}}
 {{/each}}
+{{/if}}
+{{#if response.specs }}
 ### Specs
 {{#each response.specs}}
 * {{{ specIcon status }}} {{{firstLine title}}}
 {{/each}}
-
+{{/if}}
 {{/each}}

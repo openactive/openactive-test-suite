@@ -20,8 +20,15 @@ class BaseLogger {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
-    this.flow[stage].response.status = response.status;
-    this.flow[stage].response.body = response.body;
+    let fields = {
+      status: response.response.statusCode,
+      statusMessage: response.response.statusMessage,
+      responseTime: response.responseTime,
+      body: response.body,
+      headers: response.response.headers
+    };
+
+    Object.assign(this.flow[stage].response, fields);
 
     this.writeMeta();
   }

@@ -59,10 +59,10 @@ class ReportGenerator {
     });
   }
 
-  getTemplate = pMemoize(async (name) => {
+  async getTemplate(name) {
     let file = await fs.readFile(__dirname+'/report-templates/'+name+'.handlebars', 'utf8');
     return Handlebars.compile(file);
-  });
+  };
 
   async outputConsole() {
     try {
