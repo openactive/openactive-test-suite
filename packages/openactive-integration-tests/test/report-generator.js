@@ -60,7 +60,10 @@ class ReportGenerator {
     try {
       let template = await this.getTemplate('report-cli');
 
-      let data = chalk(template(this.logger));
+      let data = chalk(template(this.logger, {
+        allowProtoMethodsByDefault: true,
+        allowProtoPropertiesByDefault: true
+      }));
 
       console.log(data);
     }
