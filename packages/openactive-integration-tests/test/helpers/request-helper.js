@@ -114,7 +114,7 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('B', payload);
+    this.logger && this.logger.recordResponse('B', bResponse);
 
     return bResponse;
   }
@@ -132,7 +132,7 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('U', payload);
+    this.logger && this.logger.recordResponse('U', uResponse);
 
     return uResponse;
   }
