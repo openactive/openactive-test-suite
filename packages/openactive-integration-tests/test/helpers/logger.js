@@ -5,6 +5,22 @@ const {promises: fs} = require("fs");
 class BaseLogger {
   constructor() {
     this.flow = {};
+    this.logs = [];
+  }
+
+  get testMeta() {
+    return {
+      ancestorTitles: testState.ancestorTitles,
+      title: testState.currentTest && testState.currentTest.description,
+      fullName: testState.fullName,
+    };
+  }
+
+  recordLogEntry(entry) {
+    this.logs.push({
+      ...(this.testMeta),
+      ...entry
+    });
   }
 
   recordRequest(stage, request) {
@@ -12,6 +28,11 @@ class BaseLogger {
     if (!this.flow[stage].request) this.flow[stage].request = {};
 
     this.flow[stage].request = request;
+
+    this.recordLogEntry({
+      stage: stage,
+      request: request
+    });
   }
 
   recordResponse(stage, response) {
@@ -33,6 +54,39 @@ class BaseLogger {
     }
 
     Object.assign(this.flow[stage].response, fields);
+
+    this.recordLogEntry({
+      stage: stage,
+      response: {
+        ...fields
+      }
+    });
+  }
+
+  recordRequestResponse(stage, request, response) {
+    let responseFields = {
+      body: response.body,
+      responseTime: response.responseTime,
+    };
+
+    if (response.response) {
+      responseFields = {
+        ...responseFields,
+        status: response.response.statusCode,
+        statusMessage: response.response.statusMessage,
+        headers: response.response.headers
+      }
+    }
+
+    this.recordLogEntry({
+      stage: stage,
+      request: {
+        ...request
+      },
+      response: {
+        ...responseFields
+      }
+    });
   }
 
   recordResponseValidations(stage, data) {
@@ -40,6 +94,11 @@ class BaseLogger {
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     this.flow[stage].response.validations = data;
+
+    this.recordLogEntry({
+      stage: stage,
+      validations: data
+    });
   }
 
   async writeMeta() {
@@ -108,6 +167,13 @@ class ReporterLogger extends BaseLogger {
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
 
     this.flow[stage].response.specs.push(data);
+
+    this.logs.push({
+      ancestorTitles: data.ancestorTitles,
+      title: data.title,
+      fullName: data.fullName,
+      spec: data
+    });
   }
 }
 

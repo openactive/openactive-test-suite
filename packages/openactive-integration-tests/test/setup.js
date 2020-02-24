@@ -1,9 +1,46 @@
-jasmine.getEnv().addReporter({
-  specStarted: result => jasmine.currentTest = result,
-  specDone: result => jasmine.currentTest = result,
-});
+class JasmineStateReporter {
+  suiteStarted = suite => {
+    if (this.currentSuite) {
+      suite._parent = this.currentSuite;
+    }
+    this.currentSuite = suite;
+  };
 
+  suiteDone = suite => {
+    if (this.currentSuite) {
+      this.currentSuite = this.currentSuite._parent;
+    }
+  };
 
-const reporter = require('./reporter');
+  specStarted = result => {
+    this.currentTest = result;
+  };
 
-jasmine.getEnv().addReporter(new reporter());
+  specDone = result => {
+    this.currentTest = result;
+  };
+
+  get fullName() {
+    if (this.currentTest) {
+      return this.currentTest.fullName;
+    }
+    else if (this.currentSuite) {
+      return this.currentSuite.fullName;
+    }
+  }
+
+  get ancestorTitles() {
+    let suite = this.currentSuite;
+    let path = [];
+    while (suite) {
+      path.unshift(suite.description);
+
+      suite = suite._parent;
+    }
+    return path;
+  }
+}
+
+global.testState = new JasmineStateReporter();
+
+jasmine.getEnv().addReporter(testState);
