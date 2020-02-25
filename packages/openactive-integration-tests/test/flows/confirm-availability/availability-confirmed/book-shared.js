@@ -69,7 +69,7 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => state.c1Response.body,
+      () => state.c1Response,
       "C1",
       logger,
       {

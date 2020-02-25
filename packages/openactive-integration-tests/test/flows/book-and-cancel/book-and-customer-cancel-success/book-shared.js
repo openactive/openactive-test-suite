@@ -66,7 +66,7 @@ function performTests(dataItem) {
       });
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => state.c1Response.body, "C1", logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.c1Response, "C1", logger, {
         validationMode: "C1Response"
       }
     );
@@ -96,7 +96,7 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => state.c2Response.body,
+      () => state.c2Response,
       "C2",
       logger,
       {
@@ -135,7 +135,7 @@ function performTests(dataItem) {
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => state.bResponse.body, "B", logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.bResponse, "B", logger, {
       validationMode: "BResponse"
     });
   });
@@ -180,7 +180,7 @@ function performTests(dataItem) {
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate.body.data, "Orders feed", logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate.body, "Orders feed", logger, {
       validationMode: "OrdersFeed",
     });
   });

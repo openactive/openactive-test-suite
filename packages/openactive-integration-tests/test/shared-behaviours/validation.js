@@ -12,8 +12,32 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
       remoteJsonCacheTimeToLive: 3600
     }, options);
 
-    let value = getter();
-    results = await validate(value, optionsWithRemoteJson);
+    let response = getter();
+
+    let body = response.body;
+
+    if (options.validationMode === "OrdersFeed") {
+      body = body.data;
+    }
+
+    let statusCode = response.response && response.response.statusCode;
+    let statusMessage = response.response && response.response.statusMessage;
+
+    if (statusCode < 200 || statusCode >= 300) {
+      optionsWithRemoteJson.validationMode = "OpenBookingError";
+
+      // little nicer error message for completely failed responses.
+      if (!body) {
+        return [
+          {
+            severity: "failure",
+            message: `Server returned an error ${statusCode} (${statusMessage}) with an empty body.`
+          }
+        ];
+      }
+    }
+
+    results = await validate(body, optionsWithRemoteJson);
     return results;
   };
 
@@ -27,12 +51,6 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
         .filter(result => result.severity === "failure")
         .map(result => {
           return `FAILURE: ${result.path}: ${result.message.split("\n")[0]}`;
-        });
-
-      let warnings = results
-        .filter(result => result.severity === "warning")
-        .map(result => {
-          return `WARNING: ${result.path}: ${result.message.split("\n")[0]}`;
         });
 
       if (errors.length > 0) {
