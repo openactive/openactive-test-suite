@@ -6,7 +6,7 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
   let doValidate = async () => {
     if (results) return results;
 
-    let optionsWithRemoteJson = Object.assign({  
+    let optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
       remoteJsonCachePath: '/tmp',
       remoteJsonCacheTimeToLive: 3600
@@ -21,6 +21,8 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
     it("passes validation checks", async function() {
       let results = await doValidate();
 
+      logger.recordResponseValidations(name, results);
+
       let errors = results
         .filter(result => result.severity === "failure")
         .map(result => {
@@ -32,13 +34,6 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
         .map(result => {
           return `WARNING: ${result.path}: ${result.message.split("\n")[0]}`;
         });
-
-      // TODO: These are currently printed randomly in the output, where they should be grouped with the tests
-      // console.warn(warnings.join("\n"));
-
-      logger.log(
-        "\n\n" + errors.join("\n") + "\n" + warnings.join("\n") + "\n\n"
-      );
 
       if (errors.length > 0) {
         throw new Error(errors.join("\n"));

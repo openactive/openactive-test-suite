@@ -23,12 +23,6 @@ class RequestHelper {
     this.logger = logger;
   }
 
-  log(msg) {
-    if (!this.logger) return;
-
-    this.logger.log(msg);
-  }
-
   createHeaders(sellerId) {
     return {
       "Content-Type": "application/vnd.openactive.booking+json; version=1",
@@ -44,8 +38,6 @@ class RequestHelper {
 
     var req = mustache.render(template, replacementMap);
 
-    logger.log("\n\n** REQUEST **: \n\n" + req);
-
     let jsonResult = JSON.parse(req);
     if (removePayment) delete jsonResult.payment;
     return jsonResult;
@@ -57,12 +49,7 @@ class RequestHelper {
     );
     const rpdeItem = ordersFeedUpdate.body;
 
-    this.log(
-      "\n\n** Orders RPDE excerpt " +
-        ordersFeedUpdate.response.statusCode +
-        "**: \n\n" +
-        JSON.stringify(rpdeItem, null, 2)
-    );
+    this.logger && this.logger.recordResponse('get-order', ordersFeedUpdate);
 
     return ordersFeedUpdate;
   }
@@ -73,124 +60,108 @@ class RequestHelper {
     );
     const rpdeItem = respObj.body;
 
-    this.log(
-      "\n\n** Opportunity RPDE excerpt **: \n\n" +
-        JSON.stringify(rpdeItem, null, 2)
-    );
+    this.logger && this.logger.recordResponse('get-match', respObj);
 
     return respObj;
   }
 
   async putOrderQuoteTemplate(uuid, params) {
+    let payload = this.bookingTemplate(this.logger, c1req, params);
+
+    this.logger && this.logger.recordRequest('C1', payload);
+
     let c1Response = await chakram.put(
       BOOKING_API_BASE + "order-quote-templates/" + uuid,
-      this.bookingTemplate(this.logger, c1req, params),
+      payload,
       {
         headers: this.createHeaders(params.sellerId)
       }
     );
 
-    this.log(
-      "\n\n** C1 response: ** \n\n" + JSON.stringify(c1Response.body, null, 2)
-    );
+    this.logger && this.logger.recordResponse('C1', c1Response);
 
     return c1Response;
   }
 
   async putOrderQuote(uuid, params) {
+    const payload = this.bookingTemplate(this.logger, c2req, params);
+
+    this.logger && this.logger.recordRequest('C2', payload);
+
     const c2Response = await chakram.put(
       BOOKING_API_BASE + "order-quotes/" + uuid,
-      this.bookingTemplate(this.logger, c2req, params),
+      payload,
       {
         headers: this.createHeaders(params.sellerId)
       }
     );
 
-    this.log(
-      "\n\n** C2 response: ** \n\n" + JSON.stringify(c2Response.body, null, 2)
-    );
+    this.logger && this.logger.recordResponse('C2', c2Response);
+
     return c2Response;
   }
 
   async putOrder(uuid, params) {
+    const payload = this.bookingTemplate(this.logger, breq, params, true);
+
+    this.logger && this.logger.recordRequest('B', payload);
+
     const bResponse = await chakram.put(
       BOOKING_API_BASE + "orders/" + uuid,
-      this.bookingTemplate(this.logger, breq, params, true),
+      payload,
       {
         headers: this.createHeaders(params.sellerId)
       }
     );
 
-
-    this.log(
-      "\n\n** B response:" +
-        bResponse.response.statusCode +
-        " **\n\n" +
-        JSON.stringify(bResponse.body, null, 2)
-    );
+    this.logger && this.logger.recordResponse('B', bResponse);
 
     return bResponse;
   }
 
   async cancelOrder(uuid, params) {
+    const payload = this.bookingTemplate(this.logger, ureq, params);
+
+    this.logger && this.logger.recordRequest('U', payload);
+
     const uResponse = await chakram.patch(
       BOOKING_API_BASE + "orders/" + uuid,
-      this.bookingTemplate(this.logger, ureq, params),
+      payload,
       {
         headers: this.createHeaders(params.sellerId)
       }
     );
 
-
-    if (uResponse.body) {
-      this.log(
-        "\n\n** Order Cancellation response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(uResponse.body, null, 2)
-      );
-    } else {
-      this.log("\n\n** Order Cancellation response: **\n\nNO CONTENT");
-    }
+    this.logger && this.logger.recordResponse('U', uResponse);
 
     return uResponse;
   }
 
   async createScheduledSession(event, params) {
-    const respObj = USE_RANDOM_OPPORTUNITIES ? 
-    await chakram.get(
-      "http://localhost:3000/get-random-opportunity"
-    ) 
-    : 
-    await chakram.post(
-      BOOKING_API_BASE + "test-interface/scheduledsession",
-      event,
-      {
-        headers: this.createHeaders(params.sellerId)
-      }
-    );
-
-    if (respObj.body) {
-      this.log(
-        "\n\n** Test Interface POST response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(respObj.body, null, 2)
-      );
-    } else {
-      this.log(
-        "\n\n** Test Interface POST response: " +
-          respObj.response.statusCode +
-          " **\n\nNO CONTENT"
+    let respObj;
+    if (USE_RANDOM_OPPORTUNITIES) {
+      respObj = await chakram.get(
+        "http://localhost:3000/get-random-opportunity"
+      )
+    }
+    else {
+      respObj = await chakram.post(
+        BOOKING_API_BASE + "test-interface/scheduledsession",
+        event,
+        {
+          headers: this.createHeaders(params.sellerId)
+        }
       );
     }
+
+    this.logger && this.logger.recordResponse('create-session', respObj);
 
     return respObj;
   }
 
   async deleteScheduledSession(eventId, params = {}) {
     if (USE_RANDOM_OPPORTUNITIES) return null;
-    
+
     const respObj = await chakram.delete(
       BOOKING_API_BASE +
         "test-interface/scheduledsession/" +
@@ -201,20 +172,7 @@ class RequestHelper {
       }
     );
 
-    if (respObj.body) {
-      this.log(
-        "\n\n** Test Interface DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(respObj.body, null, 2)
-      );
-    } else {
-      this.log(
-        "\n\n** Test Interface DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\nNO CONTENT"
-      );
-    }
+    this.logger && this.logger.recordResponse('delete-session', respObj);
 
     return respObj;
   }
@@ -228,20 +186,7 @@ class RequestHelper {
       }
     );
 
-    if (respObj.body) {
-      this.log(
-        "\n\n** Orders DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\n" +
-          JSON.stringify(respObj.body, null, 2)
-      );
-    } else {
-      this.log(
-        "\n\n** Orders DELETE response: " +
-          respObj.response.statusCode +
-          " **\n\nNO CONTENT"
-      );
-    }
+    this.logger && this.logger.recordResponse('delete-order', respObj);
 
     return !!respObj.body;
   }

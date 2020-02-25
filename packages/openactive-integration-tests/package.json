@@ -12,17 +12,19 @@
   "dependencies": {
     "@babel/core": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
-    "@openactive/data-model-validator": "^2.0.1",
-    "@openactive/data-models": "^2.0.51",
     "@openactive/data-model-validator": "^2.0.12",
     "@openactive/data-models": "^2.0.63",
     "axios": "^0.19.0",
     "babel-jest": "^25.1.0",
+    "chalk": "^3.0.0",
     "config": "^3.2.4",
     "fs-extra": "^7.0.1",
+    "handlebars": "^4.7.3",
+    "mkdirp": "^1.0.3",
     "moment": "^2.24.0",
     "mustache": "^3.1.0",
     "p-memoize": "^3.1.0",
+    "rmfr": "^2.0.0",
     "sync-request": "^6.0.0"
   },
   "devDependencies": {
@@ -37,14 +39,16 @@
       "**/*-test.[tj]s?(x)"
     ],
     "reporters": [
-      "jest-spec-reporter",
-      "default"
+      "<rootDir>test/reporter.js"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>test/setup.js"
     ],
     "globalSetup": "<rootDir>test/global-setup.js",
-    "maxWorkers": 32,
-    "testTimeout": 15000
+    "maxWorkers": 4,
+    "testTimeout": 15000,
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
   }
 }

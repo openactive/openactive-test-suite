@@ -5,10 +5,6 @@ class FlowHelper {
     this.state = helper;
   }
 
-  log (msg) {
-    this.state.log(msg);
-  }
-
   getMatch = pMemoize(async getMatch => {
     return this.state.getMatch();
   });

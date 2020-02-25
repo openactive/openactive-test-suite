@@ -1,0 +1,18 @@
+{{# chalk "bold" }}{{ title }}{{/chalk}}
+
+{{ description }}
+
+See `{{{ markdownPath }}}` for more detailed info.
+
+Flows:
+{{#each flow}}
+• {{# chalk "bold" "red" }}{{{ @key }}}{{/chalk}}
+{{#each response.validations}}
+    {{ validationIcon severity }} {{{firstLine message}}}
+{{/each}}
+{{#each response.specs}}
+    {{ specIcon status }} {{{firstLine title}}}
+{{/each}}
+{{/each}}
+
+======

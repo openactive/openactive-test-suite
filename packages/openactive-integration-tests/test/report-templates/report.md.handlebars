@@ -1,0 +1,35 @@
+# {{{ title }}}
+
+{{{ description }}}
+
+Flows:
+{{#each flow}}
+## {{{ @key }}}
+    {{#if request}}
+### Request
+```json
+{{{ json request }}}
+```
+    {{/if}}
+    {{#if response.status}}
+### Response
+Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Responded in {{{ response.responseTime}}}ms
+        {{#if response.body}}
+```json
+{{{ json response.body }}}
+```
+        {{/if}}
+    {{/if}}
+    {{#if response.validations }}
+### Validations
+        {{#each response.validations}}
+* {{{ validationIcon severity }}} {{{firstLine message}}}
+        {{/each}}
+    {{/if}}
+    {{#if response.specs }}
+### Specs
+        {{#each response.specs}}
+* {{{ specIcon status }}} {{{firstLine title}}}
+        {{/each}}
+    {{/if}}
+{{/each}}

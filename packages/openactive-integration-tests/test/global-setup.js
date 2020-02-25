@@ -19,9 +19,6 @@ module.exports = async () => {
   try {
     await ping();
   } catch (error) {
-    console.error(
-      "The broker microservice is unreachable. This is a pre-requisite for the test suite."
-    );
-    throw error;
+    throw new Error("The broker microservice is unreachable. This is a pre-requisite for the test suite. \n" + error);
   }
 };
