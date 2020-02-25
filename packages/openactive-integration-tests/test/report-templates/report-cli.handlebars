@@ -4,15 +4,16 @@
 
 See `{{{ markdownPath }}}` for more detailed info.
 
-Flows:
-{{#each flow}}
-• {{# chalk "bold" "red" }}{{{ @key }}}{{/chalk}}
-{{#each response.validations}}
-    {{ validationIcon severity }} {{{firstLine message}}}
-{{/each}}
-{{#each response.specs}}
-    {{ specIcon status }} {{{firstLine title}}}
-{{/each}}
+{{#each suites }}
+{{#each . }}{{# chalk "bold" "yellow" }}>>{{/chalk}} {{# chalk "bold" "green" }}{{{ . }}}{{/chalk}} {{/each}}
+    {{#logsFor . "spec"}}
+  {{ specIcon spec.status }} {{{firstLine spec.title}}}
+    {{/logsFor}}
+    {{#logsFor . "validations"}}
+        {{#each validations }}
+  {{ validationIcon severity }} {{{firstLine message}}}
+        {{/each}}
+    {{/logsFor}}
 {{/each}}
 
 ======

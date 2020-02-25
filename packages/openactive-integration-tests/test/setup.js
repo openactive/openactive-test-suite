@@ -1,23 +1,37 @@
+const EventEmitter = require('events');
+
 class JasmineStateReporter {
+  constructor() {
+    this.emitter = new EventEmitter();
+  }
+
   suiteStarted = suite => {
     if (this.currentSuite) {
       suite._parent = this.currentSuite;
     }
     this.currentSuite = suite;
+
+    this.emitter.emit('suite-started', suite);
   };
 
   suiteDone = suite => {
     if (this.currentSuite) {
       this.currentSuite = this.currentSuite._parent;
     }
+
+    this.emitter.emit('suite-done', suite);
   };
 
   specStarted = result => {
     this.currentTest = result;
+
+    this.emitter.emit('spec-started', result);
   };
 
   specDone = result => {
     this.currentTest = result;
+
+    this.emitter.emit('spec-done', result);
   };
 
   get fullName() {
@@ -38,6 +52,10 @@ class JasmineStateReporter {
       suite = suite._parent;
     }
     return path;
+  }
+
+  on(...args) {
+    return this.emitter.on(...args);
   }
 }
 

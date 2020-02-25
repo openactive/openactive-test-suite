@@ -28,11 +28,6 @@ class BaseLogger {
     if (!this.flow[stage].request) this.flow[stage].request = {};
 
     this.flow[stage].request = request;
-
-    this.recordLogEntry({
-      stage: stage,
-      request: request
-    });
   }
 
   recordResponse(stage, response) {
@@ -54,13 +49,6 @@ class BaseLogger {
     }
 
     Object.assign(this.flow[stage].response, fields);
-
-    this.recordLogEntry({
-      stage: stage,
-      response: {
-        ...fields
-      }
-    });
   }
 
   recordRequestResponse(stage, request, response) {
@@ -79,6 +67,7 @@ class BaseLogger {
     }
 
     this.recordLogEntry({
+      type: "request",
       stage: stage,
       request: {
         ...request
@@ -96,6 +85,7 @@ class BaseLogger {
     this.flow[stage].response.validations = data;
 
     this.recordLogEntry({
+      type: "validations",
       stage: stage,
       validations: data
     });
@@ -131,10 +121,25 @@ class Logger extends BaseLogger {
     this.suite = suite;
     this.workingLog = "";
 
+    this.suites = [];
+    this.specs = {};
+
     meta && Object.assign(this, meta);
 
     afterAll && afterAll(() => {
       return this.writeMeta();
+    });
+
+    testState.on('suite-started', (suite) => {
+      this.suites.push(testState.ancestorTitles);
+    });
+
+    testState.on('spec-started', (spec) => {
+      let key = testState.ancestorTitles;
+      if (!this.specs[key]) {
+        this.specs[key] = [];
+      }
+      this.specs[key].push(testState.currentTest.description);
     });
   }
 
@@ -169,11 +174,20 @@ class ReporterLogger extends BaseLogger {
     this.flow[stage].response.specs.push(data);
 
     this.logs.push({
+      type: "spec",
       ancestorTitles: data.ancestorTitles,
       title: data.title,
       fullName: data.fullName,
       spec: data
     });
+  }
+
+  logsFor(suite, type) {
+    let result = this.logs.filter((log) => {
+      return _.isEqual(log.ancestorTitles, suite) && log.type == type;
+    });
+
+    return result;
   }
 }
 
