@@ -180,7 +180,7 @@ function performTests(dataItem) {
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate.body, "Orders feed", logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate, "Orders feed", logger, {
       validationMode: "OrdersFeed",
     });
   });
