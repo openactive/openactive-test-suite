@@ -2,6 +2,7 @@ var express = require("express");
 var logger = require("morgan");
 var request = require("request");
 var nSQL = require("@nano-sql/core").nSQL;
+var moment = require("moment");
 const config = require("config");
 
 var PORT = 3000;
@@ -20,15 +21,15 @@ if (REQUEST_LOGGING_ENABLED) {
 app.use(express.json());
 
 // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
-sessionSeriesMap = {};
-sessionSeriesRpdeMap = {};
-scheduledSessionsMap = {};
-scheduledSessionsRpdeMap = {};
+parentOpportunityMap = {};
+parentOpportunityRpdeMap = {};
+opportunityMap = {};
+opportunityRpdeMap = {};
 
 nSQL().createDatabase({
   tables: [
     {
-      name: "SessionSeries",
+      name: "ParentOpportunity",
       model: {
         "id:int": { pk: true },
         "modified:int": {},
@@ -43,13 +44,14 @@ nSQL().createDatabase({
       }
     },
     {
-      name: "ScheduledSessions",
+      name: "Opportunity",
       model: {
         "id:int": { pk: true },
         "modified:int": {},
         "deleted:bool": {},
         "jsonLdId:string": {},
         "feedModified:int": {},
+        "jsonLdType:string": {},
         "jsonLd:obj": {},
         "jsonLdParentId:string": {},
         "parentIngested:bool": {}
@@ -57,7 +59,7 @@ nSQL().createDatabase({
       indexes: {
         "jsonLdParentId:string": {
           /*  foreignKey: { // foreign key property
-                      target: "SessionSeries.jsonLdId" // parent Table.column or Table.nested.column
+                      target: "ParentOpportunity.jsonLdId" // parent Table.column or Table.nested.column
                   }*/
         },
         "feedModified:int": {},
@@ -91,6 +93,7 @@ function getRPDE(url, cb) {
         throw `Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`;
       }
 
+
       cb(json);
     } else {
       console.log("Error for RPDE page: " + error + ". Response: " + body);
@@ -108,24 +111,40 @@ function getBaseUrl(url) {
   }
 }
 
-var bookableOpportunityIds = [];
+var bookableOpportunityIds = {};
 
-function getRandomBookableOpportunity() {
-  if (bookableOpportunityIds.length == 0) return null;
-  return bookableOpportunityIds[Math.floor(Math.random() * bookableOpportunityIds.length)];
+function getRandomBookableOpportunity(type) {
+  var recognisedTypes = Object.keys(bookableOpportunityIds).filter(x => bookableOpportunityIds[x].length > 0);
+  if (recognisedTypes.length == 0) return null;
+
+  // If type not provided, select one at random from available types
+  if (!type) type = recognisedTypes[Math.floor(Math.random() * recognisedTypes.length)];
+
+  if (!bookableOpportunityIds[type] || bookableOpportunityIds[type].length == 0) return null;
+
+  var id = bookableOpportunityIds[type][Math.floor(Math.random() * bookableOpportunityIds[type].length)];
+
+  return { 
+    "@context": "https://openactive.io/",
+    "@type": type,
+    "@id": id
+  }
 }
 
 function getOpportunityById(opportunityId) {
-  if (scheduledSessionsMap[opportunityId] && sessionSeriesMap[scheduledSessionsMap[opportunityId].superEvent]) {
+  if (opportunityMap[opportunityId] && parentOpportunityMap[opportunityMap[opportunityId].superEvent || opportunityMap[opportunityId].facilityUse]) {
     return Object.assign(
       {},
-      scheduledSessionsMap[opportunityId],
-      { superEvent: sessionSeriesMap[scheduledSessionsMap[opportunityId].superEvent] }
+      opportunityMap[opportunityId],
+      { 
+        superEvent: parentOpportunityMap[opportunityMap[opportunityId].superEvent],
+        facilityUse: parentOpportunityMap[opportunityMap[opportunityId].facilityUse]
+      }
     )
   }
 }
 
-app.get("/feeds/scheduled-sessions", function(req, res) {
+app.get("/feeds/opportunities", function(req, res) {
   var afterId = null;
   var afterTimestamp = null;
   if (req.query && req.query.afterId && req.query.afterTimestamp) {
@@ -133,18 +152,19 @@ app.get("/feeds/scheduled-sessions", function(req, res) {
     afterTimestamp = parseInt(req.query.afterTimestamp);
   }
 
-  var baseUrl = "http://localhost:" + PORT + "/feeds/scheduled-sessions";
+  var baseUrl = "http://localhost:" + PORT + "/feeds/opportunities";
   var PAGE_SIZE = 500;
 
-  nSQL("ScheduledSessions")
+  nSQL("Opportunity")
     .query("select", [
       "jsonLdId",
       "deleted",
       "feedModified",
       "jsonLd",
-      "jsonLdParentId"
-      // "SessionSeries.jsonLd",
-      //"SessionSeries.jsonLdId",
+      "jsonLdParentId",
+      "jsonLdType"
+      // "ParentOpportunity.jsonLd",
+      //"ParentOpportunity.jsonLdId",
     ])
     .where(
       afterTimestamp != null
@@ -173,8 +193,8 @@ app.get("/feeds/scheduled-sessions", function(req, res) {
     .limit(PAGE_SIZE)
     /*.join({
   type: "left",
-  with: {table: "SessionSeries"},
-  on: ["jsonLdParentId","=","SessionSeries.jsonLdId"]
+  with: {table: "ParentOpportunity"},
+  on: ["jsonLdParentId","=","ParentOpportunity.jsonLdId"]
 })*/ .exec()
     .then(rows => {
       if (rows.length > 0) {
@@ -195,7 +215,9 @@ app.get("/feeds/scheduled-sessions", function(req, res) {
             data: Object.assign(
               {},
               row["jsonLd"],
-              { superEvent: sessionSeriesMap[row["jsonLdParentId"]] } // Note sessionSeriesMap used as much faster than nSQL join
+              row["jsonLdType"] == "slot" ? // Note parentOpportunityMap used as much faster than nSQL join
+              { facilityUse: parentOpportunityMap[row["jsonLdParentId"]] } :
+              { superEvent: parentOpportunityMap[row["jsonLdParentId"]] }
             )
           })),
           license: "https://creativecommons.org/licenses/by/4.0/"
@@ -272,14 +294,25 @@ app.get("/get-opportunity/:id", function(req, res) {
 });
 
 app.get("/get-random-opportunity", function(req, res) {
-  var randomOpportunity = getRandomBookableOpportunity();
-  console.log("Random Bookable Opportunity: " + randomOpportunity);
-  res.json({ 
-    "@context": "https://openactive.io/",
-    "@type": "ScheduledSession",
-    "@id": randomOpportunity
-  });
-  res.end();
+  var typeFilter = null;
+  if (req.query && req.query.type) {
+    typeFilter = req.query.type;
+  }
+
+  var randomOpportunity = getRandomBookableOpportunity(typeFilter);
+  if (randomOpportunity) {
+    console.log(`Random Bookable Opportunity (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
+    res.json(randomOpportunity);
+    res.end();
+  } else {
+    if (typeFilter == null) {
+      console.error(`Random Bookable Opportunity call failed: No bookable opportunities have been found`);
+      res.status(404).send(`No bookable opportunities have been found`);
+    } else {
+      console.error(`Random Bookable Opportunity call failed: Opportunity Type "${typeFilter}" Not found`);
+      res.status(404).send(`Opportunity Type "${typeFilter}" Not found`);
+    }
+  }
 });
 
 var orderResponses = {
@@ -312,11 +345,11 @@ app.get("/get-order/:expression", function(req, res) {
 
 //setupDataStore().then(() => {
 // Start processing first pages of external feeds
-getRPDE(FEED_BASE + "session-series", ingestSessionSeriesPage);
-getRPDE(FEED_BASE + "scheduled-sessions", ingestScheduledSessionPage);
+getRPDE(FEED_BASE + "session-series", ingestParentOpportunityPage);
+getRPDE(FEED_BASE + "scheduled-sessions", ingestOpportunityPage);
 
 // Start monitoring first page of internal feed
-getRPDE("http://localhost:" + PORT + "/feeds/scheduled-sessions", monitorPage);
+getRPDE("http://localhost:" + PORT + "/feeds/opportunities", monitorPage);
 //});
 
 // Only poll orders feed if enabled
@@ -325,10 +358,11 @@ if (BOOKING_API_BASE != null)
 
 
 
-function ingestSessionSeriesPage(rpde, pageNumber) {
+function ingestParentOpportunityPage(rpde, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
+    var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
-      `RPDE kind: SessionSeries, page: ${pageNumber + 1 || 0}, length: ${
+      `RPDE kind: ${kind}, page: ${pageNumber + 1 || 0}, length: ${
         rpde.items.length
       }, next: '${rpde.next}'`
     );
@@ -345,22 +379,22 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
 
   rpde.items.forEach(item => {
     if (item.state == "deleted") {
-      var jsonLdId = sessionSeriesRpdeMap[item.id];
-      delete sessionSeriesMap[jsonLdId];
-      delete sessionSeriesRpdeMap[item.id];
+      var jsonLdId = parentOpportunityRpdeMap[item.id];
+      delete parentOpportunityMap[jsonLdId];
+      delete parentOpportunityRpdeMap[item.id];
     } else {
       var jsonLdId = item.data['@id'] || item.data['id'];
-      sessionSeriesRpdeMap[item.id] = jsonLdId;
-      sessionSeriesMap[jsonLdId] = item.data;
+      parentOpportunityRpdeMap[item.id] = jsonLdId;
+      parentOpportunityMap[jsonLdId] = item.data;
     }
   });
 
-  nSQL("SessionSeries")
+  nSQL("ParentOpportunity")
     .query("upsert", newItems)
     .exec()
     .then(() => {
       // Update any children that reference this parent
-      nSQL("ScheduledSessions")
+      nSQL("Opportunity")
         .query("upsert", {
           feedModified: Date.now() + 1000, // 1 second in the future
           parentIngested: true
@@ -377,7 +411,7 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
           setTimeout(
             x =>
               getRPDE(rpde.next, x =>
-                ingestSessionSeriesPage(x, pageNumber + 1 || 0)
+                ingestParentOpportunityPage(x, pageNumber + 1 || 0)
               ),
             200
           );
@@ -385,10 +419,11 @@ function ingestSessionSeriesPage(rpde, pageNumber) {
     });
 }
 
-function ingestScheduledSessionPage(rpde, pageNumber) {
+function ingestOpportunityPage(rpde, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
+    var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
-      `RPDE kind: ScheduledSession, page: ${pageNumber + 1 || 0}, length: ${
+      `RPDE kind: ${kind}, page: ${pageNumber + 1 || 0}, length: ${
         rpde.items.length
       }, next: '${rpde.next}'`
     );
@@ -396,17 +431,17 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
 
   rpde.items.forEach(item => {
     if (item.state == "deleted") {
-      var jsonLdId = scheduledSessionsRpdeMap[item.id];
-      delete scheduledSessionsMap[jsonLdId];
-      delete scheduledSessionsRpdeMap[item.id];
+      var jsonLdId = opportunityRpdeMap[item.id];
+      delete opportunityMap[jsonLdId];
+      delete opportunityRpdeMap[item.id];
     } else {
       var jsonLdId = item.data['@id'] || item.data['id'];
-      scheduledSessionsRpdeMap[item.id] = jsonLdId;
-      scheduledSessionsMap[jsonLdId] = item.data;
+      opportunityRpdeMap[item.id] = jsonLdId;
+      opportunityMap[jsonLdId] = item.data;
     }
   });
 
-  nSQL("ScheduledSessions")
+  nSQL("Opportunity")
     .query(
       "upsert",
       rpde.items.map(item => ({
@@ -416,8 +451,9 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
         feedModified: Date.now() + 1000, // 1 second in the future,
         jsonLdId: item.state == "deleted" ? null : item.data['@id'] || item.data['id'],
         jsonLd: item.state == "deleted" ? null : item.data,
-        jsonLdParentId: item.state == "deleted" ? null : item.data.superEvent,
-        parentIngested: item.state == "deleted" ? false : typeof sessionSeriesMap[item.data.superEvent] !== "undefined"
+        jsonLdType: item.state == "deleted" ? null : item.data['@type'] || item.data['type'],
+        jsonLdParentId: item.state == "deleted" ? null : item.data.superEvent || item.data.facilityUse,
+        parentIngested: item.state == "deleted" ? false : typeof parentOpportunityMap[item.data.superEvent] !== "undefined" || typeof parentOpportunityMap[item.data.facilityUse] !== "undefined"
       }))
     )
     .exec()
@@ -425,7 +461,7 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
       setTimeout(
         x =>
           getRPDE(rpde.next, x =>
-            ingestScheduledSessionPage(x, pageNumber + 1 || 0)
+            ingestOpportunityPage(x, pageNumber + 1 || 0)
           ),
         200
       );
@@ -441,11 +477,37 @@ function monitorPage(rpde, pageNumber) {
 
   rpde.items.forEach(item => {
     // TODO: make this regex loop (note ignore deleted items)
-    if (item.data && item.data.superEvent) {
+    if (item.data) {
       var id = item.data['@id'] || item.data['id'];
+      var type = item.data['@type'] || item.data['type']; 
 
-      if (Date.parse(item.data.startDate) > new Date(Date.now() + ( 3600 * 1000 * 24)) ) {
-        bookableOpportunityIds.push(id);
+      // Check for bookability
+      var startDate = item.data.startDate;
+      var offers = item.data.offers || item.data.superEvent.offers; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
+      var remainingCapacity = item.data.remainingAttendeeCapacity || item.data.remainingUses;
+      var eventStatus = item.data.eventStatus;
+
+      var bookableOffers = offers.filter(x =>
+         x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment")
+         && x.advanceBooking != "https://openactive.io/Unavailable"
+         && (!x.validFromBeforeStartDate || moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore())
+      );
+
+      if (!bookableOpportunityIds[type]) bookableOpportunityIds[type] = [];
+
+      if (
+        Date.parse(startDate) > new Date(Date.now() + ( 3600 * 1000 * 24))
+        && bookableOffers.length > 0
+        && remainingCapacity > 0
+        && !(eventStatus == "https://schema.org/EventCancelled" || eventStatus == "https://schema.org/EventPostponed")
+      ) {
+        // Add ID to if now bookable
+        bookableOpportunityIds[type].push(id);
+      } else {
+        // Remove ID if no longer bookable
+        var ids = bookableOpportunityIds[type];
+        var index = ids.indexOf(id);
+        if (index !== -1) ids.splice(index, 1);
       }
 
       if (responses[id]) {
