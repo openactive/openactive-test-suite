@@ -95,8 +95,11 @@ function getRPDE(url, cb) {
 
 
       cb(json);
+    } else if (response.statusCode === 404) {
+      console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
+      // Stop polling feed
     } else {
-      console.log("Error for RPDE page: " + error + ". Response: " + body);
+      console.log("Error " + response.statusCode + " for RPDE page: " + error + ". Response: " + body);
       // Fake next page to force retry, after a delay
       setTimeout(x => getRPDE(url, cb), 5000);
     }
@@ -343,19 +346,21 @@ app.get("/get-order/:expression", function(req, res) {
   }
 });
 
-//setupDataStore().then(() => {
 // Start processing first pages of external feeds
 getRPDE(FEED_BASE + "session-series", ingestParentOpportunityPage);
 getRPDE(FEED_BASE + "scheduled-sessions", ingestOpportunityPage);
+getRPDE(FEED_BASE + "facility-uses", ingestParentOpportunityPage);
+getRPDE(FEED_BASE + "facility-use-slots", ingestOpportunityPage);
+getRPDE(FEED_BASE + "events", ingestOpportunityPage);
+getRPDE(FEED_BASE + "headline-events", ingestOpportunityPage);
+getRPDE(FEED_BASE + "courses", ingestOpportunityPage);
 
 // Start monitoring first page of internal feed
 getRPDE("http://localhost:" + PORT + "/feeds/opportunities", monitorPage);
-//});
 
 // Only poll orders feed if enabled
 if (BOOKING_API_BASE != null)
   getRPDE(BOOKING_API_BASE + "orders-rpde", monitorOrdersPage);
-
 
 
 function ingestParentOpportunityPage(rpde, pageNumber) {
@@ -476,7 +481,6 @@ function monitorPage(rpde, pageNumber) {
   }
 
   rpde.items.forEach(item => {
-    // TODO: make this regex loop (note ignore deleted items)
     if (item.data) {
       var id = item.data['@id'] || item.data['id'];
       var type = item.data['@type'] || item.data['type']; 
@@ -531,7 +535,6 @@ function monitorOrdersPage(rpde, pageNumber) {
   }
 
   rpde.items.forEach(item => {
-    // TODO: make this regex loop (note ignore deleted items)
     if (item.data && item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
     }
