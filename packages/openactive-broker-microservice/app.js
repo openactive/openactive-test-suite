@@ -81,7 +81,18 @@ function getRPDE(url, cb) {
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      cb(JSON.parse(body));
+      var json = JSON.parse(body);
+
+      // Validate RPDE base URL
+      if (!json.next) {
+        throw "RPDE does not have 'next' property";
+      }
+      if (getBaseUrl(json.next) != getBaseUrl(url)) {
+        throw `Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`;
+      }
+
+      if (json.next )
+      cb(json);
     } else {
       console.log("Error for RPDE page: " + error + ". Response: " + body);
       // Fake next page to force retry, after a delay
@@ -94,7 +105,7 @@ function getBaseUrl(url) {
   if (url.indexOf("//") > -1) {
     return url.substring(0, url.indexOf("/", url.indexOf("//") + 2));
   } else {
-    return "";
+    throw "RPDE 'next' property MUST be an absolute URL";
   }
 }
 
