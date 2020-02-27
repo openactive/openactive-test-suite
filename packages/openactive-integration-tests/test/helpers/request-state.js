@@ -20,20 +20,27 @@ class RequestState {
     return this._uuid;
   }
 
-  async createScheduledSession(event) {
-    let session = await this.requestHelper.createScheduledSession(event, {
-      sellerId: this.sellerId
-    });
+  async createOpportunity(dataItem) {
+    let session = dataItem.randomEvent ?
+      await this.requestHelper.getRandomOpportunity(dataItem.randomEvent, {}) :
+      await this.requestHelper.createOpportunity(dataItem.event, {
+        sellerId: this.sellerId
+      });
 
     this.eventId = session.body["@id"];
+    this.eventType = session.body["@type"];
+
+    this.readonlyEvent = typeof dataItem.randomEvent !== "undefined";
 
     return session;
   }
 
-  async deleteScheduledSession() {
-    await this.requestHelper.deleteScheduledSession(this.eventId, {
-      sellerId: this.sellerId
-    });
+  async deleteOpportunity() {
+    if (!this.readonlyEvent) {
+      await this.requestHelper.deleteOpportunity(this.eventId, this.eventType, {
+        sellerId: this.sellerId
+      });
+    }
   }
 
   async getOrder () {
@@ -44,6 +51,10 @@ class RequestState {
     return this;
   }
 
+  get eventFound() {
+    return this.getMatchSucceeded || false;
+  }
+
   get rpdeItem() {
     if (!this.ordersFeedUpdate) return;
 
@@ -51,10 +62,19 @@ class RequestState {
   }
 
   async getMatch () {
-    let result = await this.requestHelper.getMatch(this.eventId);
+    // Only attempt getMatch if we have an eventId
+    if (this.eventId) {
+      let result = await this.requestHelper.getMatch(this.eventId);
 
-    this.apiResponse = result;
+      this.apiResponse = result;
 
+      if (result.statusCode === 200 && typeof result.body.data !== "undefined") {
+        this.getMatchSucceeded = true;
+        return this;
+      }
+    }
+
+    this.getMatchSucceeded = false;
     return this;
   }
 

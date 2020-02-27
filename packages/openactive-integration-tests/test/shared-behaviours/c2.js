@@ -46,12 +46,14 @@ class C2 {
       expect(this.state.c2Response).to.have.status(200);
     });
 
-    it("offer should have price of " + this.price, () => {
-      expect(this.state.c2Response).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        this.price
-      );
-    });
+    if (typeof this.price !== "undefined") {
+      it("offer should have price of " + this.price, () => {
+        expect(this.state.c2Response).to.have.json(
+          "orderedItem[0].acceptedOffer.price",
+          this.price
+        );
+      });
+    }
 
     it("Order or OrderQuote should have one orderedItem", () => {
       expect(this.state.c2Response).to.have.schema("orderedItem", {

@@ -13,6 +13,10 @@ class C1 {
     return this.dataItem.event;
   }
 
+  get eventType () {
+    return this.dataItem.randomEvent || this.dataItem.event["@type"]
+  }
+
   get eventName () {
     return this.dataItem.name;
   }
@@ -45,30 +49,37 @@ class C1 {
       expect(this.state.c1Response).to.have.status(200);
     });
 
-    it("should return newly created event", () => {
+    it("should return the type '" + this.eventType + "'", () => {
       expect(this.state.c1Response).to.have.json(
         "orderedItem[0].orderedItem.@type",
-        "ScheduledSession",
-      );
-      expect(this.state.c1Response).to.have.json(
-        "orderedItem[0].orderedItem.superEvent.name",
-        this.eventName,
+        this.eventType,
       );
     });
 
-    it("offer should have price of " + this.price, () => {
-      expect(this.state.c1Response).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        this.price,
-      );
-    });
+    if (typeof this.eventName !== "undefined") {
+      it("should return have the correct event 'name' of '" + this.eventName + "'", () => {
+        expect(this.state.c1Response).to.have.json(
+          "orderedItem[0].orderedItem.superEvent.name",
+          this.eventName,
+        );
+      });
+    }
 
-    it("OrderQuote.totalPaymentDue equal to " + this.price, () => {
-      expect(this.state.c1Response).
-        to.
-        have.
-        json("totalPaymentDue.price", this.price);
-    });
+    if (typeof this.price !== "undefined") {
+      it("offer should have price of " + this.price, () => {
+        expect(this.state.c1Response).to.have.json(
+          "orderedItem[0].acceptedOffer.price",
+          this.price,
+        );
+      });
+
+      it("OrderQuote.totalPaymentDue equal to " + this.price, () => {
+        expect(this.state.c1Response).
+          to.
+          have.
+          json("totalPaymentDue.price", this.price);
+      });
+    }
 
     it("C1 Order or OrderQuote should have one orderedItem", () => {
       expect(this.state.c1Response).to.have.schema("orderedItem", {

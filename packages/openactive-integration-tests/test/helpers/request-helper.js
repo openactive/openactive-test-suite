@@ -39,7 +39,10 @@ class RequestHelper {
 
   async getOrder(uuid) {
     const ordersFeedUpdate = await chakram.get(
-      MICROSERVICE_BASE + "get-order/" + uuid
+      MICROSERVICE_BASE + "get-order/" + uuid,
+      {
+        timeout: 30000
+      }
     );
     const rpdeItem = ordersFeedUpdate.body;
 
@@ -50,7 +53,10 @@ class RequestHelper {
 
   async getMatch(eventId) {
     const respObj = await chakram.get(
-      MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId)
+      MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId),
+      {
+        timeout: 60000
+      }
     );
     const rpdeItem = respObj.body;
 
@@ -68,7 +74,8 @@ class RequestHelper {
       BOOKING_API_BASE + "order-quote-templates/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -86,7 +93,8 @@ class RequestHelper {
       BOOKING_API_BASE + "order-quotes/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -104,7 +112,8 @@ class RequestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -122,7 +131,8 @@ class RequestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -131,38 +141,47 @@ class RequestHelper {
     return uResponse;
   }
 
-  async createScheduledSession(event, params) {
+  async createOpportunity(event, params) {
     let respObj;
-    if (USE_RANDOM_OPPORTUNITIES) {
-      respObj = await chakram.get(
-        "http://localhost:3000/get-random-opportunity"
-      )
-    }
-    else {
-      respObj = await chakram.post(
-        BOOKING_API_BASE + "test-interface/scheduledsession",
-        event,
-        {
-          headers: this.createHeaders(params.sellerId)
-        }
-      );
-    }
+
+    respObj = await chakram.post(
+      BOOKING_API_BASE + "test-interface/" + event['@type'],
+      event,
+      {
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
+      }
+    );
 
     this.logger && this.logger.recordResponse('create-session', respObj);
 
     return respObj;
   }
 
-  async deleteScheduledSession(eventId, params = {}) {
+  async getRandomOpportunity(type, params) {
+    let respObj;
+
+    respObj = await chakram.get(
+      "http://localhost:3000/get-random-opportunity" + ( type ? "?type=" + type : "" )
+    )
+
+    // TODO: Do we need to rename this from 'create-session'?
+    this.logger && this.logger.recordResponse('random-opportunity', respObj);
+
+    return respObj;
+  }
+
+  async deleteOpportunity(eventId, eventType, params = {}) {
     if (USE_RANDOM_OPPORTUNITIES) return null;
 
     const respObj = await chakram.delete(
       BOOKING_API_BASE +
-        "test-interface/scheduledsession/" +
+        "test-interface/" + eventType + "/" +
         encodeURIComponent(eventId),
       null,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -176,7 +195,8 @@ class RequestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       null,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 

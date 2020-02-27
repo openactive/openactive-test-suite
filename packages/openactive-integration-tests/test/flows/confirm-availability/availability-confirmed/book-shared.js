@@ -17,14 +17,14 @@ function performTests(dataItem) {
   const flow = new FlowHelper(state);
 
   beforeAll(async function() {
-    await state.createScheduledSession(testEvent);
+    await state.createOpportunity(dataItem);
     await flow.getMatch();
 
     return chakram.wait();
   });
 
   afterAll(async function() {
-    await state.deleteScheduledSession();
+    await state.deleteOpportunity();
 
     return chakram.wait();
   });

@@ -46,12 +46,21 @@ class B {
       expect(this.state.bResponse).to.have.status(200);
     });
 
-    it("should have price of " + this.price, () => {
-      expect(this.state.bResponse).to.have.json(
-        "orderedItem[0].acceptedOffer.this.price",
-        this.price
-      );
-    });
+    if (typeof this.price !== "undefined") {
+      it("should have price of " + this.price, () => {
+        expect(this.state.bResponse).to.have.json(
+          "orderedItem[0].acceptedOffer.price",
+          this.price
+        );
+      });
+
+      it("OrderQuote.totalPaymentDue equal to " + this.price, () => {
+        expect(this.state.bResponse).
+          to.
+          have.
+          json("totalPaymentDue.price", this.price);
+      });
+    }
 
     it("B Order or OrderQuote should have one orderedItem", () => {
       expect(this.state.bResponse).to.have.schema("orderedItem", {
