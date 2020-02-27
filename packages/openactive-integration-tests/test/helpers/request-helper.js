@@ -13,10 +13,10 @@ var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
 };
 
-const c1req = require("../templates/c1-req.json");
-const c2req = require("../templates/c2-req.json");
-const breq = require("../templates/b-req.json");
-const ureq = require("../templates/u-req.json");
+const c1req = require("../templates/c1-req.js");
+const c2req = require("../templates/c2-req.js");
+const breq = require("../templates/b-req.js");
+const ureq = require("../templates/u-req.js");
 
 class RequestHelper {
   constructor(logger) {
@@ -32,14 +32,11 @@ class RequestHelper {
   }
 
   bookingTemplate(logger, templateJson, replacementMap, removePayment) {
-    if (typeof replacementMap.totalPaymentDue !== "undefined" && templateJson.totalPaymentDue)
-      templateJson.totalPaymentDue.price = replacementMap.totalPaymentDue;
-    var template = JSON.stringify(templateJson, null, 2);
-
-    var req = mustache.render(template, replacementMap);
-
-    let jsonResult = JSON.parse(req);
+    let jsonResult = templateJson(replacementMap, removePayment);
     if (removePayment) delete jsonResult.payment;
+
+    logger.log("\n\n** REQUEST **: \n\n" + JSON.stringify(jsonResult));
+
     return jsonResult;
   }
 
