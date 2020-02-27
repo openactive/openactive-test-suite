@@ -66,7 +66,7 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => state.c1Response.body,
+      () => state.c1Response,
       "C1",
       logger,
       {
@@ -99,7 +99,7 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => state.c2Response.body,
+      () => state.c2Response,
       "C2",
       logger,
       {
@@ -139,7 +139,7 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => state.bResponse.body,
+      () => state.bResponse,
       "B",
       logger,
       {
@@ -193,7 +193,7 @@ function performTests(dataItem) {
     });
 
     sharedValidationTests.shouldBeValidResponse(
-      () => state.ordersFeedUpdate.body.data,
+      () => state.ordersFeedUpdate,
       "Orders feed",
       logger,
       {
