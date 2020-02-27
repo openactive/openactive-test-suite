@@ -1,6 +1,5 @@
 const assert = require("assert");
 const chakram = require("chakram");
-const mustache = require("mustache");
 const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
@@ -34,8 +33,6 @@ class RequestHelper {
   bookingTemplate(logger, templateJson, replacementMap, removePayment) {
     let jsonResult = templateJson(replacementMap, removePayment);
     if (removePayment) delete jsonResult.payment;
-
-    logger.log("\n\n** REQUEST **: \n\n" + JSON.stringify(jsonResult));
 
     return jsonResult;
   }
