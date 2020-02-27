@@ -28,6 +28,7 @@ module.exports = data => {
     orderedItem: [
       {
         "@type": "OrderItem",
+        position: 0,
         acceptedOffer: {
           "@type": "Offer",
           "@id": `${data.offerId}`

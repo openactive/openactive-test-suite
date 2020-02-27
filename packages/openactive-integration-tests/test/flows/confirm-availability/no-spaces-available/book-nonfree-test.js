@@ -30,6 +30,6 @@ let testEvent = {
 
 describe("Confirm Availability", function() {
   describe("No Spaces Available in Single Opportunity", function() {
-    bookingShared.performTests(testEvent);
+    bookingShared.performTests.bind(this)(testEvent);
   });
 });

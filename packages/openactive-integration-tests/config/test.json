@@ -1,6 +1,7 @@
 {
   "tests": {
     "bookingApiBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/openbooking/",
-    "microserviceApiBase": "http://localhost:3000/"
+    "microserviceApiBase": "http://localhost:3000/",
+    "useRandomOpportunities": false
   }
 }

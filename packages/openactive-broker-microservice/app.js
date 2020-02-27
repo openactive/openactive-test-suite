@@ -81,11 +81,21 @@ function getRPDE(url, cb) {
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      cb(JSON.parse(body));
+      var json = JSON.parse(body);
+
+      // Validate RPDE base URL
+      if (!json.next) {
+        throw "RPDE does not have 'next' property";
+      }
+      if (getBaseUrl(json.next) != getBaseUrl(url)) {
+        throw `Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`;
+      }
+
+      cb(json);
     } else {
       console.log("Error for RPDE page: " + error + ". Response: " + body);
       // Fake next page to force retry, after a delay
-      setTimeout(cb({ next: url, items: [] }), 5000);
+      setTimeout(x => getRPDE(url, cb), 5000);
     }
   });
 }
@@ -94,8 +104,15 @@ function getBaseUrl(url) {
   if (url.indexOf("//") > -1) {
     return url.substring(0, url.indexOf("/", url.indexOf("//") + 2));
   } else {
-    return "";
+    throw "RPDE 'next' property MUST be an absolute URL";
   }
+}
+
+var bookableOpportunityIds = [];
+
+function getRandomBookableOpportunity() {
+  if (bookableOpportunityIds.length == 0) return null;
+  return bookableOpportunityIds[Math.floor(Math.random() * bookableOpportunityIds.length)];
 }
 
 function getOpportunityById(opportunityId) {
@@ -254,6 +271,17 @@ app.get("/get-opportunity/:id", function(req, res) {
   getMatch(req, res, false);
 });
 
+app.get("/get-random-opportunity", function(req, res) {
+  var randomOpportunity = getRandomBookableOpportunity();
+  console.log("Random Bookable Opportunity: " + randomOpportunity);
+  res.json({ 
+    "@context": "https://openactive.io/",
+    "@type": "ScheduledSession",
+    "@id": randomOpportunity
+  });
+  res.end();
+});
+
 var orderResponses = {
   /* Keyed by expression =*/
 };
@@ -389,7 +417,7 @@ function ingestScheduledSessionPage(rpde, pageNumber) {
         jsonLdId: item.state == "deleted" ? null : item.data['@id'] || item.data['id'],
         jsonLd: item.state == "deleted" ? null : item.data,
         jsonLdParentId: item.state == "deleted" ? null : item.data.superEvent,
-        parentIngested: typeof sessionSeriesMap[item.data.superEvent] !== "undefined"
+        parentIngested: item.state == "deleted" ? false : typeof sessionSeriesMap[item.data.superEvent] !== "undefined"
       }))
     )
     .exec()
@@ -415,6 +443,11 @@ function monitorPage(rpde, pageNumber) {
     // TODO: make this regex loop (note ignore deleted items)
     if (item.data && item.data.superEvent) {
       var id = item.data['@id'] || item.data['id'];
+
+      if (Date.parse(item.data.startDate) > new Date(Date.now() + ( 3600 * 1000 * 24)) ) {
+        bookableOpportunityIds.push(id);
+      }
+
       if (responses[id]) {
         responses[id].send(item);
 
@@ -425,7 +458,7 @@ function monitorPage(rpde, pageNumber) {
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, monitorPage), 5000);
+  setTimeout(x => getRPDE(rpde.next, monitorPage), 200);
 }
 
 function monitorOrdersPage(rpde, pageNumber) {
