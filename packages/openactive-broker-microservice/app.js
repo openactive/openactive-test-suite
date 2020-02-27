@@ -91,7 +91,6 @@ function getRPDE(url, cb) {
         throw `Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`;
       }
 
-      if (json.next )
       cb(json);
     } else {
       console.log("Error for RPDE page: " + error + ". Response: " + body);
