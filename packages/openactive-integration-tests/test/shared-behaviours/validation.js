@@ -14,6 +14,10 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
 
     let response = getter();
 
+    if (!response) {
+      throw new Error('No response to validate');
+    }
+
     let body = response.body;
 
     if (options.validationMode === "OrdersFeed") {

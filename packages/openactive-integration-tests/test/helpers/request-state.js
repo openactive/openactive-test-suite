@@ -104,6 +104,10 @@ class RequestState {
     return this;
   }
 
+  get C1ResponseSucceeded() {
+    return this.c1Response && this.c1Response.statusCode >= 200 && this.c1Response.statusCode < 300;
+  }
+
   get totalPaymentDue() {
     let response = this.c2Response || this.c1Response;
 
@@ -120,12 +124,20 @@ class RequestState {
     return this;
   }
 
+  get C2ResponseSucceeded() {
+    return this.c2Response && this.c2Response.statusCode >= 200 && this.c2Response.statusCode < 300;
+  }
+
   async putOrder () {
     let result = await this.requestHelper.putOrder(this.uuid, this);
 
     this.bResponse = result;
 
     return this;
+  }
+
+  get BResponseSucceeded() {
+    return this.bResponse && this.bResponse.statusCode >= 200 && this.bResponse.statusCode < 300;
   }
 
   get orderItemId() {
@@ -145,6 +157,10 @@ class RequestState {
     this.uResponse = result;
 
     return this;
+  }
+
+  get UResponseSucceeded() {
+    return this.uResponse && this.uResponse.statusCode >= 200 && this.uResponse.statusCode < 300;
   }
 }
 
