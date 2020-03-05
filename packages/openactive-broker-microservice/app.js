@@ -95,6 +95,10 @@ function getRPDE(url, cb) {
 
 
       cb(json);
+    } else if (!response) {
+      console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
+      // Fake next page to force retry, after a delay
+      setTimeout(x => getRPDE(url, cb), 5000);
     } else if (response.statusCode === 404) {
       console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
       // Stop polling feed
@@ -127,7 +131,7 @@ function getRandomBookableOpportunity(type) {
 
   var id = bookableOpportunityIds[type][Math.floor(Math.random() * bookableOpportunityIds[type].length)];
 
-  return { 
+  return {
     "@context": "https://openactive.io/",
     "@type": type,
     "@id": id
@@ -139,7 +143,7 @@ function getOpportunityById(opportunityId) {
     return Object.assign(
       {},
       opportunityMap[opportunityId],
-      { 
+      {
         superEvent: parentOpportunityMap[opportunityMap[opportunityId].superEvent],
         facilityUse: parentOpportunityMap[opportunityMap[opportunityId].facilityUse]
       }
@@ -172,7 +176,7 @@ app.get("/feeds/opportunities", function(req, res) {
     .where(
       afterTimestamp != null
         ?
-        [ 
+        [
           ["parentIngested", "=", true],
           "AND",
           [
@@ -263,7 +267,7 @@ function getMatch(req, res, useCache) {
       console.log("used cached response for " + id);
       res.json({ data: cachedResponse });
       res.end();
-      
+
     } else {
       console.log("listening for " + id);
 
@@ -483,7 +487,7 @@ function monitorPage(rpde, pageNumber) {
   rpde.items.forEach(item => {
     if (item.data) {
       var id = item.data['@id'] || item.data['id'];
-      var type = item.data['@type'] || item.data['type']; 
+      var type = item.data['@type'] || item.data['type'];
 
       // Check for bookability
       var startDate = item.data.startDate;
