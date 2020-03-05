@@ -499,31 +499,57 @@ function monitorPage(rpde, pageNumber) {
 
       if (!bookableOpportunityIds[type]) bookableOpportunityIds[type] = [];
 
-      var isBookable = false;
+      var isBookable = true;
+      var isBookableIssues = [];
 
       if (
-        Date.parse(startDate) > new Date(Date.now() + ( 3600 * 1000 * 24))
-        && bookableOffers.length > 0
-        && remainingCapacity > 0
-        && !(eventStatus == "https://schema.org/EventCancelled" || eventStatus == "https://schema.org/EventPostponed")
+        !(Date.parse(startDate) > new Date(Date.now() + ( 3600 * 1000 * 24)))
       ) {
+        isBookable = false;
+        isBookableIssues.push("Start date must be 24hrs in advance for random tests to use")
+      }
+
+      if (
+        !(bookableOffers.length > 0)
+      ) {
+        isBookable = false;
+        isBookableIssues.push("No bookable Offers")
+      }
+
+      if (
+        !(remainingCapacity > 0)
+      ) {
+        isBookable = false;
+        isBookableIssues.push("No remaining capacity")
+      }
+
+      if (
+        (eventStatus == "https://schema.org/EventCancelled" || eventStatus == "https://schema.org/EventPostponed")
+      ) {
+        isBookable = false;
+        isBookableIssues.push("Cancelled or Postponed")
+      }
+
+      var bookableIssueList = "";
+
+      if (isBookable) {
         // Add ID to if now bookable
         bookableOpportunityIds[type].push(id);
-        isBookable = true;
       } else {
         // Remove ID if no longer bookable
         var ids = bookableOpportunityIds[type];
         var index = ids.indexOf(id);
         if (index !== -1) ids.splice(index, 1);
-        isBookable = false;
+
+        bookableIssueList = "\n   [Not Bookable: " + isBookableIssues.join(', ') + "]";
       }
 
       if (responses[id]) {
         responses[id].send(item);
 
-        console.log(`seen ${isBookable ? "bookable " : ""}and dispatched ${id}`);
+        console.log(`seen ${isBookable ? "bookable " : ""}and dispatched ${id}${bookableIssueList}`);
       } else {
-        console.log(`saw ${isBookable ? "bookable " : ""}${id}`);
+        console.log(`saw ${isBookable ? "bookable " : ""}${id}${bookableIssueList}`);
       }
     }
   });
