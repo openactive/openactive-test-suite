@@ -1,6 +1,14 @@
 const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 
+function isResponse20x(response) {
+  if (!response || !response.response) return false;
+
+  let statusCode = response.response.statusCode;
+
+  return statusCode >= 200 && statusCode < 300;
+}
+
 class RequestState {
   constructor (logger) {
     this.requestHelper = new RequestHelper(logger);
@@ -21,17 +29,19 @@ class RequestState {
   }
 
   async createOpportunity(dataItem) {
-    let session = dataItem.randomEvent ?
-      await this.requestHelper.getRandomOpportunity(dataItem.randomEvent, {}) :
-      await this.requestHelper.createOpportunity(dataItem.event, {
+    let session;
+    if (dataItem.randomEvent) {
+      session = await this.requestHelper.getRandomOpportunity(dataItem.randomEvent, {});
+    }
+    else {
+      session = await this.requestHelper.createOpportunity(dataItem.event, {
         sellerId: this.sellerId
       });
-
+    }
     this.eventId = session.body["@id"];
     this.eventType = session.body["@type"];
 
     this.readonlyEvent = typeof dataItem.randomEvent !== "undefined";
-
     return session;
   }
 
@@ -51,10 +61,6 @@ class RequestState {
     return this;
   }
 
-  get eventFound() {
-    return this.getMatchSucceeded || false;
-  }
-
   get rpdeItem() {
     if (!this.ordersFeedUpdate) return;
 
@@ -67,15 +73,13 @@ class RequestState {
       let result = await this.requestHelper.getMatch(this.eventId);
 
       this.apiResponse = result;
-
-      if (result.statusCode === 200 && typeof result.body.data !== "undefined") {
-        this.getMatchSucceeded = true;
-        return this;
-      }
     }
 
-    this.getMatchSucceeded = false;
     return this;
+  }
+
+  get getMatchResponseSucceeded() {
+    return isResponse20x(this.apiResponse);
   }
 
   get opportunityId() {
@@ -105,7 +109,7 @@ class RequestState {
   }
 
   get C1ResponseSucceeded() {
-    return this.c1Response && this.c1Response.statusCode >= 200 && this.c1Response.statusCode < 300;
+    return isResponse20x(this.c1Response);
   }
 
   get totalPaymentDue() {
@@ -125,7 +129,7 @@ class RequestState {
   }
 
   get C2ResponseSucceeded() {
-    return this.c2Response && this.c2Response.statusCode >= 200 && this.c2Response.statusCode < 300;
+    return isResponse20x(this.c2Response);
   }
 
   async putOrder () {
@@ -137,7 +141,7 @@ class RequestState {
   }
 
   get BResponseSucceeded() {
-    return this.bResponse && this.bResponse.statusCode >= 200 && this.bResponse.statusCode < 300;
+    return isResponse20x(this.bResponse);
   }
 
   get orderItemId() {
@@ -160,7 +164,7 @@ class RequestState {
   }
 
   get UResponseSucceeded() {
-    return this.uResponse && this.uResponse.statusCode >= 200 && this.uResponse.statusCode < 300;
+    return isResponse20x(this.uResponse);
   }
 }
 

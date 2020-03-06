@@ -1,14 +1,14 @@
-// const pMemoize = require("p-memoize");
+const pMemoize = require("p-memoize");
 
-const pMemoize = (func) => {
-  let val;
-  return async (...args) => {
-    if (val) return val;
-
-    val = func(...args);
-    return val;
-  }
-};
+// const pMemoize = (func) => {
+//   let val;
+//   return async (...args) => {
+//     if (val) return val;
+//
+//     val = func(...args);
+//     return val;
+//   }
+// };
 
 class FlowHelper {
   constructor (helper) {
@@ -21,7 +21,7 @@ class FlowHelper {
 
   C1 = pMemoize(async C1 => {
     await this.getMatch();
-    if (!this.state.eventFound) throw Error('Pre-requisite step failed: event not found');
+    if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: event not found');
 
     return this.state.putOrderQuoteTemplate();
   });
