@@ -53,7 +53,12 @@ function getRPDE(url, cb) {
         throw `Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`;
       }
 
-      cb(json);
+      if (json.next == url && json.items.length == 0) {
+        console.log(`Sleep mode poll for RPDE feed "${url}"`);
+        setTimeout(x => getRPDE(url, cb), 500);
+      } else {
+        cb(json);
+      }
     } else if (!response) {
       console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
@@ -382,7 +387,7 @@ function processOpportunityItem(item) {
 
       // Check for bookability
       var startDate = item.data.startDate;
-      var offers = item.data.offers || (item.data.superEvent && item.data.superEvent.offers) || (item.data.facilityUse && item.data.facilityUse.offers); // Note FacilityUse does not have bookable offers, as it does not allow inheritance
+      var offers = item.data.offers || (item.data.superEvent && item.data.superEvent.offers); // Note FacilityUse does not have bookable offers, as it does not allow inheritance
       var remainingCapacity = item.data.remainingAttendeeCapacity || item.data.remainingUses;
       var eventStatus = item.data.eventStatus;
 
@@ -398,10 +403,10 @@ function processOpportunityItem(item) {
       var isBookableIssues = [];
 
       if (
-        !(Date.parse(startDate) > new Date(Date.now() + ( 3600 * 1000 * 24)))
+        !(Date.parse(startDate) > new Date(Date.now() + ( 3600 * 1000 * 2)))
       ) {
         isBookable = false;
-        isBookableIssues.push("Start date must be 24hrs in advance for random tests to use")
+        isBookableIssues.push("Start date must be 2hrs in advance for random tests to use")
       }
 
       if (
