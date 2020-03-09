@@ -106,7 +106,7 @@ class BaseLogger {
   }
 
   get metaPath() {
-    return `./output/meta/${this.suiteName}.json`;
+    return `./output/json/${this.suiteName}.json`;
   }
 
   get markdownPath() {

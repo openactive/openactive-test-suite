@@ -15,8 +15,9 @@ class Reporter {
 
   async onRunStart(test, results) {
     await mkdirp('./output');
-    await mkdirp('./output/meta');
-    await rmfr('./output/meta/*.json', {glob: true});
+    await rmfr('./output/*.md', {glob: true});
+    await mkdirp('./output/json');
+    await rmfr('./output/json/*.json', {glob: true});
   }
   onTestStart(test) {
 

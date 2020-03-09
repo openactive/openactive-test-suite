@@ -1,6 +1,14 @@
 const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 
+function isResponse20x(response) {
+  if (!response || !response.response) return false;
+
+  let statusCode = response.response.statusCode;
+
+  return statusCode >= 200 && statusCode < 300;
+}
+
 class RequestState {
   constructor (logger) {
     this.requestHelper = new RequestHelper(logger);
@@ -20,20 +28,29 @@ class RequestState {
     return this._uuid;
   }
 
-  async createScheduledSession(event) {
-    let session = await this.requestHelper.createScheduledSession(event, {
-      sellerId: this.sellerId
-    });
-
+  async createOpportunity(dataItem) {
+    let session;
+    if (dataItem.randomEvent) {
+      session = await this.requestHelper.getRandomOpportunity(dataItem.randomEvent, {});
+    }
+    else {
+      session = await this.requestHelper.createOpportunity(dataItem.event, {
+        sellerId: this.sellerId
+      });
+    }
     this.eventId = session.body["@id"];
+    this.eventType = session.body["@type"];
 
+    this.readonlyEvent = typeof dataItem.randomEvent !== "undefined";
     return session;
   }
 
-  async deleteScheduledSession() {
-    await this.requestHelper.deleteScheduledSession(this.eventId, {
-      sellerId: this.sellerId
-    });
+  async deleteOpportunity() {
+    if (!this.readonlyEvent) {
+      await this.requestHelper.deleteOpportunity(this.eventId, this.eventType, {
+        sellerId: this.sellerId
+      });
+    }
   }
 
   async getOrder () {
@@ -51,11 +68,18 @@ class RequestState {
   }
 
   async getMatch () {
-    let result = await this.requestHelper.getMatch(this.eventId);
+    // Only attempt getMatch if we have an eventId
+    if (this.eventId) {
+      let result = await this.requestHelper.getMatch(this.eventId);
 
-    this.apiResponse = result;
+      this.apiResponse = result;
+    }
 
     return this;
+  }
+
+  get getMatchResponseSucceeded() {
+    return isResponse20x(this.apiResponse);
   }
 
   get opportunityId() {
@@ -84,6 +108,10 @@ class RequestState {
     return this;
   }
 
+  get C1ResponseSucceeded() {
+    return isResponse20x(this.c1Response);
+  }
+
   get totalPaymentDue() {
     let response = this.c2Response || this.c1Response;
 
@@ -100,12 +128,20 @@ class RequestState {
     return this;
   }
 
+  get C2ResponseSucceeded() {
+    return isResponse20x(this.c2Response);
+  }
+
   async putOrder () {
     let result = await this.requestHelper.putOrder(this.uuid, this);
 
     this.bResponse = result;
 
     return this;
+  }
+
+  get BResponseSucceeded() {
+    return isResponse20x(this.bResponse);
   }
 
   get orderItemId() {
@@ -125,6 +161,10 @@ class RequestState {
     this.uResponse = result;
 
     return this;
+  }
+
+  get UResponseSucceeded() {
+    return isResponse20x(this.uResponse);
   }
 }
 

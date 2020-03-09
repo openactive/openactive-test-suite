@@ -32,13 +32,13 @@ describe("Test interface", function() {
     };
 
     beforeAll(async function() {
-      let session = await testHelper.createScheduledSession(testEvent, {});
+      let session = await testHelper.createOpportunity(testEvent, {});
 
       ({ apiResponse } = await testHelper.getMatch(session.eventId));
     });
 
     afterAll(async function() {
-      let { respObj } = await testHelper.deleteScheduledSession(eventId);
+      let { respObj } = await testHelper.deleteOpportunity(eventId);
     });
 
     describe("checks", function() {

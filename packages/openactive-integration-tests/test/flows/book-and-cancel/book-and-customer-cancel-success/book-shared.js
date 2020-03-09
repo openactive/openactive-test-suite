@@ -5,6 +5,9 @@ const {Logger} = require("../../../helpers/logger");
 const {RequestState} = require("../../../helpers/request-state");
 const {FlowHelper} = require("../../../helpers/flow-helper");
 const sharedValidationTests = require("../../../shared-behaviours/validation");
+const {C1} = require("../../../shared-behaviours/c1");
+const {C2} = require("../../../shared-behaviours/c2");
+const {B} = require("../../../shared-behaviours/B");
 
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
@@ -17,14 +20,14 @@ function performTests(dataItem) {
   const flow = new FlowHelper(state);
 
   beforeAll(async function() {
-    await state.createScheduledSession(testEvent);
+    await state.createOpportunity(dataItem);
     await flow.getMatch();
 
     return chakram.wait();
   });
 
   afterAll(async function() {
-    await state.deleteScheduledSession();
+    await state.deleteOpportunity();
 
     await testHelper.deleteOrder(state.uuid, {
       sellerId: state.sellerId
@@ -33,111 +36,24 @@ function performTests(dataItem) {
   });
 
   describe("C1", function() {
-    beforeAll(async function() {
-      await flow.C1();
-    });
-
-    it("should return 200 on success", function() {
-      expect(state.c1Response).to.have.status(200);
-    });
-
-    it("should return newly created event", function() {
-      expect(state.c1Response).to.have.json(
-        "orderedItem[0].orderedItem.@type",
-        "ScheduledSession"
-      );
-      expect(state.c1Response).to.have.json(
-        "orderedItem[0].orderedItem.superEvent.name",
-        eventName
-      );
-    });
-
-    it("offer should have price of " + price, function() {
-      expect(state.c1Response).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        price
-      );
-    });
-
-    it("C1 Order or OrderQuote should have one orderedItem", function() {
-      expect(state.c1Response).to.have.schema("orderedItem", {
-        minItems: 1,
-        maxItems: 1
-      });
-    });
-
-    sharedValidationTests.shouldBeValidResponse(() => state.c1Response.body, "C1", logger, {
-        validationMode: "C1Response"
-      }
-    );
+    (new C1({state, flow, logger, dataItem}))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
   });
 
   describe("C2", function() {
-    beforeAll(async function() {
-      await flow.C2();
-    });
-
-    it("should return 200 on success", async function() {
-      expect(state.c2Response).to.have.status(200);
-    });
-
-    it("offer should have price of " + price, async function() {
-      expect(state.c2Response).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        price
-      );
-    });
-
-    it("Order or OrderQuote should have one orderedItem", async function() {
-      expect(state.c2Response).to.have.schema("orderedItem", {
-        minItems: 1,
-        maxItems: 1
-      });
-    });
-
-    sharedValidationTests.shouldBeValidResponse(
-      () => state.c2Response.body,
-      "C2",
-      logger,
-      {
-        validationMode: "C2Response"
-      }
-    );
+    (new C2({state, flow, logger, dataItem}))
+    .beforeSetup()
+    .successChecks()
+    .validationTests();
   });
 
   describe("B", function() {
-    beforeAll(async function() {
-      await flow.B();
-    });
-
-    it("should return 200 on success", function() {
-      expect(state.bResponse).to.have.status(200);
-    });
-
-    it("should have price of " + price, function() {
-      expect(state.bResponse).to.have.json(
-        "orderedItem[0].acceptedOffer.price",
-        price
-      );
-    });
-
-    it("B Order or OrderQuote should have one orderedItem", function() {
-      expect(state.bResponse).to.have.schema("orderedItem", {
-        minItems: 1,
-        maxItems: 1
-      });
-    });
-
-    it("Result from B should OrderItemConfirmed orderItemStatus", function() {
-      expect(state.bResponse).to.have.json(
-        "orderedItem[0].orderItemStatus",
-        "https://openactive.io/OrderItemConfirmed"
-      );
-    });
-
-    sharedValidationTests.shouldBeValidResponse(() => state.bResponse.body, "B", logger, {
-      validationMode: "BResponse"
-    });
+    (new B({state, flow, logger, dataItem}))
+    .beforeSetup()
+    .successChecks()
+    .validationTests();
   });
 
   describe("Orders Feed", function() {
@@ -180,7 +96,7 @@ function performTests(dataItem) {
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate.body.data, "Orders feed", logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate, "Orders feed", logger, {
       validationMode: "OrdersFeed",
     });
   });

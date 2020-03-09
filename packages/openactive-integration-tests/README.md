@@ -17,6 +17,16 @@ This Node.js script runs tests against the specified openactive-broker-microserv
 1. `npm install`
 2. `npm run test`
 
+### Running specific tests
+
+`npm run test -- test/flows/book-only/book-only-success/book-random-test.js`
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for info on how the flow validations are written.
+
+### Debugging tests
+
+`npm run test --reporters default`
+
+

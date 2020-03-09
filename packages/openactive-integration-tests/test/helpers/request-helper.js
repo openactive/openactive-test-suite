@@ -1,6 +1,5 @@
 const assert = require("assert");
 const chakram = require("chakram");
-const mustache = require("mustache");
 const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
@@ -13,10 +12,10 @@ var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
 };
 
-const c1req = require("../templates/c1-req.json");
-const c2req = require("../templates/c2-req.json");
-const breq = require("../templates/b-req.json");
-const ureq = require("../templates/u-req.json");
+const c1req = require("../templates/c1-req.js");
+const c2req = require("../templates/c2-req.js");
+const breq = require("../templates/b-req.js");
+const ureq = require("../templates/u-req.js");
 
 class RequestHelper {
   constructor(logger) {
@@ -69,21 +68,19 @@ class RequestHelper {
   }
 
   bookingTemplate(logger, templateJson, replacementMap, removePayment) {
-    if (typeof replacementMap.totalPaymentDue !== "undefined" && templateJson.totalPaymentDue)
-      templateJson.totalPaymentDue.price = replacementMap.totalPaymentDue;
-    var template = JSON.stringify(templateJson, null, 2);
-
-    var req = mustache.render(template, replacementMap);
-
-    let jsonResult = JSON.parse(req);
+    let jsonResult = templateJson(replacementMap, removePayment);
     if (removePayment) delete jsonResult.payment;
+
     return jsonResult;
   }
 
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
-      MICROSERVICE_BASE + "get-order/" + uuid
+      MICROSERVICE_BASE + "get-order/" + uuid,
+      {
+        timeout: 30000
+      }
     );
 
     return ordersFeedUpdate;
@@ -92,7 +89,10 @@ class RequestHelper {
   async getMatch(eventId) {
     const respObj = await this.get(
       'get-match',
-      MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId)
+      MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId),
+      {
+        timeout: 60000
+      }
     );
 
     return respObj;
@@ -106,7 +106,8 @@ class RequestHelper {
       BOOKING_API_BASE + "order-quote-templates/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -121,7 +122,8 @@ class RequestHelper {
       BOOKING_API_BASE + "order-quotes/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -136,7 +138,8 @@ class RequestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -151,46 +154,53 @@ class RequestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       payload,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
     return uResponse;
   }
 
-  async createScheduledSession(event, params) {
+  async createOpportunity(event, params) {
     let respObj;
-    if (USE_RANDOM_OPPORTUNITIES) {
-      respObj = await this.get(
-        'create-session',
-        "http://localhost:3000/get-random-opportunity"
-      )
-    }
-    else {
-      respObj = await this.post(
-        'create-session',
-        BOOKING_API_BASE + "test-interface/scheduledsession",
-        event,
-        {
-          headers: this.createHeaders(params.sellerId)
-        }
-      );
-    }
+
+    respObj = await this.post(
+      'create-session',
+      BOOKING_API_BASE + "test-interface/" + event['@type'],
+      event,
+      {
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
+      }
+    );
 
     return respObj;
   }
 
-  async deleteScheduledSession(eventId, params = {}) {
+  async getRandomOpportunity(type, params) {
+    let respObj;
+
+    respObj = await this.get(
+      'random-opportunity',
+      "http://localhost:3000/get-random-opportunity" + ( type ? "?type=" + type : "" )
+    )
+
+    return respObj;
+  }
+
+  async deleteOpportunity(eventId, eventType, params = {}) {
     if (USE_RANDOM_OPPORTUNITIES) return null;
 
     const respObj = await this.delete(
       'delete-session',
       BOOKING_API_BASE +
-        "test-interface/scheduledsession/" +
+        "test-interface/" + eventType + "/" +
         encodeURIComponent(eventId),
       null,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 
@@ -203,7 +213,8 @@ class RequestHelper {
       BOOKING_API_BASE + "orders/" + uuid,
       null,
       {
-        headers: this.createHeaders(params.sellerId)
+        headers: this.createHeaders(params.sellerId),
+        timeout: 10000
       }
     );
 

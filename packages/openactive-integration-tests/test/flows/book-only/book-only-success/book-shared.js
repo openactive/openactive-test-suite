@@ -4,14 +4,16 @@ const expect = chakram.expect;
 const {Logger} = require("../../../helpers/logger");
 const {RequestState} = require("../../../helpers/request-state");
 const {FlowHelper} = require("../../../helpers/flow-helper");
-
 const sharedValidationTests = require("../../../shared-behaviours/validation");
+const {C1} = require("../../../shared-behaviours/c1");
+const {C2} = require("../../../shared-behaviours/c2");
+const {B} = require("../../../shared-behaviours/B");
 
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
 
   const logger = new Logger(dataItem.name, this, {
-    description: `An availability check against a session filled to capacity. As no more capacity is available it's no-longer possible to obtain quotes.`
+    description: `A successful end to end booking.`
   });
 
   const state = new RequestState(logger);
@@ -27,34 +29,34 @@ function performTests(dataItem) {
   afterAll(async function() {
     await state.deleteOpportunity();
 
+    await testHelper.deleteOrder(state.uuid, {
+      sellerId: state.sellerId
+    });
     return chakram.wait();
   });
 
-  describe("C1", function() {
-    beforeAll(async function() {
-      await flow.C1();
+  //if (state.eventFound) {
+    describe("C1", function() {
+      (new C1({state, flow, logger, dataItem}))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
     });
 
-    it("should return 409 - Conflict", async function() {
-      expect(state.c1Response).to.have.status(409);
+    describe("C2", function() {
+      (new C2({state, flow, logger, dataItem}))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
     });
 
-    it("should return a OpportunityIsFullError error", async function() {
-      expect(state.c1Response).to.have.json(
-        "@type",
-        "OpportunityIsFullError"
-      );
+    describe("B", function() {
+      (new B({state, flow, logger, dataItem}))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
     });
-
-    sharedValidationTests.shouldBeValidResponse(
-      () => state.c1Response,
-      "C1",
-      logger,
-      {
-        validationMode: "C1Response"
-      }
-    );
-  });
+  //}
 }
 
 module.exports = {
