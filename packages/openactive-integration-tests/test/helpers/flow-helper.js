@@ -1,15 +1,5 @@
 const pMemoize = require("p-memoize");
 
-// const pMemoize = (func) => {
-//   let val;
-//   return async (...args) => {
-//     if (val) return val;
-//
-//     val = func(...args);
-//     return val;
-//   }
-// };
-
 class FlowHelper {
   constructor (helper) {
     this.state = helper;
