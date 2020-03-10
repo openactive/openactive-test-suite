@@ -5,6 +5,22 @@ const {promises: fs} = require("fs");
 class BaseLogger {
   constructor() {
     this.flow = {};
+    this.logs = [];
+  }
+
+  get testMeta() {
+    return {
+      ancestorTitles: testState.ancestorTitles,
+      title: testState.currentTest && testState.currentTest.description,
+      fullName: testState.fullName,
+    };
+  }
+
+  recordLogEntry(entry) {
+    this.logs.push({
+      ...(this.testMeta),
+      ...entry
+    });
   }
 
   recordRequest(stage, request) {
@@ -35,11 +51,44 @@ class BaseLogger {
     Object.assign(this.flow[stage].response, fields);
   }
 
+  recordRequestResponse(stage, request, response) {
+    let responseFields = {
+      body: response.body,
+      responseTime: response.responseTime,
+    };
+
+    if (response.response) {
+      responseFields = {
+        ...responseFields,
+        status: response.response.statusCode,
+        statusMessage: response.response.statusMessage,
+        headers: response.response.headers
+      }
+    }
+
+    this.recordLogEntry({
+      type: "request",
+      stage: stage,
+      request: {
+        ...request
+      },
+      response: {
+        ...responseFields
+      }
+    });
+  }
+
   recordResponseValidations(stage, data) {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     this.flow[stage].response.validations = data;
+
+    this.recordLogEntry({
+      type: "validations",
+      stage: stage,
+      validations: data
+    });
   }
 
   async writeMeta() {
@@ -72,10 +121,25 @@ class Logger extends BaseLogger {
     this.suite = suite;
     this.workingLog = "";
 
+    this.suites = [];
+    this.specs = {};
+
     meta && Object.assign(this, meta);
 
     afterAll && afterAll(() => {
       return this.writeMeta();
+    });
+
+    testState.on('suite-started', (suite) => {
+      this.suites.push(testState.ancestorTitles);
+    });
+
+    testState.on('spec-started', (spec) => {
+      let key = testState.ancestorTitles;
+      if (!this.specs[key]) {
+        this.specs[key] = [];
+      }
+      this.specs[key].push(testState.currentTest.description);
     });
   }
 
@@ -108,6 +172,22 @@ class ReporterLogger extends BaseLogger {
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
 
     this.flow[stage].response.specs.push(data);
+
+    this.logs.push({
+      type: "spec",
+      ancestorTitles: data.ancestorTitles,
+      title: data.title,
+      fullName: data.fullName,
+      spec: data
+    });
+  }
+
+  logsFor(suite, type) {
+    let result = this.logs.filter((log) => {
+      return _.isEqual(log.ancestorTitles, suite) && log.type == type;
+    });
+
+    return result;
   }
 }
 

@@ -22,6 +22,43 @@ class RequestHelper {
     this.logger = logger;
   }
 
+  async _request(stage, method, url, params, headers) {
+    let response = await chakram[method.toLowerCase()](url, params, headers);
+
+    this.logger.recordRequestResponse(stage, {
+      method: method.toUpperCase(),
+      url: url,
+      params: params,
+      headers: headers
+    }, response);
+
+    if (params) {
+      this.logger.recordRequest(stage, params);
+    }
+    this.logger.recordResponse(stage, response);
+
+    return response;
+  }
+
+  async get(stage, url, headers) {
+    return await this._request(stage, 'GET', url, null, headers);
+  }
+  async put(stage, url, params, headers) {
+    return await this._request(stage, 'PUT', url, params, headers);
+  }
+
+  async post(stage, url, params, headers) {
+    return await this._request(stage, 'POST', url, params, headers);
+  }
+
+  async patch(stage, url, params, headers) {
+    return await this._request(stage, 'PATCH', url, params, headers);
+  }
+
+  async delete(stage, url, params, headers) {
+    return await this._request(stage, 'DELETE', url, params, headers);
+  }
+
   createHeaders(sellerId) {
     return {
       "Content-Type": "application/vnd.openactive.booking+json; version=1",
@@ -38,29 +75,25 @@ class RequestHelper {
   }
 
   async getOrder(uuid) {
-    const ordersFeedUpdate = await chakram.get(
+    const ordersFeedUpdate = await this.get(
+      'get-order',
       MICROSERVICE_BASE + "get-order/" + uuid,
       {
         timeout: 30000
       }
     );
-    const rpdeItem = ordersFeedUpdate.body;
-
-    this.logger && this.logger.recordResponse('get-order', ordersFeedUpdate);
 
     return ordersFeedUpdate;
   }
 
   async getMatch(eventId) {
-    const respObj = await chakram.get(
+    const respObj = await this.get(
+      'get-match',
       MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId),
       {
         timeout: 60000
       }
     );
-    const rpdeItem = respObj.body;
-
-    this.logger && this.logger.recordResponse('get-match', respObj);
 
     return respObj;
   }
@@ -68,9 +101,8 @@ class RequestHelper {
   async putOrderQuoteTemplate(uuid, params) {
     let payload = this.bookingTemplate(this.logger, c1req, params);
 
-    this.logger && this.logger.recordRequest('C1', payload);
-
-    let c1Response = await chakram.put(
+    let c1Response = await this.put(
+      'C1',
       BOOKING_API_BASE + "order-quote-templates/" + uuid,
       payload,
       {
@@ -79,17 +111,14 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('C1', c1Response);
-
     return c1Response;
   }
 
   async putOrderQuote(uuid, params) {
     const payload = this.bookingTemplate(this.logger, c2req, params);
 
-    this.logger && this.logger.recordRequest('C2', payload);
-
-    const c2Response = await chakram.put(
+    const c2Response = await this.put(
+      'C2',
       BOOKING_API_BASE + "order-quotes/" + uuid,
       payload,
       {
@@ -98,17 +127,14 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('C2', c2Response);
-
     return c2Response;
   }
 
   async putOrder(uuid, params) {
     const payload = this.bookingTemplate(this.logger, breq, params, true);
 
-    this.logger && this.logger.recordRequest('B', payload);
-
-    const bResponse = await chakram.put(
+    const bResponse = await this.put(
+      'B',
       BOOKING_API_BASE + "orders/" + uuid,
       payload,
       {
@@ -116,8 +142,6 @@ class RequestHelper {
         timeout: 10000
       }
     );
-
-    this.logger && this.logger.recordResponse('B', bResponse);
 
     return bResponse;
   }
@@ -125,9 +149,8 @@ class RequestHelper {
   async cancelOrder(uuid, params) {
     const payload = this.bookingTemplate(this.logger, ureq, params);
 
-    this.logger && this.logger.recordRequest('U', payload);
-
-    const uResponse = await chakram.patch(
+    const uResponse = await this.patch(
+      'U',
       BOOKING_API_BASE + "orders/" + uuid,
       payload,
       {
@@ -136,15 +159,14 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('U', uResponse);
-
     return uResponse;
   }
 
   async createOpportunity(event, params) {
     let respObj;
 
-    respObj = await chakram.post(
+    respObj = await this.post(
+      'create-session',
       BOOKING_API_BASE + "test-interface/" + event['@type'],
       event,
       {
@@ -153,20 +175,16 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('create-session', respObj);
-
     return respObj;
   }
 
   async getRandomOpportunity(type, params) {
     let respObj;
 
-    respObj = await chakram.get(
+    respObj = await this.get(
+      'random-opportunity',
       "http://localhost:3000/get-random-opportunity" + ( type ? "?type=" + type : "" )
     )
-
-    // TODO: Do we need to rename this from 'create-session'?
-    this.logger && this.logger.recordResponse('random-opportunity', respObj);
 
     return respObj;
   }
@@ -174,7 +192,8 @@ class RequestHelper {
   async deleteOpportunity(eventId, eventType, params = {}) {
     if (USE_RANDOM_OPPORTUNITIES) return null;
 
-    const respObj = await chakram.delete(
+    const respObj = await this.delete(
+      'delete-session',
       BOOKING_API_BASE +
         "test-interface/" + eventType + "/" +
         encodeURIComponent(eventId),
@@ -185,13 +204,12 @@ class RequestHelper {
       }
     );
 
-    this.logger && this.logger.recordResponse('delete-session', respObj);
-
     return respObj;
   }
 
   async deleteOrder(uuid, params) {
-    const respObj = await chakram.delete(
+    const respObj = await this.delete(
+      'delete-order',
       BOOKING_API_BASE + "orders/" + uuid,
       null,
       {
@@ -199,8 +217,6 @@ class RequestHelper {
         timeout: 10000
       }
     );
-
-    this.logger && this.logger.recordResponse('delete-order', respObj);
 
     return !!respObj.body;
   }

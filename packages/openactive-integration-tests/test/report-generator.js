@@ -49,6 +49,31 @@ class ReportGenerator {
     Handlebars.registerHelper("json", function(data, options) {
       return JSON.stringify(data, null, 4);
     });
+
+    Handlebars.registerHelper("logsFor", (suite, type, options) => {
+      let first = true;
+      let logs = this.logger.logsFor(suite, type);
+      let ret = '';
+      for (let [i,value] of logs.entries()) {
+
+        let result = options.fn(
+          value,
+          {
+            data: {
+              first: i === 0,
+              last: i === (logs.length - 1),
+              index: i,
+              key: i,
+            },
+            blockParams: [value, i]
+          },
+        );
+
+        ret += result;
+      }
+
+      return ret;
+    });
   }
 
   async getTemplate(name) {

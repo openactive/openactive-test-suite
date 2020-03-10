@@ -2,34 +2,35 @@
 
 {{{ description }}}
 
-Flows:
-{{#each flow}}
-## {{{ @key }}}
-    {{#if request}}
-### Request
+{{#each suites }}
+## {{#each . }} >> {{{ . }}}{{/each}}
+    {{#logsFor . "request"}}
+### {{stage}} Request
+{{{request.method}}} {{{ request.url }}}
+    {{#if request.params}}
 ```json
-{{{ json request }}}
+{{{ json request.params }}}
 ```
     {{/if}}
-    {{#if response.status}}
-### Response
+        {{#if response.status}}
+
+---
+
 Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Responded in {{{ response.responseTime}}}ms
-        {{#if response.body}}
+            {{#if response.body}}
 ```json
 {{{ json response.body }}}
 ```
+            {{/if}}
         {{/if}}
-    {{/if}}
-    {{#if response.validations }}
-### Validations
-        {{#each response.validations}}
-* {{{ validationIcon severity }}} {{{firstLine message}}}
+    {{/logsFor}}
+    {{#logsFor . "spec"}}
+{{#if @first}}### Specs{{/if}}
+ * {{ specIcon spec.status }} {{{firstLine spec.title}}}{{/logsFor}}
+    {{#logsFor . "validations"}}
+{{#if @first}}### Validations{{/if}}
+        {{#each validations }}
+ * {{ validationIcon severity }} {{{firstLine message}}}
         {{/each}}
-    {{/if}}
-    {{#if response.specs }}
-### Specs
-        {{#each response.specs}}
-* {{{ specIcon status }}} {{{firstLine title}}}
-        {{/each}}
-    {{/if}}
+    {{/logsFor}}
 {{/each}}
