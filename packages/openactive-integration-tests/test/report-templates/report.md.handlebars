@@ -2,8 +2,8 @@
 
 {{{ description }}}
 
-{{#each suites }}
-## {{#each . }} >> {{{ . }}}{{/each}}
+{{#each activeSuites }}
+## {{{ renderSuiteName . }}}
     {{#logsFor . "request"}}
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}

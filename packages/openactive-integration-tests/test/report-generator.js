@@ -19,6 +19,12 @@ class ReportGenerator {
       return chalkFn(options.fn(this));
     });
 
+    Handlebars.registerHelper("renderSuiteName", function(suiteName, options) {
+      if (suiteName.length <= 2) return "Test setup";
+
+      return suiteName.slice(2).join(" >> ");
+    });
+
     Handlebars.registerHelper("validationIcon", function(severity, options) {
       switch (severity) {
         case "warning":
@@ -101,7 +107,10 @@ class ReportGenerator {
   async writeMarkdown() {
     let template = await this.getTemplate('report.md');
 
-    let data = template(this.logger);
+    let data = template(this.logger, {
+      allowProtoMethodsByDefault: true,
+      allowProtoPropertiesByDefault: true
+    });
 
     await fs.writeFile(this.logger.markdownPath, data);
   }

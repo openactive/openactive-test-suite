@@ -166,6 +166,20 @@ class ReporterLogger extends BaseLogger {
     return this.testName;
   }
 
+  get activeSuites() {
+    let activeSuites = [];
+    for (let log of this.logs) {
+      activeSuites.push(log.ancestorTitles);
+    }
+    activeSuites = _.uniqWith(activeSuites, _.isEqual);
+
+    let active = this.suites.filter(suite => {
+      return _.find(activeSuites, (asuite) => _.isEqual(suite, asuite));
+    });
+
+    return active;
+  }
+
   recordTestResult(stage, data) {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].response) this.flow[stage].response = {};

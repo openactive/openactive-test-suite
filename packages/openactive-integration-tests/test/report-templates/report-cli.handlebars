@@ -4,7 +4,7 @@
 
 See `{{{ markdownPath }}}` for more detailed info.
 
-{{#each suites }}
+{{#each activeSuites }}
 {{#each . }}{{# chalk "bold" "yellow" }}>>{{/chalk}} {{# chalk "bold" "green" }}{{{ . }}}{{/chalk}} {{/each}}
     {{#logsFor . "spec"}}
   {{ specIcon spec.status }} {{{firstLine spec.title}}}
