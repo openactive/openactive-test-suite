@@ -8,6 +8,9 @@ See `{{{ markdownPath }}}` for more detailed info.
 {{#each . }}{{# chalk "bold" "yellow" }}>>{{/chalk}} {{# chalk "bold" "green" }}{{{ . }}}{{/chalk}} {{/each}}
     {{#logsFor . "spec"}}
   {{ specIcon spec.status }} {{{firstLine spec.title}}}
+        {{#each spec.failureMessages}}
+      {{{firstLine . }}}
+        {{/each}}
     {{/logsFor}}
     {{#logsFor . "validations"}}
         {{#each validations }}
