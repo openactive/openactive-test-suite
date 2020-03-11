@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const Handlebars = require('handlebars');
 const pMemoize = require('p-memoize');
 const fs = require('fs').promises;
+const stripAnsi = require('strip-ansi');
 
 class ReportGenerator {
   constructor(logger) {
@@ -43,7 +44,7 @@ class ReportGenerator {
     });
 
     Handlebars.registerHelper("firstLine", function(message, options) {
-      return message.split("\n")[0];
+      return stripAnsi(message.split("\n")[0]);
     });
 
     Handlebars.registerHelper("json", function(data, options) {
