@@ -12,6 +12,9 @@
 {{{ json request.params }}}
 ```
     {{/if}}
+        {{#if isPending}}
+**Response still pending**
+        {{/if}}
         {{#if response.status}}
 
 ---

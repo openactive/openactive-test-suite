@@ -1,6 +1,6 @@
-{{# chalk "bold" }}{{ title }}{{/chalk}}
+{{# chalk "bold" }}{{{ title }}}{{/chalk}}
 
-{{ description }}
+{{{ description }}}
 
 See `{{{ markdownPath }}}` for more detailed info.
 
@@ -18,5 +18,11 @@ See `{{{ markdownPath }}}` for more detailed info.
         {{/each}}
     {{/logsFor}}
 {{/each}}
+
+{{#logsFor null "request"}}
+    {{~# if isPending }}
+*** Pending request: {{stage}} - {{{request.method}}} {{{ request.url }}}
+    {{/if~}}
+{{/logsFor}}
 
 ======

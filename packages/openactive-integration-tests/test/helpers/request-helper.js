@@ -23,18 +23,20 @@ class RequestHelper {
   }
 
   async _request(stage, method, url, params, headers) {
-    let response = await chakram[method.toLowerCase()](url, params, headers);
+    let responsePromise = chakram[method.toLowerCase()](url, params, headers);
 
     this.logger.recordRequestResponse(stage, {
       method: method.toUpperCase(),
       url: url,
       params: params,
       headers: headers
-    }, response);
+    }, responsePromise);
 
     if (params) {
       this.logger.recordRequest(stage, params);
     }
+
+    let response = await responsePromise;
     this.logger.recordResponse(stage, response);
 
     return response;

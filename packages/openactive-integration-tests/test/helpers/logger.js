@@ -17,10 +17,14 @@ class BaseLogger {
   }
 
   recordLogEntry(entry) {
-    this.logs.push({
+    let log = {
       ...(this.testMeta),
       ...entry
-    });
+    };
+
+    this.logs.push(log);
+
+    return log;
   }
 
   recordRequest(stage, request) {
@@ -51,30 +55,44 @@ class BaseLogger {
     Object.assign(this.flow[stage].response, fields);
   }
 
-  recordRequestResponse(stage, request, response) {
-    let responseFields = {
-      body: response.body,
-      responseTime: response.responseTime,
-    };
-
-    if (response.response) {
-      responseFields = {
-        ...responseFields,
-        status: response.response.statusCode,
-        statusMessage: response.response.statusMessage,
-        headers: response.response.headers
-      }
-    }
-
-    this.recordLogEntry({
+  recordRequestResponse(stage, request, responsePromise) {
+    let entry = this.recordLogEntry({
       type: "request",
       stage: stage,
       request: {
         ...request
       },
-      response: {
-        ...responseFields
+      isPending: true,
+      duration: 0
+    });
+
+    // manually count how long it's been waiting
+    // todo: capture a timestamp and hook into test state instead
+    let responseTimer = setInterval(() => {
+      entry.duration += 100;
+    }, 100);
+
+    // capture response once it's ready, stop above timer
+    Promise.resolve(responsePromise).then((response) => {
+      clearInterval(responseTimer);
+
+      entry.isPending = false;
+
+      let responseFields = {
+        body: response.body,
+        responseTime: response.responseTime,
+      };
+
+      if (response.response) {
+        responseFields = {
+          ...responseFields,
+          status: response.response.statusCode,
+          statusMessage: response.response.statusMessage,
+          headers: response.response.headers
+        }
       }
+
+      entry.response = responseFields;
     });
   }
 
@@ -198,6 +216,8 @@ class ReporterLogger extends BaseLogger {
 
   logsFor(suite, type) {
     let result = this.logs.filter((log) => {
+      if (!suite && log.type == type) return true;
+
       return _.isEqual(log.ancestorTitles, suite) && log.type == type;
     });
 
