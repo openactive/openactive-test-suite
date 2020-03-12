@@ -69,9 +69,11 @@ class RequestHelper {
     };
   }
 
-  bookingTemplate(logger, templateJson, replacementMap, removePayment) {
-    let jsonResult = templateJson(replacementMap, removePayment);
-    if (removePayment) delete jsonResult.payment;
+  bookingTemplate(logger, templateJson, replacementMap) {
+    let jsonResult = templateJson(replacementMap);
+
+    // Remove payment if not required due to free session
+    if (replacementMap.totalPaymentDue == 0) delete jsonResult.payment;
 
     return jsonResult;
   }
@@ -133,7 +135,7 @@ class RequestHelper {
   }
 
   async putOrder(uuid, params) {
-    const payload = this.bookingTemplate(this.logger, breq, params, true);
+    const payload = this.bookingTemplate(this.logger, breq, params);
 
     const bResponse = await this.put(
       'B',

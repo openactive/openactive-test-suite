@@ -41,7 +41,7 @@ module.exports = data => {
           "@id": `${data.offerId}`
         },
         orderedItem: {
-          "@type": "ScheduledSession",
+          "@type": `${data.opportunityType}`,
           "@id": `${data.opportunityId}`
         }
       }
@@ -54,7 +54,8 @@ module.exports = data => {
     payment: {
       "@type": "Payment",
       name: "AcmeBroker Points",
-      identifier: "1234567890npduy2f"
+      identifier: "1234567890npduy2f",
+      accountId: "STRIP"
     }
   };
 };

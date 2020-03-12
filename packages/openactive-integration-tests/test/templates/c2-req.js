@@ -41,7 +41,7 @@ module.exports = data => {
           "@id": `${data.offerId}`
         },
         orderedItem: {
-          "@type": "ScheduledSession",
+          "@type": `${data.opportunityType}`,
           "@id": `${data.opportunityId}`
         }
       }

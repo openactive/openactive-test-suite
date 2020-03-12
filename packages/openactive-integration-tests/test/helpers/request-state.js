@@ -82,6 +82,12 @@ class RequestState {
     return isResponse20x(this.apiResponse);
   }
 
+  get opportunityType() {
+    if (!this.apiResponse) return;
+
+    return this.apiResponse.body.data["@type"];
+  }
+
   get opportunityId() {
     if (!this.apiResponse) return;
 
@@ -91,13 +97,23 @@ class RequestState {
   get offerId() {
     if (!this.apiResponse) return;
 
-    return this.apiResponse.body.data.superEvent.offers[0]["@id"];
+    if (this.apiResponse.body.data["@type"] === "Slot") {
+      return this.apiResponse.body.data.offers[0]["@id"];
+    } else if (typeof this.apiResponse.body.data.superEvent.offers !== "undefined") {
+      return this.apiResponse.body.data.superEvent.offers[0]["@id"];
+    } else {
+      return this.apiResponse.body.data.offers[0]["@id"];
+    }
   }
 
   get sellerId() {
     if (!this.apiResponse) return;
 
-    return this.apiResponse.body.data.superEvent.organizer["@id"];
+    if (this.apiResponse.body.data["@type"] === "Slot") {
+      return this.apiResponse.body.data.facilityUse.provider["@id"];
+    } else {
+      return this.apiResponse.body.data.superEvent.organizer["@id"];
+    }
   }
 
   async putOrderQuoteTemplate () {

@@ -27,7 +27,8 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
     let statusCode = response.response && response.response.statusCode;
     let statusMessage = response.response && response.response.statusMessage;
 
-    if (statusCode < 200 || statusCode >= 300) {
+    // Note C1Response and C2Response are permitted to return 409 errors of type `OrderQuote`, instead of `OpenBookingError`
+    if ((statusCode < 200 || statusCode >= 300) && !( statusCode == 409 && ( options.validationMode == "C1Response" || options.validationMode == "C2Response") ) ) {
       optionsWithRemoteJson.validationMode = "OpenBookingError";
 
       // little nicer error message for completely failed responses.
