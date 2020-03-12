@@ -2,8 +2,8 @@
 
 {{{ description }}}
 
-{{#each suites }}
-## {{#each . }} >> {{{ . }}}{{/each}}
+{{#each activeSuites }}
+## {{{ renderSuiteName . }}}
     {{#logsFor . "request"}}
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
@@ -12,6 +12,9 @@
 {{{ json request.params }}}
 ```
     {{/if}}
+        {{#if isPending}}
+**Response still pending**
+        {{/if}}
         {{#if response.status}}
 
 ---
@@ -25,10 +28,16 @@ Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Res
         {{/if}}
     {{/logsFor}}
     {{#logsFor . "spec"}}
-{{#if @first}}### Specs{{/if}}
- * {{ specIcon spec.status }} {{{firstLine spec.title}}}{{/logsFor}}
+{{~#if @first~}}### Specs
+{{/if}}
+ * {{ specIcon spec.status }} {{{firstLine spec.title}}}
+        {{#each spec.failureMessages}}
+    - {{{firstLine . }}}
+        {{/each}}
+    {{/logsFor}}
     {{#logsFor . "validations"}}
-{{#if @first}}### Validations{{/if}}
+{{#if @first~}}### Validations
+{{/if~}}
         {{#each validations }}
  * {{ validationIcon severity }} {{{firstLine message}}}
         {{/each}}

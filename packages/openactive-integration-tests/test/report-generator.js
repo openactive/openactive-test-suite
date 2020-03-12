@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const Handlebars = require('handlebars');
 const pMemoize = require('p-memoize');
 const fs = require('fs').promises;
+const stripAnsi = require('strip-ansi');
 
 class ReportGenerator {
   constructor(logger) {
@@ -16,6 +17,12 @@ class ReportGenerator {
       const chalkFn = args.reduce(function(p,n){return p[n]}, chalk);
 
       return chalkFn(options.fn(this));
+    });
+
+    Handlebars.registerHelper("renderSuiteName", function(suiteName, options) {
+      if (suiteName.length <= 2) return "Test setup";
+
+      return suiteName.slice(2).join(" >> ");
     });
 
     Handlebars.registerHelper("validationIcon", function(severity, options) {
@@ -43,7 +50,7 @@ class ReportGenerator {
     });
 
     Handlebars.registerHelper("firstLine", function(message, options) {
-      return message.split("\n")[0];
+      return stripAnsi(message.split("\n")[0]);
     });
 
     Handlebars.registerHelper("json", function(data, options) {
@@ -100,7 +107,10 @@ class ReportGenerator {
   async writeMarkdown() {
     let template = await this.getTemplate('report.md');
 
-    let data = template(this.logger);
+    let data = template(this.logger, {
+      allowProtoMethodsByDefault: true,
+      allowProtoPropertiesByDefault: true
+    });
 
     await fs.writeFile(this.logger.markdownPath, data);
   }
