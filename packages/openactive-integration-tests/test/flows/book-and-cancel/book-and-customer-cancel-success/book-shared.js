@@ -5,9 +5,7 @@ const {Logger} = require("../../../helpers/logger");
 const {RequestState} = require("../../../helpers/request-state");
 const {FlowHelper} = require("../../../helpers/flow-helper");
 const sharedValidationTests = require("../../../shared-behaviours/validation");
-const {C1} = require("../../../shared-behaviours/c1");
-const {C2} = require("../../../shared-behaviours/c2");
-const {B} = require("../../../shared-behaviours/B");
+const {GetMatch,C1,C2,B} = require("../../../shared-behaviours");
 
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
@@ -21,7 +19,6 @@ function performTests(dataItem) {
 
   beforeAll(async function() {
     await state.createOpportunity(dataItem);
-    await flow.getMatch();
 
     return chakram.wait();
   });
@@ -33,6 +30,13 @@ function performTests(dataItem) {
       sellerId: state.sellerId
     });
     return chakram.wait();
+  });
+
+  describe("Get Matching Event", function() {
+    (new GetMatch({state, flow, logger, dataItem}))
+    .beforeSetup()
+    .successChecks()
+    .validationTests();
   });
 
   describe("C1", function() {
