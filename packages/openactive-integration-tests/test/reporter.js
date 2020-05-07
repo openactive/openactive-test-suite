@@ -18,6 +18,9 @@ class Reporter {
     await rmfr('./output/*.md', {glob: true});
     await mkdirp('./output/json');
     await rmfr('./output/json/*.json', {glob: true});
+
+    // Used for validator remoteJsonCachePath
+    await mkdirp('./tmp');
   }
   onTestStart(test) {
 
@@ -27,14 +30,14 @@ class Reporter {
     try {
       let testResults = testResult.testResults;
 
-      let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 2).join(" "));
+      let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 3).join(" "));
 
       for (let [testName, groupedTests] of Object.entries(grouped)) {
         let logger = new ReporterLogger(testName);
         await logger.load();
 
         for (let testResult of groupedTests) {
-          logger.recordTestResult(testResult.ancestorTitles[2], testResult);
+          logger.recordTestResult(testResult.ancestorTitles[3], testResult);
         }
 
         await logger.writeMeta();

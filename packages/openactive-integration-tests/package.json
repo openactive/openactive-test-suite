@@ -5,10 +5,13 @@
   "main": "app.js",
   "scripts": {
     "start": "echo \"Error: package contains only tests\" && exit 1",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint \"test/features/**/*.js\"",
+    "lint-fix": "eslint \"test/features/**/*.js\" --fix"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
+  "eslintConfig": {},
   "dependencies": {
     "@babel/core": "^7.8.4",
     "@babel/preset-env": "^7.8.4",
@@ -31,7 +34,10 @@
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "chakram": "^1.5.0",
     "jest": "^24.9.0",
-    "jest-spec-reporter": "^1.0.10"
+    "jest-spec-reporter": "^1.0.10",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.1",
+    "eslint-plugin-import": "^2.20.0"
   },
   "jest": {
     "verbose": false,
@@ -49,6 +55,7 @@
     "testTimeout": 15000,
     "transform": {
       "^.+\\.[t|j]sx?$": "babel-jest"
-    }
+    },
+    "testEnvironment": "node"
   }
 }

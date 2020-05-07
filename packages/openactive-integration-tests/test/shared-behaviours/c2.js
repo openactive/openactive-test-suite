@@ -43,14 +43,16 @@ class C2 {
 
   successChecks () {
     it("should return 200 on success", () => {
-      this._expectSuccessful();
+      this.expectSuccessful();
 
       expect(this.state.c2Response).to.have.status(200);
     });
 
+    /*
+
     if (typeof this.price !== "undefined") {
       it("offer should have price of " + this.price, () => {
-        this._expectSuccessful();
+        this.expectSuccessful();
 
         expect(this.state.c2Response).to.have.json(
           "orderedItem[0].acceptedOffer.price",
@@ -60,18 +62,19 @@ class C2 {
     }
 
     it("Order or OrderQuote should have one orderedItem", () => {
-      this._expectSuccessful();
+      this.expectSuccessful();
 
       expect(this.state.c2Response).to.have.schema("orderedItem", {
         minItems: 1,
         maxItems: 1
       });
     });
+    */
 
     return this;
   }
 
-  _expectSuccessful() {
+  expectSuccessful() {
     if (!this.state.C1ResponseSucceeded) throw new Error('Expected C2 request to be successful');
   }
 }

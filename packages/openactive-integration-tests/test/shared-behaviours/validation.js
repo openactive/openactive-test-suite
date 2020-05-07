@@ -8,7 +8,7 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
 
     let optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
-      remoteJsonCachePath: '/tmp',
+      remoteJsonCachePath: './tmp',
       remoteJsonCacheTimeToLive: 3600
     }, options);
 

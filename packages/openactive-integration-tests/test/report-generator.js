@@ -22,7 +22,7 @@ class ReportGenerator {
     Handlebars.registerHelper("renderSuiteName", function(suiteName, options) {
       if (suiteName.length <= 2) return "Test setup";
 
-      return suiteName.slice(2).join(" >> ");
+      return suiteName.slice(3).join(" >> ");
     });
 
     Handlebars.registerHelper("validationIcon", function(severity, options) {

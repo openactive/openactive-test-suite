@@ -6,7 +6,7 @@ const config = require("config");
 
 var BOOKING_API_BASE = config.get("tests.bookingApiBase");
 var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
-var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
+var TEST_DATASET_IDENTIFIER = config.get("tests.testDatasetIdentifier");
 
 var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
@@ -67,6 +67,80 @@ class RequestHelper {
       "X-OpenActive-Test-Client-Id": "test",
       "X-OpenActive-Test-Seller-Id": sellerId
     };
+  }
+
+  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria) {
+    var template = null;
+    switch (opportunityType) {
+      case 'ScheduledSession':
+        template = {
+          "@type": "ScheduledSession",
+          "superEvent": {
+              "@type": "SessionSeries"
+          }
+        };
+        break;
+      case 'FacilityUseSlot':
+        template = {
+          "@type": "Slot",
+          "facilityUse": {
+              "@type": "FacilityUse"
+          }
+        };
+        break;
+      case 'IndividualFacilityUseSlot':
+        template = {
+          "@type": "Slot",
+          "facilityUse": {
+              "@type": "IndividualFacility"
+          }
+        };
+        break;
+      case 'CourseInstance':
+        template = {
+          "@type": "CourseInstance"
+        };
+        break;
+      case 'CourseInstanceSubEvent':
+        template = {
+          "@type": "Event",
+          "superEvent": {
+              "@type": "CourseInstance"
+          }
+        };
+        break;
+      case 'HeadlineEvent':
+        template = {
+          "@type": "HeadlineEvent"
+        };
+        break;
+      case 'HeadlineEventSubEvent':
+        template = {
+          "@type": "Event",
+          "superEvent": {
+              "@type": "HeadlineEvent"
+          }
+        };
+        break;
+      case 'Event':
+        template = {
+          "@type": "Event"
+        };
+        break;
+      case 'OnDemandEvent':
+        template = {
+          "@type": "OnDemandEvent"
+        };
+        break;
+      default:
+        throw new Error('Unrecognised opportunity type')
+    }
+    template["@context"] = [
+      "https://openactive.io/",
+      "https://openactive.io/test-interface"
+    ];
+    template["test:testOpportunityCriteria"] = `https://openactive.io/test-interface#${testOpportunityCriteria}`;
+    return template;
   }
 
   bookingTemplate(logger, templateJson, replacementMap) {
@@ -166,13 +240,13 @@ class RequestHelper {
     return uResponse;
   }
 
-  async createOpportunity(event, params) {
+  async createOpportunity(opportunityType, testOpportunityCriteria, params) {
     let respObj;
 
     respObj = await this.post(
       'create-session',
-      BOOKING_API_BASE + "test-interface/" + event['@type'],
-      event,
+      `${BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
+      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
       {
         headers: this.createHeaders(params.sellerId),
         timeout: 10000
@@ -182,28 +256,14 @@ class RequestHelper {
     return respObj;
   }
 
-  async getRandomOpportunity(type, params) {
+  async getRandomOpportunity(opportunityType, testOpportunityCriteria, params) {
     let respObj;
 
-    respObj = await this.get(
+    respObj = await this.post(
       'random-opportunity',
-      "http://localhost:3000/get-random-opportunity" + ( type ? "?type=" + type : "" )
-    )
-
-    return respObj;
-  }
-
-  async deleteOpportunity(eventId, eventType, params = {}) {
-    if (USE_RANDOM_OPPORTUNITIES) return null;
-
-    const respObj = await this.delete(
-      'delete-session',
-      BOOKING_API_BASE +
-        "test-interface/" + eventType + "/" +
-        encodeURIComponent(eventId),
-      null,
+      `${MICROSERVICE_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
+      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
       {
-        headers: this.createHeaders(params.sellerId),
         timeout: 10000
       }
     );

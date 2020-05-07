@@ -1,0 +1,32 @@
+{
+  "extends": "airbnb-base",
+  "env": {
+    "node": true,
+    "jasmine": true
+  },
+  "globals": {
+    "expectAsync": true
+  },
+  "rules": {
+    "max-len": "off",
+    "no-await-in-loop": 0,
+    "no-restricted-syntax": 0,
+    "func-names": "off",
+    "prefer-arrow-callback": "off",
+    "class-methods-use-this": [
+      "error",
+      {
+        "exceptMethods": [
+        ]
+      }
+    ],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*-test.js"
+        ]
+      }
+    ]
+  }
+}

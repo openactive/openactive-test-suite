@@ -43,14 +43,16 @@ class B {
 
   successChecks () {
     it("should return 200 on success", () => {
-      this._expectSuccessful();
+      this.expectSuccessful();
 
       expect(this.state.bResponse).to.have.status(200);
     });
 
+    /*
+
     if (typeof this.price !== "undefined") {
       it("should have price of " + this.price, () => {
-        this._expectSuccessful();
+        this.expectSuccessful();
 
         expect(this.state.bResponse).to.have.json(
           "orderedItem[0].acceptedOffer.price",
@@ -59,7 +61,7 @@ class B {
       });
 
       it("OrderQuote.totalPaymentDue equal to " + this.price, () => {
-        this._expectSuccessful();
+        this.expectSuccessful();
 
         expect(this.state.bResponse).
           to.
@@ -69,7 +71,7 @@ class B {
     }
 
     it("B Order or OrderQuote should have one orderedItem", () => {
-      this._expectSuccessful();
+      this.expectSuccessful();
 
       expect(this.state.bResponse).to.have.schema("orderedItem", {
         minItems: 1,
@@ -78,7 +80,7 @@ class B {
     });
 
     it("Result from B should OrderItemConfirmed orderItemStatus", () => {
-      this._expectSuccessful();
+      this.expectSuccessful();
 
       expect(this.state.bResponse).to.have.json(
         "orderedItem[0].orderItemStatus",
@@ -86,10 +88,12 @@ class B {
       );
     });
 
+    */
+
     return this;
   }
 
-  _expectSuccessful() {
+  expectSuccessful() {
     if (!this.state.BResponseSucceeded) throw new Error('Expected B request to be successful.');
   }
 }

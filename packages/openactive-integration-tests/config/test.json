@@ -1,7 +1,36 @@
 {
   "tests": {
-    "bookingApiBase": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/openbooking/",
+    "XbookingApiBase": "https://everyoneactivebookingfacade-test.azurewebsites.net/api/openbooking/",
+    "bookingApiBase": "https://localhost:44396/api/openbooking/",
     "microserviceApiBase": "http://localhost:3000/",
-    "useRandomOpportunities": false
+    "useRandomOpportunities": true,
+    "bookableOpportunityTypesInScope": {
+      "ScheduledSession": true,
+      "FacilityUseSlot": true,
+      "IndividualFacilityUseSlot": false,
+      "CourseInstance": false,
+      "CourseInstanceSubEvent": false,
+      "HeadlineEvent": false,
+      "HeadlineEventSubEvent": false,
+      "Event": false,
+      "OnDemandEvent": false
+    },
+    "implementedFeatures": {
+      "opportunity-feed": true,
+      "dataset-site": true,
+      "availability-check": true,
+      "simple-book-free-opportunities": false,
+      "simple-book-with-payment": true,
+      "payment-reconciliation-detail-validation": false,
+      "booking-window": false,
+      "customer-requested-cancellation": false,
+      "seller-requested-cancellation": false,
+      "seller-requested-cancellation-message": null,
+      "cancellation-window": true,
+      "seller-requested-replacement": true,
+      "named-leasing": true,
+      "anonymous-leasing": true
+    },
+    "testDatasetIdentifier": "uat-ci"
   }
 }

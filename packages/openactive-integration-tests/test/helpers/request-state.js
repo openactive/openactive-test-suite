@@ -1,5 +1,8 @@
 const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
+const config = require("config");
+
+var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -28,29 +31,42 @@ class RequestState {
     return this._uuid;
   }
 
-  async createOpportunity(dataItem) {
+  /*
+    {
+      opportunityType: 'ScheduledSession',
+      opportunityCriteria: 'TestOpportunityNotBookableViaAvailableChannel',
+      control: false
+    },
+    {
+      opportunityType: 'ScheduledSession',
+      opportunityCriteria: 'TestOpportunityBookable',
+      control: true
+    },
+    {
+      opportunityType: 'ScheduledSession',
+      opportunityCriteria: 'TestOpportunityBookable',
+      control: true
+    }
+
+    TODO rename to createOpportunities
+  */
+  async createOpportunity(orderItemCriteria) {
     let session;
-    if (dataItem.randomEvent) {
-      session = await this.requestHelper.getRandomOpportunity(dataItem.randomEvent, {});
+
+    // TODO: Make this work for each orderItemCriteria 
+    if (USE_RANDOM_OPPORTUNITIES) {
+      session = await this.requestHelper.getRandomOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {});
     }
     else {
-      session = await this.requestHelper.createOpportunity(dataItem.event, {
+      session = await this.requestHelper.createOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {
         sellerId: this.sellerId
       });
     }
     this.eventId = session.body["@id"];
     this.eventType = session.body["@type"];
+    // when handling multiple OrderItems, tag resulting activities with "control"
 
-    this.readonlyEvent = typeof dataItem.randomEvent !== "undefined";
     return session;
-  }
-
-  async deleteOpportunity() {
-    if (!this.readonlyEvent) {
-      await this.requestHelper.deleteOpportunity(this.eventId, this.eventType, {
-        sellerId: this.sellerId
-      });
-    }
   }
 
   async getOrder () {
@@ -59,6 +75,12 @@ class RequestState {
     this.ordersFeedUpdate = result;
 
     return this;
+  }
+
+  async deleteOrder () {
+    return await testHelper.deleteOrder(this.uuid, {
+      sellerId: this.sellerId,
+    });
   }
 
   get rpdeItem() {
