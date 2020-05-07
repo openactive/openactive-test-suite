@@ -35,7 +35,6 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     return chakram.wait();
   });
 
-  // if (state.eventFound) {
   describe('C1', function () {
     (new C1({
       state, flow, logger, configuration,
@@ -62,5 +61,4 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .successChecks()
       .validationTests();
   });
-  // }
 });
