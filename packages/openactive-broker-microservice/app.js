@@ -4,6 +4,7 @@ var request = require("request");
 var nSQL = require("@nano-sql/core").nSQL;
 var moment = require("moment");
 const config = require("config");
+const criteria = require("./criteria").criteria.map(x => new x());
 
 var PORT = 3000;
 var BOOKING_API_BASE = config.get("microservice.pollOrdersBookingFeed") ? config.get("microservice.bookingApiBase") : null;
@@ -28,6 +29,34 @@ opportunityRpdeMap = new Map();
 rowStoreMap = new Map();
 parentIdIndex = new Map();
 
+// Buckets for criteria matches
+var matchingCriteriaOpportunityIds = new Map();
+criteria.map(criteria => criteria.name).forEach(criteriaName => {
+  var typeBucket = new Map();
+  [
+    'ScheduledSession',
+    'FacilityUseSlot',
+    'IndividualFacilityUseSlot',
+    'CourseInstance',
+    'HeadlineEvent',
+    'Event',
+    'HeadlineEventSubEvent',
+    'CourseInstanceSubEvent'
+  ].forEach(x => typeBucket.set(x, new Set()));
+  matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
+});
+
+var testDatasets = new Map();
+function getTestDataset(testDatasetIdentifier) {
+  if (!testDatasets.has(testDatasetIdentifier)) {
+    testDatasets.set(testDatasetIdentifier, new Set());
+  }
+  return testDatasets.get(testDatasetIdentifier);
+}
+
+function getAllDatasets() {
+  return new Set(Array.from(testDatasets.values()).flatMap(x => Array.from(x.values())));
+}
 
 function getRPDE(url, cb) {
   var headers = {
@@ -82,25 +111,35 @@ function getBaseUrl(url) {
   }
 }
 
-var bookableOpportunityIds = {};
+function getRandomBookableOpportunity(opportunityType, criteriaName, testDatasetIdentifier) {
+  var criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
+  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
+  var bucket = criteriaBucket.get(opportunityType);
+  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+  
+  var testDatasets = getAllDatasets();
+  var unusedBucketItems = Array.from(bucket).filter(x => !testDatasets.has(x));
+  
+  if (unusedBucketItems.length == 0) return null;
 
-function getRandomBookableOpportunity(type) {
-  var recognisedTypes = Object.keys(bookableOpportunityIds).filter(x => bookableOpportunityIds[x].length > 0);
-  if (recognisedTypes.length == 0) return null;
+  var id = unusedBucketItems[Math.floor(Math.random() * unusedBucketItems.length)];
 
-  // If type not provided, select one at random from available types
-  if (!type) type = recognisedTypes[Math.floor(Math.random() * recognisedTypes.length)];
-
-  if (!bookableOpportunityIds[type] || bookableOpportunityIds[type].length == 0) return null;
-
-  var id = bookableOpportunityIds[type][Math.floor(Math.random() * bookableOpportunityIds[type].length)];
+  // Add the item to the testDataset to ensure it does not get reused
+  getTestDataset(testDatasetIdentifier).add(id);
 
   return { 
     "@context": "https://openactive.io/",
-    "@type": type,
+    "@type": getTypeFromOpportunityType(opportunityType),
     "@id": id
   }
 }
+
+function releaseOpportunityLocks(testDatasetIdentifier) {
+  var testDataset = getTestDataset(testDatasetIdentifier);
+  console.log(`Cleared from dataset '${testDatasetIdentifier}': ${Array.from(testDataset).join(', ')}`)
+  testDataset.clear();
+}
+
 
 function getOpportunityById(opportunityId) {
   var opportunity = opportunityMap.get(opportunityId);
@@ -168,26 +207,90 @@ app.get("/get-opportunity/:id", function(req, res) {
   getMatch(req, res, false);
 });
 
-app.get("/get-random-opportunity", function(req, res) {
-  var typeFilter = null;
-  if (req.query && req.query.type) {
-    typeFilter = req.query.type;
-  }
+function getTypeFromOpportunityType(opportunityType) {
+  const mapping = {
+    'ScheduledSession': 'ScheduledSession',
+    'FacilityUseSlot': 'Slot',
+    'IndividualFacilityUseSlot': 'Slot',
+    'CourseInstance': 'CourseInstance',
+    'HeadlineEvent': 'HeadlineEvent',
+    'Event': 'Event',
+    'HeadlineEventSubEvent': 'Event',
+    'CourseInstanceSubEvent': 'Event'
+  };
+  return mapping[opportunityType];
+}
 
-  var randomOpportunity = getRandomBookableOpportunity(typeFilter);
+
+function detectOpportunityType(opportunity) {
+  switch (opportunity['@type'] || opportunity['type']) {
+    case 'ScheduledSession':
+      if (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent['type'])  === 'SessionSeries')
+      {
+        return 'ScheduledSession';
+      } else
+      {
+        throw new Error("ScheduledSession must have superEvent of SessionSeries");
+      }
+    case 'Slot':
+      if (opportunity.facilityUse && (opportunity.facilityUse['@type'] || opportunity.facilityUse['type']) === 'IndividualFacilityUse')
+      {
+        return 'IndividualFacilityUseSlot';
+      }
+      if (opportunity.facilityUse && (opportunity.facilityUse['@type'] || opportunity.facilityUse['type']) === 'FacilityUse')
+      {
+        return 'FacilityUseSlot';
+      }
+      else
+      {
+        throw new Error("Slot must have facilityUse of FacilityUse or IndividualFacilityUse");
+      }
+    case 'CourseInstance':
+      return 'CourseInstance';
+    case 'HeadlineEvent':
+      return 'HeadlineEvent';
+    case 'Event':
+      switch (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent['type'])) {
+        case 'HeadlineEvent':
+          return 'HeadlineEventSubEvent';
+        case 'CourseInstance':
+          return 'CourseInstanceSubEvent';
+        case 'EventSeries':
+        case null:
+          return 'Event';
+        default:
+          throw new Error("Event has unrecognised @type of superEvent");
+      }
+      break;
+    default:
+      throw new Error("Only bookable opportunities are permitted in the test interface");
+  }
+}
+
+app.post("/test-interface/datasets/:testDatasetIdentifier/opportunities", function(req, res) {
+  // Use :testDatasetIdentifier to ensure the same id is not returned twice
+  var testDatasetIdentifier = req.params.testDatasetIdentifier;
+
+  var opportunity = req.body;
+  var opportunityType = detectOpportunityType(opportunity);
+  var criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+
+  var randomOpportunity = getRandomBookableOpportunity(opportunityType, criteriaName, testDatasetIdentifier);
   if (randomOpportunity) {
-    console.log(`Random Bookable Opportunity (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
+    console.log(`Random Bookable Opportunity for ${criteriaName} (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
     res.json(randomOpportunity);
     res.end();
   } else {
-    if (typeFilter == null) {
-      console.error(`Random Bookable Opportunity call failed: No bookable opportunities have been found`);
-      res.status(404).send(`No bookable opportunities have been found`);
-    } else {
-      console.error(`Random Bookable Opportunity call failed: Opportunity Type "${typeFilter}" Not found`);
-      res.status(404).send(`Opportunity Type "${typeFilter}" Not found`);
-    }
+    console.error(`Random Bookable Opportunity for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
+    res.status(404).send(`Opportunity Type "${opportunityType}" Not found`);
   }
+});
+
+app.delete("/test-interface/datasets/:testDatasetIdentifier", function(req, res) {
+  // Use :testDatasetIdentifier to identify locks, and clear them
+  var testDatasetIdentifier = req.params.testDatasetIdentifier;
+  releaseOpportunityLocks(testDatasetIdentifier);
+  res.status(204).send();
 });
 
 var orderResponses = {
@@ -226,6 +329,7 @@ getRPDE(FEED_BASE + "facility-use-slots", ingestOpportunityPage);
 getRPDE(FEED_BASE + "events", ingestOpportunityPage);
 getRPDE(FEED_BASE + "headline-events", ingestOpportunityPage);
 getRPDE(FEED_BASE + "courses", ingestOpportunityPage);
+getRPDE(FEED_BASE + "on-demand-events", ingestOpportunityPage);
 
 // Start monitoring first page of internal feed
 //getRPDE("http://localhost:" + PORT + "/feeds/opportunities", monitorPage);
@@ -382,74 +486,34 @@ function processRow(row) {
 
 function processOpportunityItem(item) {
     if (item.data) {
+
       var id = item.data['@id'] || item.data['id'];
-      var type = item.data['@type'] || item.data['type']; 
+      var opportunityType = detectOpportunityType(item.data); 
 
-      // Check for bookability
-      var startDate = item.data.startDate;
-      var offers = item.data.offers || (item.data.superEvent && item.data.superEvent.offers); // Note FacilityUse does not have bookable offers, as it does not allow inheritance
-      var remainingCapacity = item.data.remainingAttendeeCapacity || item.data.remainingUses;
-      var eventStatus = item.data.eventStatus;
+      var matchingCriteria = [];
+      var unmetCriteriaDetails = [];
 
-      var bookableOffers = offers ? offers.filter(x =>
-         (!x.availableChannel || x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
-         && x.advanceBooking != "https://openactive.io/Unavailable"
-         && (!x.validFromBeforeStartDate || moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore())
-      ) : [];
+      criteria.map(criteria => ({criteriaName: criteria.name, criteriaResult: criteria.testMatch(item.data)})).forEach(result => {
+        const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
+        if (result.criteriaResult.matchesCriteria) {
+          bucket.add(id);
+          matchingCriteria.push(result.criteriaName);
+        } else {
+          bucket.delete(id);
+          unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
+        }
+      });
 
-      if (!bookableOpportunityIds[type]) bookableOpportunityIds[type] = [];
-
-      var isBookable = true;
-      var isBookableIssues = [];
-
-      if (
-        !(Date.parse(startDate) > new Date(Date.now() + ( 3600 * 1000 * 2)))
-      ) {
-        isBookable = false;
-        isBookableIssues.push("Start date must be 2hrs in advance for random tests to use")
-      }
-
-      if (
-        !(bookableOffers.length > 0)
-      ) {
-        isBookable = false;
-        isBookableIssues.push("No bookable Offers")
-      }
-
-      if (
-        !(remainingCapacity > 0)
-      ) {
-        isBookable = false;
-        isBookableIssues.push("No remaining capacity")
-      }
-
-      if (
-        (eventStatus == "https://schema.org/EventCancelled" || eventStatus == "https://schema.org/EventPostponed")
-      ) {
-        isBookable = false;
-        isBookableIssues.push("Cancelled or Postponed")
-      }
-
-      var bookableIssueList = "";
-
-      if (isBookable) {
-        // Add ID to if now bookable
-        bookableOpportunityIds[type].push(id);
-      } else {
-        // Remove ID if no longer bookable
-        var ids = bookableOpportunityIds[type];
-        var index = ids.indexOf(id);
-        if (index !== -1) ids.splice(index, 1);
-
-        bookableIssueList = "\n   [Not Bookable: " + isBookableIssues.join(', ') + "]";
+      if (unmetCriteriaDetails.length > 0) {
+        bookableIssueList = "\n   [Unmet Criteria: " + unmetCriteriaDetails.join(', ') + "]";
       }
 
       if (responses[id]) {
         responses[id].send(item);
 
-        console.log(`seen ${isBookable ? "bookable " : ""}and dispatched ${id}${bookableIssueList}`);
+        console.log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
       } else {
-        console.log(`saw ${isBookable ? "bookable " : ""}${id}${bookableIssueList}`);
+        console.log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
       }
     }
 }
