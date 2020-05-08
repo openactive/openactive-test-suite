@@ -4,7 +4,7 @@ const expect = chakram.expect;
 const {Logger} = require("../../../helpers/logger");
 const {RequestState} = require("../../../helpers/request-state");
 const {FlowHelper} = require("../../../helpers/flow-helper");
-const {C1} = require("../../../shared-behaviours/c1");
+const {GetMatch,C1,C2,B} = require("../../../shared-behaviours");
 
 function performTests(dataItem) {
   const { event: testEvent, price, name: eventName } = dataItem;
@@ -18,7 +18,6 @@ function performTests(dataItem) {
 
   beforeAll(async function() {
     await state.createOpportunity(dataItem);
-    await flow.getMatch();
 
     return chakram.wait();
   });
@@ -27,6 +26,13 @@ function performTests(dataItem) {
     await state.deleteOpportunity();
 
     return chakram.wait();
+  });
+
+  describe("Get Matching Event", function() {
+    (new GetMatch({state, flow, logger, dataItem}))
+    .beforeSetup()
+    .successChecks()
+    .validationTests();
   });
 
   describe("C1", function() {

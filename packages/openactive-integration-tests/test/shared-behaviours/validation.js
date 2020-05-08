@@ -20,7 +20,7 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
 
     let body = response.body;
 
-    if (options.validationMode === "OrdersFeed") {
+    if (["OrdersFeed", "BookableRPDEFeed"].includes(options.validationMode)) {
       body = body.data;
     }
 
