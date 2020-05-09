@@ -31,7 +31,7 @@ function performTests(dataItem) {
     return chakram.wait();
   });
 
-  describe("Get Matching Event", function() {
+  describe("Get Opportunity Feed Items", function() {
     (new GetMatch({state, flow, logger, dataItem}))
     .beforeSetup()
     .successChecks()

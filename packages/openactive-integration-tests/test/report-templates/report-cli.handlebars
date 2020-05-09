@@ -9,21 +9,21 @@ See `{{{ markdownPath }}}` for more detailed info.
 {{#each activeSuites }}
 {{#each . }}{{# chalk "bold" "yellow" }}>>{{/chalk}} {{# chalk "bold" "green" }}{{{ . }}}{{/chalk}} {{/each}}
     {{#logsFor . "spec"}}
-  {{ specIcon spec.status }} {{{firstLine spec.title}}}
+  {{ consoleSpecIcon spec.status }} {{{firstLine spec.title}}}
         {{#each spec.failureMessages}}
       {{{firstLine . }}}
         {{/each}}
     {{/logsFor}}
     {{#logsFor . "validations"}}
         {{#each validations }}
-  {{ validationIcon severity }} {{{firstLine message}}}
+  {{ consoleValidationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
     {{/logsFor}}
 {{/each}}
 
 {{#logsFor null "request"}}
     {{~# if isPending }}
-*** Pending request: {{stage}} - {{{request.method}}} {{{ request.url }}}
+*** [!] Test finished with pending request: {{stage}} - {{{request.method}}} {{{ request.url }}}
     {{/if~}}
 {{/logsFor}}
 

@@ -1,6 +1,19 @@
 const assert = require("assert");
 const { validate } = require("@openactive/data-model-validator");
 
+function priorityOfSeverity(severity) {
+  switch (severity) {
+    case 'failure':
+      return 1;
+    case 'warning':
+      return 2;
+    case 'suggestion':
+      return 3;
+    default:
+      return 4;
+  }
+}
+
 function shouldBeValidResponse(getter, name, logger, options = {}) {
   let results = null;
   let doValidate = async () => {
@@ -43,6 +56,9 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
     }
 
     results = await validate(body, optionsWithRemoteJson);
+
+    results = results.sort((a, b) => priorityOfSeverity(a.severity) - priorityOfSeverity(b.severity));
+
     return results;
   };
 

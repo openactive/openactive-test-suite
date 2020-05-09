@@ -176,6 +176,18 @@ class RequestHelper {
     return respObj;
   }
 
+  async getDatasetSite() {
+    const respObj = await this.get(
+      'dataset-site',
+      MICROSERVICE_BASE + "dataset-site",
+      {
+        timeout: 5000
+      }
+    );
+
+    return respObj;
+  }
+
   async putOrderQuoteTemplate(uuid, params) {
     let payload = this.bookingTemplate(this.logger, c1req, params);
 

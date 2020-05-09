@@ -41,7 +41,17 @@ Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Res
 {{#if @first~}}### Validations
 {{/if~}}
         {{#each validations }}
- * {{ validationIcon severity }} {{{firstLine message}}}
+ * {{ validationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
     {{/logsFor}}
 {{/each}}
+
+
+{{#logsFor null "request"}}
+    {{~# if isPending }}
+## ⚠️ Pending request ⚠️
+Test could not be completed as it timed out while a request was still pending:
+{{stage}} - {{{request.method}}} {{{ request.url }}}
+
+    {{/if~}}
+{{/logsFor}}

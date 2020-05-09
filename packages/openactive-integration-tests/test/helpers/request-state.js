@@ -89,6 +89,14 @@ class RequestState {
     return this.ordersFeedUpdate.body;
   }
 
+  async getDatasetSite () {
+    let result = await this.requestHelper.getDatasetSite();
+
+    this.datasetSite = result;
+
+    return this;
+  }  
+
   async getMatch () {
     // Only attempt getMatch if we have an eventId
     if (this.eventId) {

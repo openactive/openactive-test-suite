@@ -1,7 +1,7 @@
 const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
-class GetMatch {
+class GetDatasetSite {
   constructor ({state, flow, logger, dataItem}) {
     this.state = state;
     this.flow = flow;
@@ -9,29 +9,13 @@ class GetMatch {
     this.dataItem = dataItem;
   }
 
-  get testEvent () {
-    return this.dataItem.event;
-  }
-
-  get eventType () {
-    return this.dataItem.randomEvent || this.dataItem.event["@type"]
-  }
-
-  get eventName () {
-    return this.dataItem.name;
-  }
-
-  get price () {
-    return this.dataItem.price;
-  }
-
   validationTests () {
     sharedValidationTests.shouldBeValidResponse(
-      () => this.state.apiResponse,
-      "Opportunity Feed",
+      () => this.state.datasetSite,
+      "Dataset Site",
       this.logger,
       {
-        validationMode: "BookableRPDEFeed",
+        validationMode: "DatasetSite",
       },
     );
     return this;
@@ -39,16 +23,25 @@ class GetMatch {
 
   beforeSetup () {
     beforeAll(async () => {
-      await this.flow.getMatch();
+      await this.flow.getDatasetSite();
     });
     return this;
   }
 
   successChecks () {
+    // The validator will not yet fail on an object of incorrect type in DatasetSite mode,
+    // so check that the base type is correct
+    it("should contain JSON-LD representing the Dataset", () => {
+      expect(this.state.datasetSite).to.have.json(
+        "@type",
+        "Dataset",
+      );
+    });
+
     return this;
   }
 }
 
 module.exports = {
-  GetMatch
+  GetDatasetSite
 };
