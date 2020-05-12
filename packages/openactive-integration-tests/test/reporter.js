@@ -5,7 +5,7 @@ const moment = require('moment');
 const rmfr = require('rmfr');
 
 const {ReporterLogger} = require('./helpers/logger');
-const {ReportGenerator} = require('./report-generator');
+const {ReportGenerator, SummaryReportGenerator} = require('./report-generator');
 
 class Reporter {
   constructor(globalConfig, options) {
@@ -40,6 +40,9 @@ class Reporter {
           logger.recordTestResult(testResult.ancestorTitles[3], testResult);
         }
 
+        logger.testFilePath = test.testFilePath;
+        logger.snapshot = test.snapshot;
+
         await logger.writeMeta();
 
         let reportGenerator = new ReportGenerator(logger);
@@ -53,7 +56,10 @@ class Reporter {
   }
 
   // based on https://github.com/pierreroth64/jest-spec-reporter/blob/master/lib/jest-spec-reporter.js
-  onRunComplete(test, results) {
+  async onRunComplete(test, results) {
+    let generator = await SummaryReportGenerator.loadFiles();
+    await generator.report();
+
     const {
       numFailedTests,
       numPassedTests,

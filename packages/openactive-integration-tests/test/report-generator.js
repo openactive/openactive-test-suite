@@ -3,9 +3,68 @@ const Handlebars = require('handlebars');
 const pMemoize = require('p-memoize');
 const fs = require('fs').promises;
 const stripAnsi = require('strip-ansi');
+const { ReporterLogger } = require('./helpers/logger');
 
-class ReportGenerator {
+class BaseReportGenerator {
+  setupHelpers() {
+
+  }
+
+  get templateName() {
+    return 'report';
+  }
+
+  get templateData() {
+    return {};
+  }
+
+  get reportMarkdownPath() {
+    throw 'Not Implemented';
+    return this.logger.markdownPath;
+  }
+
+  async outputConsole() {
+    try {
+      let template = await this.getTemplate(`${this.templateName}-cli`);
+
+      let data = chalk(template(this.templateData, {
+        allowProtoMethodsByDefault: true,
+        allowProtoPropertiesByDefault: true
+      }));
+
+      console.log(data);
+    }
+    catch(exception) {
+      console.error('err', exception);
+    }
+  }
+
+  async writeMarkdown() {
+    let template = await this.getTemplate(`${this.templateName}.md`);
+
+    let data = template(this.templateData, {
+      allowProtoMethodsByDefault: true,
+      allowProtoPropertiesByDefault: true
+    });
+
+    await fs.writeFile(this.reportMarkdownPath, data);
+  }
+
+  async report() {
+    await this.outputConsole();
+    await this.writeMarkdown();
+  }
+
+  async getTemplate(name) {
+    let file = await fs.readFile(__dirname+'/report-templates/'+name+'.handlebars', 'utf8');
+    return Handlebars.compile(file);
+  };
+}
+
+class ReportGenerator extends BaseReportGenerator {
   constructor(logger) {
+    super();
+
     this.logger = logger;
 
     Handlebars.registerHelper("chalk", function() {
@@ -83,45 +142,55 @@ class ReportGenerator {
     });
   }
 
-  async getTemplate(name) {
-    let file = await fs.readFile(__dirname+'/report-templates/'+name+'.handlebars', 'utf8');
-    return Handlebars.compile(file);
-  };
 
-  async outputConsole() {
-    try {
-      let template = await this.getTemplate('report-cli');
-
-      let data = chalk(template(this.logger, {
-        allowProtoMethodsByDefault: true,
-        allowProtoPropertiesByDefault: true
-      }));
-
-      console.log(data);
-    }
-    catch(exception) {
-      console.error('err', exception);
-    }
+  get templateName() {
+    return 'report';
   }
 
-  async writeMarkdown() {
-    let template = await this.getTemplate('report.md');
+  get templateData() {
+    return this.logger;
+  }
 
-    let data = template(this.logger, {
-      allowProtoMethodsByDefault: true,
-      allowProtoPropertiesByDefault: true
+  get reportMarkdownPath() {
+    return this.logger.markdownPath;
+  }
+}
+
+class SummaryReportGenerator extends BaseReportGenerator {
+  constructor(loggers) {
+    super();
+    this.loggers = loggers;
+  }
+
+  static async loadFiles() {
+    let filenames = await fs.readdir(`./output/json/`);
+
+    let loggers = filenames.map((filename) => {
+      // strip off file extension
+      let name = filename.match(/^(.*)\..*?$/)[1];
+
+      return new ReporterLogger(name);
     });
 
-    await fs.writeFile(this.logger.markdownPath, data);
+    await Promise.all(loggers.map((logger) => logger.load()));
+
+    return new SummaryReportGenerator(loggers);
   }
 
-  async report() {
-    await this.outputConsole();
-    await this.writeMarkdown();
+  get templateName() {
+    return 'summary';
   }
 
+  get templateData() {
+    return this.loggers;
+  }
+
+  get reportMarkdownPath() {
+    throw './output/summary.md';
+  }
 }
 
 module.exports = {
-  ReportGenerator
+  ReportGenerator,
+  SummaryReportGenerator
 };

@@ -119,6 +119,10 @@ class BaseLogger {
     await fs.writeFile(this.metaPath, json);
   }
 
+  setJestContext(context) {
+    this.jestContext = context;
+  }
+
   get suiteName() {
     throw Error('suiteName unimplemented');
   }

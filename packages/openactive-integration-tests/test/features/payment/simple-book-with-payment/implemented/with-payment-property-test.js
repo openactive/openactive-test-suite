@@ -27,7 +27,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     await state.createOpportunity(orderItemCriteria);
     await flow.getMatch();
 
-    return chakram.wait();
+    // return chakram.wait();
   });
 
   afterAll(async function () {
