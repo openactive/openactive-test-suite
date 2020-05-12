@@ -15,41 +15,57 @@ class FeatureHelper {
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
     if (implemented === configuration.testFeatureImplemented) {
-      // Create a new test for each opportunityType in scope
-      opportunityTypesInScope.forEach((opportunityType) => {
-        describe(configuration.testFeature, function () {
-          describe(configuration.testName, function () {
-            describe(opportunityType, function () {
-              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (${opportunityType})`, this, {
+      describe(configuration.testFeature, function () {
+        describe(configuration.testName, function () {
+          if (configuration.runOnce) {
+            // TODO: This duplicate describe nesting ensures the number of describe levels remains consistent for the logger
+            // However should the logger rely on an exact number of levels?
+            describe(configuration.testName, function () {
+              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName}`, this, {
                 description: configuration.testDescription,
                 implemented: implemented ? 'Implemented' : 'Not Implemented',
               });
 
               const state = new RequestState(logger);
               const flow = new FlowHelper(state);
-
-              // TODO: Drive from number of events in this iteration (using testOpportunityCriteria for primary event, and controlOpportunityCriteria for others)
-              const orderItemCriteria = configuration.testOpportunityCriteria ? [
-                {
-                  opportunityType,
-                  opportunityCriteria: configuration.testOpportunityCriteria,
-                  control: false,
-                },
-                {
-                  opportunityType,
-                  opportunityCriteria: configuration.controlOpportunityCriteria,
-                  control: true,
-                },
-                {
-                  opportunityType,
-                  opportunityCriteria: configuration.controlOpportunityCriteria,
-                  control: true,
-                },
-              ] : [];
               
-              tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
+              tests.bind(this)(configuration, null, implemented, logger, state, flow);
             });
-          });
+          } else {
+            // Create a new test for each opportunityType in scope
+            opportunityTypesInScope.forEach((opportunityType) => {
+              describe(opportunityType, function () {
+                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (${opportunityType})`, this, {
+                  description: configuration.testDescription,
+                  implemented: implemented ? 'Implemented' : 'Not Implemented',
+                });
+  
+                const state = new RequestState(logger);
+                const flow = new FlowHelper(state);
+  
+                // TODO: Drive from number of events in this iteration (using testOpportunityCriteria for primary event, and controlOpportunityCriteria for others)
+                const orderItemCriteria = configuration.testOpportunityCriteria ? [
+                  {
+                    opportunityType,
+                    opportunityCriteria: configuration.testOpportunityCriteria,
+                    control: false,
+                  },
+                  {
+                    opportunityType,
+                    opportunityCriteria: configuration.controlOpportunityCriteria,
+                    control: true,
+                  },
+                  {
+                    opportunityType,
+                    opportunityCriteria: configuration.controlOpportunityCriteria,
+                    control: true,
+                  },
+                ] : [];
+                
+                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
+              });
+            });
+          }
         });
       });
     }

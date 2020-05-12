@@ -1,9 +1,5 @@
 {
-  "microservice": {
-    "bookingApiBase": "https://localhost:44396/api/openbooking/",
-    "XbookingApiBase": "https://everyoneactivebookingfacade-test.azurewebsites.net/api/openbooking/",
-    "openFeedBase": "https://localhost:44396/feeds/",
-    "pollOrdersBookingFeed": true
-  },
+  "datasetSiteUrl": "https://localhost:44396/openactive",
+  "XdatasetSiteUrl": "https://everyoneactivebookingfacade-test.azurewebsites.net/openactive",
   "requestLogging": false
 }

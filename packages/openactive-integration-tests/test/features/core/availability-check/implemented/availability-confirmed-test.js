@@ -4,9 +4,7 @@ const { RequestState } = require('../../../../helpers/request-state');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const sharedValidationTests = require('../../../../shared-behaviours/validation');
-const { C1 } = require('../../../../shared-behaviours/c1');
-const { C2 } = require('../../../../shared-behaviours/c2');
-const { B } = require('../../../../shared-behaviours/b');
+const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
@@ -25,9 +23,17 @@ FeatureHelper.describeFeature({
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
     await state.createOpportunity(orderItemCriteria);
-    await flow.getMatch();
 
     return chakram.wait();
+  });
+
+  describe('Get Opportunity Feed Items', function () {
+    (new GetMatch({
+      state, flow, logger, configuration,
+    }))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
   });
 
   describe('C1', function () {

@@ -8,6 +8,12 @@
     "expectAsync": true
   },
   "rules": {
+    "object-curly-newline": ["error", {
+        "ObjectExpression": "always",
+        "ObjectPattern": { "multiline": true },
+        "ImportDeclaration": "never",
+        "ExportDeclaration": { "multiline": true, "minProperties": 3 }
+    }],
     "max-len": "off",
     "no-await-in-loop": 0,
     "no-restricted-syntax": 0,

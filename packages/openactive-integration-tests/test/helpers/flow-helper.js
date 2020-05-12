@@ -5,6 +5,10 @@ class FlowHelper {
     this.state = helper;
   }
 
+  getDatasetSite = pMemoize(async getDatasetSite => {
+    return this.state.getDatasetSite();
+  });
+
   getMatch = pMemoize(async getMatch => {
     return this.state.getMatch();
   });
@@ -24,8 +28,6 @@ class FlowHelper {
   });
 
   B = pMemoize(async B => {
-    this.getOrderPromise = this.state.getOrder();
-
     await this.C2();
     if (!this.state.C2ResponseSucceeded) throw Error('Pre-requisite step failed: C2 failed');
 
@@ -33,6 +35,8 @@ class FlowHelper {
   });
 
   U = pMemoize(async U => {
+    this.getOrderPromise = this.state.getOrder();
+
     await this.B();
     if (!this.state.BResponseSucceeded) throw Error('Pre-requisite step failed: B failed');
 

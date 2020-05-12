@@ -1,14 +1,16 @@
-var express = require("express");
-var logger = require("morgan");
-var request = require("request");
-var nSQL = require("@nano-sql/core").nSQL;
-var moment = require("moment");
+const express = require("express");
+const logger = require("morgan");
+const request = require("request");
+const axios = require("axios");
+const nSQL = require("@nano-sql/core").nSQL;
+const moment = require("moment");
 const config = require("config");
 const criteria = require("./criteria").criteria.map(x => new x());
+const { Handler } = require('htmlmetaparser');
+const { Parser } = require('htmlparser2');
 
 var PORT = 3000;
-var BOOKING_API_BASE = config.get("microservice.pollOrdersBookingFeed") ? config.get("microservice.bookingApiBase") : null;
-var FEED_BASE = config.get("microservice.openFeedBase");
+var DATASET_SITE_URL = config.get("datasetSiteUrl");
 var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
@@ -22,12 +24,14 @@ if (REQUEST_LOGGING_ENABLED) {
 app.use(express.json());
 
 // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
-parentOpportunityMap = new Map();
-parentOpportunityRpdeMap = new Map();
-opportunityMap = new Map();
-opportunityRpdeMap = new Map();
-rowStoreMap = new Map();
-parentIdIndex = new Map();
+const parentOpportunityMap = new Map();
+const parentOpportunityRpdeMap = new Map();
+const opportunityMap = new Map();
+const opportunityRpdeMap = new Map();
+const rowStoreMap = new Map();
+const parentIdIndex = new Map();
+
+let datasetSiteJson = {};
 
 // Buckets for criteria matches
 var matchingCriteriaOpportunityIds = new Map();
@@ -161,6 +165,10 @@ var responses = {
 
 app.get("/health-check", function(req, res) {
   res.send("openactive-broker");
+});
+
+app.get("/dataset-site", function(req, res) {
+  res.send(datasetSiteJson);
 });
 
 function getMatch(req, res, useCache) {
@@ -320,23 +328,6 @@ app.get("/get-order/:expression", function(req, res) {
     res.send("Expression not valid");
   }
 });
-
-// Start processing first pages of external feeds
-getRPDE(FEED_BASE + "session-series", ingestParentOpportunityPage);
-getRPDE(FEED_BASE + "scheduled-sessions", ingestOpportunityPage);
-getRPDE(FEED_BASE + "facility-uses", ingestParentOpportunityPage);
-getRPDE(FEED_BASE + "facility-use-slots", ingestOpportunityPage);
-getRPDE(FEED_BASE + "events", ingestOpportunityPage);
-getRPDE(FEED_BASE + "headline-events", ingestOpportunityPage);
-getRPDE(FEED_BASE + "courses", ingestOpportunityPage);
-getRPDE(FEED_BASE + "on-demand-events", ingestOpportunityPage);
-
-// Start monitoring first page of internal feed
-//getRPDE("http://localhost:" + PORT + "/feeds/opportunities", monitorPage);
-
-// Only poll orders feed if enabled
-if (BOOKING_API_BASE != null)
-  getRPDE(BOOKING_API_BASE + "orders-rpde", monitorOrdersPage);
 
 
 function ingestParentOpportunityPage(rpde, pageNumber) {
@@ -533,6 +524,75 @@ function monitorOrdersPage(rpde, pageNumber) {
 
   setTimeout(x => getRPDE(rpde.next, monitorOrdersPage), 200);
 }
+
+
+function extractJSONLDfromHTML(url, html) {
+  let jsonld = null;
+
+  const handler = new Handler(
+    (err, result) => {
+      if (!err && typeof result === 'object') {
+        const jsonldArray = result.jsonld;
+        // Use the first JSON-LD block on the page
+        if (Array.isArray(jsonldArray) && jsonldArray.length > 0) {
+          [jsonld] = jsonldArray;
+        }
+      }
+    },
+    {
+      url, // The HTML pages URL is used to resolve relative URLs. TODO: Remove this
+    },
+  );
+
+  // Create a HTML parser with the handler.
+  const parser = new Parser(handler, { decodeEntities: true });
+  parser.write(html);
+  parser.done();
+
+  return jsonld;
+};
+
+async function extractJSONLDfromDatasetSiteUrl(url) {
+  let response = await axios.get(url);
+
+  var jsonld = extractJSONLDfromHTML(url, response.data);
+  return jsonld;
+}
+
+
+async function startPolling() {
+
+  let dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
+
+  console.log("Dataset Site JSON-LD: " + JSON.stringify(dataset, null, 2));
+
+  datasetSiteJson = dataset;
+
+  if (!dataset || !Array.isArray(dataset.distribution)) {
+    throw new Error("Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.");
+  }
+
+  dataset.distribution.forEach(dataDownload => {
+    if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
+      || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
+      console.log("Found parent opportunity feed: " + dataDownload.contentUrl);
+      getRPDE(dataDownload.contentUrl, ingestParentOpportunityPage);
+    } else {
+      console.log("Found opportunity feed: " + dataDownload.contentUrl);
+      getRPDE(dataDownload.contentUrl, ingestOpportunityPage);
+    }
+  });
+
+  // Only poll orders feed if included in the dataset site
+  if (dataset.accessService && dataset.accessService.endpointURL)
+    console.log("Found orders feed: " + dataset.accessService.endpointURL);
+    getRPDE(dataset.accessService.endpointURL + "orders-rpde", monitorOrdersPage);
+
+}
+
+(async () => {
+  await startPolling();
+})();
 
 app.listen(PORT, "127.0.0.1");
 console.log("Node server running on port " + PORT);

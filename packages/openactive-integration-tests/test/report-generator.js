@@ -97,6 +97,19 @@ class ReportGenerator extends BaseReportGenerator {
       }
     });
 
+    Handlebars.registerHelper("consoleValidationIcon", function(severity, options) {
+      switch (severity) {
+        case "warning":
+          return "[!]";
+        case "failure":
+          return "[X]";
+        case "suggestion":
+          return "[i]";
+        default:
+          return "[?]";
+      }
+    });
+
     Handlebars.registerHelper("specIcon", function(severity, options) {
       switch (severity) {
         case "failed":
@@ -105,6 +118,17 @@ class ReportGenerator extends BaseReportGenerator {
           return "✅";
         default:
           return "❔";
+      }
+    });
+
+    Handlebars.registerHelper("consoleSpecIcon", function(severity, options) {
+      switch (severity) {
+        case "failed":
+          return "[X]";
+        case "passed":
+          return "[√]";
+        default:
+          return "[?]";
       }
     });
 
