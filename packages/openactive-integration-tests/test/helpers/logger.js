@@ -222,7 +222,7 @@ class ReporterLogger extends BaseLogger {
   }
 
   get suiteName () {
-    return this.testName;
+    return (this.config && this.config.testName) || this.testName;
   }
 
   get activeSuites () {

@@ -1,69 +1,68 @@
-const chalk = require('chalk');
-const Handlebars = require('handlebars');
-const pMemoize = require('p-memoize');
-const fs = require('fs').promises;
-const stripAnsi = require('strip-ansi');
-const { ReporterLogger } = require('./helpers/logger');
-const _ = require('lodash');
+const chalk = require("chalk");
+const Handlebars = require("handlebars");
+const pMemoize = require("p-memoize");
+const fs = require("fs").promises;
+const stripAnsi = require("strip-ansi");
+const {ReporterLogger} = require("./helpers/logger");
+const _ = require("lodash");
 
 class BaseReportGenerator {
-  setupHelpers() {
+  setupHelpers () {
 
   }
 
-  get templateName() {
-    return 'report';
+  get templateName () {
+    return "report";
   }
 
-  get templateData() {
+  get templateData () {
     return {};
   }
 
-  get reportMarkdownPath() {
-    throw 'Not Implemented';
-    return this.logger.markdownPath;
+  get reportMarkdownPath () {
+    throw "Not Implemented";
   }
 
-  async outputConsole() {
+  async outputConsole () {
     try {
       let template = await this.getTemplate(`${this.templateName}-cli`);
 
       let data = chalk(template(this.templateData, {
         allowProtoMethodsByDefault: true,
-        allowProtoPropertiesByDefault: true
+        allowProtoPropertiesByDefault: true,
       }));
 
       console.log(data);
-    }
-    catch(exception) {
-      console.error('err', exception);
+    } catch (exception) {
+      console.error("err", exception);
     }
   }
 
-  async writeMarkdown() {
+  async writeMarkdown () {
     let template = await this.getTemplate(`${this.templateName}.md`);
 
     let data = template(this.templateData, {
       allowProtoMethodsByDefault: true,
-      allowProtoPropertiesByDefault: true
+      allowProtoPropertiesByDefault: true,
     });
 
     await fs.writeFile(this.reportMarkdownPath, data);
   }
 
-  async report() {
+  async report () {
     await this.outputConsole();
     await this.writeMarkdown();
   }
 
-  async getTemplate(name) {
-    let file = await fs.readFile(__dirname+'/report-templates/'+name+'.handlebars', 'utf8');
+  async getTemplate (name) {
+    let file = await fs.readFile(
+      __dirname + "/report-templates/" + name + ".handlebars", "utf8");
     return Handlebars.compile(file);
   };
 }
 
 class ReportGenerator extends BaseReportGenerator {
-  constructor(logger) {
+  constructor (logger) {
     super();
 
     this.logger = logger;
@@ -74,7 +73,7 @@ class ReportGenerator extends BaseReportGenerator {
 
       //apply each arg one after another,
       // i.e. if provided with "bold", "red" we want `chalk.bold.red`
-      const chalkFn = args.reduce(function(p,n){return p[n]}, chalk);
+      const chalkFn = args.reduce(function(p, n) {return p[n];}, chalk);
 
       return chalkFn(options.fn(this));
     });
@@ -98,18 +97,19 @@ class ReportGenerator extends BaseReportGenerator {
       }
     });
 
-    Handlebars.registerHelper("consoleValidationIcon", function(severity, options) {
-      switch (severity) {
-        case "warning":
-          return chalk.yellow("[!]");
-        case "failure":
-          return chalk.red("[X]");
-        case "suggestion":
-          return chalk.blue("[i]");
-        default:
-          return chalk.yellow("[?]");
-      }
-    });
+    Handlebars.registerHelper("consoleValidationIcon",
+      function(severity, options) {
+        switch (severity) {
+          case "warning":
+            return chalk.yellow("[!]");
+          case "failure":
+            return chalk.red("[X]");
+          case "suggestion":
+            return chalk.blue("[i]");
+          default:
+            return chalk.yellow("[?]");
+        }
+      });
 
     Handlebars.registerHelper("specIcon", function(severity, options) {
       switch (severity) {
@@ -144,8 +144,8 @@ class ReportGenerator extends BaseReportGenerator {
     Handlebars.registerHelper("logsFor", (suite, type, options) => {
       let first = true;
       let logs = this.logger.logsFor(suite, type);
-      let ret = '';
-      for (let [i,value] of logs.entries()) {
+      let ret = "";
+      for (let [i, value] of logs.entries()) {
 
         let result = options.fn(
           value,
@@ -156,7 +156,7 @@ class ReportGenerator extends BaseReportGenerator {
               index: i,
               key: i,
             },
-            blockParams: [value, i]
+            blockParams: [value, i],
           },
         );
 
@@ -167,27 +167,26 @@ class ReportGenerator extends BaseReportGenerator {
     });
   }
 
-
-  get templateName() {
-    return 'report';
+  get templateName () {
+    return "report";
   }
 
-  get templateData() {
+  get templateData () {
     return this.logger;
   }
 
-  get reportMarkdownPath() {
+  get reportMarkdownPath () {
     return this.logger.markdownPath;
   }
 }
 
 class SummaryReportGenerator extends BaseReportGenerator {
-  constructor(loggers) {
+  constructor (loggers) {
     super();
-    this.loggers = loggers;
+    this.loggers = new LoggerGroup(this, loggers);
   }
 
-  static async loadFiles() {
+  static async loadFiles () {
     let filenames = await fs.readdir(`./output/json/`);
 
     let loggers = filenames.map((filename) => {
@@ -202,30 +201,69 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return new SummaryReportGenerator(loggers);
   }
 
-  get templateName() {
-    return 'summary';
+  get templateName () {
+    return "summary";
   }
 
-  get templateData() {
+  get templateData () {
     return this;
   }
 
-  get reportMarkdownPath() {
-    return './output/summary.md';
+  get reportMarkdownPath () {
+    return "./output/summary.md";
   }
 
-  get byEventType() {
-    let grouped = _.groupBy(this.loggers, logger => logger.opportunityType);
+  get opportunityTypeGroups () {
+    return this.loggers.opportunityTypeGroups;
+  }
+}
 
-    grouped['Generic'] = grouped[undefined];
-    delete grouped[undefined];
-
-    return grouped;
+class LoggerGroup {
+  constructor (reporter, loggers) {
+    this.reporter = reporter;
+    this.loggers = loggers;
   }
 
+  get opportunityTypeGroups() {
+    if (this._opportunityTypeGroups) return this._opportunityTypeGroups;
+
+    return this._opportunityTypeGroups = _
+      .chain(this.loggers)
+      .groupBy(logger => logger.opportunityType || "Generic")
+      .mapValues(group => new LoggerGroup(this.reporter, group))
+      .value();
+  }
+
+  get featureGroups () {
+    if (this._featureGroups) return this._featureGroups;
+
+    return this._featureGroups = _
+      .chain(this.loggers)
+      .groupBy(
+        (logger) => [logger.config.testCategory, logger.config.testFeature])
+      .mapValues(loggers => new LoggerGroup(this.reporter, loggers))
+      .value();
+  }
+
+  get opportunityTypeName() {
+    return this.loggers[0].opportunityType || "Generic";
+  }
+
+  get featureName () {
+    let logger = this.loggers[0];
+    return [logger.config.testCategory, logger.config.testFeature].join("/");
+  }
+
+  get implemented () {
+    return this.loggers[0].implemented;
+  }
+
+  get status () {
+    // return this.loggers[0].
+  }
 }
 
 module.exports = {
   ReportGenerator,
-  SummaryReportGenerator
+  SummaryReportGenerator,
 };

@@ -1,13 +1,14 @@
 Summary
 
-{{#each byEventType }}
-{{# chalk "bold"}}{{ @key }}{{/chalk}}
+{{#each opportunityTypeGroups }}
+{{# chalk "bold"}}{{ opportunityTypeName }}{{/chalk}}
 ---
 
-{{#each . }}
- • {{{ title }}} ({{{ implemented }}}): {{{markdownPath }}}
-   {{{ numFailed }}} failures, {{{ numPassed }}} passes,
-{{/each}}
-
+  {{#each featureGroups }}
+  * {{{ featureName }}} ({{implemented}})
+    {{#each loggers}}
+    - {{{ suiteName }}}: {{{ numFailed }}} failures, {{{ numPassed }}} passes: {{{ markdownPath }}}
+    {{/each}}
+  {{/each}}
 
 {{/each}}

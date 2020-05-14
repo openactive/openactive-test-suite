@@ -1,12 +1,14 @@
-Summary
+# Summary
 
-{{#each byEventType }}
-{{ @key }}
+{{#each opportunityTypeGroups }}
+{{ opportunityTypeName }}
 ---
 
-{{#each . }}
- - [{{{ title }}} ({{{ implemented }}})]({{{markdownPath }}}): {{{ numFailed }}} failures, {{{ numPassed }}} passes
-{{/each}}
-
+  {{#each featureGroups }}
+  * {{{ featureName }}} ({{implemented}})
+    {{#each loggers}}
+    - [{{{ suiteName }}}]({{{ markdownPath }}}): {{{ numFailed }}} failures, {{{ numPassed }}} passes
+    {{/each}}
+  {{/each}}
 
 {{/each}}

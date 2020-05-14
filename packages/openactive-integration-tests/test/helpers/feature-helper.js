@@ -22,6 +22,7 @@ class FeatureHelper {
             // However should the logger rely on an exact number of levels?
             describe(configuration.testName, function () {
               const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName}`, this, {
+                config: configuration,
                 description: configuration.testDescription,
                 implemented: implemented ? 'Implemented' : 'Not Implemented',
               });
@@ -36,6 +37,7 @@ class FeatureHelper {
             opportunityTypesInScope.forEach((opportunityType) => {
               describe(opportunityType, function () {
                 const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (${opportunityType})`, this, {
+                  config: configuration,
                   description: configuration.testDescription,
                   implemented: implemented ? 'Implemented' : 'Not Implemented',
                   opportunityType: opportunityType
