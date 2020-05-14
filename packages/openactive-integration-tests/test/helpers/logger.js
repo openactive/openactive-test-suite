@@ -1,14 +1,14 @@
-const _ = require('lodash');
+const _ = require("lodash");
 const {promises: fs} = require("fs");
 
 // abstract class, implement shared methods
 class BaseLogger {
-  constructor() {
+  constructor () {
     this.flow = {};
     this.logs = [];
   }
 
-  get testMeta() {
+  get testMeta () {
     return {
       ancestorTitles: testState.ancestorTitles,
       title: testState.currentTest && testState.currentTest.description,
@@ -16,10 +16,10 @@ class BaseLogger {
     };
   }
 
-  recordLogEntry(entry) {
+  recordLogEntry (entry) {
     let log = {
       ...(this.testMeta),
-      ...entry
+      ...entry,
     };
 
     this.logs.push(log);
@@ -27,14 +27,14 @@ class BaseLogger {
     return log;
   }
 
-  recordRequest(stage, request) {
+  recordRequest (stage, request) {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].request) this.flow[stage].request = {};
 
     this.flow[stage].request = request;
   }
 
-  recordResponse(stage, response) {
+  recordResponse (stage, response) {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
@@ -48,22 +48,22 @@ class BaseLogger {
         ...fields,
         status: response.response.statusCode,
         statusMessage: response.response.statusMessage,
-        headers: response.response.headers
-      }
+        headers: response.response.headers,
+      };
     }
 
     Object.assign(this.flow[stage].response, fields);
   }
 
-  recordRequestResponse(stage, request, responsePromise) {
+  recordRequestResponse (stage, request, responsePromise) {
     let entry = this.recordLogEntry({
       type: "request",
       stage: stage,
       request: {
-        ...request
+        ...request,
       },
       isPending: true,
-      duration: 0
+      duration: 0,
     });
 
     // manually count how long it's been waiting
@@ -88,15 +88,15 @@ class BaseLogger {
           ...responseFields,
           status: response.response.statusCode,
           statusMessage: response.response.statusMessage,
-          headers: response.response.headers
-        }
+          headers: response.response.headers,
+        };
       }
 
       entry.response = responseFields;
     });
   }
 
-  recordResponseValidations(stage, data) {
+  recordResponseValidations (stage, data) {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
@@ -105,13 +105,13 @@ class BaseLogger {
     this.recordLogEntry({
       type: "validations",
       stage: stage,
-      validations: data
+      validations: data,
     });
   }
 
-  async writeMeta() {
+  async writeMeta () {
     let data = _(this).omit([
-      'suite'
+      "suite",
     ]);
 
     let json = JSON.stringify(data, null, 4);
@@ -119,25 +119,62 @@ class BaseLogger {
     await fs.writeFile(this.metaPath, json);
   }
 
-  setJestContext(context) {
+  setJestContext (context) {
     this.jestContext = context;
   }
 
-  get suiteName() {
-    throw Error('suiteName unimplemented');
+  get suiteName () {
+    throw Error("suiteName unimplemented");
   }
 
-  get metaPath() {
+  get metaPath () {
     return `./output/json/${this.suiteName}.json`;
   }
 
-  get markdownPath() {
+  get markdownPath () {
     return `./output/${this.suiteName}.md`;
+  }
+
+  get bySpecStatus () {
+    let statuses = _.chain(this.logs)
+        .countBy(log => log.spec && log.spec.status)
+      .value();
+
+    return {
+      failed: statuses.failed || 0,
+      passed: statuses.passed || 0
+    }
+  }
+
+  get numFailed() {
+    return this.bySpecStatus.failed;
+  }
+
+  get numPassed() {
+    return this.bySpecStatus.passed;
+  }
+
+  get numValidationStatuses () {
+    let validations = _
+      .chain(this.logs)
+      .filter(item => item.type === "validations")
+      .flatMap(item => item.validations)
+      // .sumBy(item => item.validations.length);
+
+    let result = {
+      warning: 0,
+      failure: 0,
+      suggestion: 0
+    };
+
+    for(let type of Object.keys(result)) {
+      result[type] = validations.filter(item => item)
+    }
   }
 }
 
 class Logger extends BaseLogger {
-  constructor(title, suite, meta) {
+  constructor (title, suite, meta) {
     super();
     this.title = title;
     this.suite = suite;
@@ -152,11 +189,11 @@ class Logger extends BaseLogger {
       return this.writeMeta();
     });
 
-    testState.on('suite-started', (suite) => {
+    testState.on("suite-started", (suite) => {
       this.suites.push(testState.ancestorTitles);
     });
 
-    testState.on('spec-started', (spec) => {
+    testState.on("spec-started", (spec) => {
       let key = testState.ancestorTitles;
       if (!this.specs[key]) {
         this.specs[key] = [];
@@ -165,30 +202,30 @@ class Logger extends BaseLogger {
     });
   }
 
-  get suiteName() {
-    return this.suite.getFullName()
+  get suiteName () {
+    return this.suite.getFullName();
   }
 }
 
 class ReporterLogger extends BaseLogger {
-  constructor(testName) {
+  constructor (testName) {
     super();
 
     this.testName = testName;
   }
 
-  async load() {
-    let data = await fs.readFile(this.metaPath, 'utf8');
+  async load () {
+    let data = await fs.readFile(this.metaPath, "utf8");
     data = JSON.parse(data);
 
     Object.assign(this, data);
   }
 
-  get suiteName() {
+  get suiteName () {
     return this.testName;
   }
 
-  get activeSuites() {
+  get activeSuites () {
     let activeSuites = [];
     for (let log of this.logs) {
       activeSuites.push(log.ancestorTitles);
@@ -202,7 +239,7 @@ class ReporterLogger extends BaseLogger {
     return active;
   }
 
-  recordTestResult(stage, data) {
+  recordTestResult (stage, data) {
     if (!this.flow[stage]) this.flow[stage] = {};
     if (!this.flow[stage].response) this.flow[stage].response = {};
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
@@ -214,11 +251,11 @@ class ReporterLogger extends BaseLogger {
       ancestorTitles: data.ancestorTitles,
       title: data.title,
       fullName: data.fullName,
-      spec: data
+      spec: data,
     });
   }
 
-  logsFor(suite, type) {
+  logsFor (suite, type) {
     let result = this.logs.filter((log) => {
       if (!suite && log.type == type) return true;
 
@@ -231,5 +268,5 @@ class ReporterLogger extends BaseLogger {
 
 module.exports = {
   Logger,
-  ReporterLogger
+  ReporterLogger,
 };

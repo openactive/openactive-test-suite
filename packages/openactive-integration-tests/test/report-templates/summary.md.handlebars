@@ -1,0 +1,12 @@
+Summary
+
+{{#each byEventType }}
+{{ @key }}
+---
+
+{{#each . }}
+ - [{{{ title }}} ({{{ implemented }}})]({{{markdownPath }}}): {{{ numFailed }}} failures, {{{ numPassed }}} passes
+{{/each}}
+
+
+{{/each}}

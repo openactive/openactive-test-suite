@@ -1,0 +1,13 @@
+Summary
+
+{{#each byEventType }}
+{{# chalk "bold"}}{{ @key }}{{/chalk}}
+---
+
+{{#each . }}
+ • {{{ title }}} ({{{ implemented }}}): {{{markdownPath }}}
+   {{{ numFailed }}} failures, {{{ numPassed }}} passes,
+{{/each}}
+
+
+{{/each}}

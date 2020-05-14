@@ -57,8 +57,13 @@ class Reporter {
 
   // based on https://github.com/pierreroth64/jest-spec-reporter/blob/master/lib/jest-spec-reporter.js
   async onRunComplete(test, results) {
-    let generator = await SummaryReportGenerator.loadFiles();
-    await generator.report();
+    try {
+      let generator = await SummaryReportGenerator.loadFiles();
+      await generator.report();
+    }
+    catch (e) {
+      console.error(e);
+    }
 
     const {
       numFailedTests,

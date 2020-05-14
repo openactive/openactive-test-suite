@@ -4,6 +4,7 @@ const pMemoize = require('p-memoize');
 const fs = require('fs').promises;
 const stripAnsi = require('strip-ansi');
 const { ReporterLogger } = require('./helpers/logger');
+const _ = require('lodash');
 
 class BaseReportGenerator {
   setupHelpers() {
@@ -100,13 +101,13 @@ class ReportGenerator extends BaseReportGenerator {
     Handlebars.registerHelper("consoleValidationIcon", function(severity, options) {
       switch (severity) {
         case "warning":
-          return "[!]";
+          return chalk.yellow("[!]");
         case "failure":
-          return "[X]";
+          return chalk.red("[X]");
         case "suggestion":
-          return "[i]";
+          return chalk.blue("[i]");
         default:
-          return "[?]";
+          return chalk.yellow("[?]");
       }
     });
 
@@ -124,11 +125,11 @@ class ReportGenerator extends BaseReportGenerator {
     Handlebars.registerHelper("consoleSpecIcon", function(severity, options) {
       switch (severity) {
         case "failed":
-          return "[X]";
+          return chalk.red("[X]");
         case "passed":
-          return "[√]";
+          return chalk.green("[√]");
         default:
-          return "[?]";
+          return chalk.yellow("[?]");
       }
     });
 
@@ -206,12 +207,22 @@ class SummaryReportGenerator extends BaseReportGenerator {
   }
 
   get templateData() {
-    return this.loggers;
+    return this;
   }
 
   get reportMarkdownPath() {
-    throw './output/summary.md';
+    return './output/summary.md';
   }
+
+  get byEventType() {
+    let grouped = _.groupBy(this.loggers, logger => logger.opportunityType);
+
+    grouped['Generic'] = grouped[undefined];
+    delete grouped[undefined];
+
+    return grouped;
+  }
+
 }
 
 module.exports = {
