@@ -257,7 +257,7 @@ class LoggerGroup {
 
   get featureName () {
     let logger = this.loggers[0];
-    return [logger.config.testCategory, logger.config.testFeature].join("/");
+    return [logger.categoryName, logger.featureName].join(" / ");
   }
 
   get implemented () {

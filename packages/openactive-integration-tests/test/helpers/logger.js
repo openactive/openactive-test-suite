@@ -1,5 +1,6 @@
 const _ = require("lodash");
 const {promises: fs} = require("fs");
+const mapping = require('../helpers/mapping');
 
 // abstract class, implement shared methods
 class BaseLogger {
@@ -127,6 +128,37 @@ class BaseLogger {
     throw Error("suiteName unimplemented");
   }
 
+  get testCategory() {
+    if (this.config && this.config.testCategory) return this.config.testCategory;
+  }
+
+  get testFeature() {
+    if (this.config && this.config.testFeature) return this.config.testFeature;
+  }
+
+  get testName() {
+    if (this.config && this.config.testName) return this.config.testName;
+  }
+
+  get categoryName() {
+    return mapping.lookup(this.testCategory);
+  }
+
+  get featureName() {
+    return mapping.lookup([
+      this.testCategory,
+      this.testFeature
+    ].join("|"));
+  }
+
+  get suiteName() {
+    return mapping.lookup([
+      this.testCategory,
+      this.testFeature,
+      this.testName
+    ].join("|"));
+  }
+
   get metaPath () {
     return `./output/json/${this.uniqueSuiteName}.json`;
   }
@@ -248,10 +280,10 @@ class Logger extends BaseLogger {
 }
 
 class ReporterLogger extends BaseLogger {
-  constructor (testName) {
+  constructor (testFileIdentifier) {
     super();
 
-    this.testName = testName;
+    this.testFileIdentifier = testFileIdentifier
   }
 
   async load () {
@@ -262,11 +294,7 @@ class ReporterLogger extends BaseLogger {
   }
 
   get uniqueSuiteName () {
-    return this.testName;
-  }
-
-  get suiteName () {
-    return (this.config && this.config.testName) || this.testName;
+    return this.testFileIdentifier;
   }
 
   get activeSuites () {
