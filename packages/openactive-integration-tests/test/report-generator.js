@@ -86,11 +86,14 @@ class ReportGenerator extends BaseReportGenerator {
 
     Handlebars.registerHelper("validationIcon", function(severity, options) {
       switch (severity) {
-        case "warning":
-          return "⚠️";
-        case "failure":
+        case "passed": // spec
+          return "✅";
+        case "failed": // spec
+        case "failure": // validation
           return "❌️";
-        case "suggestion":
+        case "warning": // validation
+          return "⚠️";
+        case "suggestion": // validation
           return "📝";
         default:
           return "❔";
@@ -100,11 +103,14 @@ class ReportGenerator extends BaseReportGenerator {
     Handlebars.registerHelper("consoleValidationIcon",
       function(severity, options) {
         switch (severity) {
-          case "warning":
-            return chalk.yellow("[!]");
-          case "failure":
+          case "passed": // spec
+            return chalk.green("[√]");
+          case "failed": // spec
+          case "failure": // validation
             return chalk.red("[X]");
-          case "suggestion":
+          case "warning": // validation
+            return chalk.yellow("[!]");
+          case "suggestion": // validation
             return chalk.blue("[i]");
           default:
             return chalk.yellow("[?]");

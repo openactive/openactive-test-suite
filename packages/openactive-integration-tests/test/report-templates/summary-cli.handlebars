@@ -5,9 +5,9 @@ Summary
 ---
 
   {{#each featureGroups }}
-  * {{{ featureName }}} ({{implemented}})
+  * {{{ consoleValidationIcon overallStatus }}} {{{ featureName }}} ({{implemented}})
     {{#each loggers}}
-    - {{{ suiteName }}}: {{{ numFailed }}} failures, {{{ numPassed }}} passes: {{{ markdownPath }}}
+    - {{{ consoleValidationIcon overallStatus }}} {{{ suiteName }}} ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes): {{{ markdownPath }}}
     {{/each}}
   {{/each}}
 

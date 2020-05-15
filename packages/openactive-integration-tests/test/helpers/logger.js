@@ -135,41 +135,85 @@ class BaseLogger {
     return `./output/${this.uniqueSuiteName}.md`;
   }
 
-  get bySpecStatus () {
+  get validationStatusCounts () {
+    if (this._validationStatusCounts) return this._validationStatusCounts;
+
     let statuses = _.chain(this.logs)
-        .countBy(log => log.spec && log.spec.status)
+      .filter(log => log.type === "validations")
+      .flatMap(log => log.validations)
+      .countBy(log => log.severity)
       .value();
 
-    return {
+    return this._validationStatusCounts = {
+      ...statuses,
+      suggestion: statuses.suggestion || 0,
+      warning: statuses.warning || 0,
+      failure: statuses.failure || 0,
+    };
+  }
+
+  get specStatusCounts () {
+    if (this._specStatusCounts) return this._specStatusCounts;
+
+    let statuses = _.chain(this.logs)
+      .filter(log => log.type === "spec")
+      .filter(log => log.title !== "passes validation checks")
+      .countBy(log => log.spec.status)
+      .value();
+
+    return this._specStatusCounts = {
       ...statuses,
       failed: statuses.failed || 0,
-      passed: statuses.passed || 0
-    }
+      passed: statuses.passed || 0,
+    };
   }
 
-  get numFailed() {
-    return this.bySpecStatus.failed;
+  get numFailed () {
+    return this.specStatusCounts.failed + this.validationStatusCounts.failure;
   }
 
-  get numPassed() {
-    return this.bySpecStatus.passed;
+  get numWarnings () {
+    return this.validationStatusCounts.warning;
+  }
+
+  get numSuggestions () {
+    return this.validationStatusCounts.suggestion;
+  }
+
+  get numPassed () {
+    return this.specStatusCounts.passed;
+  }
+
+  get overallStatus() {
+    let spec = this.specStatusCounts;
+    let validation = this.validationStatusCounts;
+
+    console.log({
+      spec,
+      validation
+    })
+
+    if (spec.failed > 0) return "failed";
+    else if (validation.failure > 0) return "failed";
+    else if (validation.warning > 0) return "warning";
+    else return "passed";
   }
 
   get numValidationStatuses () {
     let validations = _
       .chain(this.logs)
       .filter(item => item.type === "validations")
-      .flatMap(item => item.validations)
-      // .sumBy(item => item.validations.length);
+      .flatMap(item => item.validations);
+    // .sumBy(item => item.validations.length);
 
     let result = {
       warning: 0,
       failure: 0,
-      suggestion: 0
+      suggestion: 0,
     };
 
-    for(let type of Object.keys(result)) {
-      result[type] = validations.filter(item => item)
+    for (let type of Object.keys(result)) {
+      result[type] = validations.filter(item => item);
     }
   }
 }
@@ -226,7 +270,7 @@ class ReporterLogger extends BaseLogger {
     return this.testName;
   }
 
-  get suiteName() {
+  get suiteName () {
     return (this.config && this.config.testName) || this.testName;
   }
 
