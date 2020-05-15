@@ -51,7 +51,7 @@ class Reporter {
     }
     catch(exception) {
       console.log(testResult);
-      console.error('err', exception);
+      console.error('logger error', exception);
     }
   }
 

@@ -110,9 +110,9 @@ class BaseLogger {
   }
 
   async writeMeta () {
-    let data = _(this).omit([
+    let data = _.chain(this).omit([
       "suite",
-    ]);
+    ]).value();
 
     let json = JSON.stringify(data, null, 4);
 
@@ -123,16 +123,16 @@ class BaseLogger {
     this.jestContext = context;
   }
 
-  get suiteName () {
+  get uniqueSuiteName () {
     throw Error("suiteName unimplemented");
   }
 
   get metaPath () {
-    return `./output/json/${this.suiteName}.json`;
+    return `./output/json/${this.uniqueSuiteName}.json`;
   }
 
   get markdownPath () {
-    return `./output/${this.suiteName}.md`;
+    return `./output/${this.uniqueSuiteName}.md`;
   }
 
   get bySpecStatus () {
@@ -141,6 +141,7 @@ class BaseLogger {
       .value();
 
     return {
+      ...statuses,
       failed: statuses.failed || 0,
       passed: statuses.passed || 0
     }
@@ -202,7 +203,7 @@ class Logger extends BaseLogger {
     });
   }
 
-  get suiteName () {
+  get uniqueSuiteName () {
     return this.suite.getFullName();
   }
 }
@@ -221,7 +222,11 @@ class ReporterLogger extends BaseLogger {
     Object.assign(this, data);
   }
 
-  get suiteName () {
+  get uniqueSuiteName () {
+    return this.testName;
+  }
+
+  get suiteName() {
     return (this.config && this.config.testName) || this.testName;
   }
 

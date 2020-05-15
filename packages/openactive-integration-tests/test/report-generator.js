@@ -240,7 +240,7 @@ class LoggerGroup {
     return this._featureGroups = _
       .chain(this.loggers)
       .groupBy(
-        (logger) => [logger.config.testCategory, logger.config.testFeature])
+        (logger) => [logger.config.testCategory, logger.config.testFeature, logger.implemented])
       .mapValues(loggers => new LoggerGroup(this.reporter, loggers))
       .value();
   }
