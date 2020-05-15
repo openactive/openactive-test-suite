@@ -24,7 +24,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   beforeAll(async function () {
     await state.createOpportunity(orderItemCriteria);
 
-    // return chakram.wait();
+    return chakram.wait();
   });
 
   afterAll(async function () {
