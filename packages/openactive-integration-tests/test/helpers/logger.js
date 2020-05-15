@@ -168,30 +168,9 @@ class BaseLogger {
     };
   }
 
-  get numFailed () {
-    return this.specStatusCounts.failed + this.validationStatusCounts.failure;
-  }
-
-  get numWarnings () {
-    return this.validationStatusCounts.warning;
-  }
-
-  get numSuggestions () {
-    return this.validationStatusCounts.suggestion;
-  }
-
-  get numPassed () {
-    return this.specStatusCounts.passed;
-  }
-
   get overallStatus() {
     let spec = this.specStatusCounts;
     let validation = this.validationStatusCounts;
-
-    console.log({
-      spec,
-      validation
-    })
 
     if (spec.failed > 0) return "failed";
     else if (validation.failure > 0) return "failed";
@@ -215,6 +194,22 @@ class BaseLogger {
     for (let type of Object.keys(result)) {
       result[type] = validations.filter(item => item);
     }
+  }
+
+  get numFailed () {
+    return this.specStatusCounts.failed + this.validationStatusCounts.failure;
+  }
+
+  get numWarnings () {
+    return this.validationStatusCounts.warning;
+  }
+
+  get numSuggestions () {
+    return this.validationStatusCounts.suggestion;
+  }
+
+  get numPassed () {
+    return this.specStatusCounts.passed;
   }
 }
 

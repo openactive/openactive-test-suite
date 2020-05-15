@@ -264,9 +264,38 @@ class LoggerGroup {
     return this.loggers[0].implemented;
   }
 
-  get status () {
-    // return this.loggers[0].
+  get specStatusCounts () {
+    return this.loggers
+      .reduce((acc, logger) => {
+        let counts = logger.specStatusCounts;
+        for (let [key, value] of Object.entries(counts)) {
+          acc[key] = (acc[key] || 0) + value;
+        }
+        return acc;
+      }, {});
   }
+
+  get validationStatusCounts () {
+    return this.loggers
+      .reduce((acc, logger) => {
+        let counts = logger.validationStatusCounts;
+        for (let [key, value] of Object.entries(counts)) {
+          acc[key] = (acc[key] || 0) + value;
+        }
+        return acc;
+      }, {});
+  }
+
+  get overallStatus () {
+    let spec = this.specStatusCounts;
+    let validation = this.validationStatusCounts;
+
+    if (spec.failed > 0) return "failed";
+    else if (validation.failure > 0) return "failed";
+    else if (validation.warning > 0) return "warning";
+    else return "passed";
+  }
+
 }
 
 module.exports = {
