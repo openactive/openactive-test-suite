@@ -1,7 +1,5 @@
 {
   "tests": {
-    "XbookingApiBase": "https://everyoneactivebookingfacade-test.azurewebsites.net/api/openbooking/",
-    "bookingApiBase": "https://localhost:44396/api/openbooking/",
     "microserviceApiBase": "http://localhost:3000/",
     "useRandomOpportunities": true,
     "bookableOpportunityTypesInScope": {
