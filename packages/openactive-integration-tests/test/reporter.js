@@ -15,7 +15,9 @@ class Reporter {
 
   async onRunStart(test, results) {
     await mkdirp('./output');
-    await rmfr('./output/*.md', {glob: true});
+    // TODO: Replace the line below to remove any files that have not been created by this test run
+    // To allow Markdown auto-reload features to work (as file must be updated, not deleted, between test runs)
+    // await rmfr('./output/*.md', {glob: true});
     await mkdirp('./output/json');
     await rmfr('./output/json/*.json', {glob: true});
 

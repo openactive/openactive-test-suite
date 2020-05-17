@@ -7,6 +7,7 @@ class BaseLogger {
   constructor () {
     this.flow = {};
     this.logs = [];
+    this.timestamp = (new Date()).toString();
   }
 
   get testMeta () {
@@ -160,11 +161,15 @@ class BaseLogger {
   }
 
   get metaPath () {
-    return `./output/json/${this.uniqueSuiteName}.json`;
+    return `./output/json/${this.uniqueSuiteName.replace(/\s+/g, '_')}.json`;
+  }
+
+  get markdownLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.md`;
   }
 
   get markdownPath () {
-    return `./output/${this.uniqueSuiteName}.md`;
+    return `./output/${this.markdownLocalPath}`;
   }
 
   get validationStatusCounts () {
@@ -283,7 +288,7 @@ class ReporterLogger extends BaseLogger {
   constructor (testFileIdentifier) {
     super();
 
-    this.testFileIdentifier = testFileIdentifier
+    this.testFileIdentifier = testFileIdentifier;
   }
 
   async load () {
