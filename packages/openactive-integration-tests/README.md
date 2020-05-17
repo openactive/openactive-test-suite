@@ -17,13 +17,21 @@ This Node.js script runs tests against the specified openactive-broker-microserv
 1. `npm install`
 2. `npm run test`
 
-### Running specific tests
+### Running specific tests in parallel via multiple processes
 
 `npm run test -- test/flows/book-only/book-only-success/book-random-test.js`
 
+### Running core tests in a single process
+
 `npm test --runInBand -- test/features/core/`
 
+## Reading test results
 
+Test results are written to /output/*.md in Markdown format.
+
+To read these files, the [Markdown Viewer Chrome Extension](https://chrome.google.com/webstore/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk) is recommended, with the following settings:
+- CONTENT -> "autoreload" on
+- ADVANCED OPTIONS -> ALLOW ACCESS TO FILE:// URLS (links to setting in Chrome Extensions settings of the same name)
 
 ## Development
 
