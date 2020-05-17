@@ -7,12 +7,108 @@ const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 
 class BaseReportGenerator {
-  setupHelpers () {
-
-  }
-
   get templateName () {
     return "report";
+  }
+
+  get helpers () {
+    return {
+      "chalk": function() {
+        const args = Array.prototype.slice.apply(arguments);
+        const options = args.pop();
+
+        //apply each arg one after another,
+        // i.e. if provided with "bold", "red" we want `chalk.bold.red`
+        const chalkFn = args.reduce(function(p, n) {return p[n];}, chalk);
+
+        return chalkFn(options.fn(this));
+      },
+      "renderSuiteName": function(suiteName, options) {
+        if (suiteName.length <= 2) return "Test setup";
+
+        return suiteName.slice(3).join(" >> ");
+      },
+      "validationIcon": function(severity, options) {
+        switch (severity) {
+          case "passed": // spec
+            return "✅";
+          case "failed": // spec
+          case "failure": // validation
+            return "❌️";
+          case "warning": // validation
+            return "⚠️";
+          case "suggestion": // validation
+            return "📝";
+          default:
+            return "❔";
+        }
+      },
+      "consoleValidationIcon": function(severity, options) {
+        switch (severity) {
+          case "passed": // spec
+            return chalk.green("[√]");
+          case "failed": // spec
+          case "failure": // validation
+            return chalk.red("[X]");
+          case "warning": // validation
+            return chalk.yellow("[!]");
+          case "suggestion": // validation
+            return chalk.blue("[i]");
+          default:
+            return chalk.yellow("[?]");
+        }
+      },
+      "specIcon": function(severity, options) {
+        switch (severity) {
+          case "failed":
+            return "❌️";
+          case "passed":
+            return "✅";
+          default:
+            return "❔";
+        }
+      },
+      "consoleSpecIcon": function(severity, options) {
+        switch (severity) {
+          case "failed":
+            return chalk.red("[X]");
+          case "passed":
+            return chalk.green("[√]");
+          default:
+            return chalk.yellow("[?]");
+        }
+      },
+      "firstLine": function(message, options) {
+        return stripAnsi(message.split("\n")[0]);
+      },
+      "json": function(data, options) {
+        return JSON.stringify(data, null, 4);
+      },
+      "logsFor": (suite, type, options) => {
+        let first = true;
+        let logs = this.logger.logsFor(suite, type);
+        let ret = "";
+        for (let [i, value] of logs.entries()) {
+
+          let result = options.fn(
+            value,
+            {
+              data: {
+                first: i === 0,
+                last: i === (logs.length - 1),
+                index: i,
+                key: i,
+              },
+              blockParams: [value, i],
+            },
+          );
+
+          ret += result;
+        }
+
+        return ret;
+      }
+    };
   }
 
   get templateData () {
@@ -30,6 +126,7 @@ class BaseReportGenerator {
       let data = chalk(template(this.templateData, {
         allowProtoMethodsByDefault: true,
         allowProtoPropertiesByDefault: true,
+        helpers: this.helpers,
       }));
 
       console.log(data);
@@ -44,6 +141,7 @@ class BaseReportGenerator {
     let data = template(this.templateData, {
       allowProtoMethodsByDefault: true,
       allowProtoPropertiesByDefault: true,
+      helpers: this.helpers,
     });
 
     await fs.writeFile(this.reportMarkdownPath, data);
@@ -66,111 +164,6 @@ class ReportGenerator extends BaseReportGenerator {
     super();
 
     this.logger = logger;
-
-    Handlebars.registerHelper("chalk", function() {
-      const args = Array.prototype.slice.apply(arguments);
-      const options = args.pop();
-
-      //apply each arg one after another,
-      // i.e. if provided with "bold", "red" we want `chalk.bold.red`
-      const chalkFn = args.reduce(function(p, n) {return p[n];}, chalk);
-
-      return chalkFn(options.fn(this));
-    });
-
-    Handlebars.registerHelper("renderSuiteName", function(suiteName, options) {
-      if (suiteName.length <= 2) return "Test setup";
-
-      return suiteName.slice(3).join(" >> ");
-    });
-
-    Handlebars.registerHelper("validationIcon", function(severity, options) {
-      switch (severity) {
-        case "passed": // spec
-          return "✅";
-        case "failed": // spec
-        case "failure": // validation
-          return "❌️";
-        case "warning": // validation
-          return "⚠️";
-        case "suggestion": // validation
-          return "📝";
-        default:
-          return "❔";
-      }
-    });
-
-    Handlebars.registerHelper("consoleValidationIcon",
-      function(severity, options) {
-        switch (severity) {
-          case "passed": // spec
-            return chalk.green("[√]");
-          case "failed": // spec
-          case "failure": // validation
-            return chalk.red("[X]");
-          case "warning": // validation
-            return chalk.yellow("[!]");
-          case "suggestion": // validation
-            return chalk.blue("[i]");
-          default:
-            return chalk.yellow("[?]");
-        }
-      });
-
-    Handlebars.registerHelper("specIcon", function(severity, options) {
-      switch (severity) {
-        case "failed":
-          return "❌️";
-        case "passed":
-          return "✅";
-        default:
-          return "❔";
-      }
-    });
-
-    Handlebars.registerHelper("consoleSpecIcon", function(severity, options) {
-      switch (severity) {
-        case "failed":
-          return chalk.red("[X]");
-        case "passed":
-          return chalk.green("[√]");
-        default:
-          return chalk.yellow("[?]");
-      }
-    });
-
-    Handlebars.registerHelper("firstLine", function(message, options) {
-      return stripAnsi(message.split("\n")[0]);
-    });
-
-    Handlebars.registerHelper("json", function(data, options) {
-      return JSON.stringify(data, null, 4);
-    });
-
-    Handlebars.registerHelper("logsFor", (suite, type, options) => {
-      let first = true;
-      let logs = this.logger.logsFor(suite, type);
-      let ret = "";
-      for (let [i, value] of logs.entries()) {
-
-        let result = options.fn(
-          value,
-          {
-            data: {
-              first: i === 0,
-              last: i === (logs.length - 1),
-              index: i,
-              key: i,
-            },
-            blockParams: [value, i],
-          },
-        );
-
-        ret += result;
-      }
-
-      return ret;
-    });
   }
 
   get templateName () {
