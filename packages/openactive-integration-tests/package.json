@@ -54,7 +54,6 @@
     "maxWorkers": 4,
     "testTimeout": 15000,
     "transform": {
-      "^.+\\.[t|j]sx?$": "babel-jest"
     },
     "testEnvironment": "node"
   }

@@ -1,3 +1,5 @@
+[< Return to Summary](summary.md) | File Generated: {{{ timestamp }}}
+
 # {{{ title }}}
 
 Feature Status: {{{ implemented }}}
@@ -5,8 +7,10 @@ Feature Status: {{{ implemented }}}
 {{{ description }}}
 
 {{#each activeSuites }}
+
 ## {{{ renderSuiteName . }}}
     {{#logsFor . "request"}}
+
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
     {{#if request.params}}
@@ -30,16 +34,18 @@ Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Res
         {{/if}}
     {{/logsFor}}
     {{#logsFor . "spec"}}
-{{~#if @first~}}### Specs
-{{/if}}
+{{~#if @first}}
+### Specs
+{{/if~}}
  * {{ specIcon spec.status }} {{{firstLine spec.title}}}
         {{#each spec.failureMessages}}
     - {{{firstLine . }}}
         {{/each}}
     {{/logsFor}}
     {{#logsFor . "validations"}}
-{{#if @first~}}### Validations
-{{/if~}}
+{{#if @first}}
+
+### Validations{{/if}}
         {{#each validations }}
  * {{ validationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
