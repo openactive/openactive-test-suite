@@ -341,6 +341,9 @@ function ingestParentOpportunityPage(rpde, pageNumber) {
   }
 
   rpde.items.forEach(item => {
+    // Remove nested @context
+    delete item.data['@context'];
+    
     if (item.state == "deleted") {
       var jsonLdId = parentOpportunityRpdeMap.get(item.id);
       parentOpportunityMap.delete(jsonLdId);
