@@ -1,6 +1,6 @@
 const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpportunity')
 
-module.exports = class TestOpportunityBookable extends CriteriaFutureScheduledOpportunity {
+module.exports = class TestOpportunityNotBookable extends CriteriaFutureScheduledOpportunity {
   testMatch(opportunity) {
     let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
 
@@ -12,10 +12,10 @@ module.exports = class TestOpportunityBookable extends CriteriaFutureScheduledOp
     var remainingCapacity = this.getRemainingCapacity(opportunity);
 
     if (
-      !(bookableOffers.length > 0)
+      (bookableOffers.length > 0)
     ) {
       matchesCriteria = false;
-      unmetCriteriaDetails.push("No bookable Offers")
+      unmetCriteriaDetails.push("Contains bookable Offers")
     }
 
     if (
@@ -29,6 +29,6 @@ module.exports = class TestOpportunityBookable extends CriteriaFutureScheduledOp
   }
 
   get name() {
-    return 'TestOpportunityBookable';
+    return 'TestOpportunityNotBookable';
   }
 }

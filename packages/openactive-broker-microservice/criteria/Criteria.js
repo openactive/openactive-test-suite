@@ -24,6 +24,13 @@ module.exports = class Criteria {
 		return opportunity.remainingAttendeeCapacity || opportunity.remainingUses;
 	}
 
+	testMatch(opportunity) {
+		const matchesCriteria = true;
+		const unmetCriteriaDetails = [];
+		
+		return { matchesCriteria, unmetCriteriaDetails };
+	}
+
 	get name() {
 		return 'Criteria';
 	}
