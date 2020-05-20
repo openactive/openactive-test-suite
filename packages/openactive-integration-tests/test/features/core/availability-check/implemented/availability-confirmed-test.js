@@ -18,7 +18,7 @@ FeatureHelper.describeFeature({
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunity',
+  controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {

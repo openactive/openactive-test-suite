@@ -50,29 +50,61 @@ class RequestState {
 
     TODO rename to createOpportunities
   */
-  async createOpportunity(orderItemCriteria) {
-    let session;
+  async createOpportunity(orderItemCriteriaList) {
+    const pArray = orderItemCriteriaList.map(async orderItemCriteriaItem => {
+      if (USE_RANDOM_OPPORTUNITIES) {
+        return await this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, {});
+      }
+      else {
+        return await this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, {
+          sellerId: this.sellerId
+        });
+      }
+    });
 
-    // TODO: Make this work for each orderItemCriteria
-    if (USE_RANDOM_OPPORTUNITIES) {
-      session = await this.requestHelper.getRandomOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {});
-    }
-    else {
-      session = await this.requestHelper.createOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {
-        sellerId: this.sellerId
-      });
-    }
+    this.orderItemResponses = await Promise.all(pArray);
 
-    console.log('session', session)
+    //TODO: The below needs to happen after getMatch
 
-    this.sessionResponse = session;
+    //TODO: The test interface needs to ensure that all test items returned are for only one seller...
+    // Do we allow an array of opportunity criteria to be provided to the test interface? Similar to an array of orderItems?
 
-    this.eventId = session.body["@id"];
-    this.eventType = session.body["@type"];
-    // when handling multiple OrderItems, tag resulting activities with "control"
-
-    return session;
+    this.orderItems = this.orderItemResponses.map((x, i) => ({
+      orderedItem: x.body,
+      acceptedOffer: this.getRandomRelevantOffer(x.body, orderItemCriteriaList[i].opportunityCriteria),
+      'test:primary': orderItemCriteriaList[i].primary,
+      'test:control': orderItemCriteriaList[i].control
+    }));
   }
+
+	getRandomRelevantOffer(opportunity, opportunityCriteria) {
+    const getOffers = (opportunity) => {
+      return opportunity.offers || (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
+    };
+  
+    const getOfferFilter = (opportunityCriteria) => {
+      switch (opportunityCriteria) {
+        case 'TestOpportunityBookableOutsideValidFromBeforeStartDate':
+          return x =>
+          (!x.availableChannel || x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+          && x.advanceBooking != "https://openactive.io/Unavailable"
+          && (x.validFromBeforeStartDate && moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isAfter());
+        default: 
+          return x =>
+          (!x.availableChannel || x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+          && x.advanceBooking != "https://openactive.io/Unavailable"
+          && (!x.validFromBeforeStartDate || moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore());
+      }
+    };
+
+    const offers = getOffers(opportunity);
+    if (!Array.isArray(offers)) return null;
+
+    const relevantOffers = offers.filter(getOfferFilter(opportunityCriteria));
+    if (relevantOffers.length == 0) return null;
+
+    return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
+	}
 
   async getOrder () {
     let result = await this.requestHelper.getOrder(this.uuid);

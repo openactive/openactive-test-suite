@@ -46,27 +46,60 @@ class FeatureHelper {
                 const state = new RequestState(logger);
                 const flow = new FlowHelper(state);
 
-                // TODO: Drive from number of events in this iteration (using testOpportunityCriteria for primary event, and controlOpportunityCriteria for others)
                 const orderItemCriteria = configuration.testOpportunityCriteria ? [
                   {
                     opportunityType,
                     opportunityCriteria: configuration.testOpportunityCriteria,
+                    primary: true,
                     control: false,
-                  },
-                  {
-                    opportunityType,
-                    opportunityCriteria: configuration.controlOpportunityCriteria,
-                    control: true,
-                  },
-                  {
-                    opportunityType,
-                    opportunityCriteria: configuration.controlOpportunityCriteria,
-                    control: true,
                   },
                 ] : [];
 
                 tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
               });
+            });
+
+            describe("Multiple", function () {
+              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (Multiple)`, this, {
+                config: configuration,
+                description: configuration.testDescription,
+                implemented: implemented ? 'Implemented' : 'Not Implemented',
+                opportunityType: "Multiple"
+              });
+
+              const state = new RequestState(logger);
+              const flow = new FlowHelper(state);
+
+              const orderItemCriteria = [];
+
+              // Create multiple orderItems covering all opportunityTypes in scope
+              opportunityTypesInScope.forEach((opportunityType) => {
+                  orderItemCriteria.push(
+                    {
+                      opportunityType,
+                      opportunityCriteria: configuration.testOpportunityCriteria,
+                      primary: true,
+                      control: false,
+                      opportunityReuseKey: "A",
+                    },
+                    {
+                      opportunityType,
+                      opportunityCriteria: configuration.testOpportunityCriteria,
+                      primary: false,
+                      control: false,
+                      opportunityReuseKey: "A",
+                    },
+                    {
+                      opportunityType,
+                      opportunityCriteria: configuration.controlOpportunityCriteria,
+                      primary: false,
+                      control: true,
+                      usedInOrderItems: 1,
+                    },
+                  );
+                });
+
+              tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
             });
           }
         });
