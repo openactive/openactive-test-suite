@@ -8,6 +8,13 @@ Jest internally uses a fork of Jasmine. This is used as the test runner, and imp
 
 Jasmine and Jest as a whole are designed for more binary-like states, a test either passes or fails. With OpenActive the needs a little different to what it's designed for. We generate a lot more debugging level information, and have different levels of failures (i.e. warnings, information, suggestions).
 
+The process can be summarised as:
+
+- Jasmine reporter: provides state info
+- Logger:  uses state info, used by tests to record info
+- Jest reporter: used to capture test results, and kick off report generation
+- Report generator: generates the reports in both markdown and for cli.
+
 ## Jasmine Reporter
 
 This is a state tracker for internal use by the logger, this allows determining within tests the current running test and suite, and also allows hooking the events.
