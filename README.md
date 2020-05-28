@@ -35,5 +35,9 @@ npm run start
 cd packages/openactive-integration-tests
 npm run test
 ```
+---
 
 For more info, read the individual README.md within the package dirs.
+
+* [Broker](packages/openactive-broker-microservice/README.md)
+* [Test suite](packages/openactive-integration-tests/README.md)
