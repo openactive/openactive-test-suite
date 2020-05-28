@@ -30,7 +30,7 @@ This has helper methods for attaching info to the current running test:
     - Response (headers, status, response, response time)
     - Records whether a response was never received (i.e. timedout)
 - Validation:
-    - Validation responses from [https://github.com/openactive/data-model-validator](https://github.com/openactive/data-model-validator), the core library behind [https://validator.openactive.io/](https://validator.openactive.io/)
+    - Validation responses from [https://github.com/openactive/data-model-validator](https://github.com/openactive/data-model-validator), the same library behind [https://validator.openactive.io/](https://validator.openactive.io/)
 - Specs:
     - Spec result status, this is the result of each `it` test - note that this can't happen during runtime and happens in the next phase.
 
