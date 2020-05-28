@@ -1,8 +1,10 @@
+The test framework uses [Jest](https://jestjs.io/), a test framework by Facebook. This is utilised as it's one of the more flexible and powerful testing frameworks around.
+
 # Jest concepts
 
-Jest is multi-process. There's the overall Jest process, which has a bunch of workers which execute the individual test suites (e.g. individual -test.js files). The environment of this main process is different to the worker.
+Jest is multi-process. There's a main Jest process, which spawns a pool of workers that in turn execute the individual test suites (e.g. individual -test.js files). The environment of this main process is different to the worker, which can complicate getting information between the child process and the parent.
 
-Jest internally uses a fork of Jasmine. This is used as the test runner, and implements standard jest features such as `describe` and `it`.
+Jest internally uses a [fork](https://github.com/facebook/jest/tree/master/packages/jest-jasmine2) of [Jasmine](https://jasmine.github.io/). This is used as the test runner, and implements common test features such as `describe` and `it`.
 
 # Logging/reporting pipeline
 
@@ -10,18 +12,20 @@ Jasmine and Jest are designed for binary test states: a test either passes or fa
 
 The process can be summarised as:
 
-- Jasmine reporter: provides state info
-- Logger:  uses state info, used by tests to record info
-- Jest reporter: used to capture test results, and kick off report generation
-- Report generator: generates the reports in both markdown and for cli.
+- [Jasmine reporter](test/test-framework/jasmine-state-reporter.js): provides state info
+- [Logger](test/helpers/logger.js):  uses state info, used by tests to record info
+- [Jest reporter](test/reporter.js): used to capture test results, and kick off report generation
+- [Report generator](test/report-generator.js): generates the reports in both markdown and for cli.
 
 ## Jasmine Reporter
 
-This is a state tracker for internal use by the logger, this allows determining within tests the current running test and suite, and also allows hooking the events.
+This is a state tracker for internal use by the logger, this allows determining within tests the current running test and suite. Throughout execution, it keeps track of the ancestors which allows re-building the tree of parents, so that a full path can be returned at any time.
+
+There is also an EventEmitter implemented in the helper, allowing the logger to listen for these same events, at present only the suite ended event is listened for - this is used as a hook to save files upon finishing.
 
 ## Logger
 
-A logger component has been implemented, this deterministically names the filename based on the describe blocks.
+A logger component has been implemented. This is mostly a data collection tool which gathers the necessary info, and saves a log of it within JSON files. The JSON file is deterministically named based on the describe blocks, which allows picking it back up in a later phase.
 
 This has helper methods for attaching info to the current running test:
 
