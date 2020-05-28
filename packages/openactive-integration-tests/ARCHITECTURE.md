@@ -6,7 +6,7 @@ Jest internally uses a fork of Jasmine. This is used as the test runner, and imp
 
 # Logging/reporting pipeline
 
-Jasmine and Jest as a whole are designed for more binary-like states, a test either passes or fails. With OpenActive the needs a little different to what it's designed for. We generate a lot more debugging level information, and have different levels of failures (i.e. warnings, information, suggestions).
+Jasmine and Jest are designed for binary test states: a test either passes or fails. OpenActive's needs are a little different. More debugging level information is required to help booking system developers act on failures and there are different levels of failures (i.e. warnings, information, suggestions).
 
 The process can be summarised as:
 
