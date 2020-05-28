@@ -53,7 +53,7 @@ class RequestState {
   async createOpportunity(orderItemCriteria) {
     let session;
 
-    // TODO: Make this work for each orderItemCriteria 
+    // TODO: Make this work for each orderItemCriteria
     if (USE_RANDOM_OPPORTUNITIES) {
       session = await this.requestHelper.getRandomOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {});
     }
@@ -62,6 +62,11 @@ class RequestState {
         sellerId: this.sellerId
       });
     }
+
+    console.log('session', session)
+
+    this.sessionResponse = session;
+
     this.eventId = session.body["@id"];
     this.eventType = session.body["@type"];
     // when handling multiple OrderItems, tag resulting activities with "control"
@@ -95,7 +100,7 @@ class RequestState {
     this.datasetSite = result;
 
     return this;
-  }  
+  }
 
   async getMatch () {
     // Only attempt getMatch if we have an eventId

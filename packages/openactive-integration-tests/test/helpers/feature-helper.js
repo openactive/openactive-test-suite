@@ -22,13 +22,14 @@ class FeatureHelper {
             // However should the logger rely on an exact number of levels?
             describe(configuration.testName, function () {
               const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName}`, this, {
+                config: configuration,
                 description: configuration.testDescription,
                 implemented: implemented ? 'Implemented' : 'Not Implemented',
               });
 
               const state = new RequestState(logger);
               const flow = new FlowHelper(state);
-              
+
               tests.bind(this)(configuration, null, implemented, logger, state, flow);
             });
           } else {
@@ -36,13 +37,15 @@ class FeatureHelper {
             opportunityTypesInScope.forEach((opportunityType) => {
               describe(opportunityType, function () {
                 const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (${opportunityType})`, this, {
+                  config: configuration,
                   description: configuration.testDescription,
                   implemented: implemented ? 'Implemented' : 'Not Implemented',
+                  opportunityType: opportunityType
                 });
-  
+
                 const state = new RequestState(logger);
                 const flow = new FlowHelper(state);
-  
+
                 // TODO: Drive from number of events in this iteration (using testOpportunityCriteria for primary event, and controlOpportunityCriteria for others)
                 const orderItemCriteria = configuration.testOpportunityCriteria ? [
                   {
@@ -61,7 +64,7 @@ class FeatureHelper {
                     control: true,
                   },
                 ] : [];
-                
+
                 tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
               });
             });

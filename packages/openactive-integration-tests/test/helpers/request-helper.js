@@ -4,10 +4,6 @@ const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
 
-var BOOKING_API_BASE = config.get("tests.bookingApiBase");
-var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
-var TEST_DATASET_IDENTIFIER = config.get("tests.testDatasetIdentifier");
-
 var MEDIA_TYPE_HEADERS = {
   "Content-Type": "application/vnd.openactive.booking+json; version=1"
 };

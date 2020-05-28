@@ -1,0 +1,16 @@
+Summary
+
+See `{{{ reportMarkdownPath }}}` for a Markdown version.
+
+{{#each opportunityTypeGroups }}
+{{# chalk "bold"}}{{ opportunityTypeName }}{{/chalk}}
+---
+
+  {{#each featureGroups }}
+  • {{{ consoleValidationIcon overallStatus }}} {{{ featureName }}} ({{implemented}})
+    {{#each loggers}}
+    — {{{ consoleValidationIcon overallStatus }}} {{{ suiteName }}} ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes): {{{ markdownPath }}}
+    {{/each}}
+  {{/each}}
+
+{{/each}}

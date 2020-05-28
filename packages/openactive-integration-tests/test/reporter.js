@@ -5,7 +5,7 @@ const moment = require('moment');
 const rmfr = require('rmfr');
 
 const {ReporterLogger} = require('./helpers/logger');
-const {ReportGenerator} = require('./report-generator');
+const {ReportGenerator, SummaryReportGenerator} = require('./report-generator');
 
 class Reporter {
   constructor(globalConfig, options) {
@@ -15,7 +15,9 @@ class Reporter {
 
   async onRunStart(test, results) {
     await mkdirp('./output');
-    await rmfr('./output/*.md', {glob: true});
+    // TODO: Replace the line below to remove any files that have not been created by this test run
+    // To allow Markdown auto-reload features to work (as file must be updated, not deleted, between test runs)
+    // await rmfr('./output/*.md', {glob: true});
     await mkdirp('./output/json');
     await rmfr('./output/json/*.json', {glob: true});
 
@@ -40,6 +42,9 @@ class Reporter {
           logger.recordTestResult(testResult.ancestorTitles[3], testResult);
         }
 
+        logger.testFilePath = test.testFilePath;
+        logger.snapshot = test.snapshot;
+
         await logger.writeMeta();
 
         let reportGenerator = new ReportGenerator(logger);
@@ -48,12 +53,20 @@ class Reporter {
     }
     catch(exception) {
       console.log(testResult);
-      console.error('err', exception);
+      console.error('logger error', exception);
     }
   }
 
   // based on https://github.com/pierreroth64/jest-spec-reporter/blob/master/lib/jest-spec-reporter.js
-  onRunComplete(test, results) {
+  async onRunComplete(test, results) {
+    try {
+      let generator = await SummaryReportGenerator.loadFiles();
+      await generator.report();
+    }
+    catch (e) {
+      console.error(e);
+    }
+
     const {
       numFailedTests,
       numPassedTests,

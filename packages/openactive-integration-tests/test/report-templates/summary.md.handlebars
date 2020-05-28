@@ -1,0 +1,14 @@
+# Summary
+
+{{#each opportunityTypeGroups }}
+{{ opportunityTypeName }}
+---
+
+  {{#each featureGroups }}
+  * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implemented}})
+    {{#each loggers}}
+    - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ markdownLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
+    {{/each}}
+  {{/each}}
+
+{{/each}}

@@ -2,7 +2,6 @@ const assert = require("assert");
 const axios = require("axios");
 const config = require("config");
 
-var BOOKING_API_BASE = config.get("tests.bookingApiBase");
 var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
 var TEST_DATASET_IDENTIFIER = config.get("tests.testDatasetIdentifier");
 var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
@@ -17,8 +16,18 @@ async function ping() {
   return true;
 }
 
-async function deleteTestDataset() {
-  let response = await axios.delete(`${USE_RANDOM_OPPORTUNITIES ? MICROSERVICE_BASE : BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
+async function getEndpointUrl() {
+  let response = await axios.get(MICROSERVICE_BASE + "dataset-site");
+
+  if (!(response && response.data && response.data.accessService && response.data.accessService.endpointURL)) {
+    throw new Error("Dataset Site JSON-LD does not contain an accessService.endpointURL");
+  }
+
+  return response.data.accessService.endpointURL;
+}
+
+async function deleteTestDataset(testInterfaceBaseUrl) {
+  let response = await axios.delete(`${testInterfaceBaseUrl}test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
     {
       timeout: 10000
     }
@@ -36,10 +45,12 @@ module.exports = async () => {
     throw new Error("The broker microservice is unreachable. This is a pre-requisite for the test suite. \n" + error);
   }
 
+  let endpointUrl = await getEndpointUrl();
+  let testInterfaceBaseUrl = USE_RANDOM_OPPORTUNITIES ? MICROSERVICE_BASE : endpointUrl;
+
   try {
-    await deleteTestDataset();
+    await deleteTestDataset(testInterfaceBaseUrl);
   } catch (error) {
     throw new Error("The test interface is unreachable. This is a pre-requisite for the test suite. \n" + error);
   }
-  
 };
