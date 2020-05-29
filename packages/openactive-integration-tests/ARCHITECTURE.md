@@ -50,6 +50,7 @@ In addition, the logger has helper methods to extract events of a particular typ
 
 The report itself uses Handlebars (a Mustache influenced/compatible templating engine), this runs using the logger helper methods, in addition to the Handlebars helper methods added in the reporter.
 
+
 # Request / Flow
 
 The test framework uses a number of request helpers and state trackers to simplify implementation of tests.
@@ -60,3 +61,54 @@ These consist of:
 - [Request helper](test/helpers/request-helper.js): This makes requests, and records the request + response against the logger. There are methods to directly make requests, along with methods for each API endpoint.
 - [State tracker](test/helpers/request-state.js): This wraps the API endpoint methods, stores the results and automatically uses these in successive requests, i.e. if you make an order, it keeps the order ID to be auto-used in the next request.
 - [Flow](test/helpers/flow-helper.js): This is another wrapper around state and implements methods for each stage of the booking process. This keeps track of whether a pre-requisite has ran or not, and if not runs it. This has additional validation.
+## Test flow
+
+- Flow shared behaviours: This is a wrapper around the flows, this implements common test behaviour patterns around each of the flows. This is typically to make the request, common expectations for a successful test, along with validation handling.
+- [Feature helper](test/helpers/feature-helper.js): This wraps up the initialisation of the test, implementing the describe blocks and initialising the logger.
+
+# Flow shared behaviours
+
+These are helpers that implement the common/repeated parts of the test flows. This wraps up the actual making of the request, common expectations for a successful test, along with validation handling.
+
+The common pattern is generally to import the helper.
+
+i.e.
+
+```jsx
+const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+
+```
+
+Then use it within the describe blocks as so:
+
+```jsx
+(new GetMatch({
+  state, flow, logger, configuration,
+}))
+  .beforeSetup()
+  .successChecks()
+  .validationTests();
+```
+
+The methods self return, so as to be chainable.
+
+# Feature Helper
+
+This is a class that abstracts away much of the above. This implements the `describe` blocks, initiates the state tracker, flow and logger.
+
+i.e.
+
+```
+FeatureHelper.describeFeature({
+  testCategory: 'core',
+  testFeature: 'availability-check',
+  testFeatureImplemented: true,
+  testName: 'availability-confirmed',
+  testDescription: 'Runs C1 and C2 for a known opportunity from the feed, and compares the results to those attained from the feed.',
+  // The primary opportunity criteria to use for the primary OrderItem under test
+  testOpportunityCriteria: 'TestOpportunityBookable',
+  // The secondary opportunity criteria to use for multiple OrderItem tests
+  controlOpportunityCriteria: 'TestOpportunity',
+},
+function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+```
