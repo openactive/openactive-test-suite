@@ -29,6 +29,16 @@
       "named-leasing": true,
       "anonymous-leasing": true
     },
-    "testDatasetIdentifier": "uat-ci"
+    "testDatasetIdentifier": "uat-ci",
+    "sellers": {
+      "primary": {
+        "@type": "Organization",
+        "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0"
+      },
+      "secondary": {
+        "@type": "Person",
+        "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/1"
+      }
+    }
   }
 }

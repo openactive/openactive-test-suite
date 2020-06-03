@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
+const chai = require('chai'); // The latest version for new features than chakram includes
 const { RequestState } = require('../../../../helpers/request-state');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
@@ -29,7 +30,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('Get Opportunity Feed Items', function () {
     (new GetMatch({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
@@ -38,37 +39,51 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('C1', function () {
     const c1 = (new C1({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
       .validationTests();
 
-    it('availability should match open data feed', () => {
-      c1.expectSuccessful();
+    orderItemCriteria.forEach((_, i) => {
+      it(`availability of OrderItem at position ${i} should match open data feed`, () => {
+        c1.expectSuccessful();
 
-      expect(state.c1Response).to.have.json(
-        'orderedItem[0].orderedItem.remainingAttendeeCapacity',
-        state.apiResponse.body.data.remainingAttendeeCapacity,
-      );
+        const orderItem = state.orderItems[i];
+
+        expect(state.c1Response.body.orderedItem).to.be.an('array');
+
+        const matchingOrderItem = state.c1Response.body.orderedItem.find(x => x.position === orderItem.position);
+
+        chai.expect(matchingOrderItem).to.nested.include({
+          'orderedItem.remainingAttendeeCapacity': orderItem.orderedItem.remainingAttendeeCapacity,
+        });
+      });
     });
   });
 
   describe('C2', function () {
     const c2 = (new C2({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
       .validationTests();
 
-    it('availability should match open data feed', () => {
-      c2.expectSuccessful();
+    orderItemCriteria.forEach((_, i) => {
+      it(`availability of OrderItem at position ${i} should match open data feed`, () => {
+        c2.expectSuccessful();
 
-      expect(state.c2Response).to.have.json(
-        'orderedItem[0].orderedItem.remainingAttendeeCapacity',
-        state.apiResponse.body.data.remainingAttendeeCapacity,
-      );
+        const orderItem = state.orderItems[i];
+
+        expect(state.c2Response.body.orderedItem).to.be.an('array');
+
+        const matchingOrderItem = state.c2Response.body.orderedItem.find(x => x.position === orderItem.position);
+
+        chai.expect(matchingOrderItem).to.nested.include({
+          'orderedItem.remainingAttendeeCapacity': orderItem.orderedItem.remainingAttendeeCapacity,
+        });
+      });
     });
   });
 });

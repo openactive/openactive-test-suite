@@ -45,8 +45,9 @@ criteria.map(criteria => criteria.name).forEach(criteriaName => {
     'HeadlineEvent',
     'Event',
     'HeadlineEventSubEvent',
-    'CourseInstanceSubEvent'
-  ].forEach(x => typeBucket.set(x, new Set()));
+    'CourseInstanceSubEvent',
+    'OnDemandEvent'
+  ].forEach(x => typeBucket.set(x, new Map()));
   matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
 });
 
@@ -115,14 +116,16 @@ function getBaseUrl(url) {
   }
 }
 
-function getRandomBookableOpportunity(opportunityType, criteriaName, testDatasetIdentifier) {
+function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier) {
   var criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
   if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
   var bucket = criteriaBucket.get(opportunityType);
   if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+  var sellerCompartment = bucket.get(sellerId);
+  if (!sellerCompartment) return null; // Seller has no items
   
   var testDatasets = getAllDatasets();
-  var unusedBucketItems = Array.from(bucket).filter(x => !testDatasets.has(x));
+  var unusedBucketItems = Array.from(sellerCompartment).filter(x => !testDatasets.has(x));
   
   if (unusedBucketItems.length == 0) return null;
 
@@ -224,11 +227,19 @@ function getTypeFromOpportunityType(opportunityType) {
     'HeadlineEvent': 'HeadlineEvent',
     'Event': 'Event',
     'HeadlineEventSubEvent': 'Event',
-    'CourseInstanceSubEvent': 'Event'
+    'CourseInstanceSubEvent': 'Event',
+    'OnDemandEvent': 'OnDemandEvent'
   };
   return mapping[opportunityType];
 }
 
+function detectSellerId(opportunity) {
+  const organizer = opportunity.organizer || 
+    (opportunity.superEvent && opportunity.superEvent.organizer) ||
+    (opportunity.facilityUse && opportunity.facilityUse.provider);
+
+  return organizer['@id'] || organizer['id']; 
+}
 
 function detectOpportunityType(opportunity) {
   switch (opportunity['@type'] || opportunity['type']) {
@@ -257,6 +268,8 @@ function detectOpportunityType(opportunity) {
       return 'CourseInstance';
     case 'HeadlineEvent':
       return 'HeadlineEvent';
+    case 'OnDemandEvent':
+      return 'OnDemandEvent';
     case 'Event':
       switch (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent['type'])) {
         case 'HeadlineEvent':
@@ -281,16 +294,17 @@ app.post("/test-interface/datasets/:testDatasetIdentifier/opportunities", functi
 
   var opportunity = req.body;
   var opportunityType = detectOpportunityType(opportunity);
+  var sellerId = detectSellerId(opportunity);
   var criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
 
-  var randomOpportunity = getRandomBookableOpportunity(opportunityType, criteriaName, testDatasetIdentifier);
+  var randomOpportunity = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
   if (randomOpportunity) {
-    console.log(`Random Bookable Opportunity for ${criteriaName} (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
+    console.log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
     res.json(randomOpportunity);
     res.end();
   } else {
-    console.error(`Random Bookable Opportunity for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
-    res.status(404).send(`Opportunity Type "${opportunityType}" Not found`);
+    console.error(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
+    res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}`);
   }
 });
 
@@ -483,17 +497,20 @@ function processOpportunityItem(item) {
 
       var id = item.data['@id'] || item.data['id'];
       var opportunityType = detectOpportunityType(item.data); 
+      var sellerId = detectSellerId(item.data);
 
       var matchingCriteria = [];
       var unmetCriteriaDetails = [];
 
       criteria.map(criteria => ({criteriaName: criteria.name, criteriaResult: criteria.testMatch(item.data)})).forEach(result => {
         const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
+        if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
+        const sellerCompartment = bucket.get(sellerId);
         if (result.criteriaResult.matchesCriteria) {
-          bucket.add(id);
+          sellerCompartment.add(id);
           matchingCriteria.push(result.criteriaName);
         } else {
-          bucket.delete(id);
+          sellerCompartment.delete(id);
           unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
         }
       });

@@ -34,7 +34,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('Get Opportunity Feed Items', function () {
     (new GetMatch({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
@@ -43,7 +43,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('C1', function () {
     (new C1({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
@@ -52,7 +52,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('C2', function () {
     (new C2({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
@@ -61,7 +61,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('B', function () {
     (new B({
-      state, flow, logger, configuration,
+      state, flow, logger, configuration, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()

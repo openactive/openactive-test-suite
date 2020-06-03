@@ -75,7 +75,7 @@ class C2 {
   }
 
   expectSuccessful() {
-    if (!this.state.C1ResponseSucceeded) throw new Error('Expected C2 request to be successful');
+    if (!this.state.C2ResponseSucceeded) throw new Error('Expected C2 request to be successful');
   }
 }
 

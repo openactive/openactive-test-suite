@@ -65,14 +65,18 @@ class RequestHelper {
     };
   }
 
-  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria) {
+  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType) {
     var template = null;
     switch (opportunityType) {
       case 'ScheduledSession':
         template = {
           "@type": "ScheduledSession",
           "superEvent": {
-              "@type": "SessionSeries"
+              "@type": "SessionSeries",
+              "organizer": {
+                "@type": sellerType,
+                "@id": sellerId
+              }
           }
         };
         break;
@@ -80,7 +84,11 @@ class RequestHelper {
         template = {
           "@type": "Slot",
           "facilityUse": {
-              "@type": "FacilityUse"
+              "@type": "FacilityUse",
+              "organizer": {
+                "@type": sellerType,
+                "@id": sellerId
+              }
           }
         };
         break;
@@ -88,44 +96,72 @@ class RequestHelper {
         template = {
           "@type": "Slot",
           "facilityUse": {
-              "@type": "IndividualFacility"
+              "@type": "IndividualFacility",
+              "organizer": {
+                "@type": sellerType,
+                "@id": sellerId
+              }
           }
         };
         break;
       case 'CourseInstance':
         template = {
-          "@type": "CourseInstance"
+          "@type": "CourseInstance",
+          "organizer": {
+            "@type": sellerType,
+            "@id": sellerId
+          }
         };
         break;
       case 'CourseInstanceSubEvent':
         template = {
           "@type": "Event",
           "superEvent": {
-              "@type": "CourseInstance"
+              "@type": "CourseInstance",
+              "organizer": {
+                "@type": sellerType,
+                "@id": sellerId
+              }
           }
         };
         break;
       case 'HeadlineEvent':
         template = {
-          "@type": "HeadlineEvent"
+          "@type": "HeadlineEvent",
+          "organizer": {
+            "@type": sellerType,
+            "@id": sellerId
+          }
         };
         break;
       case 'HeadlineEventSubEvent':
         template = {
           "@type": "Event",
           "superEvent": {
-              "@type": "HeadlineEvent"
+              "@type": "HeadlineEvent",
+              "organizer": {
+                "@type": sellerType,
+                "@id": sellerId
+              }
           }
         };
         break;
       case 'Event':
         template = {
-          "@type": "Event"
+          "@type": "Event",
+          "organizer": {
+            "@type": sellerType,
+            "@id": sellerId
+          }
         };
         break;
       case 'OnDemandEvent':
         template = {
-          "@type": "OnDemandEvent"
+          "@type": "OnDemandEvent",
+          "organizer": {
+            "@type": sellerType,
+            "@id": sellerId
+          }
         };
         break;
       default:
@@ -160,9 +196,9 @@ class RequestHelper {
     return ordersFeedUpdate;
   }
 
-  async getMatch(eventId) {
+  async getMatch(eventId, orderItemPosition) {
     const respObj = await this.get(
-      'get-match',
+      `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
       MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId),
       {
         timeout: 60000
@@ -174,7 +210,7 @@ class RequestHelper {
 
   async getDatasetSite() {
     const respObj = await this.get(
-      'dataset-site',
+      'Dataset Site Cached Proxy',
       MICROSERVICE_BASE + "dataset-site",
       {
         timeout: 5000
@@ -248,15 +284,15 @@ class RequestHelper {
     return uResponse;
   }
 
-  async createOpportunity(opportunityType, testOpportunityCriteria, params) {
+  async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
     let respObj;
 
     respObj = await this.post(
-      'create-session',
+      `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
+      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
-        headers: this.createHeaders(params.sellerId),
+        headers: this.createHeaders(sellerId),
         timeout: 10000
       }
     );
@@ -264,13 +300,13 @@ class RequestHelper {
     return respObj;
   }
 
-  async getRandomOpportunity(opportunityType, testOpportunityCriteria, params) {
+  async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
     let respObj;
 
     respObj = await this.post(
-      'random-opportunity',
+      `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
+      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         timeout: 10000
       }

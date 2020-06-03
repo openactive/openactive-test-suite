@@ -73,21 +73,21 @@ class FeatureHelper {
               const orderItemCriteria = [];
 
               // Create multiple orderItems covering all opportunityTypes in scope
-              opportunityTypesInScope.forEach((opportunityType) => {
+              opportunityTypesInScope.forEach((opportunityType, i) => {
                   orderItemCriteria.push(
                     {
                       opportunityType,
                       opportunityCriteria: configuration.testOpportunityCriteria,
                       primary: true,
                       control: false,
-                      opportunityReuseKey: "A",
+                      opportunityReuseKey: i,
                     },
                     {
                       opportunityType,
                       opportunityCriteria: configuration.testOpportunityCriteria,
                       primary: false,
                       control: false,
-                      opportunityReuseKey: "A",
+                      opportunityReuseKey: i,
                     },
                     {
                       opportunityType,

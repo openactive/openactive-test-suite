@@ -3,6 +3,8 @@ const pMemoize = require("p-memoize");
 const config = require("config");
 
 var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
+var SELLER_ID = config.get("tests.sellers.primary.@id");
+var SELLER_TYPE = config.get("tests.sellers.primary.@type");
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -51,29 +53,14 @@ class RequestState {
     TODO rename to createOpportunities
   */
   async createOpportunity(orderItemCriteriaList) {
-    const pArray = orderItemCriteriaList.map(async orderItemCriteriaItem => {
+    this.orderItemCriteriaList = orderItemCriteriaList;
+    this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
       if (USE_RANDOM_OPPORTUNITIES) {
-        return await this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, {});
+        return await this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, SELLER_ID, SELLER_TYPE);
       }
       else {
-        return await this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, {
-          sellerId: this.sellerId
-        });
+        return await this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, SELLER_ID, SELLER_TYPE);
       }
-    });
-
-    this.orderItemResponses = await Promise.all(pArray);
-
-    //TODO: The below needs to happen after getMatch
-
-    //TODO: The test interface needs to ensure that all test items returned are for only one seller...
-    // Do we allow an array of opportunity criteria to be provided to the test interface? Similar to an array of orderItems?
-
-    this.orderItems = this.orderItemResponses.map((x, i) => ({
-      orderedItem: x.body,
-      acceptedOffer: this.getRandomRelevantOffer(x.body, orderItemCriteriaList[i].opportunityCriteria),
-      'test:primary': orderItemCriteriaList[i].primary,
-      'test:control': orderItemCriteriaList[i].control
     }));
   }
 
@@ -86,12 +73,12 @@ class RequestState {
       switch (opportunityCriteria) {
         case 'TestOpportunityBookableOutsideValidFromBeforeStartDate':
           return x =>
-          (!x.availableChannel || x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+          (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
           && x.advanceBooking != "https://openactive.io/Unavailable"
           && (x.validFromBeforeStartDate && moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isAfter());
         default: 
           return x =>
-          (!x.availableChannel || x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+          (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
           && x.advanceBooking != "https://openactive.io/Unavailable"
           && (!x.validFromBeforeStartDate || moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore());
       }
@@ -135,52 +122,42 @@ class RequestState {
   }
 
   async getMatch () {
-    // Only attempt getMatch if we have an eventId
-    if (this.eventId) {
-      let result = await this.requestHelper.getMatch(this.eventId);
+    this.opportunityFeedExtractResponses = await Promise.all(this.testInterfaceResponses.map(async (testInterfaceResponse, i) => {
+      // Only attempt getMatch if test interface response was successful
+      if (isResponse20x(testInterfaceResponse) && testInterfaceResponse.body['@id']) {
+        return await this.requestHelper.getMatch(testInterfaceResponse.body['@id'], i);
+      } else {
+        return null;
+      }
+    }));
 
-      this.apiResponse = result;
-    }
+    this.orderItems = this.opportunityFeedExtractResponses.map((x, i) => {
+      if (x && isResponse20x(x)) {
+        const acceptedOffer = this.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
+        if (acceptedOffer === null) {
+          throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${this.orderItemCriteriaList[i].opportunityCriteria}`);
+        }
+        return {
+          position: i,
+          orderedItem: x.body.data,
+          acceptedOffer,
+          'test:primary': this.orderItemCriteriaList[i].primary,
+          'test:control': this.orderItemCriteriaList[i].control
+        }
+      } else {
+        return null;
+      }
+    });
 
     return this;
   }
 
   get getMatchResponseSucceeded() {
-    return isResponse20x(this.apiResponse);
-  }
-
-  get opportunityType() {
-    if (!this.apiResponse) return;
-
-    return this.apiResponse.body.data["@type"];
-  }
-
-  get opportunityId() {
-    if (!this.apiResponse) return;
-
-    return this.apiResponse.body.data["@id"];
-  }
-
-  get offerId() {
-    if (!this.apiResponse) return;
-
-    if (this.apiResponse.body.data["@type"] === "Slot") {
-      return this.apiResponse.body.data.offers[0]["@id"];
-    } else if (typeof this.apiResponse.body.data.superEvent.offers !== "undefined") {
-      return this.apiResponse.body.data.superEvent.offers[0]["@id"];
-    } else {
-      return this.apiResponse.body.data.offers[0]["@id"];
-    }
+    return !this.orderItems.some(x => x == null);
   }
 
   get sellerId() {
-    if (!this.apiResponse) return;
-
-    if (this.apiResponse.body.data["@type"] === "Slot") {
-      return this.apiResponse.body.data.facilityUse.provider["@id"];
-    } else {
-      return this.apiResponse.body.data.superEvent.organizer["@id"];
-    }
+    return SELLER_ID;
   }
 
   async putOrderQuoteTemplate () {
