@@ -76,6 +76,9 @@ function getRPDE(url, cb) {
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
+      if (body == ''){
+        throw `No body in response from url "${url}"`;
+      }
       var json = JSON.parse(body);
 
       // Validate RPDE base URL
