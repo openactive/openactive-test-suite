@@ -40,6 +40,7 @@ async function deleteTestDataset(testInterfaceBaseUrl) {
 
 module.exports = async () => {
   try {
+    console.log("Waiting for broker microservice to be ready...")
     await ping();
   } catch (error) {
     throw new Error("The broker microservice is unreachable. This is a pre-requisite for the test suite. \n" + error);

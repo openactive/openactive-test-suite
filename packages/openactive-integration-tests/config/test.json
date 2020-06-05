@@ -33,11 +33,11 @@
     "sellers": {
       "primary": {
         "@type": "Organization",
-        "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0"
+        "@id": "https://localhost:44396/api/identifiers/sellers/0"
       },
       "secondary": {
         "@type": "Person",
-        "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/1"
+        "@id": "https://localhost:44396/api/identifiers/sellers/1"
       }
     }
   }

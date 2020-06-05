@@ -1,5 +1,9 @@
 const TestOpportunityBookable = require('./TestOpportunityBookable')
 
+/*
+  Implements https://openactive.io/test-interface#TestOpportunityBookableFree
+*/
+
 module.exports = class TestOpportunityBookableFree extends TestOpportunityBookable {
   testMatch(opportunity) {
     let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);

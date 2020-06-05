@@ -1,5 +1,9 @@
 const Criteria = require('./Criteria')
 
+/*
+  Useful base class to filter for future opportunities
+*/
+
 module.exports = class CriteriaFutureScheduledOpportunity extends Criteria {
   testMatch(opportunity) {
     let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);

@@ -1,6 +1,7 @@
 {
-  "datasetSiteUrl": "https://bookingsystemreferenceimplementation.azurewebsites.net/openactive",
-  "YdatasetSiteUrl": "https://localhost:44396/openactive",
+  "ZdatasetSiteUrl": "https://bookingsystemreferenceimplementation.azurewebsites.net/openactive",
+  "datasetSiteUrl": "https://localhost:44396/openactive",
   "XdatasetSiteUrl": "https://everyoneactivebookingfacade-test.azurewebsites.net/openactive",
-  "requestLogging": false
+  "requestLogging": false,
+  "waitForHarvestCompletion": true
 }

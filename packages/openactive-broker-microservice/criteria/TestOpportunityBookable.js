@@ -1,5 +1,9 @@
 const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpportunity')
 
+/*
+  Implements https://openactive.io/test-interface#TestOpportunityBookable
+*/
+
 module.exports = class TestOpportunityBookable extends CriteriaFutureScheduledOpportunity {
   testMatch(opportunity) {
     let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);

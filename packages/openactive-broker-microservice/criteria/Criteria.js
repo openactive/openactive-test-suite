@@ -1,3 +1,7 @@
+/*
+  Useful base class
+*/
+
 module.exports = class Criteria {
 	getId(opportunity) {
 		return opportunity['@id'] || opportunity['id'];

@@ -12,6 +12,7 @@ const { Parser } = require('htmlparser2');
 var PORT = 3000;
 var DATASET_SITE_URL = config.get("datasetSiteUrl");
 var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
+var WAIT_FOR_HARVEST = config.get("waitForHarvestCompletion");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env["PORT"] = 3000;
@@ -88,7 +89,11 @@ function getRPDE(url, cb) {
       }
 
       if (json.next == url && json.items.length == 0) {
-        console.log(`Sleep mode poll for RPDE feed "${url}"`);
+        if (WAIT_FOR_HARVEST) {
+          feedUpToDate(url);
+        } else {
+          console.log(`Sleep mode poll for RPDE feed "${url}"`);
+        }
         setTimeout(x => getRPDE(url, cb), 500);
       } else {
         cb(json);
@@ -98,6 +103,7 @@ function getRPDE(url, cb) {
       // Force retry, after a delay
       setTimeout(x => getRPDE(url, cb), 5000);
     } else if (response.statusCode === 404) {
+      if (WAIT_FOR_HARVEST) feedUpToDate(url);
       console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
       // Stop polling feed
     } else {
@@ -122,7 +128,7 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
   var bucket = criteriaBucket.get(opportunityType);
   if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
   var sellerCompartment = bucket.get(sellerId);
-  if (!sellerCompartment) return null; // Seller has no items
+  if (!sellerCompartment) return { sellers: Array.from(bucket.keys()) }; // Seller has no items
   
   var testDatasets = getAllDatasets();
   var unusedBucketItems = Array.from(sellerCompartment).filter(x => !testDatasets.has(x));
@@ -134,11 +140,13 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
   // Add the item to the testDataset to ensure it does not get reused
   getTestDataset(testDatasetIdentifier).add(id);
 
-  return { 
-    "@context": "https://openactive.io/",
-    "@type": getTypeFromOpportunityType(opportunityType),
-    "@id": id
-  }
+  return {
+    opportunity: { 
+      "@context": "https://openactive.io/",
+      "@type": getTypeFromOpportunityType(opportunityType),
+      "@id": id
+    }
+  };
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
@@ -166,8 +174,37 @@ var responses = {
   /* Keyed by expression =*/
 };
 
+const healthCheckResponsesWaitingForHarvest = [];
+const incompleteFeeds = [];
+
+
+function addFeed(feedUrl) {
+  incompleteFeeds.push(feedUrl);
+}
+
+function feedUpToDate(feedNextUrl) {
+  const queryStringIndex = feedNextUrl.indexOf('?');
+  const feedUrl = queryStringIndex > -1 ? feedNextUrl.substring(0, queryStringIndex) : feedNextUrl;
+  const index = incompleteFeeds.indexOf(feedUrl);
+  if (index > -1) {
+    // Remove the feed from the list
+    incompleteFeeds.splice(index, 1);
+
+    // If the list is now empty, trigger responses to healthcheck
+    if (incompleteFeeds.length === 0) {
+      healthCheckResponsesWaitingForHarvest.forEach(res => res.send("openactive-broker"));
+    }  
+  }
+}
+
 app.get("/health-check", function(req, res) {
-  res.send("openactive-broker");
+  // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
+  // to ensure that the tests will not run until the feeds have been fully consumed
+  if (!WAIT_FOR_HARVEST || incompleteFeeds.length === 0) {
+    res.send("openactive-broker");
+  } else {
+    healthCheckResponsesWaitingForHarvest.push(res);
+  }
 });
 
 app.get("/dataset-site", function(req, res) {
@@ -297,14 +334,14 @@ app.post("/test-interface/datasets/:testDatasetIdentifier/opportunities", functi
   var sellerId = detectSellerId(opportunity);
   var criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
 
-  var randomOpportunity = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
-  if (randomOpportunity) {
-    console.log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
-    res.json(randomOpportunity);
+  var result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
+  if (result && result.opportunity) {
+    console.log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    res.json(result.opportunity);
     res.end();
   } else {
     console.error(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
-    res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}`);
+    res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`);
   }
 });
 
@@ -580,6 +617,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 
+
 async function startPolling() {
 
   let dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
@@ -593,6 +631,7 @@ async function startPolling() {
   }
 
   dataset.distribution.forEach(dataDownload => {
+    addFeed(dataDownload.contentUrl);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       console.log("Found parent opportunity feed: " + dataDownload.contentUrl);
@@ -610,9 +649,9 @@ async function startPolling() {
 
 }
 
+app.listen(PORT, "127.0.0.1");
+console.log("Node server running on port " + PORT);
+
 (async () => {
   await startPolling();
 })();
-
-app.listen(PORT, "127.0.0.1");
-console.log("Node server running on port " + PORT);
