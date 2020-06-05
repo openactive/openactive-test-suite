@@ -3,5 +3,8 @@
   "datasetSiteUrl": "https://localhost:44396/openactive",
   "XdatasetSiteUrl": "https://everyoneactivebookingfacade-test.azurewebsites.net/openactive",
   "requestLogging": false,
-  "waitForHarvestCompletion": true
+  "waitForHarvestCompletion": true,
+  "ordersFeedRequestHeaders": {
+    "X-OpenActive-Test-Client-Id": "test"
+  }
 }

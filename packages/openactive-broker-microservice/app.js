@@ -13,6 +13,7 @@ var PORT = 3000;
 var DATASET_SITE_URL = config.get("datasetSiteUrl");
 var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
 var WAIT_FOR_HARVEST = config.get("waitForHarvestCompletion");
+var ORDERS_FEED_REQUEST_HEADERS = config.get("ordersFeedRequestHeaders");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env["PORT"] = 3000;
@@ -64,17 +65,14 @@ function getAllDatasets() {
   return new Set(Array.from(testDatasets.values()).flatMap(x => Array.from(x.values())));
 }
 
-function getRPDE(url, cb) {
-  var headers = {
-    Accept:
-      "application/json, application/vnd.openactive.booking+json; version=1",
-    "Cache-Control": "max-age=0",
-    "X-OpenActive-Test-Client-Id": "test"
-  };
+function getRPDE(url, headers, cb) {
   var options = {
     url: url,
     method: "get",
-    headers: headers
+    headers: Object.assign({}, {
+      Accept: "application/json, application/vnd.openactive.booking+json; version=1",
+      "Cache-Control": "max-age=0"
+    }, headers)
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
@@ -94,14 +92,14 @@ function getRPDE(url, cb) {
         } else {
           console.log(`Sleep mode poll for RPDE feed "${url}"`);
         }
-        setTimeout(x => getRPDE(url, cb), 500);
+        setTimeout(x => getRPDE(url, headers, cb), 500);
       } else {
-        cb(json);
+        cb(json, headers);
       }
     } else if (!response) {
       console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, cb), 5000);
+      setTimeout(x => getRPDE(url, headers, cb), 5000);
     } else if (response.statusCode === 404) {
       if (WAIT_FOR_HARVEST) feedUpToDate(url);
       console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
@@ -109,7 +107,7 @@ function getRPDE(url, cb) {
     } else {
       console.log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, cb), 5000);
+      setTimeout(x => getRPDE(url, headers, cb), 5000);
     }
   });
 }
@@ -381,7 +379,7 @@ app.get("/get-order/:expression", function(req, res) {
 });
 
 
-function ingestParentOpportunityPage(rpde, pageNumber) {
+function ingestParentOpportunityPage(rpde, headers, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -413,14 +411,14 @@ function ingestParentOpportunityPage(rpde, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, x =>
-        ingestParentOpportunityPage(x, pageNumber + 1 || 0)
+      getRPDE(rpde.next, headers, (x, headers) =>
+        ingestParentOpportunityPage(x, headers, pageNumber + 1 || 0)
       ),
     200
   );
 }
 
-function ingestOpportunityPage(rpde, pageNumber) {
+function ingestOpportunityPage(rpde, headers, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -448,8 +446,8 @@ function ingestOpportunityPage(rpde, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, x =>
-        ingestOpportunityPage(x, pageNumber + 1 || 0)
+      getRPDE(rpde.next, headers, (x, headers) =>
+        ingestOpportunityPage(x, headers, pageNumber + 1 || 0)
       ),
     200
   );
@@ -566,7 +564,7 @@ function processOpportunityItem(item) {
     }
 }
 
-function monitorOrdersPage(rpde, pageNumber) {
+function monitorOrdersPage(rpde, headers, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     console.log(
       `RPDE kind: Orders Monitoring, length: ${rpde.items.length}, next: '${rpde.next}'`
@@ -579,7 +577,7 @@ function monitorOrdersPage(rpde, pageNumber) {
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, monitorOrdersPage), 200);
+  setTimeout(x => getRPDE(rpde.next, headers, monitorOrdersPage), 200);
 }
 
 
@@ -635,18 +633,18 @@ async function startPolling() {
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       console.log("Found parent opportunity feed: " + dataDownload.contentUrl);
-      getRPDE(dataDownload.contentUrl, ingestParentOpportunityPage);
+      getRPDE(dataDownload.contentUrl, {}, ingestParentOpportunityPage);
     } else {
       console.log("Found opportunity feed: " + dataDownload.contentUrl);
-      getRPDE(dataDownload.contentUrl, ingestOpportunityPage);
+      getRPDE(dataDownload.contentUrl, {}, ingestOpportunityPage);
     }
   });
 
   // Only poll orders feed if included in the dataset site
-  if (dataset.accessService && dataset.accessService.endpointURL)
+  if (dataset.accessService && dataset.accessService.endpointURL) {
     console.log("Found orders feed: " + dataset.accessService.endpointURL);
-    getRPDE(dataset.accessService.endpointURL + "orders-rpde", monitorOrdersPage);
-
+    getRPDE(dataset.accessService.endpointURL + "orders-rpde", ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage);
+  }
 }
 
 app.listen(PORT, "127.0.0.1");
