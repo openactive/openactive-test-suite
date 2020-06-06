@@ -28,18 +28,7 @@ FeatureHelper.describeFeature({
       seller: 'secondary',
     },
   ],
-  multipleOpportunityCriteriaTemplate: opportunityType => [
-    {
-      opportunityType,
-      opportunityCriteria: 'TestOpportunityBookable',
-      seller: 'primary',
-    },
-    {
-      opportunityType,
-      opportunityCriteria: 'TestOpportunityBookable',
-      seller: 'secondary',
-    },
-  ],
+  skipMultiple: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {

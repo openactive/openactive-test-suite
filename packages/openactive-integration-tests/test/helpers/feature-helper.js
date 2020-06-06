@@ -59,48 +59,51 @@ class FeatureHelper {
               });
             });
 
-            const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate || ((opportunityType, i) => [{
-              opportunityType,
-              opportunityCriteria: configuration.testOpportunityCriteria,
-              primary: true,
-              control: false,
-              opportunityReuseKey: i,
-            },
-            {
-              opportunityType,
-              opportunityCriteria: configuration.testOpportunityCriteria,
-              primary: false,
-              control: false,
-              opportunityReuseKey: i,
-            },
-            {
-              opportunityType,
-              opportunityCriteria: configuration.controlOpportunityCriteria,
-              primary: false,
-              control: true,
-              usedInOrderItems: 1,
-            }]);
+            if (!configuration.skipMultiple) {
+              // Default template: Two of the same opportunity (via opportunityReuseKey), and one different
+              const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate || ((opportunityType, i) => [{
+                opportunityType,
+                opportunityCriteria: configuration.testOpportunityCriteria,
+                primary: true,
+                control: false,
+                opportunityReuseKey: i,
+              },
+              {
+                opportunityType,
+                opportunityCriteria: configuration.testOpportunityCriteria,
+                primary: false,
+                control: false,
+                opportunityReuseKey: i,
+              },
+              {
+                opportunityType,
+                opportunityCriteria: configuration.controlOpportunityCriteria,
+                primary: false,
+                control: true,
+                usedInOrderItems: 1,
+              }]);
 
-            describe("Multiple", function () {
-              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (Multiple)`, this, {
-                config: configuration,
-                description: configuration.testDescription,
-                implemented: implemented ? 'Implemented' : 'Not Implemented',
-                opportunityType: "Multiple"
+              describe("Multiple", function () {
+                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (Multiple)`, this, {
+                  config: configuration,
+                  description: configuration.testDescription,
+                  implemented: implemented ? 'Implemented' : 'Not Implemented',
+                  opportunityType: "Multiple"
+                });
+
+                const state = new RequestState(logger);
+                const flow = new FlowHelper(state);
+
+                let orderItemCriteria = [];
+
+                // Create multiple orderItems covering all opportunityTypes in scope
+                opportunityTypesInScope.forEach((opportunityType, i) => {
+                  orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                });
+
+                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
               });
-
-              const state = new RequestState(logger);
-              const flow = new FlowHelper(state);
-
-              let orderItemCriteria = [];
-
-              // Create multiple orderItems covering all opportunityTypes in scope
-              opportunityTypesInScope.forEach((opportunityType, i) => {
-                orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
-              });
-
-              tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
-            });
+            }
           }
         });
       });

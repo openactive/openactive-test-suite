@@ -40,36 +40,30 @@ class RequestState {
     return this._uuid;
   }
 
-  /*
-    {
-      opportunityType: 'ScheduledSession',
-      opportunityCriteria: 'TestOpportunityNotBookableViaAvailableChannel',
-      control: false
-    },
-    {
-      opportunityType: 'ScheduledSession',
-      opportunityCriteria: 'TestOpportunityBookable',
-      control: true
-    },
-    {
-      opportunityType: 'ScheduledSession',
-      opportunityCriteria: 'TestOpportunityBookable',
-      control: true
-    }
-
-    TODO rename to createOpportunities
-  */
   async createOpportunity(orderItemCriteriaList) {
     this.orderItemCriteriaList = orderItemCriteriaList;
+
+    // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
+    const reusableOpportunityPromises = new Map();
+
     this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
+      // If an opportunity is available for reuse, return it
+      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
+        return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey)
+      }
+
       const sellerKey = orderItemCriteriaItem.seller || 'primary';
       const seller = SELLER_CONFIG[sellerKey];
-      if (USE_RANDOM_OPPORTUNITIES) {
-        return await this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
+      const opportunityPromise = USE_RANDOM_OPPORTUNITIES ?
+        this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']) :
+        this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
+      
+      // If this opportunity can be reused, store it
+      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey')) {
+        reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise)
       }
-      else {
-        return await this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
-      }
+
+      return await opportunityPromise;
     }));
   }
 
