@@ -1,52 +1,46 @@
 {
-  "tests": {
-    "microserviceApiBase": "http://localhost:3000/",
-    "useRandomOpportunities": true,
-    "bookableOpportunityTypesInScope": {
-      "ScheduledSession": true,
-      "FacilityUseSlot": false,
-      "IndividualFacilityUseSlot": false,
-      "CourseInstance": false,
-      "CourseInstanceSubEvent": false,
-      "HeadlineEvent": false,
-      "HeadlineEventSubEvent": false,
-      "Event": false,
-      "OnDemandEvent": false
+  "useRandomOpportunities": true,
+  "microserviceApiBase": "http://localhost:3000/",
+  "bookableOpportunityTypesInScope": {
+    "ScheduledSession": true,
+    "FacilityUseSlot": false,
+    "IndividualFacilityUseSlot": false,
+    "CourseInstance": false,
+    "CourseInstanceSubEvent": false,
+    "HeadlineEvent": false,
+    "HeadlineEventSubEvent": false,
+    "Event": false,
+    "OnDemandEvent": false
+  },
+  "implementedFeatures": {
+    "opportunity-feed": true,
+    "dataset-site": true,
+    "availability-check": true,
+    "simple-book-free-opportunities": false,
+    "simple-book-with-payment": true,
+    "payment-reconciliation-detail-validation": false,
+    "booking-window": false,
+    "customer-requested-cancellation": false,
+    "seller-requested-cancellation": false,
+    "seller-requested-cancellation-message": null,
+    "cancellation-window": true,
+    "seller-requested-replacement": true,
+    "named-leasing": true,
+    "anonymous-leasing": true
+  },
+  "testDatasetIdentifier": "uat-ci",
+  "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://localhost:44396/api/identifiers/sellers/0"
     },
-    "implementedFeatures": {
-      "opportunity-feed": true,
-      "dataset-site": true,
-      "availability-check": true,
-      "simple-book-free-opportunities": false,
-      "simple-book-with-payment": true,
-      "payment-reconciliation-detail-validation": false,
-      "booking-window": false,
-      "customer-requested-cancellation": false,
-      "seller-requested-cancellation": false,
-      "seller-requested-cancellation-message": null,
-      "cancellation-window": true,
-      "seller-requested-replacement": true,
-      "named-leasing": true,
-      "anonymous-leasing": true
-    },
-    "testDatasetIdentifier": "uat-ci",
-    "sellers": {
-      "primary": {
-        "@type": "Organization",
-        "@id": "https://localhost:44396/api/identifiers/sellers/0",
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/0"
-        }
-      },
-      "secondary": {
-        "@type": "Person",
-        "@id": "https://localhost:44396/api/identifiers/sellers/1",
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/1"
-        }
-      }
+    "secondary": {
+      "@type": "Person",
+      "@id": "https://localhost:44396/api/identifiers/sellers/1"
     }
+  },
+  "requestHeaders": {
+    "X-OpenActive-Test-Client-Id": "test",
+    "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/0"
   }
 }

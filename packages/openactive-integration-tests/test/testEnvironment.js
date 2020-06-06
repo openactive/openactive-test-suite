@@ -2,8 +2,8 @@ const NodeEnvironment = require('jest-environment-node');
 const axios = require("axios");
 const config = require("config");
 
-const MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
-const TEST_DATASET_IDENTIFIER = config.get("tests.testDatasetIdentifier");
+const MICROSERVICE_BASE = config.get("microserviceApiBase");
+const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
 
 class TestEnvironment extends NodeEnvironment {
   constructor(config) {

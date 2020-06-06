@@ -4,7 +4,7 @@ const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
 
-const SELLER_CONFIG = config.get("tests.sellers");
+const REQUEST_HEADERS = config.get("requestHeaders");
 
 const c1req = require("../templates/c1-req.js");
 const c2req = require("../templates/c2-req.js");
@@ -56,11 +56,9 @@ class RequestHelper {
   }
 
   createHeaders(sellerId) {
-    const matchingSeller = Object.values(SELLER_CONFIG).find(x => x['@id'] === sellerId) || {};
-
     return  Object.assign({
       "Content-Type": "application/vnd.openactive.booking+json; version=1"
-    }, matchingSeller.requestHeaders);
+    }, REQUEST_HEADERS);
   }
 
   opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType) {

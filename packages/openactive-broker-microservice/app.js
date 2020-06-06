@@ -175,7 +175,6 @@ var responses = {
 const healthCheckResponsesWaitingForHarvest = [];
 const incompleteFeeds = [];
 
-
 function addFeed(feedUrl) {
   incompleteFeeds.push(feedUrl);
 }
@@ -617,7 +616,6 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 
 
 async function startPolling() {
-
   let dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
   console.log("Dataset Site JSON-LD: " + JSON.stringify(dataset, null, 2));
@@ -645,7 +643,13 @@ async function startPolling() {
     console.log("Found orders feed: " + dataset.accessService.endpointURL);
     getRPDE(dataset.accessService.endpointURL + "orders-rpde", ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage);
   }
+
+  // Finished processing dataset site
+  feedUpToDate(DATASET_SITE_URL);
 }
+
+// Ensure that dataset site request also delays "readiness"
+addFeed(DATASET_SITE_URL);
 
 app.listen(PORT, "127.0.0.1");
 console.log("Node server running on port " + PORT);

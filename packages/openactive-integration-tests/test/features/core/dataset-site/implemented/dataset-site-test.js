@@ -20,7 +20,7 @@ FeatureHelper.describeFeature({
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   describe('Get Dataset Site', function () {
     (new GetDatasetSite({
-      state, flow, logger, configuration,
+      state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()

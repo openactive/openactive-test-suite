@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e # exit with nonzero exit code if anything fails
 
 # Install dependencies
 npm install --prefix packages/openactive-broker-microservice
@@ -9,8 +8,11 @@ npm install --prefix packages/openactive-integration-tests
 npm start --prefix packages/openactive-broker-microservice &
 pid=$!
 
-# Run tests
-npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+# Run tests in random mode
+NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+
+# Run tests using booking system Test Interface
+NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
 
 # Kill broker microservice
 kill $pid

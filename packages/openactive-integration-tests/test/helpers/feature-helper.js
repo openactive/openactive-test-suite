@@ -4,8 +4,8 @@ const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const { FlowHelper } = require('./flow-helper');
 
-const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('tests.bookableOpportunityTypesInScope');
-const IMPLEMENTED_FEATURES = config.get('tests.implementedFeatures');
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
+const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
 
 class FeatureHelper {
   static describeFeature(configuration, tests) {
@@ -18,8 +18,7 @@ class FeatureHelper {
       describe(configuration.testFeature, function () {
         describe(configuration.testName, function () {
           if (configuration.runOnce) {
-            // TODO: This duplicate describe nesting ensures the number of describe levels remains consistent for the logger
-            // However should the logger rely on an exact number of levels?
+            // This duplicate describe nesting ensures the number of describe levels remains consistent for the logger
             describe(configuration.testName, function () {
               const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName}`, this, {
                 config: configuration,
@@ -33,6 +32,14 @@ class FeatureHelper {
               tests.bind(this)(configuration, null, implemented, logger, state, flow);
             });
           } else {
+            const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate 
+              || ((opportunityType) => [{
+                opportunityType,
+                opportunityCriteria: configuration.testOpportunityCriteria,
+                primary: true,
+                control: false,
+              }]);
+
             // Create a new test for each opportunityType in scope
             opportunityTypesInScope.forEach((opportunityType) => {
               describe(opportunityType, function () {
@@ -46,18 +53,33 @@ class FeatureHelper {
                 const state = new RequestState(logger);
                 const flow = new FlowHelper(state);
 
-                const orderItemCriteria = configuration.testOpportunityCriteria ? [
-                  {
-                    opportunityType,
-                    opportunityCriteria: configuration.testOpportunityCriteria,
-                    primary: true,
-                    control: false,
-                  },
-                ] : [];
+                const orderItemCriteria = singleOpportunityCriteriaTemplate(opportunityType);
 
                 tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
               });
             });
+
+            const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate || ((opportunityType, i) => [{
+              opportunityType,
+              opportunityCriteria: configuration.testOpportunityCriteria,
+              primary: true,
+              control: false,
+              opportunityReuseKey: i,
+            },
+            {
+              opportunityType,
+              opportunityCriteria: configuration.testOpportunityCriteria,
+              primary: false,
+              control: false,
+              opportunityReuseKey: i,
+            },
+            {
+              opportunityType,
+              opportunityCriteria: configuration.controlOpportunityCriteria,
+              primary: false,
+              control: true,
+              usedInOrderItems: 1,
+            }]);
 
             describe("Multiple", function () {
               const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (Multiple)`, this, {
@@ -70,34 +92,12 @@ class FeatureHelper {
               const state = new RequestState(logger);
               const flow = new FlowHelper(state);
 
-              const orderItemCriteria = [];
+              let orderItemCriteria = [];
 
               // Create multiple orderItems covering all opportunityTypes in scope
               opportunityTypesInScope.forEach((opportunityType, i) => {
-                  orderItemCriteria.push(
-                    {
-                      opportunityType,
-                      opportunityCriteria: configuration.testOpportunityCriteria,
-                      primary: true,
-                      control: false,
-                      opportunityReuseKey: i,
-                    },
-                    {
-                      opportunityType,
-                      opportunityCriteria: configuration.testOpportunityCriteria,
-                      primary: false,
-                      control: false,
-                      opportunityReuseKey: i,
-                    },
-                    {
-                      opportunityType,
-                      opportunityCriteria: configuration.controlOpportunityCriteria,
-                      primary: false,
-                      control: true,
-                      usedInOrderItems: 1,
-                    },
-                  );
-                });
+                orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+              });
 
               tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
             });

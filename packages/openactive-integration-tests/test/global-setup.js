@@ -2,9 +2,9 @@ const assert = require("assert");
 const axios = require("axios");
 const config = require("config");
 
-var MICROSERVICE_BASE = config.get("tests.microserviceApiBase");
-var TEST_DATASET_IDENTIFIER = config.get("tests.testDatasetIdentifier");
-var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
+var MICROSERVICE_BASE = config.get("microserviceApiBase");
+var TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
+var USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
@@ -50,6 +50,7 @@ module.exports = async () => {
   let testInterfaceBaseUrl = USE_RANDOM_OPPORTUNITIES ? MICROSERVICE_BASE : endpointUrl;
 
   try {
+    console.log(`Deleting test dataset '${TEST_DATASET_IDENTIFIER}' within ${USE_RANDOM_OPPORTUNITIES ? 'local broker microservice' : 'booking system'}...`)
     await deleteTestDataset(testInterfaceBaseUrl);
   } catch (error) {
     throw new Error("The test interface is unreachable. This is a pre-requisite for the test suite. \n" + error);

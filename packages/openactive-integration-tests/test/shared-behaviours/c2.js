@@ -2,23 +2,10 @@ const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
 class C2 {
-  constructor ({state, flow, logger, dataItem}) {
+  constructor ({state, flow, logger}) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;
-    this.dataItem = dataItem;
-  }
-
-  get testEvent () {
-    return this.dataItem.event;
-  }
-
-  get eventName () {
-    return this.dataItem.name;
-  }
-
-  get price () {
-    return this.dataItem.price;
   }
 
   validationTests () {
@@ -76,6 +63,10 @@ class C2 {
 
   expectSuccessful() {
     if (!this.state.C2ResponseSucceeded) throw new Error('Expected C2 request to be successful');
+  }
+
+  expectResponseReceived() {
+    if (!this.state.C2ResponseReceived) throw new Error('Expected C2 request to return a response');
   }
 }
 

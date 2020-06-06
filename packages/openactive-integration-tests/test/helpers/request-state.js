@@ -2,9 +2,8 @@ const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 const config = require("config");
 
-var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
-var SELLER_ID = config.get("tests.sellers.primary.@id");
-var SELLER_TYPE = config.get("tests.sellers.primary.@type");
+var USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const SELLER_CONFIG = config.get("sellers");
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -12,6 +11,14 @@ function isResponse20x(response) {
   let statusCode = response.response.statusCode;
 
   return statusCode >= 200 && statusCode < 300;
+}
+
+function isResponse(response) {
+  if (!response || !response.response) return false;
+
+  let statusCode = response.response.statusCode;
+
+  return statusCode >= 200 && statusCode < 600;
 }
 
 class RequestState {
@@ -55,11 +62,13 @@ class RequestState {
   async createOpportunity(orderItemCriteriaList) {
     this.orderItemCriteriaList = orderItemCriteriaList;
     this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
+      const sellerKey = orderItemCriteriaItem.seller || 'primary';
+      const seller = SELLER_CONFIG[sellerKey];
       if (USE_RANDOM_OPPORTUNITIES) {
-        return await this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, SELLER_ID, SELLER_TYPE);
+        return await this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
       }
       else {
-        return await this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, SELLER_ID, SELLER_TYPE);
+        return await this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
       }
     }));
   }
@@ -157,7 +166,7 @@ class RequestState {
   }
 
   get sellerId() {
-    return SELLER_ID;
+    return SELLER_CONFIG.primary['@id'];
   }
 
   async putOrderQuoteTemplate () {
@@ -172,10 +181,16 @@ class RequestState {
     return isResponse20x(this.c1Response);
   }
 
+  get C1ResponseReceived() {
+    return isResponse(this.c1Response);
+  }
+
   get totalPaymentDue() {
     let response = this.c2Response || this.c1Response;
 
     if (!response) return;
+
+    if (!response.body.totalPaymentDue) return;
 
     return response.body.totalPaymentDue.price;
   }
@@ -192,6 +207,10 @@ class RequestState {
     return isResponse20x(this.c2Response);
   }
 
+  get C2ResponseReceived() {
+    return isResponse(this.c2Response);
+  }
+
   async putOrder () {
     let result = await this.requestHelper.putOrder(this.uuid, this);
 
@@ -202,6 +221,10 @@ class RequestState {
 
   get BResponseSucceeded() {
     return isResponse20x(this.bResponse);
+  }
+
+  get BResponseReceived() {
+    return isResponse(this.bResponse);
   }
 
   get orderItemId() {
@@ -225,6 +248,10 @@ class RequestState {
 
   get UResponseSucceeded() {
     return isResponse20x(this.uResponse);
+  }
+
+  get UResponseReceived() {
+    return isResponse(this.uResponse);
   }
 }
 
