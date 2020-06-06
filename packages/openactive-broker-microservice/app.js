@@ -5,7 +5,7 @@ const axios = require("axios");
 const nSQL = require("@nano-sql/core").nSQL;
 const moment = require("moment");
 const config = require("config");
-const criteria = require("./criteria").criteria.map(x => new x());
+const criteria = require("@openactive/test-interface-criteria").criteria;
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 

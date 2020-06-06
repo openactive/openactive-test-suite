@@ -18,6 +18,7 @@ class GetMatch {
         {
           validationMode: "BookableRPDEFeed",
         },
+        x.opportunityCriteria,
       );
       return this;
     });
