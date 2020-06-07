@@ -78,11 +78,11 @@ class FeatureHelper {
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
     if (implemented === configuration.testFeatureImplemented) {
       describe(configuration.testFeature, function () {
-        describe(configuration.testName, function () {
+        describe(configuration.testIdentifier, function () {
           if (configuration.runOnce) {
             // This duplicate describe nesting ensures the number of describe levels remains consistent for the logger
-            describe(configuration.testName, function () {
-              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName}`, this, {
+            describe(configuration.testIdentifier, function () {
+              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier}`, this, {
                 config: configuration,
                 description: configuration.testDescription,
                 implemented: implemented ? 'Implemented' : 'Not Implemented',
@@ -97,7 +97,7 @@ class FeatureHelper {
             // Create a new test for each opportunityType in scope
             opportunityTypesInScope.forEach((opportunityType) => {
               describe(opportunityType, function () {
-                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (${opportunityType})`, this, {
+                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
                   config: configuration,
                   description: configuration.testDescription,
                   implemented: implemented ? 'Implemented' : 'Not Implemented',
@@ -115,7 +115,7 @@ class FeatureHelper {
 
             if (!configuration.skipMultiple) {
               describe("Multiple", function () {
-                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (Multiple)`, this, {
+                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
                   config: configuration,
                   description: configuration.testDescription,
                   implemented: implemented ? 'Implemented' : 'Not Implemented',

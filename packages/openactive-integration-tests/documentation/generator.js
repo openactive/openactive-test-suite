@@ -3,8 +3,8 @@ const pkg = require('../package.json');
 const fg = require('fast-glob');
 const fs = require('fs');
 
-const INDEX_FILE = "../test/features/README.md";
-const FEATURES_ROOT = "../test/features/";
+const INDEX_FILE = "./test/features/README.md";
+const FEATURES_ROOT = "./test/features/";
 
 var rootDirectory = require("path").join(__dirname, "../");
 
@@ -21,7 +21,7 @@ var tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function(fil
   return require(`${rootDirectory}${file}`);
 });
 
-// 
+// Load feature.json files
 var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function(file) {
   console.log('Reading: ' + file);
   return require(`${rootDirectory}${file}`);
@@ -167,7 +167,7 @@ ${tests.filter(t => t.testFeature == f.identifier && !t.testFeatureImplemented).
 }
 
 function renderFeatureTest(t) {
-  return `| ${t.testIdentifier} | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
+  return `| [${t.testIdentifier}](./${t.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${t.testIdentifier}-test.js) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
 `
 }
 

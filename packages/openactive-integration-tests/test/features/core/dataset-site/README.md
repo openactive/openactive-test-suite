@@ -31,7 +31,7 @@ Note this feature is required by the Open Booking API specification, and so must
 
 | Identifier | Name | Description | Prerequisites |
 |------------|------|-------------|---------------|
-| undefined | dataset-site-jsonld-valid | Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice. |  |
+| [dataset-site-jsonld-valid](./implemented/dataset-site-jsonld-valid-test.js) | Dataset Site JSON-LD valid | Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice. |  |
 
 
 ## 'Not Implemented' tests
@@ -50,4 +50,4 @@ Note this feature is required by the Open Booking API specification, and so must
 
 | Identifier | Name | Description | Prerequisites |
 |------------|------|-------------|---------------|
-| undefined | feature-required-noop | This feature is required by the specification and must be implemented. |  |
+| [feature-required-noop](./not-implemented/feature-required-noop-test.js) | Feature required | This feature is required by the specification and must be implemented. |  |

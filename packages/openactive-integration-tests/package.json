@@ -8,7 +8,8 @@
     "test": "jest",
     "debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand -- test/features/",
     "lint": "eslint \"test/features/**/*.js\"",
-    "lint-fix": "eslint \"test/features/**/*.js\" --fix"
+    "lint-fix": "eslint \"test/features/**/*.js\" --fix",
+    "doc-gen": "node documentation/generator.js"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",

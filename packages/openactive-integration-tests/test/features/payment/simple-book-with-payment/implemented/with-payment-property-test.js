@@ -13,7 +13,8 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: true,
-  testName: 'with-payment-property',
+  testIdentifier: 'with-payment-property',
+  testName: 'Successful booking with payment property',
   testDescription: 'A successful end to end booking with the `payment` property included.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',

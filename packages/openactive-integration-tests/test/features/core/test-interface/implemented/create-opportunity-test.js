@@ -18,12 +18,13 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'test-interface',
   testFeatureImplemented: true,
-  testName: 'create-opportunity',
+  testIdentifier: 'create-opportunity',
+  testName: 'Create opportunity',
   testDescription: 'Creates an opportunity using the booking system\'s test interface, and validates the resulting feed item matches the criteria.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   skipMultiple: true,
-  runOnlyIf: USE_RANDOM_OPPORTUNITIES,
+  runOnlyIf: !USE_RANDOM_OPPORTUNITIES,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {

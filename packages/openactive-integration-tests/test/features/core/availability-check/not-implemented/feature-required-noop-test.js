@@ -4,5 +4,6 @@ FeatureHelper.describeRequiredFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
   testFeatureImplemented: false,
-  testName: 'feature-required-noop',
+  testIdentifier: 'feature-required-noop',
+  testName: 'Feature required',
 });

@@ -15,7 +15,8 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
   testFeatureImplemented: true,
-  testName: 'availability-confirmed',
+  testIdentifier: 'availability-confirmed',
+  testName: 'Occupancy in C1 and C2 matches feed',
   testDescription: 'Runs C1 and C2 for a known opportunity from the feed, and compares the results to those attained from the feed.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',

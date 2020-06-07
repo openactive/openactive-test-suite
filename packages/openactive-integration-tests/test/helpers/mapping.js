@@ -1,19 +1,18 @@
+// Human-readable category names are configured here
 const names = {
   "core": "Core",
-  "core|availability-check": "Availability Check",
-  "core|availability-check|availability-confirmed": "Occupancy in C1 and C2 matches feed",
-  "core|availability-check|conflicting-seller": "SellerMismatchError for inconsistent Sellers of OrderItems",
-  "core|availability-check|feature-required-noop": "Feature required",
-  "core|dataset-site": "Dataset Site",
-  "core|dataset-site|dataset-site-jsonld-valid": "Dataset Site JSON-LD valid",
-  "core|dataset-site|feature-required-noop": "Feature required",
-  "core|test-interface": "Test interface",
-  "core|test-interface|create-opportunity": "Create opportunity",
   "payment": "Payment",
-  "payment|simple-book-with-payment": "Simple Booking of paid opportunities",
-  "payment|simple-book-with-payment|with-payment-property": "Successful booking with payment property",
-  "payment|simple-book-with-payment|no-paid-bookable-sessions": "No paid bookable sessions"
 }
+
+const fg = require('fast-glob');
+var rootDirectory = require("path").join(__dirname, "../../");
+
+// Load feature.json files
+var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(file => require(`${rootDirectory}${file}`));
+
+featureMetadata.forEach(f => {
+  names[`${f.category}|${f.identifier}`] = f.name;
+});
 
 function lookup(name) {
   let val = names[name];
@@ -22,11 +21,6 @@ function lookup(name) {
   return `!!!${name}!!!`
 }
 
-function reverse(name) {
-
-}
-
 module.exports = {
-  lookup,
-  reverse
+  lookup
 }

@@ -13,7 +13,8 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: false,
-  testName: 'no-paid-bookable-sessions',
+  testIdentifier: 'no-paid-bookable-sessions',
+  testName: 'No paid bookable session',
   testDescription: 'Check that the feed does not include any bookable sessions with a non-zero price.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',

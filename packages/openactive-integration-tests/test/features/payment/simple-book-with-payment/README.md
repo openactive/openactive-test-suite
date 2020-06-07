@@ -33,7 +33,7 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 
 | Identifier | Name | Description | Prerequisites |
 |------------|------|-------------|---------------|
-| undefined | with-payment-property | A successful end to end booking with the `payment` property included. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [with-payment-property](./implemented/with-payment-property-test.js) | Successful booking with payment property | A successful end to end booking with the `payment` property included. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
 ## 'Not Implemented' tests
@@ -51,4 +51,4 @@ Update `test.json` as follows to enable 'Not Implemented' testing for this featu
 
 | Identifier | Name | Description | Prerequisites |
 |------------|------|-------------|---------------|
-| undefined | no-paid-bookable-sessions | Check that the feed does not include any bookable sessions with a non-zero price. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x1 |
+| [no-paid-bookable-sessions](./not-implemented/no-paid-bookable-sessions-test.js) | No paid bookable session | Check that the feed does not include any bookable sessions with a non-zero price. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x1 |

@@ -14,7 +14,8 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
   testFeatureImplemented: true,
-  testName: 'conflicting-seller',
+  testIdentifier: 'conflicting-seller',
+  testName: 'SellerMismatchError for inconsistent Sellers of OrderItems',
   testDescription: 'Runs C1, C2 and B where Sellers of OrderItems do not match and check SellerMismatchError is returned in all cases.',
   singleOpportunityCriteriaTemplate: opportunityType => [
     {
