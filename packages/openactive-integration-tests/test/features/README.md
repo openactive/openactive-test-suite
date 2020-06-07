@@ -11,7 +11,7 @@ The tests for these features cover all known edge cases, including both happy an
 
 | Category | Feature | Specification | Description | Prerequisites |
 |----------|---------|---------------|-------------|-------------------|
-| core | Availability Checking ([availability-check](./core/availability-check/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0) | Runs only C1 and C2, to confirm availability checks work as expected | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x6 |
+| core | Availability Checking ([availability-check](./core/availability-check/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0) | Runs only C1 and C2, to confirm availability checks work as expected | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x7, [TestOpportunityBookableNoSpaces](https://openactive.io/test-interface#TestOpportunityBookableNoSpaces) x3 |
 | core | Dataset Site ([dataset-site](./core/dataset-site/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints) | Discoverable open data |  |
 | core | Test interface ([test-interface](./core/test-interface/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 

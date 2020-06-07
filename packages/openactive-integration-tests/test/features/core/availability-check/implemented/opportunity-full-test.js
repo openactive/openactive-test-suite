@@ -15,11 +15,11 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
   testFeatureImplemented: true,
-  testIdentifier: 'availability-confirmed',
-  testName: 'Occupancy in C1 and C2 matches feed',
-  testDescription: 'Runs C1 and C2 for a known opportunity from the feed, and compares the results to those attained from the feed.',
+  testIdentifier: 'opportunity-full',
+  testName: 'OpportunityIsFullError returned for full OrderItems',
+  testDescription: 'An availability check against a session filled to capacity. As no more capacity is available it is no-longer possible to obtain quotes.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityBookableNoSpaces',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
@@ -39,10 +39,25 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .validationTests();
   });
 
-  const shouldMatchOccupancy = (stage, responseAccessor) => {
-    Common.itForOrderItem(orderItemCriteria, state, stage, responseAccessor,
-      'availability should match open data feed',
-      (feedOrderItem, responseOrderItem) => {
+  const shouldReturnOpportunityIsFullError = (stage, responseAccessor) => {
+    it('should return 409', () => {
+      stage.expectResponseReceived();
+      expect(responseAccessor()).to.have.status(409);
+    });
+
+    Common.itForOrderItemByControl(orderItemCriteria, state, stage, responseAccessor,
+      'should include an OpportunityIsFullError',
+      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+        chai.expect(responseOrderItemErrorTypes).to.include('OpportunityIsFullError');
+
+        chai.expect(responseOrderItem).to.nested.include({
+          'orderedItem.remainingAttendeeCapacity': 0,
+        });
+      },
+      'should not include an OpportunityIsFullError',
+      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+        chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityIsFullError');
+
         chai.expect(responseOrderItem).to.nested.include({
           'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
         });
@@ -54,10 +69,9 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       state, flow, logger,
     }))
       .beforeSetup()
-      .successChecks()
       .validationTests();
 
-    shouldMatchOccupancy(c1, () => state.c1Response);
+    shouldReturnOpportunityIsFullError(c1, () => state.c1Response);
   });
 
   describe('C2', function () {
@@ -65,9 +79,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       state, flow, logger,
     }))
       .beforeSetup()
-      .successChecks()
       .validationTests();
 
-    shouldMatchOccupancy(c2, () => state.c2Response);
+    shouldReturnOpportunityIsFullError(c2, () => state.c2Response);
   });
 });

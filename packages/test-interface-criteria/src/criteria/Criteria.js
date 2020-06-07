@@ -25,7 +25,7 @@ module.exports = class Criteria {
 	}
 
 	getRemainingCapacity(opportunity) {
-		return opportunity.remainingAttendeeCapacity || opportunity.remainingUses;
+		return opportunity.remainingAttendeeCapacity !== undefined ? opportunity.remainingAttendeeCapacity : opportunity.remainingUses;
 	}
 
 	testMatch(opportunity) {
