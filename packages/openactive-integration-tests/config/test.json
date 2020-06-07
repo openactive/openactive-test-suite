@@ -15,6 +15,7 @@
   "implementedFeatures": {
     "opportunity-feed": true,
     "dataset-site": true,
+    "test-interface": true,
     "availability-check": true,
     "simple-book-free-opportunities": false,
     "simple-book-with-payment": true,
@@ -32,15 +33,15 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://localhost:44396/api/identifiers/sellers/0"
+      "@id": "https://localhost:44396/api/identifiers/sellers/0",
+      "requestHeaders": {
+        "X-OpenActive-Test-Client-Id": "test",
+        "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/0"
+      }
     },
     "secondary": {
       "@type": "Person",
       "@id": "https://localhost:44396/api/identifiers/sellers/1"
     }
-  },
-  "requestHeaders": {
-    "X-OpenActive-Test-Client-Id": "test",
-    "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/0"
   }
 }

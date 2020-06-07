@@ -13,7 +13,7 @@ class GetMatch {
     this.orderItemCriteria.forEach((x, i) => {
       sharedValidationTests.shouldBeValidResponse(
         () => this.state.opportunityFeedExtractResponses[i],
-        "Opportunity Feed extract for OrderItem " + i,
+        `Opportunity Feed extract for OrderItem ${i}`,
         this.logger,
         {
           validationMode: "BookableRPDEFeed",
@@ -32,6 +32,14 @@ class GetMatch {
   }
 
   successChecks () {
+    this.orderItemCriteria.forEach((x, i) => {
+      it(`should return 200 on success for request relevant to OrderItem ${i}`, () => {
+        if (!this.state.opportunityFeedExtractResponses[i]) throw Error('Pre-requisite step failed: test interface request failed');
+
+        expect(this.state.opportunityFeedExtractResponses[i]).to.have.status(200);
+      });
+    });
+
     return this;
   }
 }

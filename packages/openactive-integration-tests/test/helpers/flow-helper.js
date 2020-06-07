@@ -15,7 +15,7 @@ class FlowHelper {
 
   C1 = pMemoize(async C1 => {
     await this.getMatch();
-    if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: event not found');
+    if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: opportunity feed extract failed');
 
     return this.state.putOrderQuoteTemplate();
   });

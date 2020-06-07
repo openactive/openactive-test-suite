@@ -224,8 +224,10 @@ function getMatch(req, res, useCache) {
       console.log("listening for " + id);
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (responses[id] && responses[id] !== null)
+      if (responses[id] && responses[id] !== null) {
+        console.log("ignoring previous request for " + id);
         responses[id].end();
+      }
       responses[id] = {
         send: function(json) {
           responses[id] = null;
@@ -390,7 +392,7 @@ function ingestParentOpportunityPage(rpde, headers, pageNumber) {
 
   rpde.items.forEach(item => {
     // Remove nested @context
-    delete item.data['@context'];
+    if (item && item.data) delete item.data['@context'];
     
     if (item.state == "deleted") {
       var jsonLdId = parentOpportunityRpdeMap.get(item.id);

@@ -125,10 +125,19 @@ class RequestState {
   }
 
   async getMatch () {
+    const reusableMatchPromises = new Map();
+
     this.opportunityFeedExtractResponses = await Promise.all(this.testInterfaceResponses.map(async (testInterfaceResponse, i) => {
       // Only attempt getMatch if test interface response was successful
       if (isResponse20x(testInterfaceResponse) && testInterfaceResponse.body['@id']) {
-        return await this.requestHelper.getMatch(testInterfaceResponse.body['@id'], i);
+        // If a match for this @id is already being requested, just reuse the same response
+        if (reusableMatchPromises.has(testInterfaceResponse.body['@id'])) {
+          return await reusableMatchPromises.get(testInterfaceResponse.body['@id']);
+        }
+
+        const matchPromise = this.requestHelper.getMatch(testInterfaceResponse.body['@id'], i);
+        reusableMatchPromises.set(testInterfaceResponse.body['@id'], matchPromise);
+        return await matchPromise;
       } else {
         return null;
       }

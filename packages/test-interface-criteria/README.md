@@ -5,6 +5,7 @@ A library that matches opportunities provided in the [OpenActive Modelling Oppor
 ## Usage
 
 `criteria` is available as an array of `Criteria`.
+
 `criteriaMap` is available as a map of `Criteria`, keyed by their name.
 
 The `testMatch(opportunity)` method is available on each `Criteria`, and returns:

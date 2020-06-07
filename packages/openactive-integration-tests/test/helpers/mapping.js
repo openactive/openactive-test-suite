@@ -7,6 +7,8 @@ const names = {
   "core|dataset-site": "Dataset Site",
   "core|dataset-site|dataset-site-jsonld-valid": "Dataset Site JSON-LD valid",
   "core|dataset-site|feature-required-noop": "Feature required",
+  "core|test-interface": "Test interface",
+  "core|test-interface|create-opportunity": "Create opportunity",
   "payment": "Payment",
   "payment|simple-book-with-payment": "Simple Booking of paid opportunities",
   "payment|simple-book-with-payment|with-payment-property": "Successful booking with payment property",

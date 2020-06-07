@@ -4,7 +4,7 @@ const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
 
-const REQUEST_HEADERS = config.get("requestHeaders");
+const REQUEST_HEADERS = config.get("sellers.primary.requestHeaders");
 
 const c1req = require("../templates/c1-req.js");
 const c2req = require("../templates/c2-req.js");
