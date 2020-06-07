@@ -40,7 +40,7 @@ class RequestState {
     return this._uuid;
   }
 
-  async createOpportunity(orderItemCriteriaList) {
+  async fetchOpportunities(orderItemCriteriaList, randomModeOverride) {
     this.orderItemCriteriaList = orderItemCriteriaList;
 
     // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
@@ -54,7 +54,7 @@ class RequestState {
 
       const sellerKey = orderItemCriteriaItem.seller || 'primary';
       const seller = SELLER_CONFIG[sellerKey];
-      const opportunityPromise = USE_RANDOM_OPPORTUNITIES ?
+      const opportunityPromise = ( randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES ) ?
         this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']) :
         this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
       
@@ -162,6 +162,10 @@ class RequestState {
     });
 
     return this;
+  }
+
+  get fetchOpportunitiesSucceeded() {
+    return this.testInterfaceResponses.every(x => isResponse20x(x));
   }
 
   get getMatchResponseSucceeded() {

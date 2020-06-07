@@ -14,31 +14,30 @@ const { expect } = chakram;
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
 
 // Only run this test if the test interface is in use
-if (!USE_RANDOM_OPPORTUNITIES) {
-  FeatureHelper.describeFeature({
-    testCategory: 'core',
-    testFeature: 'test-interface',
-    testFeatureImplemented: true,
-    testName: 'create-opportunity',
-    testDescription: 'Creates an opportunity using the test interface, and validates the resulting feed item matches the criteria.',
-    // The primary opportunity criteria to use for the primary OrderItem under test
-    testOpportunityCriteria: 'TestOpportunityBookable',
-    skipMultiple: true,
-  },
-  function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-    beforeAll(async function () {
-      await state.createOpportunity(orderItemCriteria);
+FeatureHelper.describeFeature(module, {
+  testCategory: 'core',
+  testFeature: 'test-interface',
+  testFeatureImplemented: true,
+  testName: 'create-opportunity',
+  testDescription: 'Creates an opportunity using the booking system\'s test interface, and validates the resulting feed item matches the criteria.',
+  // The primary opportunity criteria to use for the primary OrderItem under test
+  testOpportunityCriteria: 'TestOpportunityBookable',
+  skipMultiple: true,
+  runOnlyIf: USE_RANDOM_OPPORTUNITIES,
+},
+function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+  beforeAll(async function () {
+    await state.fetchOpportunities(orderItemCriteria, false);
 
-      return chakram.wait();
-    });
-
-    describe('Get Opportunity Feed Items', function () {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
+    return chakram.wait();
   });
-}
+
+  describe('Get Opportunity Feed Items', function () {
+    (new GetMatch({
+      state, flow, logger, orderItemCriteria,
+    }))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
+  });
+});

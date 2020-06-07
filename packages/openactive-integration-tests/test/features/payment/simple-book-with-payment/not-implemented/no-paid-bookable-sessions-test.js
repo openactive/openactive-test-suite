@@ -9,7 +9,7 @@ const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: false,
@@ -17,30 +17,20 @@ FeatureHelper.describeFeature({
   testDescription: 'Check that the feed does not include any bookable sessions with a non-zero price.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
-  // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunityBookablePaid',
+  skipMultiple: true,
 },
 // eslint-disable-next-line no-unused-vars
 function (configuration, orderItemCriteria, _featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
-    await state.createOpportunity(orderItemCriteria);
+    await state.fetchOpportunities(orderItemCriteria, true);
 
     return chakram.wait();
   });
 
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, configuration,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
   describe('Opportunity feed', function () {
-    it('does not include any bookable sessions with a non-zero price', () => {
+    it('response not successful as feed does not include any bookable sessions with a non-zero price', () => {
       // eslint-disable-next-line no-unused-expressions
-      expect(state.eventId).to.be.undefined;
+      expect(state.fetchOpportunitiesSucceeded).to.be.false;
     });
   });
 });

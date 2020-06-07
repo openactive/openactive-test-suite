@@ -9,7 +9,7 @@ const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: true,
@@ -22,7 +22,7 @@ FeatureHelper.describeFeature({
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
-    await state.createOpportunity(orderItemCriteria);
+    await state.fetchOpportunities(orderItemCriteria);
 
     return chakram.wait();
   });

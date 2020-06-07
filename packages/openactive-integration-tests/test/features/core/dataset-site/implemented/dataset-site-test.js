@@ -9,7 +9,7 @@ const { GetDatasetSite } = require('../../../../shared-behaviours');
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'dataset-site',
   testFeatureImplemented: true,

@@ -18,7 +18,7 @@ function performTests(dataItem) {
   const flow = new FlowHelper(state);
 
   beforeAll(async function() {
-    await state.createOpportunity(dataItem);
+    await state.fetchOpportunities(dataItem);
 
     return chakram.wait();
   });

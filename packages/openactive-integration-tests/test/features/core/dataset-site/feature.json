@@ -1,0 +1,9 @@
+{
+  "category": "core",
+  "identifier": "dataset-site",
+  "name": "Dataset Site",
+  "description": "Discoverable open data",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints",
+  "required": true,
+  "coverageStatus": "complete"
+}

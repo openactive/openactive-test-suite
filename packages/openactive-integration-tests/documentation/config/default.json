@@ -1,0 +1,18 @@
+{
+  "useRandomOpportunities": true,
+  "microserviceApiBase": "http://localhost:3000/",
+  "bookableOpportunityTypesInScope": {},
+  "implementedFeatures": {},
+  "testDatasetIdentifier": "uat-ci",
+  "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://localhost:44396/api/identifiers/sellers/0",
+      "requestHeaders": {}
+    },
+    "secondary": {
+      "@type": "Person",
+      "@id": "https://localhost:44396/api/identifiers/sellers/1"
+    }
+  }
+}

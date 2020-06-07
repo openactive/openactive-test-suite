@@ -8,9 +8,71 @@ const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypes
 const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
 
 class FeatureHelper {
-  static describeFeature(configuration, tests) {
+  static describeFeature(documentationModule, configuration, tests) {
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
+
+    // Default templates
+
+    const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate 
+    || 
+    (configuration.testOpportunityCriteria ? ((opportunityType) => [{
+      opportunityType,
+      opportunityCriteria: configuration.testOpportunityCriteria,
+      primary: true,
+      control: false,
+    }]) : null);
+
+    // Default template: Two of the same opportunity (via opportunityReuseKey), and one different
+    const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate
+    ||
+    (configuration.testOpportunityCriteria ? (opportunityType, i) => [{
+      opportunityType,
+      opportunityCriteria: configuration.testOpportunityCriteria,
+      primary: true,
+      control: false,
+      opportunityReuseKey: i,
+    },
+    {
+      opportunityType,
+      opportunityCriteria: configuration.testOpportunityCriteria,
+      primary: false,
+      control: false,
+      opportunityReuseKey: i,
+    },
+    {
+      opportunityType,
+      opportunityCriteria: configuration.controlOpportunityCriteria,
+      primary: false,
+      control: true,
+      usedInOrderItems: 1,
+    }]: null);
+
+    // Documentation generation
+
+    if (global.documentationGenerationMode)
+    {
+      const criteriaRequirement = new Map();
+      
+      if (!configuration.runOnce) {
+        const orderItemCriteria = [].concat(
+          singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
+          configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0)
+        );
+        
+        orderItemCriteria.forEach(x => {
+          if (!criteriaRequirement.has(x.opportunityCriteria)) criteriaRequirement.set(x.opportunityCriteria, 0);
+          criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + 1);
+        });
+      }
+
+      documentationModule.exports = Object.assign({}, configuration, {
+        criteriaRequirement
+      });
+      return;
+    }
+
+    if (configuration.runOnlyIf !== undefined && !configuration.runOnlyIf) return;
 
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
@@ -32,14 +94,6 @@ class FeatureHelper {
               tests.bind(this)(configuration, null, implemented, logger, state, flow);
             });
           } else {
-            const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate 
-              || ((opportunityType) => [{
-                opportunityType,
-                opportunityCriteria: configuration.testOpportunityCriteria,
-                primary: true,
-                control: false,
-              }]);
-
             // Create a new test for each opportunityType in scope
             opportunityTypesInScope.forEach((opportunityType) => {
               describe(opportunityType, function () {
@@ -53,36 +107,13 @@ class FeatureHelper {
                 const state = new RequestState(logger);
                 const flow = new FlowHelper(state);
 
-                const orderItemCriteria = singleOpportunityCriteriaTemplate(opportunityType);
+                const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
 
                 tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
               });
             });
 
             if (!configuration.skipMultiple) {
-              // Default template: Two of the same opportunity (via opportunityReuseKey), and one different
-              const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate || ((opportunityType, i) => [{
-                opportunityType,
-                opportunityCriteria: configuration.testOpportunityCriteria,
-                primary: true,
-                control: false,
-                opportunityReuseKey: i,
-              },
-              {
-                opportunityType,
-                opportunityCriteria: configuration.testOpportunityCriteria,
-                primary: false,
-                control: false,
-                opportunityReuseKey: i,
-              },
-              {
-                opportunityType,
-                opportunityCriteria: configuration.controlOpportunityCriteria,
-                primary: false,
-                control: true,
-                usedInOrderItems: 1,
-              }]);
-
               describe("Multiple", function () {
                 const logger = new Logger(`${configuration.testFeature} >> ${configuration.testName} (Multiple)`, this, {
                   config: configuration,
@@ -97,9 +128,11 @@ class FeatureHelper {
                 let orderItemCriteria = [];
 
                 // Create multiple orderItems covering all opportunityTypes in scope
-                opportunityTypesInScope.forEach((opportunityType, i) => {
-                  orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
-                });
+                if (multipleOpportunityCriteriaTemplate !== null) {
+                  opportunityTypesInScope.forEach((opportunityType, i) => {
+                    orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                  });
+                }
 
                 tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
               });
@@ -108,6 +141,21 @@ class FeatureHelper {
         });
       });
     }
+  }
+
+  static describeRequiredFeature (documentationModule, configuration) {
+    this.describeFeature(documentationModule, Object.assign({
+      testDescription: 'This feature is required by the specification and must be implemented.',
+    }, configuration),
+    // eslint-disable-next-line no-unused-vars
+    function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
+      describe('Feature', function () {
+        it('must be implemented', () => {
+          // eslint-disable-next-line no-unused-expressions
+          throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
+        });
+      });
+    });    
   }
 }
 

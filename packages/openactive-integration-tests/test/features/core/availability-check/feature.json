@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "availability-check",
+  "name": "Availability Checking",
+  "description": "Runs only C1 and C2, to confirm availability checks work as expected",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0",
+  "required": true,
+  "coverageStatus": "complete"
+}

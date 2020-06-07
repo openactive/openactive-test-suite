@@ -1,45 +1,37 @@
-## Testing scope
 
-The test suite can be configured to test "optional" features, by indicating whether they are either:
-- `implemented` - the tests will run to confirm proper implementation of the feature
-- `not-implemented` - the tests will run to confirm the feature is correctly advertised as "not implemented"
-- `disable-tests` - disable all tests for this feature (only recommended during development)
+# Open Booking API Test Suite Feature Coverage
 
-Additionally, an array of bookable opportunity types can be configured, to indicate which types the implementation is expected to support:
-- `sessions` (dual feeds of `SessionSeries` and `ScheduledSession`)
-- `facilities` (dual feeds of `FacilityUse` and `Slots`)
-- `events` (feeds of `Event`)
-- `headline-events` (feeds of `HeadlineEvent` with embedded `Event`)
-- `courses` (feeds of `CourseInstance`)
+The test coverage below is [automatically generated](../../documentation), and indicates which features of the Open Booking API are currently covered by the test suite.
 
-Types of test:
-- `random`
-- `controlled`
+Stub tests are provided in many cases, and test coverage should not be regarded as exhaustive unless specified.
 
-All tests are run for the following:
-- 1, 2 and 3 order items of each configured type. Duplicating the defined template in the test.
-- Order items that mix pairs of different configured types. Mixing pairs of the defined templates in the test.
+## Complete Test Coverage
 
-Each test needs to be set up with the following test data:
-- One test event for each opportunity type to be tested
+The tests for these features cover all known edge cases, including both happy and unhappy paths.
+
+| Category | Feature | Specification | Description | Prerequisites |
+|----------|---------|---------------|-------------|-------------------|
+| core | Availability Checking ([availability-check](./core/availability-check/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0) | Runs only C1 and C2, to confirm availability checks work as expected | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x6 |
+| core | Dataset Site ([dataset-site](./core/dataset-site/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints) | Discoverable open data |  |
+| core | Test interface ([test-interface](./core/test-interface/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
-## Integration tests
+## Partial Test Coverage
 
-The following integration tests are available, and can be configured using the configuration JSON file.
+The tests for these features provide partial coverage but do not include all known edgecases, and do not exercise all code paths and error conditions.
+
+| Category | Feature | Specification | Description | Prerequisites |
+|----------|---------|---------------|-------------|-------------------|
+| payment | Simple Booking of paid opportunities ([simple-book-with-payment](./payment/simple-book-with-payment/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x4, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
-| Category     | Integration Tests                        | Feature                                               | Specification Status | Description                                                                                 |
-|--------------|------------------------------------------|-------------------------------------------------------|----------------------|---------------------------------------------------------------------------------------------|
-| core         | opportunity-feed                         | RPDE Opportunity Feed                                 | Required             | Real-time opportunity data                                                                  |
-| core         | dataset-site                             | Dataset Site                                          | Required             | Discoverable open data                                                                      |
-| core         | availability-check                       | Availability Checking                                 | Required             | Runs only C1 and C2, to confirm availability checks work as expected                        |
-| core         | simple-book-without-payment              | Simple Book without Payment                           | Required             | The most simple form of booking without payment. Does not check for leases.                 |
-| payment      | simple-book-with-payment                 | Simple Book with Payment                              | Optional             | The most simple form of booking with payment. Does not check for leases.                    |
-| payment      | payment-reconciliation-detail-validation | Payment reconciliation detail validation              | Optional             |                                                                                             |
-| restriction  | booking-window                           | validFromBeforeStartDate booking window               | Optional             | Duration of window before an opportunity where it is bookable                               |
-| cancellation | customer-requested-cancellation          | Customer Requested Cancellation                       | Optional             | Cancellation triggered by the Customer through the Broker                                   |
-| cancellation | seller-requested-cancellation            | Seller Requested Cancellation                         | Optional             | Cancellation triggered by the Seller through the Booking System                             |
-| cancellation | seller-requested-cancellation-message    | cancellationMessage for Seller Requested Cancellation | Optional             | A message associated with a Cancellation triggered by the Seller through the Booking System |
-| cancellation | cancellation-window                      | latestCancellationBeforeStartDate cancellation window | Optional             | A defined window before the event occurs where it can be cancelled without fees             |
-| cancellation | seller-requested-replacement             | Seller Requested Replacement                          | Optional             | Replacement triggered by the Seller through the Booking System                              |
+## No Test Coverage
+
+The tests for these features are fully stubbed, and are not yet implemented.
+
+| Category | Feature | Specification | Description | Prerequisites |
+|----------|---------|---------------|-------------|-------------------|
+| payment | Payment reconciliation detail validation ([payment-reconciliation-detail-validation](./payment/payment-reconciliation-detail-validation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-detail-validation) | Booking with valid, invalid, and missing Payment details |  |
+
+
+  

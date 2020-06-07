@@ -11,7 +11,7 @@ const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
 
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
   testFeatureImplemented: true,
@@ -24,7 +24,7 @@ FeatureHelper.describeFeature({
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
-    await state.createOpportunity(orderItemCriteria);
+    await state.fetchOpportunities(orderItemCriteria);
 
     return chakram.wait();
   });

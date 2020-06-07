@@ -32,7 +32,7 @@ describe("Test interface", function() {
     };
 
     beforeAll(async function() {
-      let session = await testHelper.createOpportunity(testEvent, {});
+      let session = await testHelper.fetchOpportunities(testEvent, {});
 
       ({ apiResponse } = await testHelper.getMatch(session.eventId));
     });

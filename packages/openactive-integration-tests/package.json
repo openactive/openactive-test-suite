@@ -32,16 +32,17 @@
   },
   "devDependencies": {
     "chakram": "^1.5.0",
-    "jest": "^24.9.0",
-    "jest-spec-reporter": "^1.0.10",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",
-    "eslint-plugin-import": "^2.20.0"
+    "eslint-plugin-import": "^2.20.0",
+    "fast-glob": "^3.2.2",
+    "jest": "^24.9.0",
+    "jest-spec-reporter": "^1.0.10"
   },
   "jest": {
     "verbose": false,
     "testMatch": [
-      "**/*-test.[tj]s?(x)"
+      "**/test/features/**/*-test.[tj]s?(x)"
     ],
     "reporters": [
       "<rootDir>test/reporter.js"
