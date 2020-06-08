@@ -9,22 +9,22 @@ Stub tests are provided in many cases, and test coverage should not be regarded 
 
 The tests for these features cover all known edge cases, including both happy and unhappy paths.
 
-| Category | Feature | Specification | Description | Prerequisites |
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
-| core | Availability Checking ([availability-check](./core/availability-check/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0) | Runs only C1 and C2, to confirm availability checks work as expected | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x5, [TestOpportunityBookableNoSpaces](https://openactive.io/test-interface#TestOpportunityBookableNoSpaces) x3 |
 | core | Dataset Site ([dataset-site](./core/dataset-site/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints) | Discoverable open data |  |
-| core | Test interface ([test-interface](./core/test-interface/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
 ## Partial Test Coverage
 
 The tests for these features provide partial coverage but do not include all known edgecases, and do not exercise all code paths and error conditions.
 
-| Category | Feature | Specification | Description | Prerequisites |
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
+| core | Availability Checking ([availability-check](./core/availability-check/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0) | Runs only C1 and C2, to confirm availability checks work as expected | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x5, [TestOpportunityBookableNoSpaces](https://openactive.io/test-interface#TestOpportunityBookableNoSpaces) x3 |
 | core | Simple Booking of free opportunities ([simple-book-free-opportunities](./core/simple-book-free-opportunities/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#free-opportunities) | The most simple form of booking, for free opportunities. Does not check for leases. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 | cancellation | Customer Requested Cancellation ([customer-requested-cancellation](./cancellation/customer-requested-cancellation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation) | Cancellation triggered by the Customer through the Broker | [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1 |
 | core | Multiple Sellers ([multiple-sellers](./core/multiple-sellers/README.md)) | [Optional](https://openactive.io/open-booking-api/EditorsDraft/#booking-pre-conditions) | The booking system is multi-tenanted and provides services to multiple sellers. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2 |
+| core | Test interface ([test-interface](./core/test-interface/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 | payment | Simple Booking of paid opportunities ([simple-book-with-payment](./payment/simple-book-with-payment/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description) | The most simple form of booking with payment. Does not check for leases. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x4, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
@@ -32,7 +32,7 @@ The tests for these features provide partial coverage but do not include all kno
 
 The tests for these features are fully stubbed, and are not yet implemented.
 
-| Category | Feature | Specification | Description | Prerequisites |
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
 | core | AgentBroker mode ([agent-broker](./core/agent-broker/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#agentbroker) | Support for AgentBroker mode |  |
 | core | Amending the OrderQuote before B ([amending-order-quote](./core/amending-order-quote/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#amending-the-orderquote-before-b) | Allows the basket to be updated for a particular order |  |

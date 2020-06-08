@@ -5,5 +5,5 @@
   "description": "Open Booking API Test Interface implementation",
   "specificationReference": "https://openactive.io/test-interface/",
   "required": false,
-  "coverageStatus": "complete"
+  "coverageStatus": "partial"
 }

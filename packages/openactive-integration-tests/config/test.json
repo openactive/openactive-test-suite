@@ -15,33 +15,66 @@
   "implementedFeatures": {
     "opportunity-feed": true,
     "dataset-site": true,
-    "test-interface": true,
     "availability-check": true,
-    "simple-book-free-opportunities": false,
+    "amending-order-quote": true,
+    "simple-book-free-opportunities": true,
+    "order-deletion": true,
+    "agent-broker": true,
     "simple-book-with-payment": true,
-    "payment-reconciliation-detail-validation": false,
-    "booking-window": false,
+    "multiple-sellers": true,
+    "payment-reconciliation-detail-validation": true,
+    "booking-window": true,
     "customer-requested-cancellation": true,
-    "seller-requested-cancellation": false,
-    "seller-requested-cancellation-message": null,
     "cancellation-window": true,
+    "seller-requested-cancellation": true,
+    "seller-requested-cancellation-message": true,
     "seller-requested-replacement": true,
     "named-leasing": true,
-    "anonymous-leasing": true
+    "anonymous-leasing": true,
+    "customer-details-capture-non-essential": true,
+    "customer-details-capture-identifier": true,
+    "attendee-details-capture-without-payment": true,
+    "attendee-details-capture-with-payment": true,
+    "additional-details-capture": true,
+    "access-code": true,
+    "access-pass-image": true,
+    "access-pass-barcode-seller-provided": true,
+    "access-pass-barcode-broker-provided": true,
+    "reseller-broker": true,
+    "reseller-broker-tax-calculation": true,
+    "no-broker": true,
+    "business-to-consumer-tax-calculation-net": true,
+    "business-to-consumer-tax-calculation-gross": true,
+    "business-to-business-tax-calculation-net": true,
+    "business-to-business-tax-calculation-gross": true,
+    "offer-overrides": true,
+    "dynamic-payment": true,
+    "prepayment-optional": true,
+    "prepayment-unavailable": true,
+    "booking-restrictions": true,
+    "customer-notice-notifications": true,
+    "change-of-logistics-notifications": true,
+    "opportunity-attendance-updates": true,
+    "access-code-update-notifications": true,
+    "access-pass-update-notifications": true,
+    "terms-of-service": true,
+    "terms-of-service-with-consent": true,
+    "terms-of-service-with-consent-with-date-modified": true,
+    "booking-partner-authentication": true
   },
   "testDatasetIdentifier": "uat-ci",
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://localhost:44396/api/identifiers/sellers/0",
+      "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/0"
+        "X-OpenActive-Test-Seller-Id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0"
       }
     },
     "secondary": {
       "@type": "Person",
-      "@id": "https://localhost:44396/api/identifiers/sellers/1"
+      "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/1"
     }
   }
 }

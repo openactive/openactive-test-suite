@@ -72,7 +72,7 @@ Stub tests are provided in many cases, and test coverage should not be regarded 
 
 The tests for these features cover all known edge cases, including both happy and unhappy paths.
 
-| Category | Feature | Specification | Description | Prerequisites |
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'complete').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 
@@ -80,7 +80,7 @@ ${features.filter(f => f.coverageStatus === 'complete').map(f => renderFeatureIn
 
 The tests for these features provide partial coverage but do not include all known edgecases, and do not exercise all code paths and error conditions.
 
-| Category | Feature | Specification | Description | Prerequisites |
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'partial').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 
@@ -88,7 +88,7 @@ ${features.filter(f => f.coverageStatus === 'partial').map(f => renderFeatureInd
 
 The tests for these features are fully stubbed, and are not yet implemented.
 
-| Category | Feature | Specification | Description | Prerequisites |
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 
@@ -126,7 +126,7 @@ ${f.specificationReference}
 
 Coverage Status: **${f.coverageStatus}**${f.links ? '\n\nSee also: ' + f.links.map(l => `[${l.name}](${l.href})`).join(', ') : ''}
 ${renderCriteriaRequired(f.criteriaRequirement, `### Test prerequisites
-Opportunities that match the following criteria must exist in the booking system for the configured primary Seller in order to use \`useRandomOpportunities: true\`. Alternatively the following \`testOpportunityCriteria\` values can be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for \`useRandomOpportunities: false\`.
+Opportunities that match the following criteria must exist in the booking system (for each configured \`bookableOpportunityTypesInScope\`) for the configured primary Seller in order to use \`useRandomOpportunities: true\`. Alternatively the following \`testOpportunityCriteria\` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for \`useRandomOpportunities: false\`.
 
 `)}
 
@@ -152,7 +152,7 @@ ${'```'}json
 ${'```'}
 ${f.required ? '\nNote this feature is required by the Open Booking API specification, and so must always be set to `true`.' : ''}
 
-| Identifier | Name | Description | Prerequisites |
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 ${implementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}
 
@@ -170,7 +170,7 @@ ${'```'}json
 ${'```'}
 ${f.required ? '\nNote this feature is required by the Open Booking API specification, and so must always be set to `true`.' : ''}
 
-| Identifier | Name | Description | Prerequisites |
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 ${notImplementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}`;
 }
@@ -184,6 +184,6 @@ function renderCriteriaRequired(c, prefix) {
   if (c.size == 0) {
     return '';
   } else {
-    return `${prefix !== undefined ? prefix : '\nPrerequisite opportunities: '}${Array.from(c.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
+    return `${prefix !== undefined ? prefix : '\nPrerequisite opportunities per Opportunity Type: '}${Array.from(c.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
   }
 }
