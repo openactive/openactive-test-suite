@@ -1,0 +1,16 @@
+{
+  "category": "core",
+  "identifier": "dataset-site",
+  "name": "Dataset Site",
+  "description": "Discoverable open data",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints",
+  "required": true,
+  "coverageStatus": "complete",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-2-open-data-feeds"
+    }
+  ]
+}

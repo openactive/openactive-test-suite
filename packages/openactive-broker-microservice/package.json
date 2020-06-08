@@ -11,6 +11,7 @@
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
+    "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "@nano-sql/core": "^2.3.7",
     "axios": "^0.19.2",
     "config": "^3.2.4",

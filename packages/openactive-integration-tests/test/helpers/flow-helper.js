@@ -15,21 +15,21 @@ class FlowHelper {
 
   C1 = pMemoize(async C1 => {
     await this.getMatch();
-    if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: event not found');
+    if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: opportunity feed extract failed');
 
     return this.state.putOrderQuoteTemplate();
   });
 
   C2 = pMemoize(async C2 => {
     await this.C1();
-    if (!this.state.C1ResponseSucceeded) throw Error('Pre-requisite step failed: C1 failed');
+    if (!this.state.C1ResponseReceived) throw Error('Pre-requisite step failed: C1 failed');
 
     return this.state.putOrderQuote();
   });
 
   B = pMemoize(async B => {
     await this.C2();
-    if (!this.state.C2ResponseSucceeded) throw Error('Pre-requisite step failed: C2 failed');
+    if (!this.state.C2ResponseReceived) throw Error('Pre-requisite step failed: C2 failed');
 
     return this.state.putOrder();
   });
@@ -38,7 +38,7 @@ class FlowHelper {
     this.getOrderPromise = this.state.getOrder();
 
     await this.B();
-    if (!this.state.BResponseSucceeded) throw Error('Pre-requisite step failed: B failed');
+    if (!this.state.BResponseReceived) throw Error('Pre-requisite step failed: B failed');
 
     return this.state.cancelOrder();
   });

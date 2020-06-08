@@ -285,7 +285,9 @@ class LoggerGroup {
 
     if (spec.failed > 0) return "failed";
     else if (validation.failure > 0) return "failed";
-    else if (validation.warning > 0) return "warning";
+    // The line below adds an overall "warning" status if any warnings exist
+    // Can add this back in when the validator warnings are more useful
+    // else if (validation.warning > 0) return "warning";
     else return "passed";
   }
 

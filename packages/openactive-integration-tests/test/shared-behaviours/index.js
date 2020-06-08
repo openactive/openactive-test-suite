@@ -11,5 +11,5 @@ module.exports = {
   C1,
   C2,
   B,
-  Common
+  Common,
 };

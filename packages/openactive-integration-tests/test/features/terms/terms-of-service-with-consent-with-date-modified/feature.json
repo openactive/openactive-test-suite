@@ -1,0 +1,10 @@
+{
+  "category": "terms",
+  "identifier": "terms-of-service-with-consent-with-date-modified",
+  "name": "termsOfService with requiresExplicitConsent and dateModified",
+  "description": "Displaying terms of service that require consent, with a date the terms were modified",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy",
+  "required": false,
+  "coverageStatus": "none"
+}

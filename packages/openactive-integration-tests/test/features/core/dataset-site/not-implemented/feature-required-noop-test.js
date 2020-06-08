@@ -1,9 +1,10 @@
-const { Common } = require('../../../../shared-behaviours/common');
+const { FeatureHelper } = require('../../../../helpers/feature-helper');
 
-Common.describeRequiredFeature({
+FeatureHelper.describeRequiredFeature(module, {
   testCategory: 'core',
   testFeature: 'dataset-site',
   testFeatureImplemented: false,
-  testName: 'feature-required-noop',
+  testIdentifier: 'feature-required-noop',
+  testName: 'Feature required',
   runOnce: true,
 });

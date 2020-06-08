@@ -1,0 +1,14 @@
+sudo: false
+language: node_js
+node_js:
+- '12'
+script: bash ./publish-example-output.sh
+branches:
+  only:
+  - master
+env:
+  global:
+  - GH_REF: github.com/openactive/openactive-test-suite.git
+  - secure: Za4hxCgHvw6FyLdKDbNTHEtM6WNgc6aqTuSHnSZDfKn3GEK0WEAltfTdlAZ89NDP2AD8hT8qw1mvWyJEtkNY+qr3TWbtfQps8lyo/rLG8nXXgfCSqFL7H6TENjnAGRCIOCE2K/Xcq5YFqYvXH56tmvvSI7ogWretN4wnQ6DM8iEtaMSFxrPHKQ/O92w814YHiiHD75K85lU6OOuxfpK20eLppMwvPIxMgFDCqU0f2gv/Au6crFleOykLCwIRDoNMi+qeYER3Tikk7QH7uS1W3RwRroWmZNgWKCDB5IqiQUg2ddxwoYItva7kDbf711+MCpOVSDKvUoFAiR8VJcg0fwlKEJ0IMZC+IokrWw3J9CskdQpxTuqYXu1daRSwJz6y1FX2DM7+IpMW5sIBckz+vVHnphkE8my5LuLiYBz22oSL1s4fvGNY9eFhLqAf//vPEtq2GVU8ZSEG/+ErwE0Kco9bpDN5oGNKP5KKS4o5t504zR2KM+0/uXUjBqSmva5IxKh5YGqtdkJCa98A/6bMv+PFLhNOmtAeJ3dUouHFfVxSsezIE28bHi8lqM8arH90sNsMC7ksWnaKfb2DvzupuhPgrvyEesCIQiIgwx9ibrKWgu+T9Rag7Ac8r2baDKNUmnYb6+na6H+fYVOU4onOp6dyBIsdrxqANFaGpixk1jg=
+after_success:
+- test $TRAVIS_BRANCH = "master" && cd publish && git push --force "https://${GH_TOKEN}@${GH_REF}" master:gh-pages

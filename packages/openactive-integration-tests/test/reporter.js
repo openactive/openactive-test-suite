@@ -34,8 +34,8 @@ class Reporter {
 
       let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 3).join(" "));
 
-      for (let [testName, groupedTests] of Object.entries(grouped)) {
-        let logger = new ReporterLogger(testName);
+      for (let [testIdentifier, groupedTests] of Object.entries(grouped)) {
+        let logger = new ReporterLogger(testIdentifier);
         await logger.load();
 
         for (let testResult of groupedTests) {

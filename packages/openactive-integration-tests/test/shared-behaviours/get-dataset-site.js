@@ -2,11 +2,10 @@ const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
 class GetDatasetSite {
-  constructor ({state, flow, logger, dataItem}) {
+  constructor ({state, flow, logger}) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;
-    this.dataItem = dataItem;
   }
 
   validationTests () {

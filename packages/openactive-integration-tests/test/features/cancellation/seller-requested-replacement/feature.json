@@ -1,0 +1,10 @@
+{
+  "category": "cancellation",
+  "identifier": "seller-requested-replacement",
+  "name": "Seller Requested Replacement",
+  "description": "Replacement triggered by the Seller through the Booking System",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#cancellation-replacement-refund-calculation-and-notification",
+  "required": false,
+  "coverageStatus": "none"
+}

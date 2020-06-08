@@ -1,0 +1,10 @@
+{
+  "category": "access",
+  "identifier": "access-pass-barcode-seller-provided",
+  "name": "accessPass - Seller provided access control barcodes ",
+  "description": "Support for accessPass provided by the Seller, in the form of a barcode",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#extension-point-for-barcode-based-access-control",
+  "required": false,
+  "coverageStatus": "none"
+}

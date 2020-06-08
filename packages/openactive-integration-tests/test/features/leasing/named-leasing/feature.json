@@ -1,0 +1,10 @@
+{
+  "category": "leasing",
+  "identifier": "named-leasing",
+  "name": "Named leasing, including leaseExpires",
+  "description": "Leasing at C2, reserving a space in the opportunity after the Customer has provided their contact information",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#leasing",
+  "required": false,
+  "coverageStatus": "none"
+}

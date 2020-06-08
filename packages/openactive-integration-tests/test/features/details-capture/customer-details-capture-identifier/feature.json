@@ -1,0 +1,10 @@
+{
+  "category": "details-capture",
+  "identifier": "customer-details-capture-identifier",
+  "name": "Customer Details identifier capture",
+  "description": "Support for capturing the Broker's identifier for the customer. Note this field cannot be mandatory.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#schema-person-for-customer-or-attendee",
+  "required": false,
+  "coverageStatus": "none"
+}

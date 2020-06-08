@@ -1,0 +1,10 @@
+{
+  "category": "broker-role",
+  "identifier": "reseller-broker-tax-calculation",
+  "name": "ResellerBroker Business-to-business Tax Calculation",
+  "description": "Tax calculation for ResellerBroker (business-to-business)",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#scope-of-specification",
+  "required": false,
+  "coverageStatus": "none"
+}
