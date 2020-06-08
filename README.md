@@ -8,7 +8,7 @@ This repository hosts two different projects:
 
 # Usage
 
-For more info, read the individual README.md within the package dirs:
+For more info, read the individual README.md within the package directories:
 * [Broker microservice](./packages/openactive-broker-microservice/)
 * [Integration tests](./packages/openactive-integration-tests/)
 
