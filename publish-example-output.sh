@@ -31,15 +31,18 @@ pid=$!
 # Run tests in random mode
 echo 'Emptying output directory...'
 rm -rf ./packages/openactive-integration-tests/output/
-echo 'Running integration tests...'
+echo 'Running integration tests with useRandomOpportunities: true...'
 NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
 echo 'Copying output files...'
 cp -R ./packages/openactive-integration-tests/output/* ./publish/random/
 
 # Run tests using booking system Test Interface
-# rm -rf ./packages/openactive-integration-tests/output/
-# NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
-# cp -R ./packages/openactive-integration-tests/output/* ./publish/controlled/
+echo 'Emptying output directory...'
+rm -rf ./packages/openactive-integration-tests/output/
+echo 'Running integration tests with useRandomOpportunities: false...'
+NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+echo 'Copying output files...'
+cp -R ./packages/openactive-integration-tests/output/* ./publish/controlled/
 
 # Kill broker microservice
 echo 'Killing broker microservice...'
