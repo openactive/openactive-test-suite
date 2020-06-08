@@ -2,13 +2,13 @@
 
 ## Architecture
 
-The testing architecture is documented in [ARCHITECTURE.md](http://architecture.md). This is fairly in depth so is only necessary if making changes to the core testing framework.
+The testing architecture is documented in [ARCHITECTURE.md](./architecture.md). This is fairly in depth so is only necessary if making changes to the core testing framework.
 
 ## Structure
 
 Tests are namespaced by Category, Integration Test, Feature and finally implemented/non-implemented.
 
-i.e. features/payment/simple-book-with-payment/implemented/with-payment-property-test.js
+i.e. `features/payment/simple-book-with-payment/implemented/with-payment-property-test.js`
 
 ## Implemented / non-implemented
 
@@ -20,7 +20,28 @@ This is a class that abstracts away much of the above. This implements the `desc
 
 ## Approach
 
-In each test file implement the following:
+For each feature, implement the following `feature.json`:
+
+```json
+{
+  "category": "payment",
+  "identifier": "simple-book-with-payment",
+  "name": "Simple Booking of paid opportunities",
+  "description": "The most simple form of booking with payment. Does not check for leases.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description",
+  "required": false,
+  "coverageStatus": "partial",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order"
+    }
+  ]
+}
+```
+
+In each test file within that feature, implement the following:
 
 ```jsx
 * eslint-disable no-unused-vars */
@@ -34,11 +55,12 @@ const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: true,
-  testName: 'with-payment-property',
+  testIdentifier: 'with-payment-property',
+  testName: 'Successful booking with payment property',
   testDescription: 'A successful end to end booking with the `payment` property included.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
@@ -47,7 +69,7 @@ FeatureHelper.describeFeature({
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
-    await state.createOpportunity(orderItemCriteria);
+    await state.fetchOpportunities(orderItemCriteria);
 
     return chakram.wait();
   });
@@ -63,7 +85,7 @@ For each phase of the test, implement a describe block, i.e.
 ```jsx
 describe('C1', function () {
     const c1 = (new C1({
-      state, flow, logger, configuration,
+      state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()

@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e # exit with nonzero exit code if anything fails
+
 # `waitForHarvestCompletion` must be set to `true` in `default.json`
 
 # Install dependencies

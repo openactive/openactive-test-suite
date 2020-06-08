@@ -99,16 +99,17 @@ This is a class that abstracts away much of the above. This implements the `desc
 i.e.
 
 ```
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
   testFeatureImplemented: true,
-  testName: 'availability-confirmed',
+  testIdentifier: 'availability-confirmed',
+  testName: 'Occupancy in C1 and C2 matches feed',
   testDescription: 'Runs C1 and C2 for a known opportunity from the feed, and compares the results to those attained from the feed.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunity',
+  controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
 ```

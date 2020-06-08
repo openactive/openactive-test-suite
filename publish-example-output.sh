@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e # exit with nonzero exit code if anything fails
 
 # clear and re-create the out directory
 rm -rf publish || exit 0;
@@ -30,9 +31,9 @@ NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openac
 cp ./packages/openactive-integration-tests/output/* ./publish/random/
 
 # Run tests using booking system Test Interface
-rm -rf ./packages/openactive-integration-tests/output/
-NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
-cp ./packages/openactive-integration-tests/output/* ./publish/controlled/
+# rm -rf ./packages/openactive-integration-tests/output/
+# NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+# cp ./packages/openactive-integration-tests/output/* ./publish/controlled/
 
 # Kill broker microservice
 kill $pid
@@ -49,6 +50,6 @@ git commit -m "Deploy to GitHub Pages - Static"
 # will be lost, since we are overwriting it.) We redirect any output to
 # /dev/null to hide any sensitive credential data that might otherwise be exposed.
 # FIXME should be authorised via key
-git push --force "https://${GH_TOKEN}@${GH_REF}" master:gh-pages
+test $TRAVIS_BRANCH = "master" && git push --force "https://${GH_TOKEN}@${GH_REF}" master:gh-pages
 
 cd ..
