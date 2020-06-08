@@ -61,12 +61,12 @@ These consist of:
 - [Request helper](test/helpers/request-helper.js): This makes requests, and records the request + response against the logger. There are methods to directly make requests, along with methods for each API endpoint.
 - [State tracker](test/helpers/request-state.js): This wraps the API endpoint methods, stores the results and automatically uses these in successive requests, i.e. if you make an order, it keeps the order ID to be auto-used in the next request.
 - [Flow](test/helpers/flow-helper.js): This is another wrapper around state and implements methods for each stage of the booking process. This keeps track of whether a pre-requisite has ran or not, and if not runs it. This has additional validation.
-## Test flow
+# Test flow
 
 - Flow shared behaviours: This is a wrapper around the flows, this implements common test behaviour patterns around each of the flows. This is typically to make the request, common expectations for a successful test, along with validation handling.
 - [Feature helper](test/helpers/feature-helper.js): This wraps up the initialisation of the test, implementing the describe blocks and initialising the logger.
 
-# Flow shared behaviours
+## Flow shared behaviours
 
 These are helpers that implement the common/repeated parts of the test flows. This wraps up the actual making of the request, common expectations for a successful test, along with validation handling.
 
@@ -92,7 +92,7 @@ Then use it within the describe blocks as so:
 
 The methods self return, so as to be chainable.
 
-# Feature Helper
+## Feature Helper
 
 This is a class that abstracts away much of the above. This implements the `describe` blocks, initiates the state tracker, flow and logger.
 
