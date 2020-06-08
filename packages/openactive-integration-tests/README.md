@@ -84,6 +84,8 @@ This identifier is useful where the test interface implementation is shared betw
 
 This value is passed into the test interface of either the broker microservice (when `"useRandomOpportunities": true`), or of the booking system (when `"useRandomOpportunities": false`).
 
+The value can be any string, such as `uat-ci`, or `alex-dev`.
+
 ### `sellers`
 
 The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
