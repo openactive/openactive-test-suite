@@ -7,6 +7,7 @@ mkdir publish;
 mkdir publish/random;
 mkdir publish/controlled;
 
+echo 'Setting up publish directory...'
 # go to the publish directory and create a *new* Git repo
 cd publish
 git init
@@ -18,6 +19,7 @@ git config user.email "travis@openactive.org"
 cd ..
 
 # Install dependencies
+echo 'Installing dependencies...'
 npm install --prefix packages/openactive-broker-microservice
 npm install --prefix packages/openactive-integration-tests
 
@@ -27,9 +29,11 @@ npm start --prefix packages/openactive-broker-microservice &
 pid=$!
 
 # Run tests in random mode
-echo 'Running integration tests...'
+echo 'Emptying output directory...'
 rm -rf ./packages/openactive-integration-tests/output/
+echo 'Running integration tests...'
 NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+echo 'Copying output files...'
 cp ./packages/openactive-integration-tests/output/* ./publish/random/
 
 # Run tests using booking system Test Interface
