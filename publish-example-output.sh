@@ -25,14 +25,14 @@ npm start --prefix packages/openactive-broker-microservice &
 pid=$!
 
 # Run tests in random mode
-rm -rf ./output/
+rm -rf ./packages/openactive-integration-tests/output/
 NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
-cp ./output/* ./publish/random/
+cp ./packages/openactive-integration-tests/output/* ./publish/random/
 
 # Run tests using booking system Test Interface
-rm -rf ./output/
+rm -rf ./packages/openactive-integration-tests/output/
 NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
-cp ./output/* ./publish/controlled/
+cp ./packages/openactive-integration-tests/output/* ./publish/controlled/
 
 # Kill broker microservice
 kill $pid

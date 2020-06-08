@@ -3,21 +3,21 @@
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
 This repository hosts two different projects:
-* [Broker mircoservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target site. This allows the test suite to watch for changes, and throws them back to it.
+* [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target site. This allows the test suite to watch for changes, and throws them back to it.
 * [Integration tests](./packages/openactive-integration-tests): this performs automated tests against the API
 
 # Usage
 
 For more info, read the individual README.md within the package dirs:
-* [Broker mircoservice](./packages/openactive-broker-microservice/README.md)
-* [Integration tests](./packages/openactive-integration-tests/README.md)
+* [Broker microservice](./packages/openactive-broker-microservice/)
+* [Integration tests](./packages/openactive-integration-tests/)
 
 ## Configuration
 Before running, configure the test suite:
  - `packages/openactive-broker-microservice/config/default.json`
-   - [More information](./packages/openactive-broker-microservice/README.md#configuration)
+   - [More information](./packages/openactive-broker-microservice/#configuration)
  - `packages/openactive-integration-tests/config/test.json`
-   - [More information](./packages/openactive-integration-tests/README.md#configuration)
+   - [More information](./packages/openactive-integration-tests/#configuration)
 
 ## Installation
  - `npm install`
