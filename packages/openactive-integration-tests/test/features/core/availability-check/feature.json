@@ -1,0 +1,16 @@
+{
+  "category": "core",
+  "identifier": "availability-check",
+  "name": "Availability Checking",
+  "description": "Runs only C1 and C2, to confirm availability checks work as expected",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0",
+  "required": true,
+  "coverageStatus": "partial",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-4-c1-and-c2-without-leases"
+    }
+  ]
+}

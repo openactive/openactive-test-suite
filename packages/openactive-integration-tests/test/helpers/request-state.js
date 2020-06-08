@@ -2,7 +2,8 @@ const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 const config = require("config");
 
-var USE_RANDOM_OPPORTUNITIES = config.get("tests.useRandomOpportunities");
+var USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const SELLER_CONFIG = config.get("sellers");
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -10,6 +11,14 @@ function isResponse20x(response) {
   let statusCode = response.response.statusCode;
 
   return statusCode >= 200 && statusCode < 300;
+}
+
+function isResponse(response) {
+  if (!response || !response.response) return false;
+
+  let statusCode = response.response.statusCode;
+
+  return statusCode >= 200 && statusCode < 600;
 }
 
 class RequestState {
@@ -31,48 +40,61 @@ class RequestState {
     return this._uuid;
   }
 
-  /*
-    {
-      opportunityType: 'ScheduledSession',
-      opportunityCriteria: 'TestOpportunityNotBookableViaAvailableChannel',
-      control: false
-    },
-    {
-      opportunityType: 'ScheduledSession',
-      opportunityCriteria: 'TestOpportunityBookable',
-      control: true
-    },
-    {
-      opportunityType: 'ScheduledSession',
-      opportunityCriteria: 'TestOpportunityBookable',
-      control: true
-    }
+  async fetchOpportunities(orderItemCriteriaList, randomModeOverride) {
+    this.orderItemCriteriaList = orderItemCriteriaList;
 
-    TODO rename to createOpportunities
-  */
-  async createOpportunity(orderItemCriteria) {
-    let session;
+    // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
+    const reusableOpportunityPromises = new Map();
 
-    // TODO: Make this work for each orderItemCriteria
-    if (USE_RANDOM_OPPORTUNITIES) {
-      session = await this.requestHelper.getRandomOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {});
-    }
-    else {
-      session = await this.requestHelper.createOpportunity(orderItemCriteria[0].opportunityType, orderItemCriteria[0].opportunityCriteria, {
-        sellerId: this.sellerId
-      });
-    }
+    this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
+      // If an opportunity is available for reuse, return it
+      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
+        return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey)
+      }
 
-    console.log('session', session)
+      const sellerKey = orderItemCriteriaItem.seller || 'primary';
+      const seller = SELLER_CONFIG[sellerKey];
+      const opportunityPromise = ( randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES ) ?
+        this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']) :
+        this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
+      
+      // If this opportunity can be reused, store it
+      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey')) {
+        reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise)
+      }
 
-    this.sessionResponse = session;
-
-    this.eventId = session.body["@id"];
-    this.eventType = session.body["@type"];
-    // when handling multiple OrderItems, tag resulting activities with "control"
-
-    return session;
+      return await opportunityPromise;
+    }));
   }
+
+	getRandomRelevantOffer(opportunity, opportunityCriteria) {
+    const getOffers = (opportunity) => {
+      return opportunity.offers || (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
+    };
+  
+    const getOfferFilter = (opportunityCriteria) => {
+      switch (opportunityCriteria) {
+        case 'TestOpportunityBookableOutsideValidFromBeforeStartDate':
+          return x =>
+          (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+          && x.advanceBooking != "https://openactive.io/Unavailable"
+          && (x.validFromBeforeStartDate && moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isAfter());
+        default: 
+          return x =>
+          (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+          && x.advanceBooking != "https://openactive.io/Unavailable"
+          && (!x.validFromBeforeStartDate || moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore());
+      }
+    };
+
+    const offers = getOffers(opportunity);
+    if (!Array.isArray(offers)) return null;
+
+    const relevantOffers = offers.filter(getOfferFilter(opportunityCriteria));
+    if (relevantOffers.length == 0) return null;
+
+    return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
+	}
 
   async getOrder () {
     let result = await this.requestHelper.getOrder(this.uuid);
@@ -103,52 +125,55 @@ class RequestState {
   }
 
   async getMatch () {
-    // Only attempt getMatch if we have an eventId
-    if (this.eventId) {
-      let result = await this.requestHelper.getMatch(this.eventId);
+    const reusableMatchPromises = new Map();
 
-      this.apiResponse = result;
-    }
+    this.opportunityFeedExtractResponses = await Promise.all(this.testInterfaceResponses.map(async (testInterfaceResponse, i) => {
+      // Only attempt getMatch if test interface response was successful
+      if (isResponse20x(testInterfaceResponse) && testInterfaceResponse.body['@id']) {
+        // If a match for this @id is already being requested, just reuse the same response
+        if (reusableMatchPromises.has(testInterfaceResponse.body['@id'])) {
+          return await reusableMatchPromises.get(testInterfaceResponse.body['@id']);
+        }
+
+        const matchPromise = this.requestHelper.getMatch(testInterfaceResponse.body['@id'], i);
+        reusableMatchPromises.set(testInterfaceResponse.body['@id'], matchPromise);
+        return await matchPromise;
+      } else {
+        return null;
+      }
+    }));
+
+    this.orderItems = this.opportunityFeedExtractResponses.map((x, i) => {
+      if (x && isResponse20x(x)) {
+        const acceptedOffer = this.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
+        if (acceptedOffer === null) {
+          throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${this.orderItemCriteriaList[i].opportunityCriteria}`);
+        }
+        return {
+          position: i,
+          orderedItem: x.body.data,
+          acceptedOffer,
+          'test:primary': this.orderItemCriteriaList[i].primary,
+          'test:control': this.orderItemCriteriaList[i].control
+        }
+      } else {
+        return null;
+      }
+    });
 
     return this;
   }
 
+  get fetchOpportunitiesSucceeded() {
+    return this.testInterfaceResponses.every(x => isResponse20x(x));
+  }
+
   get getMatchResponseSucceeded() {
-    return isResponse20x(this.apiResponse);
-  }
-
-  get opportunityType() {
-    if (!this.apiResponse) return;
-
-    return this.apiResponse.body.data["@type"];
-  }
-
-  get opportunityId() {
-    if (!this.apiResponse) return;
-
-    return this.apiResponse.body.data["@id"];
-  }
-
-  get offerId() {
-    if (!this.apiResponse) return;
-
-    if (this.apiResponse.body.data["@type"] === "Slot") {
-      return this.apiResponse.body.data.offers[0]["@id"];
-    } else if (typeof this.apiResponse.body.data.superEvent.offers !== "undefined") {
-      return this.apiResponse.body.data.superEvent.offers[0]["@id"];
-    } else {
-      return this.apiResponse.body.data.offers[0]["@id"];
-    }
+    return !this.orderItems.some(x => x == null);
   }
 
   get sellerId() {
-    if (!this.apiResponse) return;
-
-    if (this.apiResponse.body.data["@type"] === "Slot") {
-      return this.apiResponse.body.data.facilityUse.provider["@id"];
-    } else {
-      return this.apiResponse.body.data.superEvent.organizer["@id"];
-    }
+    return SELLER_CONFIG.primary['@id'];
   }
 
   async putOrderQuoteTemplate () {
@@ -163,10 +188,16 @@ class RequestState {
     return isResponse20x(this.c1Response);
   }
 
+  get C1ResponseReceived() {
+    return isResponse(this.c1Response);
+  }
+
   get totalPaymentDue() {
     let response = this.c2Response || this.c1Response;
 
     if (!response) return;
+
+    if (!response.body.totalPaymentDue) return;
 
     return response.body.totalPaymentDue.price;
   }
@@ -183,6 +214,10 @@ class RequestState {
     return isResponse20x(this.c2Response);
   }
 
+  get C2ResponseReceived() {
+    return isResponse(this.c2Response);
+  }
+
   async putOrder () {
     let result = await this.requestHelper.putOrder(this.uuid, this);
 
@@ -193,6 +228,10 @@ class RequestState {
 
   get BResponseSucceeded() {
     return isResponse20x(this.bResponse);
+  }
+
+  get BResponseReceived() {
+    return isResponse(this.bResponse);
   }
 
   get orderItemId() {
@@ -216,6 +255,10 @@ class RequestState {
 
   get UResponseSucceeded() {
     return isResponse20x(this.uResponse);
+  }
+
+  get UResponseReceived() {
+    return isResponse(this.uResponse);
   }
 }
 

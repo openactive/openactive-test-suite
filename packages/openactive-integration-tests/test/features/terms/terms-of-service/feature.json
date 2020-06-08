@@ -1,0 +1,10 @@
+{
+  "category": "terms",
+  "identifier": "terms-of-service",
+  "name": "termsOfService without requiresExplicitConsent",
+  "description": "Displaying terms of service, without requiring consent",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy",
+  "required": false,
+  "coverageStatus": "none"
+}

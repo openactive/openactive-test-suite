@@ -2,39 +2,26 @@ const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
 class GetMatch {
-  constructor ({state, flow, logger, dataItem}) {
+  constructor ({state, flow, logger, configuration, orderItemCriteria}) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;
-    this.dataItem = dataItem;
-  }
-
-  get testEvent () {
-    return this.dataItem.event;
-  }
-
-  get eventType () {
-    return this.dataItem.randomEvent || this.dataItem.event["@type"]
-  }
-
-  get eventName () {
-    return this.dataItem.name;
-  }
-
-  get price () {
-    return this.dataItem.price;
+    this.orderItemCriteria = orderItemCriteria;
   }
 
   validationTests () {
-    sharedValidationTests.shouldBeValidResponse(
-      () => this.state.apiResponse,
-      "Opportunity Feed",
-      this.logger,
-      {
-        validationMode: "BookableRPDEFeed",
-      },
-    );
-    return this;
+    this.orderItemCriteria.forEach((x, i) => {
+      sharedValidationTests.shouldBeValidResponse(
+        () => this.state.opportunityFeedExtractResponses[i],
+        `Opportunity Feed extract for OrderItem ${i}`,
+        this.logger,
+        {
+          validationMode: "BookableRPDEFeed",
+        },
+        x.opportunityCriteria,
+      );
+      return this;
+    });
   }
 
   beforeSetup () {
@@ -45,6 +32,14 @@ class GetMatch {
   }
 
   successChecks () {
+    this.orderItemCriteria.forEach((x, i) => {
+      it(`should return 200 on success for request relevant to OrderItem ${i}`, () => {
+        if (!this.state.opportunityFeedExtractResponses[i]) throw Error('Pre-requisite step failed: test interface request failed');
+
+        expect(this.state.opportunityFeedExtractResponses[i]).to.have.status(200);
+      });
+    });
+
     return this;
   }
 }

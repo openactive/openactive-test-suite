@@ -1,0 +1,10 @@
+{
+  "category": "details-capture",
+  "identifier": "additional-details-capture",
+  "name": "Additional Details capture",
+  "description": "Support for capturing additional details ",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#additional-details-capture",
+  "required": false,
+  "coverageStatus": "none"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "broker-role",
+  "identifier": "no-broker",
+  "name": "NoBroker mode",
+  "description": "Support for NoBroker mode, for example for operators to use the Open Booking API to power their own websites",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#nobroker",
+  "required": false,
+  "coverageStatus": "none"
+}

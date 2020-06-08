@@ -1,0 +1,10 @@
+{
+  "category": "advanced-payment",
+  "identifier": "prepayment-optional",
+  "name": "prepayment optional",
+  "description": "Support for booking with optional payment",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#booking-without-payment",
+  "required": false,
+  "coverageStatus": "none"
+}

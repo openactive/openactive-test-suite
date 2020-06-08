@@ -5,7 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch via npm",
+            "name": "integration-tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\packages\\openactive-integration-tests",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run-script", "debug"],
+            "port": 9229
+        },
+        {
+            "name": "broker-microservice",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}\\packages\\openactive-broker-microservice",

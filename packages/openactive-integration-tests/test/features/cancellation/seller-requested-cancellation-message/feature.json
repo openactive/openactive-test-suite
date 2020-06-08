@@ -1,0 +1,10 @@
+{
+  "category": "cancellation",
+  "identifier": "seller-requested-cancellation-message",
+  "name": "cancellationMessage for Seller Requested Cancellation",
+  "description": "A message associated with a Cancellation triggered by the Seller through the Booking System",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#seller-requested-cancellation",
+  "required": false,
+  "coverageStatus": "none"
+}

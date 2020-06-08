@@ -1,27 +1,31 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const { FeatureHelper } = require('../helpers/feature-helper');
-
-const { expect } = chakram;
-/* eslint-enable no-unused-vars */
+const {expect} = require("chakram");
+const sharedValidationTests = require("./validation");
 
 class Common {
 
-  static describeRequiredFeature (configuration) {
-    FeatureHelper.describeFeature(Object.assign({
-      testDescription: 'This feature is required by the specification and must be implemented.',
-    }, configuration),
-    // eslint-disable-next-line no-unused-vars
-    function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
-      describe('Feature', function () {
-        it('must be implemented', () => {
-          // eslint-disable-next-line no-unused-expressions
-          expect.fail('This feature is required by the specification, and so cannot be set to "not-implemented".');
-        });
-      });
-    });    
+  static itForOrderItem(orderItemCriteria, state, stage, orderAccessor, name, cb) {
+    this.itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, name, cb, name, cb);
   }
 
+  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
+    orderItemCriteria.forEach((c, i) => {
+      it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
+        if (stage) stage.expectResponseReceived();
+
+        const feedOrderItem = state.orderItems[i];
+
+        expect(orderAccessor().orderedItem).to.be.an('array');
+
+        const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
+
+        const responseOrderItemErrorTypes = (responseOrderItem.error || []).map(x => x['@type']);
+
+        const cb = c.control ? controlCb : testCb;
+
+        cb(feedOrderItem, responseOrderItem, responseOrderItemErrorTypes);
+      });
+    });
+  }
 }
 
 module.exports = {

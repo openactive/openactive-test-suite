@@ -1,0 +1,10 @@
+{
+  "category": "notifications",
+  "identifier": "customer-notice-notifications",
+  "name": "Customer notice notifications",
+  "description": "Text notifications broadcast to all registered attendees of an opportunity",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#customer-notice-notifications",
+  "required": false,
+  "coverageStatus": "none"
+}

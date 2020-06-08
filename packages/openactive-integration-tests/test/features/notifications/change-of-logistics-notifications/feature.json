@@ -1,0 +1,11 @@
+{
+  "category": "notifications",
+  "identifier": "change-of-logistics-notifications",
+  "name": "Change of logistics notifications",
+  "description": "Notifications for when an opportunity's name, location, or start/end date/time are updated ",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#change-of-logistics-notifications",
+  "required": false,
+  "coverageStatus": "none",
+  "requiredCondition": "Required if logistics of event can change"
+}

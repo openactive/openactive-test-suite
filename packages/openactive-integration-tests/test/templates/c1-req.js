@@ -25,19 +25,19 @@ module.exports = data => {
       "@type": "Organization",
       "@id": `${data.sellerId}`
     },
-    orderedItem: [
-      {
+    orderedItem: data.orderItems.map((orderItem) => {
+      return {
         "@type": "OrderItem",
-        position: 0,
+        position: orderItem.position,
         acceptedOffer: {
           "@type": "Offer",
-          "@id": `${data.offerId}`
+          "@id": `${orderItem.acceptedOffer['@id']}`
         },
         orderedItem: {
-          "@type": `${data.opportunityType}`,
-          "@id": `${data.opportunityId}`
+          "@type": `${orderItem.orderedItem['@type']}`,
+          "@id": `${orderItem.orderedItem['@id']}`
         }
-      }
-    ]
+      };
+    })
   };
 };

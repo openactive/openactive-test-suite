@@ -1,0 +1,10 @@
+{
+  "category": "restrictions",
+  "identifier": "booking-restrictions",
+  "name": "Booking restrictions",
+  "description": "Support for genderRestriction, ageRestriction and additionalAdmissionRestriction",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#booking-restrictions",
+  "required": false,
+  "coverageStatus": "none"
+}
