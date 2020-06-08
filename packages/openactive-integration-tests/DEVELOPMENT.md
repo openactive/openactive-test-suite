@@ -41,6 +41,8 @@ For each feature, implement the following `feature.json`:
 }
 ```
 
+Check the [`test-interface-criteria`](../test-interface-criteria/) package includes any Criteria that are needed for a new test, and add any based on the [Test Interface specification](https://openactive.io/test-interface/) as necessary.
+
 In each test file within that feature, implement the following:
 
 ```jsx
