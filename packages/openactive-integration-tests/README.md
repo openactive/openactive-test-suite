@@ -18,9 +18,9 @@ See [Feature Test Coverage](./test/features/README.md) for full details.
 * Coverage for any feature outside of the most basic version of Simple Booking Flow (most features have [no test coverage](./test/features/README.md#no-test-coverage)).
 
 ## Model results
-The result of this test suite when run against the reference implementation can be found:
-- https://openactive.io/openactive-test-suite/random/summary
-- https://openactive.io/openactive-test-suite/controlled/summary
+The results of this test suite when run against the reference implementation can be found:
+- [Output when `"useRandomOpportunities": true`](https://openactive.io/openactive-test-suite/random/summary)
+- [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/controlled/summary)
 
 ## Usage
 1. `npm install`
