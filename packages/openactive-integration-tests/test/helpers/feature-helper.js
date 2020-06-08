@@ -72,11 +72,9 @@ class FeatureHelper {
       return;
     }
 
-    if (configuration.runOnlyIf !== undefined && !configuration.runOnlyIf) return;
-
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
-    if (implemented === configuration.testFeatureImplemented) {
+    if (!(configuration.runOnlyIf !== undefined && !configuration.runOnlyIf) && implemented === configuration.testFeatureImplemented) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {
           if (configuration.runOnce) {
