@@ -36,6 +36,8 @@ Please note the JSON within the dataset site must include the dataset site [Open
   },
 ```
 
+Note that the `endpointURL` is most important, and must refer to your local Open Booking API [Base URI](https://openactive.io/open-booking-api/EditorsDraft/#dfn-base-uri).
+
 ### `requestLogging`
 
 Makes the output in the terminal more verbose. Useful for debugging.
