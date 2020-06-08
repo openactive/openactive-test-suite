@@ -9,7 +9,9 @@
     "install": "lerna bootstrap",
     "lerna": "lerna",
     "prettier": "prettier --check \"packages/**/*.js\" \"packages/**/*.json\"",
-    "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\""
+    "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\"",
+    "start": "cd packages/openactive-broker-microservice && npm run start",
+    "test": "cd packages/openactive-integration-tests && npm run test"
   },
   "dependencies": {}
 }

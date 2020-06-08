@@ -8,6 +8,10 @@ This repository hosts two different projects:
 
 # Usage
 
+For more info, read the individual README.md within the package dirs:
+* [Broker mircoservice](./packages/openactive-broker-microservice/README.md)
+* [Integration tests](./packages/openactive-integration-tests/README.md)
+
 ## Configuration
 Before running, configure the test suite:
  - `packages/openactive-broker-microservice/config/default.json`
@@ -36,7 +40,6 @@ cd packages/openactive-integration-tests
 npm run test
 ```
 
-For more info, read the individual README.md within the package dirs.
 
 ## Continuous Integration
 
@@ -59,3 +62,4 @@ npm test --prefix packages/openactive-integration-tests
 # Kill broker microservice
 kill $pid
 ```
+

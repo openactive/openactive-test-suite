@@ -118,6 +118,8 @@ To read these files, the [Markdown Viewer Chrome Extension](https://chrome.googl
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for info on how the flow validations are written.
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for information on the various components and how they tie together.
+
 ### Debugging tests
 
 `npm run test --reporters default`
