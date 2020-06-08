@@ -3,20 +3,20 @@ const sharedValidationTests = require("./validation");
 
 class Common {
 
-  static itForOrderItem(orderItemCriteria, state, stage, responseAccessor, name, cb) {
-    this.itForOrderItemByControl(orderItemCriteria, state, stage, responseAccessor, name, cb, name, cb);
+  static itForOrderItem(orderItemCriteria, state, stage, orderAccessor, name, cb) {
+    this.itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, name, cb, name, cb);
   }
 
-  static itForOrderItemByControl(orderItemCriteria, state, stage, responseAccessor, testName, testCb, controlName, controlCb) {
+  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
     orderItemCriteria.forEach((c, i) => {
       it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
-        stage.expectResponseReceived();
+        if (stage) stage.expectResponseReceived();
 
         const feedOrderItem = state.orderItems[i];
 
-        expect(responseAccessor().body.orderedItem).to.be.an('array');
+        expect(orderAccessor().orderedItem).to.be.an('array');
 
-        const responseOrderItem = responseAccessor().body.orderedItem.find(x => x.position === feedOrderItem.position);
+        const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
 
         const responseOrderItemErrorTypes = (responseOrderItem.error || []).map(x => x['@type']);
 

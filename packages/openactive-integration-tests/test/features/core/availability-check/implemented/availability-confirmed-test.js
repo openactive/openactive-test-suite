@@ -40,7 +40,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   const shouldMatchOccupancy = (stage, responseAccessor) => {
-    Common.itForOrderItem(orderItemCriteria, state, stage, responseAccessor,
+    Common.itForOrderItem(orderItemCriteria, state, stage, () => responseAccessor().body,
       'availability should match open data feed',
       (feedOrderItem, responseOrderItem) => {
         chai.expect(responseOrderItem).to.nested.include({

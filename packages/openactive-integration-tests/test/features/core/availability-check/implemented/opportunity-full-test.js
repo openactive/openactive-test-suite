@@ -45,7 +45,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       expect(responseAccessor()).to.have.status(409);
     });
 
-    Common.itForOrderItemByControl(orderItemCriteria, state, stage, responseAccessor,
+    Common.itForOrderItemByControl(orderItemCriteria, state, stage, () => responseAccessor().body,
       'should include an OpportunityIsFullError',
       (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
         chai.expect(responseOrderItemErrorTypes).to.include('OpportunityIsFullError');

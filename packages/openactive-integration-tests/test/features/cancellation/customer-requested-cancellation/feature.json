@@ -1,0 +1,10 @@
+{
+  "category": "cancellation",
+  "identifier": "customer-requested-cancellation",
+  "name": "Customer Requested Cancellation",
+  "description": "Cancellation triggered by the Customer through the Broker",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation",
+  "required": false,
+  "coverageStatus": "partial"
+}

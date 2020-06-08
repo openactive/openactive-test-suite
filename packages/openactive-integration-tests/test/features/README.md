@@ -22,6 +22,7 @@ The tests for these features provide partial coverage but do not include all kno
 
 | Category | Feature | Specification | Description | Prerequisites |
 |----------|---------|---------------|-------------|-------------------|
+| cancellation | Customer Requested Cancellation ([customer-requested-cancellation](./cancellation/customer-requested-cancellation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation) | Cancellation triggered by the Customer through the Broker | [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1 |
 | payment | Simple Booking of paid opportunities ([simple-book-with-payment](./payment/simple-book-with-payment/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x4, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 

@@ -111,6 +111,9 @@ ${renderCriteriaRequired(f.criteriaRequirement)}
 }
 
 function renderFeatureReadme(f) {
+  const implementedTests = tests.filter(t => t.testFeature == f.identifier && t.testFeatureImplemented);
+  const notImplementedTests =  tests.filter(t => t.testFeature == f.identifier && !t.testFeatureImplemented);
+
   return `[< Return to Overview](../../README.md)
 # ${f.name} (${f.identifier})
 
@@ -124,13 +127,15 @@ Opportunities that match the following criteria must exist in the booking system
 
 `)}
 
+${f.coverageStatus !== 'none' ? `
 ### Running tests for only this feature
 
 ${'```'}bash
 npm test --runInBand -- test/features/${f.category}/${f.identifier}/
 ${'```'}
+` : '*Note the test coverage for this feature is currently non-existant. The test suite does not yet include non-stubbed tests for this feature.*'}
 
-
+${implementedTests.length > 0 ? `
 ## 'Implemented' tests
 
 Update \`test.json\` as follows to enable 'Implemented' testing for this feature:
@@ -146,8 +151,9 @@ ${f.required ? '\nNote this feature is required by the Open Booking API specific
 
 | Identifier | Name | Description | Prerequisites |
 |------------|------|-------------|---------------|
-${tests.filter(t => t.testFeature == f.identifier && t.testFeatureImplemented).map(t => renderFeatureTest(t)).join(``)}
+${implementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}
 
+${notImplementedTests.length > 0 ? `
 ## 'Not Implemented' tests
 
 Update \`test.json\` as follows to enable 'Not Implemented' testing for this feature:
@@ -163,7 +169,7 @@ ${f.required ? '\nNote this feature is required by the Open Booking API specific
 
 | Identifier | Name | Description | Prerequisites |
 |------------|------|-------------|---------------|
-${tests.filter(t => t.testFeature == f.identifier && !t.testFeatureImplemented).map(t => renderFeatureTest(t)).join(``)}`;
+${notImplementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}`;
 }
 
 function renderFeatureTest(t) {

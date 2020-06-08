@@ -8,42 +8,7 @@ https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-
 Coverage Status: **none**
 
 
-### Running tests for only this feature
-
-```bash
-npm test --runInBand -- test/features/payment/payment-reconciliation-detail-validation/
-```
+*Note the test coverage for this feature is currently non-existant. The test suite does not yet include non-stubbed tests for this feature.*
 
 
-## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
-
-```json
-"implementedFeatures": {
-  ...
-  "payment-reconciliation-detail-validation": true,
-  ...
-}
-```
-
-
-| Identifier | Name | Description | Prerequisites |
-|------------|------|-------------|---------------|
-
-
-## 'Not Implemented' tests
-
-Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
-
-```json
-"implementedFeatures": {
-  ...
-  "payment-reconciliation-detail-validation": false,
-  ...
-}
-```
-
-
-| Identifier | Name | Description | Prerequisites |
-|------------|------|-------------|---------------|

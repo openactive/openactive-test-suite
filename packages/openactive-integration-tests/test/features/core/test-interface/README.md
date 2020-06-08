@@ -11,11 +11,13 @@ Opportunities that match the following criteria must exist in the booking system
 
 [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
 
+
 ### Running tests for only this feature
 
 ```bash
 npm test --runInBand -- test/features/core/test-interface/
 ```
+
 
 
 ## 'Implemented' tests
@@ -36,18 +38,3 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 | [create-opportunity](./implemented/create-opportunity-test.js) | Create opportunity | Creates an opportunity using the booking system's test interface, and validates the resulting feed item matches the criteria. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
-## 'Not Implemented' tests
-
-Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
-
-```json
-"implementedFeatures": {
-  ...
-  "test-interface": false,
-  ...
-}
-```
-
-
-| Identifier | Name | Description | Prerequisites |
-|------------|------|-------------|---------------|

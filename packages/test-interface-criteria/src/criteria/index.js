@@ -4,6 +4,7 @@ module.exports = {
       require('./TestOpportunityBookableFree'),
       require('./TestOpportunityBookablePaid'),
       require('./TestOpportunityBookableNoSpaces'),
+      require('./TestOpportunityBookableCancellable'),
       require('./TestOpportunityNotBookableViaAvailableChannel'),
     ],
   };

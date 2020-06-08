@@ -11,11 +11,13 @@ Opportunities that match the following criteria must exist in the booking system
 
 [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x7, [TestOpportunityBookableNoSpaces](https://openactive.io/test-interface#TestOpportunityBookableNoSpaces) x3
 
+
 ### Running tests for only this feature
 
 ```bash
 npm test --runInBand -- test/features/core/availability-check/
 ```
+
 
 
 ## 'Implemented' tests
@@ -37,6 +39,7 @@ Note this feature is required by the Open Booking API specification, and so must
 | [availability-confirmed](./implemented/availability-confirmed-test.js) | Occupancy in C1 and C2 matches feed | Runs C1 and C2 for a known opportunity from the feed, and compares the results to those attained from the feed. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 | [conflicting-seller](./implemented/conflicting-seller-test.js) | SellerMismatchError for inconsistent Sellers of OrderItems | Runs C1, C2 and B where Sellers of OrderItems do not match and check SellerMismatchError is returned in all cases. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2 |
 | [opportunity-full](./implemented/opportunity-full-test.js) | OpportunityIsFullError returned for full OrderItems | An availability check against a session filled to capacity. As no more capacity is available it is no-longer possible to obtain quotes. | [TestOpportunityBookableNoSpaces](https://openactive.io/test-interface#TestOpportunityBookableNoSpaces) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+
 
 
 ## 'Not Implemented' tests

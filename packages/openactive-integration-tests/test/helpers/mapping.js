@@ -2,6 +2,7 @@
 const names = {
   "core": "Core",
   "payment": "Payment",
+  "cancellation": "Cancellation",
 }
 
 const fg = require('fast-glob');
