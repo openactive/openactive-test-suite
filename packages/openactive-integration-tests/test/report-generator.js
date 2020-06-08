@@ -5,6 +5,8 @@ const fs = require("fs").promises;
 const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
+const config = require("config");
+const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 
 class BaseReportGenerator {
   get templateName () {
@@ -214,6 +216,10 @@ class SummaryReportGenerator extends BaseReportGenerator {
 
   get opportunityTypeGroups () {
     return this.loggers.opportunityTypeGroups;
+  }
+
+  get useRandomOpportunitiesMode() {
+    return USE_RANDOM_OPPORTUNITIES ? 'Random' : 'Controlled';
   }
 }
 

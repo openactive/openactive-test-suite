@@ -13,6 +13,7 @@
     "OnDemandEvent": false
   },
   "implementedFeatures": {
+    "test-interface": true,
     "opportunity-feed": true,
     "dataset-site": true,
     "availability-check": true,
