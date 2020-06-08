@@ -1,0 +1,10 @@
+{
+  "category": "tax",
+  "identifier": "business-to-business-tax-calculation-net",
+  "name": "Business-to-business Tax Calculation (TaxNet)",
+  "description": "Tax calculation when the customer is of type Organization (business-to-business), when the seller has taxMode TaxNet",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-business-tax-calculation-by-booking-system-is-optional",
+  "required": false,
+  "coverageStatus": "none"
+}

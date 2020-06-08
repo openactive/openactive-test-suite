@@ -12,7 +12,7 @@ const { expect } = chakram;
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
-  testFeature: 'availability-check',
+  testFeature: 'multiple-sellers',
   testFeatureImplemented: true,
   testIdentifier: 'conflicting-seller',
   testName: 'SellerMismatchError for inconsistent Sellers of OrderItems',

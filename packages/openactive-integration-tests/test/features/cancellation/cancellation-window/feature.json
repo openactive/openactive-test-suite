@@ -1,0 +1,10 @@
+{
+  "category": "cancellation",
+  "identifier": "cancellation-window",
+  "name": "latestCancellationBeforeStartDate cancellation window",
+  "description": "A defined window before the event occurs where it can be cancelled without fees",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation",
+  "required": false,
+  "coverageStatus": "none"
+}

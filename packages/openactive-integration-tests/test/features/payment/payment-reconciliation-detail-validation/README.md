@@ -3,6 +3,7 @@
 
 Booking with valid, invalid, and missing Payment details
 
+
 https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-detail-validation
 
 Coverage Status: **none**

@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "agent-broker",
+  "name": "AgentBroker mode",
+  "description": "Support for AgentBroker mode",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#agentbroker",
+  "required": true,
+  "coverageStatus": "none"
+}

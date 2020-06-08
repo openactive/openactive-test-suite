@@ -1,0 +1,10 @@
+{
+  "category": "access",
+  "identifier": "access-pass-image",
+  "name": "accessPass - Seller provided access control images ",
+  "description": "Support for accessPass provided by the Seller, in the form of an image",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#image-based-access-control",
+  "required": false,
+  "coverageStatus": "none"
+}

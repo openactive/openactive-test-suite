@@ -1,0 +1,16 @@
+{
+  "category": "cancellation",
+  "identifier": "seller-requested-cancellation",
+  "name": "Seller Requested Cancellation",
+  "description": "Cancellation triggered by the Seller through the Booking System",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#seller-requested-cancellation",
+  "required": false,
+  "coverageStatus": "none",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-6-orders-feed"
+    }
+  ]
+}

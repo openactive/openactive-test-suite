@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "multiple-sellers",
+  "name": "Multiple Sellers",
+  "description": "The booking system is multi-tenanted and provides services to multiple sellers.",
+  "explainer": "It is not possible for Opportunities from different Sellers to be combined in the same Order.",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#booking-pre-conditions",
+  "required": false,
+  "coverageStatus": "partial"
+}

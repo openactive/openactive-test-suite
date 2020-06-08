@@ -27,6 +27,8 @@ var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDir
   return require(`${rootDirectory}${file}`);
 });
 
+featureMetadata = featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
+
 // Build summary of criteria required
 featureMetadata.forEach(f => {
   const criteriaRequirement = new Map();
@@ -118,10 +120,11 @@ function renderFeatureReadme(f) {
 # ${f.name} (${f.identifier})
 
 ${f.description}
+${f.explainer ? '\n' + f.explainer : ''}${f.requiredCondition ? '\n' + f.requiredCondition : ''}
 
 ${f.specificationReference}
 
-Coverage Status: **${f.coverageStatus}**
+Coverage Status: **${f.coverageStatus}**${f.links ? '\n\nSee also: ' + f.links.map(l => `[${l.name}](${l.href})`).join(', ') : ''}
 ${renderCriteriaRequired(f.criteriaRequirement, `### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system for the configured primary Seller in order to use \`useRandomOpportunities: true\`. Alternatively the following \`testOpportunityCriteria\` values can be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for \`useRandomOpportunities: false\`.
 

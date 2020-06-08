@@ -3,6 +3,7 @@
   "identifier": "payment-reconciliation-detail-validation",
   "name": "Payment reconciliation detail validation",
   "description": "Booking with valid, invalid, and missing Payment details",
+  "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-detail-validation",
   "required": false,
   "coverageStatus": "none"

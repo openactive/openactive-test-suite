@@ -1,0 +1,16 @@
+{
+  "category": "core",
+  "identifier": "simple-book-free-opportunities",
+  "name": "Simple Booking of free opportunities",
+  "description": "The most simple form of booking, for free opportunities. Does not check for leases.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#free-opportunities",
+  "required": true,
+  "coverageStatus": "partial",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order"
+    }
+  ]
+}

@@ -3,9 +3,12 @@
 
 Discoverable open data
 
+
 https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints
 
 Coverage Status: **complete**
+
+See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-2-open-data-feeds)
 
 
 

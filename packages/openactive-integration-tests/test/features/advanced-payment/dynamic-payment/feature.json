@@ -1,0 +1,10 @@
+{
+  "category": "advanced-payment",
+  "identifier": "dynamic-payment",
+  "name": "DynamicPayment",
+  "description": "Support for fully dynamic pricing, where price is not known at the point of purchase",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#dynamicpayment",
+  "required": false,
+  "coverageStatus": "none"
+}

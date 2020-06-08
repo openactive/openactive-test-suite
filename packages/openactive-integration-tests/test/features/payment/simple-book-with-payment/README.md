@@ -1,11 +1,14 @@
 [< Return to Overview](../../README.md)
 # Simple Booking of paid opportunities (simple-book-with-payment)
 
-Open Booking API Test Interface implementation
+The most simple form of booking with payment. Does not check for leases.
 
-https://openactive.io/test-interface/
+
+https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description
 
 Coverage Status: **partial**
+
+See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order)
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values can be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 

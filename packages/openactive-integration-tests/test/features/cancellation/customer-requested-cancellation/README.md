@@ -3,9 +3,12 @@
 
 Cancellation triggered by the Customer through the Broker
 
+
 https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation
 
 Coverage Status: **partial**
+
+See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-7-cancellation)
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values can be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 

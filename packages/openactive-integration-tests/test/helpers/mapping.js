@@ -2,7 +2,18 @@
 const names = {
   "core": "Core",
   "payment": "Payment",
+  "restriction": "Restriction",
   "cancellation": "Cancellation",
+  "leasing": "Leasing",
+  "details-capture": "Details Capture",
+  "access": "Access",
+  "broker-role": "Broker Role",
+  "tax": "Tax",
+  "advanced-payment": "Advanced Payment",
+  "restrictions": "Restrictions",
+  "notifications": "Notifications",
+  "terms": "Terms",
+  "authentication": "Authentication",
 }
 
 const fg = require('fast-glob');
