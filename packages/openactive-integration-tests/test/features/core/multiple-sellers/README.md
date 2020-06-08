@@ -34,7 +34,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 }
 ```
 
-
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [conflicting-seller](./implemented/conflicting-seller-test.js) | SellerMismatchError for inconsistent Sellers of OrderItems | Runs C1, C2 and B where Sellers of OrderItems do not match and check SellerMismatchError is returned in all cases. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2 |

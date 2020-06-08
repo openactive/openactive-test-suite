@@ -48,6 +48,9 @@ When `waitForHarvestCompletion` is set to `true` in `default.json`, the `openact
 This is useful for running both packages within a continuous integration environment, as shown below:
 
 ```bash
+#!/bin/bash
+set -e # exit with nonzero exit code if anything fails
+
 # Install dependencies
 npm install --prefix packages/openactive-broker-microservice
 npm install --prefix packages/openactive-integration-tests

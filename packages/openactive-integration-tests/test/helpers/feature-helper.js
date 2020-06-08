@@ -140,6 +140,9 @@ class FeatureHelper {
           }
         });
       });
+    } else {
+      // Jest will fail if no tests are included in a test suite, so this todo keeps it happy
+      test.todo('');
     }
   }
 

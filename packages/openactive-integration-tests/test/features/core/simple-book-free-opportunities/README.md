@@ -25,7 +25,7 @@ npm test --runInBand -- test/features/core/simple-book-free-opportunities/
 
 ## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
+This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:
 
 ```json
 "implementedFeatures": {
@@ -35,8 +35,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 }
 ```
 
-Note this feature is required by the Open Booking API specification, and so must always be set to `true`.
-
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [without-payment-property](./implemented/without-payment-property-test.js) | Successful booking without payment property | A successful end to end booking without the `payment` property included. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
@@ -45,17 +43,6 @@ Note this feature is required by the Open Booking API specification, and so must
 
 ## 'Not Implemented' tests
 
-Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
-
-```json
-"implementedFeatures": {
-  ...
-  "simple-book-free-opportunities": false,
-  ...
-}
-```
-
-Note this feature is required by the Open Booking API specification, and so must always be set to `true`.
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|

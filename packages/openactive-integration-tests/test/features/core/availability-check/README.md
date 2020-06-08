@@ -25,7 +25,7 @@ npm test --runInBand -- test/features/core/availability-check/
 
 ## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
+This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:
 
 ```json
 "implementedFeatures": {
@@ -34,8 +34,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
   ...
 }
 ```
-
-Note this feature is required by the Open Booking API specification, and so must always be set to `true`.
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
@@ -46,17 +44,6 @@ Note this feature is required by the Open Booking API specification, and so must
 
 ## 'Not Implemented' tests
 
-Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
-
-```json
-"implementedFeatures": {
-  ...
-  "availability-check": false,
-  ...
-}
-```
-
-Note this feature is required by the Open Booking API specification, and so must always be set to `true`.
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|

@@ -29,6 +29,9 @@ class Reporter {
   }
 
   async onTestResult(test, testResult, aggregatedResults) {
+    // Workaround to skip reporting of empty todo tests, to handle implemented/not-implemented test.todo('') in feature-helper.js
+    if (Array.isArray(testResult.testResults) && testResult.testResults.length === 1 && testResult.testResults[0].fullName === '' && testResult.testResults[0].status === 'todo') return;
+
     try {
       let testResults = testResult.testResults;
 

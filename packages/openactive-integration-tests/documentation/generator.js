@@ -141,7 +141,9 @@ ${'```'}
 ${implementedTests.length > 0 ? `
 ## 'Implemented' tests
 
-Update \`test.json\` as follows to enable 'Implemented' testing for this feature:
+${f.required ? 
+  "This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:" :
+  "Update `test.json` as follows to enable 'Implemented' testing for this feature:"}
 
 ${'```'}json
 "implementedFeatures": {
@@ -150,7 +152,6 @@ ${'```'}json
   ...
 }
 ${'```'}
-${f.required ? '\nNote this feature is required by the Open Booking API specification, and so must always be set to `true`.' : ''}
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
@@ -159,6 +160,7 @@ ${implementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}
 ${notImplementedTests.length > 0 ? `
 ## 'Not Implemented' tests
 
+${!f.required ? `
 Update \`test.json\` as follows to enable 'Not Implemented' testing for this feature:
 
 ${'```'}json
@@ -168,8 +170,7 @@ ${'```'}json
   ...
 }
 ${'```'}
-${f.required ? '\nNote this feature is required by the Open Booking API specification, and so must always be set to `true`.' : ''}
-
+` : ''}
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 ${notImplementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}`;

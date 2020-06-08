@@ -33,7 +33,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 }
 ```
 
-
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [create-opportunity](./implemented/create-opportunity-test.js) | Create opportunity | Creates an opportunity using the booking system's test interface, and validates the resulting feed item matches the criteria. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |

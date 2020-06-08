@@ -22,7 +22,7 @@ npm test --runInBand -- test/features/core/dataset-site/
 
 ## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
+This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:
 
 ```json
 "implementedFeatures": {
@@ -32,8 +32,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 }
 ```
 
-Note this feature is required by the Open Booking API specification, and so must always be set to `true`.
-
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [dataset-site-jsonld-valid](./implemented/dataset-site-jsonld-valid-test.js) | Dataset Site JSON-LD valid | Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice. |  |
@@ -42,17 +40,6 @@ Note this feature is required by the Open Booking API specification, and so must
 
 ## 'Not Implemented' tests
 
-Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
-
-```json
-"implementedFeatures": {
-  ...
-  "dataset-site": false,
-  ...
-}
-```
-
-Note this feature is required by the Open Booking API specification, and so must always be set to `true`.
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|

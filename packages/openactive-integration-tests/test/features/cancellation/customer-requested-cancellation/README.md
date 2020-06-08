@@ -35,7 +35,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 }
 ```
 
-
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [book-and-cancel](./implemented/book-and-cancel-test.js) | Successful booking and cancellation. | A successful end to end booking including cancellation, including checking the Orders Feed. | [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1 |

@@ -35,7 +35,6 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 }
 ```
 
-
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [with-payment-property](./implemented/with-payment-property-test.js) | Successful booking with payment property | A successful end to end booking with the `payment` property included. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
@@ -43,6 +42,7 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 
 
 ## 'Not Implemented' tests
+
 
 Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
 
@@ -53,7 +53,6 @@ Update `test.json` as follows to enable 'Not Implemented' testing for this featu
   ...
 }
 ```
-
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
