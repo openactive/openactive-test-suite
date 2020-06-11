@@ -24,7 +24,8 @@ The results of this test suite when run against the reference implementation can
 
 ## Usage
 1. `npm install`
-2. `npm run test`
+2. Ensure the [openactive-broker-microservice](./openactive-broker-microservice/) is running
+3. `npm run test`
 
 ### Running specific tests
 
