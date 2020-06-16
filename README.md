@@ -24,11 +24,13 @@ Before running, configure the test suite:
  
 This will install the dependencies needed for both packages.
 
+For developers that are customising the installation, for use in e.g. Docker, the directory `./packages/test-interface-criteria` is a dependency, and so must be present during `npm install`.
+
 ## Running
 
-The broker is a pre-requisite to running the test suite.
+The broker mircoservice must be running before the test suite is run.
 
-### Broker
+### Broker microservice
 ```bash
 cd packages/openactive-broker-microservice
 npm run start
