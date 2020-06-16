@@ -3,7 +3,7 @@
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
 This repository hosts two different projects:
-* [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target site. This allows the test suite to watch for changes, and throws them back to it.
+* [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the test suite to watch for changes, and throws them back to it.
 * [Integration tests](./packages/openactive-integration-tests): this performs automated tests against the API
 
 # Usage
