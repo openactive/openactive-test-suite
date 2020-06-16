@@ -58,7 +58,7 @@ cd publish
 # files present with the commit message "Deploy to GitHub Pages".
 echo 'Committing files to Git...'
 git add .
-git commit -m "Deploy to GitHub Pages - Static"
+git commit -m "Deploy to GitHub Pages - Static [ci skip]"
 
 # Force push from the current repo's master branch to the remote
 # repo's gh-pages branch. (All previous history on the gh-pages branch
