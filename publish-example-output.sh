@@ -62,10 +62,13 @@ git commit -m "Deploy to GitHub Pages - Static"
 
 # Force push from the current repo's master branch to the remote
 # repo's gh-pages branch. (All previous history on the gh-pages branch
-# will be lost, since we are overwriting it.) We redirect any output to
+# will be lost, since we are overwriting it.) We should also redirect any output to
 # /dev/null to hide any sensitive credential data that might otherwise be exposed.
-# FIXME should be authorised via key
-echo 'Pushing to gh-pages...'
-test $TRAVIS_BRANCH = "master" && git push --force "https://${GH_TOKEN}@${GH_REF}" master:gh-pages
+if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
+  echo 'Pushing to gh-pages...';
+  git push --force "https://${GH_TOKEN}@${GH_REF}" master:gh-pages;
+else
+  echo 'No push to gh-pages as not a direct commit to master';
+fi
 
 cd ..
