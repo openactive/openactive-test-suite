@@ -1,0 +1,11 @@
+{
+  "name": "@openactive/test-interface-criteria",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "description": "OpenActive Test Interface Criteria",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "OpenActive Community <hello@openactive.io>",
+  "license": "MIT"
+}

@@ -1,5 +1,6 @@
 const assert = require("assert");
 const { validate } = require("@openactive/data-model-validator");
+const { criteriaMap } = require("@openactive/test-interface-criteria");
 
 function priorityOfSeverity(severity) {
   switch (severity) {
@@ -14,8 +15,29 @@ function priorityOfSeverity(severity) {
   }
 }
 
-function shouldBeValidResponse(getter, name, logger, options = {}) {
+function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCriteria) {
   let results = null;
+
+  let doCriteriaMatch = (criteriaName) => {
+      let response = getter();
+  
+      if (!response) {
+        throw new Error('No response to match against criteria');
+      }
+  
+      let body = response.body.data;
+  
+      if (!criteriaMap.has(criteriaName)) {
+        throw new Error(`Criteria '${criteriaName}' not supported by the @openactive/test-interface-criteria library`);
+      }
+
+      let { matchesCriteria, unmetCriteriaDetails } = criteriaMap.get(criteriaName).testMatch(body);
+  
+      if (!matchesCriteria) {
+        throw new Error(`Does not match criteria https://openactive.io/test-interface#${criteriaName}: ${unmetCriteriaDetails.join(', ')}`);
+      }
+  }
+
   let doValidate = async () => {
     if (results) return results;
 
@@ -78,6 +100,12 @@ function shouldBeValidResponse(getter, name, logger, options = {}) {
         throw new Error(errors.join("\n"));
       }
     });
+
+    if (opportunityCriteria) {
+      it(`matches the criteria '${opportunityCriteria}' required for this test`, async function() {
+        doCriteriaMatch(opportunityCriteria);
+      });
+    }
   });
 }
 

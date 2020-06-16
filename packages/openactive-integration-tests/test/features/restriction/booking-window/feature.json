@@ -1,0 +1,10 @@
+{
+  "category": "restriction",
+  "identifier": "booking-window",
+  "name": "validFromBeforeStartDate booking window",
+  "description": "Duration of window before an opportunity where it is bookable",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair",
+  "required": false,
+  "coverageStatus": "none"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "details-capture",
+  "identifier": "customer-details-capture-non-essential",
+  "name": "Customer Details non-essential capture",
+  "description": "Support for capturing forename, surname, and telephone number from the Customer. Note these fields cannot be mandatory.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#customer-details-capture",
+  "required": false,
+  "coverageStatus": "none"
+}

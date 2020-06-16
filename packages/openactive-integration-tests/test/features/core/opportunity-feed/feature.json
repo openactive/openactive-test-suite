@@ -1,0 +1,16 @@
+{
+  "category": "core",
+  "identifier": "opportunity-feed",
+  "name": "RPDE Opportunity Feed",
+  "description": "Real-time opportunity data",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair",
+  "required": true,
+  "coverageStatus": "none",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-2-open-data-feeds"
+    }
+  ]
+}

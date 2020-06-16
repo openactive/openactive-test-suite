@@ -137,6 +137,10 @@ class BaseLogger {
     if (this.config && this.config.testFeature) return this.config.testFeature;
   }
 
+  get testIdentifier() {
+    if (this.config && this.config.testIdentifier) return this.config.testIdentifier;
+  }
+
   get testName() {
     if (this.config && this.config.testName) return this.config.testName;
   }
@@ -153,11 +157,7 @@ class BaseLogger {
   }
 
   get suiteName() {
-    return mapping.lookup([
-      this.testCategory,
-      this.testFeature,
-      this.testName
-    ].join("|"));
+    return this.testName;
   }
 
   get metaPath () {

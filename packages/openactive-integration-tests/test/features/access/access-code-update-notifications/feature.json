@@ -1,0 +1,11 @@
+{
+  "category": "access",
+  "identifier": "access-code-update-notifications",
+  "name": "accessCode update notifications",
+  "description": "Updating accessCode after an opportunity is booked",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#other-notifications",
+  "required": false,
+  "coverageStatus": "none",
+  "requiredCondition": "Required if accessCode can change"
+}

@@ -1,70 +1,106 @@
 # Development
 
-## Stack
- - [Jest](https://jestjs.io/) - testing framework
- - [Chakram](http://dareid.github.io/chakram/) - a REST API testing framework, designed for Mocha (although differences are subtle enough to work for Jest also)
- 
+## Architecture
+
+The testing architecture is documented in [ARCHITECTURE.md](./architecture.md). This is fairly in depth so is only necessary if making changes to the core testing framework.
+
 ## Structure
- /[overall flow]/[situation]/[variation]-test.js
- 
-i.e. /book_cancel/success/free-test.js 
+
+Tests are namespaced by Category, Integration Test, Feature and finally implemented/non-implemented.
+
+i.e. `features/payment/simple-book-with-payment/implemented/with-payment-property-test.js`
+
+## Implemented / non-implemented
+
+Implemented and non-implemented tests are the test modes, these are configured within the test suite by the user and this defines whether their implementation implements a feature or not. Some features are purely optional, in this case these may simply have tests to simply ensure that the service is not advertising as supporting a feature.
+
+## FeatureHelper
+
+This is a class that abstracts away much of the above. This implements the `describe` blocks, initiates the state tracker, flow and logger. This allows describing the current test, along with the criteria required for it.
 
 ## Approach
 
-The setup is a little unusual here. The test suites are flow orientated, this is to test a single flow from end to end and no other variations will be performed in this. The main goal is to execute this flow end to end, and then have many assertations about various aspects of the responses.
+For each feature, implement the following `feature.json`:
 
-This would be rather wasteful to have it execute within each test, but there is also the risk that this may fail to fully run to the end (which prevents using a beforeAll here).
+```json
+{
+  "category": "payment",
+  "identifier": "simple-book-with-payment",
+  "name": "Simple Booking of paid opportunities",
+  "description": "The most simple form of booking with payment. Does not check for leases.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description",
+  "required": false,
+  "coverageStatus": "partial",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order"
+    }
+  ]
+}
+```
 
-The approach that has been taken is utilising memoized promises to execute the necessary part of the flow, and if necessary everything before that.
+Check the [`test-interface-criteria`](../test-interface-criteria/) package includes any Criteria that are needed for a new test, and add any based on the [Test Interface specification](https://openactive.io/test-interface/) as necessary.
 
-i.e. 
-```javascript
-  const performC1 = pMemoize(async function performC1() {
-    await performGetMatch();
 
-    ({ c1Response, totalPaymentDue } = await testHelper.putOrderQuoteTemplate(
-      uuid,
-      {
-        opportunityId,
-        offerId,
-        sellerId,
-        uuid
-      }
-    ));
+In each test file within that feature, implement the following:
+
+```jsx
+* eslint-disable no-unused-vars */
+const chakram = require('chakram');
+const { RequestState } = require('../../../../helpers/request-state');
+const { FlowHelper } = require('../../../../helpers/flow-helper');
+const { FeatureHelper } = require('../../../../helpers/feature-helper');
+const sharedValidationTests = require('../../../../shared-behaviours/validation');
+const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+
+const { expect } = chakram;
+/* eslint-enable no-unused-vars */
+
+FeatureHelper.describeFeature(module, {
+  testCategory: 'payment',
+  testFeature: 'simple-book-with-payment',
+  testFeatureImplemented: true,
+  testIdentifier: 'with-payment-property',
+  testName: 'Successful booking with payment property',
+  testDescription: 'A successful end to end booking with the `payment` property included.',
+  // The primary opportunity criteria to use for the primary OrderItem under test
+  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  // The secondary opportunity criteria to use for multiple OrderItem tests
+  controlOpportunityCriteria: 'TestOpportunityBookable',
+},
+function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+  beforeAll(async function () {
+    await state.fetchOpportunities(orderItemCriteria);
+
+    return chakram.wait();
   });
 
-  const performC2 = pMemoize(async function performC2() {
-    await performC1();
-
-    ({ c2Response, totalPaymentDue } = await testHelper.putOrderQuote(uuid, {
-      opportunityId,
-      offerId,
-      sellerId,
-      uuid
-    }));
+  afterAll(async function () {
+    await state.deleteOrder();
+    return chakram.wait();
   });
 ```
 
-These can then be utilised by individual tests as follows:
+For each phase of the test, implement a describe block, i.e.
 
-```javascript
-  describe("C1", function() {
-    beforeAll(async function() {
-      await performC1();
-    });
+```jsx
+describe('C1', function () {
+    const c1 = (new C1({
+      state, flow, logger,
+    }))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
 
-    it("should return 200 on success", async function() {
-      expect(c1Response).to.have.status(200);
-    });
-  });
+    it('availability should match open data feed', () => {
+      c1.expectSuccessful();
 
-  describe("C2", function() {
-    beforeAll(async function() {
-      await performC2();
-    });
-
-    it("should return 200 on success", async function() {
-      expect(c2Response).to.have.status(200);
+      expect(state.c1Response).to.have.json(
+        'orderedItem[0].orderedItem.remainingAttendeeCapacity',
+        state.apiResponse.body.data.remainingAttendeeCapacity,
+      );
     });
   });
 ```

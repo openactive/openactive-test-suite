@@ -32,20 +32,20 @@ module.exports = data => {
       givenName: "Geoff",
       familyName: "Capes"
     },
-    orderedItem: [
-      {
+    orderedItem: data.orderItems.map((orderItem) => {
+      return {
         "@type": "OrderItem",
-        position: 0,
+        position: orderItem.position,
         acceptedOffer: {
           "@type": "Offer",
-          "@id": `${data.offerId}`
+          "@id": `${orderItem.acceptedOffer['@id']}`
         },
         orderedItem: {
-          "@type": `${data.opportunityType}`,
-          "@id": `${data.opportunityId}`
+          "@type": `${orderItem.orderedItem['@type']}`,
+          "@id": `${orderItem.orderedItem['@id']}`
         }
-      }
-    ],
+      };
+    }),
     totalPaymentDue: {
       "@type": "PriceSpecification",
       price: data.totalPaymentDue,

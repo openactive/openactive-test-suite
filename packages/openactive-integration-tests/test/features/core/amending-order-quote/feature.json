@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "amending-order-quote",
+  "name": "Amending the OrderQuote before B",
+  "description": "Allows the basket to be updated for a particular order",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#amending-the-orderquote-before-b",
+  "required": true,
+  "coverageStatus": "none"
+}

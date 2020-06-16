@@ -1,0 +1,10 @@
+{
+  "category": "broker-role",
+  "identifier": "reseller-broker",
+  "name": "ResellerBroker mode",
+  "description": "Support for ResellerBroker mode",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#resellerbroker",
+  "required": false,
+  "coverageStatus": "none"
+}

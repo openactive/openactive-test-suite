@@ -5,13 +5,15 @@ const axios = require("axios");
 const nSQL = require("@nano-sql/core").nSQL;
 const moment = require("moment");
 const config = require("config");
-const criteria = require("./criteria").criteria.map(x => new x());
+const criteria = require("@openactive/test-interface-criteria").criteria;
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 
 var PORT = 3000;
 var DATASET_SITE_URL = config.get("datasetSiteUrl");
 var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
+var WAIT_FOR_HARVEST = config.get("waitForHarvestCompletion");
+var ORDERS_FEED_REQUEST_HEADERS = config.get("ordersFeedRequestHeaders");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env["PORT"] = 3000;
@@ -45,8 +47,9 @@ criteria.map(criteria => criteria.name).forEach(criteriaName => {
     'HeadlineEvent',
     'Event',
     'HeadlineEventSubEvent',
-    'CourseInstanceSubEvent'
-  ].forEach(x => typeBucket.set(x, new Set()));
+    'CourseInstanceSubEvent',
+    'OnDemandEvent'
+  ].forEach(x => typeBucket.set(x, new Map()));
   matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
 });
 
@@ -62,17 +65,14 @@ function getAllDatasets() {
   return new Set(Array.from(testDatasets.values()).flatMap(x => Array.from(x.values())));
 }
 
-function getRPDE(url, cb) {
-  var headers = {
-    Accept:
-      "application/json, application/vnd.openactive.booking+json; version=1",
-    "Cache-Control": "max-age=0",
-    "X-OpenActive-Test-Client-Id": "test"
-  };
+function getRPDE(url, headers, cb) {
   var options = {
     url: url,
     method: "get",
-    headers: headers
+    headers: Object.assign({}, {
+      Accept: "application/json, application/vnd.openactive.booking+json; version=1",
+      "Cache-Control": "max-age=0"
+    }, headers)
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
@@ -92,22 +92,27 @@ function getRPDE(url, cb) {
       }
 
       if (json.next == url && json.items.length == 0) {
-        console.log(`Sleep mode poll for RPDE feed "${url}"`);
-        setTimeout(x => getRPDE(url, cb), 500);
+        if (WAIT_FOR_HARVEST) {
+          feedUpToDate(url);
+        } else {
+          console.log(`Sleep mode poll for RPDE feed "${url}"`);
+        }
+        setTimeout(x => getRPDE(url, headers, cb), 500);
       } else {
-        cb(json);
+        cb(json, headers);
       }
     } else if (!response) {
       console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, cb), 5000);
+      setTimeout(x => getRPDE(url, headers, cb), 5000);
     } else if (response.statusCode === 404) {
+      if (WAIT_FOR_HARVEST) feedUpToDate(url);
       console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
       // Stop polling feed
     } else {
       console.log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, cb), 5000);
+      setTimeout(x => getRPDE(url, headers, cb), 5000);
     }
   });
 }
@@ -120,14 +125,16 @@ function getBaseUrl(url) {
   }
 }
 
-function getRandomBookableOpportunity(opportunityType, criteriaName, testDatasetIdentifier) {
+function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier) {
   var criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
   if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
   var bucket = criteriaBucket.get(opportunityType);
   if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+  var sellerCompartment = bucket.get(sellerId);
+  if (!sellerCompartment) return { sellers: Array.from(bucket.keys()) }; // Seller has no items
   
   var testDatasets = getAllDatasets();
-  var unusedBucketItems = Array.from(bucket).filter(x => !testDatasets.has(x));
+  var unusedBucketItems = Array.from(sellerCompartment).filter(x => !testDatasets.has(x));
   
   if (unusedBucketItems.length == 0) return null;
 
@@ -136,11 +143,13 @@ function getRandomBookableOpportunity(opportunityType, criteriaName, testDataset
   // Add the item to the testDataset to ensure it does not get reused
   getTestDataset(testDatasetIdentifier).add(id);
 
-  return { 
-    "@context": "https://openactive.io/",
-    "@type": getTypeFromOpportunityType(opportunityType),
-    "@id": id
-  }
+  return {
+    opportunity: { 
+      "@context": "https://openactive.io/",
+      "@type": getTypeFromOpportunityType(opportunityType),
+      "@id": id
+    }
+  };
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
@@ -168,8 +177,36 @@ var responses = {
   /* Keyed by expression =*/
 };
 
+const healthCheckResponsesWaitingForHarvest = [];
+const incompleteFeeds = [];
+
+function addFeed(feedUrl) {
+  incompleteFeeds.push(feedUrl);
+}
+
+function feedUpToDate(feedNextUrl) {
+  const queryStringIndex = feedNextUrl.indexOf('?');
+  const feedUrl = queryStringIndex > -1 ? feedNextUrl.substring(0, queryStringIndex) : feedNextUrl;
+  const index = incompleteFeeds.indexOf(feedUrl);
+  if (index > -1) {
+    // Remove the feed from the list
+    incompleteFeeds.splice(index, 1);
+
+    // If the list is now empty, trigger responses to healthcheck
+    if (incompleteFeeds.length === 0) {
+      healthCheckResponsesWaitingForHarvest.forEach(res => res.send("openactive-broker"));
+    }  
+  }
+}
+
 app.get("/health-check", function(req, res) {
-  res.send("openactive-broker");
+  // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
+  // to ensure that the tests will not run until the feeds have been fully consumed
+  if (!WAIT_FOR_HARVEST || incompleteFeeds.length === 0) {
+    res.send("openactive-broker");
+  } else {
+    healthCheckResponsesWaitingForHarvest.push(res);
+  }
 });
 
 app.get("/dataset-site", function(req, res) {
@@ -192,8 +229,10 @@ function getMatch(req, res, useCache) {
       console.log("listening for " + id);
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (responses[id] && responses[id] !== null)
+      if (responses[id] && responses[id] !== null) {
+        console.log("ignoring previous request for " + id);
         responses[id].end();
+      }
       responses[id] = {
         send: function(json) {
           responses[id] = null;
@@ -229,11 +268,19 @@ function getTypeFromOpportunityType(opportunityType) {
     'HeadlineEvent': 'HeadlineEvent',
     'Event': 'Event',
     'HeadlineEventSubEvent': 'Event',
-    'CourseInstanceSubEvent': 'Event'
+    'CourseInstanceSubEvent': 'Event',
+    'OnDemandEvent': 'OnDemandEvent'
   };
   return mapping[opportunityType];
 }
 
+function detectSellerId(opportunity) {
+  const organizer = opportunity.organizer || 
+    (opportunity.superEvent && opportunity.superEvent.organizer) ||
+    (opportunity.facilityUse && opportunity.facilityUse.provider);
+
+  return organizer['@id'] || organizer['id']; 
+}
 
 function detectOpportunityType(opportunity) {
   switch (opportunity['@type'] || opportunity['type']) {
@@ -262,6 +309,8 @@ function detectOpportunityType(opportunity) {
       return 'CourseInstance';
     case 'HeadlineEvent':
       return 'HeadlineEvent';
+    case 'OnDemandEvent':
+      return 'OnDemandEvent';
     case 'Event':
       switch (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent['type'])) {
         case 'HeadlineEvent':
@@ -286,16 +335,17 @@ app.post("/test-interface/datasets/:testDatasetIdentifier/opportunities", functi
 
   var opportunity = req.body;
   var opportunityType = detectOpportunityType(opportunity);
+  var sellerId = detectSellerId(opportunity);
   var criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
 
-  var randomOpportunity = getRandomBookableOpportunity(opportunityType, criteriaName, testDatasetIdentifier);
-  if (randomOpportunity) {
-    console.log(`Random Bookable Opportunity for ${criteriaName} (${randomOpportunity['@type']}): ${randomOpportunity['@id']}`);
-    res.json(randomOpportunity);
+  var result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
+  if (result && result.opportunity) {
+    console.log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    res.json(result.opportunity);
     res.end();
   } else {
-    console.error(`Random Bookable Opportunity for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
-    res.status(404).send(`Opportunity Type "${opportunityType}" Not found`);
+    console.error(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
+    res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`);
   }
 });
 
@@ -335,7 +385,7 @@ app.get("/get-order/:expression", function(req, res) {
 });
 
 
-function ingestParentOpportunityPage(rpde, pageNumber) {
+function ingestParentOpportunityPage(rpde, headers, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -347,7 +397,7 @@ function ingestParentOpportunityPage(rpde, pageNumber) {
 
   rpde.items.forEach(item => {
     // Remove nested @context
-    delete item.data['@context'];
+    if (item && item.data) delete item.data['@context'];
     
     if (item.state == "deleted") {
       var jsonLdId = parentOpportunityRpdeMap.get(item.id);
@@ -367,14 +417,14 @@ function ingestParentOpportunityPage(rpde, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, x =>
-        ingestParentOpportunityPage(x, pageNumber + 1 || 0)
+      getRPDE(rpde.next, headers, (x, headers) =>
+        ingestParentOpportunityPage(x, headers, pageNumber + 1 || 0)
       ),
     200
   );
 }
 
-function ingestOpportunityPage(rpde, pageNumber) {
+function ingestOpportunityPage(rpde, headers, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -402,8 +452,8 @@ function ingestOpportunityPage(rpde, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, x =>
-        ingestOpportunityPage(x, pageNumber + 1 || 0)
+      getRPDE(rpde.next, headers, (x, headers) =>
+        ingestOpportunityPage(x, headers, pageNumber + 1 || 0)
       ),
     200
   );
@@ -456,7 +506,7 @@ function storeOpportunityItem(item) {
 
   if (row.jsonLdParentId != null && row.jsonLdId != null) {
     if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
-    parentIdIndex.get(row.jsonLdParentId).add(item.jsonLdId);
+    parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
   }
 
   rowStoreMap.set(row.jsonLdId, row);
@@ -488,17 +538,20 @@ function processOpportunityItem(item) {
 
       var id = item.data['@id'] || item.data['id'];
       var opportunityType = detectOpportunityType(item.data); 
+      var sellerId = detectSellerId(item.data);
 
       var matchingCriteria = [];
       var unmetCriteriaDetails = [];
 
       criteria.map(criteria => ({criteriaName: criteria.name, criteriaResult: criteria.testMatch(item.data)})).forEach(result => {
         const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
+        if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
+        const sellerCompartment = bucket.get(sellerId);
         if (result.criteriaResult.matchesCriteria) {
-          bucket.add(id);
+          sellerCompartment.add(id);
           matchingCriteria.push(result.criteriaName);
         } else {
-          bucket.delete(id);
+          sellerCompartment.delete(id);
           unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
         }
       });
@@ -517,7 +570,7 @@ function processOpportunityItem(item) {
     }
 }
 
-function monitorOrdersPage(rpde, pageNumber) {
+function monitorOrdersPage(rpde, headers, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     console.log(
       `RPDE kind: Orders Monitoring, length: ${rpde.items.length}, next: '${rpde.next}'`
@@ -530,7 +583,7 @@ function monitorOrdersPage(rpde, pageNumber) {
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, monitorOrdersPage), 200);
+  setTimeout(x => getRPDE(rpde.next, headers, monitorOrdersPage), 200);
 }
 
 
@@ -568,8 +621,8 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 
-async function startPolling() {
 
+async function startPolling() {
   let dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
   console.log("Dataset Site JSON-LD: " + JSON.stringify(dataset, null, 2));
@@ -581,26 +634,33 @@ async function startPolling() {
   }
 
   dataset.distribution.forEach(dataDownload => {
+    addFeed(dataDownload.contentUrl);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       console.log("Found parent opportunity feed: " + dataDownload.contentUrl);
-      getRPDE(dataDownload.contentUrl, ingestParentOpportunityPage);
+      getRPDE(dataDownload.contentUrl, {}, ingestParentOpportunityPage);
     } else {
       console.log("Found opportunity feed: " + dataDownload.contentUrl);
-      getRPDE(dataDownload.contentUrl, ingestOpportunityPage);
+      getRPDE(dataDownload.contentUrl, {}, ingestOpportunityPage);
     }
   });
 
   // Only poll orders feed if included in the dataset site
-  if (dataset.accessService && dataset.accessService.endpointURL)
+  if (dataset.accessService && dataset.accessService.endpointURL) {
     console.log("Found orders feed: " + dataset.accessService.endpointURL);
-    getRPDE(dataset.accessService.endpointURL + "orders-rpde", monitorOrdersPage);
+    getRPDE(dataset.accessService.endpointURL + "orders-rpde", ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage);
+  }
 
+  // Finished processing dataset site
+  feedUpToDate(DATASET_SITE_URL);
 }
+
+// Ensure that dataset site request also delays "readiness"
+addFeed(DATASET_SITE_URL);
+
+app.listen(PORT, "127.0.0.1");
+console.log("Node server running on port " + PORT);
 
 (async () => {
   await startPolling();
 })();
-
-app.listen(PORT, "127.0.0.1");
-console.log("Node server running on port " + PORT);

@@ -1,0 +1,11 @@
+{
+  "category": "access",
+  "identifier": "access-pass-update-notifications",
+  "name": "accessPass update notifications",
+  "description": "Updating accessPass after an opportunity is booked",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#other-notifications",
+  "required": false,
+  "coverageStatus": "none",
+  "requiredCondition": "Required if accessPass can change"
+}

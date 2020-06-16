@@ -1,0 +1,11 @@
+{
+  "category": "tax",
+  "identifier": "business-to-consumer-tax-calculation-gross",
+  "name": "Business-to-consumer Tax Calculation (TaxGross)",
+  "description": "Tax calculation when the customer is of type Person (business-to-consumer), when the seller has taxMode TaxGross",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-consumer-tax-calculation-by-booking-system-is-mandatory",
+  "required": false,
+  "coverageStatus": "none",
+  "requiredCondition": "Required if system provides consumer VAT receipts, for the relevant tax mode"
+}

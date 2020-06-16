@@ -1,0 +1,10 @@
+{
+  "category": "advanced-payment",
+  "identifier": "offer-overrides",
+  "name": "Offer overrides",
+  "description": "Offer prices overridden to allow for business models with variable pricing",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#offer-overrides",
+  "required": false,
+  "coverageStatus": "none"
+}

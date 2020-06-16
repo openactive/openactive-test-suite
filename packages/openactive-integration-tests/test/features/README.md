@@ -1,45 +1,81 @@
-## Testing scope
 
-The test suite can be configured to test "optional" features, by indicating whether they are either:
-- `implemented` - the tests will run to confirm proper implementation of the feature
-- `not-implemented` - the tests will run to confirm the feature is correctly advertised as "not implemented"
-- `disable-tests` - disable all tests for this feature (only recommended during development)
+# Open Booking API Test Suite Feature Coverage
 
-Additionally, an array of bookable opportunity types can be configured, to indicate which types the implementation is expected to support:
-- `sessions` (dual feeds of `SessionSeries` and `ScheduledSession`)
-- `facilities` (dual feeds of `FacilityUse` and `Slots`)
-- `events` (feeds of `Event`)
-- `headline-events` (feeds of `HeadlineEvent` with embedded `Event`)
-- `courses` (feeds of `CourseInstance`)
+The test coverage below is [automatically generated](../../documentation), and indicates which features of the Open Booking API are currently covered by the test suite.
 
-Types of test:
-- `random`
-- `controlled`
+Stub tests are provided in many cases, and test coverage should not be regarded as exhaustive unless specified.
 
-All tests are run for the following:
-- 1, 2 and 3 order items of each configured type. Duplicating the defined template in the test.
-- Order items that mix pairs of different configured types. Mixing pairs of the defined templates in the test.
+## Complete Test Coverage
 
-Each test needs to be set up with the following test data:
-- One test event for each opportunity type to be tested
+The tests for these features cover all known edge cases, including both happy and unhappy paths.
+
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
+|----------|---------|---------------|-------------|-------------------|
+| core | Dataset Site ([dataset-site](./core/dataset-site/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#endpoints) | Discoverable open data |  |
 
 
-## Integration tests
+## Partial Test Coverage
 
-The following integration tests are available, and can be configured using the configuration JSON file.
+The tests for these features provide partial coverage but do not include all known edgecases, and do not exercise all code paths and error conditions.
+
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
+|----------|---------|---------------|-------------|-------------------|
+| core | Availability Checking ([availability-check](./core/availability-check/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0) | Runs only C1 and C2, to confirm availability checks work as expected | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x5, [TestOpportunityBookableNoSpaces](https://openactive.io/test-interface#TestOpportunityBookableNoSpaces) x3 |
+| core | Simple Booking of free opportunities ([simple-book-free-opportunities](./core/simple-book-free-opportunities/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#free-opportunities) | The most simple form of booking, for free opportunities. Does not check for leases. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| cancellation | Customer Requested Cancellation ([customer-requested-cancellation](./cancellation/customer-requested-cancellation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation) | Cancellation triggered by the Customer through the Broker | [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1 |
+| core | Multiple Sellers ([multiple-sellers](./core/multiple-sellers/README.md)) | [Optional](https://openactive.io/open-booking-api/EditorsDraft/#booking-pre-conditions) | The booking system is multi-tenanted and provides services to multiple sellers. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2 |
+| core | Test interface ([test-interface](./core/test-interface/README.md)) | [Optional](https://openactive.io/test-interface/) | Open Booking API Test Interface implementation | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| payment | Simple Booking of paid opportunities ([simple-book-with-payment](./payment/simple-book-with-payment/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description) | The most simple form of booking with payment. Does not check for leases. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x4, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
-| Category     | Integration Tests                        | Feature                                               | Specification Status | Description                                                                                 |
-|--------------|------------------------------------------|-------------------------------------------------------|----------------------|---------------------------------------------------------------------------------------------|
-| core         | opportunity-feed                         | RPDE Opportunity Feed                                 | Required             | Real-time opportunity data                                                                  |
-| core         | dataset-site                             | Dataset Site                                          | Required             | Discoverable open data                                                                      |
-| core         | availability-check                       | Availability Checking                                 | Required             | Runs only C1 and C2, to confirm availability checks work as expected                        |
-| core         | simple-book-without-payment              | Simple Book without Payment                           | Required             | The most simple form of booking without payment. Does not check for leases.                 |
-| payment      | simple-book-with-payment                 | Simple Book with Payment                              | Optional             | The most simple form of booking with payment. Does not check for leases.                    |
-| payment      | payment-reconciliation-detail-validation | Payment reconciliation detail validation              | Optional             |                                                                                             |
-| restriction  | booking-window                           | validFromBeforeStartDate booking window               | Optional             | Duration of window before an opportunity where it is bookable                               |
-| cancellation | customer-requested-cancellation          | Customer Requested Cancellation                       | Optional             | Cancellation triggered by the Customer through the Broker                                   |
-| cancellation | seller-requested-cancellation            | Seller Requested Cancellation                         | Optional             | Cancellation triggered by the Seller through the Booking System                             |
-| cancellation | seller-requested-cancellation-message    | cancellationMessage for Seller Requested Cancellation | Optional             | A message associated with a Cancellation triggered by the Seller through the Booking System |
-| cancellation | cancellation-window                      | latestCancellationBeforeStartDate cancellation window | Optional             | A defined window before the event occurs where it can be cancelled without fees             |
-| cancellation | seller-requested-replacement             | Seller Requested Replacement                          | Optional             | Replacement triggered by the Seller through the Booking System                              |
+## No Test Coverage
+
+The tests for these features are fully stubbed, and are not yet implemented.
+
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
+|----------|---------|---------------|-------------|-------------------|
+| core | AgentBroker mode ([agent-broker](./core/agent-broker/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#agentbroker) | Support for AgentBroker mode |  |
+| core | Amending the OrderQuote before B ([amending-order-quote](./core/amending-order-quote/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#amending-the-orderquote-before-b) | Allows the basket to be updated for a particular order |  |
+| core | RPDE Opportunity Feed ([opportunity-feed](./core/opportunity-feed/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair) | Real-time opportunity data |  |
+| core | Order Deletion Endpoint ([order-deletion](./core/order-deletion/README.md)) | [Required](https://www.openactive.io/open-booking-api/EditorsDraft/#order-deletion) | Check that Order Deletion correctly soft-deletes an Order that has already been emitted in the Orders feed |  |
+| access | accessCode - manual access codes ([access-code](./access/access-code/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#text-based-access-control) | Support for accessCode provided for a successful booking |  |
+| access | accessCode update notifications ([access-code-update-notifications](./access/access-code-update-notifications/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#other-notifications) | Updating accessCode after an opportunity is booked |  |
+| access | accessPass - Broker provided access control barcodes  ([access-pass-barcode-broker-provided](./access/access-pass-barcode-broker-provided/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#extension-point-for-barcode-based-access-control) | Support for accessPass provided by the Broker, in the form of a barcode |  |
+| access | accessPass - Seller provided access control barcodes  ([access-pass-barcode-seller-provided](./access/access-pass-barcode-seller-provided/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#extension-point-for-barcode-based-access-control) | Support for accessPass provided by the Seller, in the form of a barcode |  |
+| access | accessPass - Seller provided access control images  ([access-pass-image](./access/access-pass-image/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#image-based-access-control) | Support for accessPass provided by the Seller, in the form of an image |  |
+| access | accessPass update notifications ([access-pass-update-notifications](./access/access-pass-update-notifications/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#other-notifications) | Updating accessPass after an opportunity is booked |  |
+| advanced-payment | DynamicPayment ([dynamic-payment](./advanced-payment/dynamic-payment/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#dynamicpayment) | Support for fully dynamic pricing, where price is not known at the point of purchase |  |
+| advanced-payment | Offer overrides ([offer-overrides](./advanced-payment/offer-overrides/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#offer-overrides) | Offer prices overridden to allow for business models with variable pricing |  |
+| advanced-payment | prepayment optional ([prepayment-optional](./advanced-payment/prepayment-optional/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#booking-without-payment) | Support for booking with optional payment |  |
+| advanced-payment | prepayment not required ([prepayment-unavailable](./advanced-payment/prepayment-unavailable/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#booking-without-payment) | Support for booking without payment (reservation only) |  |
+| authentication | Booking Partner Authentication for Multiple Seller Systems ([booking-partner-authentication](./authentication/booking-partner-authentication/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems) | OAuth based authentication for Sellers |  |
+| broker-role | NoBroker mode ([no-broker](./broker-role/no-broker/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#nobroker) | Support for NoBroker mode, for example for operators to use the Open Booking API to power their own websites |  |
+| broker-role | ResellerBroker mode ([reseller-broker](./broker-role/reseller-broker/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#resellerbroker) | Support for ResellerBroker mode |  |
+| broker-role | ResellerBroker Business-to-business Tax Calculation ([reseller-broker-tax-calculation](./broker-role/reseller-broker-tax-calculation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#scope-of-specification) | Tax calculation for ResellerBroker (business-to-business) |  |
+| cancellation | latestCancellationBeforeStartDate cancellation window ([cancellation-window](./cancellation/cancellation-window/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation) | A defined window before the event occurs where it can be cancelled without fees |  |
+| cancellation | Seller Requested Cancellation ([seller-requested-cancellation](./cancellation/seller-requested-cancellation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#seller-requested-cancellation) | Cancellation triggered by the Seller through the Booking System |  |
+| cancellation | cancellationMessage for Seller Requested Cancellation ([seller-requested-cancellation-message](./cancellation/seller-requested-cancellation-message/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#seller-requested-cancellation) | A message associated with a Cancellation triggered by the Seller through the Booking System |  |
+| cancellation | Seller Requested Replacement ([seller-requested-replacement](./cancellation/seller-requested-replacement/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#cancellation-replacement-refund-calculation-and-notification) | Replacement triggered by the Seller through the Booking System |  |
+| details-capture | Additional Details capture ([additional-details-capture](./details-capture/additional-details-capture/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#additional-details-capture) | Support for capturing additional details  |  |
+| details-capture | Simple Book with Payment including Attendee Details capture ([attendee-details-capture-with-payment](./details-capture/attendee-details-capture-with-payment/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#attendee-details-capture) | Support for capturing attendee details for paid opportunities |  |
+| details-capture | Simple Book without Payment including Attendee Details capture ([attendee-details-capture-without-payment](./details-capture/attendee-details-capture-without-payment/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#attendee-details-capture) | Support for capturing attendee details for free opportunities |  |
+| details-capture | Customer Details identifier capture ([customer-details-capture-identifier](./details-capture/customer-details-capture-identifier/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#schema-person-for-customer-or-attendee) | Support for capturing the Broker's identifier for the customer. Note this field cannot be mandatory. |  |
+| details-capture | Customer Details non-essential capture ([customer-details-capture-non-essential](./details-capture/customer-details-capture-non-essential/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#customer-details-capture) | Support for capturing forename, surname, and telephone number from the Customer. Note these fields cannot be mandatory. |  |
+| leasing | Anonymous leasing, including leaseExpires ([anonymous-leasing](./leasing/anonymous-leasing/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing) | Leasing at C1, reserving a space in the opportunity before the Customer has provided their contact information |  |
+| leasing | Named leasing, including leaseExpires ([named-leasing](./leasing/named-leasing/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#leasing) | Leasing at C2, reserving a space in the opportunity after the Customer has provided their contact information |  |
+| notifications | Change of logistics notifications ([change-of-logistics-notifications](./notifications/change-of-logistics-notifications/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#change-of-logistics-notifications) | Notifications for when an opportunity's name, location, or start/end date/time are updated  |  |
+| notifications | Customer notice notifications ([customer-notice-notifications](./notifications/customer-notice-notifications/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#customer-notice-notifications) | Text notifications broadcast to all registered attendees of an opportunity |  |
+| notifications | Opportunity attendance updates ([opportunity-attendance-updates](./notifications/opportunity-attendance-updates/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#opportunity-attendance-updates) | Allowing the broker to recieve updates for when an attendee attends an event |  |
+| payment | Payment reconciliation detail validation ([payment-reconciliation-detail-validation](./payment/payment-reconciliation-detail-validation/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-detail-validation) | Booking with valid, invalid, and missing Payment details |  |
+| restriction | validFromBeforeStartDate booking window ([booking-window](./restriction/booking-window/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair) | Duration of window before an opportunity where it is bookable |  |
+| restrictions | Booking restrictions ([booking-restrictions](./restrictions/booking-restrictions/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#booking-restrictions) | Support for genderRestriction, ageRestriction and additionalAdmissionRestriction |  |
+| tax | Business-to-business Tax Calculation (TaxGross) ([business-to-business-tax-calculation-gross](./tax/business-to-business-tax-calculation-gross/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-business-tax-calculation-by-booking-system-is-optional) | Tax calculation when the customer is of type Organization (business-to-business), when the seller has taxMode TaxGross |  |
+| tax | Business-to-business Tax Calculation (TaxNet) ([business-to-business-tax-calculation-net](./tax/business-to-business-tax-calculation-net/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-business-tax-calculation-by-booking-system-is-optional) | Tax calculation when the customer is of type Organization (business-to-business), when the seller has taxMode TaxNet |  |
+| tax | Business-to-consumer Tax Calculation (TaxGross) ([business-to-consumer-tax-calculation-gross](./tax/business-to-consumer-tax-calculation-gross/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-consumer-tax-calculation-by-booking-system-is-mandatory) | Tax calculation when the customer is of type Person (business-to-consumer), when the seller has taxMode TaxGross |  |
+| tax | Business-to-consumer Tax Calculation (TaxNet) ([business-to-consumer-tax-calculation-net](./tax/business-to-consumer-tax-calculation-net/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-consumer-tax-calculation-by-booking-system-is-mandatory) | Tax calculation when the customer is of type Person (business-to-consumer), when the seller has taxMode TaxNet |  |
+| terms | termsOfService without requiresExplicitConsent ([terms-of-service](./terms/terms-of-service/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy) | Displaying terms of service, without requiring consent |  |
+| terms | termsOfService with requiresExplicitConsent ([terms-of-service-with-consent](./terms/terms-of-service-with-consent/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy) | Displaying terms of service that require consent |  |
+| terms | termsOfService with requiresExplicitConsent and dateModified ([terms-of-service-with-consent-with-date-modified](./terms/terms-of-service-with-consent-with-date-modified/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy) | Displaying terms of service that require consent, with a date the terms were modified |  |
+
+
+  

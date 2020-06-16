@@ -9,11 +9,12 @@ const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
-FeatureHelper.describeFeature({
+FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: true,
-  testName: 'with-payment-property',
+  testIdentifier: 'with-payment-property',
+  testName: 'Successful booking with payment property',
   testDescription: 'A successful end to end booking with the `payment` property included.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
@@ -22,7 +23,7 @@ FeatureHelper.describeFeature({
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
-    await state.createOpportunity(orderItemCriteria);
+    await state.fetchOpportunities(orderItemCriteria);
 
     return chakram.wait();
   });
@@ -34,7 +35,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('Get Opportunity Feed Items', function () {
     (new GetMatch({
-      state, flow, logger, configuration,
+      state, flow, logger, orderItemCriteria,
     }))
       .beforeSetup()
       .successChecks()
@@ -43,7 +44,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('C1', function () {
     (new C1({
-      state, flow, logger, configuration,
+      state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()
@@ -52,7 +53,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('C2', function () {
     (new C2({
-      state, flow, logger, configuration,
+      state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()
@@ -61,7 +62,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('B', function () {
     (new B({
-      state, flow, logger, configuration,
+      state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()

@@ -29,13 +29,16 @@ class Reporter {
   }
 
   async onTestResult(test, testResult, aggregatedResults) {
+    // Workaround to skip reporting of empty todo tests, to handle implemented/not-implemented test.todo('') in feature-helper.js
+    if (Array.isArray(testResult.testResults) && testResult.testResults.length === 1 && testResult.testResults[0].fullName === '' && testResult.testResults[0].status === 'todo') return;
+
     try {
       let testResults = testResult.testResults;
 
       let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 3).join(" "));
 
-      for (let [testName, groupedTests] of Object.entries(grouped)) {
-        let logger = new ReporterLogger(testName);
+      for (let [testIdentifier, groupedTests] of Object.entries(grouped)) {
+        let logger = new ReporterLogger(testIdentifier);
         await logger.load();
 
         for (let testResult of groupedTests) {

@@ -5,6 +5,8 @@ const fs = require("fs").promises;
 const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
+const config = require("config");
+const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 
 class BaseReportGenerator {
   get templateName () {
@@ -215,6 +217,10 @@ class SummaryReportGenerator extends BaseReportGenerator {
   get opportunityTypeGroups () {
     return this.loggers.opportunityTypeGroups;
   }
+
+  get useRandomOpportunitiesMode() {
+    return USE_RANDOM_OPPORTUNITIES ? 'Random' : 'Controlled';
+  }
 }
 
 class LoggerGroup {
@@ -285,7 +291,9 @@ class LoggerGroup {
 
     if (spec.failed > 0) return "failed";
     else if (validation.failure > 0) return "failed";
-    else if (validation.warning > 0) return "warning";
+    // The line below adds an overall "warning" status if any warnings exist
+    // Can add this back in when the validator warnings are more useful
+    // else if (validation.warning > 0) return "warning";
     else return "passed";
   }
 

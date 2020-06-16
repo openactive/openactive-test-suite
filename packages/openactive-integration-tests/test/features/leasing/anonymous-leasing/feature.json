@@ -1,0 +1,10 @@
+{
+  "category": "leasing",
+  "identifier": "anonymous-leasing",
+  "name": "Anonymous leasing, including leaseExpires",
+  "description": "Leasing at C1, reserving a space in the opportunity before the Customer has provided their contact information",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#leasing",
+  "required": false,
+  "coverageStatus": "none"
+}

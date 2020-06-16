@@ -1,0 +1,16 @@
+{
+  "category": "core",
+  "identifier": "order-deletion",
+  "name": "Order Deletion Endpoint",
+  "description": "Check that Order Deletion correctly soft-deletes an Order that has already been emitted in the Orders feed",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#order-deletion",
+  "required": true,
+  "coverageStatus": "none",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-6-orders-feed"
+    }
+  ]
+}
