@@ -18,6 +18,10 @@ git config user.email "travis@openactive.org"
 
 cd ..
 
+# Copy redirect tempalte
+echo 'Copy redirect template...'
+cp ./redirect.html ./publish/index.html
+
 # Install dependencies
 echo 'Installing dependencies...'
 npm install --prefix packages/openactive-broker-microservice
