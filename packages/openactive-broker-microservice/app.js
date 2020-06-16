@@ -76,11 +76,12 @@ function getRPDE(url, cb) {
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      if (body == ''){
-        throw `No body in response from url "${url}"`;
+      var json;
+      try {
+        json = JSON.parse(body);
+      } catch (ex) {
+        console.error(`Invalid Json from "${url}" recieved "${body}" throwing ${ex}`);
       }
-      var json = JSON.parse(body);
-
       // Validate RPDE base URL
       if (!json.next) {
         throw "RPDE does not have 'next' property";
