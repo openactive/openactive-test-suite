@@ -76,8 +76,13 @@ function getRPDE(url, headers, cb) {
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      var json = JSON.parse(body);
-
+      var json;
+      try {
+        json = JSON.parse(body);
+      } catch (ex) {
+        console.error(`Invalid Json from "${url}" recieved "${body}" throwing ${ex}`);
+        throw "Deserialization error";
+      }
       // Validate RPDE base URL
       if (!json.next) {
         throw "RPDE does not have 'next' property";
