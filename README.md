@@ -53,9 +53,6 @@ This is useful for running both packages within a continuous integration environ
 #!/bin/bash
 set -e # exit with nonzero exit code if anything fails
 
-# Kill broker microservice in case of error
-trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
-
 # Install dependencies
 npm install --prefix packages/openactive-broker-microservice
 npm install --prefix packages/openactive-integration-tests
@@ -64,9 +61,12 @@ npm install --prefix packages/openactive-integration-tests
 npm start --prefix packages/openactive-broker-microservice &
 pid=$!
 
+# Kill broker microservice in case of error
+trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
+
 # Run tests
 npm test --prefix packages/openactive-integration-tests
 
-# Kill broker microservice
+# Kill broker microservice on success
 kill $pid
 ```
