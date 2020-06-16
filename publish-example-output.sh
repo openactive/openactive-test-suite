@@ -18,7 +18,7 @@ git config user.email "travis@openactive.org"
 
 cd ..
 
-# Copy redirect tempalte
+# Copy redirect template page to root
 echo 'Copy redirect template...'
 cp ./redirect.html ./publish/index.html
 
