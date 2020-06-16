@@ -1,4 +1,4 @@
-# OpenActive Test Suite
+# OpenActive Test Suite [![Build Status](https://travis-ci.org/openactive/openactive-test-suite.svg?branch=master)](https://travis-ci.org/openactive/openactive-test-suite)
 
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
