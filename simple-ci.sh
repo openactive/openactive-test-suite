@@ -11,8 +11,11 @@ npm install --prefix packages/openactive-integration-tests
 npm start --prefix packages/openactive-broker-microservice &
 pid=$!
 
+# Kill broker microservice in case of error
+trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
+
 # Run tests
 npm test --prefix packages/openactive-integration-tests
 
-# Kill broker microservice
+# Kill broker microservice on success
 kill $pid
