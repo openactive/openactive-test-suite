@@ -81,6 +81,7 @@ function getRPDE(url, cb) {
         json = JSON.parse(body);
       } catch (ex) {
         console.error(`Invalid Json from "${url}" recieved "${body}" throwing ${ex}`);
+        throw "Deserialization error";
       }
       // Validate RPDE base URL
       if (!json.next) {
