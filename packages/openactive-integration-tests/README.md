@@ -19,8 +19,8 @@ See [Feature Test Coverage](./test/features/README.md) for full details.
 
 ## Model results
 The results of this test suite when run against the reference implementation can be found:
-- [Output when `"useRandomOpportunities": true`](https://openactive.io/openactive-test-suite/random/summary)
-- [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/controlled/summary)
+- [Output when `"useRandomOpportunities": true`](https://openactive.io/openactive-test-suite/example-output/random/summary)
+- [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/example-output/controlled/summary)
 
 ## Usage
 1. `npm install`
