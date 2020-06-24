@@ -3,9 +3,8 @@ set -e # exit with nonzero exit code if anything fails
 
 # clear and re-create the out directory
 rm -rf publish || exit 0;
-mkdir publish;
-mkdir publish/random;
-mkdir publish/controlled;
+mkdir -p publish/example-output/random;
+mkdir -p publish/example-output/controlled;
 
 echo 'Setting up publish directory...'
 # go to the publish directory and create a *new* Git repo
@@ -38,7 +37,7 @@ rm -rf ./packages/openactive-integration-tests/output/
 echo 'Running integration tests with useRandomOpportunities: true...'
 NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
 echo 'Copying output files...'
-cp -R ./packages/openactive-integration-tests/output/* ./publish/random/
+cp -R ./packages/openactive-integration-tests/output/* ./publish/example-output/random/
 
 # Run tests using booking system Test Interface
 echo 'Emptying output directory...'
@@ -46,7 +45,7 @@ rm -rf ./packages/openactive-integration-tests/output/
 echo 'Running integration tests with useRandomOpportunities: false...'
 NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
 echo 'Copying output files...'
-cp -R ./packages/openactive-integration-tests/output/* ./publish/controlled/
+cp -R ./packages/openactive-integration-tests/output/* ./publish/example-output/controlled/
 
 # Kill broker microservice
 echo 'Killing broker microservice...'
