@@ -1,5 +1,5 @@
 {
-  "category": "restriction",
+  "category": "restrictions",
   "identifier": "booking-window",
   "name": "validFromBeforeStartDate booking window",
   "description": "Duration of window before an opportunity where it is bookable",

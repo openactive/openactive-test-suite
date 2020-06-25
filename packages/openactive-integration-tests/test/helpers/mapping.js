@@ -2,7 +2,7 @@
 const names = {
   "core": "Core",
   "payment": "Payment",
-  "restriction": "Restriction",
+  "restrictions": "Restrictions",
   "cancellation": "Cancellation",
   "leasing": "Leasing",
   "details-capture": "Details Capture",
@@ -10,7 +10,6 @@ const names = {
   "broker-role": "Broker Role",
   "tax": "Tax",
   "advanced-payment": "Advanced Payment",
-  "restrictions": "Restrictions",
   "notifications": "Notifications",
   "terms": "Terms",
   "authentication": "Authentication",

@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "common-error-conditions",
+  "name": "Common error conditions",
+  "description": "Tests C1, C2 and B for common error conditions applicable to all implementations",
+  "explainer": "",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#error-model",
+  "required": true,
+  "coverageStatus": "none"
+}
