@@ -202,12 +202,44 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return new SummaryReportGenerator(loggers);
   }
 
+  get summaryMeta () {
+    return {
+      'features': Object.values(this.templateData.opportunityTypeGroups).flatMap(({opportunityTypeName, featureGroups}) =>
+        Object.values(featureGroups).map(({overallStatus, categoryIdentifier, featureIdentifier, implemented, loggers}) => ({
+          opportunityTypeName,
+          overallStatus,
+          category: categoryIdentifier,
+          identifier: featureIdentifier,
+          implemented,
+          'tests': Object.values(loggers).map(({ overallStatus, testIdentifier, metaLocalPath, numPassed, numFailed }) =>
+          ({
+            overallStatus,
+            testIdentifier,
+            metaLocalPath,
+            numPassed,
+            numFailed
+          }))
+        }))
+        )
+    };
+  }
+
+  async writeSummaryMeta () {
+    let json = JSON.stringify(this.summaryMeta, null, 4);
+
+    await fs.writeFile(this.summaryMetaPath, json);
+  }
+
   get templateName () {
     return "summary";
   }
 
   get templateData () {
     return this;
+  }
+
+  get summaryMetaPath () {
+    return "./output/json/summary.json";
   }
 
   get reportMarkdownPath () {
@@ -259,8 +291,22 @@ class LoggerGroup {
     return [logger.categoryName, logger.featureName].join(" / ");
   }
 
+  get categoryIdentifier () {
+    let logger = this.loggers[0];
+    return logger.testCategory;
+  }
+
+  get featureIdentifier () {
+    let logger = this.loggers[0];
+    return logger.testFeature;
+  }
+
   get implemented () {
     return this.loggers[0].implemented;
+  }
+
+  get implementedDisplayLabel () {
+    return this.loggers[0].implementedDisplayLabel;
   }
 
   get specStatusCounts () {

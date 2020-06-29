@@ -83,7 +83,7 @@ class FeatureHelper {
               const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier}`, this, {
                 config: configuration,
                 description: configuration.testDescription,
-                implemented: implemented ? 'Implemented' : 'Not Implemented',
+                implemented,
               });
 
               const state = new RequestState(logger);
@@ -98,7 +98,7 @@ class FeatureHelper {
                 const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
                   config: configuration,
                   description: configuration.testDescription,
-                  implemented: implemented ? 'Implemented' : 'Not Implemented',
+                  implemented,
                   opportunityType: opportunityType
                 });
 
@@ -116,7 +116,7 @@ class FeatureHelper {
                 const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
                   config: configuration,
                   description: configuration.testDescription,
-                  implemented: implemented ? 'Implemented' : 'Not Implemented',
+                  implemented,
                   opportunityType: "Multiple"
                 });
 

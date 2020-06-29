@@ -7,7 +7,7 @@ Mode: **{{ useRandomOpportunitiesMode }}**
 ---
 
   {{#each featureGroups }}
-  * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implemented}})
+  * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
     {{#each loggers}}
     - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ markdownLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
     {{/each}}

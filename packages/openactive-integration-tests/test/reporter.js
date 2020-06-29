@@ -65,6 +65,7 @@ class Reporter {
     try {
       let generator = await SummaryReportGenerator.loadFiles();
       await generator.report();
+      await generator.writeSummaryMeta();
     }
     catch (e) {
       console.error(e);

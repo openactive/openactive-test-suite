@@ -156,12 +156,20 @@ class BaseLogger {
     ].join("|"));
   }
 
+  get implementedDisplayLabel() {
+    return this.implemented ? 'Implemented' : 'Not Implemented';
+  }
+
   get suiteName() {
     return this.testName;
   }
 
+  get metaLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.json`;
+  }
+
   get metaPath () {
-    return `./output/json/${this.uniqueSuiteName.replace(/\s+/g, '_')}.json`;
+    return `./output/json/${this.metaLocalPath}`;
   }
 
   get markdownLocalPath () {
