@@ -76,9 +76,10 @@ class Reporter {
       numPendingTests,
       testResults,
       numTotalTests,
+      numTodoTests,
       startTime
     } = results;
-    console.log(chalk.white(`Ran ${numTotalTests} tests in ${testDuration()}`));
+    console.log(chalk.white(`Ran ${numTotalTests - numTodoTests} tests in ${testDuration()}`));
     if (numPassedTests) {
       console.log(chalk.green(
         `✅ ${numPassedTests} passing`
