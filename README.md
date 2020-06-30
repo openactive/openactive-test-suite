@@ -28,7 +28,7 @@ For developers that are customising the installation, for use in e.g. Docker, th
 
 ## Running
 
-The broker mircoservice must be running before the test suite is run.
+The broker microservice must be running before the test suite is run.
 
 ### Broker microservice
 ```bash
