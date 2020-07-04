@@ -20,17 +20,17 @@ app.get('/', (req, res) => {
   res.redirect(301, 'https://www.openactive.io/');
 });
 
-async function validateUrl(url) {
-  let certReq = await axios.get(req.query.url);
+async function validateUrl(url, holder) {
+  let certReq = await axios.get(url);
   if (certReq.data) {
-    return await validateCertificateHtml(certReq.data, req.query.url, req.query.holder);
+    return await validateCertificateHtml(certReq.data, url, holder);
   } else {
     return { "error": "Invalid url specified" };
   }
 }
 
 app.get('/validate', asyncHandler(async (req, res) => {
-  let result = await validateUrl(req.query.url);
+  let result = await validateUrl(req.query.url, req.query.holder);
   if (!result.error) {
     res.json(result);
   } else {
@@ -43,7 +43,7 @@ app.post('/validate-json', asyncHandler(async (req, res) => {
     // Attempt both types of validation in parallel 
     let payloadResult = validateCertificate(req.body.certificateJson, req.body.url, null);
     let urlResult = certificateUrl.indexOf('//localhost') !== -1 || certificateUrl.indexOf('file://') !== -1
-      ? { skipped: true } : await validateUrl(url);
+      ? { skipped: true } : await validateUrl(url, null);
     payloadResult = await payloadResult;
     if (!urlResult.skipped) {
       payloadResult.exposureVerification = true;
