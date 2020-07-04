@@ -4,9 +4,10 @@ An OpenActive Conformance Certificate offers a mechanism by which implementing s
 
 ## Example certificate
 
-An example conformance certificate can be found here: 
+An example conformance certificate can be found here:
+https://openactive.io/openactive-test-suite/example-output/controlled/certification/
 
-Note this example is frequently generated for the OpenActive .NET Reference Implementation as part of the CI of the OpenActive Test Suite itself.
+Note that this example is frequently generated for the OpenActive .NET Reference Implementation as part of the CI of the OpenActive Test Suite itself.
 
 ## Obtaining a certificate
 
@@ -35,7 +36,7 @@ Static file hosting such as GitHub pages or an Amazon S3 bucket are both recomme
 
 Your UAT continuous integration script should upload a fresh certificate upon each successful run of the OpenActive Test Suite.
 
-Upload script examples are available for Amazon S3 (link to CI script line) and GitHub pages (link to CI script line):
+Upload script examples are available for Amazon S3 (link to CI script line) and GitHub pages (link to CI script line).
 
 Note that the certificate is named index.html by default to allow it to be referenced at a path such as https://acmebooker.example.com/openactive/certificate
 

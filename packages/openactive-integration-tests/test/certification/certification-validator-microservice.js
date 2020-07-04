@@ -16,12 +16,16 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.get('/validate-url', asyncHandler(async (req, res) => {
+app.get('/', (req, res) => {
+  res.redirect(301, 'https://www.openactive.io/');
+});
+
+app.get('/validate', asyncHandler(async (req, res) => {
   let certReq = await axios.get(req.query.url);
   if (certReq.data) {
     res.send(await validateCertificateHtml(certReq.data, req.query.url, req.query.holder));
   } else {
-    res.status(400).send('Invalid url specified');
+    res.status(400).json({ "error": "Invalid url specified" });
   }
 }));
 
@@ -29,7 +33,7 @@ app.post('/validate-json', asyncHandler(async (req, res) => {
   if (req.body.certificateJson) {
     res.json(await validateCertificate(req.body.certificateJson, req.body.url, null));
   } else {
-    res.status(400).json('{ "error": "Invalid body specified" }');
+    res.status(400).json({ "error": "Invalid body specified" });
   }
 }));
 var server = http.createServer(app);

@@ -73,19 +73,30 @@ async function validateCertificate (certificateJson, certificateUrl, holderName)
     assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJsonFiles);
   } catch (err) {
     console.warn(`\n\nError generating conformance certificate:\n\n${err}\n\n`);
-    return false;
+    return {
+      valid: false
+    };
   }
   
   // Only error for public URLs
-  if (certificateUrl.indexOf('//localhost') !== -1 && certificateUrl.indexOf('file://') !== -1 && certificateJson['@id'] != certificateUrl) {
-    throw new Error(`Certificate was valid, but was not exposed at the correct URL "${certificateJson['@id']}".`);
+  if (certificateUrl.indexOf('//localhost') === -1 && certificateUrl.indexOf('file://') === -1 && certificateJson['@id'] != certificateUrl) {
+    return {
+      valid: false,
+      message: `Certificate was valid, but was not exposed at the correct URL "${certificateJson['@id']}".`
+    };
   }
 
   if (holderName !== null && certificateJson.awardedTo.name != holderName) {
-    throw new Error(`Certificate was valid, but was not related to the correct organisation "${certificateJson.awardedTo.name}".`);
+    return {
+      valid: false,
+      message: `Certificate was valid, but was not related to the correct organisation "${certificateJson.awardedTo.name}".`
+    };
   }
 
-  return certificateJson.awardedTo.name;
+  return { 
+    valid: true, 
+    holder: certificateJson.awardedTo.name
+  };
 }
 
 

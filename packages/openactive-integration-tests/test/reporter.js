@@ -116,9 +116,10 @@ class Reporter {
           let certificationWriter = new CertificationWriter(loggers, generator, datasetJson, CONFORMANCE_CERTIFICATE_ID);
           let html = await certificationWriter.generateCertificate();
 
-          if (!await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name)) {
+          let validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
+          if (!validationResult || !validationResult.valid) {
             throw new Error("A valid conformance certificate could not be generated, likely because not all tests were run for this feature configuration. Try simply running `npm test`, without specifying a specific test directory.");
-          } 
+          }
 
           await mkdirp('./output/certification');
           await fs.writeFile(certificationWriter.certificationOutputPath, html);
