@@ -4392,7 +4392,7 @@ content="default-src 'none';
 								xhr.upload.addEventListener("progress", function(evt) {
 										if (evt.lengthComputable) {
 												var percentComplete = Math.round((evt.loaded / evt.total) * 100);
-												$("#progress").text(percentComplete + "%");
+												$("#progress").text((percentComplete == 100 ? 99 : percentComplete) + "%");
 										}
 								}, false);
 								return xhr;
