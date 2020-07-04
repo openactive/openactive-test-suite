@@ -48,7 +48,7 @@ class CertificationWriter {
   get helpers () {
     return {
       "formatDate": function(dateString, options) {
-        return moment(dateString).format("dddd Do MMMM YYYY");
+        return moment(dateString).format("Do MMMM YYYY");
       },
       "featureUrl": function(id, options) {
         const identifier = id.substring(id.indexOf('#') + 1);
