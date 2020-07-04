@@ -2,6 +2,7 @@
 const config = require('config');
 const mapping = require('../helpers/mapping');
 const mkdirp = require('mkdirp');
+const moment = require('moment');
 const Handlebars = require("handlebars");
 var JSZip = require("jszip");
 const {promises: fs} = require("fs");
@@ -47,8 +48,7 @@ class CertificationWriter {
   get helpers () {
     return {
       "formatDate": function(dateString, options) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-GB');
+        return moment(dateString).format("dddd Do MMMM YYYY");
       },
       "featureUrl": function(id, options) {
         const identifier = id.substring(id.indexOf('#') + 1);
