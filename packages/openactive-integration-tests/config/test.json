@@ -1,8 +1,6 @@
 {
   "useRandomOpportunities": true,
   "microserviceApiBase": "http://localhost:3000/",
-  "generateConformanceCertificate": true,
-  "conformanceCertificateId": "https://www.example.com/",
   "bookableOpportunityTypesInScope": {
     "ScheduledSession": true,
     "FacilityUseSlot": false,

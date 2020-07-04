@@ -13,7 +13,7 @@ const {CertificationWriter} = require('./certification/certification-writer');
 const {validateCertificateHtml} = require('./certification/certification-validator');
 
 const MICROSERVICE_BASE = config.get("microserviceApiBase");
-const GENERATE_CONFORMANCE_CERTIFICATE = config.get('generateConformanceCertificate');
+const GENERATE_CONFORMANCE_CERTIFICATE = config.has('generateConformanceCertificate') && config.get('generateConformanceCertificate');
 const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? config.get('conformanceCertificateId') : null;
 
 class Reporter {
