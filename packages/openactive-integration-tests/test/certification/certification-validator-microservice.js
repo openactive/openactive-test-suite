@@ -41,13 +41,12 @@ app.get('/validate', asyncHandler(async (req, res) => {
 app.post('/validate-json', asyncHandler(async (req, res) => {
   if (req.body.certificateJson && typeof req.body.url === 'string') {
     // Attempt both types of validation in parallel 
-    let payloadResult = validateCertificate(req.body.certificateJson, req.body.url, null);
     const urlResult = req.body.url.indexOf('//localhost') !== -1 || req.body.url.indexOf('file://') !== -1
-      ? { skipped: true } : await validateUrl(req.body.url, null);
+    ? (async () => { skipped: true })() : validateUrl(req.body.url, null);
+    let payloadResult = validateCertificate(req.body.certificateJson, req.body.url, null);
+    urlResult = await urlResult;
     payloadResult = await payloadResult;
-    if (!urlResult.skipped) {
-      payloadResult.exposureVerification = true;
-    }
+    payloadResult.exposureVerification = !urlResult.skipped;
 
     if (!payloadResult.valid) {
       res.json(payloadResult);
