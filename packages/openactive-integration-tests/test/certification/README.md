@@ -36,7 +36,7 @@ Static file hosting such as GitHub pages or an Amazon S3 bucket are both recomme
 
 Your UAT continuous integration script should upload a fresh certificate upon each successful run of the OpenActive Test Suite.
 
-Upload script examples are available for Amazon S3 (link to CI script line) and GitHub pages (link to CI script line).
+Upload scripts can be created for e.g. Amazon S3 and GitHub pages.
 
 Note that the certificate is named index.html by default to allow it to be referenced at a path such as https://acmebooker.example.com/openactive/certificate
 
@@ -48,7 +48,11 @@ When the certificate is opened in a browser, it sends its contents to https://co
 
 A valid certificate will look as follows:
 
+![Valid Certificate Screenshot](valid-cert-screenshot.png)
+
 An invalid certificate will display an error message as follows:
+
+![Invalid Certificate Screenshot](invalid-cert-screenshot.png)
 
 ## Certificate external validation
 
@@ -67,7 +71,7 @@ The parameters accepted are:
 The certificate is composed of three key elements:
 * A human readable HTML page
 * An embedded machine-readable JSON-LD snippet
-* An embedded zip file of evidence of the test suite results that were used to obtain this certificate, as is common practice. (link to OpenID Connect)
+* An embedded zip file of evidence of the test suite results that were used to obtain this certificate, as is [common practice](https://openid.net/certification/).
 
 All three of these components must be coherent and match in order for the certificate to be valid.
 
