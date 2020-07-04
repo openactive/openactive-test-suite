@@ -39,11 +39,11 @@ app.get('/validate', asyncHandler(async (req, res) => {
 }));
 
 app.post('/validate-json', asyncHandler(async (req, res) => {
-  if (req.body.certificateJson) {
+  if (req.body.certificateJson && typeof req.body.url === 'string') {
     // Attempt both types of validation in parallel 
     let payloadResult = validateCertificate(req.body.certificateJson, req.body.url, null);
-    let urlResult = certificateUrl.indexOf('//localhost') !== -1 || certificateUrl.indexOf('file://') !== -1
-      ? { skipped: true } : await validateUrl(url, null);
+    const urlResult = req.body.url.indexOf('//localhost') !== -1 || req.body.url.indexOf('file://') !== -1
+      ? { skipped: true } : await validateUrl(req.body.url, null);
     payloadResult = await payloadResult;
     if (!urlResult.skipped) {
       payloadResult.exposureVerification = true;
@@ -57,7 +57,7 @@ app.post('/validate-json', asyncHandler(async (req, res) => {
       res.json(payloadResult);
     }    
   } else {
-    res.status(400).json({ "error": "Invalid body specified" });
+    res.status(400).json({ "error": "Invalid body or url specified" });
   }
 }));
 var server = http.createServer(app);
