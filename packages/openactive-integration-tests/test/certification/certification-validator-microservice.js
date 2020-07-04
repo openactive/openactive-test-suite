@@ -20,18 +20,42 @@ app.get('/', (req, res) => {
   res.redirect(301, 'https://www.openactive.io/');
 });
 
-app.get('/validate', asyncHandler(async (req, res) => {
+async function validateUrl(url) {
   let certReq = await axios.get(req.query.url);
   if (certReq.data) {
-    res.send(await validateCertificateHtml(certReq.data, req.query.url, req.query.holder));
+    return await validateCertificateHtml(certReq.data, req.query.url, req.query.holder);
   } else {
-    res.status(400).json({ "error": "Invalid url specified" });
+    return { "error": "Invalid url specified" };
+  }
+}
+
+app.get('/validate', asyncHandler(async (req, res) => {
+  let result = await validateUrl(req.query.url);
+  if (!result.error) {
+    res.json(result);
+  } else {
+    res.status(400).json(result);
   }
 }));
 
 app.post('/validate-json', asyncHandler(async (req, res) => {
   if (req.body.certificateJson) {
-    res.json(await validateCertificate(req.body.certificateJson, req.body.url, null));
+    // Attempt both types of validation in parallel 
+    let payloadResult = validateCertificate(req.body.certificateJson, req.body.url, null);
+    let urlResult = certificateUrl.indexOf('//localhost') !== -1 || certificateUrl.indexOf('file://') !== -1
+      ? { skipped: true } : await validateUrl(url);
+    payloadResult = await payloadResult;
+    if (!urlResult.skipped) {
+      payloadResult.exposureVerification = true;
+    }
+
+    if (!payloadResult.valid) {
+      res.json(payloadResult);
+    } else if (!urlResult.skipped && !urlResult.valid) {
+      res.json(urlResult);
+    } else {
+      res.json(payloadResult);
+    }    
   } else {
     res.status(400).json({ "error": "Invalid body specified" });
   }
