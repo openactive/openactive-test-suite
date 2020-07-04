@@ -41,7 +41,7 @@ app.get('/validate', asyncHandler(async (req, res) => {
 app.post('/validate-json', asyncHandler(async (req, res) => {
   if (req.body.certificateJson && typeof req.body.url === 'string') {
     // Attempt both types of validation in parallel 
-    const urlResult = req.body.url.indexOf('//localhost') !== -1 || req.body.url.indexOf('file://') !== -1
+    let urlResult = req.body.url.indexOf('//localhost') !== -1 || req.body.url.indexOf('file://') !== -1
     ? (async () => { skipped: true })() : validateUrl(req.body.url, null);
     let payloadResult = validateCertificate(req.body.certificateJson, req.body.url, null);
     urlResult = await urlResult;
