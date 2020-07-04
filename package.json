@@ -2,12 +2,10 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "lerna": "^3.19.0",
     "prettier": "^1.19.1"
   },
   "scripts": {
-    "install": "lerna bootstrap",
-    "lerna": "lerna",
+    "install": "npm install --prefix packages/openactive-broker-microservice && npm install --prefix packages/openactive-integration-tests",
     "prettier": "prettier --check \"packages/**/*.js\" \"packages/**/*.json\"",
     "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\"",
     "start": "npm start --prefix packages/openactive-broker-microservice",
