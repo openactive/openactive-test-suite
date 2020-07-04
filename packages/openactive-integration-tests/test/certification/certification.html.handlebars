@@ -4250,7 +4250,7 @@ content="default-src 'none';
 						<span class="icon solid fa-check"><span> Certificate integrity validated</span></span>
 					</p>
 					<p id="pendingvalidation">
-						<span class="icon solid fa-question"><span> Validating certificate...</span></span>
+						<span class="icon solid fa-hourglass-half"><span> Validating certificate ... <span id="progress"></span></span></span>
 					</p>
 					<ul class="actions">
 						<li><a href="#" class="button primary icon solid fa-download">Download Evidence</a></li>
@@ -4386,6 +4386,16 @@ content="default-src 'none';
 								$("#pendingvalidation").hide();
 								$("#notvalidated").show();
 								$("#logo").hide();
+							},
+							xhr: function() {
+								var xhr = new window.XMLHttpRequest();
+								xhr.upload.addEventListener("progress", function(evt) {
+										if (evt.lengthComputable) {
+												var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+												$("#progress").text(percentComplete + "%");
+										}
+								}, false);
+								return xhr;
 							}
 						});
 				})(jQuery);
