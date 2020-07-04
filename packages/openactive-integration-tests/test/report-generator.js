@@ -84,7 +84,7 @@ class BaseReportGenerator {
         return stripAnsi(message.split("\n")[0]);
       },
       "json": function(data, options) {
-        return JSON.stringify(data, null, 4);
+        return JSON.stringify(data, null, 2);
       },
       "logsFor": (suite, type, options) => {
         let first = true;
@@ -182,12 +182,14 @@ class ReportGenerator extends BaseReportGenerator {
 }
 
 class SummaryReportGenerator extends BaseReportGenerator {
-  constructor (loggers) {
+  constructor (loggers, datasetJson, conformanceCertificateId) {
     super();
     this.loggers = new LoggerGroup(this, loggers);
+    this.datasetJson = datasetJson;
+    this.conformanceCertificateId = conformanceCertificateId;
   }
 
-  static async loadFiles () {
+  static async getLoggersFromFiles () {
     let filenames = await fs.readdir(`./output/json/`);
 
     let loggers = filenames.map((filename) => {
@@ -199,11 +201,13 @@ class SummaryReportGenerator extends BaseReportGenerator {
 
     await Promise.all(loggers.map((logger) => logger.load()));
 
-    return new SummaryReportGenerator(loggers);
+    return loggers;
   }
 
   get summaryMeta () {
     return {
+      'conformanceCertificateId': this.conformanceCertificateId,
+      'dataset': this.datasetJson,
       'features': Object.values(this.templateData.opportunityTypeGroups).flatMap(({opportunityTypeName, featureGroups}) =>
         Object.values(featureGroups).map(({overallStatus, categoryIdentifier, featureIdentifier, implemented, loggers}) => ({
           opportunityTypeName,
@@ -225,7 +229,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
   }
 
   async writeSummaryMeta () {
-    let json = JSON.stringify(this.summaryMeta, null, 4);
+    let json = JSON.stringify(this.summaryMeta, null, 2);
 
     await fs.writeFile(this.summaryMetaPath, json);
   }
@@ -252,6 +256,11 @@ class SummaryReportGenerator extends BaseReportGenerator {
 
   get useRandomOpportunitiesMode() {
     return USE_RANDOM_OPPORTUNITIES ? 'Random' : 'Controlled';
+  }
+
+  get bookingServiceName() {
+    return (this.datasetJson.bookingService && this.datasetJson.bookingService.name) || 
+    (this.datasetJson.publisher && this.datasetJson.publisher.name);
   }
 }
 

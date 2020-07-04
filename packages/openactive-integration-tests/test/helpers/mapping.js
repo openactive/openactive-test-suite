@@ -15,6 +15,8 @@ const names = {
   "authentication": "Authentication",
 }
 
+const identifiers = {};
+
 const fg = require('fast-glob');
 var rootDirectory = require("path").join(__dirname, "../../");
 
@@ -23,6 +25,7 @@ var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDir
 
 featureMetadata.forEach(f => {
   names[`${f.category}|${f.identifier}`] = f.name;
+  identifiers[f.identifier] = f.name;
 });
 
 function lookup(name) {
@@ -32,6 +35,11 @@ function lookup(name) {
   return `!!!${name}!!!`
 }
 
+function lookupIdentifier(identifier) {
+  return identifiers[identifier];
+}
+
 module.exports = {
-  lookup
+  lookup,
+  lookupIdentifier
 }

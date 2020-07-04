@@ -5,6 +5,9 @@ const config = require("config");
 const MICROSERVICE_BASE = config.get("microserviceApiBase");
 const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
 
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
+const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
+
 class TestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config);
@@ -20,6 +23,10 @@ class TestEnvironment extends NodeEnvironment {
     }
     this.global.MICROSERVICE_BASE = MICROSERVICE_BASE;
     this.global.TEST_DATASET_IDENTIFIER = TEST_DATASET_IDENTIFIER;
+
+    // Note these are defined in the test environment to allow the certificate validator to override them
+    this.global.BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
+    this.global.IMPLEMENTED_FEATURES = IMPLEMENTED_FEATURES;
   }
 
   async teardown() {

@@ -11,7 +11,8 @@
     "prettier": "prettier --check \"packages/**/*.js\" \"packages/**/*.json\"",
     "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\"",
     "start": "npm start --prefix packages/openactive-broker-microservice",
-    "test": "npm test --prefix packages/openactive-integration-tests"
+    "test": "npm test --prefix packages/openactive-integration-tests",
+    "certificate-validator": "npm run certificate-validator --prefix packages/openactive-integration-tests"
   },
   "dependencies": {}
 }

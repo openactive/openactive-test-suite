@@ -4,9 +4,6 @@ const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const { FlowHelper } = require('./flow-helper');
 
-const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
-const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
-
 class FeatureHelper {
   static describeFeature(documentationModule, configuration, tests) {
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);

@@ -1,11 +1,20 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const mkdirp = require('mkdirp');
+const {promises: fs} = require("fs");
 const moment = require('moment');
 const rmfr = require('rmfr');
+const config = require('config');
+const axios = require("axios");
 
 const {ReporterLogger} = require('./helpers/logger');
 const {ReportGenerator, SummaryReportGenerator} = require('./report-generator');
+const {CertificationWriter} = require('./certification/certification-writer');
+const {validateCertificateHtml} = require('./certification/certification-validator');
+
+const MICROSERVICE_BASE = config.get("microserviceApiBase");
+const GENERATE_CONFORMANCE_CERTIFICATE = config.get('generateConformanceCertificate');
+const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? config.get('conformanceCertificateId') : null;
 
 class Reporter {
   constructor(globalConfig, options) {
@@ -20,6 +29,7 @@ class Reporter {
     // await rmfr('./output/*.md', {glob: true});
     await mkdirp('./output/json');
     await rmfr('./output/json/*.json', {glob: true});
+    await rmfr('./output/certification/*.html', {glob: true});
 
     // Used for validator remoteJsonCachePath
     await mkdirp('./tmp');
@@ -63,41 +73,66 @@ class Reporter {
   // based on https://github.com/pierreroth64/jest-spec-reporter/blob/master/lib/jest-spec-reporter.js
   async onRunComplete(test, results) {
     try {
-      let generator = await SummaryReportGenerator.loadFiles();
+      let datasetJson = await axios.get(MICROSERVICE_BASE + "dataset-site");
+      datasetJson = datasetJson && datasetJson.data;
+
+      let loggers = await SummaryReportGenerator.getLoggersFromFiles();
+      let generator = new SummaryReportGenerator(loggers, datasetJson, CONFORMANCE_CERTIFICATE_ID);
       await generator.report();
       await generator.writeSummaryMeta();
+
+      const {
+        numFailedTests,
+        numPassedTests,
+        numPendingTests,
+        testResults,
+        numTotalTests,
+        numTodoTests,
+        startTime
+      } = results;
+      console.log(chalk.white(`Ran ${numTotalTests - numTodoTests} tests in ${testDuration(startTime)}`));
+      if (numPassedTests) {
+        console.log(chalk.green(
+          `✅ ${numPassedTests} passing`
+        ));
+      }
+      if (numFailedTests) {
+        console.log(chalk.red(
+          `❌ ${numFailedTests} failing`
+        ));
+      }
+      if (numPendingTests) {
+        console.log(chalk.yellow(
+          `– ${numPendingTests} pending`
+        ));
+      }
+      
+      if (GENERATE_CONFORMANCE_CERTIFICATE) {
+        if (numFailedTests > 0) {
+          console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests passed."));
+        } else if (numPendingTests > 0) {
+            console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests were completed."));
+        } else { 
+          let certificationWriter = new CertificationWriter(loggers, generator, datasetJson, CONFORMANCE_CERTIFICATE_ID);
+          let html = await certificationWriter.generateCertificate();
+
+          if (!await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name)) {
+            throw new Error("A valid conformance certificate could not be generated, likely because not all tests were run for this feature configuration. Try simply running `npm test`, without specifying a specific test directory.");
+          } 
+
+          await mkdirp('./output/certification');
+          await fs.writeFile(certificationWriter.certificationOutputPath, html);
+          console.log('\n' + chalk.green(
+            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`
+          ));
+        }
+      }  
     }
     catch (e) {
       console.error(e);
     }
 
-    const {
-      numFailedTests,
-      numPassedTests,
-      numPendingTests,
-      testResults,
-      numTotalTests,
-      numTodoTests,
-      startTime
-    } = results;
-    console.log(chalk.white(`Ran ${numTotalTests - numTodoTests} tests in ${testDuration()}`));
-    if (numPassedTests) {
-      console.log(chalk.green(
-        `✅ ${numPassedTests} passing`
-      ));
-    }
-    if (numFailedTests) {
-      console.log(chalk.red(
-        `❌ ${numFailedTests} failing`
-      ));
-    }
-    if (numPendingTests) {
-      console.log(chalk.yellow(
-        `– ${numPendingTests} pending`
-      ));
-    }
-
-    function testDuration() {
+    function testDuration(startTime) {
       const delta = moment.duration(moment() - new Date(startTime));
       const seconds = delta.seconds();
       const millis = delta.milliseconds();
