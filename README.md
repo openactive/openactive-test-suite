@@ -1,5 +1,7 @@
 # OpenActive Test Suite [![Build Status](https://travis-ci.org/openactive/openactive-test-suite.svg?branch=master)](https://travis-ci.org/openactive/openactive-test-suite)
 
+To join the conversation, we're on the [OpenActive Slack](https://slack.openactive.io/) at #openactive-test-suite.
+
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
 This repository hosts two different projects:
