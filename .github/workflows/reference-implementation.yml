@@ -29,7 +29,7 @@ jobs:
       run: |
         mkdir -p publish/example-output/random
         mkdir -p publish/example-output/controlled
-        cp ./server/redirect.html ./publish/index.html
+        cp ./tests/redirect.html ./publish/index.html
     - name: Setup .NET Core 2.1.808
       uses: actions/setup-dotnet@v1
       with:
