@@ -2,13 +2,14 @@
 set -e # exit with nonzero exit code if anything fails
 
 # Usage:
-# - Random: ./run-specific-test.sh true test/features/core/availability-check/
-# - Controlled: ./run-specific-test.sh false test/features/core/availability-check/
+# ./run-specific-test.sh <mode> <test path>
 
-# `waitForHarvestCompletion` must be set to `true` in `default.json`
+# Usage examples:
+# - Random mode: ./run-specific-test.sh true test/features/core/availability-check/
+# - Controlled mode: ./run-specific-test.sh false test/features/core/availability-check/
 
 # Start broker microservice in the background
-npm start --prefix ../../packages/openactive-broker-microservice &
+NODE_CONFIG="{\"waitForHarvestCompletion\": true}" npm start --prefix ../../packages/openactive-broker-microservice &
 pid=$!
 
 # Kill broker microservice in case of error
