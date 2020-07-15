@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e # exit with nonzero exit code if anything fails
 
+# Usage:
+# ./run-specific-test.sh <mode> <test path>
+
 # Usage examples:
 # - Random: ./run-specific-test.sh true test/features/core/availability-check/
 # - Controlled: ./run-specific-test.sh false test/features/core/availability-check/
