@@ -5,8 +5,8 @@ set -e # exit with nonzero exit code if anything fails
 # ./run-specific-test.sh <mode> <test path>
 
 # Usage examples:
-# - Random: ./run-specific-test.sh true test/features/core/availability-check/
-# - Controlled: ./run-specific-test.sh false test/features/core/availability-check/
+# - Random mode: ./run-specific-test.sh true test/features/core/availability-check/
+# - Controlled mode: ./run-specific-test.sh false test/features/core/availability-check/
 
 # Start broker microservice in the background
 NODE_CONFIG="{\"waitForHarvestCompletion\": true}" npm start --prefix ../../packages/openactive-broker-microservice &
