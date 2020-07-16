@@ -64,7 +64,7 @@ jobs:
         rm -rf ./tests/packages/openactive-integration-tests/output/
         NODE_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }' npm test --prefix tests/packages/openactive-integration-tests --runInBand -- test/features/
         cp -R ./tests/packages/openactive-integration-tests/output/* ./publish/example-output/controlled/
-    - name: Deploy test output to GitHub Pages
+    - name: Deploy test output to GitHub Pages (master branch only)
       uses: peaceiris/actions-gh-pages@v3
       if: ${{ github.ref == 'refs/heads/master' }}
       with:
