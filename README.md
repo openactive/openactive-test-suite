@@ -1,4 +1,4 @@
-# OpenActive Test Suite ![Reference Implementation](https://github.com/openactive/openactive-test-suite/workflows/Reference%20Implementation/badge.svg)
+# OpenActive Test Suite [![Reference Implementation](https://github.com/openactive/openactive-test-suite/workflows/Reference%20Implementation/badge.svg)](https://github.com/openactive/openactive-test-suite/actions?query=branch%3Amaster+workflow%3A%22Reference+Implementation%22)
 
 To join the conversation, we're on the [OpenActive Slack](https://slack.openactive.io/) at #openactive-test-suite.
 
