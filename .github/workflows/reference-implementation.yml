@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: tests
-    - name: Use matching coverage/ branch ${{ github.head_ref }} in OpenActive.Server.NET
+    - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
       if: ${{ startsWith(github.head_ref, 'coverage/') }}
       run: echo "::set-env name=mirror_ref::${{ github.head_ref }}"
     - name: Checkout OpenActive.Server.NET ${{ env.mirror_ref }}
