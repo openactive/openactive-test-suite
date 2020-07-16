@@ -1,10 +1,14 @@
-# OpenActive Test Suite [![Build Status](https://travis-ci.org/openactive/openactive-test-suite.svg?branch=master)](https://travis-ci.org/openactive/openactive-test-suite)
+# OpenActive Test Suite [![Reference Implementation](https://github.com/openactive/openactive-test-suite/workflows/Reference%20Implementation/badge.svg)](https://github.com/openactive/openactive-test-suite/actions?query=branch%3Amaster+workflow%3A%22Reference+Implementation%22)
+
+To join the conversation, we're on the [OpenActive Slack](https://slack.openactive.io/) at #openactive-test-suite.
 
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
 This repository hosts two different projects:
 * [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the test suite to watch for changes, and throws them back to it.
 * [Integration tests](./packages/openactive-integration-tests): this performs automated tests against the API
+
+[The Roadmap](./ROADMAP.md) provides an overview of upcoming development milestones, and contributions are welcome.
 
 # Usage
 
@@ -70,3 +74,7 @@ npm test --prefix packages/openactive-integration-tests
 # Kill broker microservice on success
 kill $pid
 ```
+
+# Contributing
+
+- [Contributing to the project](./CONTRIBUTING.md)

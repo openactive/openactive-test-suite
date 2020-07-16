@@ -116,7 +116,7 @@ class BaseLogger {
       "suite",
     ]).value();
 
-    let json = JSON.stringify(data, null, 4);
+    let json = JSON.stringify(data, null, 2);
 
     await fs.writeFile(this.metaPath, json);
   }
@@ -156,12 +156,20 @@ class BaseLogger {
     ].join("|"));
   }
 
+  get implementedDisplayLabel() {
+    return this.implemented ? 'Implemented' : 'Not Implemented';
+  }
+
   get suiteName() {
     return this.testName;
   }
 
+  get metaLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.json`;
+  }
+
   get metaPath () {
-    return `./output/json/${this.uniqueSuiteName.replace(/\s+/g, '_')}.json`;
+    return `./output/json/${this.metaLocalPath}`;
   }
 
   get markdownLocalPath () {
@@ -266,11 +274,23 @@ class Logger extends BaseLogger {
       return this.writeMeta();
     });
 
+    // Add certificateMetaLocalPath for use by certificate validator, when Jest is fully stubbed
+    suite.certificateMetaLocalPath = this.metaLocalPath;
+
+    // Record the ancestorTitles path relevant to the logger
+    this.baseAncestorTitles = this.getAncestorTitles();
+
     testState.on("suite-started", (suite) => {
+      // Note these events are triggered for all instances of the logger,
+      // as the events are global, so we must check the event is relevant to this instance
+      if (!this.inScopeForThisLoggerInstance(testState.ancestorTitles)) return;
       this.suites.push(testState.ancestorTitles);
     });
 
     testState.on("spec-started", (spec) => {
+      // Note these events are triggered for all instances of the logger,
+      // as the events are global, so we must check the event is relevant to this instance
+      if (!this.inScopeForThisLoggerInstance(testState.ancestorTitles)) return;
       let key = testState.ancestorTitles;
       if (!this.specs[key]) {
         this.specs[key] = [];
@@ -281,6 +301,24 @@ class Logger extends BaseLogger {
 
   get uniqueSuiteName () {
     return this.suite.getFullName();
+  }
+
+  inScopeForThisLoggerInstance (ancestorTitles) {
+    // Check the path of this spec begins with the base path
+    if (ancestorTitles.length < this.baseAncestorTitles.length) return false;
+    var a = this.baseAncestorTitles
+    return a.every((e, i) => e === ancestorTitles[i]);
+  }
+
+  getAncestorTitles () {
+    let suite = this.suite;
+    let path = [];
+    while (suite) {
+      if (suite.description !== '') path.unshift(suite.description);
+
+      suite = suite.parentSuite;
+    }
+    return path;
   }
 }
 

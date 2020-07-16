@@ -35,7 +35,7 @@ pid=$!
 echo 'Emptying output directory...'
 rm -rf ./packages/openactive-integration-tests/output/
 echo 'Running integration tests with useRandomOpportunities: true...'
-NODE_CONFIG='{"useRandomOpportunities": true}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+NODE_CONFIG='{"useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/"}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
 echo 'Copying output files...'
 cp -R ./packages/openactive-integration-tests/output/* ./publish/example-output/random/
 
@@ -43,7 +43,7 @@ cp -R ./packages/openactive-integration-tests/output/* ./publish/example-output/
 echo 'Emptying output directory...'
 rm -rf ./packages/openactive-integration-tests/output/
 echo 'Running integration tests with useRandomOpportunities: false...'
-NODE_CONFIG='{"useRandomOpportunities": false}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
+NODE_CONFIG='{"useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/"}' npm test --prefix packages/openactive-integration-tests --runInBand -- test/features/
 echo 'Copying output files...'
 cp -R ./packages/openactive-integration-tests/output/* ./publish/example-output/controlled/
 
