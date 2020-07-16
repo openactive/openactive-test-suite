@@ -4,11 +4,9 @@ Our first priority is [Complete Feature Coverage](https://github.com/openactive/
 
 ## Milestones
 
-This doc is our roadmap. It's a place to start to investigate the myriad of issues that you can contribute to. Check out the different milestones listed below, but feel free to explore the issues by label too.
+This doc is our roadmap. It's a place to start to investigate the myriad of issues that you can contribute to, and tests that are still missing in from the test suite. Check out the different milestones listed below, and take a look at the [Project Board](https://github.com/openactive/openactive-test-suite/projects/1) for a more detailed issues backlog.
 
 Please check out our [contributing guidelines](./CONTRIBUTING.md) and code of conduct to help you get started, and the [README](./README.md) for an overview if you haven't read it yet!
-
-You can see the progress within each of these Milestones
 
 ### [Milestone 1](https://github.com/openactive/openactive-test-suite/milestone/1): [“core”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/core) and [“payment”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/payment) features
 
