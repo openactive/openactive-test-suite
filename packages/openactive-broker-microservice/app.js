@@ -14,6 +14,7 @@ var DATASET_SITE_URL = config.get("datasetSiteUrl");
 var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
 var WAIT_FOR_HARVEST = config.get("waitForHarvestCompletion");
 var ORDERS_FEED_REQUEST_HEADERS = config.get("ordersFeedRequestHeaders");
+var VERBOSE = config.get("verbose");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env["PORT"] = 3000;
@@ -32,6 +33,8 @@ const opportunityMap = new Map();
 const opportunityRpdeMap = new Map();
 const rowStoreMap = new Map();
 const parentIdIndex = new Map();
+
+const startTime = new Date();
 
 let datasetSiteJson = {};
 
@@ -53,6 +56,8 @@ criteria.map(criteria => criteria.name).forEach(criteriaName => {
   matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
 });
 
+var feedStatus = new Map();
+
 var testDatasets = new Map();
 function getTestDataset(testDatasetIdentifier) {
   if (!testDatasets.has(testDatasetIdentifier)) {
@@ -65,14 +70,15 @@ function getAllDatasets() {
   return new Set(Array.from(testDatasets.values()).flatMap(x => Array.from(x.values())));
 }
 
-function getRPDE(url, headers, cb) {
+function getRPDE(url, context, cb) {
   var options = {
     url: url,
     method: "get",
     headers: Object.assign({}, {
       Accept: "application/json, application/vnd.openactive.booking+json; version=1",
       "Cache-Control": "max-age=0"
-    }, headers)
+    }, context.headers || {}),
+    time : true
   };
   request.get(options, function(error, response, body) {
     if (!error && response.statusCode === 200) {
@@ -91,20 +97,28 @@ function getRPDE(url, headers, cb) {
         throw `Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`;
       }
 
+      context.currentPage = url;
       if (json.next == url && json.items.length == 0) {
         if (WAIT_FOR_HARVEST) {
           feedUpToDate(url);
         } else {
-          console.log(`Sleep mode poll for RPDE feed "${url}"`);
+          if (VERBOSE) console.log(`Sleep mode poll for RPDE feed "${url}"`);
         }
-        setTimeout(x => getRPDE(url, headers, cb), 500);
+        context.sleepMode = true;
+        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime),
+        setTimeout(x => getRPDE(url, context, cb), 500);
       } else {
-        cb(json, headers);
+        context.responseTimes.push(response.elapsedTime);
+        if (context.responseTimes.length > 5) context.responseTimes.shift();
+        context.pages++;
+        context.items+=json.items.length;
+        delete context.sleepMode;
+        cb(json, context);
       }
     } else if (!response) {
       console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, headers, cb), 5000);
+      setTimeout(x => getRPDE(url, context, cb), 5000);
     } else if (response.statusCode === 404) {
       if (WAIT_FOR_HARVEST) feedUpToDate(url);
       console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
@@ -112,7 +126,7 @@ function getRPDE(url, headers, cb) {
     } else {
       console.log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, headers, cb), 5000);
+      setTimeout(x => getRPDE(url, context, cb), 5000);
     }
   });
 }
@@ -211,6 +225,30 @@ app.get("/health-check", function(req, res) {
 
 app.get("/dataset-site", function(req, res) {
   res.send(datasetSiteJson);
+});
+
+function mapToObject(map) {
+  if (map instanceof Map) {
+    return Object.assign(Object.create(null), ...[...map].map(v => (typeof v[1] === 'object' && v[1].size === 0 ? {} : { [v[0]]: mapToObject(v[1]) })));
+  } else if (map instanceof Set) {
+    return map.size;
+  } else {
+    return map;
+  }
+}
+
+function millisToMinutesAndSeconds(millis) {
+  var minutes = Math.floor(millis / 60000);
+  var seconds = ((millis % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+
+app.get("/status", function(req, res) {
+  res.send({
+    elapsedTime: millisToMinutesAndSeconds(new Date() - startTime),
+    feeds: mapToObject(feedStatus),
+    buckets: mapToObject(matchingCriteriaOpportunityIds)
+  });
 });
 
 function getMatch(req, res, useCache) {
@@ -385,7 +423,7 @@ app.get("/get-order/:expression", function(req, res) {
 });
 
 
-function ingestParentOpportunityPage(rpde, headers, pageNumber) {
+function ingestParentOpportunityPage(rpde, context, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -417,14 +455,14 @@ function ingestParentOpportunityPage(rpde, headers, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, headers, (x, headers) =>
-        ingestParentOpportunityPage(x, headers, pageNumber + 1 || 0)
+      getRPDE(rpde.next, context, (x, context) =>
+        ingestParentOpportunityPage(x, context, pageNumber + 1 || 0)
       ),
     200
   );
 }
 
-function ingestOpportunityPage(rpde, headers, pageNumber) {
+function ingestOpportunityPage(rpde, context, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -452,8 +490,8 @@ function ingestOpportunityPage(rpde, headers, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, headers, (x, headers) =>
-        ingestOpportunityPage(x, headers, pageNumber + 1 || 0)
+      getRPDE(rpde.next, context, (x, context) =>
+        ingestOpportunityPage(x, context, pageNumber + 1 || 0)
       ),
     200
   );
@@ -563,14 +601,14 @@ function processOpportunityItem(item) {
       if (responses[id]) {
         responses[id].send(item);
 
-        console.log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
+        if (VERBOSE) console.log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
       } else {
-        console.log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+        if (VERBOSE) console.log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
       }
     }
 }
 
-function monitorOrdersPage(rpde, headers, pageNumber) {
+function monitorOrdersPage(rpde, context, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     console.log(
       `RPDE kind: Orders Monitoring, length: ${rpde.items.length}, next: '${rpde.next}'`
@@ -583,7 +621,7 @@ function monitorOrdersPage(rpde, headers, pageNumber) {
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, headers, monitorOrdersPage), 200);
+  setTimeout(x => getRPDE(rpde.next, context, monitorOrdersPage), 200);
 }
 
 
@@ -638,21 +676,34 @@ async function startPolling() {
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       console.log("Found parent opportunity feed: " + dataDownload.contentUrl);
-      getRPDE(dataDownload.contentUrl, {}, ingestParentOpportunityPage);
+      getRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestParentOpportunityPage);
     } else {
       console.log("Found opportunity feed: " + dataDownload.contentUrl);
-      getRPDE(dataDownload.contentUrl, {}, ingestOpportunityPage);
+      getRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestOpportunityPage);
     }
   });
 
   // Only poll orders feed if included in the dataset site
   if (dataset.accessService && dataset.accessService.endpointURL) {
-    console.log("Found orders feed: " + dataset.accessService.endpointURL);
-    getRPDE(dataset.accessService.endpointURL + "orders-rpde", ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage);
+    const ordersFeedUrl = dataset.accessService.endpointURL + "orders-rpde";
+    console.log("Found orders feed: " + ordersFeedUrl);
+    getRPDE(ordersFeedUrl, setupContext("OrdersFeed", ORDERS_FEED_REQUEST_HEADERS), monitorOrdersPage);
   }
 
   // Finished processing dataset site
   feedUpToDate(DATASET_SITE_URL);
+}
+
+function setupContext(identifier, headers) {
+  const context = {
+    currentPage: null,
+    pages: 0,
+    items: 0,
+    responseTimes: []
+  };
+  if (headers !== undefined) context.headers = headers;
+  feedStatus.set(identifier, context);
+  return context;
 }
 
 // Ensure that dataset site request also delays "readiness"
