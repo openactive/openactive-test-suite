@@ -1,4 +1,4 @@
-# OpenActive Test Suite [![Build Status](https://travis-ci.org/openactive/openactive-test-suite.svg?branch=master)](https://travis-ci.org/openactive/openactive-test-suite)
+# OpenActive Test Suite ![Reference Implementation](https://github.com/openactive/openactive-test-suite/workflows/Reference%20Implementation/badge.svg)
 
 To join the conversation, we're on the [OpenActive Slack](https://slack.openactive.io/) at #openactive-test-suite.
 
