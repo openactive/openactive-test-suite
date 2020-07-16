@@ -2,12 +2,18 @@ const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
 
+const testState = global.testState;
+
 // abstract class, implement shared methods
 class BaseLogger {
   constructor () {
     this.flow = {};
     this.logs = [];
     this.timestamp = (new Date()).toString();
+    /** @type {{[k: string]: any} | null} */
+    this.config = null;
+    /** @type {boolean | null} */
+    this.implemented = null;
   }
 
   get testMeta () {
@@ -125,6 +131,9 @@ class BaseLogger {
     this.jestContext = context;
   }
 
+  /**
+   * @returns {string}
+   */
   get uniqueSuiteName () {
     throw Error("suiteName unimplemented");
   }
@@ -239,6 +248,7 @@ class BaseLogger {
     for (let type of Object.keys(result)) {
       result[type] = validations.filter(item => item);
     }
+    return result;
   }
 
   get numFailed () {
@@ -327,6 +337,7 @@ class ReporterLogger extends BaseLogger {
     super();
 
     this.testFileIdentifier = testFileIdentifier;
+    this.suites = [];
   }
 
   async load () {

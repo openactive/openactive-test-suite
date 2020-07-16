@@ -4,6 +4,17 @@ Spontaneous bug fixes and incremental feature PRs are welcome! However, before m
 
 Please note we have a [Code of Conduct](https://openactive.io/public-openactive-w3c/code-of-conduct/), please follow it in all your interactions with the project.
 
+## Code Quality
+
+New code should, as much as impossible, lead to increased coverage of:
+
+- ESLinting
+- TypeScript type checking
+
+So that the codebase becomes more reliable over time.
+
+More generally, the rule is: "Leave it at least as good as you found it. Preferably, a little better ☺️".
+
 ## Commits
 
 Use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages. This makes our commit history easy to understand by humans and by automated tools.

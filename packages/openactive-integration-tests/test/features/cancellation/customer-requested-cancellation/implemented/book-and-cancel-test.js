@@ -94,14 +94,14 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       });
     */
 
-    it('Order Cancellation return 204 on success', function() {
+    it('Order Cancellation return 204 on success', function () {
       expect(state.uResponse).to.have.status(204);
     });
 
-    it('Orders feed should have CustomerCancelled as orderItemStatus', function() {
+    it('Orders feed should have CustomerCancelled as orderItemStatus', function () {
       expect(state.ordersFeedUpdate).to.have.json(
         'data.orderedItem[0].orderItemStatus',
-        'https://openactive.io/CustomerCancelled'
+        'https://openactive.io/CustomerCancelled',
       );
     });
 

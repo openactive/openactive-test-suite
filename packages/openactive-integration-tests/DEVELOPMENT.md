@@ -104,3 +104,15 @@ describe('C1', function () {
     });
   });
 ```
+
+## TypeScript
+
+The code is written in native JS, but uses TypeScript to check for type errors. TypeScript uses JSDoc annotations to determine types (See: [Type Checking JavaScript Files](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)) from our native .js files.
+
+Type checking is performed by running:
+
+```sh
+npx tsc
+```
+
+This is included in the test script so that this check is performed by CI.

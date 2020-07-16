@@ -3,7 +3,7 @@ const pMemoize = require("p-memoize");
 const config = require("config");
 const moment = require('moment');
 
-var USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 const SELLER_CONFIG = config.get("sellers");
 
 function isResponse20x(response) {
@@ -106,6 +106,7 @@ class RequestState {
   }
 
   async deleteOrder () {
+    // @ts-expect-error testHelper is not defined
     return await testHelper.deleteOrder(this.uuid, {
       sellerId: this.sellerId,
     });

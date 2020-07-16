@@ -1,15 +1,10 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai'); // The latest version for new features than chakram includes
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
-const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours');
+const { GetMatch, C1, C2, Common } = require('../../../../shared-behaviours');
 
-const { expect } = chakram;
 /* eslint-enable no-unused-vars */
-
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
