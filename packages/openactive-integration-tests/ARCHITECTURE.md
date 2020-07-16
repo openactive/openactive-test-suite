@@ -83,7 +83,7 @@ Then use it within the describe blocks as so:
 
 ```jsx
 (new GetMatch({
-  state, flow, logger, configuration,
+  state, flow, logger,
 }))
   .beforeSetup()
   .successChecks()

@@ -2,7 +2,7 @@ const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
 class GetMatch {
-  constructor ({state, flow, logger, configuration, orderItemCriteria}) {
+  constructor ({state, flow, logger, orderItemCriteria}) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;

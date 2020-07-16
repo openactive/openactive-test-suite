@@ -12,5 +12,8 @@
     "test": "npm test --prefix packages/openactive-integration-tests",
     "certificate-validator": "npm run certificate-validator --prefix packages/openactive-integration-tests"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "engines": {
+    "node": "12.18.2"
+  }
 }
