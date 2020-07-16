@@ -2,6 +2,8 @@
   Useful base class
 */
 
+const moment = require('moment')
+
 module.exports = class Criteria {
 	getId(opportunity) {
 		return opportunity['@id'] || opportunity['id'];
@@ -20,7 +22,7 @@ module.exports = class Criteria {
 		return offers ? offers.filter(x =>
 			(!x.availableChannel || x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
 			&& x.advanceBooking != "https://openactive.io/Unavailable"
-			&& (!x.validFromBeforeStartDate || moment(startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore())
+			&& (!x.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore())
 		) : [];
 	}
 
