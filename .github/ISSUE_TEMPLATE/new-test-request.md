@@ -2,7 +2,7 @@
 name: New test request
 about: New test request for this project
 title: "[<Feature Name>] - [<Test Identifier>] - <Use Case>"
-labels: ''
+labels: test-request
 assignees: ''
 
 ---
