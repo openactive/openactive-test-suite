@@ -106,7 +106,7 @@ function getRPDE(url, context, cb) {
           if (VERBOSE) console.log(`Sleep mode poll for RPDE feed "${url}"`);
         }
         context.sleepMode = true;
-        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime),
+        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime);
         setTimeout(x => getRPDE(url, context, cb), 500);
       } else {
         context.responseTimes.push(response.elapsedTime);
