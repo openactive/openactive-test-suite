@@ -20,6 +20,6 @@ _Aiming for completion by 26th August_
 
 _Aiming for completion by 16th September_
 
-### Milestone 4: [“advanced-payment”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/advanced-payment), [“notifications”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/notifications), [“terms”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/terms) and [“booking-partner-authentication”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/booking-partner-authentication)
+### Milestone 4: [“advanced-payment”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/advanced-payment), [“notifications”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/notifications), [“terms”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/terms) and [“authentication”](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test/features/authentication)
 
 _Aiming for completion by 7th October_
