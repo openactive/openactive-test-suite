@@ -10,7 +10,7 @@
 		<meta charset="utf-8" />
 		<meta http-equiv="Content-Security-Policy" 
 content="default-src 'none';
-				 style-src 'sha256-NybghybjaAJWiPwyBJ7RlHrqdgkvUaujOhDMSubD1UQ=' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css;
+				 style-src 'unsafe-inline' https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css;
 				 font-src https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/webfonts/;
 				 connect-src https://conformance-certificate-validator.openactive.io/validate-json;
 				 img-src data: https://openactive.io/assets/openactive-logo-small.png https://openactive.io/assets/OpenActive-Enabled-badge.png;
@@ -3866,6 +3866,7 @@ content="default-src 'none';
 						opacity: 1;
 						text-align: right;
 						margin: -3.5em 4em 0 0;
+						max-width: 700px;
 					}
 
 						#header .content > :last-child {
