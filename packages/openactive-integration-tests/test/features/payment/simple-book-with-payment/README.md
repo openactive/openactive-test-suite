@@ -18,7 +18,7 @@ Opportunities that match the following criteria must exist in the booking system
 ### Running tests for only this feature
 
 ```bash
-npm test --runInBand -- test/features/payment/simple-book-with-payment/
+npm start --runInBand -- test/features/payment/simple-book-with-payment/
 ```
 
 

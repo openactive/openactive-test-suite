@@ -37,13 +37,13 @@ The broker microservice must be running before the test suite is run.
 ### Broker microservice
 ```bash
 cd packages/openactive-broker-microservice
-npm run start
+npm start
 ```
 
 ### Tests
 ```bash
 cd packages/openactive-integration-tests
-npm run test
+npm start
 ```
 
 
@@ -69,7 +69,7 @@ pid=$!
 trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
 
 # Run tests
-npm test --prefix packages/openactive-integration-tests
+npm start --prefix packages/openactive-integration-tests
 
 # Kill broker microservice on success
 kill $pid

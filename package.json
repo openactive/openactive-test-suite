@@ -8,7 +8,9 @@
     "install": "npm install --prefix packages/openactive-broker-microservice && npm install --prefix packages/openactive-integration-tests",
     "prettier": "prettier --check \"packages/**/*.js\" \"packages/**/*.json\"",
     "prettier:write": "prettier --write \"packages/**/*.js\" \"packages/**/*.json\"",
-    "start": "npm start --prefix packages/openactive-broker-microservice",
+    "start": "echo 'Error: please select a package to run and then run it e.g. `npm start --prefix packages/openactive-broker-microservice`' && exit 1",
+    "start-broker": "npm start --prefix packages/openactive-broker-microservice",
+    "start-tests": "npm start --prefix packages/openactive-integration-tests",
     "test": "npm test --prefix packages/openactive-integration-tests",
     "certificate-validator": "npm run certificate-validator --prefix packages/openactive-integration-tests"
   },

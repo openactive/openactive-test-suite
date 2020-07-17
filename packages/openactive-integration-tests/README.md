@@ -25,15 +25,15 @@ The results of this test suite when run against the reference implementation can
 ## Usage
 1. `npm install`
 2. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running
-3. `npm run test`
+3. `npm start`
 
 ### Running specific tests
 
-`npm run test -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
+`npm start -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
 
 ### Running core tests in a single process
 
-`npm test --runInBand -- test/features/core/`
+`npm start --runInBand -- test/features/core/`
 
 ## Configuration
 
@@ -130,6 +130,6 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for information on the various components
 
 ### Debugging tests
 
-`npm run test --reporters default`
+`npm start --reporters default`
 
 

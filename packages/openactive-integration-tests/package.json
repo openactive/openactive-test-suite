@@ -4,12 +4,11 @@
   "description": "OpenActive booking system integration tests",
   "main": "app.js",
   "scripts": {
-    "start": "echo \"Error: package contains only tests\" && exit 1",
-    "test": "jest",
+    "start": "jest",
+    "test": "npm run lint && tsc",
     "debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand -- test/features/",
     "lint": "eslint \"test/features/**/*.js\"",
     "lint-fix": "eslint \"test/features/**/*.js\" --fix",
-    "static-checks": "npm run lint && tsc",
     "doc-gen": "env NODE_ENV=test node documentation/generator.js",
     "certificate-validator": "env NODE_ENV=test node test/certification/certification-validator-microservice.js"
   },
