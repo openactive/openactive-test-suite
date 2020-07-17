@@ -6,23 +6,28 @@
   "scripts": {
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "node --inspect-brk -i app.js"
+    "debug": "node --inspect-brk -i app.js",
+    "lint": "eslint \"*.js\"",
+    "lint-fix": "eslint \"*.js\" --fix"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
-    "@nano-sql/core": "^2.3.7",
     "axios": "^0.19.2",
     "config": "^3.2.4",
     "debug": "~2.6.9",
     "express": "^4.17.1",
     "htmlmetaparser": "^2.0.3",
     "htmlparser2": "^4.1.0",
-    "moment": "^2.24.0",
     "morgan": "~1.9.0",
     "p-memoize": "^3.1.0",
     "request": "^2.88.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.1",
+    "eslint-plugin-import": "^2.20.0"
   },
   "engines": {
     "node": "12.18.2"
