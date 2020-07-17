@@ -59,8 +59,12 @@ class JasmineStateReporter {
     return path;
   }
 
-  on(...args) {
-    return this.emitter.on(...args);
+  /**
+   * @param {string | symbol} event
+   * @param {(...args: any[]) => void} listener
+   */
+  on(event, listener) {
+    return this.emitter.on(event, listener);
   }
 }
 

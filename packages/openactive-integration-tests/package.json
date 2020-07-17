@@ -9,6 +9,7 @@
     "debug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand -- test/features/",
     "lint": "eslint \"test/features/**/*.js\"",
     "lint-fix": "eslint \"test/features/**/*.js\" --fix",
+    "static-checks": "npm run lint && tsc",
     "doc-gen": "env NODE_ENV=test node documentation/generator.js",
     "certificate-validator": "env NODE_ENV=test node test/certification/certification-validator-microservice.js"
   },
@@ -42,9 +43,12 @@
     "jest-spec-reporter": "^1.0.10"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.4",
+    "@types/node": "^12.12.50",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",
-    "eslint-plugin-import": "^2.20.0"
+    "eslint-plugin-import": "^2.20.0",
+    "typescript": "^3.9.6"
   },
   "jest": {
     "verbose": false,
@@ -62,5 +66,8 @@
     "testTimeout": 15000,
     "transform": {},
     "testEnvironment": "<rootDir>test/testEnvironment.js"
+  },
+  "engines": {
+    "node": "12.18.2"
   }
 }

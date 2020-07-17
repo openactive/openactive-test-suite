@@ -41,6 +41,14 @@ function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCr
   let doValidate = async () => {
     if (results) return results;
 
+    /**
+     * @type {{
+     *   loadRemoteJson: boolean,
+     *   remoteJsonCachePath: string,
+     *   remoteJsonCacheTimeToLive: number,
+     *   validationMode?: string,
+     * }} & typeof options
+     */
     let optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
       remoteJsonCachePath: './tmp',
