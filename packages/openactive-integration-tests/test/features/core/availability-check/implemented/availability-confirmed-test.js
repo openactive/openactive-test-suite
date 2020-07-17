@@ -1,10 +1,7 @@
-/* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai'); // The latest version for new features than chakram includes
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, Common } = require('../../../../shared-behaviours');
-
-/* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
