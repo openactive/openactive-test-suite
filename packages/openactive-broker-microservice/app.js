@@ -9,12 +9,12 @@ const criteria = require("@openactive/test-interface-criteria").criteria;
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 
-var PORT = 3000;
-var DATASET_SITE_URL = config.get("datasetSiteUrl");
-var REQUEST_LOGGING_ENABLED = config.get("requestLogging");
-var WAIT_FOR_HARVEST = config.get("waitForHarvestCompletion");
-var ORDERS_FEED_REQUEST_HEADERS = config.get("ordersFeedRequestHeaders");
-var VERBOSE = config.get("verbose");
+const PORT = 3000;
+const DATASET_SITE_URL = config.get("datasetSiteUrl");
+const REQUEST_LOGGING_ENABLED = config.get("requestLogging");
+const WAIT_FOR_HARVEST = config.get("waitForHarvestCompletion");
+const ORDERS_FEED_REQUEST_HEADERS = config.get("ordersFeedRequestHeaders");
+const VERBOSE = config.get("verbose");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 process.env["PORT"] = 3000;
@@ -57,7 +57,7 @@ criteria.map(criteria => criteria.name).forEach(criteriaName => {
   matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
 });
 
-var feedStatus = new Map();
+var feedContextMap = new Map();
 
 var testDatasets = new Map();
 function getTestDataset(testDatasetIdentifier) {
@@ -71,7 +71,8 @@ function getAllDatasets() {
   return new Set(Array.from(testDatasets.values()).flatMap(x => Array.from(x.values())));
 }
 
-function getRPDE(url, context, cb) {
+function getRPDE(url, contextIdentifier, cb) {
+  const context = feedContextMap.get(contextIdentifier);
   var options = {
     url: url,
     method: "get",
@@ -107,19 +108,20 @@ function getRPDE(url, context, cb) {
         }
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime);
-        setTimeout(x => getRPDE(url, context, cb), 500);
+        setTimeout(x => getRPDE(url, contextIdentifier, cb), 500);
       } else {
         context.responseTimes.push(response.elapsedTime);
+        // Maintain a buffer of the last 5 items
         if (context.responseTimes.length > 5) context.responseTimes.shift();
         context.pages++;
         context.items+=json.items.length;
         delete context.sleepMode;
-        cb(json, context);
+        cb(json, contextIdentifier);
       }
     } else if (!response) {
       console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, context, cb), 5000);
+      setTimeout(x => getRPDE(url, contextIdentifier, cb), 5000);
     } else if (response.statusCode === 404) {
       if (WAIT_FOR_HARVEST) feedUpToDate(url);
       console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
@@ -127,7 +129,7 @@ function getRPDE(url, context, cb) {
     } else {
       console.log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
-      setTimeout(x => getRPDE(url, context, cb), 5000);
+      setTimeout(x => getRPDE(url, contextIdentifier, cb), 5000);
     }
   });
 }
@@ -230,12 +232,17 @@ app.get("/dataset-site", function(req, res) {
 
 function mapToObject(map) {
   if (map instanceof Map) {
-    return Object.assign(Object.create(null), ...[...map].map(v => (typeof v[1] === 'object' && v[1].size === 0 ? {} : { [v[0]]: mapToObject(v[1]) })));
-  } else if (map instanceof Set) {
+    // Return a object representation of a Map
+    return Object.assign(Object.create(null), ...[...map].map(v => (typeof v[1] === 'object' && v[1].size === 0 ? {
+    } : {
+      [v[0]]: mapToObject(v[1]),
+    })));
+  } if (map instanceof Set) {
+    // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
+    // instead of outputting the whole set contents. This reduces the size of the output for display.
     return map.size;
-  } else {
-    return map;
   }
+  return map;
 }
 
 function millisToMinutesAndSeconds(millis) {
@@ -247,7 +254,7 @@ function millisToMinutesAndSeconds(millis) {
 app.get("/status", function(req, res) {
   res.send({
     elapsedTime: millisToMinutesAndSeconds(new Date() - startTime),
-    feeds: mapToObject(feedStatus),
+    feeds: mapToObject(feedContextMap),
     buckets: mapToObject(matchingCriteriaOpportunityIds)
   });
 });
@@ -424,7 +431,7 @@ app.get("/get-order/:expression", function(req, res) {
 });
 
 
-function ingestParentOpportunityPage(rpde, context, pageNumber) {
+function ingestParentOpportunityPage(rpde, contextIdentifier, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -456,14 +463,14 @@ function ingestParentOpportunityPage(rpde, context, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, context, (x, context) =>
-        ingestParentOpportunityPage(x, context, pageNumber + 1 || 0)
+      getRPDE(rpde.next, contextIdentifier, (x, contextIdentifier) =>
+        ingestParentOpportunityPage(x, contextIdentifier, pageNumber + 1 || 0)
       ),
     200
   );
 }
 
-function ingestOpportunityPage(rpde, context, pageNumber) {
+function ingestOpportunityPage(rpde, contextIdentifier, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     var kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
     console.log(
@@ -491,8 +498,8 @@ function ingestOpportunityPage(rpde, context, pageNumber) {
 
   setTimeout(
     x =>
-      getRPDE(rpde.next, context, (x, context) =>
-        ingestOpportunityPage(x, context, pageNumber + 1 || 0)
+      getRPDE(rpde.next, contextIdentifier, (x, contextIdentifier) =>
+        ingestOpportunityPage(x, contextIdentifier, pageNumber + 1 || 0)
       ),
     200
   );
@@ -609,7 +616,7 @@ function processOpportunityItem(item) {
     }
 }
 
-function monitorOrdersPage(rpde, context, pageNumber) {
+function monitorOrdersPage(rpde, contextIdentifier, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     console.log(
       `RPDE kind: Orders Monitoring, length: ${rpde.items.length}, next: '${rpde.next}'`
@@ -622,7 +629,7 @@ function monitorOrdersPage(rpde, context, pageNumber) {
     }
   });
 
-  setTimeout(x => getRPDE(rpde.next, context, monitorOrdersPage), 200);
+  setTimeout(x => getRPDE(rpde.next, contextIdentifier, monitorOrdersPage), 200);
 }
 
 
@@ -703,8 +710,11 @@ function setupContext(identifier, headers) {
     responseTimes: []
   };
   if (headers !== undefined) context.headers = headers;
-  feedStatus.set(identifier, context);
-  return context;
+  if (feedContextMap.has(identifier)) {
+    throw new Error('Duplicate feed identifier not permitted.');
+  }
+  feedContextMap.set(identifier, context);
+  return identifier;
 }
 
 // Ensure that dataset site request also delays "readiness"
