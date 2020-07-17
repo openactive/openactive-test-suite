@@ -11,6 +11,10 @@ const c2req = require("../templates/c2-req.js");
 const breq = require("../templates/b-req.js");
 const ureq = require("../templates/u-req.js");
 
+const MICROSERVICE_BASE = global.MICROSERVICE_BASE;
+const BOOKING_API_BASE = global.BOOKING_API_BASE;
+const TEST_DATASET_IDENTIFIER = global.TEST_DATASET_IDENTIFIER;
+
 class RequestHelper {
   constructor(logger) {
     this.logger = logger;
