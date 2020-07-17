@@ -32,20 +32,26 @@ For developers that are customising the installation, for use in e.g. Docker, th
 
 ## Running
 
-The broker microservice must be running before the test suite is run.
-
-### Broker microservice
 ```bash
-cd packages/openactive-broker-microservice
 npm start
 ```
 
-### Tests
-```bash
-cd packages/openactive-integration-tests
-npm start
-```
+This will run the broker microservice and then run the tests against it.
 
+This can be configured with two env vars:
+
+- `BROKER_CONFIG`: Command line overrides for the openactive-broker-microservice's config. In the script, this sets `NODE_CONFIG`. You can see how this works in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config)
+  e.g.
+  ```bash
+  BROKER_CONFIG='{"waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive"}' npm start
+  ```
+- `TESTS_CONFIG`: Command line overrides for the openactive-test-suite's config. In the script, this sets `NODE_CONFIG`. You can see how this works in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config)
+  e.g.
+  ```bash
+  TESTS_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
+  ```
+
+Additionally, any extra command line args will be passed to `jest` in the openactive-test-suite e.g. `npm start -- --runInBand`. Read about Jest's command line args in their [CLI docs](https://jestjs.io/docs/en/cli).
 
 ## Continuous Integration
 
@@ -58,21 +64,10 @@ This is useful for running both packages within a continuous integration environ
 set -e # exit with nonzero exit code if anything fails
 
 # Install dependencies
-npm install --prefix packages/openactive-broker-microservice
-npm install --prefix packages/openactive-integration-tests
+npm install
 
-# Start broker microservice in the background
-npm start --prefix packages/openactive-broker-microservice &
-pid=$!
-
-# Kill broker microservice in case of error
-trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
-
-# Run tests
-npm start --prefix packages/openactive-integration-tests
-
-# Kill broker microservice on success
-kill $pid
+# Start broker microservice and run tests
+npm start
 ```
 
 # Contributing
