@@ -16,7 +16,7 @@ pid=$!
 trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
 
 # Run tests
-NODE_CONFIG="{\"useRandomOpportunities\": $1, \"generateConformanceCertificate\": false}" npm test --runInBand -- "${@:2}"
+NODE_CONFIG="{\"useRandomOpportunities\": $1, \"generateConformanceCertificate\": false}" npm start --runInBand -- "${@:2}"
 
 # Kill broker microservice on success
 kill $pid

@@ -51,18 +51,20 @@ jobs:
       run: | 
         npm install --prefix tests/packages/openactive-broker-microservice
         npm install --prefix tests/packages/openactive-integration-tests
+    - name: Run Checks on the Code (Test the Tests!)
+      run: npm test --prefix tests
     - name: Start Broker Microservice
       run: | 
         NODE_CONFIG='{"waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive"}' npm start --prefix tests/packages/openactive-broker-microservice &
     - name: Run OpenActive Integration Tests in Random Mode
       run: |
         rm -rf ./tests/packages/openactive-integration-tests/output/
-        NODE_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm test --prefix tests/packages/openactive-integration-tests --runInBand -- test/features/
+        NODE_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start --prefix tests/packages/openactive-integration-tests --runInBand -- test/features/
         cp -R ./tests/packages/openactive-integration-tests/output/* ./publish/example-output/random/
     - name: Run OpenActive Integration Tests in Controlled Mode
       run: |
         rm -rf ./tests/packages/openactive-integration-tests/output/
-        NODE_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }' npm test --prefix tests/packages/openactive-integration-tests --runInBand -- test/features/
+        NODE_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }' npm start --prefix tests/packages/openactive-integration-tests --runInBand -- test/features/
         cp -R ./tests/packages/openactive-integration-tests/output/* ./publish/example-output/controlled/
     - name: Deploy test output to GitHub Pages (master branch only)
       uses: peaceiris/actions-gh-pages@v3

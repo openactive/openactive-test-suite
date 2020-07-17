@@ -118,7 +118,7 @@ class Reporter {
 
           let validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
           if (!validationResult || !validationResult.valid) {
-            throw new Error("A valid conformance certificate could not be generated, likely because not all tests were run for this feature configuration. Try simply running `npm test`, without specifying a specific test directory.");
+            throw new Error("A valid conformance certificate could not be generated, likely because not all tests were run for this feature configuration. Try simply running `npm start`, without specifying a specific test directory.");
           }
 
           await mkdirp('./output/certification');
