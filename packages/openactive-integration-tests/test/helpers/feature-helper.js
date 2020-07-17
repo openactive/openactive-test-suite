@@ -7,10 +7,56 @@ const { FlowHelper } = require('./flow-helper');
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = global.BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
 const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
 
-class FeatureHelper {
-  static describeFeature(documentationModule, configuration, tests) {
-    // Default templates
+/**
+ * @typedef {{
+ *   opportunityType: string | null,
+ *   opportunityCriteria: string,
+ *   primary: boolean,
+ *   control: boolean,
+ *   opportunityReuseKey?: number,
+ *   usedInOrderItems?: number,
+ * }} OpportunityCriteriaTemplate
+ *
+ * @typedef {(opportunityType: string) => [OpportunityCriteriaTemplate]} CreateSingleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteriaTemplate[]} CreateMultipleOportunityCriteriaTemplateFn
+ *
+ * @typedef {{
+ *   testCategory: string,
+ *   testFeature: string,
+ *   testFeatureImplemented: boolean,
+ *   testIdentifier: string,
+ *   testName: string,
+ *   testDescription: string,
+ *   testOpportunityCriteria?: string,
+ *   controlOpportunityCriteria: string,
+ *   singleOpportunityCriteriaTemplate?: CreateSingleOportunityCriteriaTemplateFn,
+ *   multipleOpportunityCriteriaTemplate?: CreateMultipleOportunityCriteriaTemplateFn,
+ *   runOnce?: boolean,
+ *   skipMultiple?: boolean,
+ *   runOnlyIf?: boolean,
+ * }} DescribeFeatureConfiguration
+ *
+ * @typedef {(
+ *   configuration: DescribeFeatureConfiguration,
+ *   orderItemCriteria: any[],
+ *   implemented: boolean,
+ *   logger: InstanceType<typeof Logger>,
+ *   state: InstanceType<typeof RequestState>,
+ *   flow: InstanceType<typeof FlowHelper>,
+ * ) => void} RunTestsFn
+ */
 
+class FeatureHelper {
+  /**
+   * @param {NodeModule} documentationModule
+   * @param {DescribeFeatureConfiguration} configuration
+   * @param {RunTestsFn} tests
+   */
+  static describeFeature(documentationModule, configuration, tests) {
+    /**
+     * Default templates
+     * @type {CreateSingleOportunityCriteriaTemplateFn}
+     */
     const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate 
     || 
     (configuration.testOpportunityCriteria ? ((opportunityType) => [{
@@ -20,7 +66,10 @@ class FeatureHelper {
       control: false,
     }]) : null);
 
-    // Default template: Two of the same opportunity (via opportunityReuseKey), and one different
+    /**
+     * Default template: Two of the same opportunity (via opportunityReuseKey), and one different
+     * @type {CreateMultipleOportunityCriteriaTemplateFn}
+     */
     const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate
     ||
     (configuration.testOpportunityCriteria ? (opportunityType, i) => [{

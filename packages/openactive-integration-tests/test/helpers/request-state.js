@@ -41,6 +41,10 @@ class RequestState {
     return this._uuid;
   }
 
+  /**
+   * @param {any[]} orderItemCriteriaList
+   * @param {boolean} [randomModeOverride]
+   */
   async fetchOpportunities(orderItemCriteriaList, randomModeOverride) {
     this.orderItemCriteriaList = orderItemCriteriaList;
 
