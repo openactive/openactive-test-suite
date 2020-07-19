@@ -12,7 +12,7 @@ const {ReportGenerator, SummaryReportGenerator} = require('./report-generator');
 const {CertificationWriter} = require('./certification/certification-writer');
 const {validateCertificateHtml} = require('./certification/certification-validator');
 
-const MICROSERVICE_BASE = config.get("microserviceApiBase");
+const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}/`;
 const GENERATE_CONFORMANCE_CERTIFICATE = config.has('generateConformanceCertificate') && config.get('generateConformanceCertificate');
 const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? config.get('conformanceCertificateId') : null;
 

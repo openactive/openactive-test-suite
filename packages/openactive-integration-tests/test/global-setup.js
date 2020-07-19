@@ -2,9 +2,9 @@ const assert = require("assert");
 const axios = require("axios");
 const config = require("config");
 
-var MICROSERVICE_BASE = config.get("microserviceApiBase");
-var TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
-var USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}/`;
+const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
+const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 

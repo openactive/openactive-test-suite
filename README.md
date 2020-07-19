@@ -38,24 +38,15 @@ npm start
 
 This will run the broker microservice and then run the tests against it.
 
-This can be configured with two env vars:
+This can be configured with the environment variable `NODE_CONFIG`, where any config overrides specified will be applied to both the `openactive-broker-microservice` and the `openactive-test-suite`. You can see how this works in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config)
 
-- `BROKER_CONFIG`: Command line overrides for the openactive-broker-microservice's config. In the script, this sets `NODE_CONFIG`. You can see how this works in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config)
-  e.g.
   ```bash
-  BROKER_CONFIG='{"waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive"}' npm start
-  ```
-- `TESTS_CONFIG`: Command line overrides for the openactive-test-suite's config. In the script, this sets `NODE_CONFIG`. You can see how this works in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config)
-  e.g.
-  ```bash
-  TESTS_CONFIG='{ "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
+  NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
   ```
 
-Additionally, any extra command line args will be passed to `jest` in the openactive-test-suite e.g. `npm start -- --runInBand`. Read about Jest's command line args in their [CLI docs](https://jestjs.io/docs/en/cli).
+Additionally, any extra command line args will be passed to `jest` in the openactive-test-suite e.g. `npm start --runInBand -- test/features/core/availability-check/`. Read about Jest's command line args in their [CLI docs](https://jestjs.io/docs/en/cli).
 
 ## Continuous Integration
-
-When `waitForHarvestCompletion` is set to `true` in `default.json`, the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 This is useful for running both packages within a continuous integration environment, as shown below:
 
@@ -69,6 +60,8 @@ npm install
 # Start broker microservice and run tests
 npm start
 ```
+
+Note that running `npm start` in the root directory will override `waitForHarvestCompletion` to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 # Contributing
 
