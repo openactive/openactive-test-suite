@@ -24,7 +24,9 @@ Before running, configure the test suite:
    - [More information](./packages/openactive-integration-tests/#configuration)
 
 ## Installation
- - `npm install`
+```bash
+npm install
+```
  
 This will install the dependencies needed for both packages.
 
