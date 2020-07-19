@@ -20,9 +20,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 const app = express();
 
 // eslint-disable-next-line no-console
-const logError = x => console.error(chalk.magentaBright(x));
+const logError = x => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
-const log = x => console.log(chalk.magenta(x));
+const log = x => console.log(chalk.cyan(x));
 
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
