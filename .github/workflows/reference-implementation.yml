@@ -50,8 +50,6 @@ jobs:
     - name: Install OpenActive Test Suite
       run: | 
         npm install --prefix tests
-    - name: Run Checks on the Code (Test the Tests!)
-      run: npm test --prefix tests
     - name: Run OpenActive Integration Tests in Random Mode
       run: |
         rm -rf ./tests/packages/openactive-integration-tests/output/

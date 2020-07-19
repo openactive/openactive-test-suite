@@ -1,0 +1,24 @@
+name: Code Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout OpenActive Test Suite
+      uses: actions/checkout@v2
+    - name: Setup Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+    - name: Install OpenActive Test Suite
+      run: npm install
+    - name: Run Checks on the Code (Test the Tests!)
+      run: npm test

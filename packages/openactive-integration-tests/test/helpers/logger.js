@@ -2,8 +2,6 @@ const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
 
-const testState = global.testState;
-
 // abstract class, implement shared methods
 class BaseLogger {
   constructor () {
@@ -18,9 +16,9 @@ class BaseLogger {
 
   get testMeta () {
     return {
-      ancestorTitles: testState.ancestorTitles,
-      title: testState.currentTest && testState.currentTest.description,
-      fullName: testState.fullName,
+      ancestorTitles: global.testState.ancestorTitles,
+      title: global.testState.currentTest && global.testState.currentTest.description,
+      fullName: global.testState.fullName,
     };
   }
 
@@ -290,22 +288,22 @@ class Logger extends BaseLogger {
     // Record the ancestorTitles path relevant to the logger
     this.baseAncestorTitles = this.getAncestorTitles();
 
-    testState.on("suite-started", (suite) => {
+    global.testState.on("suite-started", (suite) => {
       // Note these events are triggered for all instances of the logger,
       // as the events are global, so we must check the event is relevant to this instance
-      if (!this.inScopeForThisLoggerInstance(testState.ancestorTitles)) return;
-      this.suites.push(testState.ancestorTitles);
+      if (!this.inScopeForThisLoggerInstance(global.testState.ancestorTitles)) return;
+      this.suites.push(global.testState.ancestorTitles);
     });
 
-    testState.on("spec-started", (spec) => {
+    global.testState.on("spec-started", (spec) => {
       // Note these events are triggered for all instances of the logger,
       // as the events are global, so we must check the event is relevant to this instance
-      if (!this.inScopeForThisLoggerInstance(testState.ancestorTitles)) return;
-      let key = testState.ancestorTitles;
+      if (!this.inScopeForThisLoggerInstance(global.testState.ancestorTitles)) return;
+      let key = global.testState.ancestorTitles;
       if (!this.specs[key]) {
         this.specs[key] = [];
       }
-      this.specs[key].push(testState.currentTest.description);
+      this.specs[key].push(global.testState.currentTest.description);
     });
   }
 
