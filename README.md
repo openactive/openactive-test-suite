@@ -36,15 +36,25 @@ For developers that are customising the installation, for use in e.g. Docker, th
 npm start
 ```
 
-This will run the broker microservice and then run the tests against it.
+This will run the broker microservice and then run all tests against it, according to the [feature configuration](./packages/openactive-integration-tests/#configuration).
 
-This can be configured with the environment variable `NODE_CONFIG`, where any config specified will be override both the `openactive-broker-microservice` and the `openactive-test-suite`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config).
+### Running specific tests
+
+Any extra command line arguments will be passed to `jest` in `openactive-integration-tests`. For example: 
+
+```bash
+npm start --runInBand -- test/features/core/availability-check/
+```
+
+Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).
+
+### Configuration overrides
+
+The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `packages\openactive-broker-microservice\config\default.json` and `packages\openactive-integration-tests\config\test.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
 
   ```bash
   NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
   ```
-
-Additionally, any extra command line args will be passed to `jest` in the openactive-test-suite e.g. `npm start --runInBand -- test/features/core/availability-check/`. Read about Jest's command line args in their [CLI docs](https://jestjs.io/docs/en/cli).
 
 ## Continuous Integration
 
@@ -54,14 +64,17 @@ This is useful for running both packages within a continuous integration environ
 #!/bin/bash
 set -e # exit with nonzero exit code if anything fails
 
+# Get the latest OpenActive Test Suite
+git clone git@github.com:openactive/openactive-test-suite.git
+
 # Install dependencies
-npm install
+npm install --prefix openactive-test-suite
 
 # Start broker microservice and run tests
-npm start
+npm start --prefix openactive-test-suite
 ```
 
-Note that running `npm start` in the root directory will override `waitForHarvestCompletion` to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
+Note that running `npm start` in the root `openactive-test-suite` directory will override `waitForHarvestCompletion` to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 # Contributing
 
