@@ -76,7 +76,7 @@ npm install --prefix openactive-test-suite
 npm start --prefix openactive-test-suite
 ```
 
-Note that running `npm start` in the root `openactive-test-suite` directory will override `waitForHarvestCompletion` to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
+Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 # Contributing
 
