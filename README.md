@@ -38,7 +38,7 @@ npm start
 
 This will run the broker microservice and then run the tests against it.
 
-This can be configured with the environment variable `NODE_CONFIG`, where any config overrides specified will be applied to both the `openactive-broker-microservice` and the `openactive-test-suite`. You can see how this works in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config)
+This can be configured with the environment variable `NODE_CONFIG`, where any config specified will be override both the `openactive-broker-microservice` and the `openactive-test-suite`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config).
 
   ```bash
   NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
