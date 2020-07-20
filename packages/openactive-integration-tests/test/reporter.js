@@ -105,6 +105,20 @@ class Reporter {
         `– ${numPendingTests} pending`
       ));
     }
+
+    // Catch straggling failures that are not featured in the summary
+    if (numFailedTests > 0 && generator.summaryMeta.features.every(x => x.overallStatus === 'passed')) {
+      console.log(chalk.red('\n\nHidden test failures:'));
+      testResults.filter(x => x.numFailingTests > 0).forEach((testFile) => {
+        console.log(chalk.red(`- ${testFile.testFilePath}`));
+        testFile.testResults.filter(x => x.status !== 'passed').forEach((testResult) => {
+          console.log(chalk.red(`  - ${testResult.fullName}: ${testResult.status}`));
+          testResult.failureMessages.forEach((failureMessage) => {
+            console.log(chalk.red(`    - ${failureMessage}`));
+          });
+        })
+      });
+    }
     
     if (GENERATE_CONFORMANCE_CERTIFICATE) {
       if (numFailedTests > 0) {
