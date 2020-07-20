@@ -15,6 +15,7 @@ const {validateCertificateHtml} = require('./certification/certification-validat
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}/`;
 const GENERATE_CONFORMANCE_CERTIFICATE = config.has('generateConformanceCertificate') && config.get('generateConformanceCertificate');
 const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? config.get('conformanceCertificateId') : null;
+const OUTPUT_PATH = config.get('outputPath');
 
 class Reporter {
   constructor(globalConfig, options) {
@@ -26,10 +27,10 @@ class Reporter {
     await mkdirp('./output');
     // TODO: Replace the line below to remove any files that have not been created by this test run
     // To allow Markdown auto-reload features to work (as file must be updated, not deleted, between test runs)
-    // await rmfr('./output/*.md', {glob: true});
-    await mkdirp('./output/json');
-    await rmfr('./output/json/*.json', {glob: true});
-    await rmfr('./output/certification/*.html', {glob: true});
+    // await rmfr(`${OUTPUT_PATH}*.md`, {glob: true});
+    await mkdirp(`${OUTPUT_PATH}json`);
+    await rmfr(`${OUTPUT_PATH}json/*.json`, {glob: true});
+    await rmfr(`${OUTPUT_PATH}certification/*.html`, {glob: true});
 
     // Used for validator remoteJsonCachePath
     await mkdirp('./tmp');
@@ -137,7 +138,7 @@ class Reporter {
           // Ensure that CI fails on validation error, without a stack trace
           process.exitCode = 1;
         } else {
-          await mkdirp('./output/certification');
+          await mkdirp(`${OUTPUT_PATH}certification`);
           await fs.writeFile(certificationWriter.certificationOutputPath, html);
           console.log('\n' + chalk.green(
             `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`

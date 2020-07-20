@@ -1,6 +1,9 @@
 const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
+const config = require('config');
+
+const OUTPUT_PATH = config.get('outputPath');
 
 // abstract class, implement shared methods
 class BaseLogger {
@@ -176,7 +179,7 @@ class BaseLogger {
   }
 
   get metaPath () {
-    return `./output/json/${this.metaLocalPath}`;
+    return `${OUTPUT_PATH}json/${this.metaLocalPath}`;
   }
 
   get markdownLocalPath () {
@@ -184,7 +187,7 @@ class BaseLogger {
   }
 
   get markdownPath () {
-    return `./output/${this.markdownLocalPath}`;
+    return `${OUTPUT_PATH}${this.markdownLocalPath}`;
   }
 
   get validationStatusCounts () {

@@ -110,11 +110,13 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
   }
 ```
 
+### `outputPath`
+
+Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
+
 ## Reading test results
 
-Test results are written to `/output/*.md` in Markdown format.
-
-To read these files, the [Markdown Viewer Chrome Extension](https://chrome.google.com/webstore/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk) is recommended, with the following settings:
+To read the markdown files that are written to the directory specified by `outputPath`, the [Markdown Viewer Chrome Extension](https://chrome.google.com/webstore/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk) is recommended, with the following settings:
 - CONTENT -> "autoreload" on
 - ADVANCED OPTIONS -> ALLOW ACCESS TO FILE:// URLS (links to setting in Chrome Extensions settings of the same name)
 

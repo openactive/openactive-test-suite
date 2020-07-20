@@ -7,6 +7,7 @@ const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 const config = require("config");
 const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const OUTPUT_PATH = config.get('outputPath');
 
 class BaseReportGenerator {
   get templateName () {
@@ -190,7 +191,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
   }
 
   static async getLoggersFromFiles () {
-    let filenames = await fs.readdir(`./output/json/`);
+    let filenames = await fs.readdir(`${OUTPUT_PATH}json/`);
 
     let loggers = filenames.map((filename) => {
       // strip off file extension
@@ -243,11 +244,11 @@ class SummaryReportGenerator extends BaseReportGenerator {
   }
 
   get summaryMetaPath () {
-    return "./output/json/summary.json";
+    return `${OUTPUT_PATH}json/summary.json`;
   }
 
   get reportMarkdownPath () {
-    return "./output/summary.md";
+    return `${OUTPUT_PATH}summary.md`;
   }
 
   get opportunityTypeGroups () {
