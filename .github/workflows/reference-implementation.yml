@@ -42,14 +42,18 @@ jobs:
       with:
         node-version: 12.x
     - name: Install OpenActive.Server.NET dependencies
-      run: dotnet restore ./server/
+      run: dotnet restore
+      working-directory: server
     - name: Run OpenActive.Server.NET Tests
-      run: dotnet test ./server/OpenActive.Server.NET.Tests/OpenActive.Server.NET.Tests.csproj --configuration Release --no-restore --verbosity normal
+      run: dotnet test ./OpenActive.Server.NET.Tests/OpenActive.Server.NET.Tests.csproj --configuration Release --no-restore --verbosity normal
+      working-directory: server
     - name: Build OpenActive.Server.NET Reference Implementation
-      run: dotnet build ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
+      run: dotnet build ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
+      working-directory: server
     - name: Start OpenActive.Server.NET Reference Implementation
       run: |
-        dotnet run --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore &
+        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore &
+      working-directory: server
     - name: Install OpenActive Test Suite
       run: | 
         npm install
