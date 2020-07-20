@@ -15,8 +15,8 @@ let microservice = null;
 let integrationTests = null;
 
 nodeCleanup(function (exitCode, signal) {
-    if (microservice) microservice.kill();
-    if (integrationTests) integrationTests.kill();
+    if (microservice !== null) microservice.kill();
+    if (integrationTests !== null) integrationTests.kill();
 });
 
 microservice = fork('app.js', [], { cwd: './packages/openactive-broker-microservice/'} );
@@ -24,14 +24,14 @@ integrationTests = fork('./node_modules/jest/bin/jest.js', process.argv.slice(2)
 
 // If microservice exits, kill the integration tests (as something has gone wrong somewhere)
 microservice.on('close', (code) => {
-  if (microservice) integrationTests.kill();
+  if (integrationTests !== null) integrationTests.kill();
   // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
-  if (code !== 0) process.exitCode = code;
+  if (code !== 0 && code !== null) process.exitCode = code;
 });
 
 // When integration tests exit, kill the microservice
 integrationTests.on('close', (code) => {
-  if (microservice) microservice.kill();
+  if (microservice !== null) microservice.kill();
   // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
-  if (code !== 0) process.exitCode = code;
+  if (code !== 0 && code !== null) process.exitCode = code;
 });
