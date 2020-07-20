@@ -30,13 +30,6 @@ jobs:
         path: server
 
 
-    - name: Initialise publish directories
-      run: |
-        mkdir -p publish/example-output/random
-        mkdir -p publish/example-output/controlled
-        cp ./tests/redirect.html ./publish/index.html
-
-
     - name: Setup .NET Core 2.1.808
       uses: actions/setup-dotnet@v1
       with:
@@ -62,17 +55,13 @@ jobs:
       working-directory: tests
     - name: Run OpenActive Integration Tests in Random Mode
       run: |
-        rm -rf ./packages/openactive-integration-tests/output/
-        FORCE_COLOR=1 NODE_CONFIG='{"datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' \
+        FORCE_COLOR=1 NODE_CONFIG='{"outputPath": "../../publish/example-output/random/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' \
           npm start --runInBand
-        cp -R ./packages/openactive-integration-tests/output/* ../publish/example-output/random/
       working-directory: tests
     - name: Run OpenActive Integration Tests in Controlled Mode
       run: |
-        rm -rf ./packages/openactive-integration-tests/output/
-        FORCE_COLOR=1 NODE_CONFIG='{"datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }' \
+        FORCE_COLOR=1 NODE_CONFIG='{"outputPath": "../../publish/example-output/controlled/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }' \
           npm start --runInBand
-        cp -R ./packages/openactive-integration-tests/output/* ../publish/example-output/controlled/
       working-directory: tests
 
 
@@ -81,6 +70,6 @@ jobs:
       if: ${{ github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' }}
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./publish
+        publish_dir: ./tests/publish
         force_orphan: true
         enable_jekyll: true
