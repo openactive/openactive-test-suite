@@ -24,7 +24,7 @@ npm start --runInBand -- test/features/core/multiple-sellers/
 
 ## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:
 
 ```json
 "implementedFeatures": {

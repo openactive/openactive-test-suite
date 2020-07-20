@@ -20,7 +20,7 @@ For more info, read the individual README.md within the package directories:
 Before running, configure the test suite:
  - `packages/openactive-broker-microservice/config/default.json`
    - [More information](./packages/openactive-broker-microservice/#configuration)
- - `packages/openactive-integration-tests/config/test.json`
+ - `packages/openactive-integration-tests/config/default.json`
    - [More information](./packages/openactive-integration-tests/#configuration)
 
 ## Installation
@@ -54,7 +54,7 @@ Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/d
 
 ### Configuration overrides
 
-The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `packages\openactive-broker-microservice\config\default.json` and `packages\openactive-integration-tests\config\test.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
+The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `packages\openactive-broker-microservice\config\default.json` and `packages\openactive-integration-tests\config\default.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
 
   ```bash
   NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start

@@ -142,8 +142,8 @@ ${implementedTests.length > 0 ? `
 ## 'Implemented' tests
 
 ${f.required ? 
-  "This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:" :
-  "Update `test.json` as follows to enable 'Implemented' testing for this feature:"}
+  "This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:" :
+  "Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:"}
 
 ${'```'}json
 "implementedFeatures": {
@@ -161,7 +161,7 @@ ${notImplementedTests.length > 0 ? `
 ## 'Not Implemented' tests
 
 ${!f.required ? `
-Update \`test.json\` as follows to enable 'Not Implemented' testing for this feature:
+Update \`default.json\` within \`packages/openactive-integration-tests/config/\` as follows to enable 'Not Implemented' testing for this feature:
 
 ${'```'}json
 "implementedFeatures": {

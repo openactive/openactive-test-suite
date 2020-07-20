@@ -37,7 +37,7 @@ The results of this test suite when run against the reference implementation can
 
 ## Configuration
 
-The `./config/test.json` file configures which tests are run. This should be configured to match the features of the booking system under test.
+The `./config/default.json` file configures which tests are run. This should be configured to match the features of the booking system under test.
 
 ### `useRandomOpportunities`
 
