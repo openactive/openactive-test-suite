@@ -38,7 +38,9 @@ For developers that are customising the installation, for use in e.g. Docker, th
 npm start
 ```
 
-This will run the broker microservice and then run all tests against it, according to the [feature configuration](./packages/openactive-integration-tests/#configuration).
+This will start the broker microservice (`openactive-broker-microservice`) and run all integration tests (`openactive-integration-tests`) against it according to the [feature configuration](./packages/openactive-integration-tests/#configuration). The console output includes both `openactive-broker-microservice` and `openactive-integration-tests`. This is perfect for CI, or simple test runs.
+
+Alternatively the [Broker microservice](./packages/openactive-broker-microservice/) and [Integration tests](./packages/openactive-integration-tests) may be run separately, for example in two different console windows. This is more useful for debugging.
 
 ### Running specific tests
 
@@ -57,6 +59,20 @@ The configuration of the test suite can be overridden with the environment varia
   ```bash
   NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
   ```
+
+### Environment variables
+
+#### `PORT`
+
+Defaults to 3000.
+
+Set `PORT` to override the default port that the `openactive-broker-microservice` will expose endpoints on for the `openactive-integration-tests`. This is useful in the case that you already have a service using port 3000.
+
+#### `FORCE_COLOR`
+
+E.g. `FORCE_COLOR=1`
+
+Set this to force the OpenActive Test Suite to output in colour. The OpenActive Test Suite uses [chalk](https://github.com/chalk/supports-color), which attempts to auto-detect the color support of the terminal. For CI environments this detection is often inaccurate, and `FORCE_COLOR=1` should be set manually.
 
 ## Continuous Integration
 
