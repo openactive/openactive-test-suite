@@ -43,20 +43,22 @@ featureMetadata.forEach(f => {
 
 fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function(err) {
   if(err) {
-      return console.log(err);
+    process.exitCode = 1;
+    console.error(err);
+  } else {
+    console.log("FILE SAVED: " + INDEX_FILE);
   }
-
-  console.log("FILE SAVED: " + INDEX_FILE);
 }); 
 
 featureMetadata.forEach(f => {
   const filename = `${FEATURES_ROOT}${f.category}/${f.identifier}/README.md`;
   fs.writeFile(filename, renderFeatureReadme(f), function(err) {
     if(err) {
-        return console.log(err);
+      process.exitCode = 1;
+      console.error(err);
+    } else {
+      console.log("FILE SAVED: " + filename);
     }
-  
-    console.log("FILE SAVED: " + filename);
   }); 
 });
 
