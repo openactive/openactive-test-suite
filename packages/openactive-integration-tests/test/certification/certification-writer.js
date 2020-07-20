@@ -9,7 +9,7 @@ const {promises: fs} = require("fs");
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
 const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
-
+const OUTPUT_PATH = config.get('outputPath');
 
 class CertificationWriter {
 
@@ -110,7 +110,7 @@ class CertificationWriter {
   }
 
   get certificationOutputPath () {
-    return "./output/certification/index.html";
+    return `${OUTPUT_PATH}certification/index.html`;
   }
 
   async generateCertificate() {

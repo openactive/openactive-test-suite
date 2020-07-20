@@ -9,9 +9,6 @@ const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
 
 class FeatureHelper {
   static describeFeature(documentationModule, configuration, tests) {
-    const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
-    const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
-
     // Default templates
 
     const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate 
@@ -71,6 +68,9 @@ class FeatureHelper {
       });
       return;
     }
+
+    const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
+    const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)

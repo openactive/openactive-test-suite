@@ -19,7 +19,7 @@ A Conformance Certificate is issued to cover a subset of the features of the spe
 
 Certificates are designed to be published frequently, to demonstrate continued conformance, especially as the test suite is improved to test for additional edge cases within the features selected.
 
-To obtain a certificate, simply update test.json with following:
+To obtain a certificate, simply update `default.json` within `packages/openactive-integration-tests/config/` with the following:
 
 ```json
   "generateConformanceCertificate": true,

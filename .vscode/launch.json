@@ -21,6 +21,15 @@
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229
+        },
+        {
+            "name": "combined",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\openactive-test-suite",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run-script", "debug"],
+            "port": 9229
         }
     ]
 }

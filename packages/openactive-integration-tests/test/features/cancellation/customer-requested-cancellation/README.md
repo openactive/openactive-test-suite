@@ -25,7 +25,7 @@ npm start --runInBand -- test/features/cancellation/customer-requested-cancellat
 
 ## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:
 
 ```json
 "implementedFeatures": {

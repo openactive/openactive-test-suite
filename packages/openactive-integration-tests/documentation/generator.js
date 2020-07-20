@@ -43,20 +43,22 @@ featureMetadata.forEach(f => {
 
 fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function(err) {
   if(err) {
-      return console.log(err);
+    process.exitCode = 1;
+    console.error(err);
+  } else {
+    console.log("FILE SAVED: " + INDEX_FILE);
   }
-
-  console.log("FILE SAVED: " + INDEX_FILE);
 }); 
 
 featureMetadata.forEach(f => {
   const filename = `${FEATURES_ROOT}${f.category}/${f.identifier}/README.md`;
   fs.writeFile(filename, renderFeatureReadme(f), function(err) {
     if(err) {
-        return console.log(err);
+      process.exitCode = 1;
+      console.error(err);
+    } else {
+      console.log("FILE SAVED: " + filename);
     }
-  
-    console.log("FILE SAVED: " + filename);
   }); 
 });
 
@@ -142,8 +144,8 @@ ${implementedTests.length > 0 ? `
 ## 'Implemented' tests
 
 ${f.required ? 
-  "This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:" :
-  "Update `test.json` as follows to enable 'Implemented' testing for this feature:"}
+  "This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:" :
+  "Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:"}
 
 ${'```'}json
 "implementedFeatures": {
@@ -161,7 +163,7 @@ ${notImplementedTests.length > 0 ? `
 ## 'Not Implemented' tests
 
 ${!f.required ? `
-Update \`test.json\` as follows to enable 'Not Implemented' testing for this feature:
+Update \`default.json\` within \`packages/openactive-integration-tests/config/\` as follows to enable 'Not Implemented' testing for this feature:
 
 ${'```'}json
 "implementedFeatures": {

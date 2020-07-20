@@ -5,12 +5,12 @@
   "main": "app.js",
   "scripts": {
     "start": "jest",
-    "test": "npm run lint && tsc",
-    "debug": "env NODE_ENV=test node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand",
+    "test": "npm run lint && tsc && npm run doc-gen",
+    "debug": "node --inspect ./node_modules/jest/bin/jest.js --runInBand",
     "lint": "eslint \"test/features/**/*.js\"",
     "lint-fix": "eslint \"test/features/**/*.js\" --fix",
-    "doc-gen": "env NODE_ENV=test node documentation/generator.js",
-    "certificate-validator": "env NODE_ENV=test node test/certification/certification-validator-microservice.js"
+    "doc-gen": "node documentation/generator.js",
+    "certificate-validator": "node test/certification/certification-validator-microservice.js"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",

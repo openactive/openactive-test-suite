@@ -25,7 +25,7 @@ npm start --runInBand -- test/features/payment/simple-book-with-payment/
 
 ## 'Implemented' tests
 
-Update `test.json` as follows to enable 'Implemented' testing for this feature:
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:
 
 ```json
 "implementedFeatures": {
@@ -44,7 +44,7 @@ Update `test.json` as follows to enable 'Implemented' testing for this feature:
 ## 'Not Implemented' tests
 
 
-Update `test.json` as follows to enable 'Not Implemented' testing for this feature:
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Not Implemented' testing for this feature:
 
 ```json
 "implementedFeatures": {

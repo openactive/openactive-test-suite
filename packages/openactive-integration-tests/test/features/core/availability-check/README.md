@@ -25,7 +25,7 @@ npm start --runInBand -- test/features/core/availability-check/
 
 ## 'Implemented' tests
 
-This feature is **required** by the Open Booking API specification, and so must always be set to `true` within `test.json`:
+This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:
 
 ```json
 "implementedFeatures": {

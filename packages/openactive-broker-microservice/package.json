@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "npm run lint",
-    "debug": "node --inspect-brk -i app.js",
+    "debug": "node --inspect app.js",
     "lint": "eslint \"*.js\"",
     "lint-fix": "eslint \"*.js\" --fix"
   },
