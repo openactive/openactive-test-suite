@@ -38,7 +38,7 @@ For developers that are customising the installation, for use in e.g. Docker, th
 npm start
 ```
 
-This will start the broker microservice (`openactive-broker-microservice`) and run all integration tests (`openactive-integration-tests`) against it according to the [feature configuration](./packages/openactive-integration-tests/#configuration). The console output includes both `openactive-broker-microservice` and `openactive-integration-tests`. This is perfect for CI, or simple test runs.
+This will start the broker microservice (`openactive-broker-microservice`) and run all integration tests (`openactive-integration-tests`) against it according to the [feature configuration](./packages/openactive-integration-tests/#configuration). It will then kill the broker microservice upon test completion. The console output includes both `openactive-broker-microservice` and `openactive-integration-tests`. This is perfect for CI, or simple test runs.
 
 Alternatively the [Broker microservice](./packages/openactive-broker-microservice/) and [Integration tests](./packages/openactive-integration-tests) may be run separately, for example in two different console windows. This is more useful for debugging.
 
