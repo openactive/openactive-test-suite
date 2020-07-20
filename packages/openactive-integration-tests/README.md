@@ -110,10 +110,6 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
   }
 ```
 
-### `microserviceApiBase`
-
-The URL of a running instance of the `openactive-broker-microservice`.
-
 ## Reading test results
 
 Test results are written to `/output/*.md` in Markdown format.

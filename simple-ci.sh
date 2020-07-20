@@ -1,21 +1,11 @@
 #!/bin/bash
 set -e # exit with nonzero exit code if anything fails
 
-# `waitForHarvestCompletion` must be set to `true` in `default.json`
+# Get the latest OpenActive Test Suite
+git clone git@github.com:openactive/openactive-test-suite.git
 
 # Install dependencies
-npm install --prefix packages/openactive-broker-microservice
-npm install --prefix packages/openactive-integration-tests
+npm install --prefix openactive-test-suite
 
-# Start broker microservice in the background
-npm start --prefix packages/openactive-broker-microservice &
-pid=$!
-
-# Kill broker microservice in case of error
-trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
-
-# Run tests
-npm start --prefix packages/openactive-integration-tests
-
-# Kill broker microservice on success
-kill $pid
+# Start broker microservice and run tests
+npm start --prefix openactive-test-suite

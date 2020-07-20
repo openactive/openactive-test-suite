@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 const express = require('express');
 const logger = require('morgan');
@@ -8,8 +7,8 @@ const config = require('config');
 const { criteria } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
+const chalk = require('chalk');
 
-const PORT = 3000;
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
@@ -17,10 +16,13 @@ const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-process.env.PORT = 3000;
-
 
 const app = express();
+
+// eslint-disable-next-line no-console
+const logError = x => console.error(chalk.cyanBright(x));
+// eslint-disable-next-line no-console
+const log = x => console.log(chalk.cyan(x));
 
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
@@ -91,7 +93,7 @@ function getRPDE(url, contextIdentifier, cb) {
       try {
         json = JSON.parse(body);
       } catch (ex) {
-        console.error(`Invalid Json from "${url}" recieved "${body}" throwing ${ex}`);
+        logError(`Invalid Json from "${url}" recieved "${body}" throwing ${ex}`);
         throw new Error('Deserialization error');
       }
       // Validate RPDE base URL
@@ -106,7 +108,7 @@ function getRPDE(url, contextIdentifier, cb) {
       if (json.next === url && json.items.length === 0) {
         if (WAIT_FOR_HARVEST) {
           feedUpToDate(url);
-        } else if (VERBOSE) console.log(`Sleep mode poll for RPDE feed "${url}"`);
+        } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime);
         setTimeout(() => getRPDE(url, contextIdentifier, cb), 500);
@@ -120,15 +122,15 @@ function getRPDE(url, contextIdentifier, cb) {
         cb(json, contextIdentifier);
       }
     } else if (!response) {
-      console.log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
+      log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
       setTimeout(() => getRPDE(url, contextIdentifier, cb), 5000);
     } else if (response.statusCode === 404) {
       if (WAIT_FOR_HARVEST) feedUpToDate(url);
-      console.log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
+      log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
       // Stop polling feed
     } else {
-      console.log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
+      log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
       // Force retry, after a delay
       setTimeout(() => getRPDE(url, contextIdentifier, cb), 5000);
     }
@@ -175,7 +177,7 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
   const testDataset = getTestDataset(testDatasetIdentifier);
-  console.log(`Cleared from dataset '${testDatasetIdentifier}': ${Array.from(testDataset).join(', ')}`);
+  log(`Cleared from dataset '${testDatasetIdentifier}': ${Array.from(testDataset).join(', ')}`);
   testDataset.clear();
 }
 
@@ -273,17 +275,17 @@ function getMatch(req, res, useCache) {
     const cachedResponse = getOpportunityById(id);
 
     if (useCache && cachedResponse) {
-      console.log(`used cached response for ${id}`);
+      log(`used cached response for ${id}`);
       res.json({
         data: cachedResponse,
       });
       res.end();
     } else {
-      console.log(`listening for ${id}`);
+      log(`listening for ${id}`);
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
       if (responses[id] && responses[id] !== null) {
-        console.log(`ignoring previous request for ${id}`);
+        log(`ignoring previous request for ${id}`);
         responses[id].end();
       }
       responses[id] = {
@@ -386,11 +388,11 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
 
   const result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
   if (result && result.opportunity) {
-    console.log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
     res.json(result.opportunity);
     res.end();
   } else {
-    console.error(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
+    logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
     res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`);
   }
 });
@@ -433,7 +435,7 @@ app.get('/get-order/:expression', function (req, res) {
 function ingestParentOpportunityPage(rpde, contextIdentifier, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     const kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
-    console.log(
+    log(
       `RPDE kind: ${kind}, page: ${pageNumber + 1 || 0}, length: ${
         rpde.items.length
       }, next: '${rpde.next}'`,
@@ -471,7 +473,7 @@ function ingestParentOpportunityPage(rpde, contextIdentifier, pageNumber) {
 function ingestOpportunityPage(rpde, contextIdentifier, pageNumber) {
   if (REQUEST_LOGGING_ENABLED) {
     const kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
-    console.log(
+    log(
       `RPDE kind: ${kind}, page: ${pageNumber + 1 || 0}, length: ${
         rpde.items.length
       }, next: '${rpde.next}'`,
@@ -609,14 +611,14 @@ function processOpportunityItem(item) {
     if (responses[id]) {
       responses[id].send(item);
 
-      if (VERBOSE) console.log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
-    } else if (VERBOSE) console.log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+      if (VERBOSE) log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
+    } else if (VERBOSE) log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
   }
 }
 
 function monitorOrdersPage(rpde, contextIdentifier) {
   if (REQUEST_LOGGING_ENABLED) {
-    console.log(
+    log(
       `RPDE kind: Orders Monitoring, length: ${rpde.items.length}, next: '${rpde.next}'`,
     );
   }
@@ -670,7 +672,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 async function startPolling() {
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
-  console.log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
+  log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
 
   datasetSiteJson = dataset;
 
@@ -682,10 +684,10 @@ async function startPolling() {
     addFeed(dataDownload.contentUrl);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
-      console.log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
+      log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       getRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestParentOpportunityPage);
     } else {
-      console.log(`Found opportunity feed: ${dataDownload.contentUrl}`);
+      log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       getRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestOpportunityPage);
     }
   });
@@ -693,7 +695,7 @@ async function startPolling() {
   // Only poll orders feed if included in the dataset site
   if (dataset.accessService && dataset.accessService.endpointURL) {
     const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
-    console.log(`Found orders feed: ${ordersFeedUrl}`);
+    log(`Found orders feed: ${ordersFeedUrl}`);
     getRPDE(ordersFeedUrl, setupContext('OrdersFeed', ORDERS_FEED_REQUEST_HEADERS), monitorOrdersPage);
   }
 
@@ -719,8 +721,9 @@ function setupContext(identifier, headers) {
 // Ensure that dataset site request also delays "readiness"
 addFeed(DATASET_SITE_URL);
 
-app.listen(PORT, '127.0.0.1');
-console.log(`Node server running on port ${PORT}`);
+const port = process.env.PORT || 3000;
+app.listen(port, '127.0.0.1');
+log(`Node server running on port ${port}`);
 
 (async () => {
   await startPolling();

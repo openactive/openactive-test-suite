@@ -24,7 +24,9 @@ Before running, configure the test suite:
    - [More information](./packages/openactive-integration-tests/#configuration)
 
 ## Installation
- - `npm install`
+```bash
+npm install
+```
  
 This will install the dependencies needed for both packages.
 
@@ -32,24 +34,47 @@ For developers that are customising the installation, for use in e.g. Docker, th
 
 ## Running
 
-The broker microservice must be running before the test suite is run.
-
-### Broker microservice
 ```bash
-cd packages/openactive-broker-microservice
 npm start
 ```
 
-### Tests
+This will start the broker microservice (`openactive-broker-microservice`) and run all integration tests (`openactive-integration-tests`) against it according to the [feature configuration](./packages/openactive-integration-tests/#configuration). The console output includes both `openactive-broker-microservice` and `openactive-integration-tests`. This is perfect for CI, or simple test runs.
+
+Alternatively the [Broker microservice](./packages/openactive-broker-microservice/) and [Integration tests](./packages/openactive-integration-tests) may be run separately, for example in two different console windows. This is more useful for debugging.
+
+### Running specific tests
+
+Any extra command line arguments will be passed to `jest` in `openactive-integration-tests`. For example: 
+
 ```bash
-cd packages/openactive-integration-tests
-npm start
+npm start --runInBand -- test/features/core/availability-check/
 ```
 
+Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).
+
+### Configuration overrides
+
+The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `packages\openactive-broker-microservice\config\default.json` and `packages\openactive-integration-tests\config\test.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
+
+  ```bash
+  NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
+  ```
+
+### Environment variables
+
+#### `PORT`
+
+Defaults to 3000.
+
+Set `PORT` to override the default port that the `openactive-broker-microservice` will expose endpoints on for the `openactive-integration-tests`. This is useful in the case that you already have a service using port 3000.
+
+#### `FORCE_COLOR`
+
+E.g. `FORCE_COLOR=1`
+
+Set this to force the OpenActive Test Suite to output in colour. The OpenActive Test Suite uses [chalk](https://github.com/chalk/supports-color), which attempts to auto-detect the color support of the terminal. For CI environments this detection is often inaccurate, and `FORCE_COLOR=1` should be set manually.
 
 ## Continuous Integration
-
-When `waitForHarvestCompletion` is set to `true` in `default.json`, the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 This is useful for running both packages within a continuous integration environment, as shown below:
 
@@ -57,23 +82,17 @@ This is useful for running both packages within a continuous integration environ
 #!/bin/bash
 set -e # exit with nonzero exit code if anything fails
 
+# Get the latest OpenActive Test Suite
+git clone git@github.com:openactive/openactive-test-suite.git
+
 # Install dependencies
-npm install --prefix packages/openactive-broker-microservice
-npm install --prefix packages/openactive-integration-tests
+npm install --prefix openactive-test-suite
 
-# Start broker microservice in the background
-npm start --prefix packages/openactive-broker-microservice &
-pid=$!
-
-# Kill broker microservice in case of error
-trap 'err=$?; echo >&2 "Exiting on error $err"; kill $pid; exit $err' ERR
-
-# Run tests
-npm start --prefix packages/openactive-integration-tests
-
-# Kill broker microservice on success
-kill $pid
+# Start broker microservice and run tests
+npm start --prefix openactive-test-suite
 ```
+
+Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 # Contributing
 
