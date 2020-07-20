@@ -68,7 +68,7 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/01",
+      "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
         "X-OpenActive-Test-Seller-Id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0"
