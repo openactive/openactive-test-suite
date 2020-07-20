@@ -28,11 +28,15 @@ jobs:
         repository: openactive/OpenActive.Server.NET
         ref: ${{ env.mirror_ref }}
         path: server
+
+
     - name: Initialise publish directories
       run: |
         mkdir -p publish/example-output/random
         mkdir -p publish/example-output/controlled
         cp ./tests/redirect.html ./publish/index.html
+
+
     - name: Setup .NET Core 2.1.808
       uses: actions/setup-dotnet@v1
       with:
@@ -41,19 +45,17 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - name: Install OpenActive.Server.NET dependencies
-      run: dotnet restore
-      working-directory: server
-    - name: Run OpenActive.Server.NET Tests
-      run: dotnet test ./OpenActive.Server.NET.Tests/OpenActive.Server.NET.Tests.csproj --configuration Release --no-restore --verbosity normal
-      working-directory: server
-    - name: Build OpenActive.Server.NET Reference Implementation
-      run: dotnet build ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
+
+
+    - name: Build OpenActive.Server.NET Reference Implementation with dependencies
+      run: dotnet build ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release
       working-directory: server
     - name: Start OpenActive.Server.NET Reference Implementation
       run: |
-        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore &
+        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
       working-directory: server
+
+
     - name: Install OpenActive Test Suite
       run: | 
         npm install
@@ -72,6 +74,8 @@ jobs:
           npm start --runInBand
         cp -R ./packages/openactive-integration-tests/output/* ../publish/example-output/controlled/
       working-directory: tests
+
+
     - name: Deploy test output to GitHub Pages (master branch on ubuntu only)
       uses: peaceiris/actions-gh-pages@v3
       if: ${{ github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' }}
