@@ -47,7 +47,7 @@ Alternatively the [Broker microservice](./packages/openactive-broker-microservic
 Any extra command line arguments will be passed to `jest` in `openactive-integration-tests`. For example: 
 
 ```bash
-npm start --runInBand -- test/features/core/availability-check/
+npm start -- --runInBand test/features/core/availability-check/
 ```
 
 Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).

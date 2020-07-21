@@ -15,7 +15,7 @@ See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick
 ### Running tests for only this feature
 
 ```bash
-npm start --runInBand -- test/features/core/dataset-site/
+npm start -- --runInBand test/features/core/dataset-site/
 ```
 
 

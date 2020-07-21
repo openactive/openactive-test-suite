@@ -33,7 +33,7 @@ The results of this test suite when run against the reference implementation can
 
 ### Running core tests in a single process
 
-`npm start --runInBand -- test/features/core/`
+`npm start -- --runInBand test/features/core/`
 
 ## Configuration
 
@@ -128,6 +128,6 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for information on the various components
 
 ### Debugging tests
 
-`npm start --reporters default`
+`npm start -- --reporters default`
 
 

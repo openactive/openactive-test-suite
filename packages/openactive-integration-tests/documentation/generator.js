@@ -136,7 +136,7 @@ ${f.coverageStatus !== 'none' ? `
 ### Running tests for only this feature
 
 ${'```'}bash
-npm start --runInBand -- test/features/${f.category}/${f.identifier}/
+npm start -- --runInBand test/features/${f.category}/${f.identifier}/
 ${'```'}
 ` : '*Note the test coverage for this feature is currently non-existant. The test suite does not yet include non-stubbed tests for this feature.*'}
 

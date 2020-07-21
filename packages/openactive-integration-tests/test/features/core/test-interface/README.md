@@ -16,7 +16,7 @@ Opportunities that match the following criteria must exist in the booking system
 ### Running tests for only this feature
 
 ```bash
-npm start --runInBand -- test/features/core/test-interface/
+npm start -- --runInBand test/features/core/test-interface/
 ```
 
 
