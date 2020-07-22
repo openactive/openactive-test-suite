@@ -44,7 +44,7 @@ Alternatively the [Broker microservice](./packages/openactive-broker-microservic
 
 ### Running specific tests
 
-Any extra command line arguments will be passed to `jest` in `openactive-integration-tests`. For example: 
+Any extra command line arguments will be passed to `jest` in [`openactive-integration-tests`](./packages/openactive-integration-tests). For example: 
 
 ```bash
 npm start -- --runInBand test/features/core/availability-check/
