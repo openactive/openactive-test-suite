@@ -177,7 +177,7 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
   const testDataset = getTestDataset(testDatasetIdentifier);
-  log(`Cleared from dataset '${testDatasetIdentifier}': ${Array.from(testDataset).join(', ')}`);
+  log(`Cleared dataset '${testDatasetIdentifier}' of opportunity locks ${Array.from(testDataset).join(', ')}`);
   testDataset.clear();
 }
 
@@ -723,7 +723,7 @@ addFeed(DATASET_SITE_URL);
 
 const port = process.env.PORT || 3000;
 app.listen(port, '127.0.0.1');
-log(`Node server running on port ${port}`);
+log(`Broker Microservice running on port ${port}`);
 
 (async () => {
   await startPolling();
