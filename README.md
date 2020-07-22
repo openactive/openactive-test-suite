@@ -5,8 +5,8 @@ To join the conversation, we're on the [OpenActive Slack](https://slack.openacti
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
 This repository hosts two different projects:
-* [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the test suite to watch for changes, and throws them back to it.
-* [Integration tests](./packages/openactive-integration-tests): this performs automated tests against the API
+* [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
+* [Integration tests](./packages/openactive-integration-tests): this performs automated tests against the API.
 
 [The Roadmap](./ROADMAP.md) provides an overview of upcoming development milestones, and contributions are welcome.
 
@@ -38,7 +38,7 @@ For developers that are customising the installation, for use in e.g. Docker, th
 npm start
 ```
 
-This will start the broker microservice (`openactive-broker-microservice`) and run all integration tests (`openactive-integration-tests`) against it according to the [feature configuration](./packages/openactive-integration-tests/#configuration). It will then kill the broker microservice upon test completion. The console output includes both `openactive-broker-microservice` and `openactive-integration-tests`. This is perfect for CI, or simple test runs.
+This will start the broker microservice ([`openactive-broker-microservice`](./packages/openactive-broker-microservice/)) and run all integration tests ([`openactive-integration-tests`](./packages/openactive-integration-tests)) according to the [feature configuration](./packages/openactive-integration-tests/#configuration). It will then kill the broker microservice upon test completion. The console output includes both `openactive-broker-microservice` and `openactive-integration-tests`. This is perfect for CI, or simple test runs.
 
 Alternatively the [Broker microservice](./packages/openactive-broker-microservice/) and [Integration tests](./packages/openactive-integration-tests) may be run separately, for example in two different console windows. This is more useful for debugging.
 
