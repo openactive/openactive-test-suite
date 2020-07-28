@@ -16,6 +16,7 @@
     "test/helpers/request-helper.js",
     "test/helpers/request-state.js",
     "test/shared-behaviours/index.js",
+    "test/features/core/amending-order-quote/**/*.js",
     "test/features/core/availability-check/implemented/availability-confirmed-test.js"
   ]
 }

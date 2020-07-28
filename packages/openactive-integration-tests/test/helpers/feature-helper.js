@@ -26,9 +26,9 @@ const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
  *   testFeatureImplemented: boolean,
  *   testIdentifier: string,
  *   testName: string,
- *   testDescription: string,
+ *   testDescription?: string,
  *   testOpportunityCriteria?: string,
- *   controlOpportunityCriteria: string,
+ *   controlOpportunityCriteria?: string,
  *   singleOpportunityCriteriaTemplate?: CreateSingleOportunityCriteriaTemplateFn,
  *   multipleOpportunityCriteriaTemplate?: CreateMultipleOportunityCriteriaTemplateFn,
  *   runOnce?: boolean,
@@ -203,6 +203,10 @@ class FeatureHelper {
     }
   }
 
+  /**
+   * @param {NodeModule} documentationModule
+   * @param {DescribeFeatureConfiguration} configuration
+   */
   static describeRequiredFeature (documentationModule, configuration) {
     this.describeFeature(documentationModule, Object.assign({
       testDescription: 'This feature is required by the specification and must be implemented.',
