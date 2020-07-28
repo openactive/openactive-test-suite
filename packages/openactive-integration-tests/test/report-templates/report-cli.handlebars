@@ -1,8 +1,10 @@
 {{# chalk "bold" }}{{{ title }}}{{/chalk}}
 
-Feature Status: {{{ implemented }}}
+Feature Implemented: {{{ implemented }}}
 
 {{{ description }}}
+
+{{ consoleValidationIcon overallStatus }} {{ numPassed }} passed with {{ numFailed }} {{ pluralise "failure" numFailed }}, {{ numWarnings }} {{ pluralise "warning" numWarnings }} and {{{ numSuggestions }}} {{ pluralise "suggestion" numSuggestions }} 
 
 See `{{{ markdownPath }}}` for more detailed info.
 
