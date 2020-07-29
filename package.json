@@ -11,7 +11,8 @@
     "start-tests": "npm start --prefix packages/openactive-integration-tests",
     "install": "cd packages/openactive-broker-microservice && npm install && cd ../openactive-integration-tests && npm install && cd ../..",
     "test": "npm test --prefix packages/openactive-broker-microservice && npm test --prefix packages/openactive-integration-tests",
-    "certificate-validator": "npm run certificate-validator --prefix packages/openactive-integration-tests"
+    "certificate-validator": "npm run certificate-validator --prefix packages/openactive-integration-tests",
+    "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen"
   },
   "dependencies": {
     "node-cleanup": "^2.1.2"
@@ -24,7 +25,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run doc-gen --prefix packages/openactive-integration-tests"
+      "pre-commit": "npm run doc-gen"
     }
   }
 }
