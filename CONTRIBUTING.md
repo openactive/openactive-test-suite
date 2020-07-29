@@ -19,6 +19,8 @@ More generally, the rule is: "Leave it at least as good as you found it. Prefera
 
 Use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages. This makes our commit history easy to understand by humans and by automated tools.
 
+When code is committed, the documentation generator is automatically run. This process uses a pre-commit hook using [husky](https://github.com/typicode/husky).
+
 ## Reference Implementation
 
 The OpenActive Test Suite is developed against a reference implementation, [OpenActive.Server.NET](https://github.com/openactive/OpenActive.Server.NET/).
@@ -37,7 +39,6 @@ Changes should be made by starting a new branch (from `master`), writing the cha
 For new features that affect test coverage, use a `coverage/*` branch in this repository that matches a `coverage/*` branch in [OpenActive.Server.NET](https://github.com/openactive/OpenActive.Server.NET/). The OpenActive.Server.NET CI will use the tests in the test-suite branch to test the server's changes.
 
 1. Every Pull Request should solve or partially solve an existing GitHub issue.
-2. For changes to the `openactive-integration-tests` package, run the documentation generator, by running `npm run doc-gen --prefix packages/openactive-integration-tests`.
-3. Ensure that documentation reflects the new changes.
-4. Check that CI tests pass before merging a Pull Request.
-5. Ensure that your Pull Request has at least one approval before merging.
+2. Ensure that documentation reflects the new changes.
+3. Check that CI tests pass before merging a Pull Request.
+4. Ensure that your Pull Request has at least one approval before merging.

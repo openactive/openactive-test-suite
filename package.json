@@ -15,12 +15,21 @@
     "test-broker": "cd packages/openactive-broker-microservice && npm test",
     "test-tests": "cd packages/openactive-integration-tests && npm test",
     "test": "npm run test-broker && npm run test-tests",
-    "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator"
+    "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
+    "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen"
   },
   "dependencies": {
     "node-cleanup": "^2.1.2"
   },
   "engines": {
     "node": "12.18.2"
+  },
+  "devDependencies": {
+    "husky": "^4.2.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run doc-gen"
+    }
   }
 }
