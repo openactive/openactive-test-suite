@@ -23,6 +23,16 @@ Before running, configure the test suite:
  - `packages/openactive-integration-tests/config/default.json`
    - [More information](./packages/openactive-integration-tests/#configuration)
 
+### Local configuration
+
+A `local.json` file can be placed alongside each `default.json`, and the subset of properties defined within it will override those in `default.json`. It is recommended that for development and deployment a `local.json` file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
+
+### Environment specific configuration
+
+A file named `{NODE_ENV}.json` can also be placed alongside the `default.json`, which is useful when maintaining multiple configurations.
+
+For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+
 ## Installation
 ```bash
 npm install
