@@ -6,25 +6,58 @@ const fs = require('fs');
 const INDEX_FILE = "./test/features/README.md";
 const FEATURES_ROOT = "./test/features/";
 
+/**
+ * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
+ */
+
+/**
+ * @typedef {object} FeatureJsonLink
+ * @property {string} name
+ * @property {string} href
+ */
+
+/**
+ * @typedef {object} FeatureJson The shape of data in feature.json files.
+ * @property {string} category
+ * @property {string} identifier
+ * @property {string} name
+ * @property {string} description
+ * @property {string} explainer
+ * @property {string} specificationReference URL reference to a section of the Open Booking API
+ * @property {boolean} required Is it required for an implementation to implement this feature?
+ * @property {'none' | 'partial' | 'complete'} coverageStatus How much test coverage has been written for this feature
+ * @property {string} [requiredCondition] Description of when this feature is required
+ * @property {FeatureJsonLink[]} [links]
+ */
+
+/**
+ * @typedef {FeatureJson & {
+ *   criteriaRequirement?: Map<string, number>,
+ * }} FeatureMetadataItem
+ */
+
 var rootDirectory = require("path").join(__dirname, "../");
 
 console.log(rootDirectory);
 
 // Workaround to enable chakram to load without test framework
+// @ts-ignore ignoring this as it's a one-off workaround
 global.afterEach = () => {};
-
 global.documentationGenerationMode = true;
 
 // Load metadata from all tests
 var tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function(file) {
   console.log('Reading: ' + file);
-  return require(`${rootDirectory}${file}`);
+  // TODO: Verify that the data actually conforms to the type.
+  return /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
 });
 
 // Load feature.json files
+/** @type {FeatureMetadataItem[]} */
 var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function(file) {
   console.log('Reading: ' + file);
-  return require(`${rootDirectory}${file}`);
+  // TODO: Verify that the data actually conforms to the type.
+  return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
 });
 
 featureMetadata = featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
@@ -62,6 +95,9 @@ featureMetadata.forEach(f => {
   }); 
 });
 
+/**
+ * @param {FeatureMetadataItem[]} features
+ */
 function renderFeatureIndex(features) {
   return `
 # Open Booking API Test Suite Feature Coverage
@@ -97,6 +133,9 @@ ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexF
   `
 }
 
+/**
+ * @param {FeatureMetadataItem} f
+ */
 function renderFeatureIndexFeatureFragment(f) {
   return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | [${f.required ? 'Required' : 'Optional'}](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} |
 `;
@@ -114,6 +153,9 @@ ${renderCriteriaRequired(f.criteriaRequirement)}
 `;
 }
 
+/**
+ * @param {FeatureMetadataItem} f
+ */
 function renderFeatureReadme(f) {
   const implementedTests = tests.filter(t => t.testFeature == f.identifier && t.testFeatureImplemented);
   const notImplementedTests =  tests.filter(t => t.testFeature == f.identifier && !t.testFeatureImplemented);
@@ -178,11 +220,18 @@ ${'```'}
 ${notImplementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}`;
 }
 
+/**
+ * @param {TestModuleExports} t
+ */
 function renderFeatureTest(t) {
   return `| [${t.testIdentifier}](./${t.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${t.testIdentifier}-test.js) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
 `
 }
 
+/**
+ * @param {Map<string, number>} c Criteria required
+ * @param {string} [prefix] 
+ */
 function renderCriteriaRequired(c, prefix) {
   if (c.size == 0) {
     return '';

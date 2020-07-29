@@ -15,10 +15,10 @@ const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
  *   control: boolean,
  *   opportunityReuseKey?: number,
  *   usedInOrderItems?: number,
- * }} OpportunityCriteriaTemplate
+ * }} OpportunityCriteria
  *
- * @typedef {(opportunityType: string) => [OpportunityCriteriaTemplate]} CreateSingleOportunityCriteriaTemplateFn
- * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteriaTemplate[]} CreateMultipleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string) => [OpportunityCriteria]} CreateSingleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
  *
  * @typedef {{
  *   testCategory: string,
@@ -38,12 +38,19 @@ const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,
- *   orderItemCriteria: any[],
+ *   orderItemCriteria: OpportunityCriteria[],
  *   implemented: boolean,
  *   logger: InstanceType<typeof Logger>,
  *   state: InstanceType<typeof RequestState>,
  *   flow: InstanceType<typeof FlowHelper>,
  * ) => void} RunTestsFn
+ *
+ * @typedef {DescribeFeatureConfiguration & {
+ *   criteriaRequirement: Map<string, number>,
+ * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
+ *   This is used by the documentation generator to get data about the tests.
+ *   `criteriaRequirement` is a map of how many of each opportunity criteria (e.g. TestOpportunityBookable)
+ *   is required.
  */
 
 class FeatureHelper {
@@ -98,9 +105,11 @@ class FeatureHelper {
 
     if (global.documentationGenerationMode)
     {
+      /** @type {Map<string, number>} */
       const criteriaRequirement = new Map();
       
       if (!configuration.runOnce) {
+        /** @type {OpportunityCriteria[]} */
         const orderItemCriteria = [].concat(
           singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
           configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0)
@@ -112,9 +121,10 @@ class FeatureHelper {
         });
       }
 
-      documentationModule.exports = Object.assign({}, configuration, {
+      
+      documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
         criteriaRequirement
-      });
+      }));
       return;
     }
 
