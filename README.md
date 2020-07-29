@@ -25,7 +25,7 @@ Before running, configure the test suite:
 
 ### Local configuration
 
-A `local.json` file can be placed alongside each `default.json`, and that the subset of properties defined within it will override those in `default.json`. It is recommended that for development and deployment a `local.json` file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
+A `local.json` file can be placed alongside each `default.json`, and the subset of properties defined within it will override those in `default.json`. It is recommended that for development and deployment a `local.json` file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
 ### Environment specific configuration
 
