@@ -5,9 +5,11 @@
     "checkJs": true,
     "downlevelIteration": true,
     "target": "ES2015",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "resolveJsonModule": true
   },
   "include": [
+    "documentation/generator.js",
     "test/**/*.d.ts",
     "test/helpers/feature-helper.js",
     "test/helpers/flow-helper.js",
