@@ -1,12 +1,42 @@
 const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
+/**
+ * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {InstanceType<import('../helpers/request-state')['RequestState']>} RequestState
+ * @typedef {InstanceType<import('../shared-behaviours/c1')['C1']>} C1
+ * @typedef {InstanceType<import('../shared-behaviours/c2')['C2']>} C2
+ * @typedef {InstanceType<import('../shared-behaviours/b')['B']>} B
+ */
+
 class Common {
 
+  /**
+   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteria
+   * @param {RequestState} state
+   * @param {C1 | C2 | B} stage
+   * @param {() => any} orderAccessor
+   * @param {string} name Used for the it() test description
+   * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} cb
+   */
   static itForOrderItem(orderItemCriteria, state, stage, orderAccessor, name, cb) {
     this.itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, name, cb, name, cb);
   }
 
+  /**
+   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteria
+   * @param {RequestState} state
+   * @param {C1 | C2 | B} stage
+   * @param {() => any} orderAccessor
+   * @param {string} testName Used for the it() test description for order item criteria which are not controls
+   * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} testCb
+   * @param {string} controlName Used for the it() test description for order item criteria which are controls
+   * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} controlCb
+   */
   static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
     orderItemCriteria.forEach((c, i) => {
       it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {

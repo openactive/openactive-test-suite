@@ -8,33 +8,32 @@ const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = global.BOOKABLE_OPPORTUNITY_TYPES_IN
 const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
 
 /**
- * @typedef {{
- *   opportunityType: string | null,
- *   opportunityCriteria: string,
- *   primary: boolean,
- *   control: boolean,
- *   opportunityReuseKey?: number,
- *   usedInOrderItems?: number,
- * }} OpportunityCriteria
+ * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  *
  * @typedef {(opportunityType: string) => [OpportunityCriteria]} CreateSingleOportunityCriteriaTemplateFn
  * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
  *
- * @typedef {{
- *   testCategory: string,
- *   testFeature: string,
- *   testFeatureImplemented: boolean,
- *   testIdentifier: string,
- *   testName: string,
- *   testDescription?: string,
- *   testOpportunityCriteria?: string,
- *   controlOpportunityCriteria?: string,
- *   singleOpportunityCriteriaTemplate?: CreateSingleOportunityCriteriaTemplateFn,
- *   multipleOpportunityCriteriaTemplate?: CreateMultipleOportunityCriteriaTemplateFn,
- *   runOnce?: boolean,
- *   skipMultiple?: boolean,
- *   runOnlyIf?: boolean,
- * }} DescribeFeatureConfiguration
+ * @typedef {object} DescribeFeatureConfiguration Configuration for the describeFeature function
+ * @property {string} testCategory
+ * @property {string} testFeature
+ * @property {boolean} testFeatureImplemented
+ * @property {string} testIdentifier
+ * @property {string} testName
+ * @property {string} [testDescription]
+ * @property {string} [testOpportunityCriteria]
+ * @property {string} [controlOpportunityCriteria]
+ * @property {CreateSingleOportunityCriteriaTemplateFn} [singleOpportunityCriteriaTemplate]
+ * @property {CreateMultipleOportunityCriteriaTemplateFn} [multipleOpportunityCriteriaTemplate]
+ * @property {boolean} [runOnce]
+ * @property {boolean} [skipMultiple]
+ * @property {boolean} [runOnlyIf]
+ * @property {number} [numOpportunitiesUsedPerCriteria] How many opportunities
+ *   are used by the test per criteria. e.g. if each test iteration needs to
+ *   fetch 2 opportunities, this number should be 2.
+ *
+ *   Used to generate the docs for each test.
+ *
+ *   Defaults to 1.
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,

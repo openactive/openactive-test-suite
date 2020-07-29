@@ -236,6 +236,7 @@ function renderCriteriaRequired(c, prefix) {
   if (c.size == 0) {
     return '';
   } else {
+    // TODO use numOpportunitiesUsedPerCriteria if it exists
     return `${prefix !== undefined ? prefix : '\nPrerequisite opportunities per Opportunity Type: '}${Array.from(c.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
   }
 }

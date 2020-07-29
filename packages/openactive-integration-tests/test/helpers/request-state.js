@@ -3,6 +3,10 @@ const pMemoize = require("p-memoize");
 const config = require("config");
 const moment = require('moment');
 
+/**
+ * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ */
+
 const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 const SELLER_CONFIG = config.get("sellers");
 
@@ -23,15 +27,16 @@ function isResponse(response) {
 }
 
 class RequestState {
-  constructor (logger) {
+  /**
+   * 
+   * @param {InstanceType<import('./logger')['Logger']>} logger 
+   * @param {string | null} uuid
+   */
+  constructor (logger, uuid = null) {
     this.requestHelper = new RequestHelper(logger);
-    this.logger = logger;
-  }
-
-  log (msg) {
-    if (!this.logger) return;
-
-    this.logger.log(msg);
+    if (uuid) {
+      this._uuid = uuid;
+    }
   }
 
   get uuid() {
@@ -42,7 +47,13 @@ class RequestState {
   }
 
   /**
-   * @param {any[]} orderItemCriteriaList
+   * For each of the Opportunity Criteria, fetch an opportunity that matches
+   * the criteria from the [test interface](https://openactive.io/test-interface/).
+   *
+   * The responses only contain minimal info like ID, so `getMatch()` needs to
+   * be called afterwards to actually get the full data of each opportunity.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {boolean} [randomModeOverride]
    */
   async fetchOpportunities(orderItemCriteriaList, randomModeOverride) {
@@ -51,6 +62,16 @@ class RequestState {
     // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
     const reusableOpportunityPromises = new Map();
 
+    /**
+     * Test interface responses - one for each criteria. Only contains id
+     *
+     * @type {{
+     *   body: {
+     *     '@id': string,
+     *     [k: string]: unknown,
+     *   },
+     * }[]}
+     */
     this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
       if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
@@ -133,6 +154,9 @@ class RequestState {
   async getMatch () {
     const reusableMatchPromises = new Map();
 
+    /**
+     * Full opportunity data for each opportunity fetched by fetchOpportunities() - one for each criteria.
+     */
     this.opportunityFeedExtractResponses = await Promise.all(this.testInterfaceResponses.map(async (testInterfaceResponse, i) => {
       // Only attempt getMatch if test interface response was successful
       if (isResponse20x(testInterfaceResponse) && testInterfaceResponse.body['@id']) {
