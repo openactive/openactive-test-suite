@@ -154,5 +154,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Local config
-local.json
+# All except default config
+config/
+!config/default.json
