@@ -23,7 +23,6 @@ class FlowHelper {
     return this.state.getMatch();
   });
 
-  // TODO: This is memoized but the args never change. Therefore, it will only ever return one result.
   C1 = pMemoize(async () => {
     await this.getMatch();
     if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: opportunity feed extract failed');

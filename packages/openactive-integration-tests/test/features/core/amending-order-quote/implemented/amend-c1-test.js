@@ -21,6 +21,7 @@ FeatureHelper.describeFeature(module, {
   numOpportunitiesUsedPerCriteria: 2,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
+  // Both runs share the same UUID, so that the 2nd run is an amendment to the same Order
   const uuid = generateUuid();
   /**
    * Note: This generates an it() block. Therefore, this must be run within a describe() block.
