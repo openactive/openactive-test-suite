@@ -142,6 +142,7 @@ In order to debug an individual test using VSCode, so you can place breakpoints,
     "run-script",
     "start-tests",
     "--",
+    "--runInBand",
     "{{ pathToTest }}"
   ],
   "runtimeExecutable": "npm",
