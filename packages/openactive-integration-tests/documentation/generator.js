@@ -229,14 +229,14 @@ function renderFeatureTest(t) {
 }
 
 /**
- * @param {Map<string, number>} c Criteria required
- * @param {string} [prefix] 
+ * @param {Map<string, number>} criteriaRequired
+ * @param {string} [prefixOverride] If provided, this prefix is used rather than the default
  */
-function renderCriteriaRequired(c, prefix) {
-  if (c.size == 0) {
+function renderCriteriaRequired(criteriaRequired, prefixOverride) {
+  if (criteriaRequired.size == 0) {
     return '';
   } else {
-    // TODO use numOpportunitiesUsedPerCriteria if it exists
-    return `${prefix !== undefined ? prefix : '\nPrerequisite opportunities per Opportunity Type: '}${Array.from(c.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
+    const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
+    return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
   }
 }
