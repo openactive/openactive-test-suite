@@ -15,7 +15,7 @@ The OpenActive Test Suite can be configured to output a Conformance Certificate 
 
 This is best achieved as part of a continuous integration script that runs these tests of your UAT environment (or test environment, if you do not have a UAT environment).
 
-A Conformance Certificate is issued to cover a subset of the features of the specifications that are implemented - which are configured in the test suite (link), and hence only guarantees a complete implementation of that subset.
+A Conformance Certificate is issued to cover a subset of the features of the specifications that are implemented - which are [configured in the test suite](/packages/openactive-integration-tests#implementedfeatures), and hence only guarantees a complete implementation of that subset.
 
 Certificates are designed to be published frequently, to demonstrate continued conformance, especially as the test suite is improved to test for additional edge cases within the features selected.
 
