@@ -1,4 +1,26 @@
-module.exports = data => {
+/**
+ * @typedef {{
+ *   sellerId: string,
+ *   orderItems: {
+ *     position: number,
+ *     acceptedOffer: {
+ *       '@id': string,
+ *     },
+ *     orderedItem: {
+ *       '@type': string,
+ *       '@id': string,
+ *     },
+ *   }[],
+ *   totalPaymentDue: number,
+ * }} BReqTemplateData
+ */
+
+/**
+ * Create a B request, excluding the payment related details
+ *
+ * @param {BReqTemplateData} data
+ */
+function createNonPaymentRelatedCoreBReq(data) {
   return {
     "@context": "https://openactive.io/",
     "@type": "Order",
@@ -23,7 +45,7 @@ module.exports = data => {
     },
     seller: {
       "@type": "Organization",
-      "@id": `${data.sellerId}`
+      "@id": `${data.sellerId}`,
     },
     customer: {
       "@type": "Person",
@@ -46,6 +68,29 @@ module.exports = data => {
         }
       };
     }),
+  };
+}
+
+/**
+ * @param {BReqTemplateData} data
+ */
+function createStandardFreeBReq(data) {
+  return {
+    ...createNonPaymentRelatedCoreBReq(data),
+    totalPaymentDue: {
+      "@type": "PriceSpecification",
+      price: 0,
+      priceCurrency: "GBP"
+    },
+  };
+}
+
+/**
+ * @param {BReqTemplateData} data
+ */
+function createStandardPaidBReq(data) {
+  return {
+    ...createNonPaymentRelatedCoreBReq(data),
     totalPaymentDue: {
       "@type": "PriceSpecification",
       price: data.totalPaymentDue,
@@ -58,4 +103,35 @@ module.exports = data => {
       accountId: "STRIP"
     }
   };
+}
+
+/**
+ * Flexibly creates a free or paid B request determined by if totalPaymentDue
+ * is zero or not.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardFreeOrPaidBReq(data) {
+  if (data.totalPaymentDue === 0) {
+    return createStandardFreeBReq(data);
+  }
+  return createStandardPaidBReq(data);
+}
+
+/**
+ * Template functions are put into this object so that the function can be
+ * referred to by its key e.g. `standardFree`
+ */
+const bReqTemplates = {
+  standardFree: createStandardFreeBReq,
+  standardPaid: createStandardPaidBReq,
+  standard: createStandardFreeOrPaidBReq,
+};
+
+/**
+ * @typedef {keyof typeof bReqTemplates} BReqTemplateRef Reference to a particular B Request template
+ */
+
+module.exports = {
+  bReqTemplates,
 };

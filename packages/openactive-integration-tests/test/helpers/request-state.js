@@ -30,13 +30,18 @@ class RequestState {
   /**
    * 
    * @param {InstanceType<import('./logger')['Logger']>} logger 
-   * @param {string | null} uuid
+   * @param {object} [options]
+   * @param {string | null} [options.uuid] Order UUID. If not provided, a new
+   *   one will be generated randomly
+   * @param {import('../templates/b-req').BReqTemplateRef} [options.bReqTemplateRef]
+   *   Which template to use for B requests
    */
-  constructor (logger, uuid = null) {
+  constructor (logger, { uuid, bReqTemplateRef } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
     }
+    this._bReqTemplateRef = bReqTemplateRef;
   }
 
   get uuid() {
@@ -249,7 +254,9 @@ class RequestState {
   }
 
   async putOrder () {
-    let result = await this.requestHelper.putOrder(this.uuid, this);
+    const result = this._bReqTemplateRef
+      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, this);
 
     this.bResponse = result;
 
