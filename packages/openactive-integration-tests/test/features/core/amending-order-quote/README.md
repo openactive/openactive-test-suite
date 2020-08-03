@@ -35,7 +35,7 @@ This feature is **required** by the Open Booking API specification, and so must 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [amend-c1](./implemented/amend-c1-test.js) | Amend an already-made C1 request | Run C1 with opportunity A, then - with the same Order UUID - run C1 with opportunity B. Then, run B. Opportunity B should be booked | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x8 |
+| [amend-c1](./implemented/amend-c1-test.js) | Amend, at C1, an existing OrderQuote | Run C1 with opportunity A, then - with the same Order UUID - run C1 with opportunity B. Then, run B. Opportunity B should be booked | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x8 |
 
 
 

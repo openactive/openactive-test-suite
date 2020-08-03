@@ -11,7 +11,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'amending-order-quote',
   testFeatureImplemented: true,
   testIdentifier: 'amend-c1',
-  testName: 'Amend an already-made C1 request',
+  testName: 'Amend, at C1, an existing OrderQuote',
   testDescription: 'Run C1 with opportunity A, then - with the same Order UUID - run C1 with opportunity B. Then, run B. Opportunity B should be booked',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
