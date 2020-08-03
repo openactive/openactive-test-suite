@@ -19,7 +19,7 @@
     "opportunity-feed": null,
     "dataset-site": true,
     "availability-check": true,
-    "amending-order-quote": null,
+    "amending-order-quote": true,
     "simple-book-free-opportunities": true,
     "order-deletion": null,
     "agent-broker": null,

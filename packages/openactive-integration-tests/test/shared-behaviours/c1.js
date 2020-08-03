@@ -20,6 +20,9 @@ class C1 {
     return this;
   }
 
+  /**
+   * Note: Generates a beforeAll() block. Therefore, this must be run within a describe() block.
+   */
   beforeSetup () {
     beforeAll(async () => {
       await this.flow.C1();

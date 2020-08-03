@@ -24,6 +24,9 @@ class GetMatch {
     });
   }
 
+  /**
+   * Note: Generates a beforeAll() block. Therefore, this must be run within a describe() block.
+   */
   beforeSetup () {
     beforeAll(async () => {
       await this.flow.getMatch();
