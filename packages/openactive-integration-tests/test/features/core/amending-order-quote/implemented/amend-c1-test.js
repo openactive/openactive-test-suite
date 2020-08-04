@@ -46,8 +46,11 @@ FeatureHelper.describeFeature(module, {
    * and then fetch some opportunities and run C1
    *
    * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
+   *
+   * @param {object} args
+   * @param {boolean} args.doDeleteOrderAfterAll Should order be deleted after all tests in this describe() block are completed?
    */
-  function attemptC1WithNewState() {
+  function attemptC1WithNewState({ doDeleteOrderAfterAll }) {
     // Each scenario uses a separate state and flowHelper because they fetch separate opportunities
     const state = new RequestState(logger, uuid);
     const flow = new FlowHelper(state);
@@ -56,6 +59,13 @@ FeatureHelper.describeFeature(module, {
       await state.fetchOpportunities(orderItemCriteria);
       await chakram.wait();
     });
+
+    if (doDeleteOrderAfterAll) {
+      afterAll(async () => {
+        await state.deleteOrder();
+        return chakram.wait();
+      });
+    }
 
     (new GetMatch({
       state, flow, logger, orderItemCriteria,
@@ -83,11 +93,15 @@ FeatureHelper.describeFeature(module, {
   // N.B.: The following two tests must be performed sequentially - with
   // Second Attempt occurring after First Attempt.
   describe('First Attempt - C1', () => {
-    attemptC1WithNewState();
+    attemptC1WithNewState({
+      doDeleteOrderAfterAll: false,
+    });
   });
   /** Fetch some new opportunities and amend the existing order at C1, and then complete it */
   describe('Second Attempt - C1 -> B', () => {
-    const { state, flow } = attemptC1WithNewState();
+    const { state, flow } = attemptC1WithNewState({
+      doDeleteOrderAfterAll: true,
+    });
 
     (new C2({
       state, flow, logger,
