@@ -63,6 +63,7 @@ jobs:
       working-directory: tests
     - name: Upload test output for Random Mode as artifact
       uses: actions/upload-artifact@v2
+      if: ${{ success() || failure() }}
       with:
         name: test-output-${{ matrix.os }}-random
         path: ./tests/publish/example-output/random/
@@ -77,6 +78,7 @@ jobs:
       working-directory: tests
     - name: Upload test output for Controlled Mode as artifact
       uses: actions/upload-artifact@v2
+      if: ${{ success() || failure() }}
       with:
         name: test-output-${{ matrix.os }}-controlled
         path: ./tests/publish/example-output/controlled/
