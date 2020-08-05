@@ -64,7 +64,7 @@ jobs:
     - name: Upload test output for Random Mode as artifact
       uses: actions/upload-artifact@v2
       with:
-        name: test-output-random
+        name: test-output-${{ matrix.os }}-random
         path: ./tests/publish/example-output/random/
       
     - name: Run OpenActive Integration Tests in Controlled Mode
@@ -78,7 +78,7 @@ jobs:
     - name: Upload test output for Controlled Mode as artifact
       uses: actions/upload-artifact@v2
       with:
-        name: test-output-controlled
+        name: test-output-${{ matrix.os }}-controlled
         path: ./tests/publish/example-output/controlled/
 
     - name: Deploy test output to GitHub Pages (master branch on ubuntu only)
