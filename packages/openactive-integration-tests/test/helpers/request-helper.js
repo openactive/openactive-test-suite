@@ -1,8 +1,8 @@
 const assert = require("assert");
 const chakram = require("chakram");
-const uuidv5 = require("uuid/v5");
 const fs = require("fs");
 const config = require("config");
+const { generateUuid } = require('./generate-uuid');
 
 const REQUEST_HEADERS = config.get("sellers.primary.requestHeaders");
 
@@ -335,12 +335,11 @@ class RequestHelper {
     });
   }
 
+  /**
+   * @param {string | null} sellerId
+   */
   uuid(sellerId = null) {
-    return uuidv5(
-      "https://www.example.com/example/id/" +
-        Math.floor(Math.random() * 100000),
-      uuidv5.URL
-    ); //TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
+    return generateUuid(sellerId);
   }
 }
 

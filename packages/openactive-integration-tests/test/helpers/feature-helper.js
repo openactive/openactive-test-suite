@@ -1,4 +1,5 @@
 const config = require('config');
+const _ = require('lodash');
 
 const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
@@ -8,42 +9,48 @@ const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = global.BOOKABLE_OPPORTUNITY_TYPES_IN
 const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
 
 /**
- * @typedef {{
- *   opportunityType: string | null,
- *   opportunityCriteria: string,
- *   primary: boolean,
- *   control: boolean,
- *   opportunityReuseKey?: number,
- *   usedInOrderItems?: number,
- * }} OpportunityCriteriaTemplate
+ * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  *
- * @typedef {(opportunityType: string) => [OpportunityCriteriaTemplate]} CreateSingleOportunityCriteriaTemplateFn
- * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteriaTemplate[]} CreateMultipleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string) => [OpportunityCriteria]} CreateSingleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
  *
- * @typedef {{
- *   testCategory: string,
- *   testFeature: string,
- *   testFeatureImplemented: boolean,
- *   testIdentifier: string,
- *   testName: string,
- *   testDescription: string,
- *   testOpportunityCriteria?: string,
- *   controlOpportunityCriteria: string,
- *   singleOpportunityCriteriaTemplate?: CreateSingleOportunityCriteriaTemplateFn,
- *   multipleOpportunityCriteriaTemplate?: CreateMultipleOportunityCriteriaTemplateFn,
- *   runOnce?: boolean,
- *   skipMultiple?: boolean,
- *   runOnlyIf?: boolean,
- * }} DescribeFeatureConfiguration
+ * @typedef {object} DescribeFeatureConfiguration Configuration for the describeFeature function
+ * @property {string} testCategory
+ * @property {string} testFeature
+ * @property {boolean} testFeatureImplemented
+ * @property {string} testIdentifier
+ * @property {string} testName
+ * @property {string} [testDescription]
+ * @property {string} [testOpportunityCriteria]
+ * @property {string} [controlOpportunityCriteria]
+ * @property {CreateSingleOportunityCriteriaTemplateFn} [singleOpportunityCriteriaTemplate]
+ * @property {CreateMultipleOportunityCriteriaTemplateFn} [multipleOpportunityCriteriaTemplate]
+ * @property {boolean} [runOnce]
+ * @property {boolean} [skipMultiple]
+ * @property {boolean} [runOnlyIf]
+ * @property {number} [numOpportunitiesUsedPerCriteria] How many opportunities
+ *   are used by the test per criteria. e.g. if each test iteration needs to
+ *   fetch 2 opportunities, this number should be 2.
+ *
+ *   Used to generate the docs for each test.
+ *
+ *   Defaults to 1.
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,
- *   orderItemCriteria: any[],
+ *   orderItemCriteria: OpportunityCriteria[],
  *   implemented: boolean,
  *   logger: InstanceType<typeof Logger>,
  *   state: InstanceType<typeof RequestState>,
  *   flow: InstanceType<typeof FlowHelper>,
  * ) => void} RunTestsFn
+ *
+ * @typedef {DescribeFeatureConfiguration & {
+ *   criteriaRequirement: Map<string, number>,
+ * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
+ *   This is used by the documentation generator to get data about the tests.
+ *   `criteriaRequirement` is a map of how many of each opportunity criteria (e.g. TestOpportunityBookable)
+ *   is required.
  */
 
 class FeatureHelper {
@@ -98,9 +105,12 @@ class FeatureHelper {
 
     if (global.documentationGenerationMode)
     {
+      const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
+      /** @type {Map<string, number>} */
       const criteriaRequirement = new Map();
       
       if (!configuration.runOnce) {
+        /** @type {OpportunityCriteria[]} */
         const orderItemCriteria = [].concat(
           singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
           configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0)
@@ -108,13 +118,14 @@ class FeatureHelper {
         
         orderItemCriteria.forEach(x => {
           if (!criteriaRequirement.has(x.opportunityCriteria)) criteriaRequirement.set(x.opportunityCriteria, 0);
-          criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + 1);
+          criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + numOpportunitiesUsedPerCriteria);
         });
       }
 
-      documentationModule.exports = Object.assign({}, configuration, {
+      
+      documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
         criteriaRequirement
-      });
+      }));
       return;
     }
 
@@ -193,6 +204,10 @@ class FeatureHelper {
     }
   }
 
+  /**
+   * @param {NodeModule} documentationModule
+   * @param {DescribeFeatureConfiguration} configuration
+   */
   static describeRequiredFeature (documentationModule, configuration) {
     this.describeFeature(documentationModule, Object.assign({
       testDescription: 'This feature is required by the specification and must be implemented.',

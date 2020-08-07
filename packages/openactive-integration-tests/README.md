@@ -130,4 +130,30 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for information on the various components
 
 `npm start -- --reporters default`
 
+### Debugging tests in VSCode
 
+In order to debug an individual test using VSCode, so you can place breakpoints, inspect values and step through the code in your editor, add a launch configuration to `.vscode/launch.json` that looks like the following:
+
+```json
+{
+  "name": "integration-tests - {{ nameOfTest }}",
+  "request": "launch",
+  "runtimeArgs": [
+    "run-script",
+    "start-tests",
+    "--",
+    "--runInBand",
+    "{{ pathToTest }}"
+  ],
+  "runtimeExecutable": "npm",
+  "skipFiles": [
+    "<node_internals>/**"
+  ],
+  "type": "node"
+},
+```
+
+Example values:
+
+- `nameOfTest`: `core/amending-order-quote/amend-c1`
+- `pathToTest`: `test/features/core/amending-order-quote/implemented/amend-c1-test.js`
