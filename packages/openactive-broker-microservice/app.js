@@ -330,7 +330,8 @@ function getTypeFromOpportunityType(opportunityType) {
 
 function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
-    || (opportunity.superEvent && opportunity.superEvent.organizer)
+    || (opportunity.superEvent
+      && (opportunity.superEvent.organizer || (opportunity.superEvent.superEvent && opportunity.superEvent.superEvent.organizer)))
     || (opportunity.facilityUse && opportunity.facilityUse.provider);
 
   return organizer['@id'] || organizer.id;
