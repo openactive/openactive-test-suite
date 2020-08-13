@@ -84,6 +84,9 @@ class BaseReportGenerator {
       "firstLine": function(message, options) {
         return stripAnsi(message.split("\n")[0]);
       },
+      "pluralise": function(str, number) {
+        return str + (number == 1 ? '' : 's');
+      },
       "json": function(data, options) {
         return JSON.stringify(data, null, 2);
       },
