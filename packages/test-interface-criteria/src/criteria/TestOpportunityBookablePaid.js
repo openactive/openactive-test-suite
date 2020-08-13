@@ -5,21 +5,17 @@ const TestOpportunityBookable = require('./TestOpportunityBookable')
 */
 
 module.exports = class TestOpportunityBookablePaid extends TestOpportunityBookable {
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
+  get opportunityConstraints() {
+    return {
+      ...super.opportunityConstraints,
+    };
+  }
 
-    var bookableOffers = this.getBookableOffers(opportunity);
-
-    var paidBookableOffers = bookableOffers.filter(x => x.price > 0);
-
-    if (
-      !(paidBookableOffers.length > 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No paid bookable Offers")
+  get offerConstraints() {
+    return {
+      ...super.offerConstraints,
+      'Only paid bookable Offers': x => x.price > 0,
     }
-
-    return {matchesCriteria, unmetCriteriaDetails};
   }
 
   get name() {

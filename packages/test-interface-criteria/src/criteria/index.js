@@ -6,5 +6,6 @@ module.exports = {
       require('./TestOpportunityBookableNoSpaces'),
       require('./TestOpportunityBookableCancellable'),
       require('./TestOpportunityNotBookableViaAvailableChannel'),
+      require('./TestOpportunityBookableOutsideValidFromBeforeStartDate'),
     ],
   };

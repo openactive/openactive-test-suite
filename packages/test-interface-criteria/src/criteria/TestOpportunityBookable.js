@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpportunity')
 
 /*
@@ -5,31 +7,21 @@ const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpp
 */
 
 module.exports = class TestOpportunityBookable extends CriteriaFutureScheduledOpportunity {
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
+  get opportunityConstraints() {
+    return {
+      ...super.opportunityConstraints,
+      'Remaining capacity must be non-zero': opportunity => this.getRemainingCapacity(opportunity) > 0
+    };
+  }
 
-    var id = this.getId(opportunity);
-    var type = this.getType(opportunity);
-
-    // Check for bookability
-    var bookableOffers = this.getBookableOffers(opportunity);
-    var remainingCapacity = this.getRemainingCapacity(opportunity);
-
-    if (
-      !(bookableOffers.length > 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No bookable Offers")
+  get offerConstraints() {
+    return {
+      ...super.offerConstraints,
+      'Must have "bookable" offer': (x, opportunity) =>
+        (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
+        && x.advanceBooking != "https://openactive.io/Unavailable"
+        && (!x.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore())
     }
-
-    if (
-      !(remainingCapacity > 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No remaining capacity")
-    }
-
-    return { matchesCriteria, unmetCriteriaDetails }
   }
 
   get name() {

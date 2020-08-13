@@ -5,31 +5,17 @@ const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpp
 */
 
 module.exports = class TestOpportunityBookableNoSpaces extends CriteriaFutureScheduledOpportunity {
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
+  get opportunityConstraints() {
+    return {
+      ...super.opportunityConstraints,
+      'Remaining capacity must be zero': opportunity => this.getRemainingCapacity(opportunity) === 0
+    };
+  }
 
-    var id = this.getId(opportunity);
-    var type = this.getType(opportunity);
-
-    // Check for bookability
-    var bookableOffers = this.getBookableOffers(opportunity);
-    var remainingCapacity = this.getRemainingCapacity(opportunity);
-
-    if (
-      !(bookableOffers.length > 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No bookable Offers")
+  get offerConstraints() {
+    return {
+      ...super.offerConstraints,
     }
-
-    if (
-      !(remainingCapacity == 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("Remaining capacity is non-zero")
-    }
-
-    return { matchesCriteria, unmetCriteriaDetails }
   }
 
   get name() {

@@ -1,6 +1,6 @@
 const assert = require("assert");
 const { validate } = require("@openactive/data-model-validator");
-const { criteriaMap } = require("@openactive/test-interface-criteria");
+const { criteriaMap, testMatch } = require("@openactive/test-interface-criteria");
 
 function priorityOfSeverity(severity) {
   switch (severity) {
@@ -31,7 +31,7 @@ function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCr
         throw new Error(`Criteria '${criteriaName}' not supported by the @openactive/test-interface-criteria library`);
       }
 
-      let { matchesCriteria, unmetCriteriaDetails } = criteriaMap.get(criteriaName).testMatch(body);
+      let { matchesCriteria, unmetCriteriaDetails } = testMatch(criteriaMap.get(criteriaName), body);
   
       if (!matchesCriteria) {
         throw new Error(`Does not match criteria https://openactive.io/test-interface#${criteriaName}: ${unmetCriteriaDetails.join(', ')}`);

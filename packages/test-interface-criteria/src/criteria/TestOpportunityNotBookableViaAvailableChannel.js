@@ -5,27 +5,17 @@ const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpp
 */
 
 module.exports = class TestOpportunityNotBookableViaAvailableChannel extends CriteriaFutureScheduledOpportunity {
-  getOffersWithoutAvailableChannel(opportunity) {
-		const offers = this.getOffers(opportunity);
-		return offers ? offers.filter(x =>
-			(!x.availableChannel || !x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
-		) : [];
+  get opportunityConstraints() {
+    return {
+      ...super.opportunityConstraints,
+    };
   }
-  
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
 
-    // Check for bookability
-    var offersWithoutAvailableChannel = this.getOffersWithoutAvailableChannel(opportunity);
-
-    if (
-      (offersWithoutAvailableChannel.length === 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("Does not contain offers without available channel")
+  get offerConstraints() {
+    return {
+      ...super.offerConstraints,
+      'Must not have available channel': x => !Array.isArray(x.availableChannel)|| !x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"),
     }
-
-    return { matchesCriteria, unmetCriteriaDetails }
   }
 
   get name() {

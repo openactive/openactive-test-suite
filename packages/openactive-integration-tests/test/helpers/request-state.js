@@ -1,7 +1,7 @@
 const RequestHelper = require("./request-helper");
 const pMemoize = require("p-memoize");
 const config = require("config");
-const moment = require('moment');
+const { getRelevantOffers } = require("@openactive/test-interface-criteria");
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -94,29 +94,7 @@ class RequestState {
   }
 
 	getRandomRelevantOffer(opportunity, opportunityCriteria) {
-    const getOffers = (opportunity) => {
-      return opportunity.offers || (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
-    };
-  
-    const getOfferFilter = (opportunityCriteria, opportunity) => {
-      switch (opportunityCriteria) {
-        case 'TestOpportunityBookableOutsideValidFromBeforeStartDate':
-          return x =>
-          (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
-          && x.advanceBooking != "https://openactive.io/Unavailable"
-          && (x.validFromBeforeStartDate && moment(opportunity.startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isAfter());
-        default: 
-          return x =>
-          (Array.isArray(x.availableChannel) && x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
-          && x.advanceBooking != "https://openactive.io/Unavailable"
-          && (!x.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(x.validFromBeforeStartDate)).isBefore());
-      }
-    };
-
-    const offers = getOffers(opportunity);
-    if (!Array.isArray(offers)) return null;
-
-    const relevantOffers = offers.filter(getOfferFilter(opportunityCriteria, opportunity));
+    const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity);
     if (relevantOffers.length == 0) return null;
 
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];

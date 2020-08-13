@@ -5,21 +5,17 @@ const TestOpportunityBookable = require('./TestOpportunityBookable')
 */
 
 module.exports = class TestOpportunityBookableCancellable extends TestOpportunityBookable {
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
+  get opportunityConstraints() {
+    return {
+      ...super.opportunityConstraints,
+    };
+  }
 
-    var bookableOffers = this.getBookableOffers(opportunity);
-
-    var offersWithoutCancellationWindow = bookableOffers.filter(x => !x.latestCancellationBeforeStartDate);
-
-    if (
-      offersWithoutCancellationWindow.length === 0
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No Offers without cancellation window")
+  get offerConstraints() {
+    return {
+      ...super.offerConstraints,
+      'Offers must not have cancellation window': x => !x.latestCancellationBeforeStartDate,
     }
-
-    return {matchesCriteria, unmetCriteriaDetails};
   }
 
   get name() {
