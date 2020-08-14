@@ -69,15 +69,15 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/0"
+        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
       }
     },
     "secondary": {
       "@type": "Person",
-      "@id": "https://bookingsystemreferenceimplementation.azurewebsites.net/api/identifiers/sellers/1"
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2"
     }
   }
 }
