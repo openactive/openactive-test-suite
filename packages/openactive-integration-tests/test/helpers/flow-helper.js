@@ -11,6 +11,9 @@ const pMemoize = require("p-memoize");
  * which calls C1, etc).
  */
 class FlowHelper {
+  /**
+   * @param {InstanceType<import('./request-state')['RequestState']>} helper
+   */
   constructor (helper) {
     this.state = helper;
   }
