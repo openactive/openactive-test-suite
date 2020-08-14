@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "downlevelIteration": true,
+    "target": "ES2015",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.js"
+  ]
+}

@@ -12,7 +12,7 @@ module.exports = class CriteriaFutureScheduledOpportunity extends Criteria {
     var eventStatus = opportunity.eventStatus;
 
     if (
-      !(Date.parse(startDate) > new Date(Date.now() + (3600 * 1000 * 2)))
+      !(Date.parse(startDate) > (new Date(Date.now() + (3600 * 1000 * 2))).getTime())
     ) {
       matchesCriteria = false;
       unmetCriteriaDetails.push("Start date must be 2hrs in advance for random tests to use")
