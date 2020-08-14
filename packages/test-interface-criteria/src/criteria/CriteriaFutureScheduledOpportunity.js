@@ -9,7 +9,7 @@ module.exports = class CriteriaFutureScheduledOpportunity extends Criteria {
     return {
       ...super.opportunityConstraints,
       'Start date must be 2hrs in advance for random tests to use':
-        opportunity => Date.parse(opportunity.startDate) > new Date(Date.now() + (3600 * 1000 * 2)),
+        opportunity => Date.parse(startDate) > (new Date(Date.now() + (3600 * 1000 * 2))).getTime(),
       'eventStatus must not be Cancelled or Postponed':
         opportunity => !(opportunity.eventStatus == "https://schema.org/EventCancelled" || opportunity.eventStatus == "https://schema.org/EventPostponed")
     };
