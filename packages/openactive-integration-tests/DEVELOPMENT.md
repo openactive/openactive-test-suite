@@ -46,8 +46,8 @@ Check the [`test-interface-criteria`](../test-interface-criteria/) package inclu
 
 In each test file within that feature, implement the following:
 
-```jsx
-* eslint-disable no-unused-vars */
+```js
+/* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const { RequestState } = require('../../../../helpers/request-state');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
@@ -76,16 +76,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
     return chakram.wait();
   });
-
-  afterAll(async function () {
-    await state.deleteOrder();
-    return chakram.wait();
-  });
 ```
 
 For each phase of the test, implement a describe block, i.e.
 
-```jsx
+```js
 describe('C1', function () {
     const c1 = (new C1({
       state, flow, logger,

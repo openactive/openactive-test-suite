@@ -80,6 +80,16 @@ class B {
     return this;
   }
 
+  /**
+   * Note: This creates an `it()` block.
+   */
+  itResponseReceived() {
+    it('should return something', () => {
+      this.expectResponseReceived();
+    });
+    return this;
+  }
+
   expectSuccessful() {
     if (!this.state.BResponseSucceeded) throw new Error('Expected B request to be successful.');
   }
