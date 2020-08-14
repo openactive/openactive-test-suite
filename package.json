@@ -13,8 +13,9 @@
     "install-tests": "cd packages/openactive-integration-tests && npm install",
     "install": "npm run install-broker && npm run install-tests",
     "test-broker": "cd packages/openactive-broker-microservice && npm test",
+    "test-interface-criteria": "cd packages/test-interface-criteria && npm test",
     "test-tests": "cd packages/openactive-integration-tests && npm test",
-    "test": "npm run test-broker && npm run test-tests",
+    "test": "npm run test-broker && npm run test-interface-criteria && npm run test-tests",
     "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
     "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen"
   },
