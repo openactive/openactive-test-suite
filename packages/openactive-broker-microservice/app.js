@@ -219,6 +219,7 @@ function feedUpToDate(feedNextUrl) {
 
     // If the list is now empty, trigger responses to healthcheck
     if (incompleteFeeds.length === 0) {
+      log('Harvesting is up-to-date');
       healthCheckResponsesWaitingForHarvest.forEach(res => res.send('openactive-broker'));
     }
   }
@@ -700,6 +701,7 @@ async function startPolling() {
   }
 
   // Finished processing dataset site
+  if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
   feedUpToDate(DATASET_SITE_URL);
 }
 
@@ -723,7 +725,10 @@ addFeed(DATASET_SITE_URL);
 
 const port = process.env.PORT || 3000;
 app.listen(port, '127.0.0.1');
-log(`Broker Microservice running on port ${port}`);
+log(`Broker Microservice running on port ${port}
+
+Check http://localhost:${port}/status for current harvesting status
+`);
 
 (async () => {
   await startPolling();

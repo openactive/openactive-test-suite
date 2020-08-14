@@ -37,6 +37,15 @@ Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Res
 {{{ json response.body }}}
 ```
             {{/if}}
+         {{/if}}
+         {{#if response.error}}
+
+---
+
+Response error:
+```
+{{{ response.error }}}
+```
         {{/if}}
     {{/logsFor}}
     {{#logsFor . "spec"}}

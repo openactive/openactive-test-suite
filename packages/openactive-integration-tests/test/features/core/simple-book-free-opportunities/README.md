@@ -12,7 +12,7 @@ See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
+[TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x8
 
 
 ### Running tests for only this feature
@@ -37,7 +37,8 @@ This feature is **required** by the Open Booking API specification, and so must 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [without-payment-property](./implemented/without-payment-property-test.js) | Successful booking without payment property | A successful end to end booking without the `payment` property included. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [with-erroneous-payment-property](./implemented/with-erroneous-payment-property-test.js) | Fail free bookings which include erroneous payment property | C1, C2 and B with payment property: payment property is provided but not expected in the request, so an UnnecessaryPaymentDetailsError must be returned. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x4 |
+| [without-payment-property](./implemented/without-payment-property-test.js) | Successful booking without payment property | A successful end to end booking without the `payment` property included. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x4 |
 
 
 

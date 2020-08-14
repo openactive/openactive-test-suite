@@ -4,12 +4,12 @@ const fs = require("fs");
 const config = require("config");
 const { generateUuid } = require('./generate-uuid');
 
-const REQUEST_HEADERS = config.get("sellers.primary.requestHeaders");
-
 const c1req = require("../templates/c1-req.js");
 const c2req = require("../templates/c2-req.js");
-const breq = require("../templates/b-req.js");
+const { bReqTemplates } = require("../templates/b-req.js");
 const ureq = require("../templates/u-req.js");
+
+const REQUEST_HEADERS = config.get("sellers.primary.requestHeaders");
 
 const MICROSERVICE_BASE = global.MICROSERVICE_BASE;
 const BOOKING_API_BASE = global.BOOKING_API_BASE;
@@ -21,7 +21,12 @@ class RequestHelper {
   }
 
   async _request(stage, method, url, params, headers) {
-    let responsePromise = chakram[method.toLowerCase()](url, params, headers);
+    // const requestOptions = params
+    //   ? { headers, body: params }
+    //   : { headers };
+    // const responsePromise = chakram.request(method, url, requestOptions);
+    /** @type {Promise<import('chakram').ChakramResponse>} */
+    const responsePromise = chakram[method.toLowerCase()](url, params, headers);
 
     this.logger.recordRequestResponse(stage, {
       method: method.toUpperCase(),
@@ -175,15 +180,6 @@ class RequestHelper {
     return template;
   }
 
-  bookingTemplate(logger, templateJson, replacementMap) {
-    let jsonResult = templateJson(replacementMap);
-
-    // Remove payment if not required due to free session
-    if (replacementMap.totalPaymentDue == 0) delete jsonResult.payment;
-
-    return jsonResult;
-  }
-
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
@@ -221,9 +217,9 @@ class RequestHelper {
   }
 
   async putOrderQuoteTemplate(uuid, params) {
-    let payload = this.bookingTemplate(this.logger, c1req, params);
+    const payload = c1req(params);
 
-    let c1Response = await this.put(
+    const c1Response = await this.put(
       'C1',
       BOOKING_API_BASE + "order-quote-templates/" + uuid,
       payload,
@@ -237,7 +233,7 @@ class RequestHelper {
   }
 
   async putOrderQuote(uuid, params) {
-    const payload = this.bookingTemplate(this.logger, c2req, params);
+    const payload = c2req(params);
 
     const c2Response = await this.put(
       'C2',
@@ -252,8 +248,14 @@ class RequestHelper {
     return c2Response;
   }
 
-  async putOrder(uuid, params) {
-    const payload = this.bookingTemplate(this.logger, breq, params);
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/b-req').BReqTemplateData} params
+   * @param {import('../templates/b-req').BReqTemplateRef} bReqTemplateRef
+   */
+  async putOrder(uuid, params, bReqTemplateRef = 'standard') {
+    const templateFn = bReqTemplates[bReqTemplateRef];
+    const payload = templateFn(params);
 
     const bResponse = await this.put(
       'B',
@@ -269,7 +271,7 @@ class RequestHelper {
   }
 
   async cancelOrder(uuid, params) {
-    const payload = this.bookingTemplate(this.logger, ureq, params);
+    const payload = ureq(params);
 
     const uResponse = await this.patch(
       'U',

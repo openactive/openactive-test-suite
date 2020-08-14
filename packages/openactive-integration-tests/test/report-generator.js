@@ -49,7 +49,7 @@ class BaseReportGenerator {
       "consoleValidationIcon": function(severity, options) {
         switch (severity) {
           case "passed": // spec
-            return chalk.green("[√]");
+            return chalk.green("[Y]");
           case "failed": // spec
           case "failure": // validation
             return chalk.red("[X]");
@@ -76,7 +76,7 @@ class BaseReportGenerator {
           case "failed":
             return chalk.red("[X]");
           case "passed":
-            return chalk.green("[√]");
+            return chalk.green("[Y]");
           default:
             return chalk.yellow("[?]");
         }
