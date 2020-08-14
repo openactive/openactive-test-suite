@@ -4,10 +4,19 @@
  */
 const criteria = require("./criteria").criteria.map(x => new x());
 
+
+/**
+ * @typedef {import('./criteria/Criteria')} Criteria
+ */
+
 function getOffers(opportunity) {
   return opportunity.offers || (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
 }
 
+/**
+ * @param {Criteria} criteria
+ * @param {any} opportunity
+ */
 function filterRelevantOffers(criteria, opportunity) {
   const offers = getOffers(opportunity);
   return Object.entries(criteria.offerConstraints)
