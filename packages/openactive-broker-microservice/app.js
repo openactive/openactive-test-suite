@@ -10,10 +10,11 @@ const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
-const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
-const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
-const VERBOSE = config.get('verbose');
+const WAIT_FOR_HARVEST = config.has('waitForHarvestCompletion') ? config.get('waitForHarvestCompletion') : false;
+const REQUEST_LOGGING_ENABLED = config.has('requestLogging') ? config.get('requestLogging') : false;
+const ORDERS_FEED_REQUEST_HEADERS = config.has('ordersFeedRequestHeaders') ? config.get('ordersFeedRequestHeaders') : {
+};
+const VERBOSE = config.has('verbose') ? config.get('verbose') : false;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
