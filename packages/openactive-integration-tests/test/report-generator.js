@@ -88,7 +88,7 @@ class BaseReportGenerator {
         return str + (number == 1 ? '' : 's');
       },
       "json": function(data, options) {
-        return typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+        return JSON.stringify(data, null, 2);
       },
       "logsFor": (suite, type, options) => {
         let first = true;
