@@ -7,9 +7,9 @@ See `{{{ reportMarkdownPath }}}` for a Markdown version.
 ---
 
   {{#each featureGroups }}
-  • {{{ consoleValidationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
+  - {{{ consoleValidationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
     {{#each loggers}}
-    — {{{ consoleValidationIcon overallStatus }}} {{{ suiteName }}} ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes): {{{ markdownPath }}}
+    - {{{ consoleValidationIcon overallStatus }}} {{{ suiteName }}} ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes): {{{ markdownPath }}}
     {{/each}}
   {{/each}}
 

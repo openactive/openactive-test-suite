@@ -49,7 +49,9 @@ FeatureHelper.describeFeature(module, {
    */
   function attemptC1WithNewState() {
     // Each scenario uses a separate state and flowHelper because they fetch separate opportunities
-    const state = new RequestState(logger, uuid);
+    const state = new RequestState(logger, {
+      uuid,
+    });
     const flow = new FlowHelper(state);
 
     beforeAll(async () => {

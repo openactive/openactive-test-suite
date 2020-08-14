@@ -44,9 +44,11 @@
     "uuid": "^8.3.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.12",
     "@types/jest": "^26.0.4",
     "@types/lodash": "^4.14.158",
     "@types/node": "^12.12.50",
+    "@types/request": "^2.48.5",
     "@types/uuid": "^8.0.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",

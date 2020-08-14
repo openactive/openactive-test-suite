@@ -61,6 +61,13 @@ class BaseLogger {
       };
     }
 
+    if (response.error) {
+      fields = {
+        ...fields,
+        error: response.error.message,
+      };
+    }
+
     Object.assign(this.flow[stage].response, fields);
   }
 
@@ -100,6 +107,13 @@ class BaseLogger {
           headers: response.response.headers,
         };
       }
+
+      if (response.error) {
+        responseFields = {
+          ...responseFields,
+          error: response.error.message,
+        };
+      }  
 
       entry.response = responseFields;
     });
