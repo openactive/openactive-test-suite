@@ -201,7 +201,7 @@ function getOpportunityById(opportunityId) {
 }
 
 const responses = {
-  /* Keyed by expression = */
+  /* Keyed by id = */
 };
 
 const healthCheckResponsesWaitingForHarvest = [];
@@ -226,6 +226,11 @@ function feedUpToDate(feedNextUrl) {
     }
   }
 }
+
+// Provide binding for root to allow the service to run in a container
+app.get('/', (req, res) => {
+  res.redirect(301, 'https://www.openactive.io/');
+});
 
 app.get('/health-check', function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
@@ -270,50 +275,67 @@ app.get('/status', function (req, res) {
   });
 });
 
-function getMatch(req, res, useCache) {
+app.get('/opportunity-cache/:id', function (req, res) {
+  if (req.params.id) {
+    const { id } = req.params;
+
+    const cachedResponse = getOpportunityById(id);
+
+    if (cachedResponse) {
+      log(`Used cache for "${id}"`);
+      res.json({
+        data: cachedResponse,
+      });
+    } else {
+      res.status(404).json({
+        error: `Opportunity with id "${id}" was not found`,
+      });
+    }
+  } else {
+    res.status(400).json({
+      error: 'id is required',
+    });
+  }
+});
+
+app.get('/opportunity/:id', function (req, res) {
+  const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
+
   // respond with json
   if (req.params.id) {
     const { id } = req.params;
 
     const cachedResponse = getOpportunityById(id);
 
-    if (useCache && cachedResponse) {
-      log(`used cached response for ${id}`);
+    if (useCacheIfAvailable && cachedResponse) {
+      log(`used cached response for "${id}"`);
       res.json({
         data: cachedResponse,
       });
-      res.end();
     } else {
-      log(`listening for ${id}`);
+      log(`listening for "${id}"`);
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (responses[id] && responses[id] !== null) {
-        log(`ignoring previous request for ${id}`);
-        responses[id].end();
-      }
+      if (responses[id] && responses[id] !== null) responses[id].cancel();
       responses[id] = {
         send(json) {
           responses[id] = null;
           res.json(json);
-          res.end();
         },
-        end() {
-          res.end();
+        cancel() {
+          log(`Ignoring previous request for "${id}"`);
+          res.status(400).json({
+            error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
+          });
         },
         res,
       };
     }
   } else {
-    res.send('id not valid');
+    res.status(400).json({
+      error: 'id is required',
+    });
   }
-}
-
-app.get('/get-cached-opportunity/:id', function (req, res) {
-  getMatch(req, res, true);
-});
-
-app.get('/get-opportunity/:id', function (req, res) {
-  getMatch(req, res, false);
 });
 
 function getTypeFromOpportunityType(opportunityType) {
@@ -394,7 +416,6 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
   if (result && result.opportunity) {
     log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
     res.json(result.opportunity);
-    res.end();
   } else {
     logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
     res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`);
@@ -409,29 +430,31 @@ app.delete('/test-interface/datasets/:testDatasetIdentifier', function (req, res
 });
 
 const orderResponses = {
-  /* Keyed by expression = */
+  /* Keyed by id = */
 };
 
-app.get('/get-order/:expression', function (req, res) {
+app.get('/get-order/:id', function (req, res) {
   // respond with json
-  if (req.params.expression) {
-    const { expression } = req.params;
+  if (req.params.id) {
+    const { id } = req.params;
 
-    // Stash the response and reply later when an event comes through (kill any existing expression still waiting)
-    if (orderResponses[expression] && orderResponses[expression] !== null) orderResponses[expression].end();
-    orderResponses[expression] = {
+    // Stash the response and reply later when an event comes through (kill any existing id still waiting)
+    if (orderResponses[id] && orderResponses[id] !== null) orderResponses[id].cancel();
+    orderResponses[id] = {
       send(json) {
-        orderResponses[expression] = null;
+        orderResponses[id] = null;
         res.json(json);
-        res.end();
       },
-      end() {
-        res.end();
+      cancel() {
+        log(`Ignoring previous request for "${id}"`);
+        res.status(400).json({
+          error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
+        });
       },
       res,
     };
   } else {
-    res.send('Expression not valid');
+    res.send('Id is required');
   }
 });
 

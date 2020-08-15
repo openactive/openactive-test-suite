@@ -195,7 +195,7 @@ class RequestHelper {
   async getMatch(eventId, orderItemPosition) {
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      MICROSERVICE_BASE + "get-cached-opportunity/" + encodeURIComponent(eventId),
+      MICROSERVICE_BASE + `opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
       {
         timeout: 60000
       }
