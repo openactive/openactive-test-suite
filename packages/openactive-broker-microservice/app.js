@@ -11,7 +11,7 @@ const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
-const REQUEST_LOGGING_ENABLED = config.get('requestLogging');	
+const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
