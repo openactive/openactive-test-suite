@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
 const express = require('express');
+const http = require('http');
 const logger = require('morgan');
 const request = require('request');
 const axios = require('axios');
@@ -725,13 +726,64 @@ function setupContext(identifier, headers) {
 // Ensure that dataset site request also delays "readiness"
 addFeed(DATASET_SITE_URL);
 
-const port = process.env.PORT || 3000;
-app.listen(port, '127.0.0.1');
-log(`Broker Microservice running on port ${port}
+const server = http.createServer(app);
+server.on('error', onError);
+
+const port = normalizePort(process.env.PORT || '3000');
+app.listen(port, () => log(`Broker Microservice running on port ${port}
 
 Check http://localhost:${port}/status for current harvesting status
-`);
+`));
 
 (async () => {
   await startPolling();
 })();
+
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  const integerPort = parseInt(val, 10);
+
+  if (Number.isNaN(integerPort)) {
+    // named pipe
+    return val;
+  }
+
+  if (integerPort >= 0) {
+    // port number
+    return integerPort;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string'
+    ? `Pipe ${port}`
+    : `Port ${port}`;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(`${bind} requires elevated privileges`);
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(`${bind} is already in use`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
