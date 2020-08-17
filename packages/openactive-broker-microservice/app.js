@@ -20,6 +20,7 @@ const VERBOSE = config.get('verbose');
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeaders') ? config.get('opportunityFeedRequestHeaders') : {
 };
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
+const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
@@ -132,7 +133,7 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
             }, next: '${json.next}'`,
           );
         }
-        processPage(json);
+        processPage(json, contextIdentifier);
         url = json.next;
       }
     } catch (error) {
@@ -292,11 +293,34 @@ function millisToMinutesAndSeconds(millis) {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
+
+app.get('/orphans', function (req, res) {
+  const rows = Array.from(rowStoreMap.values());
+  res.send({
+    children: {
+      matched: rows.filter((x) => x.parentIngested).length,
+      orphaned: rows.filter((x) => !x.parentIngested).length,
+      total: rows.length,
+      orphanedList: rows.filter((x) => !x.parentIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
+        jsonLdType,
+        id,
+        modified,
+        jsonLd,
+        jsonLdId,
+        jsonLdParentId,
+      }))),
+    }
+  });
+});
+
 app.get('/status', function (req, res) {
   res.send({
     elapsedTime: millisToMinutesAndSeconds(new Date() - startTime),
     feeds: mapToObject(feedContextMap),
-    buckets: mapToObject(matchingCriteriaOpportunityIds),
+    orphans: {
+      children: `${Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length} of ${rowStoreMap.size}`,
+    },
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(matchingCriteriaOpportunityIds),
   });
 });
 
@@ -429,6 +453,13 @@ function detectOpportunityType(opportunity) {
 }
 
 app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', function (req, res) {
+  if (DO_NOT_FILL_BUCKETS) {
+    res.status(500).json({
+      error: 'Test interface is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+    return;
+  }
+
   // Use :testDatasetIdentifier to ensure the same id is not returned twice
   const { testDatasetIdentifier } = req.params;
 
@@ -443,7 +474,9 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
     res.json(result.opportunity);
   } else {
     logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
-    res.status(404).send(`Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`);
+    res.status(404).json({
+      error: `Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`
+    });
   }
 });
 
@@ -483,15 +516,17 @@ app.get('/get-order/:id', function (req, res) {
   }
 });
 
-function ingestParentOpportunityPage(rpdePage) {
+function ingestParentOpportunityPage(rpdePage, contextIdentifier) {
+  const feedPrefix = `${contextIdentifier}---`;
   rpdePage.items.forEach((item) => {
+    const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      const jsonLdId = parentOpportunityRpdeMap.get(item.id);
+      const jsonLdId = parentOpportunityRpdeMap.get(feedItemIdentifier);
       parentOpportunityMap.delete(jsonLdId);
-      parentOpportunityRpdeMap.delete(item.id);
+      parentOpportunityRpdeMap.delete(feedItemIdentifier);
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
-      parentOpportunityRpdeMap.set(item.id, jsonLdId);
+      parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       // Remove nested @context
       const dataWithoutContext = {
         ...item.data,
@@ -507,17 +542,19 @@ function ingestParentOpportunityPage(rpdePage) {
     .map((item) => item.data['@id'] || item.data.id));
 }
 
-function ingestOpportunityPage(rpdePage) {
+function ingestOpportunityPage(rpdePage, contextIdentifier) {
+  const feedPrefix = `${contextIdentifier}---`;
   rpdePage.items.forEach((item) => {
+    const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      const jsonLdId = opportunityRpdeMap.get(item.id);
+      const jsonLdId = opportunityRpdeMap.get(feedItemIdentifier);
       opportunityMap.delete(jsonLdId);
-      opportunityRpdeMap.delete(item.id);
+      opportunityRpdeMap.delete(feedItemIdentifier);
 
       deleteOpportunityItem(jsonLdId);
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
-      opportunityRpdeMap.set(item.id, jsonLdId);
+      opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       opportunityMap.set(jsonLdId, item.data);
 
       storeOpportunityItem(item);
@@ -605,26 +642,29 @@ function processRow(row) {
 function processOpportunityItem(item) {
   if (item.data) {
     const id = item.data['@id'] || item.data.id;
-    const opportunityType = detectOpportunityType(item.data);
-    const sellerId = detectSellerId(item.data);
 
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
 
-    criteria.map((c) => ({
-      criteriaName: c.name, criteriaResult: c.testMatch(item.data),
-    })).forEach((result) => {
-      const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
-      if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
-      const sellerCompartment = bucket.get(sellerId);
-      if (result.criteriaResult.matchesCriteria) {
-        sellerCompartment.add(id);
-        matchingCriteria.push(result.criteriaName);
-      } else {
-        sellerCompartment.delete(id);
-        unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
-      }
-    });
+    if (!DO_NOT_FILL_BUCKETS) {
+      const opportunityType = detectOpportunityType(item.data);
+      const sellerId = detectSellerId(item.data);
+
+      criteria.map((c) => ({
+        criteriaName: c.name, criteriaResult: c.testMatch(item.data),
+      })).forEach((result) => {
+        const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
+        if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
+        const sellerCompartment = bucket.get(sellerId);
+        if (result.criteriaResult.matchesCriteria) {
+          sellerCompartment.add(id);
+          matchingCriteria.push(result.criteriaName);
+        } else {
+          sellerCompartment.delete(id);
+          unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
+        }
+      });
+    }
 
     const bookableIssueList = unmetCriteriaDetails.length > 0
       ? `\n   [Unmet Criteria: ${unmetCriteriaDetails.join(', ')}]` : '';
