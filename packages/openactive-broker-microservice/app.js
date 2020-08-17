@@ -241,9 +241,20 @@ function feedUpToDate(feedNextUrl) {
   }
 }
 
-// Provide binding for root to allow the service to run in a container
+// Provide helpful homepage as binding for root to allow the service to run in a container
 app.get('/', (req, res) => {
-  res.redirect(301, 'https://www.openactive.io/');
+  res.send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OpenActive Test Suite - Broker Microservice</title>
+</head>
+
+<body>
+  <h1>OpenActive Test Suite - Broker Microservice</h1>
+  <a href="/status">Status Page</a>
+</body>
+</html>`);
 });
 
 app.get('/health-check', function (req, res) {
