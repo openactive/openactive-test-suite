@@ -16,6 +16,8 @@
     "test-interface-criteria": "cd packages/test-interface-criteria && npm test",
     "test-tests": "cd packages/openactive-integration-tests && npm test",
     "test": "npm run test-broker && npm run test-interface-criteria && npm run test-tests",
+    "debug-broker": "cd packages/openactive-broker-microservice && npm run debug",
+    "debug-tests": "cd packages/openactive-integration-tests && npm run debug",
     "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
     "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen"
   },

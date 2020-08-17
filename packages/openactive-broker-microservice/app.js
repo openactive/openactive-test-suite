@@ -2,13 +2,13 @@
 const express = require('express');
 const http = require('http');
 const logger = require('morgan');
-const request = require('request');
 const axios = require('axios');
 const config = require('config');
 const { criteria } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
+const sleep = require('util').promisify(setTimeout);
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
@@ -21,9 +21,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 const app = express();
 
 // eslint-disable-next-line no-console
-const logError = x => console.error(chalk.cyanBright(x));
+const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
-const log = x => console.log(chalk.cyan(x));
+const log = (x) => console.log(chalk.cyan(x));
 
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
@@ -45,7 +45,7 @@ let datasetSiteJson = {
 
 // Buckets for criteria matches
 const matchingCriteriaOpportunityIds = new Map();
-criteria.map(c => c.name).forEach((criteriaName) => {
+criteria.map((c) => c.name).forEach((criteriaName) => {
   const typeBucket = new Map();
   [
     'ScheduledSession',
@@ -57,7 +57,7 @@ criteria.map(c => c.name).forEach((criteriaName) => {
     'HeadlineEventSubEvent',
     'CourseInstanceSubEvent',
     'OnDemandEvent',
-  ].forEach(x => typeBucket.set(x, new Map()));
+  ].forEach((x) => typeBucket.set(x, new Map()));
   matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
 });
 
@@ -72,31 +72,30 @@ function getTestDataset(testDatasetIdentifier) {
 }
 
 function getAllDatasets() {
-  return new Set(Array.from(testDatasets.values()).flatMap(x => Array.from(x.values())));
+  return new Set(Array.from(testDatasets.values()).flatMap((x) => Array.from(x.values())));
 }
 
-function getRPDE(url, contextIdentifier, cb) {
+async function harvestRPDE(baseUrl, contextIdentifier, processPage) {
   const context = feedContextMap.get(contextIdentifier);
   const options = {
-    url,
-    method: 'get',
-    headers: Object.assign({
-    }, {
+    headers: {
       Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
       'Cache-Control': 'max-age=0',
-    }, context.headers || {
-    }),
-    time: true,
+      ...context.headers || {
+      },
+    },
   };
-  request.get(options, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-      let json;
-      try {
-        json = JSON.parse(body);
-      } catch (ex) {
-        logError(`Invalid Json from "${url}" recieved "${body}" throwing ${ex}`);
-        throw new Error('Deserialization error');
-      }
+  let url = baseUrl;
+  while (true) {
+    try {
+      const hrstart = process.hrtime.bigint();
+      const response = await axios.get(url, options);
+      const hrend = process.hrtime.bigint();
+      // eslint-disable-next-line no-undef
+      const responseTime = Number((hrend - hrstart) / BigInt(1000000));
+
+      const json = response.data;
+
       // Validate RPDE base URL
       if (!json.next) {
         throw new Error("RPDE does not have 'next' property");
@@ -112,30 +111,42 @@ function getRPDE(url, contextIdentifier, cb) {
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime);
-        setTimeout(() => getRPDE(url, contextIdentifier, cb), 500);
+        await sleep(500);
       } else {
-        context.responseTimes.push(response.elapsedTime);
+        context.responseTimes.push(responseTime);
         // Maintain a buffer of the last 5 items
         if (context.responseTimes.length > 5) context.responseTimes.shift();
         context.pages += 1;
         context.items += json.items.length;
         delete context.sleepMode;
-        cb(json, contextIdentifier);
+        if (REQUEST_LOGGING_ENABLED) {
+          const kind = json.items && json.items[0] && json.items[0].kind;
+          log(
+            `RPDE kind: ${kind}, page: ${context.pages}, length: ${
+              json.items.length
+            }, next: '${json.next}'`,
+          );
+        }
+        processPage(json);
+        url = json.next;
       }
-    } else if (!response) {
-      log(`Error for RPDE feed "${url}": ${error}. Response: ${body}`);
-      // Force retry, after a delay
-      setTimeout(() => getRPDE(url, contextIdentifier, cb), 5000);
-    } else if (response.statusCode === 404) {
-      if (WAIT_FOR_HARVEST) feedUpToDate(url);
-      log(`Not Found error for RPDE feed "${url}", feed will be ignored: ${error}.`);
-      // Stop polling feed
-    } else {
-      log(`Error ${response.statusCode} for RPDE page "${url}": ${error}. Response: ${body}`);
-      // Force retry, after a delay
-      setTimeout(() => getRPDE(url, contextIdentifier, cb), 5000);
+    } catch (error) {
+      if (!error.response) {
+        log(`Error for RPDE feed "${url}": ${error.message}.`);
+        // Force retry, after a delay
+        await sleep(5000);
+      } else if (error.response.status === 404) {
+        if (WAIT_FOR_HARVEST) feedUpToDate(url);
+        log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
+        // Stop polling feed
+        return;
+      } else {
+        log(`Error ${error.response.status} for RPDE page "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        // Force retry, after a delay
+        await sleep(5000);
+      }
     }
-  });
+  }
 }
 
 function getBaseUrl(url) {
@@ -158,7 +169,7 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
   } // Seller has no items
 
   const allTestDatasets = getAllDatasets();
-  const unusedBucketItems = Array.from(sellerCompartment).filter(x => !allTestDatasets.has(x));
+  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allTestDatasets.has(x));
 
   if (unusedBucketItems.length === 0) return null;
 
@@ -182,19 +193,14 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
   testDataset.clear();
 }
 
-
 function getOpportunityById(opportunityId) {
   const opportunity = opportunityMap.get(opportunityId);
   if (opportunity && parentOpportunityMap.has(opportunity.superEvent || opportunity.facilityUse)) {
-    return Object.assign(
-      {
-      },
-      opportunity,
-      {
-        superEvent: parentOpportunityMap.get(opportunity.superEvent),
-        facilityUse: parentOpportunityMap.get(opportunity.facilityUse),
-      },
-    );
+    return {
+      ...opportunity,
+      superEvent: parentOpportunityMap.get(opportunity.superEvent),
+      facilityUse: parentOpportunityMap.get(opportunity.facilityUse),
+    };
   }
   return null;
 }
@@ -211,17 +217,21 @@ function addFeed(feedUrl) {
 }
 
 function feedUpToDate(feedNextUrl) {
-  const queryStringIndex = feedNextUrl.indexOf('?');
-  const feedUrl = queryStringIndex > -1 ? feedNextUrl.substring(0, queryStringIndex) : feedNextUrl;
-  const index = incompleteFeeds.indexOf(feedUrl);
-  if (index > -1) {
-    // Remove the feed from the list
-    incompleteFeeds.splice(index, 1);
+  if (incompleteFeeds.length !== 0) {
+    const queryStringIndex = feedNextUrl.indexOf('?');
+    const feedUrl = queryStringIndex > -1 ? feedNextUrl.substring(0, queryStringIndex) : feedNextUrl;
+    const index = incompleteFeeds.indexOf(feedUrl);
+    if (index > -1) {
+      // Remove the feed from the list
+      incompleteFeeds.splice(index, 1);
 
-    // If the list is now empty, trigger responses to healthcheck
-    if (incompleteFeeds.length === 0) {
-      log('Harvesting is up-to-date');
-      healthCheckResponsesWaitingForHarvest.forEach(res => res.send('openactive-broker'));
+      // If the list is now empty, trigger responses to healthcheck
+      if (incompleteFeeds.length === 0) {
+        log('Harvesting is up-to-date');
+        healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
+        // Clear response array
+        healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
+      }
     }
   }
 }
@@ -234,10 +244,10 @@ app.get('/', (req, res) => {
 app.get('/health-check', function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
-  if (!WAIT_FOR_HARVEST || incompleteFeeds.length === 0) {
-    res.send('openactive-broker');
-  } else {
+  if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
     healthCheckResponsesWaitingForHarvest.push(res);
+  } else {
+    res.send('openactive-broker');
   }
 });
 
@@ -248,7 +258,7 @@ app.get('/dataset-site', function (req, res) {
 function mapToObject(map) {
   if (map instanceof Map) {
     // Return a object representation of a Map
-    return Object.assign(Object.create(null), ...[...map].map(v => (typeof v[1] === 'object' && v[1].size === 0 ? {
+    return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0 ? {
     } : {
       [v[0]]: mapToObject(v[1]),
     })));
@@ -457,18 +467,8 @@ app.get('/get-order/:id', function (req, res) {
   }
 });
 
-
-function ingestParentOpportunityPage(rpde, contextIdentifier, pageNumber) {
-  if (REQUEST_LOGGING_ENABLED) {
-    const kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
-    log(
-      `RPDE kind: ${kind}, page: ${pageNumber + 1 || 0}, length: ${
-        rpde.items.length
-      }, next: '${rpde.next}'`,
-    );
-  }
-
-  rpde.items.forEach((item) => {
+function ingestParentOpportunityPage(rpdePage) {
+  rpdePage.items.forEach((item) => {
     if (item.state === 'deleted') {
       const jsonLdId = parentOpportunityRpdeMap.get(item.id);
       parentOpportunityMap.delete(jsonLdId);
@@ -477,36 +477,22 @@ function ingestParentOpportunityPage(rpde, contextIdentifier, pageNumber) {
       const jsonLdId = item.data['@id'] || item.data.id;
       parentOpportunityRpdeMap.set(item.id, jsonLdId);
       // Remove nested @context
-      const dataWithoutContext = Object.assign({
-      }, item.data, {
+      const dataWithoutContext = {
+        ...item.data,
         '@context': undefined,
-      });
+      };
       parentOpportunityMap.set(jsonLdId, dataWithoutContext);
     }
   });
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  touchOpportunityItems(rpde.items
-    .filter(item => item.state !== 'deleted')
-    .map(item => item.data['@id'] || item.data.id));
-
-  setTimeout(
-    () => getRPDE(rpde.next, contextIdentifier, (x, cId) => ingestParentOpportunityPage(x, cId, pageNumber + 1 || 0)),
-    200,
-  );
+  touchOpportunityItems(rpdePage.items
+    .filter((item) => item.state !== 'deleted')
+    .map((item) => item.data['@id'] || item.data.id));
 }
 
-function ingestOpportunityPage(rpde, contextIdentifier, pageNumber) {
-  if (REQUEST_LOGGING_ENABLED) {
-    const kind = rpde.items && rpde.items[0] && rpde.items[0].kind;
-    log(
-      `RPDE kind: ${kind}, page: ${pageNumber + 1 || 0}, length: ${
-        rpde.items.length
-      }, next: '${rpde.next}'`,
-    );
-  }
-
-  rpde.items.forEach((item) => {
+function ingestOpportunityPage(rpdePage) {
+  rpdePage.items.forEach((item) => {
     if (item.state === 'deleted') {
       const jsonLdId = opportunityRpdeMap.get(item.id);
       opportunityMap.delete(jsonLdId);
@@ -521,11 +507,6 @@ function ingestOpportunityPage(rpde, contextIdentifier, pageNumber) {
       storeOpportunityItem(item);
     }
   });
-
-  setTimeout(
-    () => getRPDE(rpde.next, contextIdentifier, (x, cId) => ingestOpportunityPage(x, cId, pageNumber + 1 || 0)),
-    200,
-  );
 }
 
 function touchOpportunityItems(parentIds) {
@@ -590,18 +571,16 @@ function processRow(row) {
     state: row.deleted ? 'deleted' : 'updated',
     id: row.jsonLdId,
     modified: row.feedModified,
-    data: Object.assign(
-      {
-      },
-      row.jsonLd,
-      row.jsonLdType === 'Slot'
+    data: {
+      ...row.jsonLd,
+      ...(row.jsonLdType === 'Slot'
         ? {
           facilityUse: parentOpportunityMap.get(row.jsonLdParentId),
         }
         : {
           superEvent: parentOpportunityMap.get(row.jsonLdParentId),
-        },
-    ),
+        }),
+    },
   };
 
   processOpportunityItem(newItem);
@@ -616,7 +595,7 @@ function processOpportunityItem(item) {
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
 
-    criteria.map(c => ({
+    criteria.map((c) => ({
       criteriaName: c.name, criteriaResult: c.testMatch(item.data),
     })).forEach((result) => {
       const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
@@ -642,22 +621,13 @@ function processOpportunityItem(item) {
   }
 }
 
-function monitorOrdersPage(rpde, contextIdentifier) {
-  if (REQUEST_LOGGING_ENABLED) {
-    log(
-      `RPDE kind: Orders Monitoring, length: ${rpde.items.length}, next: '${rpde.next}'`,
-    );
-  }
-
+function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
     if (item.data && item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
     }
   });
-
-  setTimeout(() => getRPDE(rpde.next, contextIdentifier, monitorOrdersPage), 200);
 }
-
 
 function extractJSONLDfromHTML(url, html) {
   let jsonld = null;
@@ -694,7 +664,6 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
   return jsonld;
 }
 
-
 async function startPolling() {
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
@@ -706,15 +675,15 @@ async function startPolling() {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
   }
 
-  dataset.distribution.forEach((dataDownload) => {
+  dataset.distribution.forEach(async (dataDownload) => {
     addFeed(dataDownload.contentUrl);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      getRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestParentOpportunityPage);
+      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestParentOpportunityPage);
     } else {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      getRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestOpportunityPage);
+      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestOpportunityPage);
     }
   });
 
@@ -722,7 +691,7 @@ async function startPolling() {
   if (dataset.accessService && dataset.accessService.endpointURL) {
     const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
-    getRPDE(ordersFeedUrl, setupContext('OrdersFeed', ORDERS_FEED_REQUEST_HEADERS), monitorOrdersPage);
+    harvestRPDE(ordersFeedUrl, setupContext('OrdersFeed', ORDERS_FEED_REQUEST_HEADERS), monitorOrdersPage);
   }
 
   // Finished processing dataset site
@@ -760,7 +729,6 @@ Check http://localhost:${port}/status for current harvesting status
 (async () => {
   await startPolling();
 })();
-
 
 /**
  * Normalize a port into a number, string, or false.

@@ -8,7 +8,7 @@
             "name": "integration-tests",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}\\openactive-test-suite\\packages\\openactive-integration-tests",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229
@@ -17,19 +17,15 @@
             "name": "broker-microservice",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}\\openactive-test-suite\\packages\\openactive-broker-microservice",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run-script", "debug"],
-            "port": 9229
+            "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/"
         },
         {
             "name": "combined",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}\\openactive-test-suite",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run-script", "debug"],
-            "port": 9229
+            "autoAttachChildProcesses": true,
+            "program": "${workspaceFolder}/start.js"
         }
     ]
 }
