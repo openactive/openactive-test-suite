@@ -16,6 +16,11 @@ const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
 
+// These options are not recommended for general use, but are available for specific test environment configuration and debugging
+const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeaders') ? config.get('opportunityFeedRequestHeaders') : {
+};
+const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const app = express();
@@ -75,13 +80,13 @@ function getAllDatasets() {
   return new Set(Array.from(testDatasets.values()).flatMap((x) => Array.from(x.values())));
 }
 
-async function harvestRPDE(baseUrl, contextIdentifier, processPage) {
+async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
   const context = feedContextMap.get(contextIdentifier);
   const options = {
     headers: {
       Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
       'Cache-Control': 'max-age=0',
-      ...context.headers || {
+      ...headers || {
       },
     },
   };
@@ -665,7 +670,11 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 async function startPolling() {
-  const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
+  const dataset = DATASET_DISTRIBUTION_OVERRIDE.length > 0
+    ? {
+      distribution: DATASET_DISTRIBUTION_OVERRIDE,
+    }
+    : await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
   log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
 
@@ -675,15 +684,15 @@ async function startPolling() {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
   }
 
-  dataset.distribution.forEach(async (dataDownload) => {
+  dataset.distribution.forEach((dataDownload) => {
     addFeed(dataDownload.contentUrl);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestParentOpportunityPage);
+      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name || dataDownload.additionalType), OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage);
     } else {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name), ingestOpportunityPage);
+      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name || dataDownload.additionalType), OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage);
     }
   });
 
@@ -691,7 +700,7 @@ async function startPolling() {
   if (dataset.accessService && dataset.accessService.endpointURL) {
     const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
-    harvestRPDE(ordersFeedUrl, setupContext('OrdersFeed', ORDERS_FEED_REQUEST_HEADERS), monitorOrdersPage);
+    harvestRPDE(ordersFeedUrl, setupContext('OrdersFeed'), ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage);
   }
 
   // Finished processing dataset site
@@ -699,16 +708,15 @@ async function startPolling() {
   feedUpToDate(DATASET_SITE_URL);
 }
 
-function setupContext(identifier, headers) {
+function setupContext(identifier) {
   const context = {
     currentPage: null,
     pages: 0,
     items: 0,
     responseTimes: [],
   };
-  if (headers !== undefined) context.headers = headers;
   if (feedContextMap.has(identifier)) {
-    throw new Error('Duplicate feed identifier not permitted.');
+    throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
   feedContextMap.set(identifier, context);
   return identifier;
@@ -727,7 +735,12 @@ Check http://localhost:${port}/status for current harvesting status
 `));
 
 (async () => {
-  await startPolling();
+  try {
+    await startPolling();
+  } catch (error) {
+    logError(error.toString());
+    process.exit(1);
+  }
 })();
 
 /**
@@ -766,11 +779,11 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(`${bind} requires elevated privileges`);
+      logError(`${bind} requires elevated privileges`);
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(`${bind} is already in use`);
+      logError(`${bind} is already in use`);
       process.exit(1);
       break;
     default:
