@@ -8,6 +8,7 @@ const { criteria } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
+const { performance } = require('perf_hooks');
 const sleep = require('util').promisify(setTimeout);
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
@@ -81,17 +82,23 @@ function getAllDatasets() {
   return new Set(Array.from(testDatasets.values()).flatMap((x) => Array.from(x.values())));
 }
 
-async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
+/**
+ * @param {string} baseUrl
+ * @param {feedIdentifier} baseUrl
+ * @param {Object.<string, string>} headers
+ * @param {RpdePageProcessor} processPage
+ */
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
   const context = {
     currentPage: baseUrl,
     pages: 0,
     items: 0,
     responseTimes: [],
   };
-  if (feedContextMap.has(contextIdentifier)) {
+  if (feedContextMap.has(feedIdentifier)) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
-  feedContextMap.set(contextIdentifier, context);
+  feedContextMap.set(feedIdentifier, context);
   const options = {
     headers: {
       Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
@@ -104,11 +111,10 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
   // Harvest forever, until a 404 is encountered
   for (;;) {
     try {
-      const hrstart = process.hrtime.bigint();
+      const timerStart = performance.now();
       const response = await axios.get(url, options);
-      const hrend = process.hrtime.bigint();
-      // eslint-disable-next-line no-undef
-      const responseTime = Number((hrend - hrstart) / BigInt(1000000));
+      const timerEnd = performance.now();
+      const responseTime = timerEnd - timerStart;
 
       const json = response.data;
 
@@ -123,7 +129,7 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
         if (WAIT_FOR_HARVEST) {
-          feedUpToDate(url);
+          setFeedIsUpToDate(feedIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
@@ -143,7 +149,7 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
             }, next: '${json.next}'`,
           );
         }
-        processPage(json, contextIdentifier);
+        processPage(json, feedIdentifier);
         url = json.next;
       }
     } catch (error) {
@@ -152,7 +158,7 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
         // Force retry, after a delay
         await sleep(5000);
       } else if (error.response.status === 404) {
-        if (WAIT_FOR_HARVEST) feedUpToDate(url);
+        if (WAIT_FOR_HARVEST) setFeedIsUpToDate(feedIdentifier);
         log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
@@ -221,8 +227,14 @@ function getOpportunityById(opportunityId) {
   return null;
 }
 
+/**
+ * @typedef {Object} PendingResponse
+ * @property {(json: any) => void} send
+ * @property {() => void} cancel
+ */
+
+/** @type {{[id: string]: PendingResponse}} */
 const responses = {
-  /* Keyed by id = */
 };
 
 const healthCheckResponsesWaitingForHarvest = [];
@@ -232,11 +244,9 @@ function addFeed(feedUrl) {
   incompleteFeeds.push(feedUrl);
 }
 
-function feedUpToDate(feedNextUrl) {
+function setFeedIsUpToDate(feedIdentifier) {
   if (incompleteFeeds.length !== 0) {
-    const queryStringIndex = feedNextUrl.indexOf('?');
-    const feedUrl = queryStringIndex > -1 ? feedNextUrl.substring(0, queryStringIndex) : feedNextUrl;
-    const index = incompleteFeeds.indexOf(feedUrl);
+    const index = incompleteFeeds.indexOf(feedIdentifier);
     if (index > -1) {
       // Remove the feed from the list
       incompleteFeeds.splice(index, 1);
@@ -389,7 +399,6 @@ app.get('/opportunity/:id', function (req, res) {
             error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
           });
         },
-        res,
       };
     }
   } else {
@@ -499,8 +508,8 @@ app.delete('/test-interface/datasets/:testDatasetIdentifier', function (req, res
   res.status(204).send();
 });
 
+/** @type {{[id: string]: PendingResponse}} */
 const orderResponses = {
-  /* Keyed by id = */
 };
 
 app.get('/get-order/:id', function (req, res) {
@@ -521,15 +530,21 @@ app.get('/get-order/:id', function (req, res) {
           error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
         });
       },
-      res,
     };
   } else {
     res.send('Id is required');
   }
 });
 
-function ingestParentOpportunityPage(rpdePage, contextIdentifier) {
-  const feedPrefix = `${contextIdentifier}---`;
+/**
+ * @callback RpdePageProcessor
+ * @param {any} rpdePage
+ * @param {string} feedIdentifier
+ */
+
+/** @type {RpdePageProcessor} */
+function ingestParentOpportunityPage(rpdePage, feedIdentifier) {
+  const feedPrefix = `${feedIdentifier}---`;
   rpdePage.items.forEach((item) => {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
@@ -554,8 +569,9 @@ function ingestParentOpportunityPage(rpdePage, contextIdentifier) {
     .map((item) => item.data['@id'] || item.data.id));
 }
 
-function ingestOpportunityPage(rpdePage, contextIdentifier) {
-  const feedPrefix = `${contextIdentifier}---`;
+/** @type {RpdePageProcessor} */
+function ingestOpportunityPage(rpdePage, feedIdentifier) {
+  const feedPrefix = `${feedIdentifier}---`;
   rpdePage.items.forEach((item) => {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
@@ -689,6 +705,7 @@ function processOpportunityItem(item) {
   }
 }
 
+/** @type {RpdePageProcessor} */
 function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
     if (item.data && item.id && orderResponses[item.id]) {
@@ -750,14 +767,15 @@ async function startPolling() {
   const harvesters = [];
 
   dataset.distribution.forEach((dataDownload) => {
-    addFeed(dataDownload.contentUrl);
+    const feedIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
+    addFeed(feedIdentifier);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, dataDownload.identifier || dataDownload.name || dataDownload.additionalType, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
     } else {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, dataDownload.identifier || dataDownload.name || dataDownload.additionalType, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
     }
   });
 
@@ -770,14 +788,14 @@ async function startPolling() {
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
-  feedUpToDate(DATASET_SITE_URL);
+  setFeedIsUpToDate('DatasetSite');
 
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
 }
 
 // Ensure that dataset site request also delays "readiness"
-addFeed(DATASET_SITE_URL);
+addFeed('DatasetSite');
 
 const server = http.createServer(app);
 server.on('error', onError);
