@@ -101,7 +101,8 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
     },
   };
   let url = baseUrl;
-  while (true) {
+  // Harvest forever, until a 404 is encountered
+  for (;;) {
     try {
       const hrstart = process.hrtime.bigint();
       const response = await axios.get(url, options);
@@ -302,7 +303,6 @@ function millisToMinutesAndSeconds(millis) {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-
 app.get('/orphans', function (req, res) {
   const rows = Array.from(rowStoreMap.values());
   res.send({
@@ -318,7 +318,7 @@ app.get('/orphans', function (req, res) {
         jsonLdId,
         jsonLdParentId,
       }))),
-    }
+    },
   });
 });
 
