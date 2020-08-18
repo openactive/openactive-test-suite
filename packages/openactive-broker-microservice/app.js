@@ -82,7 +82,16 @@ function getAllDatasets() {
 }
 
 async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
-  const context = feedContextMap.get(contextIdentifier);
+  const context = {
+    currentPage: baseUrl,
+    pages: 0,
+    items: 0,
+    responseTimes: [],
+  };
+  if (feedContextMap.has(contextIdentifier)) {
+    throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
+  }
+  feedContextMap.set(contextIdentifier, context);
   const options = {
     headers: {
       Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
@@ -314,11 +323,14 @@ app.get('/orphans', function (req, res) {
 });
 
 app.get('/status', function (req, res) {
+  const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length;
+  const totalChildren = rowStoreMap.size;
+  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : 0;
   res.send({
     elapsedTime: millisToMinutesAndSeconds(new Date() - startTime),
     feeds: mapToObject(feedContextMap),
     orphans: {
-      children: `${Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length} of ${rowStoreMap.size}`,
+      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
     buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(matchingCriteriaOpportunityIds),
   });
@@ -735,15 +747,17 @@ async function startPolling() {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
   }
 
+  const harvesters = [];
+
   dataset.distribution.forEach((dataDownload) => {
     addFeed(dataDownload.contentUrl);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name || dataDownload.additionalType), OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage);
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, dataDownload.identifier || dataDownload.name || dataDownload.additionalType, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
     } else {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      harvestRPDE(dataDownload.contentUrl, setupContext(dataDownload.identifier || dataDownload.name || dataDownload.additionalType), OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage);
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, dataDownload.identifier || dataDownload.name || dataDownload.additionalType, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
     }
   });
 
@@ -751,26 +765,15 @@ async function startPolling() {
   if (dataset.accessService && dataset.accessService.endpointURL) {
     const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
-    harvestRPDE(ordersFeedUrl, setupContext('OrdersFeed'), ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage);
+    harvesters.push(harvestRPDE(ordersFeedUrl, 'OrdersFeed', ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
   }
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
   feedUpToDate(DATASET_SITE_URL);
-}
 
-function setupContext(identifier) {
-  const context = {
-    currentPage: null,
-    pages: 0,
-    items: 0,
-    responseTimes: [],
-  };
-  if (feedContextMap.has(identifier)) {
-    throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
-  }
-  feedContextMap.set(identifier, context);
-  return identifier;
+  // Wait until all harvesters error catastrophically before existing
+  await Promise.all(harvesters);
 }
 
 // Ensure that dataset site request also delays "readiness"
