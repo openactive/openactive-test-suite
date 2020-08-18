@@ -2,7 +2,7 @@
 const express = require('express');
 const logger = require('morgan');
 const request = require('request');
-const axios = require('axios');
+const { default: axios } = require('axios');
 const config = require('config');
 const { criteria } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
@@ -15,7 +15,7 @@ const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
 
@@ -110,7 +110,7 @@ function getRPDE(url, contextIdentifier, cb) {
           feedUpToDate(url);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
-        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime);
+        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
         setTimeout(() => getRPDE(url, contextIdentifier, cb), 500);
       } else {
         context.responseTimes.push(response.elapsedTime);
@@ -256,13 +256,13 @@ function mapToObject(map) {
 
 function millisToMinutesAndSeconds(millis) {
   const minutes = Math.floor(millis / 60000);
-  const seconds = ((millis % 60000) / 1000).toFixed(0);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  const seconds = ((millis % 60000) / 1000);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
 
 app.get('/status', function (req, res) {
   res.send({
-    elapsedTime: millisToMinutesAndSeconds(new Date() - startTime),
+    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     feeds: mapToObject(feedContextMap),
     buckets: mapToObject(matchingCriteriaOpportunityIds),
   });

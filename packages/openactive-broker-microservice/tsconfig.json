@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "downlevelIteration": true,
+    "target": "ES2019",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "app.js",
+  ]
+}

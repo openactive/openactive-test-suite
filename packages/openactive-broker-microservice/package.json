@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "npm run lint",
+    "test": "npm run lint && tsc",
     "debug": "node --inspect app.js",
     "lint": "eslint \"*.js\"",
     "lint-fix": "eslint \"*.js\" --fix"
@@ -26,9 +26,11 @@
     "request": "^2.88.0"
   },
   "devDependencies": {
+    "@types/node": "^14.6.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",
-    "eslint-plugin-import": "^2.20.0"
+    "eslint-plugin-import": "^2.20.0",
+    "typescript": "^3.9.7"
   },
   "engines": {
     "node": "12.18.2"
