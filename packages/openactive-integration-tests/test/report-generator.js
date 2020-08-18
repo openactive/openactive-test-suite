@@ -1,6 +1,5 @@
 const chalk = require("chalk");
 const Handlebars = require("handlebars");
-const pMemoize = require("p-memoize");
 const fs = require("fs").promises;
 const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
