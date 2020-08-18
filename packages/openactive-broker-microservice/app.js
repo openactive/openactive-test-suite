@@ -2,7 +2,7 @@
 const express = require('express');
 const http = require('http');
 const logger = require('morgan');
-const axios = require('axios');
+const { default: axios } = require('axios');
 const config = require('config');
 const { criteria } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
@@ -22,7 +22,7 @@ const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeade
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
 const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
 
@@ -126,7 +126,7 @@ async function harvestRPDE(baseUrl, contextIdentifier, headers, processPage) {
           feedUpToDate(url);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
-        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds(new Date() - startTime);
+        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
         await sleep(500);
       } else {
         context.responseTimes.push(responseTime);
@@ -299,8 +299,8 @@ function mapToObject(map) {
 
 function millisToMinutesAndSeconds(millis) {
   const minutes = Math.floor(millis / 60000);
-  const seconds = ((millis % 60000) / 1000).toFixed(0);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  const seconds = ((millis % 60000) / 1000);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
 
 app.get('/orphans', function (req, res) {
@@ -327,7 +327,7 @@ app.get('/status', function (req, res) {
   const totalChildren = rowStoreMap.size;
   const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : 0;
   res.send({
-    elapsedTime: millisToMinutesAndSeconds(new Date() - startTime),
+    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     feeds: mapToObject(feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
