@@ -84,7 +84,7 @@ function getAllDatasets() {
 
 /**
  * @param {string} baseUrl
- * @param {feedIdentifier} baseUrl
+ * @param {string} feedIdentifier
  * @param {Object.<string, string>} headers
  * @param {RpdePageProcessor} processPage
  */
