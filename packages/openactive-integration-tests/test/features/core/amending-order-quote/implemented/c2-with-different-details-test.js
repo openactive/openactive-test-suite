@@ -1,4 +1,3 @@
-
 const chai = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
@@ -70,7 +69,9 @@ FeatureHelper.describeFeature(module, {
         .validationTests();
     });
 
-    return { state, flow };
+    return {
+      state, flow,
+    };
   }
 
   // N.B.: The following two tests must be performed sequentially - with
@@ -79,7 +80,7 @@ FeatureHelper.describeFeature(module, {
     const { state, flow } = getOpportunityFeedItemsWithNewState();
 
     describe('C1', () => {
-      const c1 = (new C1({
+      (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
