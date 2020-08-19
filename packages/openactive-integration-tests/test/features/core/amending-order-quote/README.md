@@ -10,7 +10,7 @@ Coverage Status: **partial**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x24
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x16
 
 
 ### Running tests for only this feature

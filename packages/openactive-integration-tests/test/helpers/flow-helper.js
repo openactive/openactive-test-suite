@@ -1,6 +1,10 @@
 const pMemoize = require("p-memoize");
 
 /**
+ * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'U' | 'getFeedUpdate'} StageIdentifier
+ */
+
+/**
  * Convenient helper for calling Booking API flow functions like C1, C2, B, etc
  * and caching the results.
  *
@@ -13,31 +17,41 @@ const pMemoize = require("p-memoize");
 class FlowHelper {
   /**
    * @param {InstanceType<import('./request-state')['RequestState']>} helper
-   * @param {object} options
-   * @param {boolean} [options.doRunPreviousStages] If true, each stage will
-   *   ensure that the previous stage is called if it hasn't already. e.g.
-   *   C2 will call C1 if it hasn't already been called.
+   * @param {object} [options]
+   * @param {Set<StageIdentifier>} [options.stagesToSkip] Any stages included
+   *   in this set will be skipped. e.g. with stagesToSkip = new Set(['c2']),
+   *   the C2 stage will be skipped.
    *
-   *   Set this to false in order to test unconventional flows like calling
-   *   C2 without calling C1 before.
-   *
-   *   Defaults to true.
+   *   This can be used to test unconventional flows
    */
-  constructor (helper, { doRunPreviousStages = true } = {}) {
+  constructor (helper, { stagesToSkip = new Set() } = {}) {
     this.state = helper;
-    this._doRunPreviousStages = doRunPreviousStages;
+    this._stagesToSkip = stagesToSkip
+  }
+
+  /**
+   * @param {StageIdentifier} stageIdentifier
+   * @throws If the stage should be skipped.
+   */
+  _assertStageShouldNotBeSkipped(stageIdentifier) {
+    if (this._stagesToSkip.has(stageIdentifier)) {
+      throw new Error(`Unexpectedly calling skipped stage: \`${stageIdentifier}\``);
+    }
   }
 
   getDatasetSite = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('getDatasetSite');
     return this.state.getDatasetSite();
   }, { cachePromiseRejection: true });
 
   getMatch = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('getMatch');
     return this.state.getMatch();
   }, { cachePromiseRejection: true });
 
   C1 = pMemoize(async () => {
-    if (this._doRunPreviousStages) {
+    this._assertStageShouldNotBeSkipped('C1');
+    if (!this._stagesToSkip.has('getMatch')) {
       await this.getMatch();
       if (!this.state.getMatchResponseSucceeded) throw Error('Pre-requisite step failed: opportunity feed extract failed');
     }
@@ -46,7 +60,8 @@ class FlowHelper {
   }, { cachePromiseRejection: true });
 
   C2 = pMemoize(async () => {
-    if (this._doRunPreviousStages) {
+    this._assertStageShouldNotBeSkipped('C2');
+    if (!this._stagesToSkip.has('C1')) {
       await this.C1();
       if (!this.state.C1ResponseReceived) throw Error('Pre-requisite step failed: C1 failed');
     }
@@ -55,7 +70,8 @@ class FlowHelper {
   }, { cachePromiseRejection: true });
 
   B = pMemoize(async () => {
-    if (this._doRunPreviousStages) {
+    this._assertStageShouldNotBeSkipped('B');
+    if (!this._stagesToSkip.has('C2')) {
       await this.C2();
       if (!this.state.C2ResponseReceived) throw Error('Pre-requisite step failed: C2 failed');
     }
@@ -64,9 +80,10 @@ class FlowHelper {
   }, { cachePromiseRejection: true });
 
   U = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('U');
     this.getOrderPromise = this.state.getOrder();
 
-    if (this._doRunPreviousStages) {
+    if (!this._stagesToSkip.has('B')) {
       await this.B();
       if (!this.state.BResponseReceived) throw Error('Pre-requisite step failed: B failed');
     }
@@ -75,7 +92,8 @@ class FlowHelper {
   }, { cachePromiseRejection: true });
 
   getFeedUpdate = pMemoize(async () => {
-    if (this._doRunPreviousStages) {
+    this._assertStageShouldNotBeSkipped('getFeedUpdate');
+    if (!this._stagesToSkip.has('U')) {
       await this.U();
       if (!this.state.UResponseSucceeded) throw Error('Pre-requisite step failed: U failed');
     }
