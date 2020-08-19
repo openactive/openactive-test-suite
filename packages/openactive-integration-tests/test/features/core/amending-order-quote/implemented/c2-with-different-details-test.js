@@ -53,9 +53,7 @@ FeatureHelper.describeFeature(module, {
     const state = new RequestState(logger, {
       uuid,
     });
-    const flow = new FlowHelper(state, {
-      doRunPreviousStages: false,
-    });
+    const flow = new FlowHelper(state);
 
     beforeAll(async () => {
       await state.fetchOpportunities(orderItemCriteria);
