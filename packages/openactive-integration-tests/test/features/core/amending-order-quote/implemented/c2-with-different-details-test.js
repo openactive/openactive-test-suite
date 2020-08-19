@@ -1,3 +1,4 @@
+
 const chai = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
@@ -11,9 +12,9 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'amending-order-quote',
   testFeatureImplemented: true,
-  testIdentifier: 'amend-c1',
-  testName: 'Amend, at C1, an existing OrderQuote',
-  testDescription: 'Run C1 with opportunity A, then - with the same Order UUID - run C1 with opportunity B. Then, run B. Opportunity B should be booked',
+  testIdentifier: 'c2-with-different-details',
+  testName: 'Run C2 with different details from C1',
+  testDescription: 'Run C1 with opportunity A, then - with the same Order UUID - C2 with opportunity B, then run B. Opportunity B should be booked',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -44,11 +45,11 @@ FeatureHelper.describeFeature(module, {
 
   /**
    * Create a new state and flow helper (to represent a distinct batch of opportunities)
-   * and then fetch some opportunities and run C1
+   * and then fetch some opportunities
    *
    * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
    */
-  function attemptC1WithNewState() {
+  function getOpportunityFeedItemsWithNewState() {
     // Each scenario uses a separate state and flowHelper because they fetch separate opportunities
     const state = new RequestState(logger, {
       uuid,
@@ -69,6 +70,14 @@ FeatureHelper.describeFeature(module, {
         .validationTests();
     });
 
+    return { state, flow };
+  }
+
+  // N.B.: The following two tests must be performed sequentially - with
+  // Second Attempt occurring after First Attempt.
+  describe('First Attempt - C1', () => {
+    const { state, flow } = getOpportunityFeedItemsWithNewState();
+
     describe('C1', () => {
       const c1 = (new C1({
         state, flow, logger,
@@ -76,34 +85,23 @@ FeatureHelper.describeFeature(module, {
         .beforeSetup()
         .successChecks()
         .validationTests();
-      // Confirm that the booking system has the same opportunities as we gave
-      // it in our C1 request. This is especially important for the 2nd attempt,
-      // as this verifies that the order was successfully amended.
-      itFeedItemAndResponseItemShouldMatchIds(state, c1, () => state.c1Response);
     });
-
-
-    return {
-      state, flow,
-    };
-  }
-
-  // N.B.: The following two tests must be performed sequentially - with
-  // Second Attempt occurring after First Attempt.
-  describe('First Attempt - C1', () => {
-    attemptC1WithNewState();
   });
-  /** Fetch some new opportunities and amend the existing order at C1, and then complete it */
-  describe('Second Attempt - C1 -> B', () => {
-    const { state, flow } = attemptC1WithNewState();
+
+  /** Fetch some new opportunities, amend the existing order with a C2 request, and then complete it */
+  describe('Second Attempt - C2 -> B', () => {
+    const { state, flow } = getOpportunityFeedItemsWithNewState();
 
     describe('C2', () => {
-      (new C2({
+      const c2 = (new C2({
         state, flow, logger,
       }))
         .beforeSetup()
         .successChecks()
         .validationTests();
+
+      // Ensure that the 2nd batch has overridden the 1st batch
+      itFeedItemAndResponseItemShouldMatchIds(state, c2, () => state.c2Response);
     });
 
     describe('B', () => {
