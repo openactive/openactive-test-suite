@@ -47,14 +47,11 @@ FeatureHelper.describeFeature(module, {
    * and then fetch some opportunities
    *
    * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
+   *
+   * @param {RequestState} state
+   * @param {FlowHelper} flow
    */
-  function getOpportunityFeedItemsWithNewState() {
-    // Each scenario uses a separate state and flowHelper because they fetch separate opportunities
-    const state = new RequestState(logger, {
-      uuid,
-    });
-    const flow = new FlowHelper(state);
-
+  function getOpportunityFeedItems(state, flow) {
     beforeAll(async () => {
       await state.fetchOpportunities(orderItemCriteria);
       await chakram.wait();
@@ -68,16 +65,18 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
     });
-
-    return {
-      state, flow,
-    };
   }
 
   // N.B.: The following two tests must be performed sequentially - with
   // Second Attempt occurring after First Attempt.
   describe('First Attempt - C1', () => {
-    const { state, flow } = getOpportunityFeedItemsWithNewState();
+    // Each scenario uses a separate state and flowHelper because they fetch separate opportunities
+    const state = new RequestState(logger, {
+      uuid,
+    });
+    const flow = new FlowHelper(state);
+
+    getOpportunityFeedItems(state, flow);
 
     describe('C1', () => {
       (new C1({
@@ -91,7 +90,14 @@ FeatureHelper.describeFeature(module, {
 
   /** Fetch some new opportunities, amend the existing order with a C2 request, and then complete it */
   describe('Second Attempt - C2 -> B', () => {
-    const { state, flow } = getOpportunityFeedItemsWithNewState();
+    const state = new RequestState(logger, {
+      uuid,
+    });
+    const flow = new FlowHelper(state, {
+      stagesToSkip: new Set(['C1']),
+    });
+
+    getOpportunityFeedItems(state, flow);
 
     describe('C2', () => {
       const c2 = (new C2({
