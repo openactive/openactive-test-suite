@@ -1,1 +1,1 @@
-web: npm run certificate-validator
+web: eval '$WEB_START_COMMAND'

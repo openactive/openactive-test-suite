@@ -5,10 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "integration-tests - core/availability-check/opportunity-full",
+            "request": "launch",
+            "runtimeArgs": [
+                "run-script",
+                "start-tests",
+                "--",
+                "--runInBand",
+                "test/features/core/availability-check/implemented/opportunity-full-test.js"
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "name": "integration-tests",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}\\openactive-test-suite\\packages\\openactive-integration-tests",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229
@@ -17,19 +33,15 @@
             "name": "broker-microservice",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}\\openactive-test-suite\\packages\\openactive-broker-microservice",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run-script", "debug"],
-            "port": 9229
+            "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/"
         },
         {
             "name": "combined",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}\\openactive-test-suite",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run-script", "debug"],
-            "port": 9229
+            "autoAttachChildProcesses": true,
+            "program": "${workspaceFolder}/start.js"
         }
     ]
 }

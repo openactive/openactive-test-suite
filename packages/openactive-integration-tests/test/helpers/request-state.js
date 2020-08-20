@@ -1,5 +1,4 @@
 const RequestHelper = require("./request-helper");
-const pMemoize = require("p-memoize");
 const config = require("config");
 const { getRelevantOffers } = require("@openactive/test-interface-criteria");
 
