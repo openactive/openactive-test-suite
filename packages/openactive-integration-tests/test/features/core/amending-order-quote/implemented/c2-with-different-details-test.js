@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'c2-with-different-details',
   testName: 'Run C2 with different details from C1',
-  testDescription: 'Run C1 with opportunity A, then - with the same Order UUID - C2 with opportunity B, then run B. Opportunity B should be booked',
+  testDescription: 'Run C1 with X opportunities, then - with the same Order UUID - run C2 with Y opportunities, then run B. The resulting Order should include confirmed bookings for only Y opportunities',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
