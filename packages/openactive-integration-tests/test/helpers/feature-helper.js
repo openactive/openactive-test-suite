@@ -22,7 +22,14 @@ const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
  * @property {string} testName
  * @property {string} [testDescription]
  * @property {string} [testOpportunityCriteria]
- * @property {string} [controlOpportunityCriteria]
+ * @property {string} [controlOpportunityCriteria] When the test is run with
+ *   multiple opportunities, a "control" opportunity will be added. With this,
+ *   one can test that the particular feature in focus still works if combined
+ *   with other opportunities.
+ *
+ *   For example, if testing an error, set the `controlOpportunityCriteria` to
+ *   `TestOpportunityBookable` to ensure that the correct error is returned
+ *   even though one of the opportunities in the Order is valid.
  * @property {CreateSingleOportunityCriteriaTemplateFn} [singleOpportunityCriteriaTemplate]
  * @property {CreateMultipleOportunityCriteriaTemplateFn} [multipleOpportunityCriteriaTemplate]
  * @property {boolean} [runOnce]
