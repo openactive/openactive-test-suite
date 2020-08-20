@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'amend-c1-and-c2',
   testName: 'Amend, at C1 and C2, an existing OrderQuote',
-  testDescription: 'Run C1,C2 with opportunity A, then - with the same Order UUID - run C1,C2 with opportunity B, then runs B. The order should be confirmed for opportunity B',
+  testDescription: 'Run C1,C2 with X opportunities, then - with the same Order UUID - run C1,C2 with Y opportunities, then runs B. The resulting Order should include confirmed bookings for only Y opportunities',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
