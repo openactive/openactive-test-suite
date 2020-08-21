@@ -12,7 +12,7 @@
     "install-broker": "cd packages/openactive-broker-microservice && npm install",
     "install-interface-criteria": "cd packages/test-interface-criteria && npm install",
     "install-tests": "cd packages/openactive-integration-tests && npm install",
-    "install": "npm run install-broker && npm run install-interface-criteria && npm run install-tests",
+    "install": "npm run install-interface-criteria && npm run gen-interface-criteria-types && npm run install-broker && npm run install-tests",
     "test-broker": "cd packages/openactive-broker-microservice && npm test",
     "test-interface-criteria": "cd packages/test-interface-criteria && npm test",
     "test-tests": "cd packages/openactive-integration-tests && npm test",
@@ -20,7 +20,8 @@
     "debug-broker": "cd packages/openactive-broker-microservice && npm run debug",
     "debug-tests": "cd packages/openactive-integration-tests && npm run debug",
     "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
-    "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen"
+    "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen",
+    "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types"
   },
   "dependencies": {
     "node-cleanup": "^2.1.2"
@@ -33,7 +34,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run doc-gen"
+      "pre-commit": "npm run gen-interface-criteria-types && npm run doc-gen"
     }
   }
 }
