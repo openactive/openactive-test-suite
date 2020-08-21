@@ -2,8 +2,10 @@
   "name": "@openactive/test-interface-criteria",
   "version": "1.0.0",
   "main": "src/index.js",
+  "types": "built-types/index.d.ts",
   "description": "OpenActive Test Interface Criteria",
   "scripts": {
+    "gen-types": "tsc",
     "test": "npm run lint && tsc",
     "lint": "eslint",
     "lint-fix": "eslint --fix"

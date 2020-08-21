@@ -18,3 +18,13 @@ The `testMatch(opportunity)` method is available on each `Criteria`, and returns
 const { criteriaMap } = require("@openactive/test-interface-criteria");
 let { matchesCriteria, unmetCriteriaDetails } = criteriaMap.get('TestOpportunityBookable').testMatch(opportunity);
 ```
+
+## Developing
+
+### TypeScript
+
+The code is written in native JS, but uses TypeScript to check for type errors. TypeScript uses JSDoc annotations to determine types (See: [Type Checking JavaScript Files](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)) from our native .js files.
+
+In order for these types to be used by other projects, they must be saved to [TypeScript Declaration files](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html). This is enabled by our tsconfig.json, which specifies that declaration files are to be generated and saved to `built-types/`.
+
+For this reason, TypeScript types should be generated after code changes to make sure that test-interface-criteria consumers can use the new types. The openactive-test-suite project does this automatically in its pre-commit hook.
