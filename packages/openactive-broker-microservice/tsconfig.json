@@ -11,9 +11,4 @@
   "include": [
     "app.js"
   ]
-    // "node_modules/@openactive/test-interface-criteria/**/*.js"
-  // ],
-  // "exclude": [
-  //   "node_modules/@openactive/test-interface-criteria"
-  // ]
 }

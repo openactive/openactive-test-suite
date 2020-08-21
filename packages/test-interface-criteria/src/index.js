@@ -28,8 +28,6 @@ function filterRelevantOffers(criteria, opportunity) {
   const offers = getOffers(opportunity);
   return criteria.offerConstraints
     .reduce((relevantOffers, [, test]) => relevantOffers.filter(offer => test(offer, opportunity)), offers);
-  // return Object.entries(criteria.offerConstraints)
-  //   .reduce((offers, [, test]) => offers.filter(offer => test(offer, opportunity)), offers);
 }
 
 /**
@@ -45,7 +43,6 @@ function filterRelevantOffers(criteria, opportunity) {
  */
 function testMatch(criteria, opportunity) {
   // Array of unmetOpportunityConstraints labels
-  // const unmetOpportunityConstraints = Object.entries(criteria.opportunityConstraints)
   const unmetOpportunityConstraints = criteria.opportunityConstraints
     .filter(([, test]) => !test(opportunity))
     .map(([name]) => name);
@@ -56,7 +53,6 @@ function testMatch(criteria, opportunity) {
   // Only check for unmetOfferConstraints if there are no matching offers
   // Array of unmetOfferConstraints labels
   const offers = getOffers(opportunity);
-  // const unmetOfferConstraints = relevantOffers.length > 0 ? [] : Object.entries(criteria.offerConstraints)
   const unmetOfferConstraints = relevantOffers.length > 0 ? [] : criteria.offerConstraints
     .filter(([, test]) => !offers.some(offer => test(offer, opportunity)))
     .map(([name]) => name);
@@ -66,7 +62,6 @@ function testMatch(criteria, opportunity) {
 
   // Array of string: all the reasons the opportunity does not match the criteria
   const unmetCriteriaDetails = unmetOpportunityConstraints.concat(unmetOfferConstraints);
-  // const unmetCriteriaDetails = [].concat(unmetOpportunityConstraints, unmetOfferConstraints);
 
   return {
     matchesCriteria,
