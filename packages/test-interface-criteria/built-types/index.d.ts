@@ -22,6 +22,8 @@ export type Opportunity = {
 };
 export type Offer = {
     [k: string]: any;
+    '@type': string;
+    '@id': string;
 };
 declare const allCriteria: import("./types/Criteria").Criteria[];
 /**
