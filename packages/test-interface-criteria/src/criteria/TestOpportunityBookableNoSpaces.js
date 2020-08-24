@@ -1,38 +1,32 @@
-const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpportunity')
+const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
+const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
 
-/*
-  Implements https://openactive.io/test-interface#TestOpportunityBookableNoSpaces
-*/
+/**
+ * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
+ */
 
-module.exports = class TestOpportunityBookableNoSpaces extends CriteriaFutureScheduledOpportunity {
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
-
-    var id = this.getId(opportunity);
-    var type = this.getType(opportunity);
-
-    // Check for bookability
-    var bookableOffers = this.getBookableOffers(opportunity);
-    var remainingCapacity = this.getRemainingCapacity(opportunity);
-
-    if (
-      !(bookableOffers.length > 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No bookable Offers")
-    }
-
-    if (
-      !(remainingCapacity == 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("Remaining capacity is non-zero")
-    }
-
-    return { matchesCriteria, unmetCriteriaDetails }
-  }
-
-  get name() {
-    return 'TestOpportunityBookableNoSpaces';
-  }
+/**
+ * @type {OpportunityConstraint}
+ */
+function remainingCapacityMustBeZero(opportunity) {
+  return getRemainingCapacity(opportunity) === 0;
 }
+
+/**
+ * Implements https://openactive.io/test-interface#TestOpportunityBookableNoSpaces
+ */
+const TestOpportunityBookableNoSpaces = createCriteria(
+  'TestOpportunityBookableNoSpaces',
+  [
+    [
+      'Remaining capacity must be zero',
+      remainingCapacityMustBeZero,
+    ],
+  ],
+  [],
+  CriteriaFutureScheduledOpportunity,
+);
+
+module.exports = {
+  TestOpportunityBookableNoSpaces,
+};

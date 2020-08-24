@@ -1,34 +1,32 @@
-const CriteriaFutureScheduledOpportunity = require('./CriteriaFutureScheduledOpportunity')
+const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
+const { createCriteria } = require('./criteriaUtils');
 
-/*
-  Implements https://openactive.io/test-interface#TestOpportunityNotBookableViaAvailableChannel
-*/
+/**
+ * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
+ */
 
-module.exports = class TestOpportunityNotBookableViaAvailableChannel extends CriteriaFutureScheduledOpportunity {
-  getOffersWithoutAvailableChannel(opportunity) {
-		const offers = this.getOffers(opportunity);
-		return offers ? offers.filter(x =>
-			(!x.availableChannel || !x.availableChannel.includes("https://openactive.io/OpenBookingPrepayment"))
-		) : [];
-  }
-  
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
-
-    // Check for bookability
-    var offersWithoutAvailableChannel = this.getOffersWithoutAvailableChannel(opportunity);
-
-    if (
-      (offersWithoutAvailableChannel.length === 0)
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("Does not contain offers without available channel")
-    }
-
-    return { matchesCriteria, unmetCriteriaDetails }
-  }
-
-  get name() {
-    return 'TestOpportunityNotBookable';
-  }
+/**
+ * @type {OfferConstraint}
+ */
+function mustNotHaveAvailableChannel(offer) {
+  return !Array.isArray(offer.availableChannel) || !offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment');
 }
+
+/**
+ * Implements https://openactive.io/test-interface#TestOpportunityNotBookableViaAvailableChannel
+ */
+const TestOpportunityNotBookableViaAvailableChannel = createCriteria(
+  'TestOpportunityNotBookable',
+  [],
+  [
+    [
+      'Must not have available channel',
+      mustNotHaveAvailableChannel,
+    ],
+  ],
+  CriteriaFutureScheduledOpportunity,
+);
+
+module.exports = {
+  TestOpportunityNotBookableViaAvailableChannel,
+};

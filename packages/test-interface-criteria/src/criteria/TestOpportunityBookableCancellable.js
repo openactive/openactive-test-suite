@@ -1,28 +1,32 @@
-const TestOpportunityBookable = require('./TestOpportunityBookable')
+const { TestOpportunityBookable } = require('./TestOpportunityBookable');
+const { createCriteria } = require('./criteriaUtils');
 
-/*
-  Implements https://openactive.io/test-interface#TestOpportunityBookableCancellable
-*/
+/**
+ * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
+ */
 
-module.exports = class TestOpportunityBookableCancellable extends TestOpportunityBookable {
-  testMatch(opportunity) {
-    let {matchesCriteria, unmetCriteriaDetails} = super.testMatch(opportunity);
-
-    var bookableOffers = this.getBookableOffers(opportunity);
-
-    var offersWithoutCancellationWindow = bookableOffers.filter(x => !x.latestCancellationBeforeStartDate);
-
-    if (
-      offersWithoutCancellationWindow.length === 0
-    ) {
-      matchesCriteria = false;
-      unmetCriteriaDetails.push("No Offers without cancellation window")
-    }
-
-    return {matchesCriteria, unmetCriteriaDetails};
-  }
-
-  get name() {
-    return 'TestOpportunityBookableCancellable';
-  }
+/**
+ * @type {OfferConstraint}
+ */
+function offersMustNotHaveCancellationWindow(offer) {
+  return !offer.latestCancellationBeforeStartDate;
 }
+
+/**
+ * Implements https://openactive.io/test-interface#TestOpportunityBookableCancellable
+ */
+const TestOpportunityBookableCancellable = createCriteria(
+  'TestOpportunityBookableCancellable',
+  [],
+  [
+    [
+      'Offers must not have cancellation window',
+      offersMustNotHaveCancellationWindow,
+    ],
+  ],
+  TestOpportunityBookable,
+);
+
+module.exports = {
+  TestOpportunityBookableCancellable,
+};

@@ -4,7 +4,7 @@ const http = require('http');
 const logger = require('morgan');
 const { default: axios } = require('axios');
 const config = require('config');
-const { criteria } = require('@openactive/test-interface-criteria');
+const { criteria, testMatch } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
@@ -679,7 +679,7 @@ function processOpportunityItem(item) {
       const sellerId = detectSellerId(item.data);
 
       criteria.map((c) => ({
-        criteriaName: c.name, criteriaResult: c.testMatch(item.data),
+        criteriaName: c.name, criteriaResult: testMatch(c, item.data),
       })).forEach((result) => {
         const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
         if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
@@ -695,7 +695,7 @@ function processOpportunityItem(item) {
     }
 
     const bookableIssueList = unmetCriteriaDetails.length > 0
-      ? `\n   [Unmet Criteria: ${unmetCriteriaDetails.join(', ')}]` : '';
+      ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
 
     if (responses[id]) {
       responses[id].send(item);

@@ -2,9 +2,12 @@
   "name": "@openactive/test-interface-criteria",
   "version": "1.0.0",
   "main": "src/index.js",
+  "types": "built-types/index.d.ts",
   "description": "OpenActive Test Interface Criteria",
   "scripts": {
-    "test": "npm run lint && tsc",
+    "check-types": "tsc --project tsconfig.check.json",
+    "gen-types": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/ && tsc --project tsconfig.gen.json",
+    "test": "npm run lint && npm run check-types",
     "lint": "eslint",
     "lint-fix": "eslint --fix"
   },
@@ -17,9 +20,10 @@
     "node": "12.18.2"
   },
   "devDependencies": {
-    "typescript": "^3.9.7",
+    "copyfiles": "^2.3.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",
-    "eslint-plugin-import": "^2.20.0"
+    "eslint-plugin-import": "^2.20.0",
+    "typescript": "^3.9.7"
   }
 }
