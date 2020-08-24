@@ -75,7 +75,7 @@ function testMatch(criteria, opportunity) {
  */
 function getRelevantOffers(criteriaName, opportunity) {
   if (!criteriaMap.has(criteriaName)) throw new Error('Invalid criteria name');
-  return filterRelevantOffers(criteriaMap.get(criteriaName), opportunity)
+  return filterRelevantOffers(criteriaMap.get(criteriaName), opportunity);
 }
 
 module.exports = {
