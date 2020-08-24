@@ -4,20 +4,18 @@
     "allowJs": true,
     "checkJs": true,
     "downlevelIteration": true,
-    "target": "ES2015",
+    "target": "ES2019",
     "moduleResolution": "node",
     "resolveJsonModule": true
   },
   "include": [
     "documentation/generator.js",
     "test/**/*.d.ts",
-    "test/helpers/feature-helper.js",
-    "test/helpers/flow-helper.js",
-    "test/helpers/request-helper.js",
-    "test/helpers/request-state.js",
+    "test/features/**/*.js",
+    "test/helpers/**/*.js",
+    "test/report-templates/**/*.js",
     "test/shared-behaviours/index.js",
-    "test/features/core/amending-order-quote/**/*.js",
-    "test/features/core/simple-book-free-opportunities/**/*.js",
-    "test/features/core/availability-check/implemented/availability-confirmed-test.js"
+    "test/templates/**/*.js",
+    "test/test-framework/**/*.js"
   ]
 }

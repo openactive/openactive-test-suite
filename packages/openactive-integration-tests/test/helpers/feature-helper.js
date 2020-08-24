@@ -11,7 +11,7 @@ const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  *
- * @typedef {(opportunityType: string) => [OpportunityCriteria]} CreateSingleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string) => OpportunityCriteria[]} CreateSingleOportunityCriteriaTemplateFn
  * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
  *
  * @typedef {object} DescribeFeatureConfiguration Configuration for the describeFeature function
