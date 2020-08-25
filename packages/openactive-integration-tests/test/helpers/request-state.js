@@ -113,8 +113,7 @@ class RequestState {
   }
 
   async deleteOrder () {
-    // @ts-expect-error testHelper is not defined
-    return await testHelper.deleteOrder(this.uuid, {
+    return await this.requestHelper.deleteOrder(this.uuid, {
       sellerId: this.sellerId,
     });
   }

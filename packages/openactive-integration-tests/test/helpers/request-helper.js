@@ -21,10 +21,6 @@ class RequestHelper {
   }
 
   async _request(stage, method, url, params, headers) {
-    // const requestOptions = params
-    //   ? { headers, body: params }
-    //   : { headers };
-    // const responsePromise = chakram.request(method, url, requestOptions);
     /** @type {Promise<import('chakram').ChakramResponse>} */
     const responsePromise = chakram[method.toLowerCase()](url, params, headers);
 
@@ -321,6 +317,10 @@ class RequestHelper {
     return respObj;
   }
 
+  /**
+   * @param {string} uuid
+   * @param {{ sellerId: string }} params 
+   */
   async deleteOrder(uuid, params) {
     const respObj = await this.delete(
       'delete-order',
@@ -331,8 +331,8 @@ class RequestHelper {
         timeout: 10000
       }
     );
-
-    return !!respObj.body;
+    return respObj;
+    // return !!respObj.body;
   }
 
   delay(t, v) {
