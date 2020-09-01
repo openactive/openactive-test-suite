@@ -21,7 +21,11 @@ The URL of the dataset site of the booking system under test. This dataset site 
 Please note the JSON within the dataset site must include the dataset site [Open Booking API extension](https://github.com/openactive/dataset-api-discovery/issues/2), as follows:
 
 ```json
-"accessService": {
+{
+  "@context": "http://schema.org/",
+  "@type": "Dataset",
+  ...
+  "accessService": {
     "@type": "WebAPI",
     "name": "Open Booking API",
     "description": "API that allows for seamless booking experiences to be created for sessions and facilities available from Better",
@@ -33,7 +37,8 @@ Please note the JSON within the dataset site must include the dataset site [Open
     "endpointURL": "https://example.bookingsystem.com/api/openbooking/",
     "landingPage": "https://exampleforms.com/get-me-an-api-access-key",
     "termsOfService": "https://example.bookingsystem.com/terms"
-  },
+  }
+}
 ```
 
 Note that the `endpointURL` is most important, and must refer to your local Open Booking API [Base URI](https://openactive.io/open-booking-api/EditorsDraft/#dfn-base-uri).
