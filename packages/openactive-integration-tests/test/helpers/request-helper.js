@@ -69,7 +69,6 @@ class RequestHelper {
    */
   async get(stage, url, requestOptions) {
     return await this._request(stage, 'GET', url, null, requestOptions);
-    // return await this._request2(stage, )
   }
 
   /**
