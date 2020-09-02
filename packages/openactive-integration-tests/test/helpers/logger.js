@@ -407,6 +407,10 @@ class ReporterLogger extends BaseLogger {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof BaseLogger>} BaseLoggerType
+ */
+
 module.exports = {
   Logger,
   ReporterLogger,

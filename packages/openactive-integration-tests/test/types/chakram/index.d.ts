@@ -22,9 +22,13 @@ declare module 'chakram' {
     responseTime: number;
   }
 
-  type RequestOptions = Pick<Options, 'headers' | 'body'>;
+  // `url` is required in request's options, but is not needed in chakram,
+  // because `url` is provided as a separate argument to params
+  export type RequestOptions = Omit<Options, 'url'>;
 
-  export function request(method: string, url: string, params: RequestOptions): Promise<ChakramResponse>;
+  export type RequestMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE';
+
+  export function request(method: RequestMethod, url: string, params: RequestOptions): Promise<ChakramResponse>;
   export function wait(): Promise<void>;
   // TODO Either detail this or use the more fully featured and already-typed chai.expect()
   export function expect(x: any): any;

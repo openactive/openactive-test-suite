@@ -9,6 +9,12 @@ const c2req = require("../templates/c2-req.js");
 const { bReqTemplates } = require("../templates/b-req.js");
 const ureq = require("../templates/u-req.js");
 
+/**
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('chakram').RequestMethod} RequestMethod
+ * @typedef {import('chakram').RequestOptions} RequestOptions
+ */
+
 const REQUEST_HEADERS = config.get("sellers.primary.requestHeaders");
 
 const MICROSERVICE_BASE = global.MICROSERVICE_BASE;
@@ -16,23 +22,38 @@ const BOOKING_API_BASE = global.BOOKING_API_BASE;
 const TEST_DATASET_IDENTIFIER = global.TEST_DATASET_IDENTIFIER;
 
 class RequestHelper {
+  /**
+   * @param {BaseLoggerType} logger
+   */
   constructor(logger) {
     this.logger = logger;
   }
 
-  async _request(stage, method, url, params, headers) {
-    /** @type {Promise<import('chakram').ChakramResponse>} */
-    const responsePromise = chakram[method.toLowerCase()](url, params, headers);
+  /**
+   * @param {string} stage
+   * @param {RequestMethod} method
+   * @param {string} url
+   * @param {unknown | null} jsonBody Data to send - generally not applicable to
+   *   GET requests. A JSON-serializable object.
+   * @param {RequestOptions} requestOptions
+   */
+  async _request(stage, method, url, jsonBody, requestOptions) {
+    const params = { ...requestOptions };
+    if (jsonBody) {
+      params.body = jsonBody;
+      params.json = true;
+    }
+    const responsePromise = chakram.request(method, url, params);
 
     this.logger.recordRequestResponse(stage, {
       method: method.toUpperCase(),
       url: url,
-      params: params,
-      headers: headers
+      jsonBody,
+      requestOptions,
     }, responsePromise);
 
-    if (params) {
-      this.logger.recordRequest(stage, params);
+    if (jsonBody) {
+      this.logger.recordRequest(stage, jsonBody);
     }
 
     let response = await responsePromise;
@@ -41,23 +62,52 @@ class RequestHelper {
     return response;
   }
 
-  async get(stage, url, headers) {
-    return await this._request(stage, 'GET', url, null, headers);
-  }
-  async put(stage, url, params, headers) {
-    return await this._request(stage, 'PUT', url, params, headers);
-  }
-
-  async post(stage, url, params, headers) {
-    return await this._request(stage, 'POST', url, params, headers);
+  /**
+   * @param {string} stage
+   * @param {string} url
+   * @param {RequestOptions} requestOptions
+   */
+  async get(stage, url, requestOptions) {
+    return await this._request(stage, 'GET', url, null, requestOptions);
   }
 
-  async patch(stage, url, params, headers) {
-    return await this._request(stage, 'PATCH', url, params, headers);
+  /**
+   * @param {string} stage
+   * @param {string} url
+   * @param {unknown} jsonBody
+   * @param {RequestOptions} requestOptions
+   */
+  async put(stage, url, jsonBody, requestOptions) {
+    return await this._request(stage, 'PUT', url, jsonBody, requestOptions);
   }
 
-  async delete(stage, url, params, headers) {
-    return await this._request(stage, 'DELETE', url, params, headers);
+  /**
+   * @param {string} stage
+   * @param {string} url
+   * @param {unknown} jsonBody
+   * @param {RequestOptions} requestOptions
+   */
+  async post(stage, url, jsonBody, requestOptions) {
+    return await this._request(stage, 'POST', url, jsonBody, requestOptions);
+  }
+
+  /**
+   * @param {string} stage
+   * @param {string} url
+   * @param {unknown} jsonBody
+   * @param {RequestOptions} requestOptions
+   */
+  async patch(stage, url, jsonBody, requestOptions) {
+    return await this._request(stage, 'PATCH', url, jsonBody, requestOptions);
+  }
+
+  /**
+   * @param {string} stage
+   * @param {string} url
+   * @param {RequestOptions} requestOptions
+   */
+  async delete(stage, url, requestOptions) {
+    return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
   createHeaders(sellerId) {
@@ -325,7 +375,6 @@ class RequestHelper {
     const respObj = await this.delete(
       'delete-order',
       BOOKING_API_BASE + "orders/" + uuid,
-      null,
       {
         headers: this.createHeaders(params.sellerId),
         timeout: 10000
