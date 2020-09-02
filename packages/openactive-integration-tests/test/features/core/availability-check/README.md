@@ -6,7 +6,7 @@ Runs only C1 and C2, to confirm availability checks work as expected
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description-0
 
-Coverage Status: **full**
+Coverage Status: **complete**
 
 See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-4-c1-and-c2-without-leases)
 ### Test prerequisites
