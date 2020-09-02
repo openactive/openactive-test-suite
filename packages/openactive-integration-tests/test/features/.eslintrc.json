@@ -9,10 +9,10 @@
   },
   "rules": {
     "object-curly-newline": ["error", {
-        "ObjectExpression": "always",
-        "ObjectPattern": { "multiline": true },
+        "ObjectExpression": { "multiline": true, "minProperties": 3, "consistent": true },
+        "ObjectPattern": { "multiline": true, "consistent": true },
         "ImportDeclaration": "never",
-        "ExportDeclaration": { "multiline": true, "minProperties": 3 }
+        "ExportDeclaration": { "multiline": true, "minProperties": 3, "consistent": true }
     }],
     "max-len": "off",
     "no-await-in-loop": 0,

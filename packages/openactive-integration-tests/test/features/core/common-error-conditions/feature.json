@@ -6,5 +6,5 @@
   "explainer": "",
   "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#error-model",
   "required": true,
-  "coverageStatus": "none"
+  "coverageStatus": "partial"
 }

@@ -21,6 +21,22 @@
             "type": "node"
         },
         {
+            "name": "integration-tests - core/common-error-conditions/not-bookable",
+            "request": "launch",
+            "runtimeArgs": [
+                "run-script",
+                "start-tests",
+                "--",
+                "--runInBand",
+                "test/features/core/common-error-conditions/implemented/not-bookable-test.js"
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "name": "integration-tests",
             "type": "node",
             "request": "launch",
