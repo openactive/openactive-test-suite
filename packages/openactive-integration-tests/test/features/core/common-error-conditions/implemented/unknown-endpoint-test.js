@@ -11,12 +11,22 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'unknown-endpoint',
   testName: 'Expect an UnknownOrIncorrectEndpointError for requests to unknown endpoints',
   testDescription: 'Send a request to an endpoint that does not exist, and expect an UnknownOrIncorrectEndpointError to be returned',
+  numOpportunitiesUsedPerCriteria: 0,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
-  describe.only('Unknown Endpoint', () => {
+  describe('Unknown Endpoint - JSON PUT', () => {
     it('should return an UnknownOrIncorrectEndpointError', async () => {
       const requestHelper = new RequestHelper(logger);
-      const response = await requestHelper.put('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, {}, { timeout: 10000 });
+      const response = await requestHelper.put('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { hi: 'there' }, { timeout: 10000 });
+      expect(response.response).to.have.property('statusCode', 404);
+      expect(response.body).to.have.property('@type', 'UnknownOrIncorrectEndpointError');
+      expect(response.body).to.have.property('@context');
+    });
+  });
+  describe('Unknown Endpoint - GET', () => {
+    it('should return an UnknownOrIncorrectEndpointError', async () => {
+      const requestHelper = new RequestHelper(logger);
+      const response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { timeout: 10000 });
       expect(response.response).to.have.property('statusCode', 404);
       expect(response.body).to.have.property('@type', 'UnknownOrIncorrectEndpointError');
       expect(response.body).to.have.property('@context');
