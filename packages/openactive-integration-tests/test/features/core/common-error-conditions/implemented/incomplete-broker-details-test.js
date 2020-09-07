@@ -19,6 +19,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  numOpportunitiesUsedPerCriteria: 3, // one for each of the C1, C2 and B tests
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   /**
@@ -96,6 +97,40 @@ FeatureHelper.describeFeature(module, {
         .beforeSetup();
 
       itShouldReturnAnIncompleteBrokerDetailsError(() => state.c2Response);
+    });
+  });
+
+  describe('Incomplete Broker Details at B', () => {
+    const state = new RequestState(logger, { bReqTemplateRef: 'noBrokerName' });
+    const flow = new FlowHelper(state);
+
+    doFetchOpportunitiesAndGetMatches(state, flow);
+
+    describe('C1', () => {
+      (new C1({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+
+    describe('C2', () => {
+      (new C2({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+
+    describe('B', () => {
+      (new B({
+        state, flow, logger,
+      }))
+        .beforeSetup();
+
+      itShouldReturnAnIncompleteBrokerDetailsError(() => state.bResponse);
     });
   });
 });
