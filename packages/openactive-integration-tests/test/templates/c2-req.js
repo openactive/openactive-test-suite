@@ -1,4 +1,3 @@
-// const { omit } = require('lodash');
 const { dissocPath } = require('ramda');
 
 /**
