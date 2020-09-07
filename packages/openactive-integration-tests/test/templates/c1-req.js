@@ -62,7 +62,7 @@ function createStandardC1Req(data) {
 }
 
 /**
- * C2 request with missing customer.email
+ * C1 request with missing customer.email
  *
  * @param {C1ReqTemplateData} data
  */

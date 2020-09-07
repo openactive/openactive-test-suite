@@ -73,4 +73,29 @@ FeatureHelper.describeFeature(module, {
       itShouldReturnAnIncompleteBrokerDetailsError(() => state.c1Response);
     });
   });
+
+  describe('Incomplete Broker Details at C2', () => {
+    const state = new RequestState(logger, { c2ReqTemplateRef: 'noBrokerName' });
+    const flow = new FlowHelper(state);
+
+    doFetchOpportunitiesAndGetMatches(state, flow);
+
+    describe('C1', () => {
+      (new C1({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+
+    describe('C2', () => {
+      (new C2({
+        state, flow, logger,
+      }))
+        .beforeSetup();
+
+      itShouldReturnAnIncompleteBrokerDetailsError(() => state.c2Response);
+    });
+  });
 });
