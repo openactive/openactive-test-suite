@@ -1,0 +1,10 @@
+test/certification/
+test/global-setup.js
+test/helpers/
+test/report-generator.js
+test/reporter.js
+test/setup.js
+test/shared-behaviours/common.js
+test/shared-behaviours/validation.js
+test/test-framework/jasmine-state-reporter.js
+test/testEnvironment.js

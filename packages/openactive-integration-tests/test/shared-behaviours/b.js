@@ -1,26 +1,26 @@
-const {expect} = require("chakram");
-const sharedValidationTests = require("./validation");
+const { expect } = require('chakram');
+const sharedValidationTests = require('./validation');
 
 class B {
-  constructor ({state, flow, logger}) {
+  constructor({ state, flow, logger }) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;
   }
 
-  validationTests () {
+  validationTests() {
     sharedValidationTests.shouldBeValidResponse(
       () => this.state.bResponse,
-      "B",
+      'B',
       this.logger,
       {
-        validationMode: "BResponse",
+        validationMode: 'BResponse',
       },
     );
     return this;
   }
 
-  beforeSetup () {
+  beforeSetup() {
     beforeAll(async () => {
       await this.flow.B();
     });
@@ -28,8 +28,8 @@ class B {
     return this;
   }
 
-  successChecks () {
-    it("should return 200 on success", () => {
+  successChecks() {
+    it('should return 200 on success', () => {
       this.expectSuccessful();
 
       expect(this.state.bResponse).to.have.status(200);
@@ -100,5 +100,5 @@ class B {
 }
 
 module.exports = {
-  B
+  B,
 };

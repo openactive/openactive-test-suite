@@ -1,20 +1,20 @@
-const {expect} = require("chakram");
-const sharedValidationTests = require("./validation");
+const { expect } = require('chakram');
+const sharedValidationTests = require('./validation');
 
 class C1 {
-  constructor ({state, flow, logger}) {
+  constructor({ state, flow, logger }) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;
   }
 
-  validationTests () {
+  validationTests() {
     sharedValidationTests.shouldBeValidResponse(
       () => this.state.c1Response,
-      "C1",
+      'C1',
       this.logger,
       {
-        validationMode: "C1Response",
+        validationMode: 'C1Response',
       },
     );
     return this;
@@ -23,15 +23,15 @@ class C1 {
   /**
    * Note: Generates a beforeAll() block. Therefore, this must be run within a describe() block.
    */
-  beforeSetup () {
+  beforeSetup() {
     beforeAll(async () => {
       await this.flow.C1();
     });
     return this;
   }
 
-  successChecks () {
-    it("should return 200 on success", () => {
+  successChecks() {
+    it('should return 200 on success', () => {
       this.expectSuccessful();
 
       expect(this.state.c1Response).to.have.status(200);
@@ -102,5 +102,5 @@ class C1 {
 }
 
 module.exports = {
-  C1
+  C1,
 };
