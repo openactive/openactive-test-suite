@@ -15,6 +15,8 @@
  * }} BReqTemplateData
  */
 
+const { dissocPath } = require('ramda');
+
 /**
  * Create a B request, excluding the payment related details
  *
@@ -119,6 +121,16 @@ function createStandardFreeOrPaidBReq(data) {
 }
 
 /**
+ * C2 request with missing customer.email
+ *
+ * @param {BReqTemplateData} data
+ */
+function createNoCustomerEmailBReq(data) {
+  const req = createStandardPaidBReq(data);
+  return dissocPath(['customer', 'email'], req);
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -126,6 +138,7 @@ const bReqTemplates = {
   standardFree: createStandardFreeBReq,
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
+  noCustomerEmail: createNoCustomerEmailBReq,
 };
 
 /**

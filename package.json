@@ -24,12 +24,16 @@
     "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types"
   },
   "dependencies": {
-    "node-cleanup": "^2.1.2"
+    "lodash": "^4.17.20",
+    "node-cleanup": "^2.1.2",
+    "ramda": "^0.27.1"
   },
   "engines": {
     "node": "12.18.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.161",
+    "@types/ramda": "^0.27.14",
     "husky": "^4.2.5"
   },
   "husky": {

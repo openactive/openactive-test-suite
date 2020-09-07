@@ -1,7 +1,19 @@
 const {expect} = require("chakram");
 const sharedValidationTests = require("./validation");
 
+/**
+ * @typedef {import('../helpers/request-state').RequestStateType} RequestStateType
+ * @typedef {import('../helpers/flow-helper').FlowHelperType} FlowHelperType
+ * @typedef {import('../helpers/logger').BaseLoggerType} BaseLoggerType
+ */
+
 class C2 {
+  /**
+   * @param {object} args
+   * @param {RequestStateType} args.state
+   * @param {FlowHelperType} args.flow
+   * @param {BaseLoggerType} args.logger
+   */
   constructor ({state, flow, logger}) {
     this.state = state;
     this.flow = flow;

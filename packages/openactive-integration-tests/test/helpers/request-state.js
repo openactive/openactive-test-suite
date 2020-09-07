@@ -32,14 +32,17 @@ class RequestState {
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
    *   one will be generated randomly
+   * @param {import('../templates/c2-req').C2ReqTemplateRef} [options.c2ReqTemplateRef]
+   *   Which template to use for C2 requests. Defaults to 'standard'
    * @param {import('../templates/b-req').BReqTemplateRef} [options.bReqTemplateRef]
-   *   Which template to use for B requests
+   *   Which template to use for B requests. Defaults to 'standard'
    */
-  constructor (logger, { uuid, bReqTemplateRef } = {}) {
+  constructor (logger, { uuid, c2ReqTemplateRef, bReqTemplateRef } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
     }
+    this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
   }
 
@@ -214,7 +217,9 @@ class RequestState {
   }
 
   async putOrderQuote () {
-    let result = await this.requestHelper.putOrderQuote(this.uuid, this);
+    const result = this._c2ReqTemplateRef
+      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
+      : await this.requestHelper.putOrderQuote(this.uuid, this);
 
     this.c2Response = result;
 
@@ -274,6 +279,10 @@ class RequestState {
     return isResponse(this.uResponse);
   }
 }
+
+/**
+ * @typedef {InstanceType<typeof RequestState>} RequestStateType
+ */
 
 module.exports = {
   RequestState
