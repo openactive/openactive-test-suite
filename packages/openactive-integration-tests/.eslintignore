@@ -1,6 +1,16 @@
-test/certification/
+# These files have a number of ESLint issues at the moment and should be fixed
+# when next worked on. Ideally ESLint would ignore no files
+test/certification/certification-validator-microservice.js
+test/certification/certification-validator.js
+test/certification/certification-writer.js
 test/global-setup.js
-test/helpers/
+test/helpers/feature-helper.js
+test/helpers/flow-helper.js
+test/helpers/index.js
+test/helpers/logger.js
+test/helpers/mapping.js
+test/helpers/request-helper.js
+test/helpers/request-state.js
 test/report-generator.js
 test/reporter.js
 test/setup.js
