@@ -30,12 +30,8 @@ FeatureHelper.describeFeature(module, {
    * @param {FlowHelper} state
    */
   function runC1(state, flow) {
-    // const state = new RequestState(logger);
-    // const flow = new FlowHelper(state);
-
     beforeAll(async () => {
       await state.fetchOpportunities(orderItemCriteria);
-      // await chakram.wait();
     });
 
     describe('Get Opportunity Feed Items', () => {
