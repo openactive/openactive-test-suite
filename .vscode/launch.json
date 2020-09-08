@@ -5,30 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - core/availability-check/opportunity-full",
+            "name": "integration-tests - core/common-error-conditions/incomplete-customer-details",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/core/availability-check/implemented/opportunity-full-test.js"
-            ],
-            "runtimeExecutable": "npm",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "node"
-        },
-        {
-            "name": "integration-tests - core/common-error-conditions/not-bookable",
-            "request": "launch",
-            "runtimeArgs": [
-                "run-script",
-                "start-tests",
-                "--",
-                "--runInBand",
-                "test/features/core/common-error-conditions/implemented/not-bookable-test.js"
+                "test/features/core/common-error-conditions/implemented/incomplete-customer-details-test.js"
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [

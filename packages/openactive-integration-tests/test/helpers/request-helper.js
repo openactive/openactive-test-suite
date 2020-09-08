@@ -8,6 +8,7 @@ const c1req = require("../templates/c1-req.js");
 const c2req = require("../templates/c2-req.js");
 const { bReqTemplates } = require("../templates/b-req.js");
 const ureq = require("../templates/u-req.js");
+const { c2ReqTemplates } = require('../templates/c2-req.js');
 
 /**
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
@@ -282,8 +283,14 @@ class RequestHelper {
     return c1Response;
   }
 
-  async putOrderQuote(uuid, params) {
-    const payload = c2req(params);
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/c2-req').C2ReqTemplateData} params
+   * @param {import('../templates/c2-req').C2ReqTemplateRef} c2ReqTemplateRef
+   */
+  async putOrderQuote(uuid, params, c2ReqTemplateRef = 'standard') {
+    const templateFn = c2ReqTemplates[c2ReqTemplateRef];
+    const payload = templateFn(params);
 
     const c2Response = await this.put(
       'C2',

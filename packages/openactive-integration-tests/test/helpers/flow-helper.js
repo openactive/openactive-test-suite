@@ -102,6 +102,10 @@ class FlowHelper {
   }, { cachePromiseRejection: true });
 }
 
+/**
+ * @typedef {InstanceType<typeof FlowHelper>} FlowHelperType
+ */
+
 module.exports = {
   FlowHelper
 };
