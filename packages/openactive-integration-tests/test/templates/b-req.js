@@ -119,13 +119,23 @@ function createStandardFreeOrPaidBReq(data) {
 }
 
 /**
- * C2 request with missing customer.email
+ * B request with missing customer.email
  *
  * @param {BReqTemplateData} data
  */
 function createNoCustomerEmailBReq(data) {
-  const req = createStandardPaidBReq(data);
+  const req = createStandardFreeOrPaidBReq(data);
   return dissocPath(['customer', 'email'], req);
+}
+
+/**
+ * B request with missing customer.email
+ *
+ * @param {BReqTemplateData} data
+ */
+function createNoBrokerNameBReq(data) {
+  const req = createStandardFreeOrPaidBReq(data);
+  return dissocPath(['broker', 'name'], req);
 }
 
 /**
@@ -137,6 +147,7 @@ const bReqTemplates = {
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
+  noBrokerName: createNoBrokerNameBReq,
 };
 
 /**

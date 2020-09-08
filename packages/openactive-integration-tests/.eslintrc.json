@@ -33,6 +33,7 @@
           "**/*-test.js"
         ]
       }
-    ]
+    ],
+    "no-underscore-dangle": "off"
   }
 }

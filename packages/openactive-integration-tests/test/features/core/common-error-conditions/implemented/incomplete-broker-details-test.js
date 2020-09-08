@@ -12,25 +12,25 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'common-error-conditions',
   testFeatureImplemented: true,
-  testIdentifier: 'incomplete-customer-details',
-  testName: 'Expect an IncompleteCustomerDetailsError when customer details are incomplete',
-  testDescription: 'Run each of C2 and B for a valid opportunity, with customer details incomplete, expecting an IncompleteCustomerDetailsError to be returned (C1 is ignored because customer details are not accepted for C1)',
+  testIdentifier: 'incomplete-broker-details',
+  testName: 'Expect an IncompleteBrokerDetailsError when broker details are missing name',
+  testDescription: 'Run each of C1, C2 and B for a valid opportunity, with broker details incomplete (missing name), expecting an IncompleteBrokerDetailsError to be returned',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  numOpportunitiesUsedPerCriteria: 2, // one for each of the C2 and B tests
+  numOpportunitiesUsedPerCriteria: 3, // one for each of the C1, C2 and B tests
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   /**
-   * Fetch some opportunities and run C1
+   * Fetch some opportunities and get matching ones
    *
    * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
    *
    * @param {RequestState} state
    * @param {FlowHelper} state
    */
-  function runC1(state, flow) {
+  function doFetchOpportunitiesAndGetMatches(state, flow) {
     beforeAll(async () => {
       await state.fetchOpportunities(orderItemCriteria);
     });
@@ -43,6 +43,36 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
     });
+  }
+
+  /**
+   * @param {() => ChakramResponse} getChakramResponse
+   */
+  const itShouldReturnAnIncompleteBrokerDetailsError = getChakramResponse => (
+    itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, getChakramResponse));
+
+  describe('Incomplete Broker Details at C1', () => {
+    const state = new RequestState(logger, { c1ReqTemplateRef: 'noBrokerName' });
+    const flow = new FlowHelper(state);
+
+    doFetchOpportunitiesAndGetMatches(state, flow);
+
+    describe('C1', () => {
+      (new C1({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .validationTests();
+
+      itShouldReturnAnIncompleteBrokerDetailsError(() => state.c1Response);
+    });
+  });
+
+  describe('Incomplete Broker Details at C2', () => {
+    const state = new RequestState(logger, { c2ReqTemplateRef: 'noBrokerName' });
+    const flow = new FlowHelper(state);
+
+    doFetchOpportunitiesAndGetMatches(state, flow);
 
     describe('C1', () => {
       (new C1({
@@ -53,36 +83,31 @@ FeatureHelper.describeFeature(module, {
         .validationTests();
     });
 
-    return { state, flow };
-  }
-
-  /**
-   * @param {() => ChakramResponse} getChakramResponse
-   */
-  const itShouldReturnAnIncompleteCustomerDetailsError = getChakramResponse => (
-    itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, getChakramResponse));
-
-  describe('Incomplete Customer Details at C2', () => {
-    const state = new RequestState(logger, { c2ReqTemplateRef: 'noCustomerEmail' });
-    const flow = new FlowHelper(state);
-
-    runC1(state, flow);
-
     describe('C2', () => {
       (new C2({
         state, flow, logger,
       }))
-        .beforeSetup();
+        .beforeSetup()
+        .validationTests();
 
-      itShouldReturnAnIncompleteCustomerDetailsError(() => state.c2Response);
+      itShouldReturnAnIncompleteBrokerDetailsError(() => state.c2Response);
     });
   });
 
-  describe('Incomplete Customer Details at B', () => {
-    const state = new RequestState(logger, { bReqTemplateRef: 'noCustomerEmail' });
+  describe('Incomplete Broker Details at B', () => {
+    const state = new RequestState(logger, { bReqTemplateRef: 'noBrokerName' });
     const flow = new FlowHelper(state);
 
-    runC1(state, flow);
+    doFetchOpportunitiesAndGetMatches(state, flow);
+
+    describe('C1', () => {
+      (new C1({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
 
     describe('C2', () => {
       (new C2({
@@ -100,7 +125,7 @@ FeatureHelper.describeFeature(module, {
         .beforeSetup()
         .validationTests();
 
-      itShouldReturnAnIncompleteCustomerDetailsError(() => state.bResponse);
+      itShouldReturnAnIncompleteBrokerDetailsError(() => state.bResponse);
     });
   });
 });

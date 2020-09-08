@@ -28,20 +28,23 @@ function isResponse(response) {
 class RequestState {
   /**
    * 
-   * @param {InstanceType<import('./logger')['Logger']>} logger 
+   * @param {InstanceType<import('./logger')['Logger']>} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
    *   one will be generated randomly
+   * @param {import('../templates/c1-req').C1ReqTemplateRef} [options.c1ReqTemplateRef]
+   *   Which template to use for C1 requests. Defaults to 'standard'
    * @param {import('../templates/c2-req').C2ReqTemplateRef} [options.c2ReqTemplateRef]
    *   Which template to use for C2 requests. Defaults to 'standard'
    * @param {import('../templates/b-req').BReqTemplateRef} [options.bReqTemplateRef]
    *   Which template to use for B requests. Defaults to 'standard'
    */
-  constructor (logger, { uuid, c2ReqTemplateRef, bReqTemplateRef } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
     }
+    this._c1ReqTemplateRef = c1ReqTemplateRef;
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
   }
@@ -191,7 +194,9 @@ class RequestState {
   }
 
   async putOrderQuoteTemplate () {
-    let result = await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
+    const result = this._c1ReqTemplateRef
+      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._c1ReqTemplateRef)
+      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
 
     this.c1Response = result;
 

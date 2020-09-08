@@ -15,6 +15,7 @@
     "test/helpers/**/*.js",
     "test/report-templates/**/*.js",
     "test/shared-behaviours/index.js",
+    "test/shared-behaviours/errors.js",
     "test/templates/**/*.js",
     "test/test-framework/**/*.js"
   ]

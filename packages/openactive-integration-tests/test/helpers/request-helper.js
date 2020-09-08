@@ -1,14 +1,11 @@
-const assert = require("assert");
 const chakram = require("chakram");
-const fs = require("fs");
 const config = require("config");
 const { generateUuid } = require('./generate-uuid');
 
-const c1req = require("../templates/c1-req.js");
-const c2req = require("../templates/c2-req.js");
+const { c1ReqTemplates } = require("../templates/c1-req.js");
+const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require("../templates/b-req.js");
 const ureq = require("../templates/u-req.js");
-const { c2ReqTemplates } = require('../templates/c2-req.js');
 
 /**
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
@@ -267,8 +264,14 @@ class RequestHelper {
     return respObj;
   }
 
-  async putOrderQuoteTemplate(uuid, params) {
-    const payload = c1req(params);
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/c1-req').C1ReqTemplateData} params
+   * @param {import('../templates/c1-req').C1ReqTemplateRef} c1ReqTemplateRef
+   */
+  async putOrderQuoteTemplate(uuid, params, c1ReqTemplateRef = 'standard') {
+    const templateFn = c1ReqTemplates[c1ReqTemplateRef];
+    const payload = templateFn(params);
 
     const c1Response = await this.put(
       'C1',

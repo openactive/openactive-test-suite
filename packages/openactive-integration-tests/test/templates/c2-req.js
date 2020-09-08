@@ -78,9 +78,21 @@ function createNoCustomerEmailC2Req(data) {
   return dissocPath(['customer', 'email'], req);
 }
 
+/**
+ * C2 request with missing customer.email
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createNoBrokerNameC2Req(data) {
+  const req = createStandardC2Req(data);
+  return dissocPath(['broker', 'name'], req);
+}
+
+
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
+  noBrokerName: createNoBrokerNameC2Req,
 };
 
 /**
