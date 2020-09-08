@@ -105,7 +105,8 @@ FeatureHelper.describeFeature(module, {
       (new B({
         state, flow, logger,
       }))
-        .beforeSetup();
+        .beforeSetup()
+        .validationTests();
 
       itShouldReturnAnIncompleteCustomerDetailsError(() => state.bResponse);
     });

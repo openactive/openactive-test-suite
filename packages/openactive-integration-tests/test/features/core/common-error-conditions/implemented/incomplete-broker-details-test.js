@@ -69,7 +69,8 @@ FeatureHelper.describeFeature(module, {
       (new C1({
         state, flow, logger,
       }))
-        .beforeSetup();
+        .beforeSetup()
+        .validationTests();
 
       itShouldReturnAnIncompleteBrokerDetailsError(() => state.c1Response);
     });
@@ -94,7 +95,8 @@ FeatureHelper.describeFeature(module, {
       (new C2({
         state, flow, logger,
       }))
-        .beforeSetup();
+        .beforeSetup()
+        .validationTests();
 
       itShouldReturnAnIncompleteBrokerDetailsError(() => state.c2Response);
     });
@@ -128,7 +130,8 @@ FeatureHelper.describeFeature(module, {
       (new B({
         state, flow, logger,
       }))
-        .beforeSetup();
+        .beforeSetup()
+        .validationTests();
 
       itShouldReturnAnIncompleteBrokerDetailsError(() => state.bResponse);
     });
