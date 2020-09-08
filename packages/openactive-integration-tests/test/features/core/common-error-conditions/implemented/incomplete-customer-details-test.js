@@ -1,4 +1,3 @@
-const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { RequestState } = require('../../../../helpers/request-state');
