@@ -3,6 +3,7 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { RequestState } = require('../../../../helpers/request-state');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -57,18 +58,10 @@ FeatureHelper.describeFeature(module, {
   }
 
   /**
-   * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
-   *   function because the actual response won't be available until the
-   *   asynchronous before() block has completed.
+   * @param {() => ChakramResponse} getChakramResponse
    */
-  function itShouldReturnAnIncompleteCustomerDetailsError(getChakramResponse) {
-    it('should return an IncompleteCustomerDetailsError', () => {
-      const chakramResponse = getChakramResponse();
-      expect(chakramResponse.response).to.have.property('statusCode', 400);
-      expect(chakramResponse.body).to.have.property('@type', 'IncompleteCustomerDetailsError');
-      expect(chakramResponse.body).to.have.property('@context');
-    });
-  }
+  const itShouldReturnAnIncompleteCustomerDetailsError = getChakramResponse => (
+    itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, getChakramResponse));
 
   describe('Incomplete Customer Details at C2', () => {
     const state = new RequestState(logger, { c2ReqTemplateRef: 'noCustomerEmail' });
