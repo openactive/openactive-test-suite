@@ -1,9 +1,9 @@
-const {GetDatasetSite} = require("./get-dataset-site");
-const {GetMatch} = require("./get-match");
-const {C1} = require("./c1");
-const {C2} = require("./c2");
-const {B} = require("./b");
-const {Common} = require("./common");
+const { GetDatasetSite } = require('./get-dataset-site');
+const { GetMatch } = require('./get-match');
+const { C1 } = require('./c1');
+const { C2 } = require('./c2');
+const { B } = require('./b');
+const { Common } = require('./common');
 
 module.exports = {
   GetDatasetSite,

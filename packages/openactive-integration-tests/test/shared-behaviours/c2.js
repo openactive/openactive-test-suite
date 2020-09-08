@@ -1,5 +1,5 @@
-const {expect} = require("chakram");
-const sharedValidationTests = require("./validation");
+const { expect } = require('chakram');
+const sharedValidationTests = require('./validation');
 
 /**
  * @typedef {import('../helpers/request-state').RequestStateType} RequestStateType
@@ -14,25 +14,25 @@ class C2 {
    * @param {FlowHelperType} args.flow
    * @param {BaseLoggerType} args.logger
    */
-  constructor ({state, flow, logger}) {
+  constructor({ state, flow, logger }) {
     this.state = state;
     this.flow = flow;
     this.logger = logger;
   }
 
-  validationTests () {
+  validationTests() {
     sharedValidationTests.shouldBeValidResponse(
       () => this.state.c2Response,
-      "C2",
+      'C2',
       this.logger,
       {
-        validationMode: "C2Response",
+        validationMode: 'C2Response',
       },
     );
     return this;
   }
 
-  beforeSetup () {
+  beforeSetup() {
     beforeAll(async () => {
       await this.flow.C2();
     });
@@ -40,8 +40,8 @@ class C2 {
     return this;
   }
 
-  successChecks () {
-    it("should return 200 on success", () => {
+  successChecks() {
+    it('should return 200 on success', () => {
       this.expectSuccessful();
 
       expect(this.state.c2Response).to.have.status(200);
@@ -83,5 +83,5 @@ class C2 {
 }
 
 module.exports = {
-  C2
+  C2,
 };
