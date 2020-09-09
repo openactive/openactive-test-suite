@@ -2,6 +2,13 @@ const { expect } = require('chakram');
 const sharedValidationTests = require('./validation');
 
 class GetMatch {
+  /**
+   * @param {object} args
+   * @param {InstanceType<import('../helpers/request-state')['RequestState']>} args.state
+   * @param {import('../helpers/flow-helper').FlowHelperType} args.flow
+   * @param {import('../helpers/logger').BaseLoggerType} args.logger
+   * @param {import('../types/OpportunityCriteria').OpportunityCriteria[]} args.orderItemCriteria
+   */
   constructor({ state, flow, logger, orderItemCriteria }) {
     this.state = state;
     this.flow = flow;

@@ -139,6 +139,23 @@ function createNoBrokerNameBReq(data) {
 }
 
 /**
+ * Paid B request with incorrect totalPaymentDue value.
+ * The price in totalPaymentDue is less than that returned in the C2 request.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectTotalPaymentDuePriceBReq(data) {
+  const req = createStandardPaidBReq(data);
+  return {
+    ...req,
+    totalPaymentDue: {
+      ...req.totalPaymentDue,
+      price: req.totalPaymentDue.price - 1,
+    },
+  };
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -148,6 +165,7 @@ const bReqTemplates = {
   standard: createStandardFreeOrPaidBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
+  incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
 };
 
 /**

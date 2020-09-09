@@ -1,11 +1,11 @@
-const chakram = require("chakram");
-const config = require("config");
+const chakram = require('chakram');
+const config = require('config');
 const { generateUuid } = require('./generate-uuid');
 
-const { c1ReqTemplates } = require("../templates/c1-req.js");
+const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
-const { bReqTemplates } = require("../templates/b-req.js");
-const ureq = require("../templates/u-req.js");
+const { bReqTemplates } = require('../templates/b-req.js');
+const ureq = require('../templates/u-req.js');
 
 /**
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
@@ -13,11 +13,10 @@ const ureq = require("../templates/u-req.js");
  * @typedef {import('chakram').RequestOptions} RequestOptions
  */
 
-const REQUEST_HEADERS = config.get("sellers.primary.requestHeaders");
+const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
 
-const MICROSERVICE_BASE = global.MICROSERVICE_BASE;
-const BOOKING_API_BASE = global.BOOKING_API_BASE;
-const TEST_DATASET_IDENTIFIER = global.TEST_DATASET_IDENTIFIER;
+const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
+
 
 class RequestHelper {
   /**
@@ -45,7 +44,7 @@ class RequestHelper {
 
     this.logger.recordRequestResponse(stage, {
       method: method.toUpperCase(),
-      url: url,
+      url,
       jsonBody,
       requestOptions,
     }, responsePromise);
@@ -54,7 +53,7 @@ class RequestHelper {
       this.logger.recordRequest(stage, jsonBody);
     }
 
-    let response = await responsePromise;
+    const response = await responsePromise;
     this.logger.recordResponse(stage, response);
 
     return response;
@@ -109,128 +108,128 @@ class RequestHelper {
   }
 
   createHeaders(sellerId) {
-    return  Object.assign({
-      "Content-Type": "application/vnd.openactive.booking+json; version=1"
+    return Object.assign({
+      'Content-Type': 'application/vnd.openactive.booking+json; version=1',
     }, REQUEST_HEADERS);
   }
 
   opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType) {
-    var template = null;
+    let template = null;
     switch (opportunityType) {
       case 'ScheduledSession':
         template = {
-          "@type": "ScheduledSession",
-          "superEvent": {
-              "@type": "SessionSeries",
-              "organizer": {
-                "@type": sellerType,
-                "@id": sellerId
-              }
-          }
+          '@type': 'ScheduledSession',
+          superEvent: {
+            '@type': 'SessionSeries',
+            organizer: {
+              '@type': sellerType,
+              '@id': sellerId,
+            },
+          },
         };
         break;
       case 'FacilityUseSlot':
         template = {
-          "@type": "Slot",
-          "facilityUse": {
-              "@type": "FacilityUse",
-              "organizer": {
-                "@type": sellerType,
-                "@id": sellerId
-              }
-          }
+          '@type': 'Slot',
+          facilityUse: {
+            '@type': 'FacilityUse',
+            organizer: {
+              '@type': sellerType,
+              '@id': sellerId,
+            },
+          },
         };
         break;
       case 'IndividualFacilityUseSlot':
         template = {
-          "@type": "Slot",
-          "facilityUse": {
-              "@type": "IndividualFacility",
-              "organizer": {
-                "@type": sellerType,
-                "@id": sellerId
-              }
-          }
+          '@type': 'Slot',
+          facilityUse: {
+            '@type': 'IndividualFacility',
+            organizer: {
+              '@type': sellerType,
+              '@id': sellerId,
+            },
+          },
         };
         break;
       case 'CourseInstance':
         template = {
-          "@type": "CourseInstance",
-          "organizer": {
-            "@type": sellerType,
-            "@id": sellerId
-          }
+          '@type': 'CourseInstance',
+          organizer: {
+            '@type': sellerType,
+            '@id': sellerId,
+          },
         };
         break;
       case 'CourseInstanceSubEvent':
         template = {
-          "@type": "Event",
-          "superEvent": {
-              "@type": "CourseInstance",
-              "organizer": {
-                "@type": sellerType,
-                "@id": sellerId
-              }
-          }
+          '@type': 'Event',
+          superEvent: {
+            '@type': 'CourseInstance',
+            organizer: {
+              '@type': sellerType,
+              '@id': sellerId,
+            },
+          },
         };
         break;
       case 'HeadlineEvent':
         template = {
-          "@type": "HeadlineEvent",
-          "organizer": {
-            "@type": sellerType,
-            "@id": sellerId
-          }
+          '@type': 'HeadlineEvent',
+          organizer: {
+            '@type': sellerType,
+            '@id': sellerId,
+          },
         };
         break;
       case 'HeadlineEventSubEvent':
         template = {
-          "@type": "Event",
-          "superEvent": {
-              "@type": "HeadlineEvent",
-              "organizer": {
-                "@type": sellerType,
-                "@id": sellerId
-              }
-          }
+          '@type': 'Event',
+          superEvent: {
+            '@type': 'HeadlineEvent',
+            organizer: {
+              '@type': sellerType,
+              '@id': sellerId,
+            },
+          },
         };
         break;
       case 'Event':
         template = {
-          "@type": "Event",
-          "organizer": {
-            "@type": sellerType,
-            "@id": sellerId
-          }
+          '@type': 'Event',
+          organizer: {
+            '@type': sellerType,
+            '@id': sellerId,
+          },
         };
         break;
       case 'OnDemandEvent':
         template = {
-          "@type": "OnDemandEvent",
-          "organizer": {
-            "@type": sellerType,
-            "@id": sellerId
-          }
+          '@type': 'OnDemandEvent',
+          organizer: {
+            '@type': sellerType,
+            '@id': sellerId,
+          },
         };
         break;
       default:
-        throw new Error('Unrecognised opportunity type')
+        throw new Error('Unrecognised opportunity type');
     }
-    template["@context"] = [
-      "https://openactive.io/",
-      "https://openactive.io/test-interface"
+    template['@context'] = [
+      'https://openactive.io/',
+      'https://openactive.io/test-interface',
     ];
-    template["test:testOpportunityCriteria"] = `https://openactive.io/test-interface#${testOpportunityCriteria}`;
+    template['test:testOpportunityCriteria'] = `https://openactive.io/test-interface#${testOpportunityCriteria}`;
     return template;
   }
 
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
-      MICROSERVICE_BASE + "get-order/" + uuid,
+      `${MICROSERVICE_BASE}get-order/${uuid}`,
       {
-        timeout: 30000
-      }
+        timeout: 30000,
+      },
     );
 
     return ordersFeedUpdate;
@@ -243,10 +242,10 @@ class RequestHelper {
   async getMatch(eventId, orderItemPosition) {
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      MICROSERVICE_BASE + `opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
       {
-        timeout: 60000
-      }
+        timeout: 60000,
+      },
     );
 
     return respObj;
@@ -255,10 +254,10 @@ class RequestHelper {
   async getDatasetSite() {
     const respObj = await this.get(
       'Dataset Site Cached Proxy',
-      MICROSERVICE_BASE + "dataset-site",
+      `${MICROSERVICE_BASE}dataset-site`,
       {
-        timeout: 5000
-      }
+        timeout: 5000,
+      },
     );
 
     return respObj;
@@ -275,12 +274,12 @@ class RequestHelper {
 
     const c1Response = await this.put(
       'C1',
-      BOOKING_API_BASE + "order-quote-templates/" + uuid,
+      `${BOOKING_API_BASE}order-quote-templates/${uuid}`,
       payload,
       {
         headers: this.createHeaders(params.sellerId),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return c1Response;
@@ -297,12 +296,12 @@ class RequestHelper {
 
     const c2Response = await this.put(
       'C2',
-      BOOKING_API_BASE + "order-quotes/" + uuid,
+      `${BOOKING_API_BASE}order-quotes/${uuid}`,
       payload,
       {
         headers: this.createHeaders(params.sellerId),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return c2Response;
@@ -319,12 +318,12 @@ class RequestHelper {
 
     const bResponse = await this.put(
       'B',
-      BOOKING_API_BASE + "orders/" + uuid,
+      `${BOOKING_API_BASE}orders/${uuid}`,
       payload,
       {
         headers: this.createHeaders(params.sellerId),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return bResponse;
@@ -335,12 +334,12 @@ class RequestHelper {
 
     const uResponse = await this.patch(
       'U',
-      BOOKING_API_BASE + "orders/" + uuid,
+      `${BOOKING_API_BASE}orders/${uuid}`,
       payload,
       {
         headers: this.createHeaders(params.sellerId),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return uResponse;
@@ -355,8 +354,8 @@ class RequestHelper {
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         headers: this.createHeaders(sellerId),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return respObj;
@@ -370,8 +369,8 @@ class RequestHelper {
       `${MICROSERVICE_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return respObj;
@@ -379,22 +378,22 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {{ sellerId: string }} params 
+   * @param {{ sellerId: string }} params
    */
   async deleteOrder(uuid, params) {
     const respObj = await this.delete(
       'delete-order',
-      BOOKING_API_BASE + "orders/" + uuid,
+      `${BOOKING_API_BASE}orders/${uuid}`,
       {
         headers: this.createHeaders(params.sellerId),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
     return respObj;
   }
 
   delay(t, v) {
-    return new Promise(function(resolve) {
+    return new Promise(function (resolve) {
       setTimeout(resolve.bind(null, v), t);
     });
   }
