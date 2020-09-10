@@ -1,5 +1,5 @@
-const config = require('config');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
+const config = require('config');
 const RequestHelper = require('./request-helper');
 
 /**
@@ -181,6 +181,7 @@ class RequestState {
     return !this.orderItems.some(x => x == null);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   get sellerId() {
     return SELLER_CONFIG.primary['@id'];
   }

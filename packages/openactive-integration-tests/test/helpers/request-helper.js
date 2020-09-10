@@ -15,9 +15,8 @@ const ureq = require('../templates/u-req.js');
 
 const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
 
-const { MICROSERVICE_BASE } = global;
-const { BOOKING_API_BASE } = global;
-const { TEST_DATASET_IDENTIFIER } = global;
+const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
+
 
 class RequestHelper {
   /**
