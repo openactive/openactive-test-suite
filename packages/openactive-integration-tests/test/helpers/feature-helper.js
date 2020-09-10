@@ -1,11 +1,12 @@
+const config = require('config');
 const _ = require('lodash');
 
 const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const { FlowHelper } = require('./flow-helper');
 
-const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
-
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = global.BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
+const IMPLEMENTED_FEATURES = global.IMPLEMENTED_FEATURES;
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -70,8 +71,9 @@ class FeatureHelper {
      * Default templates
      * @type {CreateSingleOportunityCriteriaTemplateFn}
      */
-    const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate
-    || (configuration.testOpportunityCriteria ? (opportunityType => [{
+    const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate 
+    || 
+    (configuration.testOpportunityCriteria ? ((opportunityType) => [{
       opportunityType,
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: true,
@@ -83,7 +85,8 @@ class FeatureHelper {
      * @type {CreateMultipleOportunityCriteriaTemplateFn}
      */
     const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate
-    || (configuration.testOpportunityCriteria ? (opportunityType, i) => [{
+    ||
+    (configuration.testOpportunityCriteria ? (opportunityType, i) => [{
       opportunityType,
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: true,
@@ -103,31 +106,32 @@ class FeatureHelper {
       primary: false,
       control: true,
       usedInOrderItems: 1,
-    }] : null);
+    }]: null);
 
     // Documentation generation
 
-    if (global.documentationGenerationMode) {
+    if (global.documentationGenerationMode)
+    {
       const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
       /** @type {Map<string, number>} */
       const criteriaRequirement = new Map();
-
+      
       if (!configuration.runOnce) {
         /** @type {OpportunityCriteria[]} */
         const orderItemCriteria = [].concat(
           singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
-          configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0),
+          configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0)
         );
-
-        orderItemCriteria.forEach((x) => {
+        
+        orderItemCriteria.forEach(x => {
           if (!criteriaRequirement.has(x.opportunityCriteria)) criteriaRequirement.set(x.opportunityCriteria, 0);
           criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + numOpportunitiesUsedPerCriteria);
         });
       }
 
-
+      
       documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
-        criteriaRequirement,
+        criteriaRequirement
       }));
       return;
     }
@@ -162,7 +166,7 @@ class FeatureHelper {
                   config: configuration,
                   description: configuration.testDescription,
                   implemented,
-                  opportunityType,
+                  opportunityType: opportunityType
                 });
 
                 const state = new RequestState(logger);
@@ -175,12 +179,12 @@ class FeatureHelper {
             });
 
             if (!configuration.skipMultiple) {
-              describe('Multiple', function () {
+              describe("Multiple", function () {
                 const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
                   config: configuration,
                   description: configuration.testDescription,
                   implemented,
-                  opportunityType: 'Multiple',
+                  opportunityType: "Multiple"
                 });
 
                 const state = new RequestState(logger);
@@ -211,7 +215,7 @@ class FeatureHelper {
    * @param {NodeModule} documentationModule
    * @param {DescribeFeatureConfiguration} configuration
    */
-  static describeRequiredFeature(documentationModule, configuration) {
+  static describeRequiredFeature (documentationModule, configuration) {
     this.describeFeature(documentationModule, Object.assign({
       testDescription: 'This feature is required by the specification and must be implemented.',
     }, configuration),
@@ -223,7 +227,7 @@ class FeatureHelper {
           throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
         });
       });
-    });
+    });    
   }
 }
 

@@ -15,7 +15,6 @@
                 "test/features/core/common-error-conditions/implemented/incomplete-customer-details-test.js"
             ],
             "runtimeExecutable": "npm",
-            "runtimeVersion": "12.18.2",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -27,7 +26,6 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
-            "runtimeVersion": "12.18.2",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229
         },

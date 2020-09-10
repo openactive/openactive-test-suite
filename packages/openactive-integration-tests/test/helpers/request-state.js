@@ -1,18 +1,18 @@
-const { getRelevantOffers } = require('@openactive/test-interface-criteria');
-const config = require('config');
-const RequestHelper = require('./request-helper');
+const RequestHelper = require("./request-helper");
+const config = require("config");
+const { getRelevantOffers } = require("@openactive/test-interface-criteria");
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  */
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const SELLER_CONFIG = config.get('sellers');
+const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const SELLER_CONFIG = config.get("sellers");
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
 
-  const { statusCode } = response.response;
+  let statusCode = response.response.statusCode;
 
   return statusCode >= 200 && statusCode < 300;
 }
@@ -20,14 +20,14 @@ function isResponse20x(response) {
 function isResponse(response) {
   if (!response || !response.response) return false;
 
-  const { statusCode } = response.response;
+  let statusCode = response.response.statusCode;
 
   return statusCode >= 200 && statusCode < 600;
 }
 
 class RequestState {
   /**
-   *
+   * 
    * @param {InstanceType<import('./logger')['Logger']>} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
@@ -85,40 +85,40 @@ class RequestState {
     this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
       if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
-        return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
+        return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey)
       }
 
       const sellerKey = orderItemCriteriaItem.seller || 'primary';
       const seller = SELLER_CONFIG[sellerKey];
-      const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
-        ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
-        : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
-
+      const opportunityPromise = ( randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES ) ?
+        this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']) :
+        this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
+      
       // If this opportunity can be reused, store it
       if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey')) {
-        reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise);
+        reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise)
       }
 
       return await opportunityPromise;
     }));
   }
 
-  getRandomRelevantOffer(opportunity, opportunityCriteria) {
+	getRandomRelevantOffer(opportunity, opportunityCriteria) {
     const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity);
     if (relevantOffers.length == 0) return null;
 
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
-  }
+	}
 
-  async getOrder() {
-    const result = await this.requestHelper.getOrder(this.uuid);
+  async getOrder () {
+    let result = await this.requestHelper.getOrder(this.uuid);
 
     this.ordersFeedUpdate = result;
 
     return this;
   }
 
-  async deleteOrder() {
+  async deleteOrder () {
     return await this.requestHelper.deleteOrder(this.uuid, {
       sellerId: this.sellerId,
     });
@@ -130,15 +130,15 @@ class RequestState {
     return this.ordersFeedUpdate.body;
   }
 
-  async getDatasetSite() {
-    const result = await this.requestHelper.getDatasetSite();
+  async getDatasetSite () {
+    let result = await this.requestHelper.getDatasetSite();
 
     this.datasetSite = result;
 
     return this;
   }
 
-  async getMatch() {
+  async getMatch () {
     const reusableMatchPromises = new Map();
 
     /**
@@ -155,8 +155,9 @@ class RequestState {
         const matchPromise = this.requestHelper.getMatch(testInterfaceResponse.body['@id'], i);
         reusableMatchPromises.set(testInterfaceResponse.body['@id'], matchPromise);
         return await matchPromise;
+      } else {
+        return null;
       }
-      return null;
     }));
 
     this.orderItems = this.opportunityFeedExtractResponses.map((x, i) => {
@@ -170,10 +171,11 @@ class RequestState {
           orderedItem: x.body.data,
           acceptedOffer,
           'test:primary': this.orderItemCriteriaList[i].primary,
-          'test:control': this.orderItemCriteriaList[i].control,
-        };
+          'test:control': this.orderItemCriteriaList[i].control
+        }
+      } else {
+        return null;
       }
-      return null;
     });
 
     return this;
@@ -187,12 +189,11 @@ class RequestState {
     return !this.orderItems.some(x => x == null);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   get sellerId() {
     return SELLER_CONFIG.primary['@id'];
   }
 
-  async putOrderQuoteTemplate() {
+  async putOrderQuoteTemplate () {
     const result = this._c1ReqTemplateRef
       ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._c1ReqTemplateRef)
       : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
@@ -211,7 +212,7 @@ class RequestState {
   }
 
   get totalPaymentDue() {
-    const response = this.c2Response || this.c1Response;
+    let response = this.c2Response || this.c1Response;
 
     if (!response) return;
 
@@ -220,7 +221,7 @@ class RequestState {
     return response.body.totalPaymentDue.price;
   }
 
-  async putOrderQuote() {
+  async putOrderQuote () {
     const result = this._c2ReqTemplateRef
       ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
       : await this.requestHelper.putOrderQuote(this.uuid, this);
@@ -238,7 +239,7 @@ class RequestState {
     return isResponse(this.c2Response);
   }
 
-  async putOrder() {
+  async putOrder () {
     const result = this._bReqTemplateRef
       ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
       : await this.requestHelper.putOrder(this.uuid, this);
@@ -260,14 +261,15 @@ class RequestState {
     if (!this.bResponse) return;
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
-      return this.bResponse.body.orderedItem[0]['@id'];
+      return this.bResponse.body.orderedItem[0]["@id"]
     }
-
-    return 'NONE';
+    else {
+      return "NONE";
+    }
   }
 
-  async cancelOrder() {
-    const result = await this.requestHelper.cancelOrder(this.uuid, this);
+  async cancelOrder () {
+    let result = await this.requestHelper.cancelOrder(this.uuid, this);
 
     this.uResponse = result;
 
@@ -288,5 +290,5 @@ class RequestState {
  */
 
 module.exports = {
-  RequestState,
+  RequestState
 };

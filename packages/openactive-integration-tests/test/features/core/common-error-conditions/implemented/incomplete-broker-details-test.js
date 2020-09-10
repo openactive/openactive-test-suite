@@ -28,7 +28,7 @@ FeatureHelper.describeFeature(module, {
    * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
    *
    * @param {RequestState} state
-   * @param {FlowHelper} flow
+   * @param {FlowHelper} state
    */
   function doFetchOpportunitiesAndGetMatches(state, flow) {
     beforeAll(async () => {
