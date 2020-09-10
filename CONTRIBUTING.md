@@ -6,7 +6,7 @@ Please note we have a [Code of Conduct](https://openactive.io/public-openactive-
 
 ## Code Quality
 
-New code should, as much as impossible, lead to increased coverage of:
+New code should, as much as possible, lead to increased coverage of:
 
 - ESLinting
 - TypeScript type checking
