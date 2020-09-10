@@ -2,6 +2,12 @@ const { expect } = require('chakram');
 const sharedValidationTests = require('./validation');
 
 class B {
+  /**
+   * @param {object} args
+   * @param {InstanceType<import('../helpers/request-state')['RequestState']>} args.state
+   * @param {import('../helpers/flow-helper').FlowHelperType} args.flow
+   * @param {import('../helpers/logger').BaseLoggerType} args.logger
+   */
   constructor({ state, flow, logger }) {
     this.state = state;
     this.flow = flow;
