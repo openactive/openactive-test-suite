@@ -5,16 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - core/common-error-conditions/incomplete-customer-details",
+            "name": "integration-tests - core/common-error-conditions/unknown-order-test",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/core/common-error-conditions/implemented/incomplete-customer-details-test.js"
+                "test/features/core/common-error-conditions/implemented/unknown-order-test.js"
             ],
             "runtimeExecutable": "npm",
+            "runtimeVersion": "12.18.2",
             "skipFiles": [
                 "<node_internals>/**"
             ],
