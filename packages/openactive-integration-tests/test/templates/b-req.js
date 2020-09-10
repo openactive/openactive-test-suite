@@ -150,7 +150,7 @@ function createIncorrectTotalPaymentDuePriceBReq(data) {
     ...req,
     totalPaymentDue: {
       ...req.totalPaymentDue,
-      price: req.totalPaymentDue.price - 1,
+      price: req.totalPaymentDue.price + 1,
     },
   };
 }
