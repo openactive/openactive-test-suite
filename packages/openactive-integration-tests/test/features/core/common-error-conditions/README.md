@@ -37,7 +37,6 @@ This feature is **required** by the Open Booking API specification, and so must 
 |------------|------|-------------|---------------|
 | [incomplete-broker-details](./implemented/incomplete-broker-details-test.js) | Expect an IncompleteBrokerDetailsError when broker details are missing name | Run each of C1, C2 and B for a valid opportunity, with broker details incomplete (missing name), expecting an IncompleteBrokerDetailsError to be returned | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x12 |
 | [incomplete-customer-details](./implemented/incomplete-customer-details-test.js) | Expect an IncompleteCustomerDetailsError when customer details are incomplete | Run each of C2 and B for a valid opportunity, with customer details incomplete, expecting an IncompleteCustomerDetailsError to be returned (C1 is ignored because customer details are not accepted for C1) | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x8 |
-| [not-found](./implemented/not-found-test.js) | Expect a NotFoundError for Orders that do not exist | Runs Order Cancellation for an non-existent Order (with a fictional UUID), expecting an NotFoundError error to be returned |  |
 
 
 
