@@ -5,21 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - core/common-error-conditions/unknown-order-test",
+            "name": "integration-tests - cancellation/customer-requested-cancellation/unknown-order-test",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/core/common-error-conditions/implemented/unknown-order-test.js"
+                "test/features/cancellation/customer-requested-cancellation/implemented/unknown-order-test.js"
             ],
             "runtimeExecutable": "npm",
             "runtimeVersion": "12.18.2",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node"
+            "type": "node",
+            "env": {
+              "NODE_ENV": "local"
+            }
         },
         {
             "name": "integration-tests",

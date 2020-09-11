@@ -5,7 +5,7 @@ const { generateUuid } = require('./generate-uuid');
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
-const ureq = require('../templates/u-req.js');
+const { uReqTemplates } = require('../templates/u-req.js');
 
 /**
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
@@ -333,8 +333,9 @@ class RequestHelper {
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */
-  async cancelOrder(uuid, params) {
-    const payload = ureq(params);
+  async cancelOrder(uuid, params, uReqTemplateRef = 'standard') {
+    const templateFn = uReqTemplates[uReqTemplateRef];
+    const payload = templateFn(params, uuid);
 
     const uResponse = await this.patch(
       'U',
@@ -350,9 +351,7 @@ class RequestHelper {
   }
 
   async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
-    let respObj;
-
-    respObj = await this.post(
+    const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
@@ -366,9 +365,7 @@ class RequestHelper {
   }
 
   async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
-    let respObj;
-
-    respObj = await this.post(
+    const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
