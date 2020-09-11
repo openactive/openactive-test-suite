@@ -1,6 +1,13 @@
 const { BOOKING_API_BASE } = global;
 
 /**
+ * @typedef {{
+ *    _uuid: string,
+  *   orderItemId: string
+  * }} UReqTemplateData
+  */
+
+/**
  *
  * @param {UReqTemplateData} data
  */
@@ -18,6 +25,9 @@ function createStandardUReq(data) {
   };
 }
 
+/**
+ * @param {UReqTemplateData} data
+ */
 function createNonExistantOrderUReq(data) {
   return {
     '@context': 'https://openactive.io/',
