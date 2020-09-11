@@ -1,6 +1,5 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2 } = require('../../../../shared-behaviours');
 const { RequestState } = require('../../../../helpers/request-state');
 
 FeatureHelper.describeFeature(module, {
