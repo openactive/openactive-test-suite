@@ -38,8 +38,10 @@ class RequestState {
    *   Which template to use for C2 requests. Defaults to 'standard'
    * @param {import('../templates/b-req').BReqTemplateRef} [options.bReqTemplateRef]
    *   Which template to use for B requests. Defaults to 'standard'
+   * @param {boolean} [options.doNotCacheRequest]
+   *   Which template to use for B requests. Defaults to 'standard'
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, doNotCacheRequest } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -47,6 +49,7 @@ class RequestState {
     this._c1ReqTemplateRef = c1ReqTemplateRef;
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
+    this._doNotCacheRequest = doNotCacheRequest;
   }
 
   get uuid() {

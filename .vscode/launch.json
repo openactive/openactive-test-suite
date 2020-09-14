@@ -19,7 +19,10 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node"
+            "type": "node",
+            "env": {
+              "NODE_ENV": "test",
+            }
         },
         {
             "name": "integration-tests",
