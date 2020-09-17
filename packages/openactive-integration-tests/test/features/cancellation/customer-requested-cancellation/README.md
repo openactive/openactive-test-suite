@@ -38,5 +38,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [book-and-cancel](./implemented/book-and-cancel-test.js) | Successful booking and cancellation. | A successful end to end booking including cancellation, including checking the Orders Feed. | [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1 |
+| [unknown-order](./implemented/unknown-order-test.js) | Expect a UnknownOrderError for an Order that does not exist | Runs Order Cancellation for a non-existent Order (with a fictional UUID), expecting an UnknownOrderError error to be returned |  |
 
 
