@@ -38,8 +38,10 @@ class RequestState {
    *   Which template to use for C2 requests. Defaults to 'standard'
    * @param {import('../templates/b-req').BReqTemplateRef} [options.bReqTemplateRef]
    *   Which template to use for B requests. Defaults to 'standard'
+   * @param {import('../templates/u-req').UReqTemplateRef} [options.uReqTemplateRef]
+   *   Which template to use for U (cancellation) requests. Defaults to 'standard'
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -47,6 +49,7 @@ class RequestState {
     this._c1ReqTemplateRef = c1ReqTemplateRef;
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
+    this._uReqTemplateRef = uReqTemplateRef;
   }
 
   get uuid() {
@@ -116,12 +119,6 @@ class RequestState {
     this.ordersFeedUpdate = result;
 
     return this;
-  }
-
-  async deleteOrder() {
-    return await this.requestHelper.deleteOrder(this.uuid, {
-      sellerId: this.sellerId,
-    });
   }
 
   get rpdeItem() {
@@ -266,8 +263,20 @@ class RequestState {
     return 'NONE';
   }
 
+  async deleteOrder() {
+    const result = await this.requestHelper.deleteOrder(this.uuid, {
+      sellerId: this.sellerId,
+    });
+
+    this.deletionResponse = result;
+
+    return this;
+  }
+
   async cancelOrder() {
-    const result = await this.requestHelper.cancelOrder(this.uuid, this);
+    const result = this._uReqTemplateRef
+      ? await this.requestHelper.cancelOrder(this.uuid, this, this._uReqTemplateRef)
+      : await this.requestHelper.cancelOrder(this.uuid, this);
 
     this.uResponse = result;
 

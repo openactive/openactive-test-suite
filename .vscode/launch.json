@@ -21,7 +21,7 @@
             ],
             "type": "node",
             "env": {
-              "NODE_ENV": "test",
+              "NODE_ENV": "dev"
             }
         },
         {
