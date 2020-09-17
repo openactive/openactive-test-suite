@@ -70,3 +70,40 @@ The headers used when accessing the Orders Feed, useful to configure authenticat
     "X-OpenActive-Test-Client-Id": "test"
   }
 ```
+
+### `opportunityFeedRequestHeaders`
+
+For private test environments with opportunity feeds that require authentication, headers may be configured. Note that in order to be considered "OpenActive Enabled" and to conform to the Open Booking API, such headers must not be required in production.
+
+```json
+  "opportunityFeedRequestHeaders": {
+    "X-Api-Key": "example-api-key"
+  }
+```
+
+### `datasetDistributionOverride`
+
+For test environments that do not yet include a Dataset Site, data feeds may be manually configured. Note that in order to be considered "OpenActive Enabled" and to conform to the Open Booking API, a Dataset Site must be made available in production.
+
+```json
+  "datasetDistributionOverride": [
+    {
+      "@type": "DataDownload",
+      "additionalType": "https://openactive.io/ScheduledSession",
+      "contentUrl": "https://api.example.com/feeds/scheduled-sessions"
+    },
+    {
+      "@type": "DataDownload",
+      "additionalType": "https://openactive.io/SessionSeries",
+      "contentUrl": "https://api.example.com/feeds/session-series"
+    }
+  ]
+```
+
+### `disableBucketAllocation`
+
+When using the Broker Microservice as a tool to check validity of opportunity feeds that contain very large datasets, it can be desirable to limit memory usage by disabling bucket allocation. Note that bucket allocation must be enabled to run [Integration tests](../openactive-integration-tests/).
+
+```json
+  "disableBucketAllocation": true,
+```
