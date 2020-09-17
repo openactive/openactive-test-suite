@@ -100,7 +100,7 @@ For test environments that do not yet include a Dataset Site, data feeds may be 
   ]
 ```
 
-### `datasetDistributionOverride`
+### `disableBucketAllocation`
 
 When using the Broker Microservice as a tool to check validity of opportunity feeds that contain very large datasets, it can be desirable to limit memory usage by disabling bucket allocation. Note that bucket allocation must be enabled to run [Integration tests](../openactive-integration-tests/).
 
