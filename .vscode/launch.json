@@ -21,7 +21,7 @@
             ],
             "type": "node",
             "env": {
-              "NODE_ENV": "local"
+              "NODE_ENV": "dev"
             }
         },
         {
