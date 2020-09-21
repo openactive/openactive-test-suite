@@ -12,7 +12,7 @@
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/core/common-error-conditions/implemented/incomplete-broker-details-test.js"
+                "test/features/core/common-error-conditions/implemented/order-already-exists-test.js"
             ],
             "runtimeExecutable": "npm",
             "runtimeVersion": "12.18.2",

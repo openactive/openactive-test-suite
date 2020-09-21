@@ -3,6 +3,5 @@
 export type Offer = {
   '@type': string,
   '@id': string,
-  price?: number,
   [k: string]: any,
 };
