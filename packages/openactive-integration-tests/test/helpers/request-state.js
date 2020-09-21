@@ -207,14 +207,33 @@ class RequestState {
     return isResponse(this.c1Response);
   }
 
+  /**
+   * As leasing is optional, getting the totalPaymentDue should not be dependent on C1 or C2 being completed.
+   * However if they have been, they should be used as they will be more accurate.
+   *
+   * @readonly
+   * @memberof RequestState
+   * @returns {number | null}
+   */
   get totalPaymentDue() {
+    // Check if C1 or C2 have successfully happened
     const response = this.c2Response || this.c1Response;
+    if (response) {
+      if (!response.body.totalPaymentDue) return 0;
 
-    if (!response) return;
+      return response.body.totalPaymentDue.price;
+    }
 
-    if (!response.body.totalPaymentDue) return;
+    // If C1 or C2 have not been successfully completed, work out the totalPriceDue from the orderItems
+    if (this.orderItems) {
+      const totalPriceDue = this.orderItems
+        .map(orderItem => orderItem.acceptedOffer.price)
+        .reduce((accumulator, currentValue) => accumulator + currentValue);
 
-    return response.body.totalPaymentDue.price;
+      return totalPriceDue;
+    }
+
+    return null;
   }
 
   async putOrderQuote() {

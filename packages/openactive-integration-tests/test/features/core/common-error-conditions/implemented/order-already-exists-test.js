@@ -17,68 +17,80 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookablePaid',
   numOpportunitiesUsedPerCriteria: 1,
-  skipMultiple: true,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   describe('OrderAlreadyExistsError at B', () => {
     const uuid = generateUuid();
-    const state = new RequestState(logger, { uuid });
-    const flow = new FlowHelper(state);
 
-    // Get All Opportunities
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
+    /**
+     * @param {Set<import('../../../../helpers/flow-helper').StageIdentifier>} [stagesToSkip]
+     */
+    function getMatchWithNewState(stagesToSkip) {
+      const state = new RequestState(logger, { uuid });
+      const flow = new FlowHelper(state, { stagesToSkip });
+
+      // Get All Opportunities
+      beforeAll(async () => {
+        await state.fetchOpportunities(orderItemCriteria);
+      });
+
+      describe('Get Opportunity Feed Items', () => {
+        (new GetMatch({
+          state, flow, logger, orderItemCriteria,
+        }))
+          .beforeSetup()
+          .successChecks()
+          .validationTests();
+      });
+
+      return { state, flow };
+    }
+
+    describe('First Run', () => {
+      const { state, flow } = getMatchWithNewState();
+
+      describe('C1', () => {
+        (new C1({
+          state, flow, logger,
+        }))
+          .beforeSetup()
+          .successChecks()
+          .validationTests();
+      });
+
+      describe('C2', () => {
+        (new C2({
+          state, flow, logger,
+        }))
+          .beforeSetup()
+          .successChecks()
+          .validationTests();
+      });
+
+      describe('B first time', function () {
+        (new B({
+          state, flow, logger,
+        }))
+          .beforeSetup()
+          .successChecks()
+          .validationTests();
+      });
     });
 
-    describe('Get Opportunity Feed Items for first run', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
 
-    // Run C1
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    // Run C2
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('B first time ', function () {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    it('should get a new set of OrderItems and try booking again, but with the same UUID', async () => {
-      // The following requests are not using the helper functions that are used above. This is because
-      // those requests are cached (using pMemoize) and therefore would not go back to the Booking System.
-
-      // Get new OrderItems
-      await state.getMatch();
+    describe('Second Run', async () => {
+      const { state, flow } = getMatchWithNewState(new Set(['C1', 'C2']));
 
       // Try B again with same UUID specified in state
-      await state.putOrder();
-    });
+      describe('B second time', function () {
+        (new B({
+          state, flow, logger,
+        }))
+          .beforeSetup()
+          .validationTests();
 
-    itShouldReturnAnOpenBookingError('OrderAlreadyExistsError', 500, () => state.bResponse);
+        itShouldReturnAnOpenBookingError('OrderAlreadyExistsError', 500, () => state.bResponse);
+      });
+    });
   });
 });
