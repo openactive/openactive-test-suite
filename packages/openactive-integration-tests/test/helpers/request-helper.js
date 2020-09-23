@@ -133,7 +133,7 @@ class RequestHelper {
           '@type': 'Slot',
           facilityUse: {
             '@type': 'FacilityUse',
-            organizer: {
+            provider: {
               '@type': sellerType,
               '@id': sellerId,
             },
@@ -145,7 +145,7 @@ class RequestHelper {
           '@type': 'Slot',
           facilityUse: {
             '@type': 'IndividualFacility',
-            organizer: {
+            provider: {
               '@type': sellerType,
               '@id': sellerId,
             },
