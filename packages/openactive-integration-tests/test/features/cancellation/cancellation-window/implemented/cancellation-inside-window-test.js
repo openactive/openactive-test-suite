@@ -27,71 +27,71 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   afterAll(async function () {
-	  await state.deleteOrder();
-	  return chakram.wait();
+    await state.deleteOrder();
+    return chakram.wait();
   });
 
   describe('Get Opportunity Feed Items', function () {
-	  (new GetMatch({
+    (new GetMatch({
       state, flow, logger, orderItemCriteria,
-	  }))
+    }))
       .beforeSetup()
       .successChecks()
       .validationTests();
   });
 
   describe('C1', function () {
-	  (new C1({
+    (new C1({
       state, flow, logger,
-	  }))
+    }))
       .beforeSetup()
       .successChecks()
       .validationTests();
   });
 
   describe('C2', function () {
-	  (new C2({
+    (new C2({
       state, flow, logger,
-	  }))
+    }))
       .beforeSetup()
       .successChecks()
       .validationTests();
   });
 
   describe('B', function () {
-	  (new B({
+    (new B({
       state, flow, logger,
-	  }))
+    }))
       .beforeSetup()
       .successChecks()
       .validationTests();
   });
 
   describe('Orders Feed', function () {
-	  beforeAll(async function () {
+    beforeAll(async function () {
       await flow.getFeedUpdate();
-	  });
+    });
 
-	  it(`Orders feed result should have ${orderItemCriteria.length} orderedItem(s)`, function () {
+    it(`Orders feed result should have ${orderItemCriteria.length} orderedItem(s)`, function () {
       expect(state.ordersFeedUpdate).to.have.schema('data.orderedItem', {
-		  minItems: orderItemCriteria.length,
-		  maxItems: orderItemCriteria.length,
+        minItems: orderItemCriteria.length,
+        maxItems: orderItemCriteria.length,
       });
-	  });
+    });
 
-	  it('Order Cancellation return 204 on success', function () {
+    it('Order Cancellation return 204 on success', function () {
       expect(state.uResponse).to.have.status(204);
-	  });
+    });
 
-	  it('Orders feed should have CustomerCancelled as orderItemStatus', function () {
+    it('Orders feed should have CustomerCancelled as orderItemStatus', function () {
       expect(state.ordersFeedUpdate).to.have.json(
-		  'data.orderedItem[0].orderItemStatus',
-		  'https://openactive.io/CustomerCancelled',
+        'data.orderedItem[0].orderItemStatus',
+        'https://openactive.io/CustomerCancelled',
       );
-	  });
+    });
 
-	  sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate, 'Orders feed', logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate, 'Orders feed', logger, {
       validationMode: 'OrdersFeed',
-	  });
+    });
   });
 });
