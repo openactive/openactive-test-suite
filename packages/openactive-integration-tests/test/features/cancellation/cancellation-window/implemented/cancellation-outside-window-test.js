@@ -2,6 +2,7 @@
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours');
+const sharedValidationTests = require('../../../../shared-behaviours/validation');
 
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
