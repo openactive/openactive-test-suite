@@ -35,14 +35,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     Common.itForOrderItem(orderItemCriteria, state, stage, () => responseAccessor().body,
       'availability should match open data feed',
       (feedOrderItem, responseOrderItem) => {
-        if (feedOrderItem.orderedItem['@type'] === 'Slot')
-        {
+        if (feedOrderItem.orderedItem['@type'] === 'Slot') {
           chai.expect(responseOrderItem).to.nested.include({
             'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
           });
-        }
-        else
-        {
+        } else {
           chai.expect(responseOrderItem).to.nested.include({
             'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
           });

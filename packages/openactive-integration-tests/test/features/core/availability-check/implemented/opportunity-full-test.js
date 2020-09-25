@@ -50,10 +50,10 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
         chai.expect(responseOrderItemErrorTypes).to.include('OpportunityIsFullError');
 
-        if(responseOrderItem.orderedItem['@type'] === 'Slot') {
+        if (responseOrderItem.orderedItem['@type'] === 'Slot') {
           chai.expect(responseOrderItem).to.nested.include({
             'orderedItem.remainingUses': 0,
-          });          
+          });
         } else {
           chai.expect(responseOrderItem).to.nested.include({
             'orderedItem.remainingAttendeeCapacity': 0,
@@ -63,8 +63,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       'should not include an OpportunityIsFullError',
       (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
         chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityIsFullError');
-        
-        if(responseOrderItem.orderedItem['@type'] === 'Slot') {
+
+        if (responseOrderItem.orderedItem['@type'] === 'Slot') {
           chai.expect(responseOrderItem).to.nested.include({
             'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
           });
