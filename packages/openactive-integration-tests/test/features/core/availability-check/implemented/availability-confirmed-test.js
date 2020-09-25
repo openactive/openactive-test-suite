@@ -35,9 +35,18 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     Common.itForOrderItem(orderItemCriteria, state, stage, () => responseAccessor().body,
       'availability should match open data feed',
       (feedOrderItem, responseOrderItem) => {
-        chai.expect(responseOrderItem).to.nested.include({
-          'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
-        });
+        if (feedOrderItem.orderedItem['@type'] === 'Slot')
+        {
+          chai.expect(responseOrderItem).to.nested.include({
+            'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
+          });
+        }
+        else
+        {
+          chai.expect(responseOrderItem).to.nested.include({
+            'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
+          });
+        }
       });
   };
 
