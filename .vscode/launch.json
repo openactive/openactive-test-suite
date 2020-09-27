@@ -15,7 +15,6 @@
                 "test/features/cancellation/customer-requested-cancellation/implemented/unknown-order-test.js"
             ],
             "runtimeExecutable": "npm",
-            "runtimeVersion": "12.18.2",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -30,7 +29,6 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
-            "runtimeVersion": "12.18.2",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229
         },
