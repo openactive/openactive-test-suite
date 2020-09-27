@@ -58,7 +58,7 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/random/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/1", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/2" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
+          {"outputPath": "../../publish/example-output/random/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/1", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1" } }, "secondary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/3" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
         NODE_ENV: 
       working-directory: tests
     - name: Upload test output for Random Mode as artifact
@@ -73,7 +73,7 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/controlled/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/1", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/2" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
+          {"outputPath": "../../publish/example-output/controlled/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/1", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1" } }, "secondary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/3" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
         NODE_ENV: 
       working-directory: tests
     - name: Upload test output for Controlled Mode as artifact
