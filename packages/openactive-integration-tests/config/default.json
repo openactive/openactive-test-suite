@@ -77,8 +77,8 @@
       }
     },
     "secondary": {
-      "@type": "Person",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2"
+      "@type": "Organization",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/3"
     }
   }
 }
