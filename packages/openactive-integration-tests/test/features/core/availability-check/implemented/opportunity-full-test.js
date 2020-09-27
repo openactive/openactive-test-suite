@@ -50,17 +50,29 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
         chai.expect(responseOrderItemErrorTypes).to.include('OpportunityIsFullError');
 
-        chai.expect(responseOrderItem).to.nested.include({
-          'orderedItem.remainingAttendeeCapacity': 0,
-        });
+        if (responseOrderItem.orderedItem['@type'] === 'Slot') {
+          chai.expect(responseOrderItem).to.nested.include({
+            'orderedItem.remainingUses': 0,
+          });
+        } else {
+          chai.expect(responseOrderItem).to.nested.include({
+            'orderedItem.remainingAttendeeCapacity': 0,
+          });
+        }
       },
       'should not include an OpportunityIsFullError',
       (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
         chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityIsFullError');
 
-        chai.expect(responseOrderItem).to.nested.include({
-          'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
-        });
+        if (responseOrderItem.orderedItem['@type'] === 'Slot') {
+          chai.expect(responseOrderItem).to.nested.include({
+            'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
+          });
+        } else {
+          chai.expect(responseOrderItem).to.nested.include({
+            'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
+          });
+        }
       });
   };
 

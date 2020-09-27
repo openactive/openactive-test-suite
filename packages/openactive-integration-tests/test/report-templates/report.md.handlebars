@@ -19,9 +19,9 @@ Feature Implemented: {{{ implemented }}}
 
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
-    {{#if request.params}}
+    {{#if request.jsonBody}}
 ```json
-{{{ json request.params }}}
+{{{ json request.jsonBody }}}
 ```
     {{/if}}
         {{#if isPending}}
