@@ -27,22 +27,22 @@ function mustHaveBookableOffer(offer, opportunity) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable
  */
-const TestOpportunityBookable = createCriteria(
-  'TestOpportunityBookable',
-  [
+const TestOpportunityBookable = createCriteria({
+  name: 'TestOpportunityBookable',
+  opportunityConstraints: [
     [
       'Remaining capacity must be non-zero',
       remainingCapacityMustBeNonZero,
     ],
   ],
-  [
+  offerConstraints: [
     [
       'Must have "bookable" offer',
       mustHaveBookableOffer,
     ],
   ],
-  CriteriaFutureScheduledOpportunity,
-);
+  includeConstraintsFromCriteria: CriteriaFutureScheduledOpportunity,
+});
 
 module.exports = {
   TestOpportunityBookable,

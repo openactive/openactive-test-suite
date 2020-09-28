@@ -15,17 +15,17 @@ function remainingCapacityMustBeZero(opportunity) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableNoSpaces
  */
-const TestOpportunityBookableNoSpaces = createCriteria(
-  'TestOpportunityBookableNoSpaces',
-  [
+const TestOpportunityBookableNoSpaces = createCriteria({
+  name: 'TestOpportunityBookableNoSpaces',
+  opportunityConstraints: [
     [
       'Remaining capacity must be zero',
       remainingCapacityMustBeZero,
     ],
   ],
-  [],
-  CriteriaFutureScheduledOpportunity,
-);
+  offerConstraints: [],
+  includeConstraintsFromCriteria: CriteriaFutureScheduledOpportunity,
+});
 
 module.exports = {
   TestOpportunityBookableNoSpaces,

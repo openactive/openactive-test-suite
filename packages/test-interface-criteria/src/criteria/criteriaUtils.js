@@ -4,14 +4,15 @@
  */
 
 /**
- * @param {string} name
- * @param {Criteria['opportunityConstraints']} opportunityConstraints
- * @param {Criteria['offerConstraints']} offerConstraints
- * @param {Pick<Criteria, 'opportunityConstraints' | 'offerConstraints'> | null} [includeConstraintsFromCriteria] If provided,
+ * @param {object} args
+ * @param {string} args.name
+ * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
+ * @param {Criteria['offerConstraints']} args.offerConstraints
+ * @param {Pick<Criteria, 'opportunityConstraints' | 'offerConstraints'> | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-function createCriteria(name, opportunityConstraints, offerConstraints, includeConstraintsFromCriteria = null) {
+function createCriteria({ name, opportunityConstraints, offerConstraints, includeConstraintsFromCriteria = null }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
   return {
