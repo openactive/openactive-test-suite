@@ -5,7 +5,7 @@
   "conformanceCertificateId": "https://www.example.com/",
   "bookableOpportunityTypesInScope": {
     "ScheduledSession": true,
-    "FacilityUseSlot": true,
+    "FacilityUseSlot": false,
     "IndividualFacilityUseSlot": false,
     "CourseInstance": false,
     "CourseInstanceSubEvent": false,
@@ -64,7 +64,8 @@
     "terms-of-service": null,
     "terms-of-service-with-consent": null,
     "terms-of-service-with-consent-with-date-modified": null,
-    "booking-partner-authentication": null
+    "booking-partner-authentication": null,
+    "minimal-proposal": true
   },
   "testDatasetIdentifier": "uat-ci",
   "sellers": {
