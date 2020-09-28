@@ -1,7 +1,7 @@
 const pMemoize = require("p-memoize");
 
 /**
- * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'U' | 'getFeedUpdate'} StageIdentifier
+ * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'P' | 'U' | 'getFeedUpdate'} StageIdentifier
  */
 
 /**
@@ -77,6 +77,17 @@ class FlowHelper {
     }
 
     return this.state.putOrder();
+  }, { cachePromiseRejection: true });
+
+  P = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('P');
+
+    if (!this._stagesToSkip.has('C2')) {
+      await this.C2();
+      if (!this.state.C2ResponseReceived) throw Error('Pre-requisite step failed: C2 failed');
+    }
+
+    return this.state.putOrderProposal();
   }, { cachePromiseRejection: true });
 
   U = pMemoize(async () => {

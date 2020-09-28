@@ -207,12 +207,15 @@ class RequestState {
     return isResponse(this.c1Response);
   }
 
+  /**
+   * @returns {number | undefined}
+   */
   get totalPaymentDue() {
     const response = this.c2Response || this.c1Response;
 
-    if (!response) return;
+    if (!response) return undefined;
 
-    if (!response.body.totalPaymentDue) return;
+    if (!response.body.totalPaymentDue) return undefined;
 
     return response.body.totalPaymentDue.price;
   }
@@ -223,6 +226,13 @@ class RequestState {
       : await this.requestHelper.putOrderQuote(this.uuid, this);
 
     this.c2Response = result;
+
+    return this;
+  }
+
+  async putOrderProposal() {
+    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
+    this.pResponse = result;
 
     return this;
   }

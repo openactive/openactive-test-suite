@@ -5,6 +5,7 @@ const { generateUuid } = require('./generate-uuid');
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
+const { pReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
 
 /**
@@ -327,6 +328,30 @@ class RequestHelper {
     );
 
     return bResponse;
+  }
+
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/p-req').PReqTemplateData} params
+   * @param {import('../templates/p-req').PReqTemplateRef} pReqTemplateRef
+   */
+  async putOrderProposal(uuid, params, pReqTemplateRef = 'standard') {
+    const templateFn = pReqTemplates[pReqTemplateRef];
+    const requestBody = templateFn(params);
+
+    const pResponse = await this.put(
+      'P',
+      `${BOOKING_API_BASE}order-proposals/${uuid}`,
+      requestBody,
+      {
+        headers: this.createHeaders(params.sellerId),
+        // allow a bit of time leeway for this request, as the P request must be
+        // processed atomically
+        timeout: 10000,
+      },
+    );
+
+    return pResponse;
   }
 
   /**

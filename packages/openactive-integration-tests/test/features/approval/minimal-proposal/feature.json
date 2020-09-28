@@ -1,0 +1,11 @@
+{
+  "category": "approval",
+  "identifier": "minimal-proposal",
+  "name": "Minimal Proposal Implementation - Book an opportunity using a Proposal",
+  "description": "Test Minimal Proposal Implementation approval flows. Proposal Amendments are not included here.",
+  "explainer": "",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#minimal-proposal-implementation",
+  "required": true,
+  "coverageStatus": "partial",
+  "links": []
+}
