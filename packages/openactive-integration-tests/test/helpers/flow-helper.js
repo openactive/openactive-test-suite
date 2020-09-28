@@ -1,7 +1,7 @@
 const pMemoize = require("p-memoize");
 
 /**
- * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'P' | 'U' | 'getFeedUpdateAfterU'} StageIdentifier
+ * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'P' | 'U' | 'getFeedUpdateAfterU' | 'getFeedUpdateAfterP' | 'BAfterP'} StageIdentifier
  */
 
 /**
@@ -42,6 +42,14 @@ class FlowHelper {
   getDatasetSite = pMemoize(async () => {
     this._assertStageShouldNotBeSkipped('getDatasetSite');
     return this.state.getDatasetSite();
+  }, { cachePromiseRejection: true });
+
+  /**
+   * Generically await a stage to have completed
+   */
+  awaitStage = pMemoize(async (/** @type {StageIdentifier} */ stageIdentifier) => {
+    this._assertStageShouldNotBeSkipped(stageIdentifier);
+    await this[stageIdentifier]();
   }, { cachePromiseRejection: true });
 
   getMatch = pMemoize(async () => {
@@ -92,13 +100,22 @@ class FlowHelper {
   }, { cachePromiseRejection: true });
 
   getFeedUpdateAfterP = pMemoize(async () => {
-    this._assertStageShouldNotBeSkipped('getFeedUpdateAfterU');
+    this._assertStageShouldNotBeSkipped('getFeedUpdateAfterP');
     if (!this._stagesToSkip.has('P')) {
       await this.P();
       if (!this.state.PResponseSucceeded) throw Error('Pre-requisite step failed: P failed');
     }
 
     return await this.getOrderAfterPPromise;
+  }, { cachePromiseRejection: true });
+
+  BAfterP = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('BAfterP');
+    if (!this._stagesToSkip.has('getFeedUpdateAfterP')) {
+      await this.getFeedUpdateAfterP();
+      if (!this.state.getOrderAfterPResponseSucceeded) { throw new Error('Pre-requisite step failed: BAfterP failed') }
+    }
+    return await this.state.putOrder();
   }, { cachePromiseRejection: true });
 
   U = pMemoize(async () => {

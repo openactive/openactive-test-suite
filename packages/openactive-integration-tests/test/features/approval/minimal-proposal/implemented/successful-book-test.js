@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-// const { GetMatch, C1, C2, P, OrderFeedUpdate, B } = require('../../../../shared-behaviours');
-const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
+const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
+// const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -84,24 +84,48 @@ FeatureHelper.describeFeature(module, {
     // TODO does validator check that full Seller details are included in the seller response?
   });
 
-  // TODO TODO TODO call A using test interface
+  describe('Simulate Seller Approval (Test Interface Action)', () => {
+    (new TestInterfaceAction({
+      flow,
+      logger,
+      createActionFn: () => ({
+        type: 'test:ReplacementSimulateAction',
+        objectType: 'OrderProposal',
+        objectId: state.pResponse.body['@id'],
+      }),
+      completedFlowStage: 'P',
+    }))
+      .beforeSetup()
+      .successChecks();
+  });
 
-  // describe('Orders Feed (after P)', () => {
-  //   const orderFeedUpdate = (new OrderFeedUpdate({
-  //     state,
-  //     flow,
-  //     logger,
-  //     ordersFeedMode: 'orders-feed-after-p',
-  //   }))
-  //     .beforeSetup()
-  //     .successChecks()
-  //     .validationTests();
+  describe('Orders Feed (after P)', () => {
+    const orderFeedUpdate = (new OrderFeedUpdate({
+      state,
+      flow,
+      logger,
+      ordersFeedMode: 'orders-feed-after-p',
+    }))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
 
-  //   it('should have orderProposalStatus: SellerAccepted', () => {
-  //     expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalStatus', 'https://openactive.io/SellerAccepted');
-  //   });
-  //   it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-  //     expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalVersion', state.pResponse.body.orderProposalVersion);
-  //   });
-  // });
+    it('should have orderProposalStatus: SellerAccepted', () => {
+      expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalStatus', 'https://openactive.io/SellerAccepted');
+    });
+    it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
+      expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalVersion', state.pResponse.body.orderProposalVersion);
+    });
+  });
+
+  describe('B', () => {
+    (new B({
+      state,
+      flow,
+      logger,
+    }))
+      .beforeSetup()
+      .successChecks()
+      .validationTests();
+  });
 });

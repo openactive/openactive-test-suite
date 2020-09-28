@@ -128,6 +128,14 @@ class RequestState {
     return this;
   }
 
+  get getOrderAfterPResponseSucceeded() {
+    return isResponse20x(this.getOrderAfterPResponse);
+  }
+
+  get getOrderAfterPResponseReceived() {
+    return isResponse(this.getOrderAfterPResponse);
+  }
+
   async getDatasetSite() {
     const result = await this.requestHelper.getDatasetSite();
 
@@ -270,6 +278,14 @@ class RequestState {
 
   get PResponseReceived() {
     return isResponse(this.pResponse);
+  }
+
+  /**
+   * @returns {string | null}
+   */
+  get orderProposalVersion() {
+    if (!this.pResponse) { return null; }
+    return this.pResponse.body.orderProposalVersion;
   }
 
   get orderItemId() {

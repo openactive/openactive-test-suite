@@ -403,6 +403,35 @@ class RequestHelper {
   }
 
   /**
+   * @param {object} args
+   * @param {object} args.action
+   * @param {string} args.action.type
+   * @param {string} args.action.objectType
+   * @param {string} args.action.objectId
+   */
+  async callTestInterfaceAction({ action: { type, objectType, objectId } }) {
+    const response = await this.post(
+      `Call TestInterface Action of type: ${type}`,
+      `${BOOKING_API_BASE}test-interface/actions`,
+      {
+        '@context': [
+          'https://openactive.io/',
+          'https://openactive.io/test-interface',
+        ],
+        '@type': type,
+        object: {
+          '@type': objectType,
+          '@id': objectId,
+        },
+      },
+      {
+        timeout: 10000,
+      },
+    );
+    return response;
+  }
+
+  /**
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */

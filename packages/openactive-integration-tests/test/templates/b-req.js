@@ -12,10 +12,45 @@
  *     },
  *   }[],
  *   totalPaymentDue: number,
+ *   orderProposalVersion: string | null,
  * }} BReqTemplateData
  */
 
 const { dissocPath } = require('ramda');
+
+function createPaymentPart() {
+  return {
+    '@type': 'Payment',
+    name: 'AcmeBroker Points',
+    identifier: '1234567890npduy2f',
+    accountId: 'STRIP',
+  };
+}
+
+/**
+ * @param {BReqTemplateData} data
+ * @returns {boolean}
+ */
+function isPaymentNeeded(data) {
+  return data.totalPaymentDue > 0;
+}
+
+/**
+ * B request in the Approve Flow (after P).
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAfterPBReq(data) {
+  const result = {
+    '@context': 'https://openactive.io/',
+    '@type': 'Order',
+    orderProposalVersion: data.orderProposalVersion,
+  };
+  if (isPaymentNeeded(data)) {
+    result.payment = createPaymentPart();
+  }
+  return result;
+}
 
 /**
  * Create a B request, excluding the payment related details
@@ -96,12 +131,7 @@ function createStandardPaidBReq(data) {
       price: data.totalPaymentDue,
       priceCurrency: 'GBP',
     },
-    payment: {
-      '@type': 'Payment',
-      name: 'AcmeBroker Points',
-      identifier: '1234567890npduy2f',
-      accountId: 'STRIP',
-    },
+    payment: createPaymentPart(),
   };
 }
 
@@ -112,7 +142,10 @@ function createStandardPaidBReq(data) {
  * @param {BReqTemplateData} data
  */
 function createStandardFreeOrPaidBReq(data) {
-  if (data.totalPaymentDue === 0) {
+  if (data.orderProposalVersion) {
+    return createAfterPBReq(data);
+  }
+  if (isPaymentNeeded(data)) {
     return createStandardFreeBReq(data);
   }
   return createStandardPaidBReq(data);
