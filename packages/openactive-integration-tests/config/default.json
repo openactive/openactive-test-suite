@@ -5,7 +5,7 @@
   "conformanceCertificateId": "https://www.example.com/",
   "bookableOpportunityTypesInScope": {
     "ScheduledSession": true,
-    "FacilityUseSlot": false,
+    "FacilityUseSlot": true,
     "IndividualFacilityUseSlot": false,
     "CourseInstance": false,
     "CourseInstanceSubEvent": false,
