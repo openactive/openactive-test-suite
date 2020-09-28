@@ -27,7 +27,6 @@ function isResponse(response) {
 
 class RequestState {
   /**
-   *
    * @param {InstanceType<import('./logger')['Logger']>} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
@@ -113,18 +112,20 @@ class RequestState {
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
   }
 
-  async getOrder() {
+  async getOrderAfterU() {
     const result = await this.requestHelper.getOrder(this.uuid);
 
-    this.ordersFeedUpdate = result;
+    this.getOrderAfterUResponse = result;
 
     return this;
   }
 
-  get rpdeItem() {
-    if (!this.ordersFeedUpdate) return;
+  async getOrderAfterP() {
+    const result = await this.requestHelper.getOrder(this.uuid);
 
-    return this.ordersFeedUpdate.body;
+    this.getOrderAfterPResponse = result;
+
+    return this;
   }
 
   async getDatasetSite() {
@@ -230,13 +231,6 @@ class RequestState {
     return this;
   }
 
-  async putOrderProposal() {
-    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
-    this.pResponse = result;
-
-    return this;
-  }
-
   get C2ResponseSucceeded() {
     return isResponse20x(this.c2Response);
   }
@@ -261,6 +255,21 @@ class RequestState {
 
   get BResponseReceived() {
     return isResponse(this.bResponse);
+  }
+
+  async putOrderProposal() {
+    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
+    this.pResponse = result;
+
+    return this;
+  }
+
+  get PResponseSucceeded() {
+    return isResponse20x(this.pResponse);
+  }
+
+  get PResponseReceived() {
+    return isResponse(this.pResponse);
   }
 
   get orderItemId() {
@@ -308,4 +317,6 @@ class RequestState {
 
 module.exports = {
   RequestState,
+  isResponse20x,
+  isResponse,
 };

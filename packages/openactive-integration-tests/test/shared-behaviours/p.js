@@ -31,6 +31,9 @@ class P {
     return this;
   }
 
+  /**
+   * Note: This create it() blocks
+   */
   validationTests() {
     sharedValidationTests.shouldBeValidResponse(
       () => this.state.pResponse,
@@ -43,17 +46,14 @@ class P {
     return this;
   }
 
+  /**
+   * Note: This creates an it() blocks
+   */
   successChecks() {
     it('should return 200 on success', () => {
-      this.expectSuccessful();
-
-      chakram.expect(this.state.bResponse).to.have.status(200);
+      chakram.expect(this.state.pResponse).to.have.status(200);
     });
     return this;
-  }
-
-  expectSuccessful() {
-    if (!this.state.BResponseSucceeded) throw new Error('Expected B request to be successful.');
   }
 }
 

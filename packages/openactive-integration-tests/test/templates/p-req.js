@@ -21,7 +21,7 @@
 function createStandardPReq(data) {
   const result = {
     '@context': 'https://openactive.io/',
-    '@type': 'Order',
+    '@type': 'OrderProposal',
     brokerRole: 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',

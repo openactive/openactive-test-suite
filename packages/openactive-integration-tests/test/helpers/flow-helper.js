@@ -1,7 +1,7 @@
 const pMemoize = require("p-memoize");
 
 /**
- * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'P' | 'U' | 'getFeedUpdate'} StageIdentifier
+ * @typedef {'getDatasetSite' | 'getMatch' | 'C1' | 'C2' | 'B' | 'P' | 'U' | 'getFeedUpdateAfterU'} StageIdentifier
  */
 
 /**
@@ -81,6 +81,7 @@ class FlowHelper {
 
   P = pMemoize(async () => {
     this._assertStageShouldNotBeSkipped('P');
+    this.getOrderAfterPPromise = this.state.getOrderAfterU();
 
     if (!this._stagesToSkip.has('C2')) {
       await this.C2();
@@ -90,9 +91,19 @@ class FlowHelper {
     return this.state.putOrderProposal();
   }, { cachePromiseRejection: true });
 
+  getFeedUpdateAfterP = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('getFeedUpdateAfterU');
+    if (!this._stagesToSkip.has('P')) {
+      await this.P();
+      if (!this.state.PResponseSucceeded) throw Error('Pre-requisite step failed: P failed');
+    }
+
+    return await this.getOrderAfterPPromise;
+  }, { cachePromiseRejection: true });
+
   U = pMemoize(async () => {
     this._assertStageShouldNotBeSkipped('U');
-    this.getOrderPromise = this.state.getOrder();
+    this.getOrderAfterUPromise = this.state.getOrderAfterU();
 
     if (!this._stagesToSkip.has('B')) {
       await this.B();
@@ -102,14 +113,14 @@ class FlowHelper {
     return this.state.cancelOrder();
   }, { cachePromiseRejection: true });
 
-  getFeedUpdate = pMemoize(async () => {
-    this._assertStageShouldNotBeSkipped('getFeedUpdate');
+  getFeedUpdateAfterU = pMemoize(async () => {
+    this._assertStageShouldNotBeSkipped('getFeedUpdateAfterU');
     if (!this._stagesToSkip.has('U')) {
       await this.U();
       if (!this.state.UResponseSucceeded) throw Error('Pre-requisite step failed: U failed');
     }
 
-    return await this.getOrderPromise;
+    return await this.getOrderAfterUPromise;
   }, { cachePromiseRejection: true });
 }
 

@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, P, B } = require('../../../../shared-behaviours');
+// const { GetMatch, C1, C2, P, OrderFeedUpdate, B } = require('../../../../shared-behaviours');
+const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -12,7 +13,7 @@ const { GetMatch, C1, C2, P, B } = require('../../../../shared-behaviours');
  *   asynchronous before() block has completed.
  */
 function itShouldReturnOrderRequiresApprovalTrue(getChakramResponse) {
-  it('should return openBookingFlowRequirement: true', () => {
+  it('should return orderRequiresApproval: true', () => {
     const chakramResponse = getChakramResponse();
     expect(chakramResponse.body).to.have.property('orderRequiresApproval', true);
   });
@@ -75,11 +76,32 @@ FeatureHelper.describeFeature(module, {
       .validationTests();
 
     // TODO does validator check that orderProposalVersion is of form {orderId}/versions/{versionUuid}
-    // it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-    //   expect(state.pResponse.body).to.have.property('orderProposalVersion')
-    //     .which.matches(RegExp(`${state.uuid}/versions/.+`));
-    // });
+    it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
+      expect(state.pResponse.body).to.have.property('orderProposalVersion')
+        .which.matches(RegExp(`${state.uuid}/versions/.+`));
+    });
     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed
     // TODO does validator check that full Seller details are included in the seller response?
   });
+
+  // TODO TODO TODO call A using test interface
+
+  // describe('Orders Feed (after P)', () => {
+  //   const orderFeedUpdate = (new OrderFeedUpdate({
+  //     state,
+  //     flow,
+  //     logger,
+  //     ordersFeedMode: 'orders-feed-after-p',
+  //   }))
+  //     .beforeSetup()
+  //     .successChecks()
+  //     .validationTests();
+
+  //   it('should have orderProposalStatus: SellerAccepted', () => {
+  //     expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalStatus', 'https://openactive.io/SellerAccepted');
+  //   });
+  //   it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
+  //     expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalVersion', state.pResponse.body.orderProposalVersion);
+  //   });
+  // });
 });

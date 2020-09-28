@@ -4,6 +4,7 @@ const { C1 } = require('./c1');
 const { C2 } = require('./c2');
 const { B } = require('./b');
 const { P } = require('./p');
+const { OrderFeedUpdate } = require('./order-feed-update');
 const { Common } = require('./common');
 
 module.exports = {
@@ -13,5 +14,6 @@ module.exports = {
   C2,
   B,
   P,
+  OrderFeedUpdate,
   Common,
 };
