@@ -8,7 +8,7 @@
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {Pick<Criteria, 'opportunityConstraints' | 'offerConstraints'> | null} [args.includeConstraintsFromCriteria] If provided,
+ * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */

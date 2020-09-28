@@ -1,4 +1,4 @@
-const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria } = require('./criteriaUtils');
 
 /**
@@ -24,7 +24,7 @@ const TestOpportunityNotBookableViaAvailableChannel = createCriteria({
       mustNotHaveAvailableChannel,
     ],
   ],
-  includeConstraintsFromCriteria: CriteriaFutureScheduledOpportunity,
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 
 module.exports = {

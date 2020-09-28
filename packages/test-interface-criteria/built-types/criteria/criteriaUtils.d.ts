@@ -15,7 +15,7 @@ export type Criteria = {
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {Pick<Criteria, 'opportunityConstraints' | 'offerConstraints'> | null} [args.includeConstraintsFromCriteria] If provided,
+ * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
@@ -23,7 +23,7 @@ export function createCriteria({ name, opportunityConstraints, offerConstraints,
     name: string;
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
-    includeConstraintsFromCriteria: Pick<Criteria, 'opportunityConstraints' | 'offerConstraints'> | null;
+    includeConstraintsFromCriteria: Criteria | null;
 }): Criteria;
 /**
  * @param {Opportunity} opportunity

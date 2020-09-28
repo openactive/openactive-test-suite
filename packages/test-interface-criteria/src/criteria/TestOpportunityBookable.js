@@ -1,47 +1,27 @@
-const moment = require('moment');
+const { complement } = require('ramda');
+const { createCriteria } = require('./criteriaUtils');
+const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
+const { supportsMinimalProposalFlow } = require('./sharedConstraints');
 
-const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
-const { getRemainingCapacity, createCriteria } = require('./criteriaUtils');
-
-/**
- * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
- * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
- */
+const doesNotSupportMinimalProposalFlow = complement(supportsMinimalProposalFlow);
 
 /**
- * @type {OpportunityConstraint}
- */
-function remainingCapacityMustBeNonZero(opportunity) {
-  return getRemainingCapacity(opportunity) > 0;
-}
-
-/**
- * @type {OfferConstraint}
- */
-function mustHaveBookableOffer(offer, opportunity) {
-  return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
-    && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore());
-}
-
-/**
- * Implements https://openactive.io/test-interface#TestOpportunityBookable
+ * Implements https://openactive.io/test-interface#TestOpportunityBookable.
+ *
+ * Note that this differs from the above by forbidding Minimal Proposal Flow
+ * offers. This means that tests written for this criteria can focus on
+ * Simple Booking Flow scenarios.
  */
 const TestOpportunityBookable = createCriteria({
   name: 'TestOpportunityBookable',
-  opportunityConstraints: [
-    [
-      'Remaining capacity must be non-zero',
-      remainingCapacityMustBeNonZero,
-    ],
-  ],
+  opportunityConstraints: [],
   offerConstraints: [
     [
-      'Must have "bookable" offer',
-      mustHaveBookableOffer,
+      'Does not support Minimal Proposal flow',
+      doesNotSupportMinimalProposalFlow,
     ],
   ],
-  includeConstraintsFromCriteria: CriteriaFutureScheduledOpportunity,
+  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
 });
 
 module.exports = {

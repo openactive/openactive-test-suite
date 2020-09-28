@@ -1,4 +1,4 @@
-const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
 
 /**
@@ -24,7 +24,7 @@ const TestOpportunityBookableNoSpaces = createCriteria({
     ],
   ],
   offerConstraints: [],
-  includeConstraintsFromCriteria: CriteriaFutureScheduledOpportunity,
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 
 module.exports = {
