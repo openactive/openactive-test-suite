@@ -11,7 +11,7 @@ const RequestHelper = require('../helpers/request-helper');
 
 /**
  * @typedef {{
- *   type: 'test:ReplacementSimulateAction',
+ *   type: 'test:ReplacementSimulateAction' | 'test:SellerAcceptOrderProposalSimulateAction',
  *   objectType: 'OrderProposal',
  *   objectId: string,
  * }} ActionSpec

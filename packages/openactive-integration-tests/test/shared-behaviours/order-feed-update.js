@@ -51,7 +51,7 @@ class OrderFeedUpdate {
    */
   validationTests() {
     sharedValidationTests.shouldBeValidResponse(
-      () => this.state.pResponse,
+      () => this.getStateResponse(),
       `OrderFeed(${this.ordersFeedMode})`,
       this.logger,
       {

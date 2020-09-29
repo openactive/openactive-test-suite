@@ -111,10 +111,10 @@ FeatureHelper.describeFeature(module, {
       .validationTests();
 
     it('should have orderProposalStatus: SellerAccepted', () => {
-      expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalStatus', 'https://openactive.io/SellerAccepted');
+      expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
     });
     it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-      expect(orderFeedUpdate.getStateResponse().body).to.have.property('orderProposalVersion', state.pResponse.body.orderProposalVersion);
+      expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderProposalVersion', state.pResponse.body.orderProposalVersion);
     });
   });
 
