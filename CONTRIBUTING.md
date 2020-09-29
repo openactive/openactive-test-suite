@@ -23,14 +23,31 @@ When code is committed, the documentation generator is automatically run. This p
 
 ## Reference Implementation
 
-The OpenActive Test Suite is developed against a reference implementation, [OpenActive.Server.NET](https://github.com/openactive/OpenActive.Server.NET/).
+The OpenActive Test Suite is developed against a Reference Implementation, [OpenActive.Server.NET](https://github.com/openactive/OpenActive.Server.NET/).
 
-The CI checks that the Test Suite passes for the reference implementation. Therefore, the approach for adding each new test is to work on both:
+### CI
+
+The CI checks that the Test Suite passes for the Reference Implementation. When adding a new test, it is possible that the Reference Implementation has not yet implemented the functionality that the new test tests.
+
+Therefore, when adding a new test that requires work to the Test Suite and the Reference Implementation, the approach is to work on them both:
 
 - Reference Implementation: The implementation of the feature that's being tested.
 - Test Suite: The test itself.
 
-Any new feature that affects test coverage must be developed in a `coverage/*` branch in both reposities, in order for the CI to automatically run both feature branches against each other.
+Use a `coverage/*` branch in both repositories with the same name (e.g. `coverage/amend-order-quote`) in order for the CI to automatically run both branches against each other.
+
+### Local testing
+
+It is often helpful to run the tests against a local copy of the Reference Implementation. In order to do this:
+
+1. Run the Reference Implementation (`Examples/BookingSystem.AspNetCore` in [OpenActive.Server.NET](https://github.com/openactive/OpenActive.Server.NET/)) locally.
+2. Update `datasetSiteUrl` in your local broker config (packages/openactive-broker-microservice/config/local.json) to point to the local Reference Implementation's `/openactive` URL e.g. (ports are assigned randomly by .NET, so yours will differ from this example)
+    ```json
+    "datasetSiteUrl": "http://localhost:55603/openactive"
+    ```
+3. Update `sellers` in your local integration tests config (packages/openactive-integration-tests/config/local.json) to reflect the local seller URLs.
+
+The broker and tests should now run against your local copy of the Reference Implementation.
 
 ## Pull Request Process
 
