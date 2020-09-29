@@ -89,7 +89,7 @@ class FlowHelper {
 
   P = pMemoize(async () => {
     this._assertStageShouldNotBeSkipped('P');
-    this.getOrderAfterPPromise = this.state.getOrderAfterU();
+    this.getOrderAfterPPromise = this.state.getOrderAfterP();
 
     if (!this._stagesToSkip.has('C2')) {
       await this.C2();
