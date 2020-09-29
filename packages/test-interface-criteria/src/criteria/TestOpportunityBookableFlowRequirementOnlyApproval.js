@@ -2,8 +2,8 @@ const { createCriteria } = require('./criteriaUtils');
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
 const { supportsMinimalProposalFlow } = require('./sharedConstraints');
 
-const TestOpportunityMinimalProposalBookable = createCriteria({
-  name: 'TestOpportunityMinimalProposalBookable',
+const TestOpportunityBookableFlowRequirementOnlyApproval = createCriteria({
+  name: 'TestOpportunityBookableFlowRequirementOnlyApproval',
   opportunityConstraints: [],
   offerConstraints: [
     [
@@ -15,5 +15,5 @@ const TestOpportunityMinimalProposalBookable = createCriteria({
 });
 
 module.exports = {
-  TestOpportunityMinimalProposalBookable,
+  TestOpportunityBookableFlowRequirementOnlyApproval,
 };
