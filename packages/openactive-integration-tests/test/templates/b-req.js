@@ -146,9 +146,9 @@ function createStandardFreeOrPaidBReq(data) {
     return createAfterPBReq(data);
   }
   if (isPaymentNeeded(data)) {
-    return createStandardFreeBReq(data);
+    return createStandardPaidBReq(data);
   }
-  return createStandardPaidBReq(data);
+  return createStandardFreeBReq(data);
 }
 
 /**
