@@ -89,7 +89,7 @@ FeatureHelper.describeFeature(module, {
       flow,
       logger,
       createActionFn: () => ({
-        type: 'test:ReplacementSimulateAction',
+        type: 'test:SellerAcceptOrderProposalSimulateAction',
         objectType: 'OrderProposal',
         objectId: state.pResponse.body['@id'],
       }),
