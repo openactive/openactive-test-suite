@@ -23,7 +23,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {
-  describe('Missing payment property at B', () => {
+  describe('Missing identifier in payment property at B', () => {
     const state = new RequestState(logger, { bReqTemplateRef: 'incorrectOrderDueToMissingIdentifierInPaymentProperty' });
     const flow = new FlowHelper(state);
 
@@ -63,19 +63,19 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .successChecks()
         .validationTests();
     });
-  
+
     describe('B', function () {
       (new B({
         state, flow, logger,
       }))
-      .beforeSetup()
-      .itResponseReceived()
-      .validationTests();
-  
-        it('should return 400, with an IncompletePaymentDetailsError error', () => {
-          chai.expect(state.bResponse.response.statusCode).to.equal(400);
-          chai.expect(state.bResponse.body).to.have.property('@type', 'IncompletePaymentDetailsError');
-        });      
-    });    
+        .beforeSetup()
+        .itResponseReceived()
+        .validationTests();
+
+      it('should return 400, with an IncompletePaymentDetailsError error', () => {
+        chai.expect(state.bResponse.response.statusCode).to.equal(400);
+        chai.expect(state.bResponse.body).to.have.property('@type', 'IncompletePaymentDetailsError');
+      });
+    });
   });
 });
