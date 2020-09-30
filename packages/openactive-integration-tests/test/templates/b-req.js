@@ -156,6 +156,16 @@ function createIncorrectTotalPaymentDuePriceBReq(data) {
 }
 
 /**
+ * Paid B request with incorrect payment property as identifier is missing.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectOrderDueToMissingIdentifierInPaymentProperty(data) {
+  const req = createStandardPaidBReq(data);
+  return dissocPath(['payment', 'identifier'], req);
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -166,6 +176,7 @@ const bReqTemplates = {
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
+  incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty
 };
 
 /**
