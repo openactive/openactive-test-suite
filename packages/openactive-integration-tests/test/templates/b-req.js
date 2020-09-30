@@ -177,7 +177,7 @@ const bReqTemplates = {
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
-  incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty
+  incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
 };
 
 /**

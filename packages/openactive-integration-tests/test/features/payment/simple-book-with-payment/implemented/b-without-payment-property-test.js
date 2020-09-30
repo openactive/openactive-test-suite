@@ -26,7 +26,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   describe('Missing payment property at B', () => {
     const state = new RequestState(logger, { bReqTemplateRef: 'incorrectOrderDueToMissingPaymentProperty' });
     const flow = new FlowHelper(state);
-  
+
     beforeAll(async function () {
       await state.fetchOpportunities(orderItemCriteria);
       return chakram.wait();
@@ -63,19 +63,19 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .successChecks()
         .validationTests();
     });
-  
+
     describe('B', function () {
       (new B({
         state, flow, logger,
       }))
-      .beforeSetup()
-      .itResponseReceived()
-      .validationTests();
-  
-        it('should return 400, with an MissingPaymentDetailsError error', () => {
-          chai.expect(state.bResponse.response.statusCode).to.equal(400);
-          chai.expect(state.bResponse.body).to.have.property('@type', 'MissingPaymentDetailsError');
-        });      
-    });    
+        .beforeSetup()
+        .itResponseReceived()
+        .validationTests();
+
+      it('should return 400, with an MissingPaymentDetailsError error', () => {
+        chai.expect(state.bResponse.response.statusCode).to.equal(400);
+        chai.expect(state.bResponse.body).to.have.property('@type', 'MissingPaymentDetailsError');
+      });
+    });
   });
 });
