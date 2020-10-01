@@ -1,7 +1,7 @@
 [< Return to Overview](../../README.md)
-# Minimal Proposal Implementation - Book an opportunity using a Proposal (minimal-proposal)
+# Minimal Proposal Implementation - Book an opportunity using an OrderProposal (minimal-proposal)
 
-Test Minimal Proposal Implementation approval flows. Proposal Amendments are not included here.
+Test Minimal Proposal Implementation approval flows. OrderProposal Amendments are not included here.
 
 
 https://openactive.io/open-booking-api/EditorsDraft/#minimal-proposal-implementation

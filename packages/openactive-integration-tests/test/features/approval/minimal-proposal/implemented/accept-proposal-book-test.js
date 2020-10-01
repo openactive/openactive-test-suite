@@ -23,7 +23,7 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'approval',
   testFeature: 'minimal-proposal',
   testFeatureImplemented: true,
-  testIdentifier: 'successful-book',
+  testIdentifier: 'accept-proposal-book',
   testName: 'Successful booking using the Booking Flow with Approval',
   testDescription: 'A successful end to end booking, via Booking Flow with Approval, of an opportunity.',
   // The primary opportunity criteria to use for the primary OrderItem under test
