@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
+// const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -23,9 +24,9 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'approval',
   testFeature: 'minimal-proposal',
   testFeatureImplemented: true,
-  testIdentifier: 'seller-reject-proposal',
-  testName: 'OrderProposal rejected by the Seller',
-  testDescription: 'An OrderProposal that is rejected by the Seller, and the call to B subsequently fails',
+  testIdentifier: 'not-accept-proposal-book',
+  testName: 'OrderProposal not yet accepted by the Seller',
+  testDescription: 'An OrderProposal that is not yet accepted by the Seller, and the call to B subsequently fails',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
   // even if some OrderItems don't require approval, the whole Order should
@@ -82,40 +83,6 @@ FeatureHelper.describeFeature(module, {
     });
     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed
     // TODO does validator check that full Seller details are included in the seller response?
-  });
-
-  describe('Simulate Seller Rejection (Test Interface Action)', () => {
-    (new TestInterfaceAction({
-      flow,
-      logger,
-      createActionFn: () => ({
-        type: 'test:SellerRejectOrderProposalSimulateAction',
-        objectType: 'OrderProposal',
-        objectId: state.pResponse.body['@id'],
-      }),
-      completedFlowStage: 'P',
-    }))
-      .beforeSetup()
-      .successChecks();
-  });
-
-  describe('Orders Feed (after P)', () => {
-    const orderFeedUpdate = (new OrderFeedUpdate({
-      state,
-      flow,
-      logger,
-      ordersFeedMode: 'orders-feed-after-p',
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    it('should have orderProposalStatus: SellerRejected', () => {
-      expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerRejected');
-    });
-    it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-      expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderProposalVersion', state.pResponse.body.orderProposalVersion);
-    });
   });
 
   describe('B', () => {
