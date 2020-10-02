@@ -11,8 +11,8 @@ const { getRemainingCapacity, createCriteria } = require('../criteriaUtils');
 /**
  * @type {OpportunityConstraint}
  */
-function remainingCapacityMustBeNonZero(opportunity) {
-  return getRemainingCapacity(opportunity) > 0;
+function remainingCapacityMustBeAtLeastTwo(opportunity) {
+  return getRemainingCapacity(opportunity) > 1;
 }
 
 /**
@@ -34,8 +34,8 @@ const InternalTestOpportunityBookable = createCriteria({
   name: '_InternalTestOpportunityBookable',
   opportunityConstraints: [
     [
-      'Remaining capacity must be non-zero',
-      remainingCapacityMustBeNonZero,
+      'Remaining capacity must be at least two',
+      remainingCapacityMustBeAtLeastTwo,
     ],
   ],
   offerConstraints: [
