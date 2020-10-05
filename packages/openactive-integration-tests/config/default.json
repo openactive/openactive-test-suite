@@ -33,7 +33,7 @@
     "seller-requested-cancellation": null,
     "seller-requested-cancellation-message": null,
     "seller-requested-replacement": null,
-    "named-leasing": null,
+    "named-leasing": true,
     "anonymous-leasing": null,
     "customer-details-capture-non-essential": null,
     "customer-details-capture-identifier": null,
@@ -64,7 +64,8 @@
     "terms-of-service": null,
     "terms-of-service-with-consent": null,
     "terms-of-service-with-consent-with-date-modified": null,
-    "booking-partner-authentication": null
+    "booking-partner-authentication": null,
+    "minimal-proposal": true
   },
   "testDatasetIdentifier": "uat-ci",
   "sellers": {
