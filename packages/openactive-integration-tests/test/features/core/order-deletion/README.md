@@ -11,7 +11,7 @@ Coverage Status: **none**
 See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-6-orders-feed)
 
 
-*Note the test coverage for this feature is currently non-existant. The test suite does not yet include non-stubbed tests for this feature.*
+*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
 
 
 ## 'Implemented' tests
