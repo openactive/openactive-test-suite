@@ -24,7 +24,7 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'leasing',
   testFeature: 'named-leasing',
   testFeatureImplemented: true,
-  testIdentifier: 'lease-response-test',
+  testIdentifier: 'lease-response',
   testName: 'Response at C2 includes a "lease" with a "leaseExpires" in the future',
   testDescription: 'Named lease returned at C2 reserves the OrderItems for a specified length of time',
   // The primary opportunity criteria to use for the primary OrderItem under test
