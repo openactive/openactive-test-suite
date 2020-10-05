@@ -5,6 +5,7 @@ const { generateUuid } = require('./generate-uuid');
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
+const { pReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
 
 /**
@@ -107,7 +108,7 @@ class RequestHelper {
     return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
-  createHeaders(sellerId) {
+  createHeaders() {
     return Object.assign({
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
     }, REQUEST_HEADERS);
@@ -277,7 +278,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}order-quote-templates/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(params.sellerId),
+        headers: this.createHeaders(),
         timeout: 10000,
       },
     );
@@ -299,7 +300,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}order-quotes/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(params.sellerId),
+        headers: this.createHeaders(),
         timeout: 10000,
       },
     );
@@ -321,12 +322,36 @@ class RequestHelper {
       `${BOOKING_API_BASE}orders/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(params.sellerId),
+        headers: this.createHeaders(),
         timeout: 10000,
       },
     );
 
     return bResponse;
+  }
+
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/p-req').PReqTemplateData} params
+   * @param {import('../templates/p-req').PReqTemplateRef} pReqTemplateRef
+   */
+  async putOrderProposal(uuid, params, pReqTemplateRef = 'standard') {
+    const templateFn = pReqTemplates[pReqTemplateRef];
+    const requestBody = templateFn(params);
+
+    const pResponse = await this.put(
+      'P',
+      `${BOOKING_API_BASE}order-proposals/${uuid}`,
+      requestBody,
+      {
+        headers: this.createHeaders(),
+        // allow a bit of time leeway for this request, as the P request must be
+        // processed atomically
+        timeout: 10000,
+      },
+    );
+
+    return pResponse;
   }
 
   /**
@@ -342,7 +367,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}orders/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(params.sellerId),
+        headers: this.createHeaders(),
         timeout: 10000,
       },
     );
@@ -356,7 +381,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
-        headers: this.createHeaders(sellerId),
+        headers: this.createHeaders(),
         timeout: 10000,
       },
     );
@@ -378,6 +403,36 @@ class RequestHelper {
   }
 
   /**
+   * @param {object} args
+   * @param {object} args.action
+   * @param {string} args.action.type
+   * @param {string} args.action.objectType
+   * @param {string} args.action.objectId
+   */
+  async callTestInterfaceAction({ action: { type, objectType, objectId } }) {
+    const response = await this.post(
+      `Call TestInterface Action of type: ${type}`,
+      `${BOOKING_API_BASE}test-interface/actions`,
+      {
+        '@context': [
+          'https://openactive.io/',
+          'https://openactive.io/test-interface',
+        ],
+        '@type': type,
+        object: {
+          '@type': objectType,
+          '@id': objectId,
+        },
+      },
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return response;
+  }
+
+  /**
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */
@@ -386,7 +441,7 @@ class RequestHelper {
       'delete-order',
       `${BOOKING_API_BASE}orders/${uuid}`,
       {
-        headers: this.createHeaders(params.sellerId),
+        headers: this.createHeaders(),
         timeout: 10000,
       },
     );

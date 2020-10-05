@@ -19,17 +19,17 @@ function outsideValidFromBeforeStartDate(offer, opportunity) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate
  */
-const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria(
-  'TestOpportunityBookableOutsideValidFromBeforeStartDate',
-  [],
-  [
+const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
+  name: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
+  opportunityConstraints: [],
+  offerConstraints: [
     [
       'Outside ValidFromBeforeStartDate',
       outsideValidFromBeforeStartDate,
     ],
   ],
-  TestOpportunityBookable,
-);
+  includeConstraintsFromCriteria: TestOpportunityBookable,
+});
 
 module.exports = {
   TestOpportunityBookableOutsideValidFromBeforeStartDate,
