@@ -180,7 +180,7 @@ ${f.coverageStatus !== 'none' ? `
 ${'```'}bash
 npm start -- --runInBand test/features/${f.category}/${f.identifier}/
 ${'```'}
-` : '*Note the test coverage for this feature is currently non-existant. The test suite does not yet include non-stubbed tests for this feature.*'}
+` : '*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*'}
 
 ${implementedTests.length > 0 ? `
 ## 'Implemented' tests
