@@ -6,6 +6,7 @@ const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
@@ -16,7 +17,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'b-with-incomplete-payment-details',
   testName: 'IncompletePaymentDetailsError must be returned in the case that payment details are not supplied',
-  testDescription: 'An usuccessful end to end booking, because identifier is missing in payment property in B request.',
+  testDescription: 'An unsuccessful end to end booking, because identifier is missing in the payment property in B request.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -72,10 +73,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .itResponseReceived()
         .validationTests();
 
-      it('should return 400, with an IncompletePaymentDetailsError error', () => {
-        chai.expect(state.bResponse.response.statusCode).to.equal(400);
-        chai.expect(state.bResponse.body).to.have.property('@type', 'IncompletePaymentDetailsError');
-      });
+        itShouldReturnAnOpenBookingError('IncompletePaymentDetailsError', 400, () => state.bResponse);
     });
   });
 });
