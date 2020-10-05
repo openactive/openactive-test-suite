@@ -73,7 +73,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .itResponseReceived()
         .validationTests();
 
-        itShouldReturnAnOpenBookingError('IncompletePaymentDetailsError', 400, () => state.bResponse);
+      itShouldReturnAnOpenBookingError('IncompletePaymentDetailsError', 400, () => state.bResponse);
     });
   });
 });
