@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'customer-details-capture-identifier',
   testFeatureImplemented: true,
   testIdentifier: 'customer-identifier-capture',
-  testName: '- C1, C2 and B - identifier is reflected back',
+  testName: 'C1, C2 and B - identifier is reflected back',
   testDescription: 'Identifier from the Customer supplied by Broker should be reflected back by booking system.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
