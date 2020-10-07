@@ -1,4 +1,4 @@
-const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
 
 /**
@@ -15,17 +15,17 @@ function remainingCapacityMustBeZero(opportunity) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableNoSpaces
  */
-const TestOpportunityBookableNoSpaces = createCriteria(
-  'TestOpportunityBookableNoSpaces',
-  [
+const TestOpportunityBookableNoSpaces = createCriteria({
+  name: 'TestOpportunityBookableNoSpaces',
+  opportunityConstraints: [
     [
       'Remaining capacity must be zero',
       remainingCapacityMustBeZero,
     ],
   ],
-  [],
-  CriteriaFutureScheduledOpportunity,
-);
+  offerConstraints: [],
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+});
 
 module.exports = {
   TestOpportunityBookableNoSpaces,

@@ -27,7 +27,6 @@ function isResponse(response) {
 
 class RequestState {
   /**
-   *
    * @param {InstanceType<import('./logger')['Logger']>} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
@@ -113,18 +112,28 @@ class RequestState {
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
   }
 
-  async getOrder() {
+  async getOrderAfterU() {
     const result = await this.requestHelper.getOrder(this.uuid);
 
-    this.ordersFeedUpdate = result;
+    this.getOrderAfterUResponse = result;
 
     return this;
   }
 
-  get rpdeItem() {
-    if (!this.ordersFeedUpdate) return;
+  async getOrderAfterP() {
+    const result = await this.requestHelper.getOrder(this.uuid);
 
-    return this.ordersFeedUpdate.body;
+    this.getOrderAfterPResponse = result;
+
+    return this;
+  }
+
+  get getOrderAfterPResponseSucceeded() {
+    return isResponse20x(this.getOrderAfterPResponse);
+  }
+
+  get getOrderAfterPResponseReceived() {
+    return isResponse(this.getOrderAfterPResponse);
   }
 
   async getDatasetSite() {
@@ -207,12 +216,15 @@ class RequestState {
     return isResponse(this.c1Response);
   }
 
+  /**
+   * @returns {number | undefined}
+   */
   get totalPaymentDue() {
     const response = this.c2Response || this.c1Response;
 
-    if (!response) return;
+    if (!response) return undefined;
 
-    if (!response.body.totalPaymentDue) return;
+    if (!response.body.totalPaymentDue) return undefined;
 
     return response.body.totalPaymentDue.price;
   }
@@ -251,6 +263,29 @@ class RequestState {
 
   get BResponseReceived() {
     return isResponse(this.bResponse);
+  }
+
+  async putOrderProposal() {
+    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
+    this.pResponse = result;
+
+    return this;
+  }
+
+  get PResponseSucceeded() {
+    return isResponse20x(this.pResponse);
+  }
+
+  get PResponseReceived() {
+    return isResponse(this.pResponse);
+  }
+
+  /**
+   * @returns {string | null}
+   */
+  get orderProposalVersion() {
+    if (!this.pResponse) { return null; }
+    return this.pResponse.body.orderProposalVersion;
   }
 
   get orderItemId() {
@@ -298,4 +333,6 @@ class RequestState {
 
 module.exports = {
   RequestState,
+  isResponse20x,
+  isResponse,
 };

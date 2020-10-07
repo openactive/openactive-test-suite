@@ -72,13 +72,14 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .validationTests();
   });
 
+  // TODO Refactor: Use shared-behaviours/order-feed-update
   describe('Orders Feed', function () {
     beforeAll(async function () {
-      await flow.getFeedUpdate();
+      await flow.getFeedUpdateAfterU();
     });
 
     it(`Orders feed result should have ${orderItemCriteria.length} orderedItem(s)`, function () {
-      expect(state.ordersFeedUpdate).to.have.schema('data.orderedItem', {
+      expect(state.getOrderAfterUResponse).to.have.schema('data.orderedItem', {
         minItems: orderItemCriteria.length,
         maxItems: orderItemCriteria.length,
       });
@@ -99,13 +100,13 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     });
 
     it('Orders feed should have CustomerCancelled as orderItemStatus', function () {
-      expect(state.ordersFeedUpdate).to.have.json(
+      expect(state.getOrderAfterUResponse).to.have.json(
         'data.orderedItem[0].orderItemStatus',
         'https://openactive.io/CustomerCancelled',
       );
     });
 
-    sharedValidationTests.shouldBeValidResponse(() => state.ordersFeedUpdate, 'Orders feed', logger, {
+    sharedValidationTests.shouldBeValidResponse(() => state.getOrderAfterUResponse, 'Orders feed', logger, {
       validationMode: 'OrdersFeed',
     });
   });
