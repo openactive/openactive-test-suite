@@ -6,6 +6,7 @@ const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
@@ -15,8 +16,8 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'simple-book-with-payment',
   testFeatureImplemented: true,
   testIdentifier: 'b-without-payment-property',
-  testName: 'Unuccessful booking without payment property',
-  testDescription: 'An usuccessful end to end booking, without the `payment` property included.',
+  testName: 'Unsuccessful booking without payment property',
+  testDescription: 'An unsuccessful end to end booking for a non-free opportunity, failing due to missing `payment` property.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -71,11 +72,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .beforeSetup()
         .itResponseReceived()
         .validationTests();
-
-      it('should return 400, with an MissingPaymentDetailsError error', () => {
-        chai.expect(state.bResponse.response.statusCode).to.equal(400);
-        chai.expect(state.bResponse.body).to.have.property('@type', 'MissingPaymentDetailsError');
-      });
+        
+        itShouldReturnAnOpenBookingError('MissingPaymentDetailsError', 400, () => state.bResponse);
     });
   });
 });
