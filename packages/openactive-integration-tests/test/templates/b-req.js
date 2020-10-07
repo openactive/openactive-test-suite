@@ -152,6 +152,20 @@ function createStandardFreeOrPaidBReq(data) {
 }
 
 /**
+ * Adding identifier field in customer
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardPaidBReqWithCustomerIdentifier(data) {
+  const retValue = createStandardPaidBReq(data);
+  retValue.customer = {
+    ...retValue.customer,
+    identifier: 'CustomerIdentifier',
+  };
+  return retValue;
+}
+
+/**
  * B request with missing customer.email
  *
  * @param {BReqTemplateData} data
@@ -206,6 +220,7 @@ const bReqTemplates = {
   standardFree: createStandardFreeBReq,
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
+  standardWithCustomerIdentifier: createStandardPaidBReqWithCustomerIdentifier,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
