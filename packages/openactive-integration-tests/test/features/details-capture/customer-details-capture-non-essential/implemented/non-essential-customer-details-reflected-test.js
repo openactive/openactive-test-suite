@@ -3,9 +3,7 @@ const chai = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
-//const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
@@ -66,13 +64,13 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         .beforeSetup()
         .itResponseReceived()
         .validationTests();
-      
+
       it('should return 200, with an Expected customer details', () => {
         chai.expect(state.bResponse.response.statusCode).to.equal(200);
         chai.expect(state.bResponse.body.customer.telephone).to.equal('020 811 8055');
         chai.expect(state.bResponse.body.customer.givenName).to.equal('Geoff');
         chai.expect(state.bResponse.body.customer.familyName).to.equal('Capes');
-      });        
+      });
     });
   });
 });
