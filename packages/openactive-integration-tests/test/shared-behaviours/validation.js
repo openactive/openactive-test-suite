@@ -2,6 +2,11 @@ const assert = require("assert");
 const { validate } = require("@openactive/data-model-validator");
 const { criteriaMap, testMatch } = require("@openactive/test-interface-criteria");
 
+/**
+ * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../helpers/logger').BaseLoggerType} BaseLoggerType
+ */
+
 function priorityOfSeverity(severity) {
   switch (severity) {
     case 'failure':
@@ -15,7 +20,19 @@ function priorityOfSeverity(severity) {
   }
 }
 
-function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCriteria) {
+/**
+ * Use OpenActive validator to validate the response from a flow request (e.g. C2).
+ *
+ * @param {() => ChakramResponse} getter Thunk which returns the HTTP response
+ *   from calling the flow endpoint (e.g. C2)
+ * @param {string} name Used to log the results and describe the test
+ * @param {BaseLoggerType} logger
+ * @param {object} options
+ * @param {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed'} options.validationMode
+ *   What type of response is being validated. Some modes have special handling behaviours.
+ * @param {string} [opportunityCriteria]
+ */
+function shouldBeValidResponse(getter, name, logger, options, opportunityCriteria) {
   let results = null;
 
   let doCriteriaMatch = (criteriaName) => {

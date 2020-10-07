@@ -15,17 +15,17 @@ function onlyFreeBookableOffers(offer) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableFree
  */
-const TestOpportunityBookableFree = createCriteria(
-  'TestOpportunityBookableFree',
-  [],
-  [
+const TestOpportunityBookableFree = createCriteria({
+  name: 'TestOpportunityBookableFree',
+  opportunityConstraints: [],
+  offerConstraints: [
     [
       'Only free bookable Offers',
       onlyFreeBookableOffers,
     ],
   ],
-  TestOpportunityBookable,
-);
+  includeConstraintsFromCriteria: TestOpportunityBookable,
+});
 
 module.exports = {
   TestOpportunityBookableFree,

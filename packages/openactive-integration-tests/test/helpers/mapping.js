@@ -13,6 +13,7 @@ const names = {
   "notifications": "Notifications",
   "terms": "Terms",
   "authentication": "Authentication",
+  "approval": "Approval Flow",
 }
 
 const identifiers = {};
