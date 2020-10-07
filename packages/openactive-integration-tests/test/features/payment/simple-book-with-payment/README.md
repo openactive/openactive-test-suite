@@ -12,7 +12,7 @@ See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x4, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
+[TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x7, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2
 
 
 ### Running tests for only this feature
@@ -37,6 +37,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
+| [b-without-payment-property](./implemented/b-without-payment-property-test.js) | Unsuccessful booking without payment property | An unsuccessful end to end booking for a non-free opportunity, failing due to missing `payment` property. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 | [with-payment-property](./implemented/with-payment-property-test.js) | Successful booking with payment property | A successful end to end booking with the `payment` property included. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
