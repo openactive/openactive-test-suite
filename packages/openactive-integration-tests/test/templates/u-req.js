@@ -46,7 +46,7 @@ function createNonExistantOrderUReq(data) {
  * @param {UReqTemplateData} data
  */
 function createUReqWithExcessiveProperties(data) {
-  return { 
+  return {
     ...createStandardUReq(data),
     '@id': 'excessiveField',
   };

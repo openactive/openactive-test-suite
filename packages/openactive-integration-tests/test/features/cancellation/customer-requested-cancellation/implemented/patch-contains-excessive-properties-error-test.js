@@ -14,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'patch-contains-excessive-properties-error',
   testName: 'Successful booking and unsuccessful cancellation due to PatchContainsExcessiveProperties error',
-  testDescription: 'PatchContainsExcessiveProperties returned because patch request includes other properties than @type, @context, orderProposalStatus and orderCustomerNote',
+  testDescription: 'PatchContainsExcessivePropertiesError returned because patch request includes other properties than @type, @context, orderProposalStatus and orderCustomerNote',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -82,9 +82,9 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       expect(state.uResponse).to.have.status(400);
     });
 
-    it('Order Cancellation should have PatchContainsExcessiveProperties as @type', function () {
+    it('Order Cancellation should have PatchContainsExcessiveProperties as @type and expected description', function () {
       expect(state.uResponse.body['@type']).to.equal('PatchContainsExcessivePropertiesError');
-      expect(state.uResponse.body['description']).to.equal('PATCH includes unexpected properties that are not permitted.');
+      expect(state.uResponse.body.description).to.equal('PATCH includes unexpected properties that are not permitted.');
     });
   });
 });
