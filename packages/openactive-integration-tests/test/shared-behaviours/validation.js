@@ -21,6 +21,10 @@ function priorityOfSeverity(severity) {
 }
 
 /**
+ * @typedef {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed'} ValidationMode
+ */
+
+/**
  * Use OpenActive validator to validate the response from a flow request (e.g. C2).
  *
  * @param {() => ChakramResponse} getter Thunk which returns the HTTP response
@@ -28,7 +32,7 @@ function priorityOfSeverity(severity) {
  * @param {string} name Used to log the results and describe the test
  * @param {BaseLoggerType} logger
  * @param {object} options
- * @param {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed'} options.validationMode
+ * @param {ValidationMode} options.validationMode
  *   What type of response is being validated. Some modes have special handling behaviours.
  * @param {string} [opportunityCriteria]
  */

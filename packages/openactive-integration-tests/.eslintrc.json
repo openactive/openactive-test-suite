@@ -7,6 +7,7 @@
   "globals": {
     "expectAsync": true
   },
+  "parser": "babel-eslint",
   "rules": {
     "object-curly-newline": ["error", {
         "ObjectExpression": { "multiline": true, "minProperties": 3, "consistent": true },
