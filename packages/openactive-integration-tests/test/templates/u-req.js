@@ -42,9 +42,20 @@ function createNonExistantOrderUReq(data) {
   };
 }
 
+/**
+ * @param {UReqTemplateData} data
+ */
+function createUReqWithExcessiveProperties(data) {
+  return { 
+    ...createStandardUReq(data),
+    '@id': 'excessiveField',
+  };
+}
+
 const uReqTemplates = {
   standard: createStandardUReq,
   nonExistantOrder: createNonExistantOrderUReq,
+  excessiveProperties: createUReqWithExcessiveProperties,
 };
 
 /**
