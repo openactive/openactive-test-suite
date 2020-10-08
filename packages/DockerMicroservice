@@ -1,0 +1,15 @@
+FROM node AS openactive.microservice
+
+WORKDIR /openactive
+
+RUN mkdir -p openactive-broker-microservice/node_modules/@openactive
+
+COPY openactive-broker-microservice /openactive/openactive-broker-microservice
+COPY test-interface-criteria /openactive/openactive-broker-microservice/node_modules/@openactive/test-interface-criteria
+
+WORKDIR /openactive/openactive-broker-microservice
+
+RUN npm install
+
+EXPOSE 3000
+VOLUME /openactive/openactive-broker-microservice/config
