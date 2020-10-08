@@ -10,7 +10,7 @@ Coverage Status: **none**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4
 
 *Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
 
@@ -29,6 +29,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [non-essential-customer-details-reflected](./implemented/non-essential-customer-details-reflected-test.js) | C1, C2 and B givenName, familyName, and telephone number are reflected back | Forename, surname, and telephone number from the Customer supplied by Broker should be reflected back by booking system. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [non-essential-customer-details-reflected](./implemented/non-essential-customer-details-reflected-test.js) | givenName, familyName, and telephone number are reflected back at C2 and B | Forename, surname, and telephone number from the Customer supplied by Broker should be reflected back by booking system. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
