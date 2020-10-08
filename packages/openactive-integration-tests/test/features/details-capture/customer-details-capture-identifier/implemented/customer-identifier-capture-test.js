@@ -13,20 +13,15 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'customer-details-capture-identifier',
   testFeatureImplemented: true,
   testIdentifier: 'customer-identifier-capture',
-  testName: 'C1, C2 and B - identifier is reflected back',
+  testName: 'Customer identifier is reflected back at C2 and B',
   testDescription: 'Identifier from the Customer supplied by Broker should be reflected back by booking system.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger) {
-  const state = new RequestState(logger, {
-    bReqTemplateRef: 'standardWithCustomerIdentifier',
-  });
-  const flow = new FlowHelper(state);
-
-  describe('Customer identifier reflected back at B', () => {
+function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+  describe('Customer identifier reflected back at C2 and B', () => {
     beforeAll(async function () {
       await state.fetchOpportunities(orderItemCriteria);
       return chakram.wait();
@@ -62,6 +57,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .beforeSetup()
         .successChecks()
         .validationTests();
+
+      it('should return 200, with an Expected customer identifier', () => {
+        chai.expect(state.c2Response.response.statusCode).to.equal(200);
+        chai.expect(state.c2Response.body.customer.identifier).to.equal('CustomerIdentifier');
+      });
     });
 
     describe('B', function () {

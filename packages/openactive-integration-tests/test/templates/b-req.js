@@ -90,6 +90,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       telephone: '020 811 8055',
       givenName: 'Geoff',
       familyName: 'Capes',
+      identifier: 'CustomerIdentifier',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
@@ -149,20 +150,6 @@ function createStandardFreeOrPaidBReq(data) {
     return createStandardPaidBReq(data);
   }
   return createStandardFreeBReq(data);
-}
-
-/**
- * Adding identifier field in customer
- *
- * @param {BReqTemplateData} data
- */
-function createStandardPaidBReqWithCustomerIdentifier(data) {
-  const retValue = createStandardPaidBReq(data);
-  retValue.customer = {
-    ...retValue.customer,
-    identifier: 'CustomerIdentifier',
-  };
-  return retValue;
 }
 
 /**
@@ -231,7 +218,6 @@ const bReqTemplates = {
   standardFree: createStandardFreeBReq,
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
-  standardWithCustomerIdentifier: createStandardPaidBReqWithCustomerIdentifier,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
