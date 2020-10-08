@@ -1,6 +1,7 @@
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
+const { generateUuid } = require('./generate-uuid');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -54,7 +55,7 @@ class RequestState {
   get uuid() {
     if (this._uuid) return this._uuid;
 
-    this._uuid = this.requestHelper.uuid();
+    this._uuid = generateUuid();
     return this._uuid;
   }
 
