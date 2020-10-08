@@ -11,15 +11,15 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'customer-details-capture-non-essential',
   testFeatureImplemented: true,
   testIdentifier: 'non-essential-customer-details-reflected',
-  testName: 'C1, C2 and B givenName, familyName, and telephone number are reflected back',
+  testName: 'givenName, familyName, and telephone number are reflected back at C2 and B',
   testDescription: 'Forename, surname, and telephone number from the Customer supplied by Broker should be reflected back by booking system.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  describe('Non Essential Customer details reflected back at B', () => {
+  describe('Non Essential Customer details reflected back at C2 and B', () => {
     beforeAll(async function () {
       await state.fetchOpportunities(orderItemCriteria);
       return chakram.wait();
@@ -55,6 +55,12 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         .beforeSetup()
         .successChecks()
         .validationTests();
+      it('should return 200, with an Expected customer details', () => {
+        chai.expect(state.c2Response.response.statusCode).to.equal(200);
+        chai.expect(state.c2Response.body.customer.telephone).to.equal('020 811 8055');
+        chai.expect(state.c2Response.body.customer.givenName).to.equal('Geoff');
+        chai.expect(state.c2Response.body.customer.familyName).to.equal('Capes');
+      });
     });
 
     describe('B', function () {

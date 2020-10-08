@@ -72,8 +72,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .beforeSetup()
         .itResponseReceived()
         .validationTests();
-        
-        itShouldReturnAnOpenBookingError('MissingPaymentDetailsError', 400, () => state.bResponse);
+
+      itShouldReturnAnOpenBookingError('MissingPaymentDetailsError', 400, () => state.bResponse);
     });
   });
 });
