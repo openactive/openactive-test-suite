@@ -90,6 +90,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       telephone: '020 811 8055',
       givenName: 'Geoff',
       familyName: 'Capes',
+      identifier: 'CustomerIdentifier',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
@@ -189,6 +190,17 @@ function createIncorrectTotalPaymentDuePriceBReq(data) {
 }
 
 /**
+ * Incorrect paid B request without payment property.
+ * Payment property is required.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectOrderDueToMissingPaymentProperty(data) {
+  const req = createStandardPaidBReq(data);
+  return dissocPath(['payment'], req);
+}
+
+/**
  * Paid B request with incorrect payment property as identifier is missing.
  *
  * @param {BReqTemplateData} data
@@ -209,6 +221,7 @@ const bReqTemplates = {
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
+  incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
 };
 
