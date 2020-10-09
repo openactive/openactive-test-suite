@@ -90,6 +90,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       telephone: '020 811 8055',
       givenName: 'Geoff',
       familyName: 'Capes',
+      identifier: 'CustomerIdentifier',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',

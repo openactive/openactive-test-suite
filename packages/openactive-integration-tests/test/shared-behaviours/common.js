@@ -39,21 +39,27 @@ class Common {
    */
   static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
     orderItemCriteria.forEach((c, i) => {
-      it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
-        if (stage) stage.expectResponseReceived();
+      if (controlName && !controlCb || !controlName && controlCb) {
+        throw new Error("Either both controlName and controlCb must be set, or neither.")
+      }
 
-        const feedOrderItem = state.orderItems[i];
+      if (!c.control || (c.control && controlName)) {
+        it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
+          if (stage) stage.expectResponseReceived();
 
-        expect(orderAccessor().orderedItem).to.be.an('array');
+          const feedOrderItem = state.orderItems[i];
 
-        const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
+          expect(orderAccessor().orderedItem).to.be.an('array');
 
-        const responseOrderItemErrorTypes = (responseOrderItem.error || []).map(x => x['@type']);
+          const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
 
-        const cb = c.control ? controlCb : testCb;
+          const responseOrderItemErrorTypes = ((responseOrderItem && responseOrderItem.error) || []).map(x => x['@type']);
 
-        cb(feedOrderItem, responseOrderItem, responseOrderItemErrorTypes);
-      });
+          const cb = c.control ? controlCb : testCb;
+
+          cb(feedOrderItem, responseOrderItem, responseOrderItemErrorTypes);
+        });
+      }
     });
   }
 }

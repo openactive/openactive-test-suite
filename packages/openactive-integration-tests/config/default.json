@@ -36,7 +36,7 @@
     "named-leasing": true,
     "anonymous-leasing": null,
     "customer-details-capture-non-essential": true,
-    "customer-details-capture-identifier": null,
+    "customer-details-capture-identifier": true,
     "attendee-details-capture-without-payment": null,
     "attendee-details-capture-with-payment": null,
     "additional-details-capture": null,
