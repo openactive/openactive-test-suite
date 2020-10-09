@@ -57,9 +57,9 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         .validationTests();
       it('should return 200, with an Expected customer details', () => {
         chai.expect(state.c2Response.response.statusCode).to.equal(200);
-        chai.expect(state.c2Response.body.customer.telephone).to.equal('020 811 8055');
-        chai.expect(state.c2Response.body.customer.givenName).to.equal('Geoff');
-        chai.expect(state.c2Response.body.customer.familyName).to.equal('Capes');
+        chai.expect(state.c2Response.body.customer.telephone).to.equal('020 811 8002');
+        chai.expect(state.c2Response.body.customer.givenName).to.equal('GeoffC2');
+        chai.expect(state.c2Response.body.customer.familyName).to.equal('CapesC2');
       });
     });
 
@@ -73,9 +73,9 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
       it('should return 200, with an Expected customer details', () => {
         chai.expect(state.bResponse.response.statusCode).to.equal(200);
-        chai.expect(state.bResponse.body.customer.telephone).to.equal('020 811 8055');
-        chai.expect(state.bResponse.body.customer.givenName).to.equal('Geoff');
-        chai.expect(state.bResponse.body.customer.familyName).to.equal('Capes');
+        chai.expect(state.bResponse.body.customer.telephone).to.equal('020 811 8003');
+        chai.expect(state.bResponse.body.customer.givenName).to.equal('GeoffB');
+        chai.expect(state.bResponse.body.customer.familyName).to.equal('CapesB');
       });
     });
   });
