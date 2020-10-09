@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - cancellation/customer-requested-cancellation/unknown-order-test",
+            "name": "integration-tests - test/features/leasing/named-leasing/implemented/lease-opportunity-capacity-update-test.js",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/cancellation/customer-requested-cancellation/implemented/unknown-order-test.js"
+                "test/features/leasing/named-leasing/implemented/lease-opportunity-capacity-update-test.js"
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [
