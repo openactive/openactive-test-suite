@@ -42,7 +42,7 @@ FeatureHelper.describeFeature(module, {
     createActionFn: () => ({
       type: 'test:SellerAcceptOrderProposalSimulateAction',
       objectType: 'OrderProposal',
-      objectId: p.getResult().body['@id'],
+      objectId: p.getResponse().body['@id'],
     }),
     logger,
   });

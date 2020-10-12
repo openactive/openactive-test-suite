@@ -462,4 +462,8 @@ class RequestHelper {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof RequestHelper>} RequestHelperType
+ */
+
 module.exports = RequestHelper;

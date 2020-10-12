@@ -1,32 +1,68 @@
 const pMemoize = require('p-memoize');
-const sharedValidationTests = require('../../shared-behaviours/validation');
+// const sharedValidationTests = require('../../shared-behaviours/validation');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  */
 
 /**
+ * @template TFlowStageResponse
  * @typedef {{
  *   status: 'no-response-yet'
  * } | {
  *   status: 'pre-requisite-failed'
  * } | {
  *   status: 'response-received',
- *   response: ChakramResponse,
+ *   response: TFlowStageResponse,
  * }} FlowStageResult
- *
+ */
+/**
+ * @typedef {object} FlowStageState
+ * @property {string} [uuid] UUID used for Order
+ * @property {OpportunityCriteria[]} [orderItemCriteriaList]
+ * @property {ChakramResponse[]} [testInterfaceOpportunities] Opportunity
+ *   references for opportunities used by this flow. These match the response
+ *   schema for the POST /test-interface/datasets/:testDatasetIdentifier/opportunities
+ *   (https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities)
+ *   endpoint.
+ * @property {ChakramResponse[]} [opportunityFeedExtractResponses]
+ * @property {OrderItem[]} [orderItems]
+ * @property {unknown} [bookingSystemOrder]
+ */
+/**
+ * @template TFlowStageResponse
  * @typedef {{
- *   result: FlowStageResult,
- *   state?: {
- *     opportunityFeedExtractResponses?: unknown,
- *     orderItems?: unknown,
- *     bookingSystemOrder?: unknown,
- *     uuid?: string,
- *   },
+ *   result: FlowStageResult<TFlowStageResponse>,
+ *   state?: FlowStageState,
  * }} FlowStageOutput
  */
+//  * @typedef {{
+//  *   result: FlowStageResult,
+//  *   state?: {
+//  *     uuid?: string,
+//  *     orderItemCriteria?: OpportunityCriteria[],
+//  *     testInterfaceOpportunities?: ChakramResponse[],
+//  *     opportunityFeedExtractResponses?: unknown,
+//  *     orderItems?: unknown,
+//  *     bookingSystemOrder?: unknown,
+//  *   },
+//  * }} FlowStageOutput
+
+// * @param {() => Promise<FlowStageOutput>} args.runFn
+// * @param {() => void} args.itSuccessChecksFn
+// * @param {() => void} args.itValidationTestsFn
+// * @param {{ name: string, validationMode: ValidationMode, opportunityCriteria?: string }} args.validationSpec
+// runFn, itSuccessChecksFn, itValidationTestsFn,
+// this._runFn = runFn;
+// this._itSuccessChecksFn = itSuccessChecksFn;
+// this._itValidationTestsFn = itValidationTestsFn;
+// this._validationSpec = validationSpec;
+
+// function createResponseReceivedFlowStageOutput
 
 /**
  * A "stage" of a particular booking flow. For example, a flow might have
@@ -36,30 +72,30 @@ const sharedValidationTests = require('../../shared-behaviours/validation');
  * - C1
  * - C2
  * - B
+ *
+ * @template TFlowStageResponse
  */
 class FlowStage {
   /**
   * @param {object} args
-  * @param {FlowStage} args.preRequisite Stage that must be completed before
+  * @param {FlowStage} [args.preRequisite] Stage that must be completed before
   *   this stage is run. e.g. a C2 stage might have a C1 stage as its
   *   pre-requisite.
-  * @param {BaseLoggerType} args.logger
   * @param {string} args.testName
-  * @param {() => Promise<FlowStageOutput>} args.runFn
-  * @param {() => void} args.itSuccessChecksFn
-  * @param {{ name: string, validationMode: ValidationMode, opportunityCriteria?: string }} args.validationSpec
-  * @param {FlowStageOutput['state']} [args.initialState] Set some initial
+  * @param {(flowStage: FlowStage) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
+  * @param {(flowStage: FlowStage) => void} args.itSuccessChecksFn
+  * @param {(flowStage: FlowStage) => void} args.itValidationTestsFn
+  * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
   *   values for state e.g. use a pre-determined UUID.
   */
-  constructor({ preRequisite, logger, testName, runFn, itSuccessChecksFn, validationSpec, initialState }) {
+  constructor({ preRequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState }) {
+    this.testName = testName;
     this._preRequisite = preRequisite;
-    this._logger = logger;
-    this._testName = testName;
     this._runFn = runFn;
     this._itSuccessChecksFn = itSuccessChecksFn;
-    this._validationSpec = validationSpec;
+    this._itValidationTestsFn = itValidationTestsFn;
     this._initialState = initialState || {};
-    /** @type {FlowStageOutput} */
+    /** @type {FlowStageOutput<TFlowStageResponse>} */
     this._output = {
       result: {
         status: 'no-response-yet',
@@ -67,11 +103,29 @@ class FlowStage {
     };
   }
 
+  /**
+   * Note: This will throw an error if there is no response yet.
+   */
+  getResponse() {
+    if (!('response' in this._output.result)) {
+      throw new Error(`FlowStage(${this.testName}).getResponse() called but there is no response. FlowStage result: ${JSON.stringify(this._output.result)}`);
+    }
+    return this._output.result.response;
+  }
+
+  // /**
+  //  * @returns {Promise<FlowStageOutput>}
+  //  */
+  // // eslint-disable-next-line class-methods-use-this
+  // async _internalRun() {
+  //   throw new Error('Not implemented');
+  // }
+
   run = pMemoize(async () => {
     if (this._preRequisite) {
       await this._preRequisite.run();
     }
-    const output = await this._runFn();
+    const output = await this._runFn(this);
     // Merge the output with the initial state, so that the initial state
     // remains unless it is overridden.
     this._output = {
@@ -90,26 +144,40 @@ class FlowStage {
     return this;
   }
 
-  successChecks() {
-    this._itSuccessChecksFn();
+  // _internalItSuccessChecks
+
+  /**
+   * Check that the response received at this stage was successful.
+   *
+   * Creates it() blocks.
+   */
+  itSuccessChecks() {
+    this._itSuccessChecksFn(this);
     return this;
   }
 
-  validationTests() {
-    sharedValidationTests.shouldBeValidResponse(
-      () => (
-        'response' in this._output.result
-          ? this._output.result.response
-          : null // If there is no response, we'll just give validator a null, which it will fail
-      ),
-      this._validationSpec.name,
-      this._logger,
-      {
-        validationMode: this._validationSpec.validationMode,
-      },
-      this._validationSpec.opportunityCriteria || undefined,
-    );
+  /**
+   * Check that the response received at this stage is valid according to the validator.
+   *
+   * Creates it() blocks.
+   */
+  itValidationTests() {
+    this._itValidationTestsFn(this);
     return this;
+    // sharedValidationTests.shouldBeValidResponse(
+    //   () => (
+    //     'response' in this._output.result
+    //       ? this._output.result.response
+    //       : null // If there is no response, we'll just give validator a null, which it will fail
+    //   ),
+    //   this._validationSpec.name,
+    //   this._logger,
+    //   {
+    //     validationMode: this._validationSpec.validationMode,
+    //   },
+    //   this._validationSpec.opportunityCriteria || undefined,
+    // );
+    // return this;
   }
 
 //  getDerivedState = memoize(() => {
@@ -119,6 +187,11 @@ class FlowStage {
 //    );
 //  })
 }
+
+/**
+ * @template TFlowStageResponse
+ * @typedef {FlowStage<TFlowStageResponse>} FlowStageType
+ */
 
 module.exports = {
   FlowStage,
