@@ -1,6 +1,5 @@
 const chakram = require('chakram');
 const config = require('config');
-const { generateUuid } = require('./generate-uuid');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
@@ -452,13 +451,6 @@ class RequestHelper {
     return new Promise(function (resolve) {
       setTimeout(resolve.bind(null, v), t);
     });
-  }
-
-  /**
-   * @param {string | null} sellerId
-   */
-  uuid(sellerId = null) {
-    return generateUuid(sellerId);
   }
 }
 

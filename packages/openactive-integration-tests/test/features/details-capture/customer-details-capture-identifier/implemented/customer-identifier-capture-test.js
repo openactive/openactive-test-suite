@@ -1,33 +1,27 @@
 /* eslint-disable no-unused-vars */
 const chai = require('chai');
 const chakram = require('chakram');
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { FlowHelper } = require('../../../../helpers/flow-helper');
+const { RequestState } = require('../../../../helpers/request-state');
 
-const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
-  testCategory: 'payment',
-  testFeature: 'simple-book-with-payment',
+  testCategory: 'details-capture',
+  testFeature: 'customer-details-capture-identifier',
   testFeatureImplemented: true,
-  testIdentifier: 'b-without-payment-property',
-  testName: 'Unsuccessful booking without payment property',
-  testDescription: 'An unsuccessful end to end booking for a non-free opportunity, failing due to missing `payment` property.',
+  testIdentifier: 'customer-identifier-capture',
+  testName: 'Customer identifier is reflected back at C2 and B',
+  testDescription: 'Identifier from the Customer supplied by Broker should be reflected back by booking system.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger) {
-  describe('Missing payment property at B', () => {
-    const state = new RequestState(logger, { bReqTemplateRef: 'incorrectOrderDueToMissingPaymentProperty' });
-    const flow = new FlowHelper(state);
-
+function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+  describe('Customer identifier reflected back at C2 and B', () => {
     beforeAll(async function () {
       await state.fetchOpportunities(orderItemCriteria);
       return chakram.wait();
@@ -63,6 +57,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .beforeSetup()
         .successChecks()
         .validationTests();
+
+      it('should return 200, with an Expected customer identifier', () => {
+        chai.expect(state.c2Response.response.statusCode).to.equal(200);
+        chai.expect(state.c2Response.body.customer.identifier).to.equal('CustomerIdentifier');
+      });
     });
 
     describe('B', function () {
@@ -73,7 +72,10 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         .itResponseReceived()
         .validationTests();
 
-      itShouldReturnAnOpenBookingError('MissingPaymentDetailsError', 400, () => state.bResponse);
+      it('should return 200, with an Expected customer identifier', () => {
+        chai.expect(state.bResponse.response.statusCode).to.equal(200);
+        chai.expect(state.bResponse.body.customer.identifier).to.equal('CustomerIdentifier');
+      });
     });
   });
 });
