@@ -3,8 +3,8 @@
   "_local_datasetSiteUrl": "https://localhost:44396/openactive",
   "requestLogging": false,
   "waitForHarvestCompletion": true,
-  "verbose": false,
   "ordersFeedRequestHeaders": {
     "X-OpenActive-Test-Client-Id": "test"
-  }
+  },
+  "verbose": false
 }

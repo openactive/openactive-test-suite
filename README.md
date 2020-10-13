@@ -33,6 +33,19 @@ A file named `{NODE_ENV}.json` can also be placed alongside the `default.json`, 
 
 For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
 
+## Docker
+
+You can run these files on docker by first building the containers:
+```bash
+docker build -t openactive:latest ./
+```
+
+Then simply run the tests:
+
+```
+docker run --rm -v $PWD/packages/openactive-broker-microservice/config:/openactive/packages/openactive-broker-microservice/config openactive
+```
+
 ## Installation
 ```bash
 npm install
