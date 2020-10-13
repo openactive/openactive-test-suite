@@ -64,6 +64,44 @@ const pMemoize = require('p-memoize');
 
 // function createResponseReceivedFlowStageOutput
 
+// /**
+//  * @template TFlowStageResponse
+//  * @typedef {object} FlowStageConstructorArgs
+//  * @property {FlowStage} [args.prerequisite] Stage that must be completed before
+//  *   this stage is run. e.g. a C2 stage might have a C1 stage as its
+//  *   pre-requisite.
+//  * @property {string} args.testName
+//  * @property {(flowStage: FlowStage) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
+//  * @property {(flowStage: FlowStage) => void} args.itSuccessChecksFn
+//  * @property {(flowStage: FlowStage) => void} args.itValidationTestsFn
+//  * @property {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
+//  *   values for state e.g. use a pre-determined UUID.
+//  */
+
+// /**
+//  * @typedef {object} FlowStageSpec
+//  *
+//  */
+
+// const FlowStage = {
+//   /**
+//    * @template TFlowStageResponse
+//    * @param {object} args
+//    * @param {FlowStage} [args.prerequisite] Stage that must be completed before
+//    *   this stage is run. e.g. a C2 stage might have a C1 stage as its
+//    *   pre-requisite.
+//    * @param {string} args.testName
+//    * @param {(flowStage: FlowStage) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
+//    * @param {(flowStage: FlowStage) => void} args.itSuccessChecksFn
+//    * @param {(flowStage: FlowStage) => void} args.itValidationTestsFn
+//    * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
+//    *   values for state e.g. use a pre-determined UUID.
+//    */
+//   create({ prerequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState }) {
+
+//   },
+// };
+
 /**
  * A "stage" of a particular booking flow. For example, a flow might have
  * a stage for each of the following:
@@ -77,20 +115,23 @@ const pMemoize = require('p-memoize');
  */
 class FlowStage {
   /**
-  * @param {object} args
-  * @param {FlowStage} [args.preRequisite] Stage that must be completed before
-  *   this stage is run. e.g. a C2 stage might have a C1 stage as its
-  *   pre-requisite.
-  * @param {string} args.testName
-  * @param {(flowStage: FlowStage) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
-  * @param {(flowStage: FlowStage) => void} args.itSuccessChecksFn
-  * @param {(flowStage: FlowStage) => void} args.itValidationTestsFn
-  * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
-  *   values for state e.g. use a pre-determined UUID.
-  */
-  constructor({ preRequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState }) {
+   * @param {object} args
+   * @param {FlowStage} [args.prerequisite] Stage that must be completed before
+   *   this stage is run. e.g. a C2 stage might have a C1 stage as its
+   *   pre-requisite.
+   * @param {string} args.testName
+   * @param {(flowStage: FlowStage<TFlowStageResponse>) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
+   * @param {(flowStage: FlowStage<TFlowStageResponse>) => void} args.itSuccessChecksFn
+   * @param {(flowStage: FlowStage<TFlowStageResponse>) => void} args.itValidationTestsFn
+   * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
+   *   values for state e.g. use a pre-determined UUID.
+   */
+  // /**
+  //  * @param {FlowStageConstructorArgs<TFlowStageResponse>} args
+  //  */
+  constructor({ prerequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState }) {
     this.testName = testName;
-    this._preRequisite = preRequisite;
+    this._prerequisite = prerequisite;
     this._runFn = runFn;
     this._itSuccessChecksFn = itSuccessChecksFn;
     this._itValidationTestsFn = itValidationTestsFn;
@@ -102,6 +143,14 @@ class FlowStage {
       },
     };
   }
+
+  // /**
+  //  * @template TCreateFnFlowStageResponse
+  //  * @param {FlowStageConstructorArgs<TCreateFnFlowStageResponse>} args
+  //  */
+  // static create(args) {
+  //   return new FlowStage(args);
+  // }
 
   /**
    * Note: This will throw an error if there is no response yet.
@@ -122,8 +171,8 @@ class FlowStage {
   // }
 
   run = pMemoize(async () => {
-    if (this._preRequisite) {
-      await this._preRequisite.run();
+    if (this._prerequisite) {
+      await this._prerequisite.run();
     }
     const output = await this._runFn(this);
     // Merge the output with the initial state, so that the initial state

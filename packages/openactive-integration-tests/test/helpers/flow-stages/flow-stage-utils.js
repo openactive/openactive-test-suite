@@ -1,9 +1,21 @@
+const pMemoize = require('p-memoize');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
+ * @typedef {import('./flow-stage').FlowStageState} FlowStageState
+ */
+
+/**
+ * @template TFlowStageResponse
+ * @typedef {object} FlowStageDefinition
+ * @property {string} testName
+ * @property {FlowStageDefinition<unknown>} prerequisite
+ * @property {(stateSoFar: FlowStageState) => Promise<import('./flow-stage').FlowStageOutput<TFlowStageResponse>>} runFn
+ * @property {(response: TFlowStageResponse, stateSoFar: FlowStageState) => void} itSuccessChecksFn
+ * @property {(response: TFlowStageResponse, stateSoFar: FlowStageState) => void} itValidationTestsFn
  */
 
 const FlowStageUtils = {
@@ -30,6 +42,38 @@ const FlowStageUtils = {
         },
       );
     };
+  },
+
+  // run: pMemoize(async )
+
+  /**
+   * Creates a `describe(..)` block in which:
+   *
+   * 1. Runs the flow stage in a `beforeAll(..)` block.
+   * 2. Runs success checks and validation checks of the response in `it(..)` blocks.
+   * 3. Optionally runs extra tests.
+   *
+   * @template TFlowStageResponse
+   * @param {import('./flow-stage').FlowStageType<TFlowStageResponse>} flowStage
+   * @param {object} options
+   * @param {() => void} [options.itExtraTests] Extra tests which will be run
+   *   after success and validation tests have run.
+   *   These tests need to create `it(..)` blocks for each of the new tests.
+   *   The tests will be run within the same `describe(..)` block as
+   *   success/validation tests.
+   */
+  describeRunAndCheckIsSuccessfulAndValid(flowStage, options = {}) {
+    // TODO TODO TODO test this + fetch-opportunities flow stage
+    describe(flowStage.testName, () => {
+      flowStage
+        .beforeSetup()
+        .itSuccessChecks()
+        .itValidationTests();
+
+      if (options.itExtraTests) {
+        options.itExtraTests();
+      }
+    });
   },
 };
 

@@ -12,7 +12,7 @@ const { FlowStage } = require('./flow-stage');
  * @returns {Promise<FlowStageOutput>}
  */
 async function runC1({ templateRef, initialState }) {
-  // TODO TODO TODO 
+  // TODO TODO
  }
 
 const C1FlowStage = {
@@ -28,7 +28,7 @@ const C1FlowStage = {
       logger,
       testName: 'C1',
       runFn: () => runC1({ templateRef }),
-      itSuccessChecksFn: () => { }, // TODO TODO TODO
+      itSuccessChecksFn: () => { }, // TODO TODO
       validationSpec: {
         name: 'C1',
         validationMode: 'C1Response',
