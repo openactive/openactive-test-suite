@@ -770,7 +770,8 @@ async function startPolling() {
     const feedIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
     addFeed(feedIdentifier);
     if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
-      || dataDownload.additionalType === 'https://openactive.io/FacilityUse') {
+      || dataDownload.additionalType === 'https://openactive.io/FacilityUse'
+      || dataDownload.additionalType === 'https://openactive.io/IndividualFacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
     } else {
