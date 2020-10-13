@@ -144,7 +144,7 @@ class RequestHelper {
         template = {
           '@type': 'Slot',
           facilityUse: {
-            '@type': 'IndividualFacility',
+            '@type': 'IndividualFacilityUse',
             provider: {
               '@type': sellerType,
               '@id': sellerId,
