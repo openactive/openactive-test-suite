@@ -1,9 +1,10 @@
-const { expect } = require('chai');
+// const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 // const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { FetchOpportunitiesFlowStage } = require('../../../../helpers/flow-stages/fetch-opportunities');
 const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
 const RequestHelper = require('../../../../helpers/request-helper');
+// const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -29,11 +30,25 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking using the Booking Flow with Approval',
   testDescription: 'A successful end to end booking, via Booking Flow with Approval, of an opportunity.',
   // The primary opportunity criteria to use for the primary OrderItem under test
+  // testOpportunityCriteria: 'TestOpportunityBookable',
   testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+
+  // beforeAll(async () => {
+  //   await state.fetchOpportunities(orderItemCriteriaList);
+  // });
+
+  // describe('Get Opportunity Feed Items', () => {
+  //   (new GetMatch({
+  //     state, flow, logger, orderItemCriteria: orderItemCriteraList,
+  //   }))
+  //     .beforeSetup()
+  //     .successChecks()
+  //     .validationTests();
+  // });
   const requestHelper = new RequestHelper(logger);
   // ## Initiate Flow Stages
   const fetchOpportunities = FetchOpportunitiesFlowStage.create({
@@ -66,6 +81,7 @@ FeatureHelper.describeFeature(module, {
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, {
   //   itExtraTests() {
   //     itShouldReturnOrderRequiresApprovalTrue(() => c1.getResponse());
