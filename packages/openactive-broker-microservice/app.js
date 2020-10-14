@@ -122,9 +122,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
       if (!json.next) {
         throw new Error("RPDE does not have 'next' property");
       }
-      if (getBaseUrl(json.next) !== getBaseUrl(url)) {
-        throw new Error(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
-      }
+      //if (getBaseUrl(json.next) !== getBaseUrl(url)) {
+      //  throw new Error(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
+      //}
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
@@ -667,12 +667,52 @@ function processRow(row) {
   processOpportunityItem(newItem);
 }
 
+const { createWriteStream } = require('fs');
+const fields = ['type', 'organizerId', 'organizerName', 'startDate', 'locationId', 'locationName', 'eventAttendanceMode'];
+const opts = { fields };
+const transformOpts = { highWaterMark: 8192 };
+
+const { AsyncParser } = require('json2csv');
+const asyncParser = new AsyncParser(opts, transformOpts);
+
+let csv = '';
+asyncParser.processor
+  .on('data', chunk => (csv += chunk.toString()))
+  .on('end', () => console.log(csv))
+  .on('error', err => console.error(err));
+
+// You can also listen for events on the conversion and see how the header or the lines are coming out.
+asyncParser.transform
+  .on('header', header => console.log(header))
+  .on('line', line => console.log(line))
+  .on('error', err => console.log(err));
+
+const output = createWriteStream('./config/data.csv', { encoding: 'utf8' });
+asyncParser.toOutput(output);
+
+app.use('/data', express.static('config'));
+
 function processOpportunityItem(item) {
   if (item.data) {
     const id = item.data['@id'] || item.data.id;
 
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
+
+    const o = {
+      ...item.data.superEvent,
+      ...item.data,
+    };
+
+    asyncParser.input.push(JSON.stringify({
+      type: o['@type'],
+      organizerId: o.organizer['@id'],
+      organizerName: o.organizer['name'],
+      startDate: o.startDate.replace('T', ' ').replace('Z', ''),
+      locationId: o.location['@id'],
+      locationName: o.location['name'],
+      eventAttendanceMode: o.eventAttendanceMode,
+    }));
 
     if (!DO_NOT_FILL_BUCKETS) {
       const opportunityType = detectOpportunityType(item.data);
