@@ -1,6 +1,7 @@
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
+const { generateUuid } = require('./generate-uuid');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -54,7 +55,7 @@ class RequestState {
   get uuid() {
     if (this._uuid) return this._uuid;
 
-    this._uuid = this.requestHelper.uuid();
+    this._uuid = generateUuid();
     return this._uuid;
   }
 
@@ -84,7 +85,7 @@ class RequestState {
      *   },
      * }[]}
      */
-    this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
+    this.testInterfaceResponses = await Promise.all((this.orderItemCriteriaList || []).map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
       if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
@@ -150,7 +151,7 @@ class RequestState {
     /**
      * Full opportunity data for each opportunity fetched by fetchOpportunities() - one for each criteria.
      */
-    this.opportunityFeedExtractResponses = await Promise.all(this.testInterfaceResponses.map(async (testInterfaceResponse, i) => {
+    this.opportunityFeedExtractResponses = await Promise.all((this.testInterfaceResponses || []).map(async (testInterfaceResponse, i) => {
       // Only attempt getMatch if test interface response was successful
       if (isResponse20x(testInterfaceResponse) && testInterfaceResponse.body['@id']) {
         // If a match for this @id is already being requested, just reuse the same response
@@ -165,7 +166,7 @@ class RequestState {
       return null;
     }));
 
-    this.orderItems = this.opportunityFeedExtractResponses.map((x, i) => {
+    this.orderItems = (this.opportunityFeedExtractResponses || []).map((x, i) => {
       if (x && isResponse20x(x)) {
         const acceptedOffer = this.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
         if (acceptedOffer === null) {

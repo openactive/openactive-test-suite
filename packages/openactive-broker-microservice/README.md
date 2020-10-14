@@ -107,3 +107,11 @@ When using the Broker Microservice as a tool to check validity of opportunity fe
 ```json
   "disableBucketAllocation": true,
 ```
+
+### `disableOrdersFeedHarvesting`
+
+During development it may be desirable to temporarily disable harvesting of the Orders Feed. Note that tests that require the Orders Feed will fail when this is set to `true`.
+
+```json
+  "disableOrdersFeedHarvesting": true,
+```
