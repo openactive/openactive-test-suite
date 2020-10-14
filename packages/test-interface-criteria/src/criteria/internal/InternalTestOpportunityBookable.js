@@ -1,36 +1,19 @@
 const moment = require('moment');
 
 const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/InternalCriteriaFutureScheduledOpportunity');
-const { getRemainingCapacity, createCriteria, hasCapacityLimitOfOne } = require('../criteriaUtils');
+const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('../criteriaUtils');
 
 /**
- * @typedef {import('../../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../../types/Criteria').OfferConstraint} OfferConstraint
  */
 
 /**
- * @type {OpportunityConstraint}
- */
-function remainingCapacityMustBeAtLeastTwo(opportunity) {
-  // A capacity of at least 2 is needed for cases other than IndividualFacilityUse because the multiple OrderItem tests use 2 of the same item (via the opportunityReuseKey).
-  // The opportunityReuseKey is not used for IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
-  return getRemainingCapacity(opportunity) > (hasCapacityLimitOfOne(opportunity) ? 0 : 1);
-}
-
-/**
  * @type {OfferConstraint}
  */
-function mustHaveBookableOffer(offer, opportunity, options) {
+function mustHaveBookableOffer(offer, opportunity) {
   return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
     && offer.advanceBooking !== 'https://openactive.io/Unavailable'
     && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore());
-}
-
-/**
-* @type {OfferConstraint}
-*/
-function mustIfThereIsABookableWindowBeWithinIt(offer, opportunity) {
-  return !offer.validFromBeforeStartDate || mustBeWithinBookingWindow(offer, opportunity);
 }
 
 /**

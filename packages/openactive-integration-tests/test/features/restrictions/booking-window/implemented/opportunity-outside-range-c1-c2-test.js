@@ -37,7 +37,7 @@ function itShouldReturnOpportunityOfferPairNotBookableError(stage, responseAcces
 }
 
 FeatureHelper.describeFeature(module, {
-  testCategory: 'restriction',
+  testCategory: 'restrictions',
   testFeature: 'booking-window',
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-outside-range-c1-c2',

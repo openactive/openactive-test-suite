@@ -1,25 +1,20 @@
 const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
-const { getRemainingCapacity, createCriteria, mustBeWithinBookingWindow } = require('./criteriaUtils');
+const { remainingCapacityMustBeAtLeastTwo, createCriteria, mustBeWithinBookingWindow } = require('./criteriaUtils');
 
 /**
- * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  */
 
 /**
- * @type {Boolean}
+ * @type {OfferConstraint}
  */
-function mustBeOutsideBookingWindow(offer, opportunity) {
-  return offer.validFromBeforeStartDate && !mustBeWithinBookingWindow(offer, opportunity);
+function mustBeOutsideBookingWindow(offer, opportunity, options) {
+  return offer.validFromBeforeStartDate && !mustBeWithinBookingWindow(offer, opportunity, options);
 }
 
 /**
- * @type {OpportunityConstraint}
+ * Implements https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate
  */
-function remainingCapacityMustBeAtLeastTwo(opportunity) {
-  return getRemainingCapacity(opportunity) > 1;
-}
-
 const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
   name: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
   opportunityConstraints: [

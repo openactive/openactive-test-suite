@@ -8,8 +8,8 @@ const { createCriteria, mustBeWithinBookingWindow } = require('./criteriaUtils')
 /**
  * @type {OfferConstraint}
  */
-function mustHaveBookingWindowAndBeWithinIt(offer, opportunity) {
-  return offer.validFromBeforeStartDate && mustBeWithinBookingWindow(offer, opportunity);
+function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
+  return offer.validFromBeforeStartDate && mustBeWithinBookingWindow(offer, opportunity, options);
 }
 
 const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
