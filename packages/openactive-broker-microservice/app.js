@@ -257,9 +257,17 @@ function setFeedIsUpToDate(feedIdentifier) {
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
 
-        if (childOrphans > 0) {
+        if (totalChildren === 0) {
+          logError(`\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feed.`);
+          logError('Please ensure that the opportunities feed conforms to RPDE using https://validator.openactive.io/rpde.\n');
+          throw new Error('Zero opportunities could be harvested from the opportunities feed');
+        } else if (childOrphans === totalChildren) {
+          logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
+          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          throw new Error('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+        } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
-          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity matches an `@id` from the parent feed.\n');
+          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
         }
 
         healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
