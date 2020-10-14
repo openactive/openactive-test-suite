@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/InternalCriteriaFutureScheduledOpportunity');
-const { getRemainingCapacity, createCriteria, mustBeWithinBookingWindow } = require('../criteriaUtils');
+const { getRemainingCapacity, createCriteria, hasCapacityLimitOfOne } = require('../criteriaUtils');
 
 /**
  * @typedef {import('../../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -12,23 +12,16 @@ const { getRemainingCapacity, createCriteria, mustBeWithinBookingWindow } = requ
  * @type {OpportunityConstraint}
  */
 function remainingCapacityMustBeAtLeastTwo(opportunity) {
-  return getRemainingCapacity(opportunity) > 1;
+  return getRemainingCapacity(opportunity) > (hasCapacityLimitOfOne(opportunity) ? 0 : 1);
 }
 
 /**
  * @type {OfferConstraint}
  */
-function mustHaveBookableOffer(offer, opportunity) {
+function mustHaveBookableOffer(offer, opportunity, options) {
   return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
     && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore());
-}
-
-/**
-* @type {OfferConstraint}
-*/
-function mustIfThereIsABookableWindowBeWithinIt(offer, opportunity) {
-  return !(offer && offer.validFromBeforeStartDate) || mustBeWithinBookingWindow(offer, opportunity);
+    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
 /**
@@ -41,15 +34,11 @@ const InternalTestOpportunityBookable = createCriteria({
   name: '_InternalTestOpportunityBookable',
   opportunityConstraints: [
     [
-      'Remaining capacity must be at least two',
+      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
       remainingCapacityMustBeAtLeastTwo,
     ],
   ],
   offerConstraints: [
-    [
-      'Must, if there is a bookahead window, be within it',
-      mustIfThereIsABookableWindowBeWithinIt,
-    ],
     [
       'Must have "bookable" offer',
       mustHaveBookableOffer,

@@ -49,6 +49,16 @@ function getType(opportunity) {
   return opportunity['@type'] || opportunity.type;
 }
 
+
+/**
+ * @param {Opportunity} opportunity
+ * @returns {boolean}
+ */
+function hasCapacityLimitOfOne(opportunity) {
+  // return true for a Slot of an IndividualFacilityUse
+  return opportunity && opportunity.facilityUse && getType(opportunity.facilityUse) === 'IndividualFacilityUse';
+}
+
 /**
  * @param {Opportunity} opportunity
  * @returns {number | null | undefined} Not all opportunities have
@@ -82,4 +92,5 @@ module.exports = {
   getType,
   getRemainingCapacity,
   mustBeWithinBookingWindow,
+  hasCapacityLimitOfOne,
 };

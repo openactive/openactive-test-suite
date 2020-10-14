@@ -20,6 +20,7 @@ class TestEnvironment extends NodeEnvironment {
     let response = await axios.get(MICROSERVICE_BASE + "dataset-site");
     if (response && response.data && response.data.accessService && response.data.accessService.endpointURL) {
       this.global.BOOKING_API_BASE = response.data.accessService.endpointURL;
+      this.global.HARVEST_START_TIME = new Date(response.headers['X-Harvest-Start-Time']);
     }
     this.global.MICROSERVICE_BASE = MICROSERVICE_BASE;
     this.global.TEST_DATASET_IDENTIFIER = TEST_DATASET_IDENTIFIER;

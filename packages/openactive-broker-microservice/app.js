@@ -16,6 +16,7 @@ const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
+const HARVEST_START_TIME = new Date();
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeaders') ? config.get('opportunityFeedRequestHeaders') : {
@@ -155,7 +156,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
       }
     } catch (error) {
       if (!error.response) {
-        log(`Error for RPDE feed "${url}": ${error.message}.`);
+        log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
         // Force retry, after a delay
         await sleep(5000);
       } else if (error.response.status === 404) {
@@ -305,7 +306,7 @@ app.get('/health-check', function (req, res) {
 });
 
 app.get('/dataset-site', function (req, res) {
-  res.send(datasetSiteJson);
+  res.set('X-Harvest-Start-Time', HARVEST_START_TIME.toISOString()).send(datasetSiteJson);
 });
 
 function mapToObject(map) {
@@ -719,7 +720,10 @@ function processOpportunityItem(item) {
       const sellerId = detectSellerId(item.data);
 
       criteria.map((c) => ({
-        criteriaName: c.name, criteriaResult: testMatch(c, item.data),
+        criteriaName: c.name,
+        criteriaResult: testMatch(c, item.data, {
+          harvestStartTime: HARVEST_START_TIME,
+        }),
       })).forEach((result) => {
         const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
         if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
