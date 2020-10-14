@@ -30,7 +30,7 @@
     "booking-window": null,
     "customer-requested-cancellation": true,
     "cancellation-window": null,
-    "seller-requested-cancellation": null,
+    "seller-requested-cancellation": true,
     "seller-requested-cancellation-message": null,
     "seller-requested-replacement": null,
     "named-leasing": true,
