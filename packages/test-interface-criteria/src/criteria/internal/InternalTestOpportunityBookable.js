@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/InternalCriteriaFutureScheduledOpportunity');
-const { getRemainingCapacity, createCriteria } = require('../criteriaUtils');
+const { getRemainingCapacity, createCriteria, mustBeWithinBookingWindow } = require('../criteriaUtils');
 
 /**
  * @typedef {import('../../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -25,6 +25,13 @@ function mustHaveBookableOffer(offer, opportunity) {
 }
 
 /**
+* @type {OfferConstraint}
+*/
+function mustIfThereIsABookableWindowBeWithinIt(offer, opportunity) {
+  return !(offer && offer.validFromBeforeStartDate) || mustBeWithinBookingWindow(offer, opportunity);
+}
+
+/**
  * Internal criteria which almost implements https://openactive.io/test-interface#TestOpportunityBookable
  * but handily leaves out anything related to openBookingFlowRequirement, so
  * that bookable criteria for Simple Booking Flow, Minimal Proposal Flow,
@@ -39,6 +46,10 @@ const InternalTestOpportunityBookable = createCriteria({
     ],
   ],
   offerConstraints: [
+    [
+      'Must, if there is a bookahead window, be within it',
+      mustIfThereIsABookableWindowBeWithinIt,
+    ],
     [
       'Must have "bookable" offer',
       mustHaveBookableOffer,
