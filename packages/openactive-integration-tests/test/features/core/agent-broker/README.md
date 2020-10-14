@@ -13,3 +13,10 @@ Coverage Status: **none**
 
 
 
+
+## 'Not Implemented' tests
+
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [feature-required-noop](./not-implemented/feature-required-noop-test.js) | Feature required | This feature is required by the specification and must be implemented. |  |
