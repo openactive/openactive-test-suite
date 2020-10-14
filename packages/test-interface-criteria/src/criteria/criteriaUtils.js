@@ -75,7 +75,7 @@ function getRemainingCapacity(opportunity) {
  */
 function mustBeWithinBookingWindow(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return false;
+    return null; // Required for validation step
   }
 
   const start = moment(opportunity.startDate);

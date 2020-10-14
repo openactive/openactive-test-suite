@@ -23,7 +23,14 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 function mustHaveBookableOffer(offer, opportunity, options) {
   return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
     && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
+    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore());
+}
+
+/**
+* @type {OfferConstraint}
+*/
+function mustIfThereIsABookableWindowBeWithinIt(offer, opportunity) {
+  return !offer.validFromBeforeStartDate || mustBeWithinBookingWindow(offer, opportunity);
 }
 
 /**

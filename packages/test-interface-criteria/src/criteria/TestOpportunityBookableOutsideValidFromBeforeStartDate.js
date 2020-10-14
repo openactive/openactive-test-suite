@@ -1,34 +1,40 @@
-const moment = require('moment');
-
-const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
+const { getRemainingCapacity, createCriteria, mustBeWithinBookingWindow } = require('./criteriaUtils');
 
 /**
+ * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  */
 
 /**
- * @type {OfferConstraint}
+ * @type {Boolean}
  */
-function outsideValidFromBeforeStartDate(offer, opportunity, options) {
-  return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
-    && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (offer.validFromBeforeStartDate && moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isAfter(options.harvestStartTime));
+function mustBeOutsideBookingWindow(offer, opportunity) {
+  return offer.validFromBeforeStartDate && !mustBeWithinBookingWindow(offer, opportunity);
 }
 
 /**
- * Implements https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate
+ * @type {OpportunityConstraint}
  */
+function remainingCapacityMustBeAtLeastTwo(opportunity) {
+  return getRemainingCapacity(opportunity) > 1;
+}
+
 const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
   name: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
-  opportunityConstraints: [],
-  offerConstraints: [
+  opportunityConstraints: [
     [
-      'Outside ValidFromBeforeStartDate',
-      outsideValidFromBeforeStartDate,
+      'Remaining capacity must be at least two',
+      remainingCapacityMustBeAtLeastTwo,
     ],
   ],
-  includeConstraintsFromCriteria: TestOpportunityBookable,
+  offerConstraints: [
+    [
+      'Must be outside booking window',
+      mustBeOutsideBookingWindow,
+    ],
+  ],
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 
 module.exports = {
