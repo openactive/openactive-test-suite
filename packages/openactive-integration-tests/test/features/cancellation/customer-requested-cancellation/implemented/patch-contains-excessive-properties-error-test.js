@@ -3,7 +3,8 @@ const chakram = require('chakram');
 const { RequestState } = require('../../../../helpers/request-state');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours');
+const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
@@ -13,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'customer-requested-cancellation',
   testFeatureImplemented: true,
   testIdentifier: 'patch-contains-excessive-properties-error',
-  testName: 'Successful booking and unsuccessful cancellation due to PatchContainsExcessiveProperties error',
+  testName: 'Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError',
   testDescription: 'PatchContainsExcessivePropertiesError returned because patch request includes other properties than @type, @context, orderProposalStatus and orderCustomerNote',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
@@ -78,13 +79,6 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       await flow.U();
     });
 
-    it('Order Cancellation return 400 on fail', function () {
-      expect(state.uResponse).to.have.status(400);
-    });
-
-    it('Order Cancellation should have PatchContainsExcessiveProperties as @type and expected description', function () {
-      expect(state.uResponse.body['@type']).to.equal('PatchContainsExcessivePropertiesError');
-      expect(state.uResponse.body.description).to.equal('PATCH includes unexpected properties that are not permitted.');
-    });
+    itShouldReturnAnOpenBookingError('PatchContainsExcessivePropertiesError', 400, () => state.uResponse);
   });
 });
