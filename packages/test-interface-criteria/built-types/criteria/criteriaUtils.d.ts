@@ -6,7 +6,7 @@ export type Offer = {
     '@type': string;
     '@id': string;
 };
-export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity) => boolean;
+export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type Criteria = {
     name: string;
     opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
@@ -55,3 +55,8 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  * @param {Opportunity} opportunity
  */
 export function mustBeWithinBookingWindow(offer: Offer, opportunity: Opportunity): boolean;
+/**
+ * @param {Opportunity} opportunity
+ * @returns {boolean}
+ */
+export function hasCapacityLimitOfOne(opportunity: Opportunity): boolean;
