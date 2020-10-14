@@ -258,7 +258,7 @@ function setFeedIsUpToDate(feedIdentifier) {
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
 
         if (totalChildren === 0) {
-          logError(`\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feed.`);
+          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feed.');
           logError('Please ensure that the opportunities feed conforms to RPDE using https://validator.openactive.io/rpde.\n');
           throw new Error('Zero opportunities could be harvested from the opportunities feed');
         } else if (childOrphans === totalChildren) {
