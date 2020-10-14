@@ -1,5 +1,9 @@
+const moment = require('moment');
+
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
+ * @typedef {import('../types/Offer').Offer} Offer
+ * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
  */
 
@@ -55,9 +59,27 @@ function getRemainingCapacity(opportunity) {
   return opportunity.remainingAttendeeCapacity !== undefined ? opportunity.remainingAttendeeCapacity : opportunity.remainingUses;
 }
 
+/**
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ */
+function mustBeWithinBookingWindow(offer, opportunity) {
+  if (!offer || !offer.validFromBeforeStartDate) {
+    return false;
+  }
+
+  const now = moment();
+  const start = moment(opportunity.startDate);
+  const duration = moment.duration(offer.validFromBeforeStartDate);
+
+  const valid = start.subtract(duration) <= now;
+  return valid;
+}
+
 module.exports = {
   createCriteria,
   getId,
   getType,
   getRemainingCapacity,
+  mustBeWithinBookingWindow,
 };
