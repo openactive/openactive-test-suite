@@ -154,7 +154,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
       }
     } catch (error) {
       if (!error.response) {
-        log(`Error for RPDE feed "${url}": ${error.message}.`);
+        log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
         // Force retry, after a delay
         await sleep(5000);
       } else if (error.response.status === 404) {
@@ -709,8 +709,8 @@ function processOpportunityItem(item) {
       organizerId: o.organizer['@id'],
       organizerName: o.organizer['name'],
       startDate: o.startDate.replace('T', ' ').replace('Z', ''),
-      locationId: o.location['@id'],
-      locationName: o.location['name'],
+      locationId: o.location && o.location['@id'],
+      locationName: o.location && o.location['name'],
       eventAttendanceMode: o.eventAttendanceMode,
     }));
 
