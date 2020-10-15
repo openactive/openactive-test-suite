@@ -2,14 +2,14 @@ const assert = require("assert");
 const axios = require("axios");
 const config = require("config");
 
-const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}/`;
+const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
 const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 async function ping() {
-  let response = await axios.get(MICROSERVICE_BASE + "health-check/");
+  let response = await axios.get(MICROSERVICE_BASE + "/health-check");
 
   assert.strictEqual(response.data, "openactive-broker");
 
@@ -17,17 +17,17 @@ async function ping() {
 }
 
 async function getEndpointUrl() {
-  let response = await axios.get(MICROSERVICE_BASE + "dataset-site");
+  const response = await axios.get(MICROSERVICE_BASE + "/config");
 
-  if (!(response && response.data && response.data.accessService && response.data.accessService.endpointURL)) {
+  if (!(response && response.data && response.data.bookingApiBaseUrl)) {
     throw new Error("Dataset Site JSON-LD does not contain an accessService.endpointURL");
   }
 
-  return response.data.accessService.endpointURL;
+  return response.data.bookingApiBaseUrl;
 }
 
 async function deleteTestDataset(testInterfaceBaseUrl) {
-  let response = await axios.delete(`${testInterfaceBaseUrl}test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
+  let response = await axios.delete(`${testInterfaceBaseUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
     {
       timeout: 10000
     }

@@ -2,7 +2,7 @@ const NodeEnvironment = require('jest-environment-node');
 const axios = require('axios');
 const config = require('config');
 
-const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}/`;
+const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const TEST_DATASET_IDENTIFIER = config.get('testDatasetIdentifier');
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
@@ -17,7 +17,7 @@ class TestEnvironment extends NodeEnvironment {
     await super.setup();
 
     // Get endpoint URL from Dataset Site
-    const configUrl = `${MICROSERVICE_BASE}config`;
+    const configUrl = `${MICROSERVICE_BASE}/config`;
     const response = await axios.get(configUrl);
     if (response && response.data) {
       this.global.BOOKING_API_BASE = response.data.bookingApiBaseUrl;

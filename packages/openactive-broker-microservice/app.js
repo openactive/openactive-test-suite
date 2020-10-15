@@ -260,9 +260,9 @@ function setFeedIsUpToDate(feedIdentifier) {
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
 
         if (totalChildren === 0) {
-          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feed.');
-          logError('Please ensure that the opportunities feed conforms to RPDE using https://validator.openactive.io/rpde.\n');
-          throw new Error('Zero opportunities could be harvested from the opportunities feed');
+          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
+          logError('Please ensure that the opportunities feeds conforms to RPDE using https://validator.openactive.io/rpde.\n');
+          throw new Error('Zero opportunities could be harvested from the opportunities feeds');
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
@@ -838,7 +838,7 @@ async function startPolling() {
   // Only poll orders feed if included in the dataset site
   if (!DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
     const feedIdentifier = 'OrdersFeed';
-    const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
+    const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
     addFeed(feedIdentifier);
     harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
