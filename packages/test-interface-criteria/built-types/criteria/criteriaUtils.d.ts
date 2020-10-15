@@ -51,10 +51,9 @@ export function getType(opportunity: Opportunity): string;
  */
 export function getRemainingCapacity(opportunity: Opportunity): number | null | undefined;
 /**
- * @param {Offer} offer
- * @param {Opportunity} opportunity
+ * @type {OfferConstraint}
  */
-export function mustBeWithinBookingWindow(offer: Offer, opportunity: Opportunity): boolean;
+export function mustBeWithinBookingWindow(offer: any, opportunity: any, options: any): boolean;
 /**
  * @param {Opportunity} opportunity
  * @returns {boolean}

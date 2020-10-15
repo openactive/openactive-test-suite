@@ -305,8 +305,18 @@ app.get('/health-check', function (req, res) {
   }
 });
 
+// Config endpoint used to set global variables within the integration tests
+app.get('/config', function (req, res) {
+  res.json({
+    // Allow a consistent startDate to be used when calling test-interface-criteria
+    harvestStartTime: HARVEST_START_TIME.toISOString(),
+    // Base URL used by the integration tests
+    bookingApiBaseUrl: datasetSiteJson.accessService && datasetSiteJson.accessService.endpointURL,
+  });
+});
+
 app.get('/dataset-site', function (req, res) {
-  res.set('X-Harvest-Start-Time', HARVEST_START_TIME.toISOString()).send(datasetSiteJson);
+  res.json(datasetSiteJson);
 });
 
 function mapToObject(map) {

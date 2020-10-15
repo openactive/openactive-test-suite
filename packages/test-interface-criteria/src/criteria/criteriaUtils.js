@@ -4,6 +4,7 @@ const moment = require('moment');
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
+ * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
  */
 
@@ -70,19 +71,17 @@ function getRemainingCapacity(opportunity) {
 }
 
 /**
- * @param {Offer} offer
- * @param {Opportunity} opportunity
+ * @type {OfferConstraint}
  */
-function mustBeWithinBookingWindow(offer, opportunity) {
+function mustBeWithinBookingWindow(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
     return false;
   }
 
-  const now = moment();
   const start = moment(opportunity.startDate);
   const duration = moment.duration(offer.validFromBeforeStartDate);
 
-  const valid = start.subtract(duration) <= now;
+  const valid = start.subtract(duration).isBefore(options.harvestStartTime);
   return valid;
 }
 
