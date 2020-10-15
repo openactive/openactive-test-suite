@@ -1,3 +1,4 @@
+const chai = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2 } = require('../../../../shared-behaviours');
@@ -32,7 +33,7 @@ function itShouldReturnOpportunityOfferPairNotBookableError(stage, responseAcces
     const response = responseAccessor();
     const errors = response.body.orderedItem.map(oi => oi.error && oi.error[0] && oi.error[0]['@type']).filter(e => !!e);
 
-    chakram.expect(errors.every(e => e === 'OpportunityOfferPairNotBookableError')).to.equal(true);
+    chai.expect(errors.every(e => e === 'OpportunityOfferPairNotBookableError')).to.equal(true);
   });
 }
 
