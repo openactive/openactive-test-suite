@@ -1,6 +1,8 @@
+const _ = require('lodash');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
+const { generateUuid } = require('./generate-uuid');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -8,6 +10,7 @@ const RequestHelper = require('./request-helper');
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
 const SELLER_CONFIG = config.get('sellers');
+const { HARVEST_START_TIME } = global;
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -27,7 +30,6 @@ function isResponse(response) {
 
 class RequestState {
   /**
-   *
    * @param {InstanceType<import('./logger')['Logger']>} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
@@ -55,7 +57,7 @@ class RequestState {
   get uuid() {
     if (this._uuid) return this._uuid;
 
-    this._uuid = this.requestHelper.uuid();
+    this._uuid = generateUuid();
     return this._uuid;
   }
 
@@ -85,9 +87,9 @@ class RequestState {
      *   },
      * }[]}
      */
-    this.testInterfaceResponses = await Promise.all(this.orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
+    this.testInterfaceResponses = await Promise.all((this.orderItemCriteriaList || []).map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
-      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey) && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
@@ -98,7 +100,7 @@ class RequestState {
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
 
       // If this opportunity can be reused, store it
-      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey')) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey)) {
         reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise);
       }
 
@@ -106,25 +108,35 @@ class RequestState {
     }));
   }
 
-  getRandomRelevantOffer(opportunity, opportunityCriteria) {
-    const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity);
-    if (relevantOffers.length == 0) return null;
+  static getRandomRelevantOffer(opportunity, opportunityCriteria) {
+    const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity, { harvestStartTime: HARVEST_START_TIME });
+    if (relevantOffers.length === 0) return null;
 
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
   }
 
-  async getOrder() {
+  async getOrderAfterU() {
     const result = await this.requestHelper.getOrder(this.uuid);
 
-    this.ordersFeedUpdate = result;
+    this.getOrderAfterUResponse = result;
 
     return this;
   }
 
-  get rpdeItem() {
-    if (!this.ordersFeedUpdate) return;
+  async getOrderAfterP() {
+    const result = await this.requestHelper.getOrder(this.uuid);
 
-    return this.ordersFeedUpdate.body;
+    this.getOrderAfterPResponse = result;
+
+    return this;
+  }
+
+  get getOrderAfterPResponseSucceeded() {
+    return isResponse20x(this.getOrderAfterPResponse);
+  }
+
+  get getOrderAfterPResponseReceived() {
+    return isResponse(this.getOrderAfterPResponse);
   }
 
   async getDatasetSite() {
@@ -141,7 +153,7 @@ class RequestState {
     /**
      * Full opportunity data for each opportunity fetched by fetchOpportunities() - one for each criteria.
      */
-    this.opportunityFeedExtractResponses = await Promise.all(this.testInterfaceResponses.map(async (testInterfaceResponse, i) => {
+    this.opportunityFeedExtractResponses = await Promise.all((this.testInterfaceResponses || []).map(async (testInterfaceResponse, i) => {
       // Only attempt getMatch if test interface response was successful
       if (isResponse20x(testInterfaceResponse) && testInterfaceResponse.body['@id']) {
         // If a match for this @id is already being requested, just reuse the same response
@@ -156,9 +168,9 @@ class RequestState {
       return null;
     }));
 
-    this.orderItems = this.opportunityFeedExtractResponses.map((x, i) => {
+    this.orderItems = (this.opportunityFeedExtractResponses || []).map((x, i) => {
       if (x && isResponse20x(x)) {
-        const acceptedOffer = this.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
+        const acceptedOffer = RequestState.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
         if (acceptedOffer === null) {
           throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${this.orderItemCriteriaList[i].opportunityCriteria}`);
         }
@@ -207,12 +219,15 @@ class RequestState {
     return isResponse(this.c1Response);
   }
 
+  /**
+   * @returns {number | undefined}
+   */
   get totalPaymentDue() {
     const response = this.c2Response || this.c1Response;
 
-    if (!response) return;
+    if (!response) return undefined;
 
-    if (!response.body.totalPaymentDue) return;
+    if (!response.body.totalPaymentDue) return undefined;
 
     return response.body.totalPaymentDue.price;
   }
@@ -251,6 +266,29 @@ class RequestState {
 
   get BResponseReceived() {
     return isResponse(this.bResponse);
+  }
+
+  async putOrderProposal() {
+    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
+    this.pResponse = result;
+
+    return this;
+  }
+
+  get PResponseSucceeded() {
+    return isResponse20x(this.pResponse);
+  }
+
+  get PResponseReceived() {
+    return isResponse(this.pResponse);
+  }
+
+  /**
+   * @returns {string | null}
+   */
+  get orderProposalVersion() {
+    if (!this.pResponse) { return null; }
+    return this.pResponse.body.orderProposalVersion;
   }
 
   get orderItemId() {
@@ -298,4 +336,6 @@ class RequestState {
 
 module.exports = {
   RequestState,
+  isResponse20x,
+  isResponse,
 };

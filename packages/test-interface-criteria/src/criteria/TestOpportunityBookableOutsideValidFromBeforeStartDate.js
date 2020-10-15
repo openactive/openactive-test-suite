@@ -10,26 +10,26 @@ const { createCriteria } = require('./criteriaUtils');
 /**
  * @type {OfferConstraint}
  */
-function outsideValidFromBeforeStartDate(offer, opportunity) {
+function outsideValidFromBeforeStartDate(offer, opportunity, options) {
   return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
     && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (offer.validFromBeforeStartDate && moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isAfter());
+    && (offer.validFromBeforeStartDate && moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isAfter(options.harvestStartTime));
 }
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate
  */
-const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria(
-  'TestOpportunityBookableOutsideValidFromBeforeStartDate',
-  [],
-  [
+const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
+  name: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
+  opportunityConstraints: [],
+  offerConstraints: [
     [
       'Outside ValidFromBeforeStartDate',
       outsideValidFromBeforeStartDate,
     ],
   ],
-  TestOpportunityBookable,
-);
+  includeConstraintsFromCriteria: TestOpportunityBookable,
+});
 
 module.exports = {
   TestOpportunityBookableOutsideValidFromBeforeStartDate,

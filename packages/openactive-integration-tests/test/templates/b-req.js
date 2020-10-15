@@ -12,10 +12,45 @@
  *     },
  *   }[],
  *   totalPaymentDue: number,
+ *   orderProposalVersion: string | null,
  * }} BReqTemplateData
  */
 
 const { dissocPath } = require('ramda');
+
+function createPaymentPart() {
+  return {
+    '@type': 'Payment',
+    name: 'AcmeBroker Points',
+    identifier: '1234567890npduy2f',
+    accountId: 'STRIP',
+  };
+}
+
+/**
+ * @param {BReqTemplateData} data
+ * @returns {boolean}
+ */
+function isPaymentNeeded(data) {
+  return data.totalPaymentDue > 0;
+}
+
+/**
+ * B request in the Approve Flow (after P).
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAfterPBReq(data) {
+  const result = {
+    '@context': 'https://openactive.io/',
+    '@type': 'Order',
+    orderProposalVersion: data.orderProposalVersion,
+  };
+  if (isPaymentNeeded(data)) {
+    result.payment = createPaymentPart();
+  }
+  return result;
+}
 
 /**
  * Create a B request, excluding the payment related details
@@ -55,6 +90,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       telephone: '020 811 8055',
       givenName: 'Geoff',
       familyName: 'Capes',
+      identifier: 'CustomerIdentifier',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
@@ -96,12 +132,7 @@ function createStandardPaidBReq(data) {
       price: data.totalPaymentDue,
       priceCurrency: 'GBP',
     },
-    payment: {
-      '@type': 'Payment',
-      name: 'AcmeBroker Points',
-      identifier: '1234567890npduy2f',
-      accountId: 'STRIP',
-    },
+    payment: createPaymentPart(),
   };
 }
 
@@ -112,10 +143,13 @@ function createStandardPaidBReq(data) {
  * @param {BReqTemplateData} data
  */
 function createStandardFreeOrPaidBReq(data) {
-  if (data.totalPaymentDue === 0) {
-    return createStandardFreeBReq(data);
+  if (data.orderProposalVersion) {
+    return createAfterPBReq(data);
   }
-  return createStandardPaidBReq(data);
+  if (isPaymentNeeded(data)) {
+    return createStandardPaidBReq(data);
+  }
+  return createStandardFreeBReq(data);
 }
 
 /**
@@ -156,6 +190,27 @@ function createIncorrectTotalPaymentDuePriceBReq(data) {
 }
 
 /**
+ * Incorrect paid B request without payment property.
+ * Payment property is required.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectOrderDueToMissingPaymentProperty(data) {
+  const req = createStandardPaidBReq(data);
+  return dissocPath(['payment'], req);
+}
+
+/**
+ * Paid B request with incorrect payment property as identifier is missing.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectOrderDueToMissingIdentifierInPaymentProperty(data) {
+  const req = createStandardPaidBReq(data);
+  return dissocPath(['payment', 'identifier'], req);
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -166,6 +221,8 @@ const bReqTemplates = {
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
+  incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
+  incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
 };
 
 /**

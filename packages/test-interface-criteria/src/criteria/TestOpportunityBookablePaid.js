@@ -15,17 +15,17 @@ function onlyPaidBookableOffers(offer) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookablePaid
  */
-const TestOpportunityBookablePaid = createCriteria(
-  'TestOpportunityBookablePaid',
-  [],
-  [
+const TestOpportunityBookablePaid = createCriteria({
+  name: 'TestOpportunityBookablePaid',
+  opportunityConstraints: [],
+  offerConstraints: [
     [
       'Only paid bookable Offers',
       onlyPaidBookableOffers,
     ],
   ],
-  TestOpportunityBookable,
-);
+  includeConstraintsFromCriteria: TestOpportunityBookable,
+});
 
 module.exports = {
   TestOpportunityBookablePaid,

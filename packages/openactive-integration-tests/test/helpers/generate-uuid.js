@@ -1,15 +1,11 @@
-const { v5: uuidv5 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 /**
- * @param {string | null} sellerId This isn't used yet. But is kept here in
- *   anticipation that it will be
+ * Generate a random UUID. Note a fully random (V4) UUID must be used as Jest runs tests in parallel,
+ * so keeping track of a single sequential Order identifier to use for a deterministic UUID (V3 or V5) is not possible.
  */
-function generateUuid(sellerId = null) { // eslint-disable-line no-unused-vars
-  return uuidv5(
-    `https://www.example.com/example/id/${
-      Math.floor(Math.random() * 100000)}`,
-    uuidv5.URL,
-  ); // TODO: generate uuid v5 based on Seller ID - and fix this so it is unique
+function generateUuid() {
+  return uuidv4();
 }
 
 module.exports = {

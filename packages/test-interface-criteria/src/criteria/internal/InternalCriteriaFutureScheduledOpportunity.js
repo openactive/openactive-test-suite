@@ -1,7 +1,9 @@
 /**
- * @typedef {import('../types/Criteria').Criteria} Criteria
- * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
+ * @typedef {import('../../types/Criteria').Criteria} Criteria
+ * @typedef {import('../../types/Criteria').OpportunityConstraint} OpportunityConstraint
  */
+
+const { createCriteria } = require('../criteriaUtils');
 
 /**
  * @type {OpportunityConstraint}
@@ -20,9 +22,9 @@ function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
 
 /**
  * Useful base filters for future opportunities
- * @type {Pick<Criteria, 'opportunityConstraints' | 'offerConstraints'>}
  */
-const CriteriaFutureScheduledOpportunity = {
+const InternalCriteriaFutureScheduledOpportunity = createCriteria({
+  name: '_InternalCriteriaFutureScheduledOpportunity',
   opportunityConstraints: [
     [
       'Start date must be 2hrs in advance for random tests to use',
@@ -34,8 +36,8 @@ const CriteriaFutureScheduledOpportunity = {
     ],
   ],
   offerConstraints: [],
-};
+});
 
 module.exports = {
-  CriteriaFutureScheduledOpportunity,
+  InternalCriteriaFutureScheduledOpportunity,
 };
