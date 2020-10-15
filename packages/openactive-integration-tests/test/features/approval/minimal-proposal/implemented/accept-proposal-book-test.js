@@ -7,6 +7,7 @@ const { C2FlowStage } = require('../../../../helpers/flow-stages/c2');
 const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
 const RequestHelper = require('../../../../helpers/request-helper');
 const { PFlowStage } = require('../../../../helpers/flow-stages/p');
+const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
 // const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
 
 /**
@@ -73,16 +74,16 @@ FeatureHelper.describeFeature(module, {
     logger,
     requestHelper,
   });
-  // const simulateSellerApproval = TestInterfaceActionFlowStage.create({
-  //   testName: 'Simulate Seller Approval (Test Interface Action)',
-  //   preRequisite: p,
-  //   createActionFn: () => ({
-  //     type: 'test:SellerAcceptOrderProposalSimulateAction',
-  //     objectType: 'OrderProposal',
-  //     objectId: p.getResponse().body['@id'],
-  //   }),
-  //   logger,
-  // });
+  const simulateSellerApproval = TestInterfaceActionFlowStage.create({
+    testName: 'Simulate Seller Approval (Test Interface Action)',
+    prerequisite: p,
+    createActionFn: () => ({
+      type: 'test:SellerAcceptOrderProposalSimulateAction',
+      objectType: 'OrderProposal',
+      objectId: p.getResponse().body['@id'],
+    }),
+    requestHelper,
+  });
   // const orderFeedUpdate = OrderFeedUpdateFlowStage.create({
   //   testName: 'Order Feed (after Simulate Seller Approval)',
   //   // orderFeedUpdate must be initiated by simulateSellerApproval because the
@@ -118,9 +119,7 @@ FeatureHelper.describeFeature(module, {
       // TODO does validator check that full Seller details are included in the seller response?
     },
   });
-  // // TODO TODO TestInterfaceAction needs to turn off validation, which
-  // // won't work for empty action responses.
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, {
   //   itExtraTests() {
   //     it('should have orderProposalStatus: SellerAccepted', () => {

@@ -47,16 +47,27 @@ const FlowStageUtils = {
 
   /**
    * Create itSuccessChecksFn that will just check that a FlowStage's result
+   * has an HTTP XXX status (e.g. 204).
+   *
+   * This only works for FlowStages whose result is just an HTTP response.
+   * @param {number} expectedStatus
+   */
+  simpleHttpXXXSuccessChecks(expectedStatus) {
+    return (/** @type {import('./flow-stage').FlowStageType<ChakramResponse>} */ flowStage) => {
+      it(`should return ${expectedStatus} on success`, () => {
+        chakram.expect(flowStage.getResponse()).to.have.status(expectedStatus);
+      });
+    };
+  },
+
+  /**
+   * Create itSuccessChecksFn that will just check that a FlowStage's result
    * has an HTTP 200 status.
    *
    * This only works for FlowStages whose result is just an HTTP response.
    */
   simpleHttp200SuccessChecks() {
-    return (/** @type {import('./flow-stage').FlowStageType<ChakramResponse>} */ flowStage) => {
-      it('should return 200 on success', () => {
-        chakram.expect(flowStage.getResponse()).to.have.status(200);
-      });
-    };
+    return FlowStageUtils.simpleHttpXXXSuccessChecks(200);
   },
 
   // run: pMemoize(async )
