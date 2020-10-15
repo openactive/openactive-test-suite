@@ -1,3 +1,4 @@
+const { memoize, isNil } = require('lodash');
 const pMemoize = require('p-memoize');
 // const sharedValidationTests = require('../../shared-behaviours/validation');
 
@@ -22,6 +23,7 @@ const pMemoize = require('p-memoize');
  */
 /**
  * @typedef {object} FlowStageState
+ * @property {string} [sellerId] Seller ID
  * @property {string} [uuid] UUID used for Order
  * @property {OpportunityCriteria[]} [orderItemCriteriaList]
  * @property {ChakramResponse[]} [testInterfaceOpportunities] Opportunity
@@ -157,7 +159,7 @@ class FlowStage {
    */
   getResponse() {
     if (!('response' in this._output.result)) {
-      throw new Error(`FlowStage(${this.testName}).getResponse() called but there is no response. FlowStage result: ${JSON.stringify(this._output.result)}`);
+      throw new Error(`FlowStage(testName: ${this.testName}).getResponse() called but there is no response. FlowStage result: ${JSON.stringify(this._output.result)}`);
     }
     return this._output.result.response;
   }
@@ -229,12 +231,80 @@ class FlowStage {
     // return this;
   }
 
-//  getDerivedState = memoize(() => {
-//    merge(
-//      this._output.state,
-//      this._runAfter.getDerivedState(),
-//    );
-//  })
+  //  getCombinedState = memoize(() => ({
+  //   ...this._prerequisite.getCombinedState()
+  //  })
+
+
+  /**
+   * Get the combined state from all prerequisite stages.
+   *
+   * This is memoized so that the merge only needs to be computed once.
+   *
+   * Therefore, this function throws if the prerequisite stages have not
+   * actually been run. Rationale:
+   *
+   * - Asking for the prerequisite state before these stages have been run implies
+   *   that something has gone wrong in setting up the tests to run one after the
+   *   other.
+   * - Since this function is memoized, we only want to cache when there is a useful
+   *   result to cache.
+   *
+   * @type {() => FlowStageState}
+   */
+  getPrerequisiteCombinedState = memoize(() => {
+    if (this._prerequisite) {
+      return this._prerequisite.getCombinedStateAfterRun();
+    }
+    return {};
+  })
+
+  /**
+   * Get the combined state from all prerequisite stages.
+   * Assert if this state is missing any of the fields that it is expected to have.
+   *
+   * @param {(keyof FlowStageState)[]} expectedFields Fields of the prerequisite
+   *   combined state that must have values.
+   */
+  getPrerequisiteCombinedStateAssertFields(expectedFields) {
+    const prerequisiteCombinedState = this.getPrerequisiteCombinedState();
+    for (const expectedField of expectedFields) {
+      if (isNil(prerequisiteCombinedState[expectedField])) {
+        throw new Error(`FlowStage(name: ${this.testName}).getPrerequisiteCombinedStateAssertFields(): Expected "${expectedField}" to be in prerequisiteCombinedState, but it was not. prerequisiteCombinedState fields: ${JSON.stringify(Object.keys(prerequisiteCombinedState))}`);
+      }
+    }
+    return prerequisiteCombinedState;
+  }
+
+  /**
+   * Get the combined state from this stage and all prerequisite stages.
+   *
+   * This is memoized so that the merge only needs to be computed once.
+   *
+   * Therefore, this function throws if this stage or prerequisite stages have
+   * not been run. Rationale:
+   *
+   * - Asking for the "afterRun" state before this stages has been run implies
+   *   that something has gone wrong in setting up the tests to run one after the
+   *   other.
+   * - Since this function is memoized, we only want to cache when there is a useful
+   *   result to cache.
+   *
+   * @type {() => FlowStageState}
+   */
+  getCombinedStateAfterRun = memoize((() => {
+    if (this._output.result.status !== 'response-received') {
+      throw new Error(`FlowStage(testName: ${this.testName}).getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${JSON.stringify(this._output.result)}`);
+    }
+    const thisState = this._output.state || {};
+    if (this._prerequisite) {
+      return {
+        ...this._prerequisite.getCombinedStateAfterRun(),
+        ...thisState,
+      };
+    }
+    return thisState;
+  }))
 }
 
 /**

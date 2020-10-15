@@ -13,8 +13,15 @@ const { isResponse20x } = require('../chakram-response-utils');
 /**
  * @typedef {{
  *   position: number;
- *   orderedItem: {[k: string]: any};
- *   acceptedOffer: {[k: string]: any};
+ *   orderedItem: {
+ *     '@type': string,
+ *     '@id': string,
+ *     [k: string]: any,
+ *   };
+ *   acceptedOffer: {
+ *     '@id': string,
+ *     [k: string]: any,
+ *   };
  *   'test:primary': boolean;
  *   'test:control': boolean;
  * }} OrderItem

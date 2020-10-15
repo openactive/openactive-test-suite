@@ -266,9 +266,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {import('../templates/c1-req').C1ReqTemplateRef} c1ReqTemplateRef
+   * @param {import('../templates/c1-req').C1ReqTemplateRef} [maybeC1ReqTemplateRef]
    */
-  async putOrderQuoteTemplate(uuid, params, c1ReqTemplateRef = 'standard') {
+  async putOrderQuoteTemplate(uuid, params, maybeC1ReqTemplateRef) {
+    const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
 

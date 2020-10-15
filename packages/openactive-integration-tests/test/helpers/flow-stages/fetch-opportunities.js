@@ -86,13 +86,13 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
 const FetchOpportunitiesFlowStage = {
   /**
    * @param {object} args
-   * @param {RequestHelperType} args.requestHelper
-   * @param {BaseLoggerType} args.logger
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid] UUID to use for Order. If excluded, this will
    *   be generated.
+   * @param {BaseLoggerType} args.logger
+   * @param {RequestHelperType} args.requestHelper
    */
-  create({ requestHelper, logger, orderItemCriteriaList, uuid }) {
+  create({ orderItemCriteriaList, uuid, requestHelper, logger }) {
     return new FlowStage({
     // return FlowStage.create({
       testName: 'Fetch Opportunities',
@@ -116,18 +116,15 @@ const FetchOpportunitiesFlowStage = {
       },
       initialState: {
         uuid: uuid || generateUuid(),
+        sellerId: SELLER_CONFIG.primary['@id'],
         orderItemCriteriaList,
       },
     });
   },
 
-  // TODO TODO fix up the doc for the below
   /**
    * For each of the Opportunity Criteria, fetch an opportunity that matches
    * the criteria from the [test interface](https://openactive.io/test-interface/).
-   *
-   * The responses only contain minimal info like ID, so `getMatch()` needs to
-   * be called afterwards to actually get the full data of each opportunity.
    *
    * @param {object} args
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList

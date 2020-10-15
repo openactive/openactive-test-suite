@@ -1,7 +1,8 @@
-// const { expect } = require('chai');
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 // const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { FetchOpportunitiesFlowStage } = require('../../../../helpers/flow-stages/fetch-opportunities');
+const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
 const RequestHelper = require('../../../../helpers/request-helper');
 // const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
@@ -10,17 +11,17 @@ const RequestHelper = require('../../../../helpers/request-helper');
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
-// /**
-//  * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
-//  *   function because the actual response won't be available until the
-//  *   asynchronous before() block has completed.
-//  */
-// function itShouldReturnOrderRequiresApprovalTrue(getChakramResponse) {
-//   it('should return orderRequiresApproval: true', () => {
-//     const chakramResponse = getChakramResponse();
-//     expect(chakramResponse.body).to.have.property('orderRequiresApproval', true);
-//   });
-// }
+/**
+ * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
+ *   function because the actual response won't be available until the
+ *   asynchronous before() block has completed.
+ */
+function itShouldReturnOrderRequiresApprovalTrue(getChakramResponse) {
+  it('should return orderRequiresApproval: true', () => {
+    const chakramResponse = getChakramResponse();
+    expect(chakramResponse.body).to.have.property('orderRequiresApproval', true);
+  });
+}
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'approval',
@@ -36,7 +37,6 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-
   // beforeAll(async () => {
   //   await state.fetchOpportunities(orderItemCriteriaList);
   // });
@@ -56,7 +56,11 @@ FeatureHelper.describeFeature(module, {
     logger,
     requestHelper,
   });
-  // const c1 = C1FlowStage.create({ preRequisite: fetchOpportunities, logger });
+  const c1 = C1FlowStage.create({
+    prerequisite: fetchOpportunities,
+    logger,
+    requestHelper,
+  });
   // const c2 = C2FlowStage.create({ preRequisite: c1, logger });
   // const p = PFlowStage.create({ preRequisite: c2, logger });
   // const simulateSellerApproval = TestInterfaceActionFlowStage.create({
@@ -82,11 +86,11 @@ FeatureHelper.describeFeature(module, {
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, {
-  //   itExtraTests() {
-  //     itShouldReturnOrderRequiresApprovalTrue(() => c1.getResponse());
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, {
+    itExtraTests() {
+      itShouldReturnOrderRequiresApprovalTrue(() => c1.getResponse());
+    },
+  });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
   //   itExtraTests() {
   //     itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
