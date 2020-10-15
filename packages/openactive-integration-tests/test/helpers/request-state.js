@@ -88,7 +88,7 @@ class RequestState {
      */
     this.testInterfaceResponses = await Promise.all((this.orderItemCriteriaList || []).map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
-      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && orderItemCriteriaItem.opportunityReuseKey !== null && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
@@ -99,7 +99,7 @@ class RequestState {
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
 
       // If this opportunity can be reused, store it
-      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && orderItemCriteriaItem.opportunityReuseKey !== null) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey)) {
         reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise);
       }
 

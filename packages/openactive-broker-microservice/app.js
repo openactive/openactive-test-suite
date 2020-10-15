@@ -306,7 +306,7 @@ app.get('/health-check', function (req, res) {
   }
 });
 
-// Config endpoint used to set global variables within the integration tests
+// Config endpoint used to get global variables within the integration tests
 app.get('/config', function (req, res) {
   res.json({
     // Allow a consistent startDate to be used when calling test-interface-criteria
