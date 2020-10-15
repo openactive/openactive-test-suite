@@ -24,6 +24,7 @@ const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeade
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
 const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
+const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -853,6 +854,16 @@ async function startPolling() {
 
 // Ensure that dataset site request also delays "readiness"
 addFeed('DatasetSite');
+
+// Ensure bucket allocation does not become stale
+setTimeout(() => {
+  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
+  if (!DISABLE_BROKER_TIMEOUT) {
+    const message = 'The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+    logError(`${message}\n`);
+    throw new Error(message);
+  }
+}, 3600000); // 3600000 ms = 1 hour
 
 const server = http.createServer(app);
 server.on('error', onError);
