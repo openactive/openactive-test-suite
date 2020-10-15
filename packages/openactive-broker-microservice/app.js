@@ -22,6 +22,7 @@ const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeade
 };
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
 const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
+const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -254,6 +255,21 @@ function setFeedIsUpToDate(feedIdentifier) {
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
         log('Harvesting is up-to-date');
+        const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
+
+        if (totalChildren === 0) {
+          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feed.');
+          logError('Please ensure that the opportunities feed conforms to RPDE using https://validator.openactive.io/rpde.\n');
+          throw new Error('Zero opportunities could be harvested from the opportunities feed');
+        } else if (childOrphans === totalChildren) {
+          logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
+          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          throw new Error('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+        } else if (childOrphans > 0) {
+          logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+        }
+
         healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
         // Clear response array
         healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
@@ -332,10 +348,29 @@ app.get('/orphans', function (req, res) {
   });
 });
 
-app.get('/status', function (req, res) {
+/**
+ * @typedef {Object} OrphanStats
+ * @property {number} childOrphans
+ * @property {number} totalChildren
+ * @property {string} percentageChildOrphans
+ */
+
+/**
+ * @returns {OrphanStats}
+ */
+function getOrphanStats() {
   const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length;
   const totalChildren = rowStoreMap.size;
-  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : 0;
+  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
+  return {
+    childOrphans,
+    totalChildren,
+    percentageChildOrphans,
+  };
+}
+
+app.get('/status', function (req, res) {
+  const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     feeds: mapToObject(feedContextMap),
@@ -475,7 +510,7 @@ function detectOpportunityType(opportunity) {
 
 app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', function (req, res) {
   if (DO_NOT_FILL_BUCKETS) {
-    res.status(500).json({
+    res.status(403).json({
       error: 'Test interface is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
     });
     return;
@@ -513,8 +548,11 @@ const orderResponses = {
 };
 
 app.get('/get-order/:id', function (req, res) {
-  // respond with json
-  if (req.params.id) {
+  if (DO_NOT_HARVEST_ORDERS_FEED) {
+    res.status(403).json({
+      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+  } else if (req.params.id) {
     const { id } = req.params;
 
     // Stash the response and reply later when an event comes through (kill any existing id still waiting)
@@ -532,7 +570,9 @@ app.get('/get-order/:id', function (req, res) {
       },
     };
   } else {
-    res.send('Id is required');
+    res.status(400).json({
+      error: 'id is required',
+    });
   }
 });
 
@@ -781,10 +821,12 @@ async function startPolling() {
   });
 
   // Only poll orders feed if included in the dataset site
-  if (dataset.accessService && dataset.accessService.endpointURL) {
+  if (!DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
+    const feedIdentifier = 'OrdersFeed';
     const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
-    harvesters.push(harvestRPDE(ordersFeedUrl, 'OrdersFeed', ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
+    addFeed(feedIdentifier);
+    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
   }
 
   // Finished processing dataset site
