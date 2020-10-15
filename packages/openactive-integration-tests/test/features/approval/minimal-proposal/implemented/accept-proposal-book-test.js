@@ -3,6 +3,7 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 // const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { FetchOpportunitiesFlowStage } = require('../../../../helpers/flow-stages/fetch-opportunities');
 const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
+const { C2FlowStage } = require('../../../../helpers/flow-stages/c2');
 const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
 const RequestHelper = require('../../../../helpers/request-helper');
 // const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
@@ -61,7 +62,11 @@ FeatureHelper.describeFeature(module, {
     logger,
     requestHelper,
   });
-  // const c2 = C2FlowStage.create({ preRequisite: c1, logger });
+  const c2 = C2FlowStage.create({
+    prerequisite: c1,
+    logger,
+    requestHelper,
+  });
   // const p = PFlowStage.create({ preRequisite: c2, logger });
   // const simulateSellerApproval = TestInterfaceActionFlowStage.create({
   //   testName: 'Simulate Seller Approval (Test Interface Action)',
@@ -91,11 +96,11 @@ FeatureHelper.describeFeature(module, {
       itShouldReturnOrderRequiresApprovalTrue(() => c1.getResponse());
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
-  //   itExtraTests() {
-  //     itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
+    itExtraTests() {
+      itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
+    },
+  });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
   //   itExtraTests() {
   //     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?

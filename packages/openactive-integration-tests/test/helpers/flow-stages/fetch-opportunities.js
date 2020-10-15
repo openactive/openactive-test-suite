@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const config = require('config');
 const { generateUuid } = require('../generate-uuid');
 const { FlowStage } = require('./flow-stage');
@@ -51,7 +52,7 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
    */
   const testInterfaceOpportunities = await Promise.all(orderItemCriteriaList.map(async (orderItemCriteriaItem, i) => {
     // If an opportunity is available for reuse, return it
-    const hasReuseKey = 'opportunityReuseKey' in orderItemCriteriaItem;
+    const hasReuseKey = !_.isNil(orderItemCriteriaItem.opportunityReuseKey);
     if (hasReuseKey && reusableOpportunityResponsePromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
       return await reusableOpportunityResponsePromises.get(orderItemCriteriaItem.opportunityReuseKey);
     }
@@ -132,6 +133,7 @@ const FetchOpportunitiesFlowStage = {
    * @returns {Promise<import('./flow-stage').FlowStageOutput<FetchOpportunitiesResponse>>}
     */
   async run({ orderItemCriteriaList, requestHelper }) {
+    // TODO TODO update based on changes to RequestState since starting this refactoring
     // ## Get Test Interface Opportunities
     const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper });
 

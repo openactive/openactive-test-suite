@@ -10,6 +10,8 @@ const { isResponse20x } = require('../chakram-response-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  */
 
+const { HARVEST_START_TIME } = global;
+
 /**
  * @typedef {{
  *   position: number;
@@ -32,7 +34,7 @@ const { isResponse20x } = require('../chakram-response-utils');
  * @param {string} opportunityCriteria
  */
 function getRandomRelevantOffer(opportunity, opportunityCriteria) {
-  const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity);
+  const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity, { harvestStartTime: HARVEST_START_TIME });
   if (relevantOffers.length === 0) { return null; }
 
   return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
@@ -124,6 +126,7 @@ const OpportunityFeedUpdateFlowStage = {
    * }>>}
    */
   async run({ testInterfaceOpportunities, orderItemCriteriaList, requestHelper }) {
+    // TODO TODO update based on changes to RequestState since starting this refactoring
     /**
      * Note that the reponses are stored wrapped in promises. This is because
      * opportunities are created/fetched concurrently.

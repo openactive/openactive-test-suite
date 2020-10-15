@@ -289,9 +289,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {import('../templates/c2-req').C2ReqTemplateRef} c2ReqTemplateRef
+   * @param {import('../templates/c2-req').C2ReqTemplateRef} [maybeC2ReqTemplateRef]
    */
-  async putOrderQuote(uuid, params, c2ReqTemplateRef = 'standard') {
+  async putOrderQuote(uuid, params, maybeC2ReqTemplateRef) {
+    const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
 
