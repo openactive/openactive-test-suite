@@ -2,6 +2,8 @@ const assert = require("assert");
 const { validate } = require("@openactive/data-model-validator");
 const { criteriaMap, testMatch } = require("@openactive/test-interface-criteria");
 
+const { HARVEST_START_TIME } = global;
+
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../helpers/logger').BaseLoggerType} BaseLoggerType
@@ -52,7 +54,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
         throw new Error(`Criteria '${criteriaName}' not supported by the @openactive/test-interface-criteria library`);
       }
 
-      let { matchesCriteria, unmetCriteriaDetails } = testMatch(criteriaMap.get(criteriaName), body);
+      let { matchesCriteria, unmetCriteriaDetails } = testMatch(criteriaMap.get(criteriaName), body, { harvestStartTime: HARVEST_START_TIME });
   
       if (!matchesCriteria) {
         throw new Error(`Does not match criteria https://openactive.io/test-interface#${criteriaName}: ${unmetCriteriaDetails.join(', ')}`);
