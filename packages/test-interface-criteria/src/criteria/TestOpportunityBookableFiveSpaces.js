@@ -8,8 +8,8 @@ const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
 /**
  * @type {OpportunityConstraint}
  */
-function remainingCapacityMustBeFive(opportunityConstraint) {
-  return getRemainingCapacity(opportunityConstraint) === 5;
+function remainingCapacityMustBeFive(opportunity) {
+  return getRemainingCapacity(opportunity) === 5;
 }
 
 /**
