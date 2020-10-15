@@ -88,14 +88,14 @@ class FeatureHelper {
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: true,
       control: false,
-      opportunityReuseKey: i,
+      opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
     },
     {
       opportunityType,
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: false,
       control: false,
-      opportunityReuseKey: i,
+      opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
     },
     {
       opportunityType,
