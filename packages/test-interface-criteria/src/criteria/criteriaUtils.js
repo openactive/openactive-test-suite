@@ -56,7 +56,7 @@ function getType(opportunity) {
  * @returns {boolean}
  */
 function hasCapacityLimitOfOne(opportunity) {
-  // return true for a Slot of an IndividualFacilityUse
+  // return true for a Slot of an IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
   return opportunity && opportunity.facilityUse && getType(opportunity.facilityUse) === 'IndividualFacilityUse';
 }
 

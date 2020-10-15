@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
@@ -88,7 +89,7 @@ class RequestState {
      */
     this.testInterfaceResponses = await Promise.all((this.orderItemCriteriaList || []).map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
-      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey) && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 

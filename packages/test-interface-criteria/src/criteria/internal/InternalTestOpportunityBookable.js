@@ -12,6 +12,8 @@ const { getRemainingCapacity, createCriteria, hasCapacityLimitOfOne } = require(
  * @type {OpportunityConstraint}
  */
 function remainingCapacityMustBeAtLeastTwo(opportunity) {
+  // A capacity of at least 2 is needed for cases other than IndividualFacilityUse because the multiple OrderItem tests use 2 of the same item (via the opportunityReuseKey).
+  // The opportunityReuseKey is not used for IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
   return getRemainingCapacity(opportunity) > (hasCapacityLimitOfOne(opportunity) ? 0 : 1);
 }
 

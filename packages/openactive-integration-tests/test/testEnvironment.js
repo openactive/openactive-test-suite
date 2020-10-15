@@ -16,7 +16,7 @@ class TestEnvironment extends NodeEnvironment {
   async setup() {
     await super.setup();
 
-    // Get endpoint URL from Dataset Site
+    // Get endpoint URL from Broker Microservice
     const configUrl = `${MICROSERVICE_BASE}/config`;
     const response = await axios.get(configUrl);
     if (response && response.data) {
