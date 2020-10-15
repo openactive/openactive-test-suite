@@ -3,17 +3,17 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
- * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
+ * @typedef {import('../../templates/p-req').PReqTemplateRef} PReqTemplateRef
  * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  */
 
 
-const C1FlowStage = {
+const PFlowStage = {
   /**
    * @param {object} args
-   * @param {C1ReqTemplateRef} [args.templateRef]
+   * @param {PReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
@@ -21,40 +21,44 @@ const C1FlowStage = {
   create({ templateRef, prerequisite, logger, requestHelper }) {
     return new FlowStage({
       prerequisite,
-      testName: 'C1',
+      testName: 'P',
       async runFn(flowStage) {
         const { uuid, sellerId, orderItems } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems']);
-        return await C1FlowStage.run({
+        const totalPaymentDue = flowStage.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState();
+        return await PFlowStage.run({
           templateRef,
           uuid,
           sellerId,
           orderItems,
+          totalPaymentDue,
           requestHelper,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
-        name: 'C1',
-        validationMode: 'C1Response',
+        name: 'P',
+        validationMode: 'PResponse',
       }),
     });
   },
 
   /**
    * @param {object} args
-   * @param {C1ReqTemplateRef} [args.templateRef]
+   * @param {PReqTemplateRef} [args.templateRef]
    * @param {string} args.uuid
    * @param {string} args.sellerId
    * @param {OrderItem[]} args.orderItems
+   * @param {number} args.totalPaymentDue
    * @param {RequestHelperType} args.requestHelper
    * @returns {Promise<import('./flow-stage').FlowStageOutput<ChakramResponse>>}
    */
-  async run({ templateRef, uuid, sellerId, orderItems, requestHelper }) {
+  async run({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, requestHelper }) {
     const params = {
       sellerId,
       orderItems,
+      totalPaymentDue,
     };
-    const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
+    const response = await requestHelper.putOrderProposal(uuid, params, templateRef);
 
     return {
       result: {
@@ -69,5 +73,5 @@ const C1FlowStage = {
 };
 
 module.exports = {
-  C1FlowStage,
+  PFlowStage,
 };

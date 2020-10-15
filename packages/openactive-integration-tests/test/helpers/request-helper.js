@@ -334,9 +334,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef} pReqTemplateRef
+   * @param {import('../templates/p-req').PReqTemplateRef} maybePReqTemplateRef
    */
-  async putOrderProposal(uuid, params, pReqTemplateRef = 'standard') {
+  async putOrderProposal(uuid, params, maybePReqTemplateRef) {
+    const pReqTemplateRef = maybePReqTemplateRef || 'standard';
     const templateFn = pReqTemplates[pReqTemplateRef];
     const requestBody = templateFn(params);
 

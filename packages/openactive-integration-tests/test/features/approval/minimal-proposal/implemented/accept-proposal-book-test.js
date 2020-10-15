@@ -6,6 +6,7 @@ const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { C2FlowStage } = require('../../../../helpers/flow-stages/c2');
 const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
 const RequestHelper = require('../../../../helpers/request-helper');
+const { PFlowStage } = require('../../../../helpers/flow-stages/p');
 // const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
 
 /**
@@ -67,7 +68,11 @@ FeatureHelper.describeFeature(module, {
     logger,
     requestHelper,
   });
-  // const p = PFlowStage.create({ preRequisite: c2, logger });
+  const p = PFlowStage.create({
+    prerequisite: c2,
+    logger,
+    requestHelper,
+  });
   // const simulateSellerApproval = TestInterfaceActionFlowStage.create({
   //   testName: 'Simulate Seller Approval (Test Interface Action)',
   //   preRequisite: p,
@@ -101,18 +106,18 @@ FeatureHelper.describeFeature(module, {
       itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
-  //   itExtraTests() {
-  //     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
-  //     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-  //       const { uuid } = p.getCombinedStateSoFar();
-  //       expect(p.getResponse().body).to.have.property('orderProposalVersion')
-  //         .which.matches(RegExp(`${uuid}/versions/.+`));
-  //     });
-  //     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
-  //     // TODO does validator check that full Seller details are included in the seller response?
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
+    itExtraTests() {
+      // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+      it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
+        const { uuid } = p.getCombinedStateAfterRun();
+        expect(p.getResponse().body).to.have.property('orderProposalVersion')
+          .which.matches(RegExp(`${uuid}/versions/.+`));
+      });
+      // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
+      // TODO does validator check that full Seller details are included in the seller response?
+    },
+  });
   // // TODO TODO TestInterfaceAction needs to turn off validation, which
   // // won't work for empty action responses.
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);

@@ -62,7 +62,7 @@ const C2FlowStage = {
         status: 'response-received',
       },
       state: {
-        bookingSystemOrder: response.body,
+        bookingSystemOrder: response,
       },
     };
   },

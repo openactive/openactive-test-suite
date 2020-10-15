@@ -1,4 +1,4 @@
-const { memoize, isNil } = require('lodash');
+const { get, isNil, memoize } = require('lodash');
 const pMemoize = require('p-memoize');
 // const sharedValidationTests = require('../../shared-behaviours/validation');
 
@@ -15,7 +15,11 @@ const pMemoize = require('p-memoize');
  * @typedef {{
  *   status: 'no-response-yet'
  * } | {
- *   status: 'pre-requisite-failed'
+ *   status: 'prerequisite-run-error',
+ *   error?: unknown,
+ * } | {
+ *   status: 'run-error',
+ *   error?: unknown,
  * } | {
  *   status: 'response-received',
  *   response: TFlowStageResponse,
@@ -33,7 +37,7 @@ const pMemoize = require('p-memoize');
  *   endpoint.
  * @property {ChakramResponse[]} [opportunityFeedExtractResponses]
  * @property {OrderItem[]} [orderItems]
- * @property {unknown} [bookingSystemOrder]
+ * @property {ChakramResponse} [bookingSystemOrder]
  */
 /**
  * @template TFlowStageResponse
@@ -155,11 +159,42 @@ class FlowStage {
   // }
 
   /**
+   * Looks like `FlowStage(testName: C1)`
+   */
+  _getLoggableStageName() {
+    return `FlowStage(testName: ${this.testName})`;
+  }
+
+  /**
+   * Get a short summary of this FlowStage's result that can be included in an error
+   * log.
+   * This is intended to be logged if some pre-condition has failed e.g. if getCombinedStateAfterRun()
+   * is called before `.run()` has been called or after `.run()` has failed.
+   */
+  _getLoggableResultSummaryForErrorLog() {
+    if ('error' in this._output.result && (this._output.result.error instanceof Error)) {
+      // Get error data from Error object in a format that can be JSON stringified.
+      // Errors, in JS, do not get JSON stringified.
+      const error = {
+        name: this._output.result.error.name,
+        message: this._output.result.error.message,
+        ...this._output.result.error,
+        // We exclude `.stack` because we're just outputting a summary of the result.
+        // This summary may get printed several times over if a prerequisite stage
+        // fails before many other stages.
+        // The full error should have been reported as soon as it occurred.
+      };
+      return JSON.stringify({ ...this._output.result, error });
+    }
+    return JSON.stringify(this._output.result);
+  }
+
+  /**
    * Note: This will throw an error if there is no response yet.
    */
   getResponse() {
     if (!('response' in this._output.result)) {
-      throw new Error(`FlowStage(testName: ${this.testName}).getResponse() called but there is no response. FlowStage result: ${JSON.stringify(this._output.result)}`);
+      throw new Error(`${this._getLoggableStageName()}.getResponse() called but there is no response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
     }
     return this._output.result.response;
   }
@@ -174,14 +209,33 @@ class FlowStage {
 
   run = pMemoize(async () => {
     if (this._prerequisite) {
-      await this._prerequisite.run();
+      try {
+        await this._prerequisite.run();
+      } catch (error) {
+        this._output.result = {
+          status: 'prerequisite-run-error',
+          error,
+        };
+        throw error;
+      }
     }
-    const output = await this._runFn(this);
+    let output;
+    try {
+      output = await this._runFn(this);
+    } catch (error) {
+      this._output.result = {
+        status: 'run-error',
+        error,
+      };
+      throw error;
+    }
     // Merge the output with the initial state, so that the initial state
     // remains unless it is overridden.
     this._output = {
       ...output,
       state: {
+        // TODO TODO think it makes more sense for _initialState to be merged in at
+        // getPrerequisiteCombinedState(..)
         ...this._initialState,
         ...(output.state || {}),
       },
@@ -270,10 +324,26 @@ class FlowStage {
     const prerequisiteCombinedState = this.getPrerequisiteCombinedState();
     for (const expectedField of expectedFields) {
       if (isNil(prerequisiteCombinedState[expectedField])) {
-        throw new Error(`FlowStage(name: ${this.testName}).getPrerequisiteCombinedStateAssertFields(): Expected "${expectedField}" to be in prerequisiteCombinedState, but it was not. prerequisiteCombinedState fields: ${JSON.stringify(Object.keys(prerequisiteCombinedState))}`);
+        throw new Error(`${this._getLoggableStageName()}.getPrerequisiteCombinedStateAssertFields(): Expected "${expectedField}" to be in prerequisiteCombinedState, but it was not. prerequisiteCombinedState fields: ${JSON.stringify(Object.keys(prerequisiteCombinedState))}`);
       }
     }
     return prerequisiteCombinedState;
+  }
+
+  /**
+   * Get totalPaymentDue from getPrerequisiteCombinedState().bookingSystemOrder.
+   *
+   * Throws if totalPaymentDue is not present.
+   *
+   * @returns {number}
+   */
+  getAndAssertTotalPaymentDueFromPrerequisiteCombinedState() {
+    const { bookingSystemOrder } = this.getPrerequisiteCombinedStateAssertFields(['bookingSystemOrder']);
+    const totalPaymentDue = get(bookingSystemOrder, ['body', 'totalPaymentDue', 'price']);
+    if (isNil(totalPaymentDue)) {
+      throw new Error(`${this._getLoggableStageName()}.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState(): Expected bookingSystemOrder to have a totalPaymentDue.price but it does not`);
+    }
+    return totalPaymentDue;
   }
 
   /**
@@ -294,7 +364,7 @@ class FlowStage {
    */
   getCombinedStateAfterRun = memoize((() => {
     if (this._output.result.status !== 'response-received') {
-      throw new Error(`FlowStage(testName: ${this.testName}).getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${JSON.stringify(this._output.result)}`);
+      throw new Error(`${this._getLoggableStageName()}.getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
     }
     const thisState = this._output.state || {};
     if (this._prerequisite) {
