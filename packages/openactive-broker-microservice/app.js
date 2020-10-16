@@ -28,6 +28,13 @@ const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? 
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+class FatalError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'FatalError';
+  }
+}
+
 const app = express();
 
 // eslint-disable-next-line no-console
@@ -156,7 +163,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         url = json.next;
       }
     } catch (error) {
-      if (!error.response) {
+      if (error instanceof FatalError) {
+        // If a fatal error, just rethrow
+        throw error;
+      } else if (!error.response) {
         log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
         // Force retry, after a delay
         await sleep(5000);
@@ -262,11 +272,11 @@ function setFeedIsUpToDate(feedIdentifier) {
         if (totalChildren === 0) {
           logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
           logError('Please ensure that the opportunities feeds conforms to RPDE using https://validator.openactive.io/rpde.\n');
-          throw new Error('Zero opportunities could be harvested from the opportunities feeds');
+          throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          throw new Error('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+          throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
