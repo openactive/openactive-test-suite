@@ -8,6 +8,7 @@ const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-u
 const RequestHelper = require('../../../../helpers/request-helper');
 const { PFlowStage } = require('../../../../helpers/flow-stages/p');
 const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
+const { OrderFeedUpdateFlowStage } = require('../../../../helpers/flow-stages/order-feed-update');
 // const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
 
 /**
@@ -74,9 +75,13 @@ FeatureHelper.describeFeature(module, {
     logger,
     requestHelper,
   });
+  const initiateOrderFeedUpdate = OrderFeedUpdateFlowStage.createInitiator({
+    prerequisite: p,
+    requestHelper,
+  });
   const simulateSellerApproval = TestInterfaceActionFlowStage.create({
     testName: 'Simulate Seller Approval (Test Interface Action)',
-    prerequisite: p,
+    prerequisite: initiateOrderFeedUpdate,
     createActionFn: () => ({
       type: 'test:SellerAcceptOrderProposalSimulateAction',
       objectType: 'OrderProposal',
@@ -84,6 +89,27 @@ FeatureHelper.describeFeature(module, {
     }),
     requestHelper,
   });
+  const collectOrderFeedUpdate = OrderFeedUpdateFlowStage.createCollector({
+    testName: 'Order Feed Update (after Simulate Seller Approval)',
+    prerequisite: simulateSellerApproval,
+    logger,
+  });
+
+  // const x = FlowStageInitiator.create(({ simulateSellerApproval_, orderFeedUpdate_ }) => ({
+  //   simulateSellerApproval_: TestInterfaceActionFlowStage.create({
+  //     testName: 'Simulate Seller Approval (Test Interface Action)',
+  //     prerequisite: p,
+  //     createActionFn: () => ({
+  //       type: 'test:SellerAcceptOrderProposalSimulateAction',
+  //       objectType: 'OrderProposal',
+  //       objectId: p.getResponse().body['@id'],
+  //     }),
+  //     requestHelper,
+  //     initiates: orderFeedUpdate_,
+  //   }),
+  //   orderFeedUpdate_: OrderFeedUpdateFlowStage.create()
+  // }))
+
   // const orderFeedUpdate = OrderFeedUpdateFlowStage.create({
   //   testName: 'Order Feed (after Simulate Seller Approval)',
   //   // orderFeedUpdate must be initiated by simulateSellerApproval because the
@@ -120,15 +146,15 @@ FeatureHelper.describeFeature(module, {
     },
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, {
-  //   itExtraTests() {
-  //     it('should have orderProposalStatus: SellerAccepted', () => {
-  //       expect(orderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
-  //     });
-  //     it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-  //       expect(orderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalVersion', p.getResponse().body.orderProposalVersion);
-  //     });
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(collectOrderFeedUpdate, {
+    itExtraTests() {
+      it('should have orderProposalStatus: SellerAccepted', () => {
+        expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
+      });
+      it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
+        expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalVersion', p.getResponse().body.orderProposalVersion);
+      });
+    },
+  });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });

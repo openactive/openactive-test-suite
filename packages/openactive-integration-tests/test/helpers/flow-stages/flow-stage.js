@@ -38,6 +38,15 @@ const pMemoize = require('p-memoize');
  * @property {ChakramResponse[]} [opportunityFeedExtractResponses]
  * @property {OrderItem[]} [orderItems]
  * @property {ChakramResponse} [bookingSystemOrder]
+ * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
+ *   Order Feed updates.
+ *
+ *   Because an Order Feed update check must be initiated before another stage and then
+ *   collected after that stage has completed (e.g. initiate before a cancellation stage
+ *   and then collect the result after), this promise is persisted, so that the
+ *   result can be collected by resolving it.
+ *
+ *   The response will be for an RPDE item with { kind, id, state, data, ...etc }.
  */
 /**
  * @template TFlowStageResponse
@@ -131,12 +140,15 @@ class FlowStage {
    * @param {(flowStage: FlowStage<TFlowStageResponse>) => void} args.itValidationTestsFn
    * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
    *   values for state e.g. use a pre-determined UUID.
+   * @param {boolean} [args.shouldDescribeFlowStage] If false, this FlowStage should
+   *   not get its own `describe(..)` block. Use this for abstract flow stages like
+   *   an Order Feed Update initiator.
+   *
+   *   Defaults to true.
    */
-  // /**
-  //  * @param {FlowStageConstructorArgs<TFlowStageResponse>} args
-  //  */
-  constructor({ prerequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState }) {
+  constructor({ prerequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState, shouldDescribeFlowStage = true }) {
     this.testName = testName;
+    this.shouldDescribeFlowStage = shouldDescribeFlowStage;
     this._prerequisite = prerequisite;
     this._runFn = runFn;
     this._itSuccessChecksFn = itSuccessChecksFn;
@@ -161,7 +173,7 @@ class FlowStage {
   /**
    * Looks like `FlowStage(testName: C1)`
    */
-  _getLoggableStageName() {
+  getLoggableStageName() {
     return `FlowStage(testName: ${this.testName})`;
   }
 
@@ -194,7 +206,7 @@ class FlowStage {
    */
   getResponse() {
     if (!('response' in this._output.result)) {
-      throw new Error(`${this._getLoggableStageName()}.getResponse() called but there is no response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
+      throw new Error(`${this.getLoggableStageName()}.getResponse() called but there is no response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
     }
     return this._output.result.response;
   }
@@ -324,7 +336,7 @@ class FlowStage {
     const prerequisiteCombinedState = this.getPrerequisiteCombinedState();
     for (const expectedField of expectedFields) {
       if (isNil(prerequisiteCombinedState[expectedField])) {
-        throw new Error(`${this._getLoggableStageName()}.getPrerequisiteCombinedStateAssertFields(): Expected "${expectedField}" to be in prerequisiteCombinedState, but it was not. prerequisiteCombinedState fields: ${JSON.stringify(Object.keys(prerequisiteCombinedState))}`);
+        throw new Error(`${this.getLoggableStageName()}.getPrerequisiteCombinedStateAssertFields(): Expected "${expectedField}" to be in prerequisiteCombinedState, but it was not. prerequisiteCombinedState fields: ${JSON.stringify(Object.keys(prerequisiteCombinedState))}`);
       }
     }
     return prerequisiteCombinedState;
@@ -341,7 +353,7 @@ class FlowStage {
     const { bookingSystemOrder } = this.getPrerequisiteCombinedStateAssertFields(['bookingSystemOrder']);
     const totalPaymentDue = get(bookingSystemOrder, ['body', 'totalPaymentDue', 'price']);
     if (isNil(totalPaymentDue)) {
-      throw new Error(`${this._getLoggableStageName()}.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState(): Expected bookingSystemOrder to have a totalPaymentDue.price but it does not`);
+      throw new Error(`${this.getLoggableStageName()}.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState(): Expected bookingSystemOrder to have a totalPaymentDue.price but it does not`);
     }
     return totalPaymentDue;
   }
@@ -364,7 +376,7 @@ class FlowStage {
    */
   getCombinedStateAfterRun = memoize((() => {
     if (this._output.result.status !== 'response-received') {
-      throw new Error(`${this._getLoggableStageName()}.getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
+      throw new Error(`${this.getLoggableStageName()}.getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
     }
     const thisState = this._output.state || {};
     if (this._prerequisite) {

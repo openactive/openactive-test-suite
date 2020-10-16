@@ -223,6 +223,9 @@ class RequestHelper {
     return template;
   }
 
+  /**
+   * @param {string} uuid
+   */
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
