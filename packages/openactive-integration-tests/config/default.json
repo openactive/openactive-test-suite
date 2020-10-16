@@ -27,7 +27,7 @@
     "simple-book-with-payment": true,
     "multiple-sellers": true,
     "payment-reconciliation-detail-validation": null,
-    "booking-window": null,
+    "booking-window": true,
     "customer-requested-cancellation": true,
     "cancellation-window": null,
     "seller-requested-cancellation": null,

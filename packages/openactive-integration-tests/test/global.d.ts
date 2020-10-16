@@ -12,6 +12,7 @@ declare global {
       // These variables are added to Node.js' global object by jest-environment-node
       MICROSERVICE_BASE: string;
       BOOKING_API_BASE?: string;
+      HARVEST_START_TIME: Date;
       TEST_DATASET_IDENTIFIER: string;
       BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: { [opportunityType: string]: boolean };
       IMPLEMENTED_FEATURES: { [featureIdentifier: string]: boolean | null };

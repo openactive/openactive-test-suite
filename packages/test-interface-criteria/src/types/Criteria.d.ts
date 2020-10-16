@@ -1,9 +1,10 @@
 import { Opportunity } from './Opportunity';
 import { Offer } from './Offer';
+import { Options } from './Options';
 
-export type OpportunityConstraint = (opportunity: Opportunity) => boolean;
+export type OpportunityConstraint = (opportunity: Opportunity, options?: Options) => boolean;
 
-export type OfferConstraint = (offer: Offer, opportunity: Opportunity) => boolean;
+export type OfferConstraint = (offer: Offer, opportunity: Opportunity, options?: Options) => boolean;
 
 export type Criteria = {
   name: string,
