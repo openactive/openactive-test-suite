@@ -520,6 +520,7 @@ function detectOpportunityType(opportunity) {
         case 'CourseInstance':
           return 'CourseInstanceSubEvent';
         case 'EventSeries':
+        case undefined:
         case null:
           return 'Event';
         default:
