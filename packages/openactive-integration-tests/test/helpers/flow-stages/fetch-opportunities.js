@@ -84,6 +84,13 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
   return testInterfaceOpportunities;
 }
 
+/**
+ * Generally the first FlowStage which is run in a test.
+ * It gets/creates some opportunities from the BookingSystem's opportunity feed.
+ * These opportunities will then be used by subsequent stages.
+ * It makes use of the OpportunityFeedUpdate FlowStage as both stages fetch opportunities
+ * from the opportunities feed.
+ */
 const FetchOpportunitiesFlowStage = {
   /**
    * @param {object} args
