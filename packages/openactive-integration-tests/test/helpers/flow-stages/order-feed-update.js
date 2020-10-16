@@ -104,6 +104,7 @@ const OrderFeedUpdateFlowStage = {
   async runCollector({ getOrderFromOrderFeedPromise }) {
     const response = await getOrderFromOrderFeedPromise;
 
+    // TODO TODO: Should this also update the bookingSystemOrder state?
     return {
       result: {
         response,

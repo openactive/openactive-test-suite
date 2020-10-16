@@ -9,6 +9,7 @@ const RequestHelper = require('../../../../helpers/request-helper');
 const { PFlowStage } = require('../../../../helpers/flow-stages/p');
 const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
 const { OrderFeedUpdateFlowStage } = require('../../../../helpers/flow-stages/order-feed-update');
+const { BFlowStage } = require('../../../../helpers/flow-stages/b');
 // const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
 
 /**
@@ -118,7 +119,11 @@ FeatureHelper.describeFeature(module, {
   //   initiatedBy: simulateSellerApproval,
   //   logger,
   // });
-  // const b = BFlowStage.create({ preRequisite: orderFeedUpdate, logger });
+  const b = BFlowStage.create({
+    prerequisite: collectOrderFeedUpdate,
+    logger,
+    requestHelper,
+  });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -156,5 +161,5 @@ FeatureHelper.describeFeature(module, {
       });
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });

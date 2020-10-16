@@ -342,6 +342,23 @@ class FlowStage {
     return prerequisiteCombinedState;
   }
 
+  // /**
+  //  * Gets some nested property from getPrerequisiteCombinedState().
+  //  *
+  //  * If the property doesn't exist or is nullish, this function throws.
+  //  *
+  //  * @param {keyof FlowStageState} stateField
+  //  * @param {string[]} nestedPropertyPath
+  //  */
+  // _getAndAssertNestedFieldFromPrerequisiteCombinedState(stateField, nestedPropertyPath) {
+  //   const prerequisiteState = this.getPrerequisiteCombinedStateAssertFields([stateField]);
+  //   const value = get(prerequisiteState[stateField], nestedPropertyPath);
+  //   if (isNil(value)) {
+  //     throw new Error(`${this.getLoggableStageName()}._getAndAssertNestedFieldFromPrerequisiteCombinedState(): Expected ${stateField} to have nested property "${nestedPropertyPath.join('.')}" but it does not`);
+  //   }
+  //   return value;
+  // }
+
   /**
    * Get totalPaymentDue from getPrerequisiteCombinedState().bookingSystemOrder.
    *

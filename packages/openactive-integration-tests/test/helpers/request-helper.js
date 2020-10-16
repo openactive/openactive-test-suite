@@ -269,7 +269,7 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {import('../templates/c1-req').C1ReqTemplateRef} [maybeC1ReqTemplateRef]
+   * @param {import('../templates/c1-req').C1ReqTemplateRef | null} [maybeC1ReqTemplateRef]
    */
   async putOrderQuoteTemplate(uuid, params, maybeC1ReqTemplateRef) {
     const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
@@ -292,7 +292,7 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {import('../templates/c2-req').C2ReqTemplateRef} [maybeC2ReqTemplateRef]
+   * @param {import('../templates/c2-req').C2ReqTemplateRef | null} [maybeC2ReqTemplateRef]
    */
   async putOrderQuote(uuid, params, maybeC2ReqTemplateRef) {
     const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
@@ -315,9 +315,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {import('../templates/b-req').BReqTemplateRef} bReqTemplateRef
+   * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrder(uuid, params, bReqTemplateRef = 'standard') {
+  async putOrder(uuid, params, maybeBReqTemplateRef) {
+    const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
 
@@ -337,7 +338,7 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef} maybePReqTemplateRef
+   * @param {import('../templates/p-req').PReqTemplateRef | null} [maybePReqTemplateRef]
    */
   async putOrderProposal(uuid, params, maybePReqTemplateRef) {
     const pReqTemplateRef = maybePReqTemplateRef || 'standard';
