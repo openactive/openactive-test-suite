@@ -698,14 +698,15 @@ function storeOpportunityItem(item) {
     parentIngested: item.state === 'deleted' ? false : parentOpportunityMap.has(item.data.superEvent) || parentOpportunityMap.has(item.data.facilityUse),
   };
 
+  var hasNoParent = (item.data['@type'] === 'Event' || item.data['@type'] === 'OnDemandEvent') && item.data.superEvent == undefined;
+
   if (row.jsonLdParentId != null && row.jsonLdId != null) {
     if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
     parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
   }
 
   rowStoreMap.set(row.jsonLdId, row);
-
-  if (row.parentIngested) {
+  if (row.parentIngested || hasNoParent) {
     processRow(row);
   }
 }
