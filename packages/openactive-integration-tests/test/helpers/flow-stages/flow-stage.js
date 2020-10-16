@@ -142,6 +142,9 @@ class FlowStage {
   }
 
   run = pMemoize(async () => {
+    // ## 1. Run prerequisite stage
+    //
+    // (if it hasn't already been run)
     if (this._prerequisite) {
       try {
         await this._prerequisite.run();
@@ -153,6 +156,7 @@ class FlowStage {
         throw error;
       }
     }
+    // ## 2. Run this stage
     let output;
     try {
       output = await this._runFn(this);
@@ -163,17 +167,8 @@ class FlowStage {
       };
       throw error;
     }
-    // Merge the output with the initial state, so that the initial state
-    // remains unless it is overridden.
-    this._output = {
-      ...output,
-      state: {
-        // TODO TODO think it makes more sense for _initialState to be merged in at
-        // getPrerequisiteCombinedState(..)
-        ...this._initialState,
-        ...(output.state || {}),
-      },
-    };
+    // ## 3. Save result
+    this._output = output;
   }, { cachePromiseRejection: true });
 
   beforeSetup() {
@@ -220,10 +215,14 @@ class FlowStage {
    * @type {() => FlowStageState}
    */
   getPrerequisiteCombinedState = memoize(() => {
+    const initialState = this._initialState || {};
     if (this._prerequisite) {
-      return this._prerequisite.getCombinedStateAfterRun();
+      return {
+        ...this._prerequisite.getCombinedStateAfterRun(),
+        ...initialState,
+      };
     }
-    return {};
+    return initialState;
   })
 
   /**
@@ -279,14 +278,10 @@ class FlowStage {
     if (this._output.result.status !== 'response-received') {
       throw new Error(`${this.getLoggableStageName()}.getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
     }
-    const thisState = this._output.state || {};
-    if (this._prerequisite) {
-      return {
-        ...this._prerequisite.getCombinedStateAfterRun(),
-        ...thisState,
-      };
-    }
-    return thisState;
+    return {
+      ...this.getPrerequisiteCombinedState(),
+      ...this._output.state || {},
+    };
   }))
 }
 
