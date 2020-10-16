@@ -2,6 +2,7 @@ const chai = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2 } = require('../../../../shared-behaviours');
+const { Common } = require('../../../../shared-behaviours/common');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -17,23 +18,6 @@ function itShouldReturn409Conflict(stage, responseAccessor) {
   it('should return 409', () => {
     stage.expectResponseReceived();
     chakram.expect(responseAccessor()).to.have.status(409);
-  });
-}
-
-/**
- * @param {C1|C2} stage
- * @param {() => ChakramResponse} responseAccessor This is wrapped in a
- *   function because the actual response won't be available until the
- *   asynchronous before() block has completed.
- */
-function itShouldReturnOpportunityOfferPairNotBookableError(stage, responseAccessor) {
-  it('should return OpportunityOfferPairNotBookableError', () => {
-    stage.expectResponseReceived();
-
-    const response = responseAccessor();
-    const errors = response.body.orderedItem.map(oi => oi.error && oi.error[0] && oi.error[0]['@type']).filter(e => !!e);
-
-    chai.expect(errors.every(e => e === 'OpportunityOfferPairNotBookableError')).to.equal(true);
   });
 }
 
@@ -78,6 +62,14 @@ FeatureHelper.describeFeature(module, {
       .validationTests();
 
     itShouldReturn409Conflict(c2, () => state.c2Response);
-    itShouldReturnOpportunityOfferPairNotBookableError(c2, () => state.c2Response);
+    Common.itForOrderItemByControl(orderItemCriteria, state, c2, () => state.c2Response.body,
+      'should include an OpportunityOfferPairNotBookableError',
+      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+        chai.expect(responseOrderItemErrorTypes).to.include('OpportunityOfferPairNotBookableError');
+      },
+      'should not include an OpportunityOfferPairNotBookableError',
+      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+        chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityOfferPairNotBookableError');
+      });
   });
 });

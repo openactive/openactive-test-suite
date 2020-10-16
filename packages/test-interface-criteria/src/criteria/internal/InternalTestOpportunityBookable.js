@@ -10,10 +10,10 @@ const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('../criter
 /**
  * @type {OfferConstraint}
  */
-function mustHaveBookableOffer(offer, opportunity) {
+function mustHaveBookableOffer(offer, opportunity, options) {
   return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
     && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore());
+    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
 /**
