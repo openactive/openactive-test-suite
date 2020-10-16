@@ -20,12 +20,12 @@ FeatureHelper.describeFeature(module, {
   singleOpportunityCriteriaTemplate: opportunityType => [
     {
       opportunityType,
-      opportunityCriteria: 'TestOpportunityBookable',
+      opportunityCriteria: 'TestOpportunityBookableFree',
       seller: 'primary',
     },
     {
       opportunityType,
-      opportunityCriteria: 'TestOpportunityBookable',
+      opportunityCriteria: 'TestOpportunityBookableFree',
       seller: 'secondary',
     },
   ],
