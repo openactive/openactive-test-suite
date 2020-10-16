@@ -9,7 +9,6 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  */
 
-
 const PFlowStage = {
   /**
    * @param {object} args

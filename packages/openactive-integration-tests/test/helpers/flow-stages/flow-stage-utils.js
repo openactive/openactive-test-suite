@@ -1,4 +1,3 @@
-// const pMemoize = require('p-memoize');
 const chakram = require('chakram');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 
@@ -70,8 +69,6 @@ const FlowStageUtils = {
     return FlowStageUtils.simpleHttpXXXSuccessChecks(200);
   },
 
-  // run: pMemoize(async )
-
   /**
    * Creates a `describe(..)` block in which:
    *
@@ -105,16 +102,6 @@ const FlowStageUtils = {
     });
   },
 };
-
-/**
- * FlowStageDefinition: { preRequisite, testName, initialState }
- * FlowStageOutput: { result: FlowStageResult, state: FlowStageState }
- * FlowStageRunner: ({ definition: FlowStageDefinition, stateSoFar: FlowStageState })
- *
- * const foOutput = FlowStage.run(FetchOpportunitiesFlow.run: FlowStageRunner, definition, {}))
- * // ... in a different scope
- * FlowStage.itSuccessChecks(foOutput)
- */
 
 module.exports = {
   FlowStageUtils,
