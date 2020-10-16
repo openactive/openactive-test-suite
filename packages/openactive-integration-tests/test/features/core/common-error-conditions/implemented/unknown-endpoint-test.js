@@ -17,12 +17,18 @@ FeatureHelper.describeFeature(module, {
   describe('Unknown Endpoint - JSON PUT', () => {
     it('should return an UnknownOrIncorrectEndpointError', async () => {
       const requestHelper = new RequestHelper(logger);
-      const response = await requestHelper.put('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { hi: 'there' }, { timeout: 10000 });
+      const response = await requestHelper.put(
+        'UnknownEndpoint',
+        `${BOOKING_API_BASE}ordeeeeers/abc`,
+        { hi: 'there' },
+        { timeout: 10000, headers: requestHelper.createHeaders() });
+
       expect(response.response).to.have.property('statusCode', 404);
       expect(response.body).to.have.property('@type', 'UnknownOrIncorrectEndpointError');
       expect(response.body).to.have.property('@context');
     });
   });
+
   describe('Unknown Endpoint - GET', () => {
     it('should return an UnknownOrIncorrectEndpointError', async () => {
       const requestHelper = new RequestHelper(logger);
