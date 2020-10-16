@@ -115,3 +115,13 @@ During development it may be desirable to temporarily disable harvesting of the 
 ```json
   "disableOrdersFeedHarvesting": true,
 ```
+
+### `disableBrokerMicroserviceTimeout`
+
+Opportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.
+
+This property must be set to allow the openactive-broker-microservice to run for more than 1 hour.
+
+```json
+  "disableBrokerMicroserviceTimeout": true,
+```

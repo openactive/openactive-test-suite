@@ -226,7 +226,7 @@ class RequestHelper {
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
-      `${MICROSERVICE_BASE}get-order/${uuid}`,
+      `${MICROSERVICE_BASE}/get-order/${uuid}`,
       {
         timeout: 30000,
       },
@@ -242,7 +242,7 @@ class RequestHelper {
   async getMatch(eventId, orderItemPosition) {
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
       {
         timeout: 60000,
       },
@@ -254,7 +254,7 @@ class RequestHelper {
   async getDatasetSite() {
     const respObj = await this.get(
       'Dataset Site Cached Proxy',
-      `${MICROSERVICE_BASE}dataset-site`,
+      `${MICROSERVICE_BASE}/dataset-site`,
       {
         timeout: 5000,
       },
@@ -274,7 +274,7 @@ class RequestHelper {
 
     const c1Response = await this.put(
       'C1',
-      `${BOOKING_API_BASE}order-quote-templates/${uuid}`,
+      `${BOOKING_API_BASE}/order-quote-templates/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -296,7 +296,7 @@ class RequestHelper {
 
     const c2Response = await this.put(
       'C2',
-      `${BOOKING_API_BASE}order-quotes/${uuid}`,
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -318,7 +318,7 @@ class RequestHelper {
 
     const bResponse = await this.put(
       'B',
-      `${BOOKING_API_BASE}orders/${uuid}`,
+      `${BOOKING_API_BASE}/orders/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -340,7 +340,7 @@ class RequestHelper {
 
     const pResponse = await this.put(
       'P',
-      `${BOOKING_API_BASE}order-proposals/${uuid}`,
+      `${BOOKING_API_BASE}/order-proposals/${uuid}`,
       requestBody,
       {
         headers: this.createHeaders(),
@@ -363,7 +363,7 @@ class RequestHelper {
 
     const uResponse = await this.patch(
       'U',
-      `${BOOKING_API_BASE}orders/${uuid}`,
+      `${BOOKING_API_BASE}/orders/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -377,7 +377,7 @@ class RequestHelper {
   async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
-      `${BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
+      `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         headers: this.createHeaders(),
@@ -391,7 +391,7 @@ class RequestHelper {
   async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
     const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
+      `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         timeout: 10000,
@@ -411,7 +411,7 @@ class RequestHelper {
   async callTestInterfaceAction({ action: { type, objectType, objectId } }) {
     const response = await this.post(
       `Call TestInterface Action of type: ${type}`,
-      `${BOOKING_API_BASE}test-interface/actions`,
+      `${BOOKING_API_BASE}/test-interface/actions`,
       {
         '@context': [
           'https://openactive.io/',
@@ -438,7 +438,7 @@ class RequestHelper {
   async deleteOrder(uuid, params) {
     const respObj = await this.delete(
       'delete-order',
-      `${BOOKING_API_BASE}orders/${uuid}`,
+      `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),
         timeout: 10000,

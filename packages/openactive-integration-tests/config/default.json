@@ -23,7 +23,7 @@
     "amending-order-quote": true,
     "simple-book-free-opportunities": true,
     "order-deletion": null,
-    "agent-broker": null,
+    "agent-broker": true,
     "simple-book-with-payment": true,
     "multiple-sellers": true,
     "payment-reconciliation-detail-validation": null,
