@@ -65,8 +65,13 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .successChecks()
       .validationTests();
 
-    it('Response should contain Access Code', function () {
-      chai.expect(state.bResponse.body.orderedItem[0].accessCode[0].description).to.equal('1234');
+    it('Response should include accessCode with description and name', () => {
+      chakram.expect(state.bResponse).to.have.schema('orderedItem[0].accessCode[0].description', {
+        type: 'string',
+      });
+      chakram.expect(state.bResponse).to.have.schema('orderedItem[0].accessCode[0].name', {
+        type: 'string',
+      });
     });
   });
 });
