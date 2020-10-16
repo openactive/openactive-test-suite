@@ -95,20 +95,15 @@ const FetchOpportunitiesFlowStage = {
    */
   create({ orderItemCriteriaList, uuid, requestHelper, logger }) {
     return new FlowStage({
-    // return FlowStage.create({
       testName: 'Fetch Opportunities',
-      // runFn: async () => await runFetchOpportunities({ orderItemCriteriaList, requestHelper }),
       runFn: async () => await FetchOpportunitiesFlowStage.run({ orderItemCriteriaList, requestHelper }),
-      // itSuccessChecksFn(/** @type {FlowStage<FetchOpportunitiesResponse>} */ flowStage) {
       itSuccessChecksFn(flowStage) {
-        // const { opportunityFeedExtractResponses } = flowStage.getResponse();
         OpportunityFeedUpdateFlowStage.itSuccessChecks({
           orderItemCriteriaList,
           getterFn: () => flowStage.getResponse(),
         });
       },
       itValidationTestsFn(flowStage) {
-        // const { opportunityFeedExtractResponses } = flowStage.getResponse();
         OpportunityFeedUpdateFlowStage.itValidationTests({
           logger,
           orderItemCriteriaList,
@@ -133,7 +128,6 @@ const FetchOpportunitiesFlowStage = {
    * @returns {Promise<import('./flow-stage').FlowStageOutput<FetchOpportunitiesResponse>>}
     */
   async run({ orderItemCriteriaList, requestHelper }) {
-    // TODO TODO update based on changes to RequestState since starting this refactoring
     // ## Get Test Interface Opportunities
     const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper });
 
@@ -149,9 +143,9 @@ const FetchOpportunitiesFlowStage = {
 
     // ## Combine responses
     if (!('response' in opportunityFeedUpdateResult.result)) {
-      // unfortunately, TS does not infer that, if the above condition is true,
-      // opportunityFeedUpdateResult doesn't have a response, and therefore,
-      // FlowStageOutputs are interchangeable.
+      // If the above condition is true, opportunityFeedUpdateResult doesn't have
+      // a response, and therefore, FlowStageOutputs are interchangeable.
+      // Therefore, we bypass TS
       return /** @type {any} */(opportunityFeedUpdateResult);
     }
 
@@ -170,21 +164,6 @@ const FetchOpportunitiesFlowStage = {
     };
   },
 };
-
-// class FetchOpportunitiesFlowStage extends FlowStage {
-//   constructor({ logger, orderItemCriteria }) {
-//     super({ logger, testName: 'Fetch Opportunities' });
-//   }
-
-//   async _internalRun() {
-//   }
-
-//   _internalItSuccessChecks() {
-//   }
-
-//   _internalItValidationTests() {
-//   }
-// }
 
 module.exports = {
   FetchOpportunitiesFlowStage,

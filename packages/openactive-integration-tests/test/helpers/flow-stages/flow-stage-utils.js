@@ -89,7 +89,6 @@ const FlowStageUtils = {
     if (!flowStage.shouldDescribeFlowStage) {
       throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStage.getLoggableStageName()} as shouldDescribeFlowStage is false`);
     }
-    // TODO TODO TODO test this + fetch-opportunities flow stage
     describe(flowStage.testName, () => {
       flowStage
         .beforeSetup()
