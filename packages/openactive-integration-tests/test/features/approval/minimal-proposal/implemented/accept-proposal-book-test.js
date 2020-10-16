@@ -34,7 +34,6 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking using the Booking Flow with Approval',
   testDescription: 'A successful end to end booking, via Booking Flow with Approval, of an opportunity.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  // testOpportunityCriteria: 'TestOpportunityBookable',
   testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
