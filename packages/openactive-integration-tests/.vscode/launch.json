@@ -2,6 +2,24 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "command": "npm start --runInBand -- test/features/",
+      "name": "Run all configured tests",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
+      "command": "npm start --runInBand -- test/features/payment/simple-book-with-payment",
+      "name": "Test simple booking with payment",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
+      "command": "npm start --runInBand -- test/features/core/multiple-sellers",
+      "name": "Test Multiple sellers",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
       "name": "Debug Jest Tests",
       "type": "node",
       "request": "launch",
