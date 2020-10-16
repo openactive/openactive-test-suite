@@ -1,6 +1,5 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-// const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { FetchOpportunitiesFlowStage } = require('../../../../helpers/flow-stages/fetch-opportunities');
 const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
 const { C2FlowStage } = require('../../../../helpers/flow-stages/c2');
@@ -10,7 +9,6 @@ const { PFlowStage } = require('../../../../helpers/flow-stages/p');
 const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
 const { OrderFeedUpdateFlowStage } = require('../../../../helpers/flow-stages/order-feed-update');
 const { BFlowStage } = require('../../../../helpers/flow-stages/b');
-// const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -42,19 +40,8 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  // beforeAll(async () => {
-  //   await state.fetchOpportunities(orderItemCriteriaList);
-  // });
-
-  // describe('Get Opportunity Feed Items', () => {
-  //   (new GetMatch({
-  //     state, flow, logger, orderItemCriteria: orderItemCriteraList,
-  //   }))
-  //     .beforeSetup()
-  //     .successChecks()
-  //     .validationTests();
-  // });
   const requestHelper = new RequestHelper(logger);
+
   // ## Initiate Flow Stages
   const fetchOpportunities = FetchOpportunitiesFlowStage.create({
     orderItemCriteriaList,
@@ -95,30 +82,6 @@ FeatureHelper.describeFeature(module, {
     prerequisite: simulateSellerApproval,
     logger,
   });
-
-  // const x = FlowStageInitiator.create(({ simulateSellerApproval_, orderFeedUpdate_ }) => ({
-  //   simulateSellerApproval_: TestInterfaceActionFlowStage.create({
-  //     testName: 'Simulate Seller Approval (Test Interface Action)',
-  //     prerequisite: p,
-  //     createActionFn: () => ({
-  //       type: 'test:SellerAcceptOrderProposalSimulateAction',
-  //       objectType: 'OrderProposal',
-  //       objectId: p.getResponse().body['@id'],
-  //     }),
-  //     requestHelper,
-  //     initiates: orderFeedUpdate_,
-  //   }),
-  //   orderFeedUpdate_: OrderFeedUpdateFlowStage.create()
-  // }))
-
-  // const orderFeedUpdate = OrderFeedUpdateFlowStage.create({
-  //   testName: 'Order Feed (after Simulate Seller Approval)',
-  //   // orderFeedUpdate must be initiated by simulateSellerApproval because the
-  //   // order may appear on the feed as soon as simulateSellerApproval is
-  //   // completed.
-  //   initiatedBy: simulateSellerApproval,
-  //   logger,
-  // });
   const b = BFlowStage.create({
     prerequisite: collectOrderFeedUpdate,
     logger,
