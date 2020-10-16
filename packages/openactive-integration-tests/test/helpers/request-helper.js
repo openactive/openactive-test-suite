@@ -108,8 +108,8 @@ class RequestHelper {
   }
 
   createHeaders() {
-    return  Object.assign({
-      "Content-Type": "application/vnd.openactive.booking+json; version=1"
+    return Object.assign({
+      'Content-Type': 'application/vnd.openactive.booking+json; version=1',
     }, REQUEST_HEADERS);
   }
 
@@ -278,8 +278,8 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return c1Response;
@@ -300,8 +300,8 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return c2Response;
@@ -322,8 +322,8 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return bResponse;
@@ -367,8 +367,8 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return uResponse;
@@ -381,8 +381,8 @@ class RequestHelper {
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         headers: this.createHeaders(),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return respObj;
@@ -441,8 +441,8 @@ class RequestHelper {
       `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
     return respObj;
   }

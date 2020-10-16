@@ -21,7 +21,8 @@ FeatureHelper.describeFeature(module, {
         'UnknownEndpoint',
         `${BOOKING_API_BASE}ordeeeeers/abc`,
         { hi: 'there' },
-        { timeout: 10000, headers: requestHelper.createHeaders() });
+        { timeout: 10000, headers: requestHelper.createHeaders() },
+      );
 
       expect(response.response).to.have.property('statusCode', 404);
       expect(response.body).to.have.property('@type', 'UnknownOrIncorrectEndpointError');
