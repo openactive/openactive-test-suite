@@ -35,7 +35,7 @@ function createNonExistantOrderUReq(data) {
     orderedItem: [
       {
         '@type': 'OrderItem',
-        '@id': `${BOOKING_API_BASE}orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
+        '@id': `${BOOKING_API_BASE}/orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
         orderItemStatus: 'https://openactive.io/CustomerCancelled',
       },
     ],
@@ -52,10 +52,20 @@ function createnonCustomerCancelledOrderItemStatus(data) {
     orderedItem: [
       {
         '@type': 'OrderItem',
-        '@id': `${BOOKING_API_BASE}orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
+        '@id': `${BOOKING_API_BASE}/orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
         orderItemStatus: 'https://openactive.io/OrderItemConfirmed',
       },
     ],
+  };
+}
+
+/**
+ * @param {UReqTemplateData} data
+ */
+function createUReqWithExcessiveProperties(data) {
+  return {
+    ...createStandardUReq(data),
+    '@id': 'excessiveField',
   };
 }
 
@@ -63,6 +73,7 @@ const uReqTemplates = {
   standard: createStandardUReq,
   nonExistantOrder: createNonExistantOrderUReq,
   nonCustomerCancelledOrderItemStatus: createnonCustomerCancelledOrderItemStatus,
+  excessiveProperties: createUReqWithExcessiveProperties,
 };
 
 /**

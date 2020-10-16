@@ -6,7 +6,7 @@ const { GetMatch, C1, C2 } = require('../../../../shared-behaviours');
  */
 
 FeatureHelper.describeFeature(module, {
-  testCategory: 'restriction',
+  testCategory: 'restrictions',
   testFeature: 'booking-window',
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-in-range-c1-c2',
