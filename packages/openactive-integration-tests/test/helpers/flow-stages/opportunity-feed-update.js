@@ -40,6 +40,9 @@ function getRandomRelevantOffer(opportunity, opportunityCriteria) {
   return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
 }
 
+/**
+ * Wait for an opportunity to appear in the Booking System's Opportunity Feed.
+ */
 const OpportunityFeedUpdateFlowStage = {
   /**
    * @param {object} args
