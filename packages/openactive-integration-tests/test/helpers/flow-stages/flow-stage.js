@@ -141,6 +141,14 @@ class FlowStage {
     return this._output.result.response;
   }
 
+  /**
+   * Run this FlowStage. The result can then be retrieved using `getResponse()`
+   * or `getCombinedStateAfterRun()`.
+   *
+   * If there is a prerequisite stage, it will be run first.
+   *
+   * The result is cached.
+   */
   run = pMemoize(async () => {
     // ## 1. Run prerequisite stage
     //
