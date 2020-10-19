@@ -42,6 +42,25 @@ FeatureHelper.describeFeature(module, {
   const requestHelper = new RequestHelper(logger);
 
   // ## Initiate Flow Stages
+  const flowStages = FlowStageUtils.createFlow([
+    // { name: 'fetchOpportunities', factory: FetchOpportunitiesFlowStage.create, args: { orderItemCriteriaList }},
+    ['fetchOpportunities', FetchOpportunitiesFlowStage.create, { orderItemCriteriaList }],
+    ['c1', C1FlowStage.create],
+    ['c2', C2FlowStage.create],
+    ['p', PFlowStage.create],
+    ['simulateSellerApproval', TestInterfaceActionFlowStage.create, ({ p }) => ({
+      testName: 'Simulate Seller Approval (Test Interface Action)',
+      createActionFn: () => ({
+        type: 'test:SellerAcceptOrderProposalSimulateAction',
+        objectType: 'OrderProposal',
+        objectId: p.getResponse().body['@id'],
+      }),
+    })],
+    ['orderFeedUpdate', 'OrderFeedUpdate', {
+      testName: 'Order Feed Update (after Simulate Seller Approval)',
+    }],
+    ['b', BFlowStage.create],
+  ], { logger, requestHelper });
   const fetchOpportunities = FetchOpportunitiesFlowStage.create({
     orderItemCriteriaList,
     logger,

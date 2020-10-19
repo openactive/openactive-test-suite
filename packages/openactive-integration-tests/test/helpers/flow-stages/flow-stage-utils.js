@@ -1,11 +1,15 @@
 const chakram = require('chakram');
 const sharedValidationTests = require('../../shared-behaviours/validation');
+const { C1FlowStage } = require('./c1');
+const { C2FlowStage } = require('./c2');
+const { PFlowStage } = require('./p');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
  * @typedef {import('./flow-stage').FlowStageState} FlowStageState
+ * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  */
 
 /**
@@ -100,7 +104,97 @@ const FlowStageUtils = {
       }
     });
   },
+
+  //  * @param {[
+  //  *   name: TStageName,
+  //  *   factory: Function | 'OrderFeedUpdate',
+  //  *   args?: object,
+  //  * ][]} specs
+  //  * @template {string} TStageName
+
+  //  * @template {{
+  //  *   [k: string]: {
+  //  *     factory: (arg: any) => FlowStage<any>,
+  //  *     args: any,
+  //  *   },
+  //  * }} TSpecs
+
+  // /**
+  //  * @template {{
+  //  *   [k: string]: (args: object) => FlowStage<any>,
+  //  * }} TSpecNameToFlowStage
+  //  *
+  //  * @param {TSpecs} specs
+  //  * @param {object} extraArgs
+  //  * @param {BaseLoggerType} extraArgs.logger
+  //  * @param {RequestHelperType} extraArgs.requestHelper
+  //  * @returns {{
+  //  *   [k: keyof TSpecs]: FlowStage<any>
+  //  * }}
+  //  */
+  // createFlow(specs, { logger, requestHelper }) {
+  //   // return
+  // },
+
+  // /**
+  //  * @typedef {{
+  //  *   flowStagesByLabel:
+  //  * }} Flow
+  //  */
+
+  /**
+   * @template {{
+   *   flowStagesByLabel: any,
+   *   flowStageOrder: string[],
+   *   logger: BaseLoggerType,
+   *   requestHelper: RequestHelperType,
+   * }} TInitialFlow
+   * @template {string} TSpecLabel
+   * @template {(args: any) => import('./flow-stage').FlowStageType<any>} TCreateFlowStageFn
+   *
+   * @param {TInitialFlow} flow
+   * @param {[
+   *   label: TSpecLabel,
+   *   createFlowStageFn: TCreateFlowStageFn,
+   *   flowStageArgs: Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>,
+   * ]} spec
+   * @returns {{
+   *   flowStagesByLabel: TInitialFlow['flowStagesByLabel'] & {
+   *     [label in TSpecLabel]: ReturnType<TCreateFlowStageFn>;
+   *   },
+   *   flowStageOrder: string[],
+   *   logger: BaseLoggerType,
+   *   requestHelper: RequestHelperType,
+   * }}
+   */
+  buildFlow(flow, spec) {
+    const [label, createFlowStageFn, flowStageArgs] = spec;
+    const prerequisite = (flow.flowStageOrder.length > 0)
+      // The prerequisite is set as the last item so far
+      ? flow.flowStagesByLabel[flow.flowStageOrder[flow.flowStageOrder.length - 1]]
+      : null;
+    const { logger, requestHelper } = flow;
+    const boilerplatedFlowStageArgs = {
+      ...flowStageArgs,
+      prerequisite,
+      logger,
+      requestHelper,
+    };
+    const flowStage = createFlowStageFn(boilerplatedFlowStageArgs);
+    return {
+      flowStagesByLabel: {
+        ...flow.flowStagesByLabel,
+        label: flowStage,
+      },
+      flowStageOrder: [...flow.flowStageOrder, label],
+      logger: flow.logger,
+      requestHelper: flow.requestHelper,
+    };
+  },
 };
+
+const x = FlowStageUtils.buildFlow({ flowStagesByLabel: {}, flowStageOrder: [], logger: null, requestHelper: null }, ['c1', C1FlowStage.create, { }]);
+const y = FlowStageUtils.buildFlow(x, ['c2', C2FlowStage.create, { }]);
 
 module.exports = {
   FlowStageUtils,
