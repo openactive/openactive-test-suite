@@ -2,6 +2,8 @@
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowHelper } = require('../../../../helpers/flow-helper');
+const { RequestState } = require('../../../../helpers/request-state');
 
 /* eslint-enable no-unused-vars */
 
@@ -17,7 +19,10 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
+  const state = new RequestState(logger, { brokerRole: 'https://openactive.io/AgentBroker' });
+  const flow = new FlowHelper(state);
+
   describe('Successful booking when Customer is included in Order', () => {
     beforeAll(async function () {
       await state.fetchOpportunities(orderItemCriteria);
