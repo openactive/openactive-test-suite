@@ -65,12 +65,20 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .successChecks()
       .validationTests();
 
-    it('Response should include accessCode with description and name', () => {
-      chakram.expect(state.bResponse).to.have.schema('orderedItem[0].accessCode[0].description', {
-        type: 'string',
-      });
-      chakram.expect(state.bResponse).to.have.schema('orderedItem[0].accessCode[0].name', {
-        type: 'string',
+    it('Response should include accessCode array with appropriate fields (name and description) for each OrderItem', () => {
+      chakram.expect(state.bResponse.body.orderedItem).to.be.an('array');
+
+      state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
+        chakram.expect(orderItem.accessCode).to.be.an('array');
+
+        orderItem.accessCode.forEach((accessCode, accessCodeIndex) => {
+          chakram.expect(state.bResponse).to.have.schema(`orderedItem[${orderItemIndex}].accessCode[${accessCodeIndex}].name`, {
+            type: 'string',
+          });
+          chakram.expect(state.bResponse).to.have.schema(`orderedItem[${orderItemIndex}].accessCode[${accessCodeIndex}].description`, {
+            type: 'string',
+          });
+        });
       });
     });
   });
