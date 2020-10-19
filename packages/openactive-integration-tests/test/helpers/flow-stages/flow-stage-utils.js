@@ -156,7 +156,7 @@ const FlowStageUtils = {
    * @param {[
    *   label: TSpecLabel,
    *   createFlowStageFn: TCreateFlowStageFn,
-   *   flowStageArgs: Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>,
+   *   flowStageArgs?: Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>,
    * ]} spec
    * @returns {{
    *   flowStagesByLabel: TInitialFlow['flowStagesByLabel'] & {
@@ -175,7 +175,7 @@ const FlowStageUtils = {
       : null;
     const { logger, requestHelper } = flow;
     const boilerplatedFlowStageArgs = {
-      ...flowStageArgs,
+      ...(flowStageArgs || {}),
       prerequisite,
       logger,
       requestHelper,
@@ -193,8 +193,8 @@ const FlowStageUtils = {
   },
 };
 
-const x = FlowStageUtils.buildFlow({ flowStagesByLabel: {}, flowStageOrder: [], logger: null, requestHelper: null }, ['c1', C1FlowStage.create, { }]);
-const y = FlowStageUtils.buildFlow(x, ['c2', C2FlowStage.create, { }]);
+const x = FlowStageUtils.buildFlow({ flowStagesByLabel: {}, flowStageOrder: [], logger: null, requestHelper: null }, ['c1', C1FlowStage.create, { templateRef: 'standard' }]);
+const y = FlowStageUtils.buildFlow(x, ['c2', C2FlowStage.create]);
 
 module.exports = {
   FlowStageUtils,
