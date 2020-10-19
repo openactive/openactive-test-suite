@@ -66,18 +66,14 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .validationTests();
 
     it('Response should include accessCode array with appropriate fields (name and description) for each OrderItem', () => {
-      chakram.expect(state.bResponse.body.orderedItem).to.be.an('array');
+      chai.expect(state.bResponse.body.orderedItem).to.be.an('array');
 
       state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
-        chakram.expect(orderItem.accessCode).to.be.an('array');
+        chai.expect(orderItem.accessCode).to.be.an('array');
 
         orderItem.accessCode.forEach((accessCode, accessCodeIndex) => {
-          chakram.expect(state.bResponse).to.have.schema(`orderedItem[${orderItemIndex}].accessCode[${accessCodeIndex}].name`, {
-            type: 'string',
-          });
-          chakram.expect(state.bResponse).to.have.schema(`orderedItem[${orderItemIndex}].accessCode[${accessCodeIndex}].description`, {
-            type: 'string',
-          });
+          chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessCode[${accessCodeIndex}].name`).that.is.a('string');
+          chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessCode[${accessCodeIndex}].description`).that.is.a('string');
         });
       });
     });
