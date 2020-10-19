@@ -3,7 +3,7 @@ export type Criteria = {
     opportunityConstraints: [string, import("../../types/Criteria").OpportunityConstraint][];
     offerConstraints: [string, import("../../types/Criteria").OfferConstraint][];
 };
-export type OpportunityConstraint = (opportunity: import("../../types/Opportunity").Opportunity) => boolean;
+export type OpportunityConstraint = (opportunity: import("../../types/Opportunity").Opportunity, options?: import("../../types/Options").Options) => boolean;
 /**
  * Useful base filters for future opportunities
  */
