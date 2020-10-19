@@ -3,6 +3,7 @@ const sharedValidationTests = require('../../shared-behaviours/validation');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
 const { PFlowStage } = require('./p');
+const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -156,8 +157,12 @@ const FlowStageUtils = {
    * @param {[
    *   label: TSpecLabel,
    *   createFlowStageFn: TCreateFlowStageFn,
-   *   flowStageArgs?: Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>,
-   * ]} spec
+   *   flowStageArgsOrFn?:
+   *     | (Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>)
+   *     | (
+   *       (flowStagesByLabel: TInitialFlow['flowStagesByLabel']) =>
+   *         Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>)
+   * ]} spec TODO TODO document this param
    * @returns {{
    *   flowStagesByLabel: TInitialFlow['flowStagesByLabel'] & {
    *     [label in TSpecLabel]: ReturnType<TCreateFlowStageFn>;
@@ -168,14 +173,17 @@ const FlowStageUtils = {
    * }}
    */
   buildFlow(flow, spec) {
-    const [label, createFlowStageFn, flowStageArgs] = spec;
+    const [label, createFlowStageFn, flowStageArgsOrFn] = spec;
     const prerequisite = (flow.flowStageOrder.length > 0)
       // The prerequisite is set as the last item so far
       ? flow.flowStagesByLabel[flow.flowStageOrder[flow.flowStageOrder.length - 1]]
       : null;
     const { logger, requestHelper } = flow;
+    const initialFlowStageArgs = (typeof flowStageArgsOrFn === 'function')
+      ? flowStageArgsOrFn(flow.flowStagesByLabel)
+      : (flowStageArgsOrFn || {});
     const boilerplatedFlowStageArgs = {
-      ...(flowStageArgs || {}),
+      ...initialFlowStageArgs,
       prerequisite,
       logger,
       requestHelper,
@@ -193,8 +201,23 @@ const FlowStageUtils = {
   },
 };
 
-const x = FlowStageUtils.buildFlow({ flowStagesByLabel: {}, flowStageOrder: [], logger: null, requestHelper: null }, ['c1', C1FlowStage.create, { templateRef: 'standard' }]);
-const y = FlowStageUtils.buildFlow(x, ['c2', C2FlowStage.create]);
+const flow1 = FlowStageUtils.buildFlow({
+  flowStagesByLabel: {},
+  flowStageOrder: [],
+  logger: null,
+  requestHelper: null,
+}, ['c1', C1FlowStage.create, { templateRef: 'standard' }]);
+const flow2 = FlowStageUtils.buildFlow(flow1, ['c2', C2FlowStage.create]);
+const flow3 = FlowStageUtils.buildFlow(flow2, ['p', PFlowStage.create]);
+const flow4 = FlowStageUtils.buildFlow(flow3, ['simulateSellerApproval', TestInterfaceActionFlowStage.create, ({ p }) => ({
+  testName: 'Simulate Seller Approval (Test Interface Action)',
+  createActionFn: () => ({
+    type: 'test:SellerAcceptOrderProposalSimulateAction',
+    objectType: 'OrderProposal',
+    objectId: p.getResponse().body['@id'],
+  }),
+})]);
+console.log(flow4);
 
 module.exports = {
   FlowStageUtils,
