@@ -8,6 +8,7 @@ const { allCriteria } = require('./criteria');
  * @typedef {import('./types/Criteria').Criteria} Criteria
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
+ * @typedef {import('./types/Options').Options} Options
  */
 
 const criteriaMap = new Map(allCriteria.map(criteria => [criteria.name, criteria]));
@@ -23,11 +24,12 @@ function getOffers(opportunity) {
 /**
  * @param {Criteria} criteria
  * @param {Opportunity} opportunity
+ * @param {Options} options
  */
-function filterRelevantOffers(criteria, opportunity) {
+function filterRelevantOffers(criteria, opportunity, options) {
   const offers = getOffers(opportunity);
   return criteria.offerConstraints
-    .reduce((relevantOffers, [, test]) => relevantOffers.filter(offer => test(offer, opportunity)), offers);
+    .reduce((relevantOffers, [, test]) => relevantOffers.filter(offer => test(offer, opportunity, options)), offers);
 }
 
 /**
@@ -40,21 +42,22 @@ function filterRelevantOffers(criteria, opportunity) {
  *
  * @param {Criteria} criteria
  * @param {Opportunity} opportunity
+ * @param {Options} options
  */
-function testMatch(criteria, opportunity) {
+function testMatch(criteria, opportunity, options) {
   // Array of unmetOpportunityConstraints labels
   const unmetOpportunityConstraints = criteria.opportunityConstraints
-    .filter(([, test]) => !test(opportunity))
+    .filter(([, test]) => !test(opportunity, options))
     .map(([name]) => name);
 
   // Array of Offers that match the criteria
-  const relevantOffers = filterRelevantOffers(criteria, opportunity);
+  const relevantOffers = filterRelevantOffers(criteria, opportunity, options);
 
   // Only check for unmetOfferConstraints if there are no matching offers
   // Array of unmetOfferConstraints labels
   const offers = getOffers(opportunity);
   const unmetOfferConstraints = relevantOffers.length > 0 ? [] : criteria.offerConstraints
-    .filter(([, test]) => !offers.some(offer => test(offer, opportunity)))
+    .filter(([, test]) => !offers.some(offer => test(offer, opportunity, options)))
     .map(([name]) => name);
 
   // Boolean: does this opportunity match the criteria?
@@ -72,10 +75,11 @@ function testMatch(criteria, opportunity) {
 /**
  * @param {string} criteriaName
  * @param {Opportunity} opportunity
+ * @param {Options} options
  */
-function getRelevantOffers(criteriaName, opportunity) {
+function getRelevantOffers(criteriaName, opportunity, options) {
   if (!criteriaMap.has(criteriaName)) throw new Error('Invalid criteria name');
-  return filterRelevantOffers(criteriaMap.get(criteriaName), opportunity);
+  return filterRelevantOffers(criteriaMap.get(criteriaName), opportunity, options);
 }
 
 module.exports = {
