@@ -29,6 +29,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [manual-access-codes](./implemented/manual-access-codes-test.js) | Successful booking with access codes. | Access codes returned for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [access-pass-image](./implemented/access-pass-image-test.js) | Successful booking with access pass image. | Access pass image returned for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
