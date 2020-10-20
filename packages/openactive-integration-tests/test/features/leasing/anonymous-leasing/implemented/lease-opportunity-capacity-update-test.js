@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, Common } = require('../../../../shared-behaviours');
+const { GetMatch, C1, Common } = require('../../../../shared-behaviours');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { RequestState } = require('../../../../helpers/request-state');
 
@@ -11,7 +11,7 @@ const { RequestState } = require('../../../../helpers/request-state');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'leasing',
-  testFeature: 'named-leasing',
+  testFeature: 'anonymous-leasing',
   testFeatureImplemented: true,
   testIdentifier: 'lease-opportunity-capacity-update',
   testName: 'Leased spaces are unavailable for purchase by other users',
@@ -34,7 +34,7 @@ FeatureHelper.describeFeature(module, {
 (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
   /**
    * @param {Number} expected
-   * @param {C1|C2} stage
+   * @param {C1} stage
    * @param {Function} responseAccessor
    */
   function itShouldHaveCapacity(expected, stage, responseAccessor) {
@@ -55,7 +55,7 @@ FeatureHelper.describeFeature(module, {
   }
 
   /**
-   * @param {C1|C2} stage
+   * @param {C1} stage
    * @param {() => ChakramResponse} responseAccessor This is wrapped in a
    *   function because the actual response won't be available until the
    *   asynchronous before() block has completed.
@@ -103,7 +103,7 @@ FeatureHelper.describeFeature(module, {
       .validationTests();
   });
 
-  describe('Lease three items (succeed)', () => {
+  describe('Lease three items anonymously (succeed)', () => {
     const state = new RequestState(logger);
     const flow = new FlowHelper(state, {
       stagesToSkip: new Set(['getMatch']),
@@ -114,15 +114,7 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
+      const c1 = (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
@@ -130,20 +122,7 @@ FeatureHelper.describeFeature(module, {
         .validationTests();
 
       // it should not take into account leased opportunities on this order
-      itShouldHaveCapacity(5, c2, () => state.c2Response);
-    });
-
-    // Note: this test currently doesn't do anything, as the response is cached; once changes by @lukehesluke are merged, this test will be relevant
-    describe('C2 (test idempotency)', () => {
-      const c2 = (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      // it should be idempotent
-      itShouldHaveCapacity(5, c2, () => state.c2Response);
+      itShouldHaveCapacity(5, c1, () => state.c1Response);
     });
   });
 
@@ -158,27 +137,19 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
+      const c1 = (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
         .validationTests();
 
-      itShouldHaveCapacity(2, c2, () => state.c2Response);
-      itShouldReturn409Conflict(c2, () => state.c2Response);
+      itShouldHaveCapacity(2, c1, () => state.c1Response);
+      itShouldReturn409Conflict(c1, () => state.c1Response);
 
       it('should return correct numbers of OpportunityCapacityIsReservedByLeaseError and OpportunityHasInsufficientCapacityError', () => {
-        c2.expectResponseReceived();
+        c1.expectResponseReceived();
 
-        const errors = state.c2Response.body.orderedItem.map(oi => oi.error && oi.error[0] && oi.error[0]['@type']);
+        const errors = state.c1Response.body.orderedItem.map(oi => oi.error && oi.error[0] && oi.error[0]['@type']);
         const factor = errors.length / 10;
 
         const count = (array, value) => array.filter(x => x === value).length;
@@ -200,15 +171,7 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
+      const c1 = (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
@@ -216,7 +179,7 @@ FeatureHelper.describeFeature(module, {
         .validationTests();
 
       // it should only take into account leases on other orders
-      itShouldHaveCapacity(2, c2, () => state.c2Response);
+      itShouldHaveCapacity(2, c1, () => state.c1Response);
     });
   });
 
@@ -231,22 +194,14 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
+      const c1 = (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
         .validationTests();
 
-      itShouldHaveCapacity(0, c2, () => state.c2Response);
-      itShouldReturn409Conflict(c2, () => state.c2Response);
+      itShouldHaveCapacity(0, c1, () => state.c1Response);
+      itShouldReturn409Conflict(c1, () => state.c1Response);
     });
   });
 });
