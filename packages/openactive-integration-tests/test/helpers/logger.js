@@ -3,6 +3,10 @@ const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
 const config = require('config');
 
+/**
+ * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ */
+
 const OUTPUT_PATH = config.get('outputPath');
 
 // abstract class, implement shared methods
@@ -71,6 +75,11 @@ class BaseLogger {
     Object.assign(this.flow[stage].response, fields);
   }
 
+  /**
+   * @param {string} stage
+   * @param {{[k: string]: unknown}} request
+   * @param {Promise<ChakramResponse>} responsePromise
+   */
   recordRequestResponse (stage, request, responsePromise) {
     let entry = this.recordLogEntry({
       type: "request",
