@@ -79,7 +79,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
         orderItem.accessPass.forEach((accessPass, accessPassIndex) => {
           // @ts-expect-error chai-url doesn't have a types package
-          chai.expect(state.bResponse.body.orderedItem[orderItemIndex].accessPass[accessPassIndex].url).to.have.protocol('https');
+        chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].url`).that.has.protocol('https');
         });
       });
     });
