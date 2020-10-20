@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-const chai = require('chai');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
@@ -9,19 +8,22 @@ const { RequestState } = require('../../../../helpers/request-state');
 /* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
-  testCategory: 'details-capture',
-  testFeature: 'customer-details-capture-identifier',
+  testCategory: 'core',
+  testFeature: 'agent-broker',
   testFeatureImplemented: true,
-  testIdentifier: 'customer-identifier-capture',
-  testName: 'Customer identifier is reflected back at C2 and B',
-  testDescription: 'Identifier from the Customer supplied by Broker should be reflected back by booking system.',
+  testIdentifier: 'customer-included',
+  testName: 'Successful request when customer is included in Order in AgentBroker mode',
+  testDescription: 'Successful request when customer is included in Order in AgentBroker mode',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  describe('Customer identifier reflected back at C2 and B', () => {
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
+  const state = new RequestState(logger, { brokerRole: 'https://openactive.io/AgentBroker' });
+  const flow = new FlowHelper(state);
+
+  describe('Successful booking when Customer is included in Order', () => {
     beforeAll(async function () {
       await state.fetchOpportunities(orderItemCriteria);
       return chakram.wait();
@@ -57,11 +59,6 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         .beforeSetup()
         .successChecks()
         .validationTests();
-
-      it('should return 200, with an Expected customer identifier', () => {
-        chai.expect(state.c2Response.response.statusCode).to.equal(200);
-        chai.expect(state.c2Response.body.customer.identifier).to.equal('CustomerIdentifierC2');
-      });
     });
 
     describe('B', function () {
@@ -69,13 +66,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         state, flow, logger,
       }))
         .beforeSetup()
-        .itResponseReceived()
+        .successChecks()
         .validationTests();
-
-      it('should return 200, with an Expected customer identifier', () => {
-        chai.expect(state.bResponse.response.statusCode).to.equal(200);
-        chai.expect(state.bResponse.body.customer.identifier).to.equal('CustomerIdentifierB');
-      });
     });
   });
 });
