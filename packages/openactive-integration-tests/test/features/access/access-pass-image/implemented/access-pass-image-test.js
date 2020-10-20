@@ -69,7 +69,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .validationTests();
 
     // TODO: refactor to check every element.
-    it('Response should include accessPass array with url field', () => {
+    it('Response should include accessPass array with url field that includes the `https` protocol', () => {
       // @ts-expect-error chai-arrays doesn't have a types package
       chai.expect(state.bResponse.body.orderedItem).to.be.array();
 
