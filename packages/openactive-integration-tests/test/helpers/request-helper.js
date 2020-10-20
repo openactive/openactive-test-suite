@@ -268,9 +268,13 @@ class RequestHelper {
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
    * @param {import('../templates/c1-req').C1ReqTemplateRef} c1ReqTemplateRef
    */
-  async putOrderQuoteTemplate(uuid, params, c1ReqTemplateRef = 'standard') {
+  async putOrderQuoteTemplate(uuid, params, brokerRole, c1ReqTemplateRef = 'standard') {
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
+
+    if(brokerRole) {
+      payload.brokerRole = brokerRole;
+    }
 
     const c1Response = await this.put(
       'C1',
@@ -290,9 +294,13 @@ class RequestHelper {
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
    * @param {import('../templates/c2-req').C2ReqTemplateRef} c2ReqTemplateRef
    */
-  async putOrderQuote(uuid, params, c2ReqTemplateRef = 'standard') {
+  async putOrderQuote(uuid, params, brokerRole = null, c2ReqTemplateRef = 'standard') {
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
+
+    if(brokerRole) {
+      payload.brokerRole = brokerRole;
+    }
 
     const c2Response = await this.put(
       'C2',
@@ -312,9 +320,13 @@ class RequestHelper {
    * @param {import('../templates/b-req').BReqTemplateData} params
    * @param {import('../templates/b-req').BReqTemplateRef} bReqTemplateRef
    */
-  async putOrder(uuid, params, bReqTemplateRef = 'standard') {
+  async putOrder(uuid, params, brokerRole = null, bReqTemplateRef = 'standard') {
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
+
+    if(brokerRole) {
+      payload.brokerRole = brokerRole;
+    }
 
     const bResponse = await this.put(
       'B',
