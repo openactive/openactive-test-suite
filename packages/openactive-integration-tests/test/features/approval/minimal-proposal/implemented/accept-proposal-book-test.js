@@ -42,50 +42,139 @@ FeatureHelper.describeFeature(module, {
   const requestHelper = new RequestHelper(logger);
 
   // ## Initiate Flow Stages
-  const fetchOpportunities = FetchOpportunitiesFlowStage.create({
-    orderItemCriteriaList,
-    logger,
-    requestHelper,
-  });
-  const c1 = C1FlowStage.create({
-    prerequisite: fetchOpportunities,
-    logger,
-    requestHelper,
-  });
-  const c2 = C2FlowStage.create({
-    prerequisite: c1,
-    logger,
-    requestHelper,
-  });
-  const p = PFlowStage.create({
-    prerequisite: c2,
-    logger,
-    requestHelper,
-  });
-  const initiateOrderFeedUpdate = OrderFeedUpdateFlowStage.createInitiator({
-    prerequisite: p,
-    requestHelper,
-  });
-  const simulateSellerApproval = TestInterfaceActionFlowStage.create({
-    testName: 'Simulate Seller Approval (Test Interface Action)',
-    prerequisite: initiateOrderFeedUpdate,
-    createActionFn: () => ({
-      type: 'test:SellerAcceptOrderProposalSimulateAction',
-      objectType: 'OrderProposal',
-      objectId: p.getResponse().body['@id'],
-    }),
-    requestHelper,
-  });
-  const collectOrderFeedUpdate = OrderFeedUpdateFlowStage.createCollector({
-    testName: 'Order Feed Update (after Simulate Seller Approval)',
-    prerequisite: simulateSellerApproval,
-    logger,
-  });
-  const b = BFlowStage.create({
-    prerequisite: collectOrderFeedUpdate,
-    logger,
-    requestHelper,
-  });
+  // const { fetchOpportunities, c1, c2 } = FlowStageUtils.createFlow([
+  //   // { name: 'fetchOpportunities', factory: FetchOpportunitiesFlowStage.create, args: { orderItemCriteriaList }},
+  //   ['fetchOpportunities', FetchOpportunitiesFlowStage.create, { orderItemCriteriaList }],
+  //   ['c1', C1FlowStage.create],
+  //   ['c2', C2FlowStage.create],
+  //   ['p', PFlowStage.create],
+  //   ['simulateSellerApproval', TestInterfaceActionFlowStage.create, ({ p }) => ({
+  //     testName: 'Simulate Seller Approval (Test Interface Action)',
+  //     createActionFn: () => ({
+  //       type: 'test:SellerAcceptOrderProposalSimulateAction',
+  //       objectType: 'OrderProposal',
+  //       objectId: p.getResponse().body['@id'],
+  //     }),
+  //   })],
+  //   ['orderFeedUpdate', 'OrderFeedUpdate', {
+  //     testName: 'Order Feed Update (after Simulate Seller Approval)',
+  //   }],
+  //   ['b', BFlowStage.create],
+  // ], { logger, requestHelper });
+
+  // # Examples
+  //
+  // ## 1. Simple
+  {
+    // The SimpleFlowBuilder constructor creates default values for uuid & sellerId (although they can be overridden)
+    const { fetchOpportunities, c1, c2, p, simulateSellerApproval, orderFeedUpdate, b } = (new SimpleFlowBuilder({ requestHelper, logger }))
+      .addFetchOpportunities(orderItemCriteriaList)
+      // The above (^) is just a bit of sugar so that we don't have to write the below (v) for each flow
+      // .add('fetchOpportunities', FetchOpportunitiesFlowStage.create, () => ({
+      //   additionalParams: {
+      //     orderItemCriteriaList
+      //   },
+      // })
+      .add('c1', C1FlowStage.create)
+      .add('c2', C2FlowStage.create)
+      .add('p', PFlowStage.create)
+      .add('simulateSellerApproval', TestInterfaceActionFlowStage.create, {
+        testName: 'Simulate Seller Approval (Test Interface Action)',
+        createActionFn: ({ p }) => ({
+          type: 'test:SellerAcceptOrderProposalSimulateAction',
+          objectType: 'OrderProposal',
+          objectId: p.getResponse().body['@id'],
+        }),
+      })
+      // special build step which sets up listen and collect stages and links them with the previous stage
+      .addOrderFeedUpdate('orderFeedUpdate', {
+        testName: 'Order Feed Update (after Simulate Seller Approval)',
+      })
+      .add('b', BFlowStage.create);
+  }
+  // ## 2. Edge Case - Standalone / Override args
+  {
+    const { p } = (new SimpleFlowBuilder({ requestHelper, logger, uuid: 'abc' })) // we'll still use SimpleFlowBuilder, as it initializes uuid & sellerId and threads them into each stage's input state
+      .add('p', PFlowStage, () => ({
+        // `getAdditionalInputState` is a function that adds to the input state that SimpleFlowBuilder extracts from requisite stages
+        getAdditionalInputState: () => ({
+          orderItems: [/* ... */],
+          totalPaymentDue: 3.4,
+        }),
+        additionalParams: {
+          templateRef: 'non-standard',
+        },
+      }));
+  }
+  // ## 3. Edge Case - Repetitions / out of order input state
+  {
+    const { fetchOpportunities, c1A, c1B, c2 } = (new SimpleFlowBuilder({ requestHelper, logger }))
+      .addFetchOpportunities(orderItemCriteriaList)
+      .add('c1A', C1FlowStage.create)
+      .add('c1B', C1FlowStage.create)
+      .add('c2', C2FlowStage.create)
+      .add('b', BFlowStage.create, ({ c1A }) => ({ // it uses the result from c1A (for some reason)
+        getAdditionalInputState: () => ({
+          totalPaymentDue: c1A.getOutput().totalPaymentDue,
+        }),
+      }));
+  }
+  // ## 4. Edge Case - Stages in the wrong order
+  {
+    const { fetchOpportunities, c1A, c1B, c2 } = (new SimpleFlowBuilder({ requestHelper, logger }))
+      .addFetchOpportunities(orderItemCriteriaList)
+      .add('c1', C1FlowStage.create)
+      .add('p', PFlowStage.create) // this will use totalPaymentDue from c1
+      .add('c2', C2FlowStage.create)
+      .add('b', BFlowStage.create, () => ({
+        getInputStateFrom: 'c1', // will use the merged state from fetchOpportunities & c1 - and no further
+      }));
+  }
+  // const fetchOpportunities = FetchOpportunitiesFlowStage.create({
+  //   // orderItemCriteriaList,
+  //   logger,
+  //   requestHelper,
+  //   getInputState: () => ({ orderItemCriteriaList, uuid, sellerId })
+  // });
+  // const c1 = C1FlowStage.create({
+  //   prerequisite: fetchOpportunities,
+  //   logger,
+  //   requestHelper,
+  // });
+  // const c2 = C2FlowStage.create({
+  //   prerequisite: c1,
+  //   logger,
+  //   requestHelper,
+  // });
+  // const p = PFlowStage.create({
+  //   prerequisite: c2,
+  //   logger,
+  //   requestHelper,
+  // });
+  // const initiateOrderFeedUpdate = OrderFeedUpdateFlowStage.createInitiator({
+  //   prerequisite: p,
+  //   requestHelper,
+  // });
+  // const simulateSellerApproval = TestInterfaceActionFlowStage.create({
+  //   testName: 'Simulate Seller Approval (Test Interface Action)',
+  //   prerequisite: initiateOrderFeedUpdate,
+  //   createActionFn: () => ({
+  //     type: 'test:SellerAcceptOrderProposalSimulateAction',
+  //     objectType: 'OrderProposal',
+  //     objectId: p.getResponse().body['@id'],
+  //   }),
+  //   requestHelper,
+  // });
+  // const collectOrderFeedUpdate = OrderFeedUpdateFlowStage.createCollector({
+  //   testName: 'Order Feed Update (after Simulate Seller Approval)',
+  //   prerequisite: simulateSellerApproval,
+  //   logger,
+  // });
+  // const b = BFlowStage.create({
+  //   prerequisite: collectOrderFeedUpdate,
+  //   logger,
+  //   requestHelper,
+  // });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

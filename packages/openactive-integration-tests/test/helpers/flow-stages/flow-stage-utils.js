@@ -4,6 +4,7 @@ const sharedValidationTests = require('../../shared-behaviours/validation');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../../helpers/request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
  * @typedef {import('./flow-stage').FlowStageState} FlowStageState
  */
@@ -100,7 +101,86 @@ const FlowStageUtils = {
       }
     });
   },
+
+  /**
+   * Simple flow:
+   *
+   * - Each stage uses state from its prerequisite stages (though this can be overridden)
+   *
+   * @template {{
+   *   flowStagesByLabel: any,
+   *   flowStageOrder: string[],
+   *   logger: BaseLoggerType,
+   *   requestHelper: RequestHelperType,
+   * }} TInitialFlow
+   * @template {string} TSpecLabel
+   * @template {(args: any) => import('./flow-stage').FlowStageType<any>} TCreateFlowStageFn
+   *
+   * @param {TInitialFlow} flow
+   * @param {[
+   *   label: TSpecLabel,
+   *   createFlowStageFn: TCreateFlowStageFn,
+   *   flowStageArgsOrFn?:
+   *     | (Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>)
+   *     | (
+   *       (flowStagesByLabel: TInitialFlow['flowStagesByLabel']) =>
+   *         Omit<Parameters<TCreateFlowStageFn>[0], 'prerequisite' | 'logger' | 'requestHelper'>)
+   * ]} spec TODO TODO document this param
+   * @returns {{
+   *   flowStagesByLabel: TInitialFlow['flowStagesByLabel'] & {
+   *     [label in TSpecLabel]: ReturnType<TCreateFlowStageFn>;
+   *   },
+   *   flowStageOrder: string[],
+   *   logger: BaseLoggerType,
+   *   requestHelper: RequestHelperType,
+   * }}
+   */
+  buildSimpleFlow(flow, spec) {
+    const [label, createFlowStageFn, flowStageArgsOrFn] = spec;
+    const prerequisite = (flow.flowStageOrder.length > 0)
+      // The prerequisite is set as the last item so far
+      ? flow.flowStagesByLabel[flow.flowStageOrder[flow.flowStageOrder.length - 1]]
+      : null;
+    const { logger, requestHelper } = flow;
+    const initialFlowStageArgs = (typeof flowStageArgsOrFn === 'function')
+      ? flowStageArgsOrFn(flow.flowStagesByLabel)
+      : (flowStageArgsOrFn || {});
+    const boilerplatedFlowStageArgs = {
+      ...initialFlowStageArgs,
+      prerequisite,
+      logger,
+      requestHelper,
+    };
+    const flowStage = createFlowStageFn(boilerplatedFlowStageArgs);
+    return {
+      flowStagesByLabel: {
+        ...flow.flowStagesByLabel,
+        label: flowStage,
+      },
+      flowStageOrder: [...flow.flowStageOrder, label],
+      logger: flow.logger,
+      requestHelper: flow.requestHelper,
+    };
+  },
 };
+
+// const flow1 = FlowStageUtils.buildFlow({
+//   flowStagesByLabel: {},
+//   flowStageOrder: [],
+//   logger: null,
+//   requestHelper: null,
+// }, ['c1', C1FlowStage.create, { templateRef: 'standard' }]);
+// const flow2 = FlowStageUtils.buildFlow(flow1, ['c2', C2FlowStage.create]);
+// const flow3 = FlowStageUtils.buildFlow(flow2, ['p', PFlowStage.create]);
+// const flow4 = FlowStageUtils.buildFlow(flow3, ['simulateSellerApproval', TestInterfaceActionFlowStage.create, ({ p }) => ({
+//   testName: 'Simulate Seller Approval (Test Interface Action)',
+//   createActionFn: () => ({
+//     type: 'test:SellerAcceptOrderProposalSimulateAction',
+//     objectType: 'OrderProposal',
+//     objectId: p.getResponse().body['@id'],
+//   }),
+// })]);
+// console.log(flow4);
 
 module.exports = {
   FlowStageUtils,

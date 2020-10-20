@@ -17,14 +17,21 @@ const BFlowStage = {
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
+  // create({ templateRef, prerequisite, getInputState, logger, requestHelper }) {
   create({ templateRef, prerequisite, logger, requestHelper }) {
+    // // hi im making a B flow stage
+    // const f = (object) => ({ ...object, orderProposalVersion: 'idontexist' });
+    // // ^
     return new FlowStage({
       prerequisite,
       testName: 'B',
       async runFn(flowStage) {
+        // const { uuid } = getInputState();
+      // async runFn({ uuid, sellerId, }) {
         const { uuid, sellerId, orderItems, bookingSystemOrder } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems', 'bookingSystemOrder']);
         // This will be undefined if P was not run - that's fine
         const { orderProposalVersion } = bookingSystemOrder.body;
+        // const inputState = f({ uuid, sellerId, orderItems, bookingSystemOrder, orderProposalVersion });
         const totalPaymentDue = flowStage.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState();
         return await BFlowStage.run({
           templateRef,
@@ -43,6 +50,20 @@ const BFlowStage = {
       }),
     });
   },
+
+  // test() {
+  //   // accept-proposal
+  //   const b = BFlowStage.create({
+  //     getInputState: dosomethingmagicwith(c1),
+  //     // -> () => { if (stage.hasntrun) { throw new Error()}}
+  //     // () {
+  //     //   return dosomethingmagicwith(c1);
+  //     //   // return { uuid: 'abc', };
+  //     // }
+  //   });
+  // }
+
+  // getInputState(flowStages)
 
   /**
    * @param {object} args

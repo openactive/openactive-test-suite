@@ -55,6 +55,8 @@ const pMemoize = require('p-memoize');
  * }} FlowStageOutput
  */
 
+//  * @template TInputState
+//  * @param {TInputState} [args.inputState]
 /**
  * A "stage" of a particular booking flow. For example, a flow might have
  * a stage for each of the following:
@@ -65,6 +67,7 @@ const pMemoize = require('p-memoize');
  * - B
  *
  * @template TFlowStageResponse
+ * @template {FlowStageState} TInputState
  */
 class FlowStage {
   /**
@@ -72,6 +75,7 @@ class FlowStage {
    * @param {FlowStage} [args.prerequisite] Stage that must be completed before
    *   this stage is run. e.g. a C2 stage might have a C1 stage as its
    *   pre-requisite.
+   * @param {() => TInputState} args.getInputState TODO TODO document
    * @param {string} args.testName
    * @param {(flowStage: FlowStage<TFlowStageResponse>) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
    * @param {(flowStage: FlowStage<TFlowStageResponse>) => void} args.itSuccessChecksFn
@@ -84,10 +88,12 @@ class FlowStage {
    *
    *   Defaults to true.
    */
-  constructor({ prerequisite, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState, shouldDescribeFlowStage = true }) {
+  constructor({ prerequisite, getInputState, testName, runFn, itSuccessChecksFn, itValidationTestsFn, initialState, shouldDescribeFlowStage = true }) {
     this.testName = testName;
     this.shouldDescribeFlowStage = shouldDescribeFlowStage;
     this._prerequisite = prerequisite;
+    this._getInputState = getInputState;
+    // this._inputState = inputState || f(this._prerequisite.getOutput());
     this._runFn = runFn;
     this._itSuccessChecksFn = itSuccessChecksFn;
     this._itValidationTestsFn = itValidationTestsFn;
