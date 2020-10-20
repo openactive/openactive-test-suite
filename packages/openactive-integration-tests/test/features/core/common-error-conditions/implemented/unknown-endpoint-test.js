@@ -25,24 +25,27 @@ FeatureHelper.describeFeature(module, {
     itShouldReturnAnOpenBookingError('UnknownOrIncorrectEndpointError', 404, getChakramResponse));
 
   describe('Unknown Endpoint - JSON PUT', () => {
-    it('should return an UnknownOrIncorrectEndpointError', async () => {
+    let response;
+    beforeAll(async () => {
       const requestHelper = new RequestHelper(logger);
-      const response = await requestHelper.put(
+      response = await requestHelper.put(
         'UnknownEndpoint',
         `${BOOKING_API_BASE}ordeeeeers/abc`,
         { hi: 'there' },
         { timeout: 10000, headers: requestHelper.createHeaders() },
       );
-
-      itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
     });
+
+    itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
   });
 
   describe('Unknown Endpoint - GET', () => {
-    it('should return an UnknownOrIncorrectEndpointError', async () => {
+    let response;
+    beforeAll(async () => {
       const requestHelper = new RequestHelper(logger);
-      const response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { timeout: 10000 });
-      itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
+      response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { timeout: 10000 });
     });
+
+    itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
   });
 });
