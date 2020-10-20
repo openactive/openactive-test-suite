@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
+const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 
@@ -64,11 +65,17 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .successChecks()
       .validationTests();
 
-      // TODO: refactor to check every element.
-      it('Response should include accessCode with description and name', () => {
-        chakram.expect(state.bResponse).to.have.schema('orderedItem[0].accessPass[0].url', {
-          type: 'string',
+    // TODO: refactor to check every element.
+    it('Response should include accessPass array with url field', () => {
+      chai.expect(state.bResponse.body.orderedItem).to.be.an('array');
+
+      state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
+        chai.expect(orderItem.accessPass).to.be.an('array');
+
+        orderItem.accessPass.forEach((accessPass, accessPassIndex) => {
+          chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].url`).that.is.a('string');
         });
       });
     });
+  });
 });
