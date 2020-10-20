@@ -40,7 +40,7 @@
     "attendee-details-capture-without-payment": null,
     "attendee-details-capture-with-payment": null,
     "additional-details-capture": null,
-    "access-code": null,
+    "access-code": true,
     "access-pass-image": null,
     "access-pass-barcode-seller-provided": null,
     "access-pass-barcode-broker-provided": null,
