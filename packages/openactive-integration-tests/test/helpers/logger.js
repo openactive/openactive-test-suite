@@ -180,6 +180,10 @@ class BaseLogger {
     ].join("|"));
   }
 
+  get testFileName () {
+    return `test/features/${this.config.testCategory}/${this.config.testFeature}/${this.config.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${this.config.testIdentifier}-test.js`;
+  }
+
   get implementedDisplayLabel() {
     return this.implemented ? 'Implemented' : 'Not Implemented';
   }
