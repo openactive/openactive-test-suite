@@ -42,8 +42,10 @@ class RequestState {
    *   Which template to use for B requests. Defaults to 'standard'
    * @param {import('../templates/u-req').UReqTemplateRef} [options.uReqTemplateRef]
    *   Which template to use for U (cancellation) requests. Defaults to 'standard'
+   * @param {string | null} [options.brokerRole]
+   *    Broker role, if not provided will default to c1, c2, or b request default broker role.
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -52,6 +54,7 @@ class RequestState {
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
+    this._brokerRole = brokerRole;
   }
 
   get uuid() {
@@ -203,8 +206,8 @@ class RequestState {
 
   async putOrderQuoteTemplate() {
     const result = this._c1ReqTemplateRef
-      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._c1ReqTemplateRef)
-      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
+      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole, this._c1ReqTemplateRef)
+      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole);
 
     this.c1Response = result;
 
@@ -234,8 +237,8 @@ class RequestState {
 
   async putOrderQuote() {
     const result = this._c2ReqTemplateRef
-      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
-      : await this.requestHelper.putOrderQuote(this.uuid, this);
+      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole, this._c2ReqTemplateRef)
+      : await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole);
 
     this.c2Response = result;
 
@@ -252,8 +255,8 @@ class RequestState {
 
   async putOrder() {
     const result = this._bReqTemplateRef
-      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
-      : await this.requestHelper.putOrder(this.uuid, this);
+      ? await this.requestHelper.putOrder(this.uuid, this, this._brokerRole, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, this, this._brokerRole);
 
     this.bResponse = result;
 
