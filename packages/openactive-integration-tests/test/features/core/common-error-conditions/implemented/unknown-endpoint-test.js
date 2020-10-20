@@ -1,8 +1,12 @@
-const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const RequestHelper = require('../../../../helpers/request-helper');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 const { BOOKING_API_BASE } = global;
+
+/**
+ * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -14,6 +18,12 @@ FeatureHelper.describeFeature(module, {
   numOpportunitiesUsedPerCriteria: 0,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
+  /**
+   * @param {() => ChakramResponse} getChakramResponse
+   */
+  const itShouldReturnAnUnknownOrIncorrectEndpointError = getChakramResponse => (
+    itShouldReturnAnOpenBookingError('UnknownOrIncorrectEndpointError', 404, getChakramResponse));
+
   describe('Unknown Endpoint - JSON PUT', () => {
     it('should return an UnknownOrIncorrectEndpointError', async () => {
       const requestHelper = new RequestHelper(logger);
@@ -24,9 +34,7 @@ FeatureHelper.describeFeature(module, {
         { timeout: 10000, headers: requestHelper.createHeaders() },
       );
 
-      expect(response.response).to.have.property('statusCode', 404);
-      expect(response.body).to.have.property('@type', 'UnknownOrIncorrectEndpointError');
-      expect(response.body).to.have.property('@context');
+      itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
     });
   });
 
@@ -34,9 +42,7 @@ FeatureHelper.describeFeature(module, {
     it('should return an UnknownOrIncorrectEndpointError', async () => {
       const requestHelper = new RequestHelper(logger);
       const response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { timeout: 10000 });
-      expect(response.response).to.have.property('statusCode', 404);
-      expect(response.body).to.have.property('@type', 'UnknownOrIncorrectEndpointError');
-      expect(response.body).to.have.property('@context');
+      itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
     });
   });
 });
