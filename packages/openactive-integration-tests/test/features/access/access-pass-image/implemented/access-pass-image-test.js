@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai');
+chai.use(require('chai-arrays'));
+chai.use(require('chai-url'));
+
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 
@@ -67,13 +70,16 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
     // TODO: refactor to check every element.
     it('Response should include accessPass array with url field', () => {
-      chai.expect(state.bResponse.body.orderedItem).to.be.an('array');
+      // @ts-expect-error chai-arrays doesn't have a types package
+      chai.expect(state.bResponse.body.orderedItem).to.be.array();
 
       state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
-        chai.expect(orderItem.accessPass).to.be.an('array');
+        // @ts-expect-error chai-arrays doesn't have a types package
+        chai.expect(orderItem.accessPass).to.be.array();
 
         orderItem.accessPass.forEach((accessPass, accessPassIndex) => {
-          chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].url`).that.is.a('string');
+          // @ts-expect-error chai-url doesn't have a types package
+          chai.expect(state.bResponse.body.orderedItem[orderItemIndex].accessPass[accessPassIndex].url).to.have.protocol('https');
         });
       });
     });
