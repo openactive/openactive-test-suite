@@ -75,17 +75,19 @@ FeatureHelper.describeFeature(module, {
       //     orderItemCriteriaList
       //   },
       // })
-      .add('c1', C1FlowStage.create)
-      .add('c2', C2FlowStage.create)
+      .add('c1', C1FlowStage.create) // SimpleFlowBuilder injects requestHelper, logger into the stage creation params
+      .add('c2', C2FlowStage.create) // and it also uses the previous stage's output state (each is merged) as the input state for the next
       .add('p', PFlowStage.create)
-      .add('simulateSellerApproval', TestInterfaceActionFlowStage.create, {
-        testName: 'Simulate Seller Approval (Test Interface Action)',
-        createActionFn: ({ p }) => ({
-          type: 'test:SellerAcceptOrderProposalSimulateAction',
-          objectType: 'OrderProposal',
-          objectId: p.getResponse().body['@id'],
-        }),
-      })
+      .add('simulateSellerApproval', TestInterfaceActionFlowStage.create, ({ p }) => ({
+        additionalParams: { // additionalParams is used to add/overwrite params that are used to create the flow stage
+          testName: 'Simulate Seller Approval (Test Interface Action)',
+          createActionFn: () => ({
+            type: 'test:SellerAcceptOrderProposalSimulateAction',
+            objectType: 'OrderProposal',
+            objectId: p.getResponse().body['@id'],
+          }),
+        },
+      }))
       // special build step which sets up listen and collect stages and links them with the previous stage
       .addOrderFeedUpdate('orderFeedUpdate', {
         testName: 'Order Feed Update (after Simulate Seller Approval)',
@@ -96,7 +98,7 @@ FeatureHelper.describeFeature(module, {
   {
     const { p } = (new SimpleFlowBuilder({ requestHelper, logger, uuid: 'abc' })) // we'll still use SimpleFlowBuilder, as it initializes uuid & sellerId and threads them into each stage's input state
       .add('p', PFlowStage, () => ({
-        // `getAdditionalInputState` is a function that adds to the input state that SimpleFlowBuilder extracts from requisite stages
+        // `getAdditionalInputState` is a function that adds to the input state that SimpleFlowBuilder extracts from prerequisite stages
         getAdditionalInputState: () => ({
           orderItems: [/* ... */],
           totalPaymentDue: 3.4,
