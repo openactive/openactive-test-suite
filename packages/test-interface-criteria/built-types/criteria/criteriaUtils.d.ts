@@ -61,3 +61,7 @@ export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer,
  * @returns {boolean}
  */
 export function hasCapacityLimitOfOne(opportunity: Opportunity): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/Opportunity").Opportunity): boolean;

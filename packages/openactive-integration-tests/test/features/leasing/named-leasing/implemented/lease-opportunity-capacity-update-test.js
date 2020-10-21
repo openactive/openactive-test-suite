@@ -121,6 +121,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should not take into account leased opportunities on this order
       itShouldHaveCapacity(5, c1, () => state.c1Response);
     });
 
@@ -132,6 +133,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should not take into account leased opportunities on this order
       itShouldHaveCapacity(5, c2, () => state.c2Response);
     });
 
@@ -144,6 +146,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should be idempotent
       itShouldHaveCapacity(5, c2, () => state.c2Response);
     });
   });
@@ -166,6 +169,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should take into account leases on other orders
       itShouldHaveCapacity(2, c1, () => state.c1Response);
     });
 
@@ -211,6 +215,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should only take into account leases on other orders
       itShouldHaveCapacity(2, c1, () => state.c1Response);
     });
 
@@ -222,6 +227,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should only take into account leases on other orders
       itShouldHaveCapacity(2, c2, () => state.c2Response);
     });
   });
