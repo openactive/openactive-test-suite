@@ -37,29 +37,23 @@ class Common {
    * @param {string} controlName Used for the it() test description for order item criteria which are controls
    * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} controlCb
    */
-  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName = null, controlCb = null) {
+  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
     orderItemCriteria.forEach((c, i) => {
-      if (controlName && !controlCb || !controlName && controlCb) {
-        throw new Error("Either both controlName and controlCb must be set, or neither.")
-      }
+      it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
+        if (stage) stage.expectResponseReceived();
 
-      if (!c.control || (c.control && controlName)) {
-        it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
-          if (stage) stage.expectResponseReceived();
+        const feedOrderItem = state.orderItems[i];
 
-          const feedOrderItem = state.orderItems[i];
+        expect(orderAccessor().orderedItem).to.be.an('array');
 
-          expect(orderAccessor().orderedItem).to.be.an('array');
+        const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
 
-          const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
+        const responseOrderItemErrorTypes = (responseOrderItem.error || []).map(x => x['@type']);
 
-          const responseOrderItemErrorTypes = ((responseOrderItem && responseOrderItem.error) || []).map(x => x['@type']);
+        const cb = c.control ? controlCb : testCb;
 
-          const cb = c.control ? controlCb : testCb;
-
-          cb(feedOrderItem, responseOrderItem, responseOrderItemErrorTypes);
-        });
-      }
+        cb(feedOrderItem, responseOrderItem, responseOrderItemErrorTypes);
+      });
     });
   }
 }

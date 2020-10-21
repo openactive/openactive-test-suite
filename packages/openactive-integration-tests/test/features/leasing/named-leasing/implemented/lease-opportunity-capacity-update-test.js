@@ -17,8 +17,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Leased spaces are unavailable for purchase by other users',
   testDescription: 'When an opportunity is leased, the capacity is decremented',
   testOpportunityCriteria: 'TestOpportunityBookableFiveSpaces',
-  controlOpportunityCriteria: 'TestOpportunityBookable',
-  skipMultiple: true,
+  skipMultiple: true, // multiple tests fail, as we run out of slots/occurrences due to the repetition
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
   /**
@@ -27,7 +26,7 @@ FeatureHelper.describeFeature(module, {
    * @param {() => ChakramResponse} responseAccessor
    */
   function itShouldHaveCapacity(expected, stage, responseAccessor) {
-    Common.itForOrderItemByControl(orderItemCriteria, parentState, stage, () => responseAccessor().body,
+    Common.itForOrderItem(orderItemCriteria, parentState, stage, () => responseAccessor().body,
       'should decrement remaining slots',
       (feedOrderItem, responseOrderItem) => {
         if (responseOrderItem && responseOrderItem.orderedItem['@type'] === 'Slot') {
