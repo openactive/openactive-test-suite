@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - single",
+            "name": "integration-tests - individual",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/leasing/anonymous-leasing/implemented/lease-response-test.js",
+                "test/features/leasing/anonymous-leasing/implemented/lease-opportunity-capacity-update-test.js",
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [

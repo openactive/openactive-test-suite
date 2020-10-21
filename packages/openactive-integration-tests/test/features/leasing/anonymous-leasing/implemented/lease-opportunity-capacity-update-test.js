@@ -17,7 +17,13 @@ FeatureHelper.describeFeature(module, {
   testName: 'Leased spaces are unavailable for purchase by other users',
   testDescription: 'When an opportunity is leased, the capacity is decremented',
   testOpportunityCriteria: 'TestOpportunityBookableFiveSpaces',
-  skipMultiple: true, // multiple tests fail, as we run out of slots/occurrences due to the repetition
+  // no control, because we don't know what capacity the control will have
+  multipleOpportunityCriteriaTemplate: opportunityType => [{
+    opportunityType,
+    opportunityCriteria: 'TestOpportunityBookableFiveSpaces',
+    primary: true,
+    control: false,
+  }],
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
   /**
