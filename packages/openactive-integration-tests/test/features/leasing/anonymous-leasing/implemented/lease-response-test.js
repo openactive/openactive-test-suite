@@ -1,7 +1,9 @@
 const { expect } = require('chai');
 const moment = require('moment');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2 } = require('../../../../shared-behaviours');
+const { GetMatch, C1 } = require('../../../../shared-behaviours');
+
+const { IMPLEMENTED_FEATURES } = global;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -22,7 +24,7 @@ function itShouldReturnLeaseWithFutureExpiryDate(getChakramResponse) {
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'leasing',
-  testFeature: 'named-leasing',
+  testFeature: 'anonymous-leasing',
   testFeatureImplemented: true,
   testIdentifier: 'lease-response',
   testName: 'Response at C2 includes a "lease" with a "leaseExpires" in the future',
@@ -34,6 +36,11 @@ FeatureHelper.describeFeature(module, {
 (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
   beforeAll(async () => {
     await state.fetchOpportunities(orderItemCriteria);
+  });
+
+  it('should implement named leasing as well', () => {
+    // eslint-disable-next-line no-unused-expressions
+    expect(IMPLEMENTED_FEATURES['named-leasing']).to.be.true;
   });
 
   describe('Get Opportunity Feed Items', () => {
@@ -50,17 +57,9 @@ FeatureHelper.describeFeature(module, {
       state, flow, logger,
     }))
       .beforeSetup()
-      .validationTests();
-  });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
       .successChecks()
       .validationTests();
 
-    itShouldReturnLeaseWithFutureExpiryDate(() => state.c2Response);
+    itShouldReturnLeaseWithFutureExpiryDate(() => state.c1Response);
   });
 });

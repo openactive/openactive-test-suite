@@ -34,7 +34,7 @@
     "seller-requested-cancellation-message": null,
     "seller-requested-replacement": null,
     "named-leasing": true,
-    "anonymous-leasing": null,
+    "anonymous-leasing": true,
     "customer-details-capture-non-essential": true,
     "customer-details-capture-identifier": true,
     "attendee-details-capture-without-payment": null,
