@@ -86,11 +86,11 @@ function createNonPaymentRelatedCoreBReq(data) {
     },
     customer: {
       '@type': 'Person',
-      email: 'geoffcapes@example.com',
-      telephone: '020 811 8055',
-      givenName: 'Geoff',
-      familyName: 'Capes',
-      identifier: 'CustomerIdentifier',
+      email: 'geoffcapesStageB@example.com',
+      telephone: '020 811 8003',
+      givenName: 'GeoffB',
+      familyName: 'CapesB',
+      identifier: 'CustomerIdentifierB',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
@@ -211,6 +211,16 @@ function createIncorrectOrderDueToMissingIdentifierInPaymentProperty(data) {
 }
 
 /**
+ * Paid B request without customer.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createBReqWithoutCustomer(data) {
+  const req = createStandardPaidBReq(data);
+  return dissocPath(['customer'], req);
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -223,6 +233,7 @@ const bReqTemplates = {
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
+  noCustomer: createBReqWithoutCustomer,
 };
 
 /**

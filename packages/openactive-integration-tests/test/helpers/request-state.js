@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
@@ -9,6 +10,7 @@ const { generateUuid } = require('./generate-uuid');
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
 const SELLER_CONFIG = config.get('sellers');
+const { HARVEST_START_TIME } = global;
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -40,8 +42,10 @@ class RequestState {
    *   Which template to use for B requests. Defaults to 'standard'
    * @param {import('../templates/u-req').UReqTemplateRef} [options.uReqTemplateRef]
    *   Which template to use for U (cancellation) requests. Defaults to 'standard'
+   * @param {string | null} [options.brokerRole]
+   *    Broker role, if not provided will default to c1, c2, or b request default broker role.
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -50,6 +54,7 @@ class RequestState {
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
+    this._brokerRole = brokerRole;
   }
 
   get uuid() {
@@ -87,7 +92,7 @@ class RequestState {
      */
     this.testInterfaceResponses = await Promise.all((this.orderItemCriteriaList || []).map(async (orderItemCriteriaItem, i) => {
       // If an opportunity is available for reuse, return it
-      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey') && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey) && reusableOpportunityPromises.has(orderItemCriteriaItem.opportunityReuseKey)) {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
@@ -98,7 +103,7 @@ class RequestState {
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
 
       // If this opportunity can be reused, store it
-      if (orderItemCriteriaItem.hasOwnProperty('opportunityReuseKey')) {
+      if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey)) {
         reusableOpportunityPromises.set(orderItemCriteriaItem.opportunityReuseKey, opportunityPromise);
       }
 
@@ -106,9 +111,9 @@ class RequestState {
     }));
   }
 
-  getRandomRelevantOffer(opportunity, opportunityCriteria) {
-    const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity);
-    if (relevantOffers.length == 0) return null;
+  static getRandomRelevantOffer(opportunity, opportunityCriteria) {
+    const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity, { harvestStartTime: HARVEST_START_TIME });
+    if (relevantOffers.length === 0) return null;
 
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
   }
@@ -168,7 +173,7 @@ class RequestState {
 
     this.orderItems = (this.opportunityFeedExtractResponses || []).map((x, i) => {
       if (x && isResponse20x(x)) {
-        const acceptedOffer = this.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
+        const acceptedOffer = RequestState.getRandomRelevantOffer(x.body.data, this.orderItemCriteriaList[i].opportunityCriteria);
         if (acceptedOffer === null) {
           throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${this.orderItemCriteriaList[i].opportunityCriteria}`);
         }
@@ -201,8 +206,8 @@ class RequestState {
 
   async putOrderQuoteTemplate() {
     const result = this._c1ReqTemplateRef
-      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._c1ReqTemplateRef)
-      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
+      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole, this._c1ReqTemplateRef)
+      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole);
 
     this.c1Response = result;
 
@@ -232,8 +237,8 @@ class RequestState {
 
   async putOrderQuote() {
     const result = this._c2ReqTemplateRef
-      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
-      : await this.requestHelper.putOrderQuote(this.uuid, this);
+      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole, this._c2ReqTemplateRef)
+      : await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole);
 
     this.c2Response = result;
 
@@ -250,8 +255,8 @@ class RequestState {
 
   async putOrder() {
     const result = this._bReqTemplateRef
-      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
-      : await this.requestHelper.putOrder(this.uuid, this);
+      ? await this.requestHelper.putOrder(this.uuid, this, this._brokerRole, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, this, this._brokerRole);
 
     this.bResponse = result;
 

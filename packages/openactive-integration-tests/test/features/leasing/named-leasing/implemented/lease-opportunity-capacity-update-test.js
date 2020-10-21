@@ -17,28 +17,22 @@ FeatureHelper.describeFeature(module, {
   testName: 'Leased spaces are unavailable for purchase by other users',
   testDescription: 'When an opportunity is leased, the capacity is decremented',
   testOpportunityCriteria: 'TestOpportunityBookableFiveSpaces',
-  controlOpportunityCriteria: 'TestOpportunityBookable',
+  // no control, because we don't know what capacity the control will have
   multipleOpportunityCriteriaTemplate: opportunityType => [{
     opportunityType,
     opportunityCriteria: 'TestOpportunityBookableFiveSpaces',
     primary: true,
     control: false,
-  },
-  {
-    opportunityType,
-    opportunityCriteria: 'TestOpportunityBookable',
-    primary: false,
-    control: true,
   }],
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
   /**
-   * @param {Number} expected
+   * @param {number} expected
    * @param {C1|C2} stage
-   * @param {Function} responseAccessor
+   * @param {() => ChakramResponse} responseAccessor
    */
   function itShouldHaveCapacity(expected, stage, responseAccessor) {
-    Common.itForOrderItemByControl(orderItemCriteria, parentState, stage, () => responseAccessor().body,
+    Common.itForOrderItem(orderItemCriteria, parentState, stage, () => responseAccessor().body,
       'should decrement remaining slots',
       (feedOrderItem, responseOrderItem) => {
         if (responseOrderItem && responseOrderItem.orderedItem['@type'] === 'Slot') {
@@ -50,8 +44,7 @@ FeatureHelper.describeFeature(module, {
             'orderedItem.remainingAttendeeCapacity': expected,
           });
         }
-      },
-      null, null); // no control
+      });
   }
 
   /**
@@ -69,7 +62,7 @@ FeatureHelper.describeFeature(module, {
 
   /**
    * @param {RequestState} state
-   * @param {Number} count
+   * @param {number} count
    */
   function setOrderItemsOnState(state, count) {
     const orderItems = parentState.orderItems.filter(oi => !oi['test:control']);
@@ -114,14 +107,11 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      const c1 = (new C1({
+      (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
-        .successChecks()
         .validationTests();
-
-      itShouldHaveCapacity(5, c1, () => state.c1Response);
     });
 
     describe('C2', () => {
@@ -132,6 +122,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should not take into account leased opportunities on this order
       itShouldHaveCapacity(5, c2, () => state.c2Response);
     });
 
@@ -144,6 +135,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should be idempotent
       itShouldHaveCapacity(5, c2, () => state.c2Response);
     });
   });
@@ -159,14 +151,11 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      const c1 = (new C1({
+      (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
-        .successChecks()
         .validationTests();
-
-      itShouldHaveCapacity(2, c1, () => state.c1Response);
     });
 
     describe('C2', () => {
@@ -186,9 +175,9 @@ FeatureHelper.describeFeature(module, {
         const factor = errors.length / 10;
 
         const count = (array, value) => array.filter(x => x === value).length;
-        chakram.expect(count(errors, undefined)).to.equal(factor * 2);
-        chakram.expect(count(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3);
-        chakram.expect(count(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5);
+        expect(count(errors, undefined)).to.equal(factor * 2);
+        expect(count(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3);
+        expect(count(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5);
       });
     });
   });
@@ -204,14 +193,11 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      const c1 = (new C1({
+      (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
-        .successChecks()
         .validationTests();
-
-      itShouldHaveCapacity(2, c1, () => state.c1Response);
     });
 
     describe('C2', () => {
@@ -222,6 +208,7 @@ FeatureHelper.describeFeature(module, {
         .successChecks()
         .validationTests();
 
+      // it should only take into account leases on other orders
       itShouldHaveCapacity(2, c2, () => state.c2Response);
     });
   });
@@ -237,14 +224,11 @@ FeatureHelper.describeFeature(module, {
     });
 
     describe('C1', () => {
-      const c1 = (new C1({
+      (new C1({
         state, flow, logger,
       }))
         .beforeSetup()
         .validationTests();
-
-      itShouldHaveCapacity(0, c1, () => state.c1Response);
-      itShouldReturn409Conflict(c1, () => state.c1Response);
     });
 
     describe('C2', () => {

@@ -48,11 +48,11 @@ function createStandardC2Req(data) {
     },
     customer: {
       '@type': 'Person',
-      email: 'geoffcapes@example.com',
-      telephone: '020 811 8055',
-      givenName: 'Geoff',
-      familyName: 'Capes',
-      identifier: 'CustomerIdentifier',
+      email: 'geoffcapesStageC2@example.com',
+      telephone: '020 811 8002',
+      givenName: 'GeoffC2',
+      familyName: 'CapesC2',
+      identifier: 'CustomerIdentifierC2',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',

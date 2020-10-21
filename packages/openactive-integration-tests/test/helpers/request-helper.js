@@ -226,7 +226,7 @@ class RequestHelper {
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
-      `${MICROSERVICE_BASE}get-order/${uuid}`,
+      `${MICROSERVICE_BASE}/get-order/${uuid}`,
       {
         timeout: 30000,
       },
@@ -242,7 +242,7 @@ class RequestHelper {
   async getMatch(eventId, orderItemPosition) {
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
       {
         timeout: 60000,
       },
@@ -254,7 +254,7 @@ class RequestHelper {
   async getDatasetSite() {
     const respObj = await this.get(
       'Dataset Site Cached Proxy',
-      `${MICROSERVICE_BASE}dataset-site`,
+      `${MICROSERVICE_BASE}/dataset-site`,
       {
         timeout: 5000,
       },
@@ -268,13 +268,17 @@ class RequestHelper {
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
    * @param {import('../templates/c1-req').C1ReqTemplateRef} c1ReqTemplateRef
    */
-  async putOrderQuoteTemplate(uuid, params, c1ReqTemplateRef = 'standard') {
+  async putOrderQuoteTemplate(uuid, params, brokerRole, c1ReqTemplateRef = 'standard') {
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
 
+    if(brokerRole) {
+      payload.brokerRole = brokerRole;
+    }
+
     const c1Response = await this.put(
       'C1',
-      `${BOOKING_API_BASE}order-quote-templates/${uuid}`,
+      `${BOOKING_API_BASE}/order-quote-templates/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -290,13 +294,17 @@ class RequestHelper {
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
    * @param {import('../templates/c2-req').C2ReqTemplateRef} c2ReqTemplateRef
    */
-  async putOrderQuote(uuid, params, c2ReqTemplateRef = 'standard') {
+  async putOrderQuote(uuid, params, brokerRole = null, c2ReqTemplateRef = 'standard') {
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
 
+    if(brokerRole) {
+      payload.brokerRole = brokerRole;
+    }
+
     const c2Response = await this.put(
       'C2',
-      `${BOOKING_API_BASE}order-quotes/${uuid}`,
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -312,13 +320,17 @@ class RequestHelper {
    * @param {import('../templates/b-req').BReqTemplateData} params
    * @param {import('../templates/b-req').BReqTemplateRef} bReqTemplateRef
    */
-  async putOrder(uuid, params, bReqTemplateRef = 'standard') {
+  async putOrder(uuid, params, brokerRole = null, bReqTemplateRef = 'standard') {
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
 
+    if(brokerRole) {
+      payload.brokerRole = brokerRole;
+    }
+
     const bResponse = await this.put(
       'B',
-      `${BOOKING_API_BASE}orders/${uuid}`,
+      `${BOOKING_API_BASE}/orders/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -340,7 +352,7 @@ class RequestHelper {
 
     const pResponse = await this.put(
       'P',
-      `${BOOKING_API_BASE}order-proposals/${uuid}`,
+      `${BOOKING_API_BASE}/order-proposals/${uuid}`,
       requestBody,
       {
         headers: this.createHeaders(),
@@ -363,7 +375,7 @@ class RequestHelper {
 
     const uResponse = await this.patch(
       'U',
-      `${BOOKING_API_BASE}orders/${uuid}`,
+      `${BOOKING_API_BASE}/orders/${uuid}`,
       payload,
       {
         headers: this.createHeaders(),
@@ -377,7 +389,7 @@ class RequestHelper {
   async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
-      `${BOOKING_API_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
+      `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         headers: this.createHeaders(),
@@ -391,7 +403,7 @@ class RequestHelper {
   async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
     const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
+      `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         timeout: 10000,
@@ -411,7 +423,7 @@ class RequestHelper {
   async callTestInterfaceAction({ action: { type, objectType, objectId } }) {
     const response = await this.post(
       `Call TestInterface Action of type: ${type}`,
-      `${BOOKING_API_BASE}test-interface/actions`,
+      `${BOOKING_API_BASE}/test-interface/actions`,
       {
         '@context': [
           'https://openactive.io/',
@@ -438,7 +450,7 @@ class RequestHelper {
   async deleteOrder(uuid, params) {
     const respObj = await this.delete(
       'delete-order',
-      `${BOOKING_API_BASE}orders/${uuid}`,
+      `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),
         timeout: 10000,

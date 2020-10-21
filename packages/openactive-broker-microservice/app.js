@@ -16,14 +16,24 @@ const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
+const HARVEST_START_TIME = new Date();
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeaders') ? config.get('opportunityFeedRequestHeaders') : {
 };
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
 const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
+const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
+const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+class FatalError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'FatalError';
+  }
+}
 
 const app = express();
 
@@ -153,8 +163,11 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         url = json.next;
       }
     } catch (error) {
-      if (!error.response) {
-        log(`Error for RPDE feed "${url}": ${error.message}.`);
+      if (error instanceof FatalError) {
+        // If a fatal error, just rethrow
+        throw error;
+      } else if (!error.response) {
+        log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
         // Force retry, after a delay
         await sleep(5000);
       } else if (error.response.status === 404) {
@@ -254,6 +267,21 @@ function setFeedIsUpToDate(feedIdentifier) {
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
         log('Harvesting is up-to-date');
+        const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
+
+        if (totalChildren === 0) {
+          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
+          logError('Please ensure that the opportunities feeds conforms to RPDE using https://validator.openactive.io/rpde.\n');
+          throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
+        } else if (childOrphans === totalChildren) {
+          logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
+          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+        } else if (childOrphans > 0) {
+          logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+        }
+
         healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
         // Clear response array
         healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
@@ -288,8 +316,18 @@ app.get('/health-check', function (req, res) {
   }
 });
 
+// Config endpoint used to get global variables within the integration tests
+app.get('/config', function (req, res) {
+  res.json({
+    // Allow a consistent startDate to be used when calling test-interface-criteria
+    harvestStartTime: HARVEST_START_TIME.toISOString(),
+    // Base URL used by the integration tests
+    bookingApiBaseUrl: datasetSiteJson.accessService && datasetSiteJson.accessService.endpointURL,
+  });
+});
+
 app.get('/dataset-site', function (req, res) {
-  res.send(datasetSiteJson);
+  res.json(datasetSiteJson);
 });
 
 function mapToObject(map) {
@@ -332,10 +370,29 @@ app.get('/orphans', function (req, res) {
   });
 });
 
-app.get('/status', function (req, res) {
+/**
+ * @typedef {Object} OrphanStats
+ * @property {number} childOrphans
+ * @property {number} totalChildren
+ * @property {string} percentageChildOrphans
+ */
+
+/**
+ * @returns {OrphanStats}
+ */
+function getOrphanStats() {
   const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length;
   const totalChildren = rowStoreMap.size;
-  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : 0;
+  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
+  return {
+    childOrphans,
+    totalChildren,
+    percentageChildOrphans,
+  };
+}
+
+app.get('/status', function (req, res) {
+  const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     feeds: mapToObject(feedContextMap),
@@ -475,7 +532,7 @@ function detectOpportunityType(opportunity) {
 
 app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', function (req, res) {
   if (DO_NOT_FILL_BUCKETS) {
-    res.status(500).json({
+    res.status(403).json({
       error: 'Test interface is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
     });
     return;
@@ -513,8 +570,11 @@ const orderResponses = {
 };
 
 app.get('/get-order/:id', function (req, res) {
-  // respond with json
-  if (req.params.id) {
+  if (DO_NOT_HARVEST_ORDERS_FEED) {
+    res.status(403).json({
+      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+  } else if (req.params.id) {
     const { id } = req.params;
 
     // Stash the response and reply later when an event comes through (kill any existing id still waiting)
@@ -532,7 +592,9 @@ app.get('/get-order/:id', function (req, res) {
       },
     };
   } else {
-    res.send('Id is required');
+    res.status(400).json({
+      error: 'id is required',
+    });
   }
 });
 
@@ -679,7 +741,10 @@ function processOpportunityItem(item) {
       const sellerId = detectSellerId(item.data);
 
       criteria.map((c) => ({
-        criteriaName: c.name, criteriaResult: testMatch(c, item.data),
+        criteriaName: c.name,
+        criteriaResult: testMatch(c, item.data, {
+          harvestStartTime: HARVEST_START_TIME,
+        }),
       })).forEach((result) => {
         const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
         if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
@@ -781,10 +846,12 @@ async function startPolling() {
   });
 
   // Only poll orders feed if included in the dataset site
-  if (dataset.accessService && dataset.accessService.endpointURL) {
-    const ordersFeedUrl = `${dataset.accessService.endpointURL}orders-rpde`;
+  if (!DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
+    const feedIdentifier = 'OrdersFeed';
+    const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
-    harvesters.push(harvestRPDE(ordersFeedUrl, 'OrdersFeed', ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
+    addFeed(feedIdentifier);
+    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
   }
 
   // Finished processing dataset site
@@ -797,6 +864,16 @@ async function startPolling() {
 
 // Ensure that dataset site request also delays "readiness"
 addFeed('DatasetSite');
+
+// Ensure bucket allocation does not become stale
+setTimeout(() => {
+  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
+  if (!DISABLE_BROKER_TIMEOUT) {
+    const message = 'The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+    logError(`${message}\n`);
+    throw new Error(message);
+  }
+}, 3600000); // 3600000 ms = 1 hour
 
 const server = http.createServer(app);
 server.on('error', onError);

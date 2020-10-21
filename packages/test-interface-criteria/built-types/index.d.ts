@@ -25,11 +25,15 @@ export type Offer = {
     '@type': string;
     '@id': string;
 };
+export type Options = {
+    harvestStartTime: Date;
+};
 declare const allCriteria: import("./types/Criteria").Criteria[];
 /**
  * @typedef {import('./types/Criteria').Criteria} Criteria
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
+ * @typedef {import('./types/Options').Options} Options
  */
 export const criteriaMap: Map<string, import("./types/Criteria").Criteria>;
 /**
@@ -42,14 +46,16 @@ export const criteriaMap: Map<string, import("./types/Criteria").Criteria>;
  *
  * @param {Criteria} criteria
  * @param {Opportunity} opportunity
+ * @param {Options} options
  */
-export function testMatch(criteria: Criteria, opportunity: Opportunity): {
+export function testMatch(criteria: Criteria, opportunity: Opportunity, options: Options): {
     matchesCriteria: boolean;
     unmetCriteriaDetails: string[];
 };
 /**
  * @param {string} criteriaName
  * @param {Opportunity} opportunity
+ * @param {Options} options
  */
-export function getRelevantOffers(criteriaName: string, opportunity: Opportunity): import("./types/Offer").Offer[];
+export function getRelevantOffers(criteriaName: string, opportunity: Opportunity, options: Options): import("./types/Offer").Offer[];
 export { allCriteria as criteria };
