@@ -1,8 +1,9 @@
 const _ = require('lodash');
 const config = require('config');
-const { generateUuid } = require('../generate-uuid');
+// const { generateUuid } = require('../generate-uuid');
 const { FlowStage } = require('./flow-stage');
 const { OpportunityFeedUpdateFlowStage } = require('./opportunity-feed-update');
+const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -100,28 +101,29 @@ const FetchOpportunitiesFlowStage = {
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
-  create({ orderItemCriteriaList, uuid, requestHelper, logger }) {
+  create({ orderItemCriteriaList, requestHelper, logger }) {
     return new FlowStage({
       testName: 'Fetch Opportunities',
+      getInput: FlowStageUtils.emptyGetInput,
       runFn: async () => await FetchOpportunitiesFlowStage.run({ orderItemCriteriaList, requestHelper }),
       itSuccessChecksFn(flowStage) {
         OpportunityFeedUpdateFlowStage.itSuccessChecks({
           orderItemCriteriaList,
-          getterFn: () => flowStage.getResponse(),
+          getterFn: () => flowStage.getOutput(),
         });
       },
       itValidationTestsFn(flowStage) {
         OpportunityFeedUpdateFlowStage.itValidationTests({
           logger,
           orderItemCriteriaList,
-          getterFn: () => flowStage.getResponse(),
+          getterFn: () => flowStage.getOutput(),
         });
       },
-      initialState: {
-        uuid: uuid || generateUuid(),
-        sellerId: SELLER_CONFIG.primary['@id'],
-        orderItemCriteriaList,
-      },
+      // initialState: {
+      //   uuid: uuid || generateUuid(),
+      //   sellerId: SELLER_CONFIG.primary['@id'],
+      //   orderItemCriteriaList,
+      // },
     });
   },
 
@@ -132,7 +134,7 @@ const FetchOpportunitiesFlowStage = {
    * @param {object} args
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {RequestHelperType} args.requestHelper
-   * @returns {Promise<import('./flow-stage').FlowStageOutput<FetchOpportunitiesResponse>>}
+   * @returns {Promise<FetchOpportunitiesResponse>}
     */
   async run({ orderItemCriteriaList, requestHelper }) {
     // ## Get Test Interface Opportunities
@@ -149,26 +151,30 @@ const FetchOpportunitiesFlowStage = {
     });
 
     // ## Combine responses
-    if (!('response' in opportunityFeedUpdateResult.result)) {
-      // If the above condition is true, opportunityFeedUpdateResult doesn't have
-      // a response, and therefore, FlowStageOutputs are interchangeable.
-      // Therefore, we bypass TS
-      return /** @type {any} */(opportunityFeedUpdateResult);
-    }
-
+    // if (!('response' in opportunityFeedUpdateResult.result)) {
+    //   // If the above condition is true, opportunityFeedUpdateResult doesn't have
+    //   // a response, and therefore, FlowStageOutputs are interchangeable.
+    //   // Therefore, we bypass TS
+    //   return /** @type {any} */(opportunityFeedUpdateResult);
+    // }
     return {
-      result: {
-        status: 'response-received',
-        response: {
-          ...opportunityFeedUpdateResult.result.response,
-          testInterfaceOpportunities,
-        },
-      },
-      state: {
-        ...(opportunityFeedUpdateResult.state || {}),
-        testInterfaceOpportunities,
-      },
+      ...opportunityFeedUpdateResult,
+      testInterfaceOpportunities,
     };
+
+    // return {
+    //   result: {
+    //     status: 'response-received',
+    //     response: {
+    //       ...opportunityFeedUpdateResult.result.response,
+    //       testInterfaceOpportunities,
+    //     },
+    //   },
+    //   state: {
+    //     ...(opportunityFeedUpdateResult.state || {}),
+    //     testInterfaceOpportunities,
+    //   },
+    // };
   },
 };
 

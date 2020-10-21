@@ -1,25 +1,36 @@
 const chakram = require('chakram');
+const config = require('config');
 const sharedValidationTests = require('../../shared-behaviours/validation');
+const { generateUuid } = require('../generate-uuid');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../helpers/request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
- * @typedef {import('./flow-stage').FlowStageState} FlowStageState
  */
 
-/**
- * @template TFlowStageResponse
- * @typedef {object} FlowStageDefinition
- * @property {string} testName
- * @property {FlowStageDefinition<unknown>} prerequisite
- * @property {(stateSoFar: FlowStageState) => Promise<import('./flow-stage').FlowStageOutput<TFlowStageResponse>>} runFn
- * @property {(response: TFlowStageResponse, stateSoFar: FlowStageState) => void} itSuccessChecksFn
- * @property {(response: TFlowStageResponse, stateSoFar: FlowStageState) => void} itValidationTestsFn
- */
+// /**
+//  * @template TFlowStageResponse
+//  * @typedef {object} FlowStageDefinition
+//  * @property {string} testName
+//  * @property {FlowStageDefinition<unknown>} prerequisite
+//  * @property {(stateSoFar: FlowStageState) => Promise<import('./flow-stage').FlowStageOutput<TFlowStageResponse>>} runFn
+//  * @property {(response: TFlowStageResponse, stateSoFar: FlowStageState) => void} itSuccessChecksFn
+//  * @property {(response: TFlowStageResponse, stateSoFar: FlowStageState) => void} itValidationTestsFn
+//  */
+
+const SELLER_CONFIG = config.get('sellers');
 
 const FlowStageUtils = {
+  // # Utilities for FlowStage factory
+  //
+  // e.g. for C1FlowStage
+  /**
+   * Empty `getInput` arg to use for FlowStages which need no input.
+   */
+  emptyGetInput: () => ({}),
+
   /**
    * Create itValidationTestsFn that will work for flow stages whose result
    * is an HTTP response whose body is an OpenActive item.
@@ -69,6 +80,25 @@ const FlowStageUtils = {
   simpleHttp200SuccessChecks() {
     return FlowStageUtils.simpleHttpXXXSuccessChecks(200);
   },
+
+  // # Utilities for test specs
+
+  /**
+   * @param {object} args
+   * @param {RequestHelperType} args.requestHelper
+   * @param {BaseLoggerType} args.logger
+   * @param {string} [args.uuid]
+   * @param {string} [args.sellerId]
+   */
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerId }) {
+    return {
+      requestHelper,
+      logger,
+      uuid: uuid || generateUuid(),
+      sellerId: sellerId || /** @type {string} */(SELLER_CONFIG.primary['@id']),
+    };
+  }
+
 
   /**
    * Creates a `describe(..)` block in which:
