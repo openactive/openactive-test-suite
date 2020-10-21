@@ -42,7 +42,7 @@
     "additional-details-capture": null,
     "access-code": true,
     "access-pass-image": true,
-    "access-pass-barcode-seller-provided": null,
+    "access-pass-barcode-seller-provided": true,
     "access-pass-barcode-broker-provided": null,
     "reseller-broker": null,
     "reseller-broker-tax-calculation": null,
