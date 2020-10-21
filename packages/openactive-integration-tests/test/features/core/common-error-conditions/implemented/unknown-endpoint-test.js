@@ -30,7 +30,7 @@ FeatureHelper.describeFeature(module, {
       const requestHelper = new RequestHelper(logger);
       response = await requestHelper.put(
         'UnknownEndpoint',
-        `${BOOKING_API_BASE}ordeeeeers/abc`,
+        `${BOOKING_API_BASE}/ordeeeeers/abc`,
         { hi: 'there' },
         { timeout: 10000, headers: requestHelper.createHeaders() },
       );
@@ -43,7 +43,7 @@ FeatureHelper.describeFeature(module, {
     let response;
     beforeAll(async () => {
       const requestHelper = new RequestHelper(logger);
-      response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}ordeeeeers/abc`, { timeout: 10000 });
+      response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}/ordeeeeers/abc`, { timeout: 10000 });
     });
 
     itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);
