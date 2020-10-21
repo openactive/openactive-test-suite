@@ -65,7 +65,7 @@ FeatureHelper.describeFeature(module, {
   // # Examples
   //
   // ## 1. Simple
-  // ## 1.1. With no magic at all
+  // ### 1.1. With no magic at all
   {
     const uuid = createUuid();
     const sellerId = getSellerId();
@@ -139,7 +139,7 @@ FeatureHelper.describeFeature(module, {
       requestHelper,
     });
   }
-  // ## 1.2. With simple substitutions / helper functions
+  // ### 1.2. With simple substitutions / helper functions
   {
     // Just puts uuid, sellerId, requestHelper, logger into an object, with default values for uuid & sellerId
     const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
@@ -208,6 +208,63 @@ FeatureHelper.describeFeature(module, {
       ...defaultFlowStageParams,
       prerequisite: orderFeedUpdate,
       getInputState: FlowStageUtils.getMergedInputState(p),
+    });
+  }
+  // ### 1.3. Without state merging
+  {
+    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+    const fetchOpportunities = FetchOpportunitiesFlowStage.create({
+      ...defaultFlowStageParams,
+      orderItemCriteriaList,
+    });
+    const c1 = C1FlowStage.create({
+      ...defaultFlowStageParams,
+      prerequisite: fetchOpportunities,
+      getInputState: FlowStageUtils.getInputStateFromStages([
+        [fetchOpportunities, 'orderItems'],
+      ]),
+    });
+    const c2 = C2FlowStage.create({
+      ...defaultFlowStageParams,
+      prerequisite: c1,
+      getInputState: FlowStageUtils.getInputStateFromStages([
+        [fetchOpportunities, 'orderItems'],
+      ]),
+    });
+    const p = PFlowStage.create({
+      ...defaultFlowStageParams,
+      prerequisite: c2,
+      getInputState: FlowStageUtils.getInputStateFromStages([
+        [fetchOpportunities, 'orderItems'],
+        [c2, 'totalPaymentDue'],
+      ]),
+    });
+    const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStage.wrap({
+      // FlowStage that is getting wrapped
+      wrappedStage: prerequisite => TestInterfaceActionFlowStage.create({
+        ...defaultFlowStageParams,
+        testName: 'Simulate Seller Approval (Test Interface Action)',
+        prerequisite,
+        createActionFn: () => ({
+          type: 'test:SellerAcceptOrderProposalSimulateAction',
+          objectType: 'OrderProposal',
+          objectId: p.getOutput().orderId,
+        }),
+      }),
+      // Params for the Order Feed Update stages
+      orderFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        prerequisite: p,
+        testName: 'Order Feed Update (after Simulate Seller Approval)',
+      },
+    });
+    const b = BFlowStage.create({
+      ...defaultFlowStageParams,
+      prerequisite: orderFeedUpdate,
+      getInputState: FlowStageUtils.getInputStateFromStages([
+        [fetchOpportunities, 'orderItems'],
+        [p, ['orderProposalVersion', 'totalPaymentDue']],
+      ]),
     });
   }
   // ## 2. Edge Case - Standalone / Override args
