@@ -50,7 +50,6 @@ function getType(opportunity) {
   return opportunity['@type'] || opportunity.type;
 }
 
-
 /**
  * @param {Opportunity} opportunity
  * @returns {boolean}
@@ -75,7 +74,7 @@ function getRemainingCapacity(opportunity) {
  */
 function mustBeWithinBookingWindow(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return false;
+    return null; // Required for validation step
   }
 
   const start = moment(opportunity.startDate);
@@ -85,6 +84,15 @@ function mustBeWithinBookingWindow(offer, opportunity, options) {
   return valid;
 }
 
+/**
+ * @type {OpportunityConstraint}
+ */
+function remainingCapacityMustBeAtLeastTwo(opportunity) {
+  // A capacity of at least 2 is needed for cases other than IndividualFacilityUse because the multiple OrderItem tests use 2 of the same item (via the opportunityReuseKey).
+  // The opportunityReuseKey is not used for IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
+  return getRemainingCapacity(opportunity) > (hasCapacityLimitOfOne(opportunity) ? 0 : 1);
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -92,4 +100,5 @@ module.exports = {
   getRemainingCapacity,
   mustBeWithinBookingWindow,
   hasCapacityLimitOfOne,
+  remainingCapacityMustBeAtLeastTwo,
 };
