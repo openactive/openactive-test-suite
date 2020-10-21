@@ -18,24 +18,13 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'When an opportunity is leased, the capacity is decremented',
   testOpportunityCriteria: 'TestOpportunityBookableFiveSpaces',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  multipleOpportunityCriteriaTemplate: opportunityType => [{
-    opportunityType,
-    opportunityCriteria: 'TestOpportunityBookableFiveSpaces',
-    primary: true,
-    control: false,
-  },
-  {
-    opportunityType,
-    opportunityCriteria: 'TestOpportunityBookable',
-    primary: false,
-    control: true,
-  }],
+  skipMultiple: true,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
   /**
-   * @param {Number} expected
+   * @param {number} expected
    * @param {C1} stage
-   * @param {Function} responseAccessor
+   * @param {() => ChakramResponse} responseAccessor
    */
   function itShouldHaveCapacity(expected, stage, responseAccessor) {
     Common.itForOrderItemByControl(orderItemCriteria, parentState, stage, () => responseAccessor().body,
@@ -50,8 +39,7 @@ FeatureHelper.describeFeature(module, {
             'orderedItem.remainingAttendeeCapacity': expected,
           });
         }
-      },
-      null, null); // no control
+      });
   }
 
   /**
@@ -69,7 +57,7 @@ FeatureHelper.describeFeature(module, {
 
   /**
    * @param {RequestState} state
-   * @param {Number} count
+   * @param {number} count
    */
   function setOrderItemsOnState(state, count) {
     const orderItems = parentState.orderItems.filter(oi => !oi['test:control']);
@@ -153,9 +141,9 @@ FeatureHelper.describeFeature(module, {
         const factor = errors.length / 10;
 
         const count = (array, value) => array.filter(x => x === value).length;
-        chakram.expect(count(errors, undefined)).to.equal(factor * 2);
-        chakram.expect(count(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3);
-        chakram.expect(count(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5);
+        expect(count(errors, undefined)).to.equal(factor * 2);
+        expect(count(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3);
+        expect(count(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5);
       });
     });
   });

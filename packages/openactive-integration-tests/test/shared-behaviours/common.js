@@ -37,7 +37,7 @@ class Common {
    * @param {string} controlName Used for the it() test description for order item criteria which are controls
    * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} controlCb
    */
-  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
+  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName = null, controlCb = null) {
     orderItemCriteria.forEach((c, i) => {
       if (controlName && !controlCb || !controlName && controlCb) {
         throw new Error("Either both controlName and controlCb must be set, or neither.")
