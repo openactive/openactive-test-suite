@@ -7,7 +7,7 @@ const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-u
 const RequestHelper = require('../../../../helpers/request-helper');
 const { PFlowStage } = require('../../../../helpers/flow-stages/p');
 const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
-const { OrderFeedUpdateFlowStage } = require('../../../../helpers/flow-stages/order-feed-update');
+const { OrderFeedUpdateFlowStage, OrderFeedUpdateFlowStageUtils } = require('../../../../helpers/flow-stages/order-feed-update');
 const { BFlowStage } = require('../../../../helpers/flow-stages/b');
 
 /**
@@ -238,25 +238,25 @@ FeatureHelper.describeFeature(module, {
       totalPaymentDue: c2.getOutput().totalPaymentDue,
     }),
   });
-  // const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStage.wrap({
-  //   // FlowStage that is getting wrapped
-  //   wrappedStage: prerequisite => TestInterfaceActionFlowStage.create({
-  //     ...defaultFlowStageParams,
-  //     testName: 'Simulate Seller Approval (Test Interface Action)',
-  //     prerequisite,
-  //     createActionFn: () => ({
-  //       type: 'test:SellerAcceptOrderProposalSimulateAction',
-  //       objectType: 'OrderProposal',
-  //       objectId: p.getOutput().orderId,
-  //     }),
-  //   }),
-  //   // Params for the Order Feed Update stages
-  //   orderFeedUpdateParams: {
-  //     ...defaultFlowStageParams,
-  //     prerequisite: p,
-  //     testName: 'Order Feed Update (after Simulate Seller Approval)',
-  //   },
-  // });
+  const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+    // FlowStage that is getting wrapped
+    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+      ...defaultFlowStageParams,
+      testName: 'Simulate Seller Approval (Test Interface Action)',
+      prerequisite,
+      createActionFn: () => ({
+        type: 'test:SellerAcceptOrderProposalSimulateAction',
+        objectType: 'OrderProposal',
+        objectId: p.getOutput().orderId,
+      }),
+    })),
+    // Params for the Order Feed Update stages
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: p,
+      testName: 'Order Feed Update (after Simulate Seller Approval)',
+    },
+  });
   // const b = BFlowStage.create({
   //   ...defaultFlowStageParams,
   //   prerequisite: orderFeedUpdate,
@@ -468,16 +468,16 @@ FeatureHelper.describeFeature(module, {
       // TODO does validator check that full Seller details are included in the seller response?
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(collectOrderFeedUpdate, {
-  //   itExtraTests() {
-  //     it('should have orderProposalStatus: SellerAccepted', () => {
-  //       expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
-  //     });
-  //     it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-  //       expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalVersion', p.getResponse().body.orderProposalVersion);
-  //     });
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, {
+    itAdditionalTests() {
+      it('should have orderProposalStatus: SellerAccepted', () => {
+        expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
+      });
+      it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
+        expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalVersion', p.getOutput().orderProposalVersion);
+      });
+    },
+  });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });

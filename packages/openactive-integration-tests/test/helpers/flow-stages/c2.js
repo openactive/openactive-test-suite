@@ -1,5 +1,4 @@
-const { get } = require('lodash');
-const { getTotalPaymentDueFromOrder } = require('../order-utils');
+const { getTotalPaymentDueFromOrder, getOrderId } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -14,7 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
- * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse' | 'totalPaymentDue'>>} Output
+ * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
  */
 
 /**
@@ -38,6 +37,7 @@ async function runC2({ templateRef, uuid, sellerId, orderItems, requestHelper })
     bookingSystemOrder,
     httpResponse: response,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
+    orderId: getOrderId(bookingSystemOrder),
   };
 }
 

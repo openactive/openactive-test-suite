@@ -46,7 +46,14 @@ const getOrderProposalVersion = pipe(
   assertValueSatisfiesPredicateIfExists(isString, 'orderProposalVersion is not a string'),
 );
 
+/** @type {(order: unknown) => string | null | undefined} */
+const getOrderId = pipe(
+  path(['@id']),
+  assertValueSatisfiesPredicateIfExists(isString, 'orderId (@id) is not a string'),
+);
+
 module.exports = {
   getTotalPaymentDueFromOrder,
   getOrderProposalVersion,
+  getOrderId,
 };
