@@ -16,54 +16,6 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
  */
 
-//  * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>} Output
-
-// const C1FlowStage = {
-//   /**
-//    * @param {object} args
-//    * @param {C1ReqTemplateRef} [args.templateRef]
-//    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
-//    * @param {() => Input} args.getInput
-//    * @param {BaseLoggerType} args.logger
-//    * @param {RequestHelperType} args.requestHelper
-//    * @param {string} args.uuid
-//    * @param {string} args.sellerId
-//    * @returns {import('./flow-stage').FlowStageType<Input, Output>}
-//    */
-//   create({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
-//     // /**
-//     //  * @type {import('./flow-stage').FlowStageType<
-//     //  *   Required<Pick<FlowStageOutput, 'orderItems'>>,
-//     //  *   Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>
-//     //  * >}
-//     //  */
-//     const stage = new FlowStage({
-//       prerequisite,
-//       getInput,
-//       testName: 'C1',
-//       async runFn(input) {
-//         const { orderItems } = input;
-//         // const { uuid, sellerId, orderItems } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems']);
-//         return await C1FlowStage.run({
-//           templateRef,
-//           uuid,
-//           sellerId,
-//           orderItems,
-//           requestHelper,
-//         });
-//       },
-//       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
-//       itValidationTestsFn: (flowStage) => {
-//         FlowStageUtils.simpleValidationTests(flowStage, {
-//           name: 'C1',
-//           validationMode: 'C1Response',
-//         }, logger);
-//       },
-//     });
-//     return stage;
-//   },
-// }
-
 /**
  * @param {object} args
  * @param {C1ReqTemplateRef} [args.templateRef]
@@ -110,7 +62,6 @@ class C1FlowStage extends FlowStage {
       testName: 'C1',
       async runFn(input) {
         const { orderItems } = input;
-        // const { uuid, sellerId, orderItems } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems']);
         return await runC1({
           templateRef,
           uuid,
@@ -121,12 +72,6 @@ class C1FlowStage extends FlowStage {
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, { name: 'C1', validationMode: 'C1Response' }),
-      // itValidationTestsFn: (flowStage) => {
-      //   FlowStageUtils.simpleValidationTests(flowStage, {
-      //     name: 'C1',
-      //     validationMode: 'C1Response',
-      //   }, logger);
-      // },
     });
   }
 }
