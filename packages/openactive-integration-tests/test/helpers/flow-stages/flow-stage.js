@@ -76,7 +76,12 @@ class FlowStage {
    * @param {FlowStage<unknown, unknown>} [args.prerequisite] Stage that must be completed before
    *   this stage is run. e.g. a C2 stage might have a C1 stage as its
    *   pre-requisite.
-   * @param {() => TInput} args.getInput TODO TODO document
+   * @param {() => TInput} args.getInput Some FlowStages need input derived from
+   *   the output of other FlowStages. e.g. B might need to use the `totalPaymentDue`
+   *   derived from C2.
+   *   This input goes into `getInput`. It's a function as it will be called when
+   *   the FlowStage is run (rather than when the FlowStage is set up). Therefore,
+   *   it will have acccess to the output of any prerequisite stages.
    * @param {string} args.testName
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
