@@ -1,8 +1,8 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { multipleOpportunityCriteriaTemplate, successTests } = require('../../prepayment-common');
 
-const testOpportunityCriteria = 'TestOpportunityBookablePaidPrepaymentOptional';
-const expectedPrepayment = 'https://openactive.io/Optional';
+const testOpportunityCriteria = 'TestOpportunityBookablePaidPrepaymentRequired';
+const expectedPrepayment = 'https://openactive.io/Required';
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'advanced-payment',
