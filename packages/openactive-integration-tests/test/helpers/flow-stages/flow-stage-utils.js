@@ -63,7 +63,6 @@ const FlowStageUtils = {
    */
   simpleHttpXXXSuccessChecks(expectedStatus) {
     return (/** @type {FlowStageTypeWithHttpResponseOutput} */ flowStage) => {
-    // return (/** @type {import('./flow-stage').FlowStageType<any, TOutput>} */ flowStage) => {
       it(`should return ${expectedStatus} on success`, () => {
         chakram.expect(flowStage.getOutput().httpResponse).to.have.status(expectedStatus);
       });
