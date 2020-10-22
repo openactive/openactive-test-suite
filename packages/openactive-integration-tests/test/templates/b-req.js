@@ -201,6 +201,16 @@ function createIncorrectOrderDueToMissingPaymentProperty(data) {
 }
 
 /**
+ * Incorrect paid B request with unnecessary payment property.
+ * Payment property is not allowed.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectOrderDueToUnnecessaryPaymentProperty(data) {
+  const req = createStandardPaidBReq(data);
+}
+
+/**
  * Paid B request with incorrect payment property as identifier is missing.
  *
  * @param {BReqTemplateData} data
@@ -232,6 +242,7 @@ const bReqTemplates = {
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
+  incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
 };
