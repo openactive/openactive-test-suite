@@ -14,11 +14,21 @@ const { Common } = require('../../../../shared-behaviours/common');
  *   function because the actual response won't be available until the
  *   asynchronous before() block has completed.
  */
-function itShouldReturn409Conflict(stage, responseAccessor) {
+function itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(orderItemCriteria, state, stage, responseAccessor) {
   it('should return 409', () => {
     stage.expectResponseReceived();
     chakram.expect(responseAccessor()).to.have.status(409);
   });
+
+  Common.itForOrderItemByControl(orderItemCriteria, state, stage, () => responseAccessor().body,
+    'should include an OpportunityOfferPairNotBookableError',
+    (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+      chai.expect(responseOrderItemErrorTypes).to.include('OpportunityOfferPairNotBookableError');
+    },
+    'should not include an OpportunityOfferPairNotBookableError',
+    (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+      chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityOfferPairNotBookableError');
+    });
 }
 
 FeatureHelper.describeFeature(module, {
@@ -46,12 +56,13 @@ FeatureHelper.describeFeature(module, {
   });
 
   describe('C1', () => {
-    (new C1({
+    const c1 = (new C1({
       state, flow, logger,
     }))
       .beforeSetup()
-      .successChecks()
       .validationTests();
+
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(orderItemCriteria, state, c1, () => state.c1Response);
   });
 
   describe('C2', () => {
@@ -61,15 +72,6 @@ FeatureHelper.describeFeature(module, {
       .beforeSetup()
       .validationTests();
 
-    itShouldReturn409Conflict(c2, () => state.c2Response);
-    Common.itForOrderItemByControl(orderItemCriteria, state, c2, () => state.c2Response.body,
-      'should include an OpportunityOfferPairNotBookableError',
-      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
-        chai.expect(responseOrderItemErrorTypes).to.include('OpportunityOfferPairNotBookableError');
-      },
-      'should not include an OpportunityOfferPairNotBookableError',
-      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
-        chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityOfferPairNotBookableError');
-      });
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(orderItemCriteria, state, c2, () => state.c2Response);
   });
 });
