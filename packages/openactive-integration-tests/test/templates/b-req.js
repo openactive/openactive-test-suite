@@ -106,7 +106,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       // Currently adding it here as I couldn't extend createStandardFreeOrPaidBReq
       accessPass: [{
         '@type': 'Barcode',
-        url: 'https://urlFromBroker.com',
+        url: 'https://urlfrombroker.com/',
         text: '0123456789', // Not parsed correctly on backend.
       }],
     })),

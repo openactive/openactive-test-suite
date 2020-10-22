@@ -87,13 +87,9 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
           chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].url`).that.is.a('string');
 
           if (accessPass['@type'] === 'Barcode') {
-            chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].text`).that.is.a('string');
-            chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].beta:codeType`).that.is.a('string');
-
-            chai.expect(state.bResponse.body.orderedItem[orderItemIndex].accessPass[accessPassIndex].text).to.equal('https://urlFromBroker.com');
-
+            chai.expect(accessPass.url).to.equal('https://urlfrombroker.com/');
             // Currently unable to pass text field in request, so for now just checking url.
-            // chai.expect(state.bResponse.body.orderedItem[orderItemIndex].accessPass[accessPassIndex].url).to.equal('0123456789');
+            // chai.expect(state.bResponse.body.orderedItem[orderItemIndex].accessPass[accessPassIndex].text).to.equal('0123456789');
           }
         });
       });
