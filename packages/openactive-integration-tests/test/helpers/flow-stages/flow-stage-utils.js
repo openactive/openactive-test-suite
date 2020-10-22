@@ -98,7 +98,7 @@ const FlowStageUtils = {
     return (/** @type {FlowStageTypeWithHttpResponseOutput} */ flowStage) => {
     // return (/** @type {import('./flow-stage').FlowStageType<any, TOutput>} */ flowStage) => {
       it(`should return ${expectedStatus} on success`, () => {
-        chakram.expect(flowStage.getOutput()).to.have.status(expectedStatus);
+        chakram.expect(flowStage.getOutput().httpResponse).to.have.status(expectedStatus);
       });
     };
   },
@@ -140,8 +140,8 @@ const FlowStageUtils = {
    *
    * @param {UnknownFlowStageType} flowStage
    * @param {object} options
-   * @param {() => void} [options.itExtraTests] Extra tests which will be run
-   *   after success and validation tests have run.
+   * @param {() => void} [options.itAdditionalTests] Additiona tests which will
+   *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
@@ -156,11 +156,28 @@ const FlowStageUtils = {
         .itSuccessChecks()
         .itValidationTests();
 
-      if (options.itExtraTests) {
-        options.itExtraTests();
+      if (options.itAdditionalTests) {
+        options.itAdditionalTests();
       }
     });
   },
+
+  // /**
+  //  * @template {{
+  //  *   orderItems?: import('./flow-stage').FlowStageType<unknown, Pick<FlowStageOutput, 'orderItems'>>,
+  //  * }} TGetInputFromStagesSpec
+  //  * @param {TGetInputFromStagesSpec} spec
+  //  * @returns {() => Pick<FlowStageOutput, keyof TGetInputFromStagesSpec>}
+  //  */
+  // getInputFromStages(spec) {
+  //   return () => {
+  //     const input = {};
+  //     for (const [fieldName, stage] of Object.entries(spec)) {
+  //       input[fieldName] = stage.getOutput()[fieldName];
+  //     }
+  //     return /** @type {Pick<FlowStageOutput, keyof TGetInputFromStagesSpec>} */(input);
+  //   }
+  // },
 
 //   /**
 //    * Simple flow:
@@ -223,6 +240,42 @@ const FlowStageUtils = {
 //     };
 //   },
 };
+
+// /**
+//  * @template {keyof FlowStageOutput} TOutputFieldName
+//  * @template {any[]} TInitialValue
+//  */
+// class InputBuilder {
+//   /**
+//    * @param {import('./flow-stage').FlowStageType<unknown, Pick<FlowStageOutput, TOutputFieldName>>} flowStage
+//    * @param {TOutputFieldName} outputFieldName
+//    * @param {TInitialValue} initialValue
+//    */
+//   constructor(flowStage, outputFieldName, initialValue) {
+//     this._flowStage = flowStage;
+//     this._outputFieldName = outputFieldName;
+//     this._initialValue = initialValue;
+//   }
+
+//   get() {
+//     return () => ({
+//       ...this._initialValue,
+      
+//     });
+//   }
+
+//   /**
+//    * @template {keyof FlowStageOutput} TNewOutputFieldName
+//    * @param {import('./flow-stage').FlowStageType<unknown, Pick<FlowStageOutput, TOutputFieldName>>} flowStage
+//    * @param {TNewOutputFieldName} outputFieldName
+//    */
+//   add(flowStage, outputFieldName) {
+//     return new InputBuilder(flowStage, outputFieldName, [
+//       ...this._initialValue,
+//       [flowStage, outputFieldName],
+//     ]);
+//   }
+// }
 
 // const flow1 = FlowStageUtils.buildFlow({
 //   flowStagesByLabel: {},

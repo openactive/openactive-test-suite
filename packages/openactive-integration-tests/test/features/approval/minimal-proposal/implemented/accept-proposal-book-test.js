@@ -219,52 +219,56 @@ FeatureHelper.describeFeature(module, {
   const c1 = new C1FlowStage({
     ...defaultFlowStageParams,
     prerequisite: fetchOpportunities,
-    getInput: FlowStageUtils.getInputStateFromStages([
-      [fetchOpportunities, 'orderItems'],
-    ]),
-  });
-  const c2 = C2FlowStage.create({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: FlowStageUtils.getInputStateFromStages([
-      [fetchOpportunities, 'orderItems'],
-    ]),
-  });
-  const p = PFlowStage.create({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: FlowStageUtils.getInputStateFromStages([
-      [fetchOpportunities, 'orderItems'],
-      [c2, 'totalPaymentDue'],
-    ]),
-  });
-  const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStage.wrap({
-    // FlowStage that is getting wrapped
-    wrappedStage: prerequisite => TestInterfaceActionFlowStage.create({
-      ...defaultFlowStageParams,
-      testName: 'Simulate Seller Approval (Test Interface Action)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:SellerAcceptOrderProposalSimulateAction',
-        objectType: 'OrderProposal',
-        objectId: p.getOutput().orderId,
-      }),
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
     }),
-    // Params for the Order Feed Update stages
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: p,
-      testName: 'Order Feed Update (after Simulate Seller Approval)',
-    },
+    // getInput: new InputBuilder(fetchOpportunities, 'orderItems'),
+    // getInput: FlowStageUtils.getInputStateFromStages([
+    //   [fetchOpportunities, 'orderItems'],
+    // ]),
   });
-  const b = BFlowStage.create({
-    ...defaultFlowStageParams,
-    prerequisite: orderFeedUpdate,
-    getInput: FlowStageUtils.getInputStateFromStages([
-      [fetchOpportunities, 'orderItems'],
-      [p, ['orderProposalVersion', 'totalPaymentDue']],
-    ]),
-  });
+  // const c2 = C2FlowStage.create({
+  //   ...defaultFlowStageParams,
+  //   prerequisite: c1,
+  //   getInput: FlowStageUtils.getInputStateFromStages([
+  //     [fetchOpportunities, 'orderItems'],
+  //   ]),
+  // });
+  // const p = PFlowStage.create({
+  //   ...defaultFlowStageParams,
+  //   prerequisite: c2,
+  //   getInput: FlowStageUtils.getInputStateFromStages([
+  //     [fetchOpportunities, 'orderItems'],
+  //     [c2, 'totalPaymentDue'],
+  //   ]),
+  // });
+  // const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStage.wrap({
+  //   // FlowStage that is getting wrapped
+  //   wrappedStage: prerequisite => TestInterfaceActionFlowStage.create({
+  //     ...defaultFlowStageParams,
+  //     testName: 'Simulate Seller Approval (Test Interface Action)',
+  //     prerequisite,
+  //     createActionFn: () => ({
+  //       type: 'test:SellerAcceptOrderProposalSimulateAction',
+  //       objectType: 'OrderProposal',
+  //       objectId: p.getOutput().orderId,
+  //     }),
+  //   }),
+  //   // Params for the Order Feed Update stages
+  //   orderFeedUpdateParams: {
+  //     ...defaultFlowStageParams,
+  //     prerequisite: p,
+  //     testName: 'Order Feed Update (after Simulate Seller Approval)',
+  //   },
+  // });
+  // const b = BFlowStage.create({
+  //   ...defaultFlowStageParams,
+  //   prerequisite: orderFeedUpdate,
+  //   getInput: FlowStageUtils.getInputStateFromStages([
+  //     [fetchOpportunities, 'orderItems'],
+  //     [p, ['orderProposalVersion', 'totalPaymentDue']],
+  //   ]),
+  // });
   // // ## 2. Edge Case - Standalone / Override args
   // {
   //   const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
@@ -447,37 +451,37 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, {
-    itExtraTests() {
-      itShouldReturnOrderRequiresApprovalTrue(() => c1.getResponse());
+    itAdditionalTests() {
+      itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
     },
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
-    itExtraTests() {
-      itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
-    },
-  });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
-    itExtraTests() {
-      // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
-      it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-        const { uuid } = p.getCombinedStateAfterRun();
-        expect(p.getResponse().body).to.have.property('orderProposalVersion')
-          .which.matches(RegExp(`${uuid}/versions/.+`));
-      });
-      // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
-      // TODO does validator check that full Seller details are included in the seller response?
-    },
-  });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(collectOrderFeedUpdate, {
-    itExtraTests() {
-      it('should have orderProposalStatus: SellerAccepted', () => {
-        expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
-      });
-      it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-        expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalVersion', p.getResponse().body.orderProposalVersion);
-      });
-    },
-  });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
+  //   itExtraTests() {
+  //     itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
+  //   },
+  // });
+  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
+  //   itExtraTests() {
+  //     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+  //     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
+  //       const { uuid } = p.getCombinedStateAfterRun();
+  //       expect(p.getResponse().body).to.have.property('orderProposalVersion')
+  //         .which.matches(RegExp(`${uuid}/versions/.+`));
+  //     });
+  //     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
+  //     // TODO does validator check that full Seller details are included in the seller response?
+  //   },
+  // });
+  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
+  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(collectOrderFeedUpdate, {
+  //   itExtraTests() {
+  //     it('should have orderProposalStatus: SellerAccepted', () => {
+  //       expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
+  //     });
+  //     it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
+  //       expect(collectOrderFeedUpdate.getResponse().body).to.have.nested.property('data.orderProposalVersion', p.getResponse().body.orderProposalVersion);
+  //     });
+  //   },
+  // });
+  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });
