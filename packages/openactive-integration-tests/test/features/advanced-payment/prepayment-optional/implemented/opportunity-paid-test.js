@@ -15,8 +15,10 @@ const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 function itShouldReturnPrepayment(stage, responseAccessor) {
   it('should return prepayment', () => {
     stage.expectResponseReceived();
-    const response = responseAccessor();
-    expect(response.body.totalPaymentDue.prepayment).to.equal('https://openactive.io/Optional');
+    const response = responseAccessor().body;
+    const prepayment = response.totalPaymentDue.prepayment;
+
+    expect(prepayment).to.equal('https://openactive.io/Optional');
   });
 }
 
@@ -29,6 +31,13 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Opportunity paid, prepayment optional',
   testOpportunityCriteria: 'TestOpportunityBookablePaidPrepaymentOptional',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  // temporarily disable control in multiple mode until refactoring complete
+  multipleOpportunityCriteriaTemplate: opportunityType => [{
+    opportunityType,
+    opportunityCriteria: 'TestOpportunityBookablePaidPrepaymentOptional',
+    primary: true,
+    control: false,
+  }],
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
   beforeAll(async () => {
@@ -52,7 +61,7 @@ FeatureHelper.describeFeature(module, {
       .successChecks()
       .validationTests();
 
-    // itShouldReturnPrepayment(c1, () => state.c1Response);
+    itShouldReturnPrepayment(c1, () => state.c1Response);
   });
 
   describe('C2', () => {
