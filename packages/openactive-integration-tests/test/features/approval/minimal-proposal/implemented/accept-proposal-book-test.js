@@ -230,14 +230,14 @@ FeatureHelper.describeFeature(module, {
       orderItems: fetchOpportunities.getOutput().orderItems,
     }),
   });
-  // const p = PFlowStage.create({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: c2,
-  //   getInput: FlowStageUtils.getInputStateFromStages([
-  //     [fetchOpportunities, 'orderItems'],
-  //     [c2, 'totalPaymentDue'],
-  //   ]),
-  // });
+  const p = new PFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c2,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+    }),
+  });
   // const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStage.wrap({
   //   // FlowStage that is getting wrapped
   //   wrappedStage: prerequisite => TestInterfaceActionFlowStage.create({
@@ -456,18 +456,18 @@ FeatureHelper.describeFeature(module, {
       itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
-  //   itExtraTests() {
-  //     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
-  //     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-  //       const { uuid } = p.getCombinedStateAfterRun();
-  //       expect(p.getResponse().body).to.have.property('orderProposalVersion')
-  //         .which.matches(RegExp(`${uuid}/versions/.+`));
-  //     });
-  //     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
-  //     // TODO does validator check that full Seller details are included in the seller response?
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
+    itAdditionalTests() {
+      // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+      it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
+        const { uuid } = defaultFlowStageParams;
+        expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
+          .which.matches(RegExp(`${uuid}/versions/.+`));
+      });
+      // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
+      // TODO does validator check that full Seller details are included in the seller response?
+    },
+  });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(collectOrderFeedUpdate, {
   //   itExtraTests() {

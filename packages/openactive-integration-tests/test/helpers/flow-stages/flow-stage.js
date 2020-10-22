@@ -1,4 +1,4 @@
-const { get, isNil, memoize } = require('lodash');
+// const { get, isNil, memoize } = require('lodash');
 const pMemoize = require('p-memoize');
 
 /**
@@ -23,7 +23,10 @@ const pMemoize = require('p-memoize');
  *   endpoint.
  * @property {ChakramResponse[]} [opportunityFeedExtractResponses]
  * @property {OrderItem[]} [orderItems]
- * @property {ChakramResponse} [bookingSystemOrder]
+ * @property {ChakramResponse} [bookingSystemOrder] Order as found in the Booking
+ *   System. Could contain the response from C1, C2, B, etc.
+ * @property {number | null | undefined} [totalPaymentDue] Optional as a Booking System
+ *   response may not include totalPaymentDue if there was an error.
  * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
  *   Order Feed updates.
  *

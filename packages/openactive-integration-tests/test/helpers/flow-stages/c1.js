@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -12,7 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
- * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>} Output
+ * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse' | 'totalPaymentDue'>>}
  */
 
 //  * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>} Output
@@ -79,10 +80,10 @@ async function runC1({ templateRef, uuid, sellerId, orderItems, requestHelper })
   };
   const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
 
-  // TODO TODO and totalPaymentDue?
   return {
     bookingSystemOrder: response,
     httpResponse: response,
+    totalPaymentDue: get(response, ['body', 'totalPaymentDue', 'price']),
   };
 }
 
@@ -101,11 +102,6 @@ class C1FlowStage extends FlowStage {
    * @param {string} args.sellerId
    */
   constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
-    // TODO TODO TODO well here we are chief
-    // Got to use class inheritance now.
-    // So that we can explicitly set type params using @extends
-    // it is what it is. Shouldn't require too much change
-    // will move `.run()` to just be a standalone function
     super({
       prerequisite,
       getInput,
