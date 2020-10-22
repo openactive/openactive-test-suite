@@ -5,13 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - Current File",
+            "name": "integration-tests - this test file",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
-                "${file}"
+                "--runInBand",
+                "${relativeFile}",
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [
@@ -23,7 +24,7 @@
             }
         },
         {
-            "name": "integration-tests",
+            "name": "integration-tests - all tests",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
