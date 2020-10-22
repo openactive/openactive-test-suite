@@ -7,23 +7,113 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 
-const C1FlowStage = {
+/**
+ * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>} Output
+ */
+
+//  * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>} Output
+
+// const C1FlowStage = {
+//   /**
+//    * @param {object} args
+//    * @param {C1ReqTemplateRef} [args.templateRef]
+//    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
+//    * @param {() => Input} args.getInput
+//    * @param {BaseLoggerType} args.logger
+//    * @param {RequestHelperType} args.requestHelper
+//    * @param {string} args.uuid
+//    * @param {string} args.sellerId
+//    * @returns {import('./flow-stage').FlowStageType<Input, Output>}
+//    */
+//   create({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+//     // /**
+//     //  * @type {import('./flow-stage').FlowStageType<
+//     //  *   Required<Pick<FlowStageOutput, 'orderItems'>>,
+//     //  *   Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse'>>
+//     //  * >}
+//     //  */
+//     const stage = new FlowStage({
+//       prerequisite,
+//       getInput,
+//       testName: 'C1',
+//       async runFn(input) {
+//         const { orderItems } = input;
+//         // const { uuid, sellerId, orderItems } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems']);
+//         return await C1FlowStage.run({
+//           templateRef,
+//           uuid,
+//           sellerId,
+//           orderItems,
+//           requestHelper,
+//         });
+//       },
+//       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
+//       itValidationTestsFn: (flowStage) => {
+//         FlowStageUtils.simpleValidationTests(flowStage, {
+//           name: 'C1',
+//           validationMode: 'C1Response',
+//         }, logger);
+//       },
+//     });
+//     return stage;
+//   },
+// }
+
+/**
+ * @param {object} args
+ * @param {C1ReqTemplateRef} [args.templateRef]
+ * @param {string} args.uuid
+ * @param {string} args.sellerId
+ * @param {OrderItem[]} args.orderItems
+ * @param {RequestHelperType} args.requestHelper
+ * @returns {Promise<Output>}
+ */
+async function runC1({ templateRef, uuid, sellerId, orderItems, requestHelper }) {
+  const params = {
+    sellerId,
+    orderItems,
+  };
+  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
+
+  // TODO TODO and totalPaymentDue?
+  return {
+    bookingSystemOrder: response,
+    httpResponse: response,
+  };
+}
+
+/**
+ * @extends {FlowStage<Input, Output>}
+ */
+class C1FlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {C1ReqTemplateRef} [args.templateRef]
-   * @param {FlowStage<unknown>} args.prerequisite
+   * @param {FlowStage<unknown, unknown>} [args.prerequisite]
+   * @param {() => Input} args.getInput
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
+   * @param {string} args.uuid
+   * @param {string} args.sellerId
    */
-  create({ templateRef, prerequisite, logger, requestHelper }) {
-    return new FlowStage({
+  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+    // TODO TODO TODO well here we are chief
+    // Got to use class inheritance now.
+    // So that we can explicitly set type params using @extends
+    // it is what it is. Shouldn't require too much change
+    // will move `.run()` to just be a standalone function
+    super({
       prerequisite,
+      getInput,
       testName: 'C1',
-      async runFn(flowStage) {
-        const { uuid, sellerId, orderItems } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems']);
-        return await C1FlowStage.run({
+      async runFn(input) {
+        const { orderItems } = input;
+        // const { uuid, sellerId, orderItems } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems']);
+        return await runC1({
           templateRef,
           uuid,
           sellerId,
@@ -32,41 +122,19 @@ const C1FlowStage = {
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
-      itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
-        name: 'C1',
-        validationMode: 'C1Response',
-      }),
+      itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, { name: 'C1', validationMode: 'C1Response' }),
+      // itValidationTestsFn: (flowStage) => {
+      //   FlowStageUtils.simpleValidationTests(flowStage, {
+      //     name: 'C1',
+      //     validationMode: 'C1Response',
+      //   }, logger);
+      // },
     });
-  },
+  }
+}
 
-  /**
-   * @param {object} args
-   * @param {C1ReqTemplateRef} [args.templateRef]
-   * @param {string} args.uuid
-   * @param {string} args.sellerId
-   * @param {OrderItem[]} args.orderItems
-   * @param {RequestHelperType} args.requestHelper
-   * @returns {Promise<import('./flow-stage').FlowStageOutput<ChakramResponse>>}
-   */
-  async run({ templateRef, uuid, sellerId, orderItems, requestHelper }) {
-    const params = {
-      sellerId,
-      orderItems,
-    };
-    const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
-
-    return {
-      result: {
-        response,
-        status: 'response-received',
-      },
-      state: {
-        bookingSystemOrder: response,
-      },
-    };
-  },
-};
 
 module.exports = {
   C1FlowStage,
+  runC1,
 };

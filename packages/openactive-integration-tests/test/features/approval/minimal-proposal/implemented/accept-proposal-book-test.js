@@ -212,11 +212,11 @@ FeatureHelper.describeFeature(module, {
   // }
   // ### 1.3. Without state merging
   const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = FetchOpportunitiesFlowStage.create({
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,
     orderItemCriteriaList,
   });
-  const c1 = C1FlowStage.create({
+  const c1 = new C1FlowStage({
     ...defaultFlowStageParams,
     prerequisite: fetchOpportunities,
     getInput: FlowStageUtils.getInputStateFromStages([

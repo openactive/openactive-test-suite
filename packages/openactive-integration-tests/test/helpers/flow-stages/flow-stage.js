@@ -62,6 +62,8 @@ const pMemoize = require('p-memoize');
 //  * @param {(flowStage: FlowStage<TFlowStageResponse>) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
 //  * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
 //  *   values for state e.g. use a pre-determined UUID.
+//  * @param {(getOutput: () => TOutput) => void} args.itSuccessChecksFn
+//  * @param {(getOutput: () => TOutput) => void} args.itValidationTestsFn
 /**
  * A "stage" of a particular booking flow. For example, a flow might have
  * a stage for each of the following:
@@ -77,14 +79,14 @@ const pMemoize = require('p-memoize');
 class FlowStage {
   /**
    * @param {object} args
-   * @param {FlowStage} [args.prerequisite] Stage that must be completed before
+   * @param {FlowStage<unknown, unknown>} [args.prerequisite] Stage that must be completed before
    *   this stage is run. e.g. a C2 stage might have a C1 stage as its
    *   pre-requisite.
    * @param {() => TInput} args.getInput TODO TODO document
    * @param {string} args.testName
-   * @param {(inputState: TInput) => Promise<TOutput>} args.runFn
-   * @param {(flowStage: FlowStage<TInput, TOutput>) => void} args.itSuccessChecksFn
-   * @param {(flowStage: FlowStage<TInput, TOutput>) => void} args.itValidationTestsFn
+   * @param {(input: TInput) => Promise<TOutput>} args.runFn
+   * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
+   * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itValidationTestsFn
    * @param {boolean} [args.shouldDescribeFlowStage] If false, this FlowStage should
    *   not get its own `describe(..)` block. Use this for abstract flow stages like
    *   an Order Feed Update initiator.
@@ -213,6 +215,7 @@ class FlowStage {
    * Creates it() blocks.
    */
   itSuccessChecks() {
+    // this._itSuccessChecksFn(this);
     this._itSuccessChecksFn(this);
     return this;
   }
