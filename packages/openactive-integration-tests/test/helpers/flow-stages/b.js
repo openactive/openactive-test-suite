@@ -1,3 +1,4 @@
+const { getTotalPaymentDueFromOrder, getOrderId } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -7,33 +8,65 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 
-const BFlowStage = {
+/**
+ * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue' | 'orderProposalVersion'>>} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
+ */
+
+/**
+ * @param {object} args
+ * @param {BReqTemplateRef} [args.templateRef]
+ * @param {string} args.uuid
+ * @param {string} args.sellerId
+ * @param {OrderItem[]} args.orderItems
+ * @param {number} args.totalPaymentDue
+ * @param {string} [args.orderProposalVersion]
+ * @param {RequestHelperType} args.requestHelper
+ * @returns {Promise<Output>}
+ */
+async function runB({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, orderProposalVersion, requestHelper }) {
+  const params = {
+    sellerId,
+    orderItems,
+    totalPaymentDue,
+    orderProposalVersion,
+  };
+  const response = await requestHelper.putOrder(uuid, params, templateRef);
+  const bookingSystemOrder = response.body;
+
+  return {
+    httpResponse: response,
+    bookingSystemOrder,
+    totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
+    orderId: getOrderId(bookingSystemOrder),
+  };
+}
+
+/**
+ * @extends {FlowStage<Input, Output>}
+ */
+class BFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {BReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown>} args.prerequisite
+   * @param {() => Input} args.getInput
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
+   * @param {string} args.uuid
+   * @param {string} args.sellerId
    */
-  // create({ templateRef, prerequisite, getInputState, logger, requestHelper }) {
-  create({ templateRef, prerequisite, logger, requestHelper }) {
-    // // hi im making a B flow stage
-    // const f = (object) => ({ ...object, orderProposalVersion: 'idontexist' });
-    // // ^
-    return new FlowStage({
+  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+    super({
       prerequisite,
+      getInput,
       testName: 'B',
-      async runFn(flowStage) {
-        // const { uuid } = getInputState();
-      // async runFn({ uuid, sellerId, }) {
-        const { uuid, sellerId, orderItems, bookingSystemOrder } = flowStage.getPrerequisiteCombinedStateAssertFields(['uuid', 'sellerId', 'orderItems', 'bookingSystemOrder']);
-        // This will be undefined if P was not run - that's fine
-        const { orderProposalVersion } = bookingSystemOrder.body;
-        // const inputState = f({ uuid, sellerId, orderItems, bookingSystemOrder, orderProposalVersion });
-        const totalPaymentDue = flowStage.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState();
-        return await BFlowStage.run({
+      async runFn(input) {
+        const { orderItems, totalPaymentDue, orderProposalVersion } = input;
+        return await runB({
           templateRef,
           uuid,
           sellerId,
@@ -49,53 +82,8 @@ const BFlowStage = {
         validationMode: 'BResponse',
       }),
     });
-  },
-
-  // test() {
-  //   // accept-proposal
-  //   const b = BFlowStage.create({
-  //     getInputState: dosomethingmagicwith(c1),
-  //     // -> () => { if (stage.hasntrun) { throw new Error()}}
-  //     // () {
-  //     //   return dosomethingmagicwith(c1);
-  //     //   // return { uuid: 'abc', };
-  //     // }
-  //   });
-  // }
-
-  // getInputState(flowStages)
-
-  /**
-   * @param {object} args
-   * @param {BReqTemplateRef} [args.templateRef]
-   * @param {string} args.uuid
-   * @param {string} args.sellerId
-   * @param {OrderItem[]} args.orderItems
-   * @param {number} args.totalPaymentDue
-   * @param {string} [args.orderProposalVersion]
-   * @param {RequestHelperType} args.requestHelper
-   * @returns {Promise<import('./flow-stage').FlowStageOutput<ChakramResponse>>}
-   */
-  async run({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, orderProposalVersion, requestHelper }) {
-    const params = {
-      sellerId,
-      orderItems,
-      totalPaymentDue,
-      orderProposalVersion,
-    };
-    const response = await requestHelper.putOrder(uuid, params, templateRef);
-
-    return {
-      result: {
-        response,
-        status: 'response-received',
-      },
-      state: {
-        bookingSystemOrder: response,
-      },
-    };
-  },
-};
+  }
+}
 
 module.exports = {
   BFlowStage,

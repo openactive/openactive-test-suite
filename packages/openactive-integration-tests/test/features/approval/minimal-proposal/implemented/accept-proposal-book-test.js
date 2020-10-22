@@ -7,7 +7,7 @@ const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-u
 const RequestHelper = require('../../../../helpers/request-helper');
 const { PFlowStage } = require('../../../../helpers/flow-stages/p');
 const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
-const { OrderFeedUpdateFlowStage, OrderFeedUpdateFlowStageUtils } = require('../../../../helpers/flow-stages/order-feed-update');
+const { OrderFeedUpdateFlowStageUtils } = require('../../../../helpers/flow-stages/order-feed-update');
 const { BFlowStage } = require('../../../../helpers/flow-stages/b');
 
 /**
@@ -257,14 +257,15 @@ FeatureHelper.describeFeature(module, {
       testName: 'Order Feed Update (after Simulate Seller Approval)',
     },
   });
-  // const b = BFlowStage.create({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: orderFeedUpdate,
-  //   getInput: FlowStageUtils.getInputStateFromStages([
-  //     [fetchOpportunities, 'orderItems'],
-  //     [p, ['orderProposalVersion', 'totalPaymentDue']],
-  //   ]),
-  // });
+  const b = new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: orderFeedUpdate,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: p.getOutput().totalPaymentDue,
+      orderProposalVersion: p.getOutput().orderProposalVersion,
+    }),
+  });
   // // ## 2. Edge Case - Standalone / Override args
   // {
   //   const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
@@ -479,5 +480,5 @@ FeatureHelper.describeFeature(module, {
       });
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });
