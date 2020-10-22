@@ -139,7 +139,14 @@ class FlowStage {
    */
   getOutput() {
     if (!('output' in this._state)) {
-      throw new Error(`${this.getLoggableStageName()}.getOutput() called but there is no response. FlowStage state: ${this._getLoggableStateSummaryForErrorLog()}`);
+      switch (this._state.status) {
+        case 'no-response-yet':
+          throw new Error(`${this.getLoggableStageName()}.getOutput() failed as the stage has not been run. Has this stage been correctly set up as prerequisite to the stage that uses its output? FlowStage state: ${this._getLoggableStateSummaryForErrorLog()}`);
+        case 'prerequisite-run-error':
+          throw new Error(`${this.getLoggableStageName()}.getOutput() failed. This is because a prerequisite stage errored when it ran. A failing stage will fail all tests of subsequent stages. FlowStage state: ${this._getLoggableStateSummaryForErrorLog()}`);
+        default:
+          throw new Error(`${this.getLoggableStageName()}.getOutput() failed as there was an error running this FlowStage. FlowStage state: ${this._getLoggableStateSummaryForErrorLog()}`);
+      }
     }
     return this._state.output;
   }
