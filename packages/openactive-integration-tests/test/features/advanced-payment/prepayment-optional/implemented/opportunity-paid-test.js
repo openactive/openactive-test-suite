@@ -1,13 +1,13 @@
 const { expect } = require('chai');
-const { FeatureHelper } = require('../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../shared-behaviours');
+const { FeatureHelper } = require('../../../../helpers/feature-helper');
+const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
 /**
- * @param {B} stage
+ * @param {C1|C2|B} stage
  * @param {() => ChakramResponse} responseAccessor This is wrapped in a
  *   function because the actual response won't be available until the
  *   asynchronous before() block has completed.
@@ -45,21 +45,25 @@ FeatureHelper.describeFeature(module, {
   });
 
   describe('C1', () => {
-    (new C1({
+    const c1 = (new C1({
       state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()
       .validationTests();
+
+    // itShouldReturnPrepayment(c1, () => state.c1Response);
   });
 
   describe('C2', () => {
-    (new C2({
+    const c2 = (new C2({
       state, flow, logger,
     }))
       .beforeSetup()
       .successChecks()
       .validationTests();
+
+    itShouldReturnPrepayment(c2, () => state.c2Response);
   });
 
   describe('B', () => {

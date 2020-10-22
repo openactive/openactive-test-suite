@@ -9,6 +9,11 @@ const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportu
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
 const { TestOpportunityBookablePaidPrepaymentOptional } = require('./TestOpportunityBookablePaidPrepaymentOptional');
+const { TestOpportunityBookableFreePrepaymentUnavailable } = require('./TestOpportunityBookableFreePrepaymentUnavailable');
+const { TestOpportunityBookablePaidPrepaymentUnavailable } = require('./TestOpportunityBookablePaidPrepaymentUnavailable');
+const { TestOpportunityBookablePaidPrepaymentRequired } = require('./TestOpportunityBookablePaidPrepaymentRequired');
+const { TestOpportunityBookableFreePrepaymentUnspecified } = require('./TestOpportunityBookableFreePrepaymentUnspecified');
+const { TestOpportunityBookablePaidPrepaymentUnspecified } = require('./TestOpportunityBookablePaidPrepaymentUnspecified');
 
 module.exports = {
   allCriteria: [
@@ -23,5 +28,10 @@ module.exports = {
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
     TestOpportunityBookablePaidPrepaymentOptional,
+    TestOpportunityBookableFreePrepaymentUnavailable,
+    TestOpportunityBookablePaidPrepaymentUnavailable,
+    TestOpportunityBookablePaidPrepaymentRequired,
+    TestOpportunityBookableFreePrepaymentUnspecified,
+    TestOpportunityBookablePaidPrepaymentUnspecified,
   ],
 };

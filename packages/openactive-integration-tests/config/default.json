@@ -53,6 +53,7 @@
     "business-to-business-tax-calculation-gross": null,
     "offer-overrides": null,
     "dynamic-payment": null,
+    "prepayment-required": true,
     "prepayment-optional": true,
     "prepayment-unavailable": true,
     "booking-restrictions": null,

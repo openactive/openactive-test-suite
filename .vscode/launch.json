@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - individual",
+            "name": "integration-tests - this test file",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
@@ -13,7 +13,6 @@
                 "--",
                 "--runInBand",
                 "${relativeFile}",
-                "test/features/advanced-payment/prepayment-optional/opportunity-paid-test.js"
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [
