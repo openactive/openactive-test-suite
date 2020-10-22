@@ -8,6 +8,7 @@ const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookabl
 const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportunityNotBookableViaAvailableChannel');
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
+const { TestOpportunityBookablePaidPrepaymentOptional } = require('./TestOpportunityBookablePaidPrepaymentOptional');
 
 module.exports = {
   allCriteria: [
@@ -21,5 +22,6 @@ module.exports = {
     TestOpportunityNotBookableViaAvailableChannel,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
+    TestOpportunityBookablePaidPrepaymentOptional,
   ],
 };
