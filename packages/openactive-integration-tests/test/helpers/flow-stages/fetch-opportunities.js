@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const config = require('config');
-// const { generateUuid } = require('../generate-uuid');
 const { FlowStage } = require('./flow-stage');
 const { OpportunityFeedUpdateFlowStage } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
@@ -107,30 +106,10 @@ async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
   });
 
   // ## Combine responses
-  // if (!('response' in opportunityFeedUpdateResult.result)) {
-  //   // If the above condition is true, opportunityFeedUpdateResult doesn't have
-  //   // a response, and therefore, FlowStageOutputs are interchangeable.
-  //   // Therefore, we bypass TS
-  //   return /** @type {any} */(opportunityFeedUpdateResult);
-  // }
   return {
     ...opportunityFeedUpdateResult,
     testInterfaceOpportunities,
   };
-
-  // return {
-  //   result: {
-  //     status: 'response-received',
-  //     response: {
-  //       ...opportunityFeedUpdateResult.result.response,
-  //       testInterfaceOpportunities,
-  //     },
-  //   },
-  //   state: {
-  //     ...(opportunityFeedUpdateResult.state || {}),
-  //     testInterfaceOpportunities,
-  //   },
-  // };
 }
 
 /**
@@ -169,11 +148,6 @@ class FetchOpportunitiesFlowStage extends FlowStage {
           getterFn: () => flowStage.getOutput(),
         });
       },
-      // initialState: {
-      //   uuid: uuid || generateUuid(),
-      //   sellerId: SELLER_CONFIG.primary['@id'],
-      //   orderItemCriteriaList,
-      // },
     });
   }
 }
