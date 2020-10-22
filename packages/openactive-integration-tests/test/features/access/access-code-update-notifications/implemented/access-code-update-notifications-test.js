@@ -1,30 +1,14 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
-const chai = require('chai'); // The latest version for new features than chakram includes
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const RequestHelper = require('../../../../helpers/request-helper');
 const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetMatch, C1, C2, OrderFeedUpdate, TestInterfaceAction, B, Common } = require('../../../../shared-behaviours');
-// const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
 const { expect } = chakram;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
-
-/**
- * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
- *   function because the actual response won't be available until the
- *   asynchronous before() block has completed.
- */
-function itShouldReturnOrderRequiresApprovalTrue(getChakramResponse) {
-  it('should return orderRequiresApproval: true', () => {
-    const chakramResponse = getChakramResponse();
-    expect(chakramResponse.body).to.have.property('orderRequiresApproval', true);
-  });
-}
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
