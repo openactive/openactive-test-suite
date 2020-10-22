@@ -120,7 +120,7 @@ function successTests(expectedPrepayment) {
 /**
  * @param {"https://openactive.io/Required"|"https://openactive.io/Optional"|"https://openactive.io/Unavailable"} expectedPrepayment
  * @param {"MissingPaymentDetailsError"|"UnnecessaryPaymentDetailsError"} expectedError
- * @param {"incorrectOrderDueToMissingPaymentProperty"} bReqTemplateRef
+ * @param {"incorrectOrderDueToMissingPaymentProperty"|"incorrectOrderDueToUnnecessaryPaymentProperty"} bReqTemplateRef
  */
 function errorTests(expectedPrepayment, expectedError, bReqTemplateRef = null) {
   if (bReqTemplateRef == null) {

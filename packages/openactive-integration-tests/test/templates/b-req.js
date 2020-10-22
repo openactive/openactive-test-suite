@@ -207,7 +207,7 @@ function createIncorrectOrderDueToMissingPaymentProperty(data) {
  * @param {BReqTemplateData} data
  */
 function createIncorrectOrderDueToUnnecessaryPaymentProperty(data) {
-  const req = createStandardPaidBReq(data);
+  return createStandardPaidBReq(data);
 }
 
 /**
