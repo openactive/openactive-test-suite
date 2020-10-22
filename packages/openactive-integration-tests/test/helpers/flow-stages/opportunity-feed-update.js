@@ -49,10 +49,10 @@ const OpportunityFeedUpdateFlowStage = {
    * @param {ChakramResponse[]} args.testInterfaceOpportunities
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {RequestHelperType} args.requestHelper
-   * @returns {Promise<import('./flow-stage').FlowStageOutput<{
+   * @returns {Promise<{
    *   opportunityFeedExtractResponses: ChakramResponse[],
    *   orderItems: OrderItem[]
-   * }>>}
+   * }>}
    */
   async run({ testInterfaceOpportunities, orderItemCriteriaList, requestHelper }) {
     /**
@@ -104,17 +104,8 @@ const OpportunityFeedUpdateFlowStage = {
     });
 
     return {
-      result: {
-        status: 'response-received',
-        response: {
-          opportunityFeedExtractResponses,
-          orderItems,
-        },
-      },
-      state: {
-        opportunityFeedExtractResponses,
-        orderItems,
-      },
+      opportunityFeedExtractResponses,
+      orderItems,
     };
   },
 

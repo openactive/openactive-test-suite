@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const config = require('config');
-const { generateUuid } = require('../generate-uuid');
 const { FlowStage } = require('./flow-stage');
 const { OpportunityFeedUpdateFlowStage } = require('./opportunity-feed-update');
+const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -10,14 +10,12 @@ const { OpportunityFeedUpdateFlowStage } = require('./opportunity-feed-update');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 
 /**
- * @typedef {{
- *   testInterfaceOpportunities: ChakramResponse[],
- *   opportunityFeedExtractResponses: ChakramResponse[],
- *   orderItems: OrderItem[],
- * }} FetchOpportunitiesResponse
+ * @typedef {{}} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'testInterfaceOpportunities' | 'opportunityFeedExtractResponses' | 'orderItems'>>} Output
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
@@ -85,13 +83,45 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
 }
 
 /**
+ * For each of the Opportunity Criteria, fetch an opportunity that matches
+ * the criteria from the [test interface](https://openactive.io/test-interface/).
+ *
+ * @param {object} args
+ * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+ * @param {RequestHelperType} args.requestHelper
+ * @returns {Promise<Output>}
+  */
+async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
+  // ## Get Test Interface Opportunities
+  const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper });
+
+  // ## Get full Opportunity data for each
+  //
+  // Now that we have references to some opportunities that have been found or
+  // created and match our criteria, let's get the full opportunities
+  const opportunityFeedUpdateResult = await OpportunityFeedUpdateFlowStage.run({
+    testInterfaceOpportunities,
+    orderItemCriteriaList,
+    requestHelper,
+  });
+
+  // ## Combine responses
+  return {
+    ...opportunityFeedUpdateResult,
+    testInterfaceOpportunities,
+  };
+}
+
+/**
  * Generally the first FlowStage which is run in a test.
  * It gets/creates some opportunities from the BookingSystem's opportunity feed.
  * These opportunities will then be used by subsequent stages.
  * It makes use of the OpportunityFeedUpdate FlowStage as both stages fetch opportunities
  * from the opportunities feed.
+ *
+ * @extends {FlowStage<Input, Output>}
  */
-const FetchOpportunitiesFlowStage = {
+class FetchOpportunitiesFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
@@ -100,78 +130,29 @@ const FetchOpportunitiesFlowStage = {
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
-  create({ orderItemCriteriaList, uuid, requestHelper, logger }) {
-    return new FlowStage({
+  constructor({ orderItemCriteriaList, requestHelper, logger }) {
+    super({
       testName: 'Fetch Opportunities',
-      runFn: async () => await FetchOpportunitiesFlowStage.run({ orderItemCriteriaList, requestHelper }),
+      getInput: FlowStageUtils.emptyGetInput,
+      runFn: async () => await runFetchOpportunities({ orderItemCriteriaList, requestHelper }),
       itSuccessChecksFn(flowStage) {
         OpportunityFeedUpdateFlowStage.itSuccessChecks({
           orderItemCriteriaList,
-          getterFn: () => flowStage.getResponse(),
+          getterFn: () => flowStage.getOutput(),
         });
       },
       itValidationTestsFn(flowStage) {
         OpportunityFeedUpdateFlowStage.itValidationTests({
           logger,
           orderItemCriteriaList,
-          getterFn: () => flowStage.getResponse(),
+          getterFn: () => flowStage.getOutput(),
         });
       },
-      initialState: {
-        uuid: uuid || generateUuid(),
-        sellerId: SELLER_CONFIG.primary['@id'],
-        orderItemCriteriaList,
-      },
     });
-  },
-
-  /**
-   * For each of the Opportunity Criteria, fetch an opportunity that matches
-   * the criteria from the [test interface](https://openactive.io/test-interface/).
-   *
-   * @param {object} args
-   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
-   * @param {RequestHelperType} args.requestHelper
-   * @returns {Promise<import('./flow-stage').FlowStageOutput<FetchOpportunitiesResponse>>}
-    */
-  async run({ orderItemCriteriaList, requestHelper }) {
-    // ## Get Test Interface Opportunities
-    const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper });
-
-    // ## Get full Opportunity data for each
-    //
-    // Now that we have references to some opportunities that have been found or
-    // created and match our criteria, let's get the full opportunities
-    const opportunityFeedUpdateResult = await OpportunityFeedUpdateFlowStage.run({
-      testInterfaceOpportunities,
-      orderItemCriteriaList,
-      requestHelper,
-    });
-
-    // ## Combine responses
-    if (!('response' in opportunityFeedUpdateResult.result)) {
-      // If the above condition is true, opportunityFeedUpdateResult doesn't have
-      // a response, and therefore, FlowStageOutputs are interchangeable.
-      // Therefore, we bypass TS
-      return /** @type {any} */(opportunityFeedUpdateResult);
-    }
-
-    return {
-      result: {
-        status: 'response-received',
-        response: {
-          ...opportunityFeedUpdateResult.result.response,
-          testInterfaceOpportunities,
-        },
-      },
-      state: {
-        ...(opportunityFeedUpdateResult.state || {}),
-        testInterfaceOpportunities,
-      },
-    };
-  },
-};
+  }
+}
 
 module.exports = {
   FetchOpportunitiesFlowStage,
+  runFetchOpportunities,
 };

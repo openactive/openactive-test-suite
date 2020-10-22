@@ -4,6 +4,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 
 /**
@@ -12,9 +13,29 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   objectType: 'OrderProposal',
  *   objectId: string,
  * }} ActionSpec
+ *
+ * @typedef {{}} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse'>>} Output
  */
 
-const TestInterfaceActionFlowStage = {
+/**
+ * @param {object} args
+ * @param {ActionSpec} args.action
+ * @param {RequestHelperType} args.requestHelper
+ * @returns {Promise<Output>}
+ */
+async function runTestInterfaceAction({ action, requestHelper }) {
+  const response = await requestHelper.callTestInterfaceAction({ action });
+
+  return {
+    httpResponse: response,
+  };
+}
+
+/**
+ * @extends {FlowStage<Input, Output>}
+ */
+class TestInterfaceActionFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {string} args.testName
@@ -23,36 +44,20 @@ const TestInterfaceActionFlowStage = {
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    */
-  create({ testName, createActionFn, prerequisite, requestHelper }) {
-    return new FlowStage({
+  constructor({ testName, createActionFn, prerequisite, requestHelper }) {
+    super({
       prerequisite,
+      getInput: FlowStageUtils.emptyGetInput,
       testName,
       async runFn() {
         const action = createActionFn();
-        return await TestInterfaceActionFlowStage.run({ action, requestHelper });
+        return await runTestInterfaceAction({ action, requestHelper });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttpXXXSuccessChecks(204),
       itValidationTestsFn() { /* there are no validation tests - the response is empty */ },
     });
-  },
-
-  /**
-   * @param {object} args
-   * @param {ActionSpec} args.action
-   * @param {RequestHelperType} args.requestHelper
-   * @returns {Promise<import('./flow-stage').FlowStageOutput<ChakramResponse>>}
-   */
-  async run({ action, requestHelper }) {
-    const response = await requestHelper.callTestInterfaceAction({ action });
-
-    return {
-      result: {
-        response,
-        status: 'response-received',
-      },
-    };
-  },
-};
+  }
+}
 
 module.exports = {
   TestInterfaceActionFlowStage,
