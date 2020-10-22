@@ -105,14 +105,13 @@ const FlowStageUtils = {
    * 3. Optionally runs extra tests.
    *
    * @param {UnknownFlowStageType} flowStage
-   * @param {object} options
-   * @param {() => void} [options.itAdditionalTests] Additiona tests which will
+   * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndCheckIsSuccessfulAndValid(flowStage, options = {}) {
+  describeRunAndCheckIsSuccessfulAndValid(flowStage, itAdditionalTests) {
     if (!flowStage.shouldDescribeFlowStage) {
       throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStage.getLoggableStageName()} as shouldDescribeFlowStage is false`);
     }
@@ -122,8 +121,8 @@ const FlowStageUtils = {
         .itSuccessChecks()
         .itValidationTests();
 
-      if (options.itAdditionalTests) {
-        options.itAdditionalTests();
+      if (itAdditionalTests) {
+        itAdditionalTests();
       }
     });
   },

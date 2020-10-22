@@ -103,38 +103,30 @@ FeatureHelper.describeFeature(module, {
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, {
-    itAdditionalTests() {
-      itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
-    },
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
-    itAdditionalTests() {
-      itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
-    },
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
-    itAdditionalTests() {
-      // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
-      it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-        const { uuid } = defaultFlowStageParams;
-        expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
-          .which.matches(RegExp(`${uuid}/versions/.+`));
-      });
-      // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
-      // TODO does validator check that full Seller details are included in the seller response?
-    },
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
+    // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+    it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
+      const { uuid } = defaultFlowStageParams;
+      expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
+        .which.matches(RegExp(`${uuid}/versions/.+`));
+    });
+    // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
+    // TODO does validator check that full Seller details are included in the seller response?
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, {
-    itAdditionalTests() {
-      it('should have orderProposalStatus: SellerAccepted', () => {
-        expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
-      });
-      it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-        expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalVersion', p.getOutput().orderProposalVersion);
-      });
-    },
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+    it('should have orderProposalStatus: SellerAccepted', () => {
+      expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
+    });
+    it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
+      expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalVersion', p.getOutput().orderProposalVersion);
+    });
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });
