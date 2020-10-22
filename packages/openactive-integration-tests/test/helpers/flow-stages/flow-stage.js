@@ -1,4 +1,3 @@
-// const { get, isNil, memoize } = require('lodash');
 const pMemoize = require('p-memoize');
 
 /**
@@ -58,21 +57,7 @@ const pMemoize = require('p-memoize');
  *   output: TOutput,
  * }} FlowStageState
  */
-// /**
-//  * @template TOutput
-//  * @typedef {{
-//  *   result: FlowStageResult<TFlowStageResponse>,
-//  *   state?: FlowStageState,
-//  * }} FlowStageOutput
-//  */
 
-//  * @template TInputState
-//  * @param {TInputState} [args.inputState]
-//  * @param {(flowStage: FlowStage<TFlowStageResponse>) => Promise<FlowStageOutput<TFlowStageResponse>>} args.runFn
-//  * @param {FlowStageOutput<TFlowStageResponse>['state']} [args.initialState] Set some initial
-//  *   values for state e.g. use a pre-determined UUID.
-//  * @param {(getOutput: () => TOutput) => void} args.itSuccessChecksFn
-//  * @param {(getOutput: () => TOutput) => void} args.itValidationTestsFn
 /**
  * A "stage" of a particular booking flow. For example, a flow might have
  * a stage for each of the following:
@@ -107,11 +92,9 @@ class FlowStage {
     this.shouldDescribeFlowStage = shouldDescribeFlowStage;
     this._prerequisite = prerequisite;
     this._getInput = getInput;
-    // this._inputState = inputState || f(this._prerequisite.getOutput());
     this._runFn = runFn;
     this._itSuccessChecksFn = itSuccessChecksFn;
     this._itValidationTestsFn = itValidationTestsFn;
-    // this._initialState = initialState || {};
     /** @type {FlowStageState<TOutput>} */
     this._state = {
       status: 'no-response-yet',
@@ -158,16 +141,6 @@ class FlowStage {
     }
     return this._state.output;
   }
-
-  // /**
-  //  * Note: This will throw an error if there is no response yet.
-  //  */
-  // getResponse() {
-  //   if (!('response' in this._state.result)) {
-  //     throw new Error(`${this.getLoggableStageName()}.getResponse() called but there is no response. FlowStage result: ${this._getLoggableResultSummaryForErrorLog()}`);
-  //   }
-  //   return this._state.result.response;
-  // }
 
   /**
    * Run this FlowStage. The result can then be retrieved using `getResponse()`
@@ -238,92 +211,6 @@ class FlowStage {
     this._itValidationTestsFn(this);
     return this;
   }
-
-  // /**
-  //  * Get the combined state from all prerequisite stages.
-  //  *
-  //  * This is memoized so that the merge only needs to be computed once.
-  //  *
-  //  * Therefore, this function throws if the prerequisite stages have not
-  //  * actually been run. Rationale:
-  //  *
-  //  * - Asking for the prerequisite state before these stages have been run implies
-  //  *   that something has gone wrong in setting up the tests to run one after the
-  //  *   other.
-  //  * - Since this function is memoized, we only want to cache when there is a useful
-  //  *   result to cache.
-  //  *
-  //  * @type {() => FlowStageState}
-  //  */
-  // getPrerequisiteCombinedState = memoize(() => {
-  //   const initialState = this._initialState || {};
-  //   if (this._prerequisite) {
-  //     return {
-  //       ...this._prerequisite.getCombinedStateAfterRun(),
-  //       ...initialState,
-  //     };
-  //   }
-  //   return initialState;
-  // })
-
-  // /**
-  //  * Get the combined state from all prerequisite stages.
-  //  * Assert if this state is missing any of the fields that it is expected to have.
-  //  *
-  //  * @param {(keyof FlowStageState)[]} expectedFields Fields of the prerequisite
-  //  *   combined state that must have values.
-  //  */
-  // getPrerequisiteCombinedStateAssertFields(expectedFields) {
-  //   const prerequisiteCombinedState = this.getPrerequisiteCombinedState();
-  //   for (const expectedField of expectedFields) {
-  //     if (isNil(prerequisiteCombinedState[expectedField])) {
-  //       throw new Error(`${this.getLoggableStageName()}.getPrerequisiteCombinedStateAssertFields(): Expected "${expectedField}" to be in prerequisiteCombinedState, but it was not. prerequisiteCombinedState fields: ${JSON.stringify(Object.keys(prerequisiteCombinedState))}`);
-  //     }
-  //   }
-  //   return prerequisiteCombinedState;
-  // }
-
-  // /**
-  //  * Get totalPaymentDue from getPrerequisiteCombinedState().bookingSystemOrder.
-  //  *
-  //  * Throws if totalPaymentDue is not present.
-  //  *
-  //  * @returns {number}
-  //  */
-  // getAndAssertTotalPaymentDueFromPrerequisiteCombinedState() {
-  //   const { bookingSystemOrder } = this.getPrerequisiteCombinedStateAssertFields(['bookingSystemOrder']);
-  //   const totalPaymentDue = get(bookingSystemOrder, ['body', 'totalPaymentDue', 'price']);
-  //   if (isNil(totalPaymentDue)) {
-  //     throw new Error(`${this.getLoggableStageName()}.getAndAssertTotalPaymentDueFromPrerequisiteCombinedState(): Expected bookingSystemOrder to have a totalPaymentDue.price but it does not`);
-  //   }
-  //   return totalPaymentDue;
-  // }
-
-  // /**
-  //  * Get the combined state from this stage and all prerequisite stages.
-  //  *
-  //  * This is memoized so that the merge only needs to be computed once.
-  //  *
-  //  * Therefore, this function throws if this stage or prerequisite stages have
-  //  * not been run. Rationale:
-  //  *
-  //  * - Asking for the "afterRun" state before this stages has been run implies
-  //  *   that something has gone wrong in setting up the tests to run one after the
-  //  *   other.
-  //  * - Since this function is memoized, we only want to cache when there is a useful
-  //  *   result to cache.
-  //  *
-  //  * @type {() => FlowStageState}
-  //  */
-  // getCombinedStateAfterRun = memoize((() => {
-  //   if (this._state.result.status !== 'response-received') {
-  //     throw new Error(`${this.getLoggableStageName()}.getCombinedStateAfterRun() called but this stage has not received a response. FlowStage result: ${this._getLoggableStateSummaryForErrorLog()}`);
-  //   }
-  //   return {
-  //     ...this.getPrerequisiteCombinedState(),
-  //     ...this._state.state || {},
-  //   };
-  // }))
 }
 
 /**
