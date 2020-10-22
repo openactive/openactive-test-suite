@@ -103,6 +103,12 @@ function createNonPaymentRelatedCoreBReq(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      // Currently adding it here as I couldn't extend createStandardFreeOrPaidBReq
+      accessPass: [{
+        '@type': 'Barcode',
+        url: 'https://urlFromBroker.com',
+        text: '0123456789', // Not parsed correctly on backend.
+      }],
     })),
   };
 }
@@ -220,6 +226,23 @@ function createBReqWithoutCustomer(data) {
   return dissocPath(['customer'], req);
 }
 
+// /**
+//  * @param {BReqTemplateData} data
+//  */
+// function createBReqWithBarcodeAccessCode(data) {
+//   data.orderProposalVersion = null;
+//   const req = createStandardFreeOrPaidBReq(data);
+//   req.orderedItem = req.orderedItem.map(orderItem => ({
+//     ...orderItem,
+//     accessPass: [{
+//       '@type': 'Barcode',
+//       'url': 'https://urlFromBroker.com',
+//       'text': '0123456789'
+//     }]
+//   }));
+//   return req;
+// }
+
 /**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
@@ -234,6 +257,7 @@ const bReqTemplates = {
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
+  // withBarcodeAccessCode: createBReqWithBarcodeAccessCode
 };
 
 /**
