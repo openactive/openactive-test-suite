@@ -27,6 +27,8 @@ const pMemoize = require('p-memoize');
  *   System. Could contain the response from C1, C2, B, etc.
  * @property {number | null | undefined} [totalPaymentDue] Optional as a Booking System
  *   response may not include totalPaymentDue if there was an error.
+ * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
+ *   System response may not include totalPaymentDue if there was an error.
  * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
  *   Order Feed updates.
  *
