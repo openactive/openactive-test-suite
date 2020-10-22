@@ -36,7 +36,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'getOrderFromOrderFeedPromise'>>} ListenerOutput
  *
  * @typedef {ListenerOutput} CollectorInput
- * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'bookingSystemOrder' | 'totalPaymentDue' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
  */
 
 /**
@@ -66,7 +66,6 @@ async function runOrderFeedCollector({ getOrderFromOrderFeedPromise }) {
   const bookingSystemOrder = response.body && response.body.data;
   return {
     httpResponse: response,
-    bookingSystemOrder,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
     orderProposalVersion: getOrderProposalVersion(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),

@@ -22,9 +22,6 @@ const pMemoize = require('p-memoize');
  *   endpoint.
  * @property {ChakramResponse[]} [opportunityFeedExtractResponses]
  * @property {OrderItem[]} [orderItems]
- * @property {unknown} [bookingSystemOrder] Order as found in the Booking
- *   System. Could contain the response from C1, C2, B, etc.
- *   TODO TODO TODO is this field actually being used anywhere?
  * @property {string | null | undefined} [orderId] ID of the Order within the Booking
  *   System.
  *   Optional as a Booking System response may not include ID if there was an error.

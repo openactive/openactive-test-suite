@@ -13,7 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
- * @typedef {Required<Pick<FlowStageOutput, 'bookingSystemOrder' | 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
  */
 
 /**
@@ -34,7 +34,6 @@ async function runC1({ templateRef, uuid, sellerId, orderItems, requestHelper })
   const bookingSystemOrder = response.body;
 
   return {
-    bookingSystemOrder,
     httpResponse: response,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),
