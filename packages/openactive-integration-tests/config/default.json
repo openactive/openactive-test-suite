@@ -59,7 +59,7 @@
     "customer-notice-notifications": null,
     "change-of-logistics-notifications": null,
     "opportunity-attendance-updates": null,
-    "access-code-update-notifications": null,
+    "access-code-update-notifications": true,
     "access-pass-update-notifications": null,
     "terms-of-service": null,
     "terms-of-service-with-consent": null,
