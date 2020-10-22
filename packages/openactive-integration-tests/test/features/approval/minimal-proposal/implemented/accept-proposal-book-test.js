@@ -222,18 +222,14 @@ FeatureHelper.describeFeature(module, {
     getInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
     }),
-    // getInput: new InputBuilder(fetchOpportunities, 'orderItems'),
-    // getInput: FlowStageUtils.getInputStateFromStages([
-    //   [fetchOpportunities, 'orderItems'],
-    // ]),
   });
-  // const c2 = C2FlowStage.create({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: c1,
-  //   getInput: FlowStageUtils.getInputStateFromStages([
-  //     [fetchOpportunities, 'orderItems'],
-  //   ]),
-  // });
+  const c2 = new C2FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c1,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
+  });
   // const p = PFlowStage.create({
   //   ...defaultFlowStageParams,
   //   prerequisite: c2,
@@ -455,11 +451,11 @@ FeatureHelper.describeFeature(module, {
       itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
     },
   });
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
-  //   itExtraTests() {
-  //     itShouldReturnOrderRequiresApprovalTrue(() => c2.getResponse());
-  //   },
-  // });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, {
+    itAdditionalTests() {
+      itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
+    },
+  });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, {
   //   itExtraTests() {
   //     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?

@@ -180,4 +180,5 @@ class FetchOpportunitiesFlowStage extends FlowStage {
 
 module.exports = {
   FetchOpportunitiesFlowStage,
+  runFetchOpportunities,
 };
