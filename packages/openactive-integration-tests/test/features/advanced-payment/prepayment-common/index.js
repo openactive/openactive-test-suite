@@ -90,6 +90,7 @@ function successTests(expectedPrepayment) {
 }
 
 module.exports = {
+  itShouldHavePrepayment,
   multipleOpportunityCriteriaTemplate,
   successTests,
 };
