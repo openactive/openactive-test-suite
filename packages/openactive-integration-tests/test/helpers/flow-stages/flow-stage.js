@@ -197,7 +197,6 @@ class FlowStage {
    * Creates it() blocks.
    */
   itSuccessChecks() {
-    // this._itSuccessChecksFn(this);
     this._itSuccessChecksFn(this);
     return this;
   }
