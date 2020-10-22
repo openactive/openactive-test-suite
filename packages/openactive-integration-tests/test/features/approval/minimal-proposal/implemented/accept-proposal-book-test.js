@@ -1,14 +1,16 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FetchOpportunitiesFlowStage } = require('../../../../helpers/flow-stages/fetch-opportunities');
-const { C1FlowStage } = require('../../../../helpers/flow-stages/c1');
-const { C2FlowStage } = require('../../../../helpers/flow-stages/c2');
-const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
+const {
+  FetchOpportunitiesFlowStage,
+  C1FlowStage,
+  C2FlowStage,
+  FlowStageUtils,
+  PFlowStage,
+  TestInterfaceActionFlowStage,
+  OrderFeedUpdateFlowStageUtils,
+  BFlowStage,
+} = require('../../../../helpers/flow-stages');
 const RequestHelper = require('../../../../helpers/request-helper');
-const { PFlowStage } = require('../../../../helpers/flow-stages/p');
-const { TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages/test-interface-action');
-const { OrderFeedUpdateFlowStageUtils } = require('../../../../helpers/flow-stages/order-feed-update');
-const { BFlowStage } = require('../../../../helpers/flow-stages/b');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
