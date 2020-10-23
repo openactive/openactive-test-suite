@@ -316,6 +316,27 @@ function createBReqWithBusinessCustomer(data) {
       addressCountry: 'GB',
     },
   };
+}
+
+function createNoAccountId(data) {
+  let req = createStandardPaidBReq(data);
+  return dissocPath(['payment', 'accountId'], req);
+}
+
+function createNoPaymentProviderId(data) {
+  let req = createStandardPaidBReq(data);
+  return dissocPath(['payment', 'paymentProviderId'], req);
+}
+
+function createInvalidAccountId(data) {
+  let req = createStandardPaidBReq(data);
+  req.payment.accountId = 'some rubbish';
+  return req;
+}
+
+function createInvalidPaymentProviderId(data) {
+  let req = createStandardPaidBReq(data);
+  req.payment.paymentProviderId = 'some rubbish';
   return req;
 }
 
@@ -384,6 +405,10 @@ const bReqTemplates = {
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
   businessCustomer: createBReqWithBusinessCustomer,
+  noAccountId: createNoAccountId,
+  noPaymentProviderId: createNoPaymentProviderId,
+  invalidAccountId: createInvalidAccountId,
+  invalidPaymentProviderId: createInvalidPaymentProviderId,
 };
 
 /**
