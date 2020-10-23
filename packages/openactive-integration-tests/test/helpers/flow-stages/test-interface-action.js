@@ -8,9 +8,21 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 /**
+ * @typedef {'test:AccessCodeUpdateSimulateAction'
+ *   | 'test:AccessPassUpdateSimulateAction'
+ *   | 'test:ChangeOfLogisticsSimulateAction'
+ *   | 'test:CustomerNoticeSimulateAction'
+ *   | 'test:OpportunityAttendanceUpdateSimulateAction'
+ *   | 'test:ReplacementSimulateAction'
+ *   | 'test:SellerAcceptOrderProposalSimulateAction'
+ *   | 'test:SellerRejectOrderProposalSimulateAction'
+ *   | 'test:SellerRequestedCancellationSimulateAction'
+ *   | 'test:SellerRequestedCancellationWithMessageSimulateAction'
+ * } TestInterfaceActionType Taken from https://openactive.io/test-interface/#classes
+ *
  * @typedef {{
- *   type: 'test:ReplacementSimulateAction' | 'test:SellerAcceptOrderProposalSimulateAction' | 'test:SellerRejectOrderProposalSimulateAction',
- *   objectType: 'OrderProposal',
+ *   type: TestInterfaceActionType,
+ *   objectType: 'Order' | 'OrderProposal',
  *   objectId: string,
  * }} ActionSpec
  *
