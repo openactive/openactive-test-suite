@@ -1,14 +1,14 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const RequestHelper = require('../../../../helpers/request-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
-const { GetMatch, C1, C2, OrderFeedUpdate, TestInterfaceAction, B, Common } = require('../../../../shared-behaviours');
-const { expect } = chakram;
-
-/**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
- */
+const {
+  FetchOpportunitiesFlowStage,
+  C1FlowStage,
+  C2FlowStage,
+  FlowStageUtils,
+  TestInterfaceActionFlowStage,
+  OrderFeedUpdateFlowStageUtils,
+  BFlowStage,
+} = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -22,8 +22,76 @@ FeatureHelper.describeFeature(module, {
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  this.requestHelper = new RequestHelper(logger);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, state, flow) => {
+  const requestHelper = new RequestHelper(logger);
+
+  // ## Initiate Flow Stages
+  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
+  });
+  const c1 = new C1FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: fetchOpportunities,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
+  });
+  const c2 = new C2FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c1,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
+  });
+  const b = new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c2,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+    }),
+  });
+  const [simulateSellerCancellation, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+      ...defaultFlowStageParams,
+      testName: 'Simulate Access Code Update (Test Interface Action)',
+      prerequisite,
+      createActionFn: () => ({
+        type: 'test:AccessCodeUpdateSimulateAction',
+        objectType: 'Order',
+        objectId: b.getOutput().orderId,
+      }),
+    })),
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: b,
+      testName: 'Orders Feed (after Simulate Access Code Update)',
+    },
+  });
+  // TODO TODO TODO finish
+
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+    it('should have orderItemStatus: SellerCancelled', () => {
+      const orderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
+      // As we'll be setting out expectations in an iteration, this test would
+      // give a false positive if there were no items in `orderedItem`, so we
+      // explicitly test that the OrderItems are present.
+      expect(orderItems).to.be.an('array').with.lengthOf(fetchOpportunities.getOutput().orderItems.length);
+      for (const orderItem of orderItems) {
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
+        expect(orderItem).to.have.property('cancellationMessage').which.is.a('string');
+      }
+    });
+  });
+
   beforeAll(async () => {
     await state.fetchOpportunities(orderItemCriteria);
   });
