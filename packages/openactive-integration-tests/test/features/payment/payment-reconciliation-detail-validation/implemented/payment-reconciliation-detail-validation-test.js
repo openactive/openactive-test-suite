@@ -1,9 +1,23 @@
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
+
+/**
+ * @param {() => ChakramResponse} responseAccessor This is wrapped in a
+ *   function because the actual response won't be available until the
+ *   asynchronous before() block has completed.
+ */
+function itShouldReturnCorrectReconciliationDetails(responseAccessor) {
+  it('should return correct reconciliation details', () => {
+    const { payment } = responseAccessor().body;
+    expect(payment.accountId).to.equal('SN1593');
+    expect(payment.paymentProviderId).to.equal('STRIPE');
+  });
+}
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
@@ -12,8 +26,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'payment-reconciliation-detail-validation',
   testName: 'Payment reconciliation detail validation',
   testDescription: 'C1, C2 and B including globally configured accountId, paymentProviderId and name should succeed',
-  // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
@@ -56,4 +69,6 @@ FeatureHelper.describeFeature(module, {
       .successChecks()
       .validationTests();
   });
+
+  itShouldReturnCorrectReconciliationDetails(() => state.bResponse);
 });
