@@ -1,4 +1,5 @@
 const { dissocPath } = require('ramda');
+const { createPaymentPart } = require('./common');
 
 /**
  * @typedef {{
@@ -58,6 +59,7 @@ function createStandardC1Req(data) {
         '@id': `${orderItem.orderedItem['@id']}`,
       },
     })),
+    payment: createPaymentPart(false),
   };
 }
 

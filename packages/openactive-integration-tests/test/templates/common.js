@@ -2,8 +2,11 @@ const config = require('config');
 
 const PAYMENT_RECONCEILIATION_DETAILS = config.get('sellers').primary.paymentReconciliationDetails;
 
-function createPaymentPart() {
-  const payment = { '@type': 'Payment', identifier: '1234567890npduy2f' }; // ToDo: make identifier random
+function createPaymentPart(includeIdentifier = true) {
+  const payment = { '@type': 'Payment' };
+  if (includeIdentifier) {
+    payment.identifier = '1234567890npduy2f';
+  }
 
   if (!PAYMENT_RECONCEILIATION_DETAILS) {
     return payment;
