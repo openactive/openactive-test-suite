@@ -1,5 +1,11 @@
 /**
  * @typedef {{
+ *   '@type': 'ImageObject' | 'Barcode',
+ *   url?: string,
+ *   text?: string,
+ * }} AccessPassItem
+ *
+ * @typedef {{
  *   sellerId: string,
  *   orderItems: {
  *     position: number,
@@ -13,6 +19,7 @@
  *   }[],
  *   totalPaymentDue: number,
  *   orderProposalVersion: string | null,
+ *   accessPass?: AccessPassItem[],
  * }} BReqTemplateData
  */
 
@@ -92,24 +99,24 @@ function createNonPaymentRelatedCoreBReq(data) {
       familyName: 'CapesB',
       identifier: 'CustomerIdentifierB',
     },
-    orderedItem: data.orderItems.map(orderItem => ({
-      '@type': 'OrderItem',
-      position: orderItem.position,
-      acceptedOffer: {
-        '@type': 'Offer',
-        '@id': `${orderItem.acceptedOffer['@id']}`,
-      },
-      orderedItem: {
-        '@type': `${orderItem.orderedItem['@type']}`,
-        '@id': `${orderItem.orderedItem['@id']}`,
-      },
-      // Currently adding it here as I couldn't extend createStandardFreeOrPaidBReq
-      accessPass: [{
-        '@type': 'Barcode',
-        url: 'https://urlfrombroker.com/',
-        text: '0123456789', // Not parsed correctly on backend.
-      }],
-    })),
+    orderedItem: data.orderItems.map((orderItem) => {
+      const result = {
+        '@type': 'OrderItem',
+        position: orderItem.position,
+        acceptedOffer: {
+          '@type': 'Offer',
+          '@id': `${orderItem.acceptedOffer['@id']}`,
+        },
+        orderedItem: {
+          '@type': `${orderItem.orderedItem['@type']}`,
+          '@id': `${orderItem.orderedItem['@id']}`,
+        },
+      };
+      if (data.accessPass) {
+        result.accessPass = data.accessPass;
+      }
+      return result;
+    }),
   };
 }
 

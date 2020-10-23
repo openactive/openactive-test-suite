@@ -1,14 +1,11 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const chai = require('chai');
-chai.use(require('chai-arrays'));
+const { expect } = require('chai');
+// chai.use(require('chai-arrays'));
 
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
+// const { RequestState } = require('../../../../helpers/request-state');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-
-/* eslint-enable no-unused-vars */
+// const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const RequestHelper = require('../../../../helpers/request-helper');
+const { FlowStageUtils, FetchOpportunitiesFlowStage, C1FlowStage, C2FlowStage, BFlowStage } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -22,77 +19,60 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  // TODO: create B requeust with access pass, so that we don't include access pass in rest of the B requests.
-  // const state = new RequestState(logger, { bReqTemplateRef: 'withBarcodeAccessCode' });
-  // const flow = new FlowHelper(state);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+  const requestHelper = new RequestHelper(logger);
 
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
+  /** @type {import('../../../../templates/b-req').AccessPassItem[]} */
+  const accessPass = [{
+    '@type': 'Barcode',
+    url: 'https://fallback.image.example.com/476ac24c694da79c5e33731ebbb5f1',
+    text: '0123456789',
+  }];
 
-    return chakram.wait();
+  // ## Initiate Flow Stages
+  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
+  });
+  const c1 = new C1FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: fetchOpportunities,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
+  });
+  const c2 = new C2FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c1,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
+  });
+  const b = new BFlowStage({
+    ...defaultFlowStageParams,
+    accessPass,
+    prerequisite: c2,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+    }),
   });
 
-  afterAll(async function () {
-    await state.deleteOrder();
-    return chakram.wait();
-  });
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+    it('should include the Barcode accessPass, with url and text, that was sent by the broker', () => {
+      const orderItems = b.getOutput().httpResponse.body.orderedItem;
+      expect(orderItems).to.be.an('array')
+        .that.has.lengthOf.above(0)
+        .and.has.lengthOf(orderItemCriteriaList.length);
 
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', function () {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C2', function () {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('B', function () {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    // TODO: refactor to check every element.
-    it('Response should include Barcode accessPass with url and text sent by the broker', () => {
-      // @ts-expect-error chai-arrays doesn't have a types package
-      chai.expect(state.bResponse.body.orderedItem).to.be.array();
-
-      state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
-        // @ts-expect-error chai-arrays doesn't have a types package
-        chai.expect(orderItem.accessPass).to.be.array();
-
-        orderItem.accessPass.forEach((accessPass, accessPassIndex) => {
-          // Both Image and Barcode contain url, but Barcode contains 2 more field.
-          chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].url`).that.is.a('string');
-
-          if (accessPass['@type'] === 'Barcode') {
-            chai.expect(accessPass.url).to.equal('https://urlfrombroker.com/');
-            // Currently unable to pass text field in request, so for now just checking url.
-            // chai.expect(state.bResponse.body.orderedItem[orderItemIndex].accessPass[accessPassIndex].text).to.equal('0123456789');
-          }
-        });
-      });
+      for (const orderItem of orderItems) {
+        expect(orderItem.accessPass).to.deep.equal(accessPass);
+      }
     });
   });
 });
