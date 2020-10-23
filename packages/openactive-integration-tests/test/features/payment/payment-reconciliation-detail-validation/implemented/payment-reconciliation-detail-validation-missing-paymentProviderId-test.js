@@ -1,4 +1,3 @@
-const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { invalidDetailsTest } = require('../common');
 

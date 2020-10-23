@@ -51,7 +51,7 @@ function invalidDetailsTest(bReqTemplateRef) {
         chakram.expect(state.bResponse).to.have.status(400);
       });
 
-      it(`should return an InvalidPaymentDetailsError`, () => {
+      it('should return an InvalidPaymentDetailsError', () => {
         expect(state.bResponse.body['@type']).to.equal('InvalidPaymentDetailsError');
       });
     });
@@ -59,5 +59,5 @@ function invalidDetailsTest(bReqTemplateRef) {
 }
 
 module.exports = {
-  invalidDetailsTest
+  invalidDetailsTest,
 };
