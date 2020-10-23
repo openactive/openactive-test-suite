@@ -17,15 +17,7 @@
  */
 
 const { dissocPath } = require('ramda');
-
-function createPaymentPart() {
-  return {
-    '@type': 'Payment',
-    name: 'AcmeBroker Points',
-    identifier: '1234567890npduy2f',
-    accountId: 'STRIP',
-  };
-}
+const { createPaymentPart } = require('./common');
 
 /**
  * @param {BReqTemplateData} data
