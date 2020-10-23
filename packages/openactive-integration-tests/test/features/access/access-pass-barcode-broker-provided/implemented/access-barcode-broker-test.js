@@ -1,9 +1,5 @@
 const { expect } = require('chai');
-// chai.use(require('chai-arrays'));
-
-// const { RequestState } = require('../../../../helpers/request-state');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-// const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 const RequestHelper = require('../../../../helpers/request-helper');
 const { FlowStageUtils, FetchOpportunitiesFlowStage, C1FlowStage, C2FlowStage, BFlowStage } = require('../../../../helpers/flow-stages');
 
