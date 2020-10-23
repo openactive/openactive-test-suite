@@ -212,6 +212,28 @@ function createBReqWithoutCustomer(data) {
   return dissocPath(['customer'], req);
 }
 
+function createNoAccountId(data) {
+  let req = createStandardPaidBReq(data);
+  return dissocPath(['payment', 'accountId'], req);
+}
+
+function createNoPaymentProviderId(data) {
+  let req = createStandardPaidBReq(data);
+  return dissocPath(['payment', 'paymentProviderId'], req);
+}
+
+function createInvalidAccountId(data) {
+  let req = createStandardPaidBReq(data);
+  req.payment.accountId = 'some rubbish';
+  return req;
+}
+
+function createInvalidPaymentProviderId(data) {
+  let req = createStandardPaidBReq(data);
+  req.payment.paymentProviderId = 'some rubbish';
+  return req;
+}
+
 /**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
@@ -226,6 +248,10 @@ const bReqTemplates = {
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
+  noAccountId: createNoAccountId,
+  noPaymentProviderId: createNoPaymentProviderId,
+  invalidAccountId: createInvalidAccountId,
+  invalidPaymentProviderId: createInvalidPaymentProviderId,
 };
 
 /**
