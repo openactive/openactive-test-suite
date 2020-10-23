@@ -4,6 +4,53 @@ const { FlowHelper } = require('../../../helpers/flow-helper');
 const { RequestState } = require('../../../helpers/request-state');
 const { GetMatch, C1, C2, B } = require('../../../shared-behaviours');
 
+function notImplementedTest(stateFn = null, flowFn = null) {
+  return (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
+    const state = stateFn ? stateFn(logger) : parentState;
+    const flow = flowFn ? flowFn(state) : parentFlow;
+
+    beforeAll(async () => {
+      await state.fetchOpportunities(orderItemCriteria);
+    });
+
+    describe('Get Opportunity Feed Items', () => {
+      (new GetMatch({
+        state, flow, logger, orderItemCriteria,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+
+    describe('C1', () => {
+      (new C1({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+
+    describe('C2', () => {
+      (new C2({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+
+    describe('B', () => {
+      (new B({
+        state, flow, logger,
+      }))
+        .beforeSetup()
+        .successChecks()
+        .validationTests();
+    });
+  };
+}
+
 function invalidDetailsTest(bReqTemplateRef) {
   return (configuration, orderItemCriteria, featureIsImplemented, logger) => {
     const state = new RequestState(logger, { bReqTemplateRef });
@@ -60,4 +107,5 @@ function invalidDetailsTest(bReqTemplateRef) {
 
 module.exports = {
   invalidDetailsTest,
+  notImplementedTest,
 };
