@@ -1,7 +1,16 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, P, OrderFeedUpdate, TestInterfaceAction, B } = require('../../../../shared-behaviours');
-// const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
+const {
+  FetchOpportunitiesFlowStage,
+  C1FlowStage,
+  C2FlowStage,
+  FlowStageUtils,
+  PFlowStage,
+  TestInterfaceActionFlowStage,
+  OrderFeedUpdateFlowStageUtils,
+  BFlowStage,
+} = require('../../../../helpers/flow-stages');
+const RequestHelper = require('../../../../helpers/request-helper');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -31,101 +40,93 @@ FeatureHelper.describeFeature(module, {
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const requestHelper = new RequestHelper(logger);
+
+  // ## Initiate Flow Stages
+  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
   });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  const c1 = new C1FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: fetchOpportunities,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
   });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnOrderRequiresApprovalTrue(() => state.c1Response);
+  const c2 = new C2FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c1,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
   });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnOrderRequiresApprovalTrue(() => state.c2Response);
+  const p = new PFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c2,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+    }),
   });
-
-  describe('P', () => {
-    (new P({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    // TODO does validator check that orderProposalVersion is of form {orderId}/versions/{versionUuid}
-    it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-      expect(state.pResponse.body).to.have.property('orderProposalVersion')
-        .which.matches(RegExp(`${state.uuid}/versions/.+`));
-    });
-    // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed
-    // TODO does validator check that full Seller details are included in the seller response?
-  });
-
-  describe('Simulate Seller Approval (Test Interface Action)', () => {
-    (new TestInterfaceAction({
-      flow,
-      logger,
+  const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+    // FlowStage that is getting wrapped
+    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+      ...defaultFlowStageParams,
+      testName: 'Simulate Seller Approval (Test Interface Action)',
+      prerequisite,
       createActionFn: () => ({
         type: 'test:SellerAcceptOrderProposalSimulateAction',
         objectType: 'OrderProposal',
-        objectId: state.pResponse.body['@id'],
+        objectId: p.getOutput().orderId,
       }),
-      completedFlowStage: 'P',
-    }))
-      .beforeSetup()
-      .successChecks();
+    })),
+    // Params for the Order Feed Update stages
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: p,
+      testName: 'Order Feed Update (after Simulate Seller Approval)',
+    },
+  });
+  const b = new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: orderFeedUpdate,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: p.getOutput().totalPaymentDue,
+      orderProposalVersion: p.getOutput().orderProposalVersion,
+    }),
   });
 
-  describe('Orders Feed (after P)', () => {
-    const orderFeedUpdate = (new OrderFeedUpdate({
-      state,
-      flow,
-      logger,
-      ordersFeedMode: 'orders-feed-after-p',
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
+    // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+    it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
+      const { uuid } = defaultFlowStageParams;
+      expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
+        .which.matches(RegExp(`${uuid}/versions/.+`));
+    });
+    // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
+    // TODO does validator check that full Seller details are included in the seller response?
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerApproval);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
     it('should have orderProposalStatus: SellerAccepted', () => {
-      expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
+      expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');
     });
     it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-      expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderProposalVersion', state.pResponse.body.orderProposalVersion);
+      expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property('data.orderProposalVersion', p.getOutput().orderProposalVersion);
     });
   });
-
-  describe('B', () => {
-    (new B({
-      state,
-      flow,
-      logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
 });
