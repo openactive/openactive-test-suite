@@ -50,6 +50,8 @@ FeatureHelper.describeFeature(module, {
       .beforeSetup()
       .successChecks()
       .validationTests();
+
+    itShouldReturnCorrectReconciliationDetails(() => state.c1Response);
   });
 
   describe('C2', () => {
@@ -59,6 +61,8 @@ FeatureHelper.describeFeature(module, {
       .beforeSetup()
       .successChecks()
       .validationTests();
+
+    itShouldReturnCorrectReconciliationDetails(() => state.c2Response);
   });
 
   describe('B', () => {
@@ -68,7 +72,7 @@ FeatureHelper.describeFeature(module, {
       .beforeSetup()
       .successChecks()
       .validationTests();
-  });
 
-  itShouldReturnCorrectReconciliationDetails(() => state.bResponse);
+    itShouldReturnCorrectReconciliationDetails(() => state.bResponse);
+  });
 });
