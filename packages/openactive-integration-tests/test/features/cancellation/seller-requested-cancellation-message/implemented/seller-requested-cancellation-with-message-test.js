@@ -55,7 +55,6 @@ FeatureHelper.describeFeature(module, {
     getInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
       totalPaymentDue: c2.getOutput().totalPaymentDue,
-      // orderProposalVersion: null,
     }),
   });
   const [simulateSellerCancellation, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
