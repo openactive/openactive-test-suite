@@ -76,7 +76,12 @@
         "X-OpenActive-Test-Client-Id": "test",
         "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
       },
-      "taxMode": "https://openactive.io/TaxGross"
+      "taxMode": "https://openactive.io/TaxGross",
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
+      }
     },
     "secondary": {
       "@type": "Organization",
