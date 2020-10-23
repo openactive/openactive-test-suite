@@ -223,6 +223,9 @@ class RequestHelper {
     return template;
   }
 
+  /**
+   * @param {string} uuid
+   */
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
@@ -266,13 +269,15 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {import('../templates/c1-req').C1ReqTemplateRef} c1ReqTemplateRef
+   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
+   * @param {import('../templates/c1-req').C1ReqTemplateRef | null} [maybeC1ReqTemplateRef]
    */
-  async putOrderQuoteTemplate(uuid, params, brokerRole, c1ReqTemplateRef = 'standard') {
+  async putOrderQuoteTemplate(uuid, params, brokerRole, maybeC1ReqTemplateRef) {
+    const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
 
-    if(brokerRole) {
+    if (brokerRole) {
       payload.brokerRole = brokerRole;
     }
 
@@ -292,13 +297,15 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {import('../templates/c2-req').C2ReqTemplateRef} c2ReqTemplateRef
+   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
+   * @param {import('../templates/c2-req').C2ReqTemplateRef | null} [maybeC2ReqTemplateRef]
    */
-  async putOrderQuote(uuid, params, brokerRole = null, c2ReqTemplateRef = 'standard') {
+  async putOrderQuote(uuid, params, brokerRole, maybeC2ReqTemplateRef) {
+    const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
 
-    if(brokerRole) {
+    if (brokerRole) {
       payload.brokerRole = brokerRole;
     }
 
@@ -318,13 +325,18 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {import('../templates/b-req').BReqTemplateRef} bReqTemplateRef
+   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
+   * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrder(uuid, params, brokerRole = null, bReqTemplateRef = 'standard') {
+  async putOrder(uuid, params, brokerRole, maybeBReqTemplateRef) {
+    const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
 
-    if(brokerRole) {
+    // a post-proposal B request doesn't include brokerRole (which would have been
+    // set in the P request), therefore, we only update brokerRole if is already
+    // part of the request
+    if (brokerRole && 'brokerRole' in payload) {
       payload.brokerRole = brokerRole;
     }
 
@@ -344,9 +356,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef} pReqTemplateRef
+   * @param {import('../templates/p-req').PReqTemplateRef | null} [maybePReqTemplateRef]
    */
-  async putOrderProposal(uuid, params, pReqTemplateRef = 'standard') {
+  async putOrderProposal(uuid, params, maybePReqTemplateRef) {
+    const pReqTemplateRef = maybePReqTemplateRef || 'standard';
     const templateFn = pReqTemplates[pReqTemplateRef];
     const requestBody = templateFn(params);
 
@@ -465,5 +478,9 @@ class RequestHelper {
     });
   }
 }
+
+/**
+ * @typedef {InstanceType<typeof RequestHelper>} RequestHelperType
+ */
 
 module.exports = RequestHelper;

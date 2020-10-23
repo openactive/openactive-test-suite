@@ -1,4 +1,4 @@
-{
+module.exports = {
   "extends": "airbnb-base",
   "env": {
     "node": true,
@@ -7,6 +7,11 @@
   "globals": {
     "expectAsync": true
   },
+  // This is unfortunately required in order for eslint to understand class field
+  // declarations (like we use in flow-helper and flow-stages, `run = pMemoize(..)`).
+  // This is because field declarations are not yet fully accepted into ECMAScript,
+  // though they are natively supported in Node v12.
+  "parser": "babel-eslint",
   "rules": {
     "object-curly-newline": ["error", {
         "ObjectExpression": { "multiline": true, "minProperties": 3, "consistent": true },

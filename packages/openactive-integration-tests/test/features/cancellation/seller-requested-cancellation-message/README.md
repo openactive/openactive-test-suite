@@ -29,6 +29,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [seller-requested-cancellation-with-message](./implemented/seller-requested-cancellation-with-message-test.js) | Seller cancellation with message of order request. | A successful cancellation of order by seller, Order in feed should have status SellerCancelle and cancellation message | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [seller-requested-cancellation-with-message](./implemented/seller-requested-cancellation-with-message-test.js) | Seller cancellation with message of order request. | A successful cancellation of order by seller, Order in feed should have status SellerCancelled and cancellation message | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
