@@ -257,6 +257,13 @@ function createInvalidPaymentProviderId(data) {
   return req;
 }
 
+function createInvalidReconciliationDetails(data) {
+  const req = createStandardPaidBReq(data);
+  req.payment.accountId = 'some rubbish';
+  req.payment.paymentProviderId = 'some rubbish';
+  return req;
+}
+
 /**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
@@ -276,6 +283,7 @@ const bReqTemplates = {
   noPaymentProviderId: createNoPaymentProviderId,
   invalidAccountId: createInvalidAccountId,
   invalidPaymentProviderId: createInvalidPaymentProviderId,
+  invalidReconciliationDetails: createInvalidReconciliationDetails,
 };
 
 /**

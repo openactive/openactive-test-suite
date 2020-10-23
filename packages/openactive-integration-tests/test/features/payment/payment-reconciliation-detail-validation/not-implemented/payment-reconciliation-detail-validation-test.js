@@ -1,4 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
+const { FlowHelper } = require('../../../../helpers/flow-helper');
+const { RequestState } = require('../../../../helpers/request-state');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 
 /**
@@ -15,7 +17,10 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
+(configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
+  const state = new RequestState(logger, { bReqTemplateRef: 'invalidReconciliationDetails' });
+  const flow = new FlowHelper(state);
+
   beforeAll(async () => {
     await state.fetchOpportunities(orderItemCriteria);
   });
