@@ -1,26 +1,19 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
+const {
+  FetchOpportunitiesFlowStage,
+  C1FlowStage,
+  C2FlowStage,
+  FlowStageUtils,
+  TestInterfaceActionFlowStage,
+  OrderFeedUpdateFlowStageUtils,
+  BFlowStage,
+} = require('../../../../helpers/flow-stages');
 const RequestHelper = require('../../../../helpers/request-helper');
-const { GetMatch, C1, C2, TestInterfaceAction, B } = require('../../../../shared-behaviours');
-// const { GetMatch, C1, C2, P } = require('../../../../shared-behaviours');
-const { expect } = chakram;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
-
-/**
- * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
- *   function because the actual response won't be available until the
- *   asynchronous before() block has completed.
- */
-function itShouldReturnOrderRequiresApprovalTrue(getChakramResponse) {
-  it('should return orderRequiresApproval: true', () => {
-    const chakramResponse = getChakramResponse();
-    expect(chakramResponse.body).to.have.property('orderRequiresApproval', true);
-  });
-}
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
@@ -28,84 +21,78 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'seller-requested-cancellation-with-message',
   testName: 'Seller cancellation with message of order request.',
-  testDescription: 'A successful cancellation of order by seller, Order in feed should have status SellerCancelle and cancellation message',
+  testDescription: 'A successful cancellation of order by seller, Order in feed should have status SellerCancelled and cancellation message',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
-  // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  this.requestHelper = new RequestHelper(logger);
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
-  });
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const requestHelper = new RequestHelper(logger);
 
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  // ## Initiate Flow Stages
+  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
   });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  const c1 = new C1FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: fetchOpportunities,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
   });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  const c2 = new C2FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c1,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
   });
-
-  describe('B', () => {
-    const resp = (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  const b = new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c2,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+      // orderProposalVersion: null,
+    }),
   });
-
-  describe('Simulate Seller Cancellation (Test Interface Action)', () => {
-    const response = (new TestInterfaceAction({
-      flow,
-      logger,
+  const [simulateSellerCancellation, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+      ...defaultFlowStageParams,
+      testName: 'Simulate Seller Cancellation (Test Interface Action)',
+      prerequisite,
       createActionFn: () => ({
         type: 'test:SellerRequestedCancellationWithMessageSimulateAction',
         objectType: 'Order',
-        objectId: state.bResponse.body['@id'],
+        objectId: b.getOutput().orderId,
       }),
-      completedFlowStage: 'B',
-    }))
-      .beforeSetup()
-      .successChecks();
+    })),
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: b,
+      testName: 'Orders Feed (after Simulate Seller Cancellation)',
+    },
   });
 
-  // TODO: Orders feed check
-  //   describe('Orders Feed (after U)', () => {
-  //       const orderFeedUpdate = (new OrderFeedUpdate({
-  //         state,
-  //         flow,
-  //         logger,
-  //         ordersFeedMode: 'orders-feed-after-u',
-  //       }))
-  //         .beforeSetup()
-  //         .successChecks()
-  //         .validationTests();
-
-//     it('should have orderStatus: SellerCancelled', () => {
-//       expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.orderStatus', 'https://openactive.io/SellerCancelled');
-//       expect(orderFeedUpdate.getStateResponse().body).to.have.nested.property('data.cancellationMessage', 'SellerCancelled');
-//     });
-//   });
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+    it('should have orderItemStatus: SellerCancelled', () => {
+      const orderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
+      // As we'll be setting out expectations in an iteration, this test would
+      // give a false positive if there were no items in `orderedItem`, so we
+      // explicitly test that the OrderItems are present.
+      expect(orderItems).to.be.an('array').with.lengthOf(fetchOpportunities.getOutput().orderItems.length);
+      for (const orderItem of orderItems) {
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
+        expect(orderItem).to.have.property('cancellationMessage').which.is.a('string');
+      }
+    });
+  });
 });
