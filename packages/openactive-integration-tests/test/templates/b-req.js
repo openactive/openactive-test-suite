@@ -319,23 +319,23 @@ function createBReqWithBusinessCustomer(data) {
 }
 
 function createNoAccountId(data) {
-  let req = createStandardPaidBReq(data);
+  const req = createStandardPaidBReq(data);
   return dissocPath(['payment', 'accountId'], req);
 }
 
 function createNoPaymentProviderId(data) {
-  let req = createStandardPaidBReq(data);
+  const req = createStandardPaidBReq(data);
   return dissocPath(['payment', 'paymentProviderId'], req);
 }
 
 function createInvalidAccountId(data) {
-  let req = createStandardPaidBReq(data);
+  const req = createStandardPaidBReq(data);
   req.payment.accountId = 'some rubbish';
   return req;
 }
 
 function createInvalidPaymentProviderId(data) {
-  let req = createStandardPaidBReq(data);
+  const req = createStandardPaidBReq(data);
   req.payment.paymentProviderId = 'some rubbish';
   return req;
 }
