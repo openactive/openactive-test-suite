@@ -87,7 +87,7 @@ FeatureHelper.describeFeature(module, {
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      expect(orderItems).to.be.an('array').with.lengthOf(fetchOpportunities.getOutput().orderItems.length);
+      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
       for (const orderItem of orderItems) {
         expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
         expect(orderItem).to.have.property('cancellationMessage').which.is.a('string');
