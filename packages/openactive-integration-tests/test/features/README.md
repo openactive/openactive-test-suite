@@ -81,4 +81,3 @@ The tests for these features are fully stubbed, and are not yet implemented.
 | terms | termsOfService with requiresExplicitConsent and dateModified ([terms-of-service-with-consent-with-date-modified](./terms/terms-of-service-with-consent-with-date-modified/README.md)) | [Optional](https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy) | Displaying terms of service that require consent, with a date the terms were modified |  |
 
 
-  
