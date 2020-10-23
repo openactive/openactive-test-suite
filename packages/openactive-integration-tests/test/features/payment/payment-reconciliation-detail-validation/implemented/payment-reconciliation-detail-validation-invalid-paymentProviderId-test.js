@@ -12,7 +12,6 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'payment-reconciliation-detail-validation-invalid-paymentProviderId',
   testName: 'Payment reconciliation detail validation - invalid paymentProviderId',
   testDescription: 'B should return an InvalidPaymentDetailsError due to invalid requisition data',
-  // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
