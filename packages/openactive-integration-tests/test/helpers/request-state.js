@@ -75,8 +75,9 @@ class RequestState {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {boolean} [randomModeOverride]
+   * @param {string} [taxModeOverride]
    */
-  async fetchOpportunities(orderItemCriteriaList, randomModeOverride) {
+  async fetchOpportunities(orderItemCriteriaList, randomModeOverride, taxModeOverride) {
     this.orderItemCriteriaList = orderItemCriteriaList;
 
     // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
@@ -99,7 +100,7 @@ class RequestState {
       }
 
       const sellerKey = orderItemCriteriaItem.seller || 'primary';
-      const seller = SELLER_CONFIG[sellerKey];
+      const seller = this.getSellerConfig(sellerKey, taxModeOverride);
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
         ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
@@ -111,6 +112,22 @@ class RequestState {
 
       return await opportunityPromise;
     }));
+  }
+
+  getSellerConfig(sellerKey, taxModeOverride) {
+    if (!taxModeOverride) {
+      return SELLER_CONFIG[sellerKey];
+    }
+
+    if (SELLER_CONFIG.primary.taxMode === taxModeOverride) {
+      return SELLER_CONFIG.primary;
+    }
+
+    if (SELLER_CONFIG.secondary.taxMode === taxModeOverride) {
+      return SELLER_CONFIG.secondary;
+    }
+
+    throw new Error(`No seller specified for tax mode override ${taxModeOverride}`)
   }
 
   static getRandomRelevantOffer(opportunity, opportunityCriteria) {
