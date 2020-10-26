@@ -9,7 +9,7 @@ const { TestOpportunityBookablePaid } = require('./TestOpportunityBookablePaid')
  * @type {OpportunityConstraint}
  */
 function sellerTaxModeNet(opportunity) {
-  switch(opportunity['@type']) {
+  switch (opportunity['@type']) {
     case 'ScheduledSession':
       return opportunity.superEvent.organizer.taxMode === 'https://openactive.io/TaxNet';
     case 'Slot':
