@@ -113,18 +113,19 @@ class RequestHelper {
     }, REQUEST_HEADERS);
   }
 
-  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType) {
+  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
     let template = null;
+    const seller = sellerId ? {
+      '@type': sellerType,
+      '@id': sellerId,
+    } : undefined;
     switch (opportunityType) {
       case 'ScheduledSession':
         template = {
           '@type': 'ScheduledSession',
           superEvent: {
             '@type': 'SessionSeries',
-            organizer: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            organizer: seller,
           },
         };
         break;
@@ -133,10 +134,7 @@ class RequestHelper {
           '@type': 'Slot',
           facilityUse: {
             '@type': 'FacilityUse',
-            provider: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            provider: seller,
           },
         };
         break;
@@ -145,20 +143,14 @@ class RequestHelper {
           '@type': 'Slot',
           facilityUse: {
             '@type': 'IndividualFacilityUse',
-            provider: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            provider: seller,
           },
         };
         break;
       case 'CourseInstance':
         template = {
           '@type': 'CourseInstance',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       case 'CourseInstanceSubEvent':
@@ -166,20 +158,14 @@ class RequestHelper {
           '@type': 'Event',
           superEvent: {
             '@type': 'CourseInstance',
-            organizer: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            organizer: seller,
           },
         };
         break;
       case 'HeadlineEvent':
         template = {
           '@type': 'HeadlineEvent',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       case 'HeadlineEventSubEvent':
@@ -187,29 +173,20 @@ class RequestHelper {
           '@type': 'Event',
           superEvent: {
             '@type': 'HeadlineEvent',
-            organizer: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            organizer: seller,
           },
         };
         break;
       case 'Event':
         template = {
           '@type': 'Event',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       case 'OnDemandEvent':
         template = {
           '@type': 'OnDemandEvent',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       default:
@@ -450,6 +427,22 @@ class RequestHelper {
       },
       {
         headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return response;
+  }
+
+  /**
+   * @param {string} opportunityType
+   * @param {string} testOpportunityCriteria
+   */
+  async callAssertUnmatchedCriteria(opportunityType, testOpportunityCriteria) {
+    const response = await this.post(
+      `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
+      `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
+      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
+      {
         timeout: 10000,
       },
     );
