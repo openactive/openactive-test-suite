@@ -14,9 +14,15 @@ const { GetMatch } = require('../../../shared-behaviours/get-match');
 function itShouldCalculateTaxCorrectly(responseAccessor) {
   it('should calculate tax correctly', () => {
     const { body } = responseAccessor();
-    const unitTaxSpecification = body.orderedItem.flatMap(o => o.unitTaxSpecification).map(t => t.price).reduce((a, b) => a + b);
+
     const totalPaymentTax = body.totalPaymentTax.map(t => t.price).reduce((a, b) => a + b);
-    expect(Math.abs(unitTaxSpecification - totalPaymentTax)).to.be.lessThan(1);
+    const unitTaxSpecification = body.orderedItem.flatMap(o => o.unitTaxSpecification).map(t => t.price).reduce((a, b) => a + b);
+
+    const totalPaymentDue = body.totalPaymentDue.price;
+    const acceptedOfferPrice = body.orderedItem.flatMap(o => o.acceptedOffer).map(t => t.price).reduce((a, b) => a + b);
+
+    expect(Math.abs(unitTaxSpecification - totalPaymentTax)).to.be.lessThan(1); // rounding errors
+    expect(Math.abs(totalPaymentDue - acceptedOfferPrice)).to.be.lessThan(1); // rounding errors
   });
 }
 
