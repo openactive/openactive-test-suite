@@ -93,6 +93,7 @@ function createNoBrokerNameC2Req(data) {
 
 function createBusinessCustomerC2Req(data) {
   const req = createStandardC2Req(data);
+  // @ts-ignore
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',

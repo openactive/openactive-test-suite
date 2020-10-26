@@ -214,6 +214,7 @@ function createBReqWithoutCustomer(data) {
 
 function createBReqWithBusinessCustomer(data) {
   const req = createStandardPaidBReq(data);
+  // @ts-ignore
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',
