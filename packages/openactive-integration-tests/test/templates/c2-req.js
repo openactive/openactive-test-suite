@@ -110,6 +110,7 @@ const createNoCustomerC2Req = pipe(createStandardC2Req, dissoc('customer'));
 
 function createBusinessCustomerC2Req(data) {
   const req = createStandardC2Req(data);
+  // @ts-ignore
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',

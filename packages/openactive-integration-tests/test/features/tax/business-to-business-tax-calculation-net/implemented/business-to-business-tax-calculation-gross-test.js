@@ -57,7 +57,7 @@ FeatureHelper.describeFeature(module, {
       .successChecks()
       .validationTests();
 
-    //itShouldCalculateTaxCorrectly(() => state.c1Response);
+    itShouldCalculateTaxCorrectly(() => state.c1Response);
   });
 
   describe('C2', () => {
@@ -68,7 +68,7 @@ FeatureHelper.describeFeature(module, {
       .successChecks()
       .validationTests();
 
-    //itShouldCalculateTaxCorrectly(() => state.c2Response);
+    itShouldCalculateTaxCorrectly(() => state.c2Response);
   });
 
   describe('B', () => {
