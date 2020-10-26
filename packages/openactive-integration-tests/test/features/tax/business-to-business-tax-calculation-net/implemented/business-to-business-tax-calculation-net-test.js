@@ -11,10 +11,12 @@ const { GetMatch, C1 } = require('../../../../shared-behaviours');
  *   function because the actual response won't be available until the
  *   asynchronous before() block has completed.
  */
-function itShouldDoSomething(responseAccessor) {
+function itShouldCalculateTaxCorrectly(responseAccessor) {
   it('should return lease with future expiry date', () => {
-    const response = responseAccessor();
-    expect(true).to.equal(true);
+    const { body } = responseAccessor();
+    const unitTaxSpecification = body.orderedItem.flatMap(o => o.unitTaxSpecification).map(t => t.price).reduce((a, b) => a + b);
+    const totalPaymentTax = body.totalPaymentTax.map(t => t.price).reduce((a, b) => a + b);
+    expect(Math.abs(unitTaxSpecification - totalPaymentTax)).to.be.lessThan(1);
   });
 }
 
@@ -30,7 +32,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
   beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+    await state.fetchOpportunities(orderItemCriteria, undefined, 'https://openactive.io/TaxNet');
   });
 
   describe('Get Opportunity Feed Items', () => {
@@ -50,6 +52,6 @@ FeatureHelper.describeFeature(module, {
       .successChecks()
       .validationTests();
 
-      itShouldDoSomething(() => state.c1Response);
+      itShouldCalculateTaxCorrectly(() => state.c1Response);
   });
 });

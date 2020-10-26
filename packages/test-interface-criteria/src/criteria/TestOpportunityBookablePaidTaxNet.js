@@ -1,5 +1,5 @@
 const { createCriteria } = require('./criteriaUtils');
-const { TestOpportunityBookable } = require('./TestOpportunityBookable');
+const { TestOpportunityBookablePaid } = require('./TestOpportunityBookablePaid');
 
 /**
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -8,8 +8,15 @@ const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 /**
  * @type {OpportunityConstraint}
  */
-function sellerTaxModeNet(offer) {
-  return offer.seller.taxMode === 'Net';
+function sellerTaxModeNet(opportunity) {
+  switch(opportunity['@type']) {
+    case 'ScheduledSession':
+      return opportunity.superEvent.organizer.taxMode === 'https://openactive.io/TaxNet';
+    case 'Slot':
+      return opportunity.facilityUse.provider.taxMode === 'https://openactive.io/TaxNet';
+    default:
+      throw new Error(`Type ${opportunity['@type']} not supported`);
+  }
 }
 
 /**
@@ -17,14 +24,14 @@ function sellerTaxModeNet(offer) {
  */
 const TestOpportunityBookablePaidTaxNet = createCriteria({
   name: 'TestOpportunityBookablePaidTaxNet',
-  opportunityConstraints: [],
-  offerConstraints: [
+  opportunityConstraints: [
     [
       'Seller Tax Mode Net',
       sellerTaxModeNet,
     ],
   ],
-  includeConstraintsFromCriteria: TestOpportunityBookable,
+  offerConstraints: [],
+  includeConstraintsFromCriteria: TestOpportunityBookablePaid,
 });
 
 module.exports = {
