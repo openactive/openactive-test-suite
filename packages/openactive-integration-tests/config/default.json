@@ -56,7 +56,7 @@
     "prepayment-optional": null,
     "prepayment-unavailable": null,
     "booking-restrictions": null,
-    "customer-notice-notifications": null,
+    "customer-notice-notifications": true,
     "change-of-logistics-notifications": null,
     "opportunity-attendance-updates": null,
     "access-code-update-notifications": null,
