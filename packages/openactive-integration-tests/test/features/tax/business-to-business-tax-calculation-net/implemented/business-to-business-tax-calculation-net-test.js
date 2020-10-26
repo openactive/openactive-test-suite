@@ -12,7 +12,7 @@ const { GetMatch, C1 } = require('../../../../shared-behaviours');
  *   asynchronous before() block has completed.
  */
 function itShouldCalculateTaxCorrectly(responseAccessor) {
-  it('should return lease with future expiry date', () => {
+  it('should calculate tax correctly', () => {
     const { body } = responseAccessor();
     const unitTaxSpecification = body.orderedItem.flatMap(o => o.unitTaxSpecification).map(t => t.price).reduce((a, b) => a + b);
     const totalPaymentTax = body.totalPaymentTax.map(t => t.price).reduce((a, b) => a + b);

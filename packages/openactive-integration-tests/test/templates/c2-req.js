@@ -108,6 +108,30 @@ const createNoCustomerAndNoBrokerC2Req = pipe(createStandardC2Req, omit(['custom
 /** C2 request with missing customer */
 const createNoCustomerC2Req = pipe(createStandardC2Req, dissoc('customer'));
 
+function createBusinessCustomerC2Req(data) {
+  const req = createStandardC2Req(data);
+  req.customer = {
+    '@type': 'Organization',
+    name: 'SomeCorporateClient',
+    identifier: 'CustomerIdentifierC2',
+    url: 'https://corporate.client.com',
+    description: 'A corporate client using fitness services',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'http://corporate.client.com/images/logo.png',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'A Street',
+      addressLocality: 'A Town',
+      addressRegion: 'Middlesbrough',
+      postalCode: 'TS4 3AE',
+      addressCountry: 'GB',
+    },
+  };
+  return req;
+}
+
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
@@ -115,6 +139,7 @@ const c2ReqTemplates = {
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,
   noCustomer: createNoCustomerC2Req,
+  businessCustomer: createBusinessCustomerC2Req,
 };
 
 /**
