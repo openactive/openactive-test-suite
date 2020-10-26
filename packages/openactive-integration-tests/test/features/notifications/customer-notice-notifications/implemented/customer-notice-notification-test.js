@@ -93,6 +93,7 @@ FeatureHelper.describeFeature(module, {
 
         // Checking that values of customer notices are altered.
         expect(newCustomerNotice).to.be.a('string');
+        /* eslint-disable no-unused-expressions */
         expect(newCustomerNotice).to.not.be.empty;
       }
     });
