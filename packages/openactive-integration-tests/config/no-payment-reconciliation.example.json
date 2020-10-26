@@ -1,4 +1,5 @@
 {
+  "generateConformanceCertificate": false,
   "implementedFeatures": {
     "payment-reconciliation-detail-validation": false
   }

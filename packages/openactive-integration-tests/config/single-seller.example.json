@@ -1,4 +1,5 @@
 {
+  "generateConformanceCertificate": false,
   "sellers": {
     "primary": {
       "@type": "Organization",
