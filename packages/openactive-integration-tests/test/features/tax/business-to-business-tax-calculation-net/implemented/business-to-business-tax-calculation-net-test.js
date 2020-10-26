@@ -52,6 +52,6 @@ FeatureHelper.describeFeature(module, {
       .successChecks()
       .validationTests();
 
-      itShouldCalculateTaxCorrectly(() => state.c1Response);
+    itShouldCalculateTaxCorrectly(() => state.c1Response);
   });
 });
