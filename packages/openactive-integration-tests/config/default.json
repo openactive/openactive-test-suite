@@ -58,7 +58,7 @@
     "booking-restrictions": null,
     "customer-notice-notifications": null,
     "change-of-logistics-notifications": null,
-    "opportunity-attendance-updates": null,
+    "opportunity-attendance-updates": true,
     "access-code-update-notifications": null,
     "access-pass-update-notifications": null,
     "terms-of-service": null,
