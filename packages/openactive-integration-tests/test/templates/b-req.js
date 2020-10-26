@@ -220,6 +220,30 @@ function createBReqWithoutCustomer(data) {
   return dissocPath(['customer'], req);
 }
 
+function createBReqWithBusinessCustomer(data) {
+  const req = createStandardPaidBReq(data);
+  req.customer = {
+    '@type': 'Organization',
+    name: 'SomeCorporateClient',
+    identifier: 'CustomerIdentifierC2',
+    url: 'https://corporate.client.com',
+    description: 'A corporate client using fitness services',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'http://corporate.client.com/images/logo.png',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'A Street',
+      addressLocality: 'A Town',
+      addressRegion: 'Middlesbrough',
+      postalCode: 'TS4 3AE',
+      addressCountry: 'GB',
+    },
+  };
+  return req;
+}
+
 /**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
@@ -234,6 +258,7 @@ const bReqTemplates = {
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
+  businessCustomer: createBReqWithBusinessCustomer,
 };
 
 /**

@@ -9,6 +9,7 @@ const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportu
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
 const { TestOpportunityBookablePaidTaxNet } = require('./TestOpportunityBookablePaidTaxNet');
+const { TestOpportunityBookablePaidTaxGross } = require('./TestOpportunityBookablePaidTaxGross');
 
 module.exports = {
   allCriteria: [
@@ -23,5 +24,6 @@ module.exports = {
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
     TestOpportunityBookablePaidTaxNet,
+    TestOpportunityBookablePaidTaxGross,
   ],
 };
