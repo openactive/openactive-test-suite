@@ -29,7 +29,7 @@
     "payment-reconciliation-detail-validation": null,
     "booking-window": true,
     "customer-requested-cancellation": true,
-    "cancellation-window": false,
+    "cancellation-window": null,
     "seller-requested-cancellation": true,
     "seller-requested-cancellation-message": true,
     "seller-requested-replacement": null,
