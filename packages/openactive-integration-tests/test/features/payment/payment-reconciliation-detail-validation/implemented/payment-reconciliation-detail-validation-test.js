@@ -1,6 +1,10 @@
 const { expect } = require('chai');
+const config = require('config');
+const { pick } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+
+const { paymentReconciliationDetails } = config.get('sellers').primary;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -14,8 +18,8 @@ const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-s
 function itShouldReturnCorrectReconciliationDetails(responseAccessor) {
   it('should return correct reconciliation details', () => {
     const { payment } = responseAccessor().body;
-    expect(payment.accountId).to.equal('SN1593');
-    expect(payment.paymentProviderId).to.equal('STRIPE');
+    // the payment will have other details like `identifier` - hence, `.include()`
+    expect(payment).to.include(paymentReconciliationDetails);
   });
 }
 
@@ -30,6 +34,17 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  // The latter tests are rendered slightly pointless if the test config does not include paymentReconciliationDetails
+  describe('the test config primary seller', () => {
+    // https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation
+    it('should have paymentReconciliationDetails, with at least one property', () => {
+      expect(paymentReconciliationDetails).to.be.an('object');
+      expect(paymentReconciliationDetails).to.satisfy(details => (
+        details.name || details.accountId || details.paymentProviderId
+      ), 'should have at least one property (name, accountId or paymentProviderId)');
+    });
+  });
+
   const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
