@@ -7,7 +7,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'payment-reconciliation-detail-validation-missing-accountId',
   testName: 'Payment reconciliation detail validation - missing accountId',
-  testDescription: 'B should return an InvalidPaymentDetailsError due to missing requisition data',
+  testDescription: 'B should return an InvalidPaymentDetailsError due to missing reconciliation data',
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
