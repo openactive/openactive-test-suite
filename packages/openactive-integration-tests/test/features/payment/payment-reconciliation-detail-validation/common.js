@@ -1,9 +1,9 @@
 const chakram = require('chakram');
 const { expect } = require('chai');
-const { FlowStageRecipes } = require('../../../helpers/flow-stages');
-// const { FlowHelper } = require('../../../helpers/flow-helper');
-// const { RequestState } = require('../../../helpers/request-state');
-// const { GetMatch, C1, C2, B } = require('../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../helpers/flow-stages');
+const { FlowHelper } = require('../../../helpers/flow-helper');
+const { RequestState } = require('../../../helpers/request-state');
+const { GetMatch, C1, C2, B } = require('../../../shared-behaviours');
 
 /**
  * @typedef {import('../../../helpers/flow-helper').FlowHelperType} FlowHelperType
@@ -14,54 +14,17 @@ const { FlowStageRecipes } = require('../../../helpers/flow-stages');
  */
 
 /**
- * @param {OptionalC1C2BReqTemplateRefs} reqTemplateRefs
+ * @param {OptionalC1C2BReqTemplateRefs} [reqTemplateRefs]
  */
 function notImplementedTest(reqTemplateRefs) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
-    // TODO TODO here ia m
-    const state = stateFn ? stateFn(logger) : parentState;
-    const flow = flowFn ? flowFn(state) : parentFlow;
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, reqTemplateRefs);
 
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
-    });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('B', () => {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
   };
   return runTestsFn;
 }

@@ -1,11 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
 const { notImplementedTest } = require('../common');
-
-/**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
- */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
@@ -17,4 +11,4 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-notImplementedTest(logger => new RequestState(logger, { bReqTemplateRef: 'noAccountId' }), state => new FlowHelper(state)));
+notImplementedTest({ bReqTemplateRef: 'noAccountId' }));
