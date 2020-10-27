@@ -30,44 +30,50 @@ function notImplementedTest(reqTemplateRefs) {
 }
 
 /**
- * @param {BReqTemplateRef} bReqTemplateRef
+ * @param {OptionalC1C2BReqTemplateRefs} [reqTemplateRefs]
  */
-function invalidDetailsTest(bReqTemplateRef) {
+function invalidDetailsTest(reqTemplateRefs) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteria, featureIsImplemented, logger) => {
-    const state = new RequestState(logger, { bReqTemplateRef });
-    const flow = new FlowHelper(state);
+    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, reqTemplateRefs);
 
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
-    });
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    // const state = new RequestState(logger, { bReqTemplateRef });
+    // const flow = new FlowHelper(state);
 
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
+    // beforeAll(async () => {
+    //   await state.fetchOpportunities(orderItemCriteria);
+    // });
 
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
+    // // // // describe('Get Opportunity Feed Items', () => {
+    // // // //   (new GetMatch({
+    // // // //     state, flow, logger, orderItemCriteria,
+    // // // //   }))
+    // // // //     .beforeSetup()
+    // // // //     .successChecks()
+    // // // //     .validationTests();
+    // // // // });
 
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
+    // // // describe('C1', () => {
+    // // //   (new C1({
+    // // //     state, flow, logger,
+    // // //   }))
+    // // //     .beforeSetup()
+    // // //     .successChecks()
+    // // //     .validationTests();
+    // // // });
+
+    // // describe('C2', () => {
+    // //   (new C2({
+    // //     state, flow, logger,
+    // //   }))
+    // //     .beforeSetup()
+    // //     .successChecks()
+    // //     .validationTests();
+    // });
 
     describe('B', () => {
       (new B({
