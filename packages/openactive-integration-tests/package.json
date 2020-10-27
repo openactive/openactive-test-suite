@@ -43,6 +43,7 @@
     "p-memoize": "^3.1.0",
     "ramda": "^0.27.1",
     "rmfr": "^2.0.0",
+    "shortid": "^2.2.16",
     "strip-ansi": "^6.0.0",
     "uuid": "^8.3.0"
   },
@@ -54,6 +55,7 @@
     "@types/node": "^12.12.50",
     "@types/ramda": "^0.27.14",
     "@types/request": "^2.48.5",
+    "@types/shortid": "0.0.29",
     "@types/uuid": "^8.0.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",

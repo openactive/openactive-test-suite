@@ -1,3 +1,8 @@
+const { dissocPath } = require('ramda');
+const shortid = require('shortid');
+const { requestHelper } = require('../features/cancellation/seller-requested-cancellation/implemented/seller-requested-cancellation-test');
+const { createPaymentPart } = require('./common');
+
 /**
  * @typedef {{
  *   sellerId: string,
@@ -15,9 +20,6 @@
  *   orderProposalVersion: string | null,
  * }} BReqTemplateData
  */
-
-const { dissocPath } = require('ramda');
-const { createPaymentPart } = require('./common');
 
 /**
  * @param {BReqTemplateData} data
@@ -233,7 +235,7 @@ function createNoPaymentProviderId(data) {
  */
 function createInvalidAccountId(data) {
   const req = createStandardPaidBReq(data);
-  req.payment.accountId = 'some rubbish';
+  req.payment.accountId = `invalid-${shortid.generate()}`;
   return req;
 }
 
@@ -242,7 +244,7 @@ function createInvalidAccountId(data) {
  */
 function createInvalidPaymentProviderId(data) {
   const req = createStandardPaidBReq(data);
-  req.payment.paymentProviderId = 'some rubbish';
+  req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
   return req;
 }
 
@@ -251,8 +253,15 @@ function createInvalidPaymentProviderId(data) {
  */
 function createInvalidReconciliationDetails(data) {
   const req = createStandardPaidBReq(data);
-  req.payment.accountId = 'some rubbish';
-  req.payment.paymentProviderId = 'some rubbish';
+  if (req.payment.accountId) {
+    req.payment.accountId = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.name) {
+    req.payment.name = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.paymentProviderId) {
+    req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
+  }
   return req;
 }
 
