@@ -21,6 +21,7 @@ function itShouldCalculateTaxCorrectly(responseAccessor) {
     const totalPaymentDue = body.totalPaymentDue.price;
     const acceptedOfferPrice = body.orderedItem.flatMap(o => o.acceptedOffer).map(t => t.price).reduce((a, b) => a + b);
 
+    expect(body.taxCalculationExcluded).to.equal(undefined);
     expect(Math.abs(unitTaxSpecification - totalPaymentTax)).to.be.lessThan(1); // rounding errors
     expect(Math.abs(totalPaymentDue - acceptedOfferPrice)).to.be.lessThan(1); // rounding errors
   });
