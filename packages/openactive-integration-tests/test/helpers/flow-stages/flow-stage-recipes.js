@@ -8,6 +8,9 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('../request-state').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
+ * @typedef {import('../../templates/c2-req').C2ReqTemplateRef} C2ReqTemplateRef
+ * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
  */
 
 const FlowStageRecipes = {
@@ -22,8 +25,12 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {object} [options]
+   * @param {C1ReqTemplateRef | null} [options.c1ReqTemplateRef]
+   * @param {C2ReqTemplateRef | null} [options.c2ReqTemplateRef]
+   * @param {BReqTemplateRef | null} [options.bReqTemplateRef]
    */
-  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger) {
+  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null } = {}) {
     const requestHelper = new RequestHelper(logger);
 
     // ## Initiate Flow Stages
@@ -34,6 +41,7 @@ const FlowStageRecipes = {
     });
     const c1 = new C1FlowStage({
       ...defaultFlowStageParams,
+      templateRef: c1ReqTemplateRef,
       prerequisite: fetchOpportunities,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -41,6 +49,7 @@ const FlowStageRecipes = {
     });
     const c2 = new C2FlowStage({
       ...defaultFlowStageParams,
+      templateRef: c2ReqTemplateRef,
       prerequisite: c1,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -48,6 +57,7 @@ const FlowStageRecipes = {
     });
     const b = new BFlowStage({
       ...defaultFlowStageParams,
+      templateRef: bReqTemplateRef,
       prerequisite: c2,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
