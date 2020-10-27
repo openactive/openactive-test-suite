@@ -67,5 +67,10 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     it('Order Cancellation return 400', function () {
       expect(state.uResponse).to.have.status(400);
     });
+
+    it('should return a CancellationNotPermittedError', () => {
+      const error = state.uResponse.body['@type'];
+      expect(error).to.equal('CancellationNotPermittedError');
+    });
   });
 });
