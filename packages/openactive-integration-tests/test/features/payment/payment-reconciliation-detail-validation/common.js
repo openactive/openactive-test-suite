@@ -4,8 +4,20 @@ const { FlowHelper } = require('../../../helpers/flow-helper');
 const { RequestState } = require('../../../helpers/request-state');
 const { GetMatch, C1, C2, B } = require('../../../shared-behaviours');
 
+/**
+ * @typedef {import('../../../helpers/flow-helper').FlowHelperType} FlowHelperType
+ * @typedef {import('../../../helpers/logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../../../helpers/request-state').RequestStateType} RequestStateType
+ * @typedef {import('../../../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ */
+
+/**
+ * @param {(logger: BaseLoggerType) => RequestStateType} [stateFn]
+ * @param {(state: RequestStateType) => FlowHelperType} [flowFn]
+ */
 function notImplementedTest(stateFn = null, flowFn = null) {
-  return (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
+  /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
+  const runTestsFn = (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
     const state = stateFn ? stateFn(logger) : parentState;
     const flow = flowFn ? flowFn(state) : parentFlow;
 
@@ -49,10 +61,15 @@ function notImplementedTest(stateFn = null, flowFn = null) {
         .validationTests();
     });
   };
+  return runTestsFn;
 }
 
+/**
+ * @param {BReqTemplateRef} bReqTemplateRef
+ */
 function invalidDetailsTest(bReqTemplateRef) {
-  return (configuration, orderItemCriteria, featureIsImplemented, logger) => {
+  /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
+  const runTestsFn = (configuration, orderItemCriteria, featureIsImplemented, logger) => {
     const state = new RequestState(logger, { bReqTemplateRef });
     const flow = new FlowHelper(state);
 
@@ -103,6 +120,7 @@ function invalidDetailsTest(bReqTemplateRef) {
       });
     });
   };
+  return runTestsFn;
 }
 
 module.exports = {
