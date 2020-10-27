@@ -13,6 +13,14 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
  */
 
+/**
+ * @typedef {{
+ *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
+ *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
+ *   bReqTemplateRef?: BReqTemplateRef | null,
+ * }} OptionalC1C2BReqTemplateRefs
+ */
+
 const FlowStageRecipes = {
   /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> B flow.
@@ -25,10 +33,7 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
-   * @param {object} [options]
-   * @param {C1ReqTemplateRef | null} [options.c1ReqTemplateRef]
-   * @param {C2ReqTemplateRef | null} [options.c2ReqTemplateRef]
-   * @param {BReqTemplateRef | null} [options.bReqTemplateRef]
+   * @param {OptionalC1C2BReqTemplateRefs} [options]
    */
   initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null } = {}) {
     const requestHelper = new RequestHelper(logger);
