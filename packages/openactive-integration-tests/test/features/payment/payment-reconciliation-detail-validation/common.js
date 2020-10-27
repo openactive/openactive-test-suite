@@ -1,9 +1,6 @@
 const chakram = require('chakram');
 const { expect } = require('chai');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../helpers/flow-stages');
-const { FlowHelper } = require('../../../helpers/flow-helper');
-const { RequestState } = require('../../../helpers/request-state');
-const { GetMatch, C1, C2, B } = require('../../../shared-behaviours');
 
 /**
  * @typedef {import('../../../helpers/flow-helper').FlowHelperType} FlowHelperType
@@ -30,64 +27,23 @@ function notImplementedTest(reqTemplateRefs) {
 }
 
 /**
- * @param {OptionalC1C2BReqTemplateRefs} [reqTemplateRefs]
+ * @param {BReqTemplateRef} bReqTemplateRef
  */
-function invalidDetailsTest(reqTemplateRefs) {
+function invalidDetailsTest(bReqTemplateRef) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteria, featureIsImplemented, logger) => {
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, reqTemplateRefs);
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef });
 
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-    // const state = new RequestState(logger, { bReqTemplateRef });
-    // const flow = new FlowHelper(state);
-
-    // beforeAll(async () => {
-    //   await state.fetchOpportunities(orderItemCriteria);
-    // });
-
-    // // // // describe('Get Opportunity Feed Items', () => {
-    // // // //   (new GetMatch({
-    // // // //     state, flow, logger, orderItemCriteria,
-    // // // //   }))
-    // // // //     .beforeSetup()
-    // // // //     .successChecks()
-    // // // //     .validationTests();
-    // // // // });
-
-    // // // describe('C1', () => {
-    // // //   (new C1({
-    // // //     state, flow, logger,
-    // // //   }))
-    // // //     .beforeSetup()
-    // // //     .successChecks()
-    // // //     .validationTests();
-    // // // });
-
-    // // describe('C2', () => {
-    // //   (new C2({
-    // //     state, flow, logger,
-    // //   }))
-    // //     .beforeSetup()
-    // //     .successChecks()
-    // //     .validationTests();
-    // });
-
-    describe('B', () => {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
+    FlowStageUtils.describeRunAndCheckIsValid(b, () => {
       it('should return 400', () => {
-        chakram.expect(state.bResponse).to.have.status(400);
+        chakram.expect(b.getOutput().httpResponse).to.have.status(400);
       });
 
       it('should return an InvalidPaymentDetailsError', () => {
-        expect(state.bResponse.body['@type']).to.equal('InvalidPaymentDetailsError');
+        expect(b.getOutput().httpResponse.body['@type']).to.equal('InvalidPaymentDetailsError');
       });
     });
   };
