@@ -29,6 +29,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [opportunity-attendance-updates-test](./implemented/opportunity-attendance-updates-test-test.js) | Updating opportunity attendance via OpportunityAttendanceUpdateSimulateAction. | OpportunityAttendanceUpdateSimulateAction sent after B request, it should change value of orderItemStatus to CustomerAttended | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [opportunity-attendance-updates-test](./implemented/opportunity-attendance-updates-test-test.js) | Changes to an opportunity's attendance (via OpportunityAttendanceUpdateSimulateAction) should update the Order Feed. | After B, invoke an OpportunityAttendanceUpdateSimulateAction. This should create an update in the Order Feed with the OrderItem's orderItemStatus changed to CustomerAttended | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
