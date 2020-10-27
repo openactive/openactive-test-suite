@@ -35,7 +35,7 @@ async function runB({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, 
     totalPaymentDue,
     orderProposalVersion,
   };
-  const response = await requestHelper.putOrder(uuid, params, templateRef);
+  const response = await requestHelper.putOrder(uuid, params, null, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
