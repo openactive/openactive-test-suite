@@ -1,12 +1,3 @@
-// /* eslint-disable no-unused-vars */
-// const chakram = require('chakram');
-// const { FeatureHelper } = require('../../../../helpers/feature-helper');
-// const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-// const { FlowHelper } = require('../../../../helpers/flow-helper');
-// const { RequestState } = require('../../../../helpers/request-state');
-// const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
-
-// /* eslint-enable no-unused-vars */
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
