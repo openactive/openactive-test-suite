@@ -19,11 +19,15 @@ const { FlowHelper } = require('../../../helpers/flow-helper');
  *   asynchronous before() block has completed.
  */
 function itShouldHavePrepayment(expected, stage, responseAccessor) {
-  it('should return prepayment', () => {
+  it(expected === null ? 'should not return `totalPaymentDue.prepayment`' : `should return \`totalPaymentDue.prepayment\` '\`${expected}\`'`, () => {
     stage.expectResponseReceived();
     const response = responseAccessor().body;
 
-    expect(response.totalPaymentDue.prepayment).to.equal(expected);
+    if (expected === null) {
+      expect(response.totalPaymentDue).to.not.have.property('prepayment');
+    } else {
+      expect(response.totalPaymentDue.prepayment).to.equal(expected);
+    }
   });
 }
 

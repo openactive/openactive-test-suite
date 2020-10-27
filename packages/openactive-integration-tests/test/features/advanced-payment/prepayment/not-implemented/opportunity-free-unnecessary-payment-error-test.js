@@ -1,15 +1,15 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { multipleOpportunityCriteriaTemplate, errorTests } = require('../../prepayment-common');
+const { multipleOpportunityCriteriaTemplate, errorTests } = require('../common');
 
 const testOpportunityCriteria = 'TestOpportunityBookableFreePrepaymentUnspecified';
-const expectedPrepayment = 'https://openactive.io/Unavailable';
+const expectedPrepayment = null;
 const expectedError = 'UnnecessaryPaymentDetailsError';
 const bReqTemplateRef = 'incorrectOrderDueToUnnecessaryPaymentProperty';
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'advanced-payment',
-  testFeature: 'prepayment-unspecified',
-  testFeatureImplemented: true,
+  testFeature: 'prepayment',
+  testFeatureImplemented: false,
   testIdentifier: 'opportunity-free-unnecessary-payment-error',
   testName: 'Opportunity free (unnecessary payment error)',
   testDescription: 'Opportunity free, prepayment unspecified, unnecessary payment (error)',

@@ -6,5 +6,6 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#booking-without-payment",
   "required": false,
-  "coverageStatus": "none"
+  "coverageStatus": "none",
+  "requiresOneOfIfImplemented": ["prepayment"]
 }

@@ -1,5 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { multipleOpportunityCriteriaTemplate, errorTests } = require('../../prepayment-common');
+const { multipleOpportunityCriteriaTemplate, errorTests } = require('../../prepayment/common');
 
 const testOpportunityCriteria = 'TestOpportunityBookablePaidPrepaymentUnavailable';
 const expectedPrepayment = 'https://openactive.io/Unavailable';
