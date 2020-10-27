@@ -212,28 +212,43 @@ function createBReqWithoutCustomer(data) {
   return dissocPath(['customer'], req);
 }
 
+/**
+ * @param {BReqTemplateData} data
+ */
 function createNoAccountId(data) {
   const req = createStandardPaidBReq(data);
   return dissocPath(['payment', 'accountId'], req);
 }
 
+/**
+ * @param {BReqTemplateData} data
+ */
 function createNoPaymentProviderId(data) {
   const req = createStandardPaidBReq(data);
   return dissocPath(['payment', 'paymentProviderId'], req);
 }
 
+/**
+ * @param {BReqTemplateData} data
+ */
 function createInvalidAccountId(data) {
   const req = createStandardPaidBReq(data);
   req.payment.accountId = 'some rubbish';
   return req;
 }
 
+/**
+ * @param {BReqTemplateData} data
+ */
 function createInvalidPaymentProviderId(data) {
   const req = createStandardPaidBReq(data);
   req.payment.paymentProviderId = 'some rubbish';
   return req;
 }
 
+/**
+ * @param {BReqTemplateData} data
+ */
 function createInvalidReconciliationDetails(data) {
   const req = createStandardPaidBReq(data);
   req.payment.accountId = 'some rubbish';
