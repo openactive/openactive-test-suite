@@ -1,5 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { grossTest } = require('../common');
+const { grossTest } = require('../../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'tax',

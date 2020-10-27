@@ -234,6 +234,7 @@ function createBReqWithBusinessCustomer(data) {
       addressCountry: 'GB',
     },
   };
+  return req;
 }
 
 function createNoAccountId(data) {
