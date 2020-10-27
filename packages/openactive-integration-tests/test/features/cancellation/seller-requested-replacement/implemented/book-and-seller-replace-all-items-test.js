@@ -47,7 +47,7 @@ FeatureHelper.describeFeature(module, {
   });
 
   describe('B', () => {
-    const resp = (new B({
+    (new B({
       state, flow, logger,
     }))
       .beforeSetup()
@@ -56,7 +56,7 @@ FeatureHelper.describeFeature(module, {
   });
 
   describe('Simulate Seller Replacement (Test Interface Action)', () => {
-    const response = (new TestInterfaceAction({
+    (new TestInterfaceAction({
       flow,
       logger,
       createActionFn: () => ({
