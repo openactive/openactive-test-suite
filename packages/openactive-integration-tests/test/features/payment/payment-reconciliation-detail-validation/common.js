@@ -1,6 +1,7 @@
 const chakram = require('chakram');
 const { expect } = require('chai');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../helpers/flow-stages');
+const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../helpers/flow-helper').FlowHelperType} FlowHelperType
@@ -40,13 +41,7 @@ function invalidDetailsTest(bReqTemplateRef) {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
     FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-      it('should return 400', () => {
-        chakram.expect(b.getOutput().httpResponse).to.have.status(400);
-      });
-
-      it('should return an InvalidPaymentDetailsError', () => {
-        expect(b.getOutput().httpResponse.body['@type']).to.equal('InvalidPaymentDetailsError');
-      });
+      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => b.getOutput().httpResponse.body['@type']);
     });
   };
   return runTestsFn;
