@@ -39,7 +39,7 @@ function invalidDetailsTest(bReqTemplateRef) {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
     FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => b.getOutput().httpResponse.body['@type']);
+      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => b.getOutput().httpResponse);
     });
   };
   return runTestsFn;
