@@ -1,10 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { invalidDetailsTest } = require('../common');
 
-/**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
- */
-
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'payment-reconciliation-detail-validation',
