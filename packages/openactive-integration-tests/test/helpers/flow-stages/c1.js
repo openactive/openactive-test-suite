@@ -30,7 +30,7 @@ async function runC1({ templateRef, uuid, sellerId, orderItems, requestHelper })
     sellerId,
     orderItems,
   };
-  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
+  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, null, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
