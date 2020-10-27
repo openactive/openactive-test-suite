@@ -1,5 +1,3 @@
-const chakram = require('chakram');
-const { expect } = require('chai');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours/errors');
 

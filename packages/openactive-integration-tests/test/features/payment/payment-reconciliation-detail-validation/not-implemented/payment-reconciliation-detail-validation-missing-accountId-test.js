@@ -6,9 +6,9 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'payment-reconciliation-detail-validation',
   testFeatureImplemented: false,
   testIdentifier: 'payment-reconciliation-detail-validation-missing-accountId',
-  testName: 'Payment reconciliation detail validation - missing accountId',
-  testDescription: 'C1, C2 and B including paymentProviderId and name should succeed, ignoring these values',
+  testName: 'Payment reconciliation detail validation - missing reconciliation details',
+  testDescription: 'C1, C2 and B - with missing reconciliation details - should succeed, ignoring these values',
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-notImplementedTest({ bReqTemplateRef: 'noAccountId' }));
+notImplementedTest({ bReqTemplateRef: 'missingPaymentReconciliationDetails' }));

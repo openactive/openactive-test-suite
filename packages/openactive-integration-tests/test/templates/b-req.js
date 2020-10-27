@@ -1,6 +1,5 @@
 const { dissocPath } = require('ramda');
 const shortid = require('shortid');
-const { requestHelper } = require('../features/cancellation/seller-requested-cancellation/implemented/seller-requested-cancellation-test');
 const { createPaymentPart } = require('./common');
 
 /**
@@ -217,41 +216,18 @@ function createBReqWithoutCustomer(data) {
 /**
  * @param {BReqTemplateData} data
  */
-function createNoAccountId(data) {
+function createMissingPaymentReconciliationDetailsBReq(data) {
   const req = createStandardPaidBReq(data);
-  return dissocPath(['payment', 'accountId'], req);
-}
-
-/**
- * @param {BReqTemplateData} data
- */
-function createNoPaymentProviderId(data) {
-  const req = createStandardPaidBReq(data);
-  return dissocPath(['payment', 'paymentProviderId'], req);
-}
-
-/**
- * @param {BReqTemplateData} data
- */
-function createInvalidAccountId(data) {
-  const req = createStandardPaidBReq(data);
-  req.payment.accountId = `invalid-${shortid.generate()}`;
+  delete req.payment.accountId;
+  delete req.payment.name;
+  delete req.payment.paymentProviderId;
   return req;
 }
 
 /**
  * @param {BReqTemplateData} data
  */
-function createInvalidPaymentProviderId(data) {
-  const req = createStandardPaidBReq(data);
-  req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
-  return req;
-}
-
-/**
- * @param {BReqTemplateData} data
- */
-function createInvalidReconciliationDetails(data) {
+function createIncorrectReconciliationDetails(data) {
   const req = createStandardPaidBReq(data);
   if (req.payment.accountId) {
     req.payment.accountId = `invalid-${shortid.generate()}`;
@@ -279,11 +255,8 @@ const bReqTemplates = {
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
-  noAccountId: createNoAccountId,
-  noPaymentProviderId: createNoPaymentProviderId,
-  invalidAccountId: createInvalidAccountId,
-  invalidPaymentProviderId: createInvalidPaymentProviderId,
-  invalidReconciliationDetails: createInvalidReconciliationDetails,
+  missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
+  incorrectReconciliationDetails: createIncorrectReconciliationDetails,
 };
 
 /**
