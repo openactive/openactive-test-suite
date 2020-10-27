@@ -71,7 +71,11 @@ const FlowStageRecipes = {
     });
 
     return {
-      c1, c2, b, requestHelper,
+      requestHelper,
+      fetchOpportunities,
+      c1,
+      c2,
+      b,
     };
   },
 };
