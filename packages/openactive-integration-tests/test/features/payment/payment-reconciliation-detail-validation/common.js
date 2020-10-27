@@ -27,6 +27,8 @@ function notImplementedTest(reqTemplateRefs) {
 }
 
 /**
+ * Test that runs C1 -> C2 -> B and expects B to fail with an InvalidPaymentDetailsError.
+ *
  * @param {BReqTemplateRef} bReqTemplateRef
  */
 function invalidDetailsTest(bReqTemplateRef) {
