@@ -1,7 +1,7 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { RequestState } = require('../../../../helpers/request-state');
-const { grossTest } = require('../common');
+const { grossTest } = require('../../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'tax',

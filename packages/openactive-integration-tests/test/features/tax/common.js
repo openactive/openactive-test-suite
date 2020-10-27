@@ -1,6 +1,5 @@
 const { expect } = require('chai');
-const { C1, C2, B } = require('../../../shared-behaviours');
-const { GetMatch } = require('../../../shared-behaviours/get-match');
+const { GetMatch, C1, C2, B } = require('../../shared-behaviours');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
