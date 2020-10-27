@@ -1,6 +1,5 @@
 const { expect } = require('chai');
 const config = require('config');
-const { pick } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
