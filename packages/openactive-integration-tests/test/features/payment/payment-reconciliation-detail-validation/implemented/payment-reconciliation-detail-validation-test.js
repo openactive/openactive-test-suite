@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -29,50 +29,17 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldReturnCorrectReconciliationDetails(() => c1.getOutput().httpResponse);
   });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldReturnCorrectReconciliationDetails(() => c2.getOutput().httpResponse);
   });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnCorrectReconciliationDetails(() => state.c1Response);
-  });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnCorrectReconciliationDetails(() => state.c2Response);
-  });
-
-  describe('B', () => {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnCorrectReconciliationDetails(() => state.bResponse);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+    itShouldReturnCorrectReconciliationDetails(() => b.getOutput().httpResponse);
   });
 });
