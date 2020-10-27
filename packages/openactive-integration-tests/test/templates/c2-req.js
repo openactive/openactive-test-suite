@@ -18,7 +18,54 @@ const { createPaymentPart } = require('./common');
  */
 
 /**
+ * @typedef {{
+ *   '@context': string,
+ *   '@type': string,
+ *   brokerRole: string,
+ *   broker: {
+ *     '@type': string,
+ *     name: string,
+ *     url: string,
+ *     description: string,
+ *     logo: {
+ *       '@type': string,
+ *       url: string,
+ *     },
+ *     address: {
+ *       '@type': string,
+ *       streetAddress: string,
+ *       addressLocality: string,
+ *       addressRegion: string,
+ *       postalCode: string,
+ *       addressCountry: string,
+ *     },
+ *   },
+ *   seller: {
+ *     '@type': string,
+ *     '@id': string,
+ *   },
+ *   customer: any, // ToDo: add this?
+ *   orderedItem: {
+ *     '@type': string,
+ *     position: number,
+ *     acceptedOffer: {
+ *       '@type': string,
+ *       '@id': string,
+ *     },
+ *     orderedItem: {
+ *       '@type': string,
+ *       '@id': string,
+ *     },
+ *   }[],
+ *   payment: {
+ *     '@type': string,
+ *   },
+ * }} C2Req
+ */
+
+/**
  * @param {C2ReqTemplateData} data
+ * @returns {C2Req}
  */
 function createStandardC2Req(data) {
   return {
@@ -93,7 +140,6 @@ function createNoBrokerNameC2Req(data) {
 
 function createBusinessCustomerC2Req(data) {
   const req = createStandardC2Req(data);
-  // @ts-ignore
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',
