@@ -70,6 +70,7 @@ function createAfterPBReq(data) {
  * Create a B request, excluding the payment related details
  *
  * @param {BReqTemplateData} data
+ * @returns {BReq}
  */
 function createNonPaymentRelatedCoreBReq(data) {
   return {
@@ -120,6 +121,49 @@ function createNonPaymentRelatedCoreBReq(data) {
     })),
   };
 }
+
+/**
+ * @typedef {{
+  *   '@context': string,
+  *   '@type': string,
+  *   brokerRole: string,
+  *   broker: {
+  *     '@type': string,
+  *     name: string,
+  *     url: string,
+  *     description: string,
+  *     logo: {
+  *       '@type': string,
+  *       url: string,
+  *     },
+  *     address: {
+  *       '@type': string,
+  *       streetAddress: string,
+  *       addressLocality: string,
+  *       addressRegion: string,
+  *       postalCode: string,
+  *       addressCountry: string,
+  *     },
+  *   },
+  *   seller: {
+  *     '@type': string,
+  *     '@id': string,
+  *   },
+  *   customer: any, // ToDo: add this?
+  *   orderedItem: {
+  *     '@type': string,
+  *     position: number,
+  *     acceptedOffer: {
+  *       '@type': string,
+  *       '@id': string,
+  *     },
+  *     orderedItem: {
+  *       '@type': string,
+  *       '@id': string,
+  *     },
+  *   }[],
+  * }} BReq
+  */
 
 /**
  * @param {BReqTemplateData} data
@@ -297,7 +341,6 @@ function createBReqWithoutCustomer(data) {
 
 function createBReqWithBusinessCustomer(data) {
   const req = createStandardPaidBReq(data);
-  // @ts-ignore
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',
