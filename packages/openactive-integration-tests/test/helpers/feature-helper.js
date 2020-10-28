@@ -240,7 +240,6 @@ class FeatureHelper {
       skipMultiple: true,
       runOne: false,
     }, configuration),
-    // eslint-disable-next-line no-unused-vars
     function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType) {
       if (opportunityType != null) {
         configuration.unmatchedOpportunityCriteria.forEach((criteria) => {
