@@ -61,6 +61,7 @@ let datasetSiteJson = {
 };
 
 // Buckets for criteria matches
+/** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
 const matchingCriteriaOpportunityIds = new Map();
 criteria.map((c) => c.name).forEach((criteriaName) => {
   const typeBucket = new Map();
@@ -222,6 +223,10 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
   };
 }
 
+/**
+ * @param {string} opportunityType
+ * @param {string} criteriaName
+ */
 function assertOpportunityCriteriaNotFound(opportunityType, criteriaName) {
   const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
   if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
