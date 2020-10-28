@@ -7,16 +7,15 @@ const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behavio
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
-  testFeature: 'common-error-conditions',
+  testFeature: 'simple-book-free-opportunities',
   testFeatureImplemented: true,
   testIdentifier: 'payment-mismatch',
-  testName: 'Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match',
+  testName: 'Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities',
   testDescription: 'Run B for a valid opportunity, with totalPaymentDue not matching the value returned by C2, expecting a TotalPaymentDueMismatchError to be returned (C1 and C2 ignored as they do not have totalPaymentDue)',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookableFree',
   // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunityBookable',
-  numOpportunitiesUsedPerCriteria: 1,
+  controlOpportunityCriteria: 'TestOpportunityBookableFree',
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   describe('Total Payment Due mismatch at B', () => {

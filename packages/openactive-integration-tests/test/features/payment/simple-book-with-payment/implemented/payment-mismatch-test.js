@@ -16,7 +16,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookablePaid',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookablePaid',
-  numOpportunitiesUsedPerCriteria: 1,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   describe('Total Payment Due mismatch at B', () => {

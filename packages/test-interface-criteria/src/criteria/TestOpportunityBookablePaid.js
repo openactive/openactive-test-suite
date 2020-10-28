@@ -9,7 +9,7 @@ const { createCriteria } = require('./criteriaUtils');
  * @type {OfferConstraint}
  */
 function onlyPaidBookableOffers(offer) {
-  return offer.price > 0;
+  return offer.price > 0 && offer.prepayment !== 'https://openactive.io/Unavailable';
 }
 
 /**
@@ -20,7 +20,7 @@ const TestOpportunityBookablePaid = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Only paid bookable Offers',
+      'Only paid bookable Offers, where prepayment is not Unavailable',
       onlyPaidBookableOffers,
     ],
   ],
