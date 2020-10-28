@@ -59,9 +59,9 @@ FeatureHelper.describeFeature(module, {
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      expect(newOrderItems).to.be.an('array');
-      expect(newOrderItems).to.have.lengthOf.above(0);
-      expect(newOrderItems).to.have.lengthOf(orderItemCriteriaList.length);
+      expect(newOrderItems).to.be.an('array')
+        .and.to.have.lengthOf.above(0)
+        .and.to.have.lengthOf(orderItemCriteriaList.length);
 
       for (const [originalOrderItem, newOrderItem] of zip(originalOrderItems, newOrderItems)) {
         const originalAccessCodes = originalOrderItem.accessCode;
