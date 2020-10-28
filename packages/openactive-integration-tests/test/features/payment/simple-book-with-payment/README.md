@@ -12,7 +12,7 @@ See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x14, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x3
+[TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x13, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x3
 
 
 ### Running tests for only this feature
@@ -59,4 +59,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [no-paid-bookable-sessions](./not-implemented/no-paid-bookable-sessions-test.js) | No paid bookable session | Check that the feed does not include any bookable sessions with a non-zero price. | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x1 |
+| [no-paid-bookable-sessions](./not-implemented/no-paid-bookable-sessions-test.js) | No paid bookable session | Check that the feed does not include any bookable sessions with a non-zero price. |  |
