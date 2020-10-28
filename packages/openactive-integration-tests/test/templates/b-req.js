@@ -1,4 +1,4 @@
-const { dissocPath } = require('ramda');
+const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
 const { createPaymentPart } = require('./common');
 
@@ -218,10 +218,10 @@ function createBReqWithoutCustomer(data) {
  */
 function createMissingPaymentReconciliationDetailsBReq(data) {
   const req = createStandardPaidBReq(data);
-  delete req.payment.accountId;
-  delete req.payment.name;
-  delete req.payment.paymentProviderId;
-  return req;
+  return {
+    ...req,
+    payment: omit(['accountId', 'name', 'paymentProviderId'], req.payment),
+  };
 }
 
 /**
