@@ -4,7 +4,6 @@ test/certification/certification-validator-microservice.js
 test/certification/certification-validator.js
 test/certification/certification-writer.js
 test/global-setup.js
-test/helpers/feature-helper.js
 test/helpers/flow-helper.js
 test/helpers/index.js
 test/helpers/logger.js
