@@ -33,3 +33,20 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 | [succeed-within-window](./implemented/succeed-within-window-test.js) | Successful booking and cancellation within window. | A successful end to end booking including cancellation within the cancellation window. | [TestOpportunityBookableCancellableWithinWindow](https://openactive.io/test-interface#TestOpportunityBookableCancellableWithinWindow) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
+
+## 'Not Implemented' tests
+
+
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Not Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "cancellation-window": false,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [assert-unmatched-criteria](./not-implemented/assert-unmatched-criteria-test.js) | Opportunities relevant to this not-implemented feature must not be available in opportunity feeds | Assert that no opportunities that match criteria 'TestOpportunityBookableCancellableWithinWindow' or 'TestOpportunityBookableCancellableOutsideWindow' are available in the opportunity feeds. |  |

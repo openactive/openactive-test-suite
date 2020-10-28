@@ -26,7 +26,7 @@
     "agent-broker": true,
     "simple-book-with-payment": true,
     "multiple-sellers": true,
-    "payment-reconciliation-detail-validation": null,
+    "payment-reconciliation-detail-validation": true,
     "booking-window": true,
     "customer-requested-cancellation": true,
     "cancellation-window": true,
@@ -75,6 +75,11 @@
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
         "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
+      },
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
       }
     },
     "secondary": {

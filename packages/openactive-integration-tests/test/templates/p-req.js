@@ -15,6 +15,8 @@
  * }} PReqTemplateData
  */
 
+const { createPaymentPart } = require('./common');
+
 /**
  * @param {PReqTemplateData} data
  */
@@ -70,14 +72,11 @@ function createStandardPReq(data) {
       priceCurrency: 'GBP',
     },
   };
+
   if (data.totalPaymentDue > 0) {
-    result.payment = {
-      '@type': 'Payment',
-      name: 'AcmeBroker Points',
-      identifier: '1234567890npduy2f',
-      accountId: 'STRIP',
-    };
+    result.payment = createPaymentPart();
   }
+
   return result;
 }
 
