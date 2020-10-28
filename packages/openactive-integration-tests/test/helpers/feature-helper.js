@@ -31,7 +31,6 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  *   For example, if testing an error, set the `controlOpportunityCriteria` to
  *   `TestOpportunityBookable` to ensure that the correct error is returned
  *   even though one of the opportunities in the Order is valid.
- * @property {string[]} [unmatchedOpportunityCriteria] For use with describeUnmatchedCriteriaFeature
  * @property {CreateSingleOportunityCriteriaTemplateFn} [singleOpportunityCriteriaTemplate]
  * @property {CreateMultipleOportunityCriteriaTemplateFn} [multipleOpportunityCriteriaTemplate]
  * @property {boolean} [runOnce]
@@ -232,7 +231,9 @@ class FeatureHelper {
 
   /**
    * @param {NodeModule} documentationModule
-   * @param {DescribeFeatureConfiguration} configuration
+   * @param {DescribeFeatureConfiguration & {
+   *   unmatchedOpportunityCriteria: string[],
+   * }} configuration
    */
   static describeUnmatchedCriteriaFeature(documentationModule, configuration) {
     this.describeFeature(documentationModule, Object.assign({
