@@ -1,3 +1,7 @@
+const { dissocPath, omit } = require('ramda');
+const shortid = require('shortid');
+const { createPaymentPart } = require('./common');
+
 /**
  * @typedef {{
  *   sellerId: string,
@@ -15,17 +19,6 @@
  *   orderProposalVersion: string | null,
  * }} BReqTemplateData
  */
-
-const { dissocPath } = require('ramda');
-
-function createPaymentPart() {
-  return {
-    '@type': 'Payment',
-    name: 'AcmeBroker Points',
-    identifier: '1234567890npduy2f',
-    accountId: 'STRIP',
-  };
-}
 
 /**
  * @param {BReqTemplateData} data
@@ -221,6 +214,34 @@ function createBReqWithoutCustomer(data) {
 }
 
 /**
+ * @param {BReqTemplateData} data
+ */
+function createMissingPaymentReconciliationDetailsBReq(data) {
+  const req = createStandardPaidBReq(data);
+  return {
+    ...req,
+    payment: omit(['accountId', 'name', 'paymentProviderId'], req.payment),
+  };
+}
+
+/**
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectReconciliationDetails(data) {
+  const req = createStandardPaidBReq(data);
+  if (req.payment.accountId) {
+    req.payment.accountId = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.name) {
+    req.payment.name = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.paymentProviderId) {
+    req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
+  }
+  return req;
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -234,6 +255,8 @@ const bReqTemplates = {
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
+  missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
+  incorrectReconciliationDetails: createIncorrectReconciliationDetails,
 };
 
 /**
