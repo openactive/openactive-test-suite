@@ -61,6 +61,7 @@ let datasetSiteJson = {
 };
 
 // Buckets for criteria matches
+/** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
 const matchingCriteriaOpportunityIds = new Map();
 criteria.map((c) => c.name).forEach((criteriaName) => {
   const typeBucket = new Map();
@@ -220,6 +221,20 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
       '@id': id,
     },
   };
+}
+
+/**
+ * @param {string} opportunityType
+ * @param {string} criteriaName
+ */
+function assertOpportunityCriteriaNotFound(opportunityType, criteriaName) {
+  const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
+  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
+  const bucket = criteriaBucket.get(opportunityType);
+  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+
+  // Check that all sellerCompartments are empty
+  return Array.from(bucket).every(([, items]) => (items.size === 0));
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
@@ -563,6 +578,31 @@ app.delete('/test-interface/datasets/:testDatasetIdentifier', function (req, res
   const { testDatasetIdentifier } = req.params;
   releaseOpportunityLocks(testDatasetIdentifier);
   res.status(204).send();
+});
+
+app.post('/assert-unmatched-criteria', function (req, res) {
+  if (DO_NOT_FILL_BUCKETS) {
+    res.status(403).json({
+      error: 'Bucket functionality is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+    return;
+  }
+
+  const opportunity = req.body;
+  const opportunityType = detectOpportunityType(opportunity);
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+
+  const result = assertOpportunityCriteriaNotFound(opportunityType, criteriaName);
+
+  if (result) {
+    log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    res.status(204).send();
+  } else {
+    logError(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
+    res.status(404).json({
+      error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
+    });
+  }
 });
 
 /** @type {{[id: string]: PendingResponse}} */
