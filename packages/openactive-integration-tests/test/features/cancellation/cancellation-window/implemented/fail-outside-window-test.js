@@ -1,8 +1,6 @@
-const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-
-const { expect } = chakram;
+const { FlowStageRecipes, FlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
@@ -14,63 +12,21 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellableOutsideWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+  // # Initialise Flow Stages
+  const { defaultFlowStageParams, fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const cancelOrder = new CancelOrderFlowStage({
+    ...defaultFlowStageParams,
+    getOrderItemId: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
+    prerequisite: b,
   });
 
-  afterAll(async function () {
-    await state.cancelOrder();
-  });
-
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', function () {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C2', function () {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('B', function () {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('Orders Feed', function () {
-    beforeAll(async function () {
-      await flow.U();
-    });
-
-    it('Order Cancellation return 400', function () {
-      expect(state.uResponse).to.have.status(400);
-    });
-
-    it('should return a CancellationNotPermittedError', () => {
-      const error = state.uResponse.body['@type'];
-      expect(error).to.equal('CancellationNotPermittedError');
-    });
+  // # Set up Tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsValid(cancelOrder, () => {
+    itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancelOrder.getOutput().httpResponse);
   });
 });

@@ -71,11 +71,13 @@ const FlowStageRecipes = {
     });
 
     return {
-      requestHelper,
       fetchOpportunities,
       c1,
       c2,
       b,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
     };
   },
 };
