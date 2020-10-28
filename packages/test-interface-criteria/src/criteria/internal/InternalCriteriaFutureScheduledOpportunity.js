@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 /**
  * @typedef {import('../../types/Criteria').Criteria} Criteria
  * @typedef {import('../../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -8,9 +10,8 @@ const { createCriteria } = require('../criteriaUtils');
 /**
  * @type {OpportunityConstraint}
  */
-function startDateMustBe2HrsInAdvance(opportunity) {
-  const in2HrsTimestamp = (new Date(Date.now() + (3600 * 1000 * 2))).getTime();
-  return Date.parse(opportunity.startDate) > in2HrsTimestamp;
+function startDateMustBe2HrsInAdvance(opportunity, options) {
+  return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
 }
 
 /**
