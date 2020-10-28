@@ -40,7 +40,7 @@ async function runB({ templateRef, accessPass, uuid, sellerId, orderItems, total
     orderProposalVersion,
     accessPass,
   };
-  const response = await requestHelper.putOrder(uuid, params, templateRef);
+  const response = await requestHelper.putOrder(uuid, params, null, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
