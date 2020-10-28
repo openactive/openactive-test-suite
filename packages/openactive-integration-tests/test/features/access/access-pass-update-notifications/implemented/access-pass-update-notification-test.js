@@ -3,13 +3,10 @@ const { zip } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const RequestHelper = require('../../../../helpers/request-helper');
 const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
   FlowStageUtils,
   TestInterfaceActionFlowStage,
   OrderFeedUpdateFlowStageUtils,
-  BFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
@@ -28,32 +25,7 @@ FeatureHelper.describeFeature(module, {
 
   // ## Initiate Flow Stages
   const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-    }),
-  });
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
   const [simulateAccessPassUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
       ...defaultFlowStageParams,
@@ -87,9 +59,9 @@ FeatureHelper.describeFeature(module, {
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      expect(newOrderItems).to.be.an('array');
-      expect(newOrderItems).to.have.lengthOf.above(0);
-      expect(newOrderItems).to.have.lengthOf(orderItemCriteriaList.length);
+      expect(newOrderItems).to.be.an('array')
+        .and.to.have.lengthOf.above(0)
+        .and.to.have.lengthOf(orderItemCriteriaList.length);
 
       for (const [originalOrderItem, newOrderItem] of zip(originalOrderItems, newOrderItems)) {
         const originalAccessPass = originalOrderItem.accessPass;
