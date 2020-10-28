@@ -18,7 +18,6 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   | 'test:SellerRejectOrderProposalSimulateAction'
  *   | 'test:SellerRequestedCancellationSimulateAction'
  *   | 'test:SellerRequestedCancellationWithMessageSimulateAction'
- *   | 'test:SimulateCustomerNotice'
  * } TestInterfaceActionType Taken from https://openactive.io/test-interface/#classes
  *
  * @typedef {{
