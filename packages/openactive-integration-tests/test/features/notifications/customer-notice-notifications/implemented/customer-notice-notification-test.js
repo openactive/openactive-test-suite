@@ -2,13 +2,10 @@ const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const RequestHelper = require('../../../../helpers/request-helper');
 const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
   FlowStageUtils,
   TestInterfaceActionFlowStage,
   OrderFeedUpdateFlowStageUtils,
-  BFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
@@ -16,8 +13,8 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'customer-notice-notifications',
   testFeatureImplemented: true,
   testIdentifier: 'customer-notice-notification-test',
-  testName: 'Updating customer notice in orders after B request.',
-  testDescription: 'SimulateCustomerNotice triggered after B request to update customer notice, changed values should be reflected in Orders feed',
+  testName: "Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.",
+  testDescription: "After B, invoke a CustomerNoticeSimulateAction. This should create an update in the Order Feed with the OrderItem's customerNotice changed.",
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
@@ -27,32 +24,7 @@ FeatureHelper.describeFeature(module, {
 
   // ## Initiate Flow Stages
   const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-    }),
-  });
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
   const [simulateCustomerNoticeUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
       ...defaultFlowStageParams,
@@ -84,17 +56,16 @@ FeatureHelper.describeFeature(module, {
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      expect(newOrderItems).to.be.an('array');
-      expect(newOrderItems).to.have.lengthOf.above(0);
-      expect(newOrderItems).to.have.lengthOf(orderItemCriteriaList.length);
+      expect(newOrderItems).to.be.an('array')
+        .and.to.have.lengthOf.above(0)
+        .and.to.have.lengthOf(orderItemCriteriaList.length);
 
       for (const newOrderItem of newOrderItems) {
         const newCustomerNotice = newOrderItem.customerNotice;
 
-        // Checking that values of customer notices are altered.
-        expect(newCustomerNotice).to.be.a('string');
-        /* eslint-disable no-unused-expressions */
-        expect(newCustomerNotice).to.not.be.empty;
+        // Checking that customerNotice now has a non-empty value
+        expect(newCustomerNotice).to.be.a('string')
+          .and.to.have.lengthOf.at.least(1);
       }
     });
   });

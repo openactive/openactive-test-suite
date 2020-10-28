@@ -29,6 +29,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [customer-notice-notification-test](./implemented/customer-notice-notification-test-test.js) | Updating customer notice in orders after B request. | SimulateCustomerNotice triggered after B request to update customer notice, changed values should be reflected in Orders feed | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [customer-notice-notification-test](./implemented/customer-notice-notification-test-test.js) | Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed. | After B, invoke a CustomerNoticeSimulateAction. This should create an update in the Order Feed with the OrderItem's customerNotice changed. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
