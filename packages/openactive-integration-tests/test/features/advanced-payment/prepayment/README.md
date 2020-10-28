@@ -1,5 +1,5 @@
 [< Return to Overview](../../README.md)
-# prepayment not specified (prepayment-unspecified)
+# prepayment not specified (prepayment)
 
 Support for booking without payment (reservation only)
 
@@ -22,16 +22,34 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 ```json
 "implementedFeatures": {
   ...
-  "prepayment-unspecified": true,
+  "prepayment": true,
   ...
 }
 ```
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [opportunity-free](./implemented/opportunity-free-test.js) | Opportunity free | Opportunity free, prepayment unspecified | [TestOpportunityBookableFreePrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentUnspecified) x2 |
-| [opportunity-free-unnecessary-payment-error](./implemented/opportunity-free-unnecessary-payment-error-test.js) | Opportunity free (unnecessary payment error) | Opportunity free, prepayment unspecified, unnecessary payment (error) | [TestOpportunityBookableFreePrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentUnspecified) x2 |
-| [opportunity-paid-no-payment-error](./implemented/opportunity-paid-no-payment-error-test.js) | Opportunity paid (no payment error) | Opportunity paid, prepayment unspecified, no payment (error) | [TestOpportunityBookablePaidPrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookablePaidPrepaymentUnspecified) x2 |
-| [opportunity-paid](./implemented/opportunity-paid-test.js) | Opportunity paid | Opportunity paid, prepayment unspecified | [TestOpportunityBookablePaidPrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookablePaidPrepaymentUnspecified) x2 |
+| [opportunity-free-integrity](./implemented/opportunity-free-integrity-test.js) | Free opportunities must not have a `prepayment` value of either Optional or Required | Assert that no opportunities that match criteria 'TestOpportunityBookableFreePrepaymentOptional' or 'TestOpportunityBookableFreePrepaymentRequired' are available in the opportunity feeds. |  |
 
 
+
+## 'Not Implemented' tests
+
+
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Not Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "prepayment": false,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [opportunity-free](./not-implemented/opportunity-free-test.js) | Opportunity free | Opportunity free, prepayment unspecified | [TestOpportunityBookableFreePrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentUnspecified) x2 |
+| [opportunity-free-unnecessary-payment-error](./not-implemented/opportunity-free-unnecessary-payment-error-test.js) | Opportunity free (unnecessary payment error) | Opportunity free, prepayment unspecified, unnecessary payment (error) | [TestOpportunityBookableFreePrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentUnspecified) x2 |
+| [opportunity-paid-no-payment-error](./not-implemented/opportunity-paid-no-payment-error-test.js) | Opportunity paid (no payment error) | Opportunity paid, prepayment unspecified, no payment (error) | [TestOpportunityBookablePaidPrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookablePaidPrepaymentUnspecified) x2 |
+| [opportunity-paid](./not-implemented/opportunity-paid-test.js) | Opportunity paid | Opportunity paid, prepayment unspecified | [TestOpportunityBookablePaidPrepaymentUnspecified](https://openactive.io/test-interface#TestOpportunityBookablePaidPrepaymentUnspecified) x2 |
+| [prepayment-not-in-use](./not-implemented/prepayment-not-in-use-test.js) | The `prepayment` property must not be in use | Assert that no opportunities that match criteria 'TestOpportunityBookableFreePrepaymentOptional' or 'TestOpportunityBookablePaidPrepaymentOptional' or 'TestOpportunityBookableFreePrepaymentUnavailable' or 'TestOpportunityBookablePaidPrepaymentUnavailable' or 'TestOpportunityBookableFreePrepaymentRequired' or 'TestOpportunityBookablePaidPrepaymentRequired' are available in the opportunity feeds. |  |
