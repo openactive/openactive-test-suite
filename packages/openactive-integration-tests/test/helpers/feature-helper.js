@@ -129,6 +129,8 @@ class FeatureHelper {
       }
 
 
+      // This function mutates its arg, documentationModule
+      // eslint-disable-next-line no-param-reassign
       documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
         criteriaRequirement,
       }));

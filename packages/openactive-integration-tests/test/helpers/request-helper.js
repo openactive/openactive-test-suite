@@ -113,6 +113,12 @@ class RequestHelper {
     }, REQUEST_HEADERS);
   }
 
+  /**
+   * @param {string} opportunityType
+   * @param {string} testOpportunityCriteria
+   * @param {string | null} [sellerId]
+   * @param {string | null} [sellerType]
+   */
   opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
     let template = null;
     const seller = sellerId ? {
