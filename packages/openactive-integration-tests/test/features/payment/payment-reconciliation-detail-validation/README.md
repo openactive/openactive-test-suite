@@ -7,9 +7,48 @@ Booking with valid, invalid, and missing Payment details
 https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-detail-validation
 
 Coverage Status: **none**
+### Test prerequisites
+Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
+[TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x15, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x5
 
 *Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
 
 
+## 'Implemented' tests
 
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "payment-reconciliation-detail-validation": true,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [payment-reconciliation-detail-validation-incorrect-details](./implemented/payment-reconciliation-detail-validation-incorrect-details-test.js) | Payment reconciliation detail validation - incorrect reconciliation details | B should return an InvalidPaymentDetailsError due to incorrect reconciliation data | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [payment-reconciliation-detail-validation-missing-details](./implemented/payment-reconciliation-detail-validation-missing-details-test.js) | Payment reconciliation detail validation - missing reconciliation details | B should return an InvalidPaymentDetailsError due to missing reconciliation data | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [payment-reconciliation-detail-validation](./implemented/payment-reconciliation-detail-validation-test.js) | Payment reconciliation detail validation | C1, C2 and B including globally configured accountId, paymentProviderId and name should succeed | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+
+
+
+## 'Not Implemented' tests
+
+
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Not Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "payment-reconciliation-detail-validation": false,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [payment-reconciliation-detail-validation-missing-reconciliation-details](./not-implemented/payment-reconciliation-detail-validation-missing-reconciliation-details-test.js) | Payment reconciliation detail validation - missing reconciliation details | C1, C2 and B - with missing reconciliation details - should succeed, ignoring these values | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [payment-reconciliation-detail-validation](./not-implemented/payment-reconciliation-detail-validation-test.js) | Payment reconciliation detail validation | C1, C2 and B - including reconciliation details - should succeed, ignoring these values | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
