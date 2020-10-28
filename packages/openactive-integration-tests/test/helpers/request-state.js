@@ -6,6 +6,7 @@ const { generateUuid } = require('./generate-uuid');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
@@ -30,7 +31,7 @@ function isResponse(response) {
 
 class RequestState {
   /**
-   * @param {InstanceType<import('./logger')['Logger']>} logger
+   * @param {BaseLoggerType} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
    *   one will be generated randomly
