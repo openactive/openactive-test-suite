@@ -52,6 +52,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  *   logger: InstanceType<typeof Logger>,
  *   state: InstanceType<typeof RequestState>,
  *   flow: InstanceType<typeof FlowHelper>,
+ *   opportunityType?: string | null,
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
@@ -242,7 +243,7 @@ class FeatureHelper {
     // eslint-disable-next-line no-unused-vars
     function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType) {
       if (opportunityType != null) {
-        configuration.unmatchedOpportunityCriteria.forEach(criteria => {
+        configuration.unmatchedOpportunityCriteria.forEach((criteria) => {
           describe(`${criteria} opportunity feed items`, function () {
             it(`should be no events matching the [${criteria}](https://openactive.io/test-interface#${criteria}) criteria in the '${opportunityType}' feed(s)`, async () => {
               const requestHelper = new RequestHelper(logger);
@@ -250,7 +251,7 @@ class FeatureHelper {
               chakram.expect(response).to.have.status(204);
             });
           });
-        })
+        });
       }
     });
   }
