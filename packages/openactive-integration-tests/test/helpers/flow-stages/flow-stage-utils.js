@@ -101,6 +101,43 @@ const FlowStageUtils = {
    * Creates a `describe(..)` block in which:
    *
    * 1. Runs the flow stage in a `beforeAll(..)` block.
+   * 2. (Depending on the value of `checks`) Runs success checks and validation checks of the response in `it(..)` blocks.
+   * 3. Optionally runs extra tests.
+   *
+   * @param {object} checks
+   * @param {boolean} checks.doCheckSuccess If true, success checks will be run
+   * @param {boolean} checks.doCheckIsValid If true, validation will be run
+   * @param {UnknownFlowStageType} flowStage
+   * @param {() => void} [itAdditionalTests] Additional tests which will
+   *   be run after success and validation tests have run.
+   *   These tests need to create `it(..)` blocks for each of the new tests.
+   *   The tests will be run within the same `describe(..)` block as
+   *   success/validation tests.
+   */
+  describeRunAndRunChecks(checks, flowStage, itAdditionalTests) {
+    if (!flowStage.shouldDescribeFlowStage) {
+      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStage.getLoggableStageName()} as shouldDescribeFlowStage is false`);
+    }
+    describe(flowStage.testName, () => {
+      flowStage.beforeSetup();
+
+      if (checks.doCheckSuccess) {
+        flowStage.itSuccessChecks();
+      }
+      if (checks.doCheckIsValid) {
+        flowStage.itValidationTests();
+      }
+
+      if (itAdditionalTests) {
+        itAdditionalTests();
+      }
+    });
+  },
+
+  /**
+   * Creates a `describe(..)` block in which:
+   *
+   * 1. Runs the flow stage in a `beforeAll(..)` block.
    * 2. Runs success checks and validation checks of the response in `it(..)` blocks.
    * 3. Optionally runs extra tests.
    *
@@ -112,19 +149,28 @@ const FlowStageUtils = {
    *   success/validation tests.
    */
   describeRunAndCheckIsSuccessfulAndValid(flowStage, itAdditionalTests) {
-    if (!flowStage.shouldDescribeFlowStage) {
-      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStage.getLoggableStageName()} as shouldDescribeFlowStage is false`);
-    }
-    describe(flowStage.testName, () => {
-      flowStage
-        .beforeSetup()
-        .itSuccessChecks()
-        .itValidationTests();
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: true }, flowStage, itAdditionalTests);
+  },
 
-      if (itAdditionalTests) {
-        itAdditionalTests();
-      }
-    });
+  /**
+   * Use for a FlowStage which is expected to return a (valid) error response.
+   *
+   * Creates a `describe(..)` block in which:
+   *
+   * 1. Runs the flow stage in a `beforeAll(..)` block.
+   * 2. Runs validation checks of the response in `it(..)` blocks.
+   *   NOTE: Success checks are not run
+   * 3. Optionally runs extra tests.
+   *
+   * @param {UnknownFlowStageType} flowStage
+   * @param {() => void} [itAdditionalTests] Additional tests which will
+   *   be run after success and validation tests have run.
+   *   These tests need to create `it(..)` blocks for each of the new tests.
+   *   The tests will be run within the same `describe(..)` block as
+   *   success/validation tests.
+   */
+  describeRunAndCheckIsValid(flowStage, itAdditionalTests) {
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: false }, flowStage, itAdditionalTests);
   },
 };
 
