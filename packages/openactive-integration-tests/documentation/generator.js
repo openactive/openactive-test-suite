@@ -1,3 +1,4 @@
+// TODO fix this file so that it no longer needs to disable these rules
 /* eslint-disable no-use-before-define */
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
@@ -68,7 +69,7 @@ const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (
 
 // Load feature.json files
 /** @type {FeatureMetadataItem[]} */
-let featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function(file) {
+let featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
@@ -85,6 +86,7 @@ featureMetadata.forEach((f) => {
       criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
     });
   });
+  // eslint-disable-next-line no-param-reassign
   f.criteriaRequirement = criteriaRequirement;
 });
 
@@ -95,12 +97,12 @@ fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function (err) {
   } else {
     console.log(`FILE SAVED: ${INDEX_FILE}`);
   }
-}); 
+});
 
 featureMetadata.forEach((f) => {
   const filename = `${FEATURES_ROOT}${f.category}/${f.identifier}/README.md`;
   fs.writeFile(filename, renderFeatureReadme(f), function (err) {
-    if(err) {
+    if (err) {
       process.exitCode = 1;
       console.error(err);
     } else {
@@ -144,7 +146,7 @@ The tests for these features are fully stubbed, and are not yet implemented.
 |----------|---------|---------------|-------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 
-  `
+  `;
 }
 
 /**
@@ -155,34 +157,35 @@ function renderFeatureIndexFeatureFragment(f) {
 `;
 }
 
-function renderFeatureIndexFeatureFragmentOld(f) {
-  return `
-#### ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md))
+// TODO - unused function - delete if not needed
+// function renderFeatureIndexFeatureFragmentOld(f) {
+//   return `
+// #### ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md))
 
-${f.description}
+// ${f.description}
 
-${f.specificationReference}
-${renderCriteriaRequired(f.criteriaRequirement)}
+// ${f.specificationReference}
+// ${renderCriteriaRequired(f.criteriaRequirement)}
 
-`;
-}
+// `;
+// }
 
 /**
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureReadme(f) {
-  const implementedTests = tests.filter(t => t.testFeature == f.identifier && t.testFeatureImplemented);
-  const notImplementedTests =  tests.filter(t => t.testFeature == f.identifier && !t.testFeatureImplemented);
+  const implementedTests = tests.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented);
+  const notImplementedTests = tests.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented);
 
   return `[< Return to Overview](../../README.md)
 # ${f.name} (${f.identifier})
 
 ${f.description}
-${f.explainer ? '\n' + f.explainer : ''}${f.requiredCondition ? '\n' + f.requiredCondition : ''}
+${f.explainer ? `\n${f.explainer}` : ''}${f.requiredCondition ? `\n${f.requiredCondition}` : ''}
 
 ${f.specificationReference}
 
-Coverage Status: **${f.coverageStatus}**${f.links ? '\n\nSee also: ' + f.links.map(l => `[${l.name}](${l.href})`).join(', ') : ''}
+Coverage Status: **${f.coverageStatus}**${f.links ? `\n\nSee also: ${f.links.map(l => `[${l.name}](${l.href})`).join(', ')}` : ''}
 ${renderCriteriaRequired(f.criteriaRequirement, `### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured \`bookableOpportunityTypesInScope\`) for the configured primary Seller in order to use \`useRandomOpportunities: true\`. Alternatively the following \`testOpportunityCriteria\` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for \`useRandomOpportunities: false\`.
 
@@ -239,7 +242,7 @@ ${notImplementedTests.map(t => renderFeatureTest(t)).join('')}` : ''}`;
  */
 function renderFeatureTest(t) {
   return `| [${t.testIdentifier}](./${renderFeatureTestPath(t)}) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
-`
+`;
 }
 
 /**
