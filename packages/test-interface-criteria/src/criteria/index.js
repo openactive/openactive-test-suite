@@ -1,6 +1,7 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { TestOpportunityBookableFree } = require('./TestOpportunityBookableFree');
-const { TestOpportunityBookablePaid } = require('./TestOpportunityBookablePaid');
+const { TestOpportunityBookableNonFree } = require('./TestOpportunityBookableNonFree');
+const { TestOpportunityBookableUsingPayment } = require('./TestOpportunityBookableUsingPayment');
 const { TestOpportunityBookableNoSpaces } = require('./TestOpportunityBookableNoSpaces');
 const { TestOpportunityBookableFiveSpaces } = require('./TestOpportunityBookableFiveSpaces');
 const { TestOpportunityBookableWithinValidFromBeforeStartDate } = require('./TestOpportunityBookableWithinValidFromBeforeStartDate');
@@ -8,18 +9,16 @@ const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookabl
 const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportunityNotBookableViaAvailableChannel');
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
-const { TestOpportunityBookablePaidPrepaymentOptional } = require('./TestOpportunityBookablePaidPrepaymentOptional');
-const { TestOpportunityBookableFreePrepaymentUnavailable } = require('./TestOpportunityBookableFreePrepaymentUnavailable');
-const { TestOpportunityBookablePaidPrepaymentUnavailable } = require('./TestOpportunityBookablePaidPrepaymentUnavailable');
-const { TestOpportunityBookablePaidPrepaymentRequired } = require('./TestOpportunityBookablePaidPrepaymentRequired');
-const { TestOpportunityBookableFreePrepaymentUnspecified } = require('./TestOpportunityBookableFreePrepaymentUnspecified');
-const { TestOpportunityBookablePaidPrepaymentUnspecified } = require('./TestOpportunityBookablePaidPrepaymentUnspecified');
+const { TestOpportunityBookableNonFreePrepaymentOptional } = require('./TestOpportunityBookableNonFreePrepaymentOptional');
+const { TestOpportunityBookableNonFreePrepaymentUnavailable } = require('./TestOpportunityBookableNonFreePrepaymentUnavailable');
+const { TestOpportunityBookableNonFreePrepaymentRequired } = require('./TestOpportunityBookableNonFreePrepaymentRequired');
 
 module.exports = {
   allCriteria: [
     TestOpportunityBookable,
     TestOpportunityBookableFree,
-    TestOpportunityBookablePaid,
+    TestOpportunityBookableNonFree,
+    TestOpportunityBookableUsingPayment,
     TestOpportunityBookableNoSpaces,
     TestOpportunityBookableFiveSpaces,
     TestOpportunityBookableWithinValidFromBeforeStartDate,
@@ -27,11 +26,8 @@ module.exports = {
     TestOpportunityNotBookableViaAvailableChannel,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
-    TestOpportunityBookablePaidPrepaymentOptional,
-    TestOpportunityBookableFreePrepaymentUnavailable,
-    TestOpportunityBookablePaidPrepaymentUnavailable,
-    TestOpportunityBookablePaidPrepaymentRequired,
-    TestOpportunityBookableFreePrepaymentUnspecified,
-    TestOpportunityBookablePaidPrepaymentUnspecified,
+    TestOpportunityBookableNonFreePrepaymentOptional,
+    TestOpportunityBookableNonFreePrepaymentUnavailable,
+    TestOpportunityBookableNonFreePrepaymentRequired,
   ],
 };
