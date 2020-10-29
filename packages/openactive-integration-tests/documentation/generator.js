@@ -7,7 +7,7 @@ const fs = require('fs');
 const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
-
+const defaultConfig = require('../config/default.json');
 
 const INDEX_FILE = './test/features/README.md';
 const FEATURES_ROOT = './test/features/';
@@ -60,7 +60,9 @@ const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (
   // TODO: Verify that the data actually conforms to the type.
   const data = /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
-  chai.expect(expectedPath).to.equal(file, `Expected ${file} to contain metadata matching its path`);
+  chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
+  // eslint-disable-next-line no-unused-expressions
+  chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.be.true;
   return data;
 });
 
