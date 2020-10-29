@@ -4,7 +4,7 @@ const { multipleOpportunityCriteriaTemplate, successTests } = require('../../com
 const { IMPLEMENTED_FEATURES } = global;
 
 const testOpportunityCriteria = 'TestOpportunityBookableNonFreePrepaymentRequired';
-const expectedPrepayment = IMPLEMENTED_FEATURES['prepayment-optional'] || IMPLEMENTED_FEATURES['prepayment-unavailable'] ? 'https://openactive.io/Required' : null;
+const expectedPrepayment = (IMPLEMENTED_FEATURES['prepayment-optional'] || IMPLEMENTED_FEATURES['prepayment-unavailable']) ? 'https://openactive.io/Required' : null;
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',

@@ -4,7 +4,7 @@ const { multipleOpportunityCriteriaTemplate, errorTests } = require('../../commo
 const { IMPLEMENTED_FEATURES } = global;
 
 const testOpportunityCriteria = 'TestOpportunityBookableFree';
-const expectedPrepayment = IMPLEMENTED_FEATURES['prepayment-optional'] || IMPLEMENTED_FEATURES['prepayment-unavailable'] ? 'https://openactive.io/Unavailable' : null;
+const expectedPrepayment = (IMPLEMENTED_FEATURES['prepayment-optional'] || IMPLEMENTED_FEATURES['prepayment-unavailable']) ? 'https://openactive.io/Unavailable' : null;
 const expectedError = 'TotalPaymentDueMismatchError';
 const bReqTemplateRef = 'incorrectTotalPaymentDuePrice';
 
