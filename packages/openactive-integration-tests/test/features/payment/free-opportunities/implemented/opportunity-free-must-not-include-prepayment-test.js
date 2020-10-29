@@ -4,7 +4,7 @@ FeatureHelper.describeUnmatchedCriteriaFeature(module, {
   testCategory: 'payment',
   testFeature: 'free-opportunities',
   testFeatureImplemented: true,
-  testIdentifier: 'opportunity-free-integrity',
-  testName: 'Free opportunities must not have a `prepayment` value of either Optional or Required, or not specified',
+  testIdentifier: 'opportunity-free-must-not-include-prepayment',
+  testName: 'Free opportunities must have either a `prepayment` value of Unspecified, or have no `prepayment` specified',
   unmatchedOpportunityCriteria: ['TestOpportunityBookableFreePrepaymentOptional', 'TestOpportunityBookableFreePrepaymentRequired'],
 });
