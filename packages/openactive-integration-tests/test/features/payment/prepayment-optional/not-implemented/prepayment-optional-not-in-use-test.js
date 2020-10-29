@@ -7,6 +7,6 @@ FeatureHelper.describeUnmatchedCriteriaFeature(module, {
   testIdentifier: 'prepayment-optional-not-in-use',
   testName: 'The `prepayment` property must not contain the value https://openactive.io/Optional',
   unmatchedOpportunityCriteria: [
-    'TestOpportunityBookablePaidPrepaymentOptional',
+    'TestOpportunityBookableNonFreePrepaymentOptional',
   ],
 });

@@ -51,4 +51,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [prepayment-unavailable-not-in-use](./not-implemented/prepayment-unavailable-not-in-use-test.js) | The `prepayment` property must not contain the value https://openactive.io/Unavailable | Assert that no opportunities that match criteria 'TestOpportunityBookablePaidPrepaymentUnavailable' are available in the opportunity feeds. |  |
+| [prepayment-unavailable-not-in-use](./not-implemented/prepayment-unavailable-not-in-use-test.js) | The `prepayment` property must not contain the value https://openactive.io/Unavailable | Assert that no opportunities that match criteria 'TestOpportunityBookableNonFreePrepaymentUnavailable' are available in the opportunity feeds. |  |
