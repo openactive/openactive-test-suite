@@ -8,3 +8,4 @@ FeatureHelper.describeUnmatchedCriteriaFeature(module, {
   testName: 'Free opportunities must have either a `prepayment` value of Unspecified, or have no `prepayment` specified',
   unmatchedOpportunityCriteria: ['TestOpportunityBookableFreePrepaymentOptional', 'TestOpportunityBookableFreePrepaymentRequired'],
 });
+// TODO: This check should eventually be moved into the validator

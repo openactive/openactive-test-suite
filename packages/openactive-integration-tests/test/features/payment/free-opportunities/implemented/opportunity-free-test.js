@@ -20,6 +20,3 @@ FeatureHelper.describeFeature(module, {
   multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplate(testOpportunityCriteria),
 },
 successTests(expectedPrepayment));
-
-// TODO: Assert that any TestOpportunityBookableFree returned either has a `prepayment` value of `https://openactive.io/Unavailable` or has no `prepayment` value specified
-// TODO: This check should eventually be moved into the validator
