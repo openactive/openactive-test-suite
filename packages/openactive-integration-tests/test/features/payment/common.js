@@ -1,39 +1,37 @@
-// TODO TODO type signatures, use FlowStages
-const chakram = require('chakram');
 const { expect } = require('chai');
-const { GetMatch, C1, C2, B } = require('../../shared-behaviours');
-const { RequestState } = require('../../helpers/request-state');
-const { FlowHelper } = require('../../helpers/flow-helper');
+const { FlowStageRecipes, FlowStageUtils } = require('../../helpers/flow-stages');
+const { itShouldReturnAnOpenBookingError } = require('../../shared-behaviours/errors');
 
 /**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
- * @typedef {import("../../shared-behaviours/common").C1} C1
- * @typedef {import("../../shared-behaviours/common").C1} C2
- * @typedef {import("../../shared-behaviours/common").C1} B
  * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ * @typedef {import('../../helpers/feature-helper').RunTestsFn} RunTestsFn
+ * @typedef {import('../../helpers/flow-stages/fetch-opportunities').FetchOpportunitiesFlowStageType} FetchOpportunitiesFlowStageType
+ * @typedef {import('../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+ * @typedef {import('../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
  */
 
 /**
- * @param {string} expected
- * @param {C1|C2|B} stage
- * @param {() => ChakramResponse} responseAccessor This is wrapped in a
- *   function because the actual response won't be available until the
- *   asynchronous before() block has completed.
+ * @typedef {'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable'} Prepayment
  */
-function itShouldHavePrepayment(expected, stage, responseAccessor) {
-  it(expected === null ? 'should not return `totalPaymentDue.prepayment`' : `should return \`totalPaymentDue.prepayment\` '\`${expected}\`'`, () => {
-    stage.expectResponseReceived();
-    const response = responseAccessor().body;
 
-    if (expected === null) {
-      expect(response.totalPaymentDue).to.not.have.property('prepayment');
+/**
+ * @param {string | null} expected
+ * @param {() => unknown} getOrder
+ */
+function itShouldHavePrepayment(expected, getOrder) {
+  it(expected == null ? 'should not return `totalPaymentDue.prepayment`' : `should return \`totalPaymentDue.prepayment\` '\`${expected}\`'`, () => {
+    const order = getOrder();
+
+    if (expected == null) {
+      expect(order).to.have.property('totalPaymentDue');
+      expect(order).to.not.have.nested.property('totalPaymentDue.prepayment');
     } else {
-      expect(response.totalPaymentDue.prepayment).to.equal(expected);
+      expect(order).to.have.nested.property('totalPaymentDue.prepayment', expected);
     }
   });
 }
 
-function multipleOpportunityCriteriaTemplate(testOpportunityCriteria) {
+function multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria) {
   return opportunityType => [{
     opportunityType,
     opportunityCriteria: testOpportunityCriteria,
@@ -42,124 +40,70 @@ function multipleOpportunityCriteriaTemplate(testOpportunityCriteria) {
   }];
 }
 
-function commonTests(expectedPrepayment, state, flow, logger, orderItemCriteria) {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
-  });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', () => {
-    const c1 = (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldHavePrepayment(expectedPrepayment, c1, () => state.c1Response);
-  });
-
-  describe('C2', () => {
-    const c2 = (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldHavePrepayment(expectedPrepayment, c2, () => state.c2Response);
-  });
-}
-
-function commonErrorTests(expectedPrepayment, expectedError, state, flow, logger, orderItemCriteria) {
-  commonTests(expectedPrepayment, state, flow, logger, orderItemCriteria);
-
-  describe('B', () => {
-    const b = (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    it('should return a response', () => {
-      b.expectResponseReceived();
-    });
-
-    it('should return 400', () => {
-      chakram.expect(state.bResponse).to.have.status(400);
-    });
-
-    it(`should return a ${expectedError}`, () => {
-      expect(state.bResponse.body['@type']).to.equal(expectedError);
-    });
-  });
-}
-
 /**
- * @param {"https://openactive.io/Required"|"https://openactive.io/Optional"|"https://openactive.io/Unavailable"} expectedPrepayment
- * @param {BReqTemplateRef | null} [bReqTemplateRef]
+ * @param {string | null} expectedPrepayment
+ * @param {FetchOpportunitiesFlowStageType} fetchOpportunities
+ * @param {C1FlowStageType} c1
+ * @param {C2FlowStageType} c2
  */
-function successTests(expectedPrepayment, bReqTemplateRef = null) {
-  return (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-    if (bReqTemplateRef != null) {
-      // eslint-disable-next-line no-param-reassign
-      state = new RequestState(logger, { bReqTemplateRef });
-      // eslint-disable-next-line no-param-reassign
-      flow = new FlowHelper(state);
-    }
-
-    commonTests(expectedPrepayment, state, flow, logger, orderItemCriteria);
-
-    describe('B', () => {
-      const b = (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      itShouldHavePrepayment(expectedPrepayment, b, () => state.bResponse);
-    });
-  };
+function commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2) {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldHavePrepayment(expectedPrepayment, () => c1.getOutput().httpResponse.body);
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldHavePrepayment(expectedPrepayment, () => c2.getOutput().httpResponse.body);
+  });
 }
 
 /**
- * @param {"https://openactive.io/Required"|"https://openactive.io/Optional"|"https://openactive.io/Unavailable"} expectedPrepayment
- * @param {"MissingPaymentDetailsError"|"UnnecessaryPaymentDetailsError"|"IncompletePaymentDetailsError"|"TotalPaymentDueMismatchError"} expectedError
+ * @param {Prepayment | null} expectedPrepayment
  * @param {BReqTemplateRef} bReqTemplateRef
  */
-function errorTests(expectedPrepayment, expectedError, bReqTemplateRef = null) {
-  if (bReqTemplateRef == null) {
-    return (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-      commonErrorTests(expectedPrepayment, expectedError, state, flow, logger, orderItemCriteria);
-    };
-  }
+function successTests(expectedPrepayment, bReqTemplateRef) {
+  /** @type {RunTestsFn} */
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+    // ## Initiate Flow Stages
+    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef });
 
+    // ## Set up tests
+    commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+      itShouldHavePrepayment(expectedPrepayment, () => b.getOutput().httpResponse.body);
+    });
+  };
+  return runTestsFn;
+}
+
+/**
+ * @param {Prepayment | null} expectedPrepayment
+ * @param {'MissingPaymentDetailsError' | 'UnnecessaryPaymentDetailsError' | 'IncompletePaymentDetailsError' | 'TotalPaymentDueMismatchError'} expectedError
+ * @param {BReqTemplateRef} bReqTemplateRef
+ */
+function errorTests(expectedPrepayment, expectedError, bReqTemplateRef) {
   const missingOrUnnecessary = expectedError === 'MissingPaymentDetailsError'
     ? 'Missing'
     : 'Unnecessary';
 
-  return (configuration, orderItemCriteria, featureIsImplemented, logger) => {
+  /** @type {RunTestsFn} */
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     describe(`${missingOrUnnecessary} payment property at B`, () => {
-      const state = new RequestState(logger, { bReqTemplateRef });
-      const flow = new FlowHelper(state);
+      // ## Initiate Flow Stages
+      const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef });
 
-      commonErrorTests(expectedPrepayment, expectedError, state, flow, logger, orderItemCriteria);
+      // ## Set up tests
+      commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
+      FlowStageUtils.describeRunAndCheckIsValid(b, () => {
+        itShouldReturnAnOpenBookingError(expectedError, 400, () => b.getOutput().httpResponse);
+      });
     });
   };
+  return runTestsFn;
 }
 
 module.exports = {
   itShouldHavePrepayment,
-  multipleOpportunityCriteriaTemplate,
+  multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria,
   successTests,
   errorTests,
 };

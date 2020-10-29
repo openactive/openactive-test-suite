@@ -1,5 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { multipleOpportunityCriteriaTemplate, errorTests } = require('../../common');
+const { multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria, errorTests } = require('../../common');
 
 const testOpportunityCriteria = 'TestOpportunityBookableNonFreePrepaymentOptional';
 const expectedPrepayment = 'https://openactive.io/Optional';
@@ -16,6 +16,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria,
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // temporarily disable control in multiple mode until refactoring complete
-  multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplate(testOpportunityCriteria),
+  multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria),
 },
 errorTests(expectedPrepayment, expectedError, bReqTemplateRef));

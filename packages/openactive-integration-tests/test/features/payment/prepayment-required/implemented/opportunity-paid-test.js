@@ -1,5 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { multipleOpportunityCriteriaTemplate, successTests } = require('../../common');
+const { multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria, successTests } = require('../../common');
 
 const { IMPLEMENTED_FEATURES } = global;
 
@@ -16,6 +16,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria,
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // temporarily disable control in multiple mode until refactoring complete
-  multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplate(testOpportunityCriteria),
+  multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria),
 },
 successTests(expectedPrepayment, 'standardPaid'));

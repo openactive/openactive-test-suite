@@ -1,5 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { multipleOpportunityCriteriaTemplate, errorTests } = require('../../common');
+const { multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria, errorTests } = require('../../common');
 
 const { IMPLEMENTED_FEATURES } = global;
 
@@ -19,6 +19,6 @@ FeatureHelper.describeFeature(module, {
   // This must also be TestOpportunityBookableFree as the payment property is only disallowed if ALL items are free.
   controlOpportunityCriteria: 'TestOpportunityBookableFree',
   // temporarily disable control in multiple mode until refactoring complete (TODO TODO)
-  multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplate(testOpportunityCriteria),
+  multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria),
 },
 errorTests(expectedPrepayment, expectedError, bReqTemplateRef));

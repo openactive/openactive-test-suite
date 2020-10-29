@@ -75,6 +75,9 @@ class C1FlowStage extends FlowStage {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof C1FlowStage>} C1FlowStageType
+ */
 
 module.exports = {
   C1FlowStage,
