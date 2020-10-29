@@ -183,12 +183,13 @@ function createIncorrectTotalPaymentDuePriceBReq(data) {
 }
 
 /**
- * Incorrect paid B request without payment property.
- * Payment property is required.
+ * B request where the `payment` property is omitted. This may be used when prepayment
+ * is not required, for free items or in order to provoke an error when a prepayment
+ * is expected.
  *
  * @param {BReqTemplateData} data
  */
-function createIncorrectOrderDueToMissingPaymentProperty(data) {
+function createNoPaymentBReq(data) {
   const req = createStandardPaidBReq(data);
   return dissocPath(['payment'], req);
 }
@@ -262,7 +263,7 @@ const bReqTemplates = {
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
-  incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
+  noPayment: createNoPaymentBReq,
   incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,

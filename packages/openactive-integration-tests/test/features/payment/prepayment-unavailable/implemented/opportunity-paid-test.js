@@ -4,7 +4,7 @@ const { successTests } = require('../../common');
 const testOpportunityCriteria = 'TestOpportunityBookableNonFreePrepaymentUnavailable';
 const controlOpportunityCriteria = 'TestOpportunityBookableFree';
 const expectedPrepayment = 'https://openactive.io/Unavailable';
-const bReqTemplateRef = 'incorrectOrderDueToMissingPaymentProperty';
+const bReqTemplateRef = 'noPayment';
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',

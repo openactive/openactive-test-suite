@@ -10,6 +10,7 @@ const { FlowHelper } = require('../../helpers/flow-helper');
  * @typedef {import("../../shared-behaviours/common").C1} C1
  * @typedef {import("../../shared-behaviours/common").C1} C2
  * @typedef {import("../../shared-behaviours/common").C1} B
+ * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
  */
 
 /**
@@ -104,6 +105,7 @@ function commonErrorTests(expectedPrepayment, expectedError, state, flow, logger
 
 /**
  * @param {"https://openactive.io/Required"|"https://openactive.io/Optional"|"https://openactive.io/Unavailable"} expectedPrepayment
+ * @param {BReqTemplateRef | null} [bReqTemplateRef]
  */
 function successTests(expectedPrepayment, bReqTemplateRef = null) {
   return (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
@@ -132,7 +134,7 @@ function successTests(expectedPrepayment, bReqTemplateRef = null) {
 /**
  * @param {"https://openactive.io/Required"|"https://openactive.io/Optional"|"https://openactive.io/Unavailable"} expectedPrepayment
  * @param {"MissingPaymentDetailsError"|"UnnecessaryPaymentDetailsError"|"IncompletePaymentDetailsError"|"TotalPaymentDueMismatchError"} expectedError
- * @param {"incorrectOrderDueToMissingPaymentProperty"|"incorrectOrderDueToUnnecessaryPaymentProperty"|"incorrectOrderDueToMissingIdentifierInPaymentProperty"|"incorrectTotalPaymentDuePrice"} bReqTemplateRef
+ * @param {BReqTemplateRef} bReqTemplateRef
  */
 function errorTests(expectedPrepayment, expectedError, bReqTemplateRef = null) {
   if (bReqTemplateRef == null) {
