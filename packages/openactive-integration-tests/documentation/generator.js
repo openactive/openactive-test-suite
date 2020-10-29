@@ -59,11 +59,12 @@ global.documentationGenerationMode = true;
 const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
+  // ## Load the test
   const data = /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
+  // ## Validate the test metadata
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
   chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
-  // eslint-disable-next-line no-unused-expressions
-  chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.be.true;
+  chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
   return data;
 });
 
