@@ -156,13 +156,34 @@ function createNoCustomerEmailBReq(data) {
 }
 
 /**
- * B request with missing customer.email
+ * B request with missing broker.name
  *
  * @param {BReqTemplateData} data
  */
 function createNoBrokerNameBReq(data) {
   const req = createStandardFreeOrPaidBReq(data);
   return dissocPath(['broker', 'name'], req);
+}
+
+/**
+ * B request with missing broker
+ *
+ * @param {BReqTemplateData} data
+ */
+function createNoBrokerBReq(data) {
+  const req = createStandardFreeOrPaidBReq(data);
+  return dissocPath(['broker'], req);
+}
+
+/**
+ * B request with missing broker
+ *
+ * @param {BReqTemplateData} data
+ */
+function createBReqWithoutCustomerAndBroker(data) {
+  let req = createStandardFreeOrPaidBReq(data);
+  req = dissocPath(['broker'], req);
+  return dissocPath(['customer'], req);
 }
 
 /**
@@ -209,7 +230,7 @@ function createIncorrectOrderDueToMissingIdentifierInPaymentProperty(data) {
  * @param {BReqTemplateData} data
  */
 function createBReqWithoutCustomer(data) {
-  const req = createStandardPaidBReq(data);
+  const req = createStandardFreeOrPaidBReq(data);
   return dissocPath(['customer'], req);
 }
 
@@ -251,6 +272,8 @@ const bReqTemplates = {
   standard: createStandardFreeOrPaidBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
+  noBroker: createNoBrokerBReq,
+  noCustomerAndNoBroker: createBReqWithoutCustomerAndBroker,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
   incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,

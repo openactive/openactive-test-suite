@@ -26,16 +26,17 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {number} args.totalPaymentDue
  * @param {string} [args.orderProposalVersion]
  * @param {RequestHelperType} args.requestHelper
+ * @param {string | null} args.brokerRole
  * @returns {Promise<Output>}
  */
-async function runB({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, orderProposalVersion, requestHelper }) {
+async function runB({ templateRef, brokerRole, uuid, sellerId, orderItems, totalPaymentDue, orderProposalVersion, requestHelper }) {
   const params = {
     sellerId,
     orderItems,
     totalPaymentDue,
     orderProposalVersion,
   };
-  const response = await requestHelper.putOrder(uuid, params, null, templateRef);
+  const response = await requestHelper.putOrder(uuid, params, brokerRole, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
@@ -52,6 +53,7 @@ class BFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {BReqTemplateRef} [args.templateRef]
+   * @param {string | null} args.brokerRole
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {() => Input} args.getInput
    * @param {BaseLoggerType} args.logger
@@ -59,7 +61,7 @@ class BFlowStage extends FlowStage {
    * @param {string} args.uuid
    * @param {string} args.sellerId
    */
-  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ templateRef, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
     super({
       prerequisite,
       getInput,
@@ -68,6 +70,7 @@ class BFlowStage extends FlowStage {
         const { orderItems, totalPaymentDue, orderProposalVersion } = input;
         return await runB({
           templateRef,
+          brokerRole,
           uuid,
           sellerId,
           orderItems,
