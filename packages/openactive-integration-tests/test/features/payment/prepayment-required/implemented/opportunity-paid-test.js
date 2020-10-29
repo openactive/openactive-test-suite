@@ -18,4 +18,4 @@ FeatureHelper.describeFeature(module, {
   // temporarily disable control in multiple mode until refactoring complete
   multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplate(testOpportunityCriteria),
 },
-successTests(expectedPrepayment));
+successTests(expectedPrepayment, 'standardPaid'));
