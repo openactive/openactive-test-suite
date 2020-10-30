@@ -72,7 +72,7 @@ const FlowStageRecipes = {
     });
 
     return {
-      requestHelper,
+      defaultFlowStageParams,
       fetchOpportunities,
       c1,
       c2,
