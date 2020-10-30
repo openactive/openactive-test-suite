@@ -8,11 +8,9 @@ const { itShouldReturnAnOpenBookingError } = require('../../shared-behaviours/er
  * @typedef {import('../../helpers/flow-stages/fetch-opportunities').FetchOpportunitiesFlowStageType} FetchOpportunitiesFlowStageType
  * @typedef {import('../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
  * @typedef {import('../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ * @typedef {import('../../helpers/flow-stages/flow-stage').Prepayment} Prepayment
  */
 
-/**
- * @typedef {'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable'} Prepayment
- */
 
 /**
  * @param {string | null} expected

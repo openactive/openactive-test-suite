@@ -3,7 +3,7 @@ const { multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria, success
 
 const testOpportunityCriteria = 'TestOpportunityBookableNonFreePrepaymentOptional';
 const expectedPrepayment = 'https://openactive.io/Optional';
-const bReqTemplateRef = 'standardPaid';
+const bReqTemplateRef = 'paidWithPayment';
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',

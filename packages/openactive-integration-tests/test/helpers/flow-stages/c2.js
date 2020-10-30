@@ -1,4 +1,4 @@
-const { getTotalPaymentDueFromOrder, getOrderId } = require('../order-utils');
+const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -13,7 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
- * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId'>>} Output
  */
 
 /**
@@ -36,6 +36,7 @@ async function runC2({ templateRef, uuid, sellerId, orderItems, requestHelper })
   return {
     httpResponse: response,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
+    prepayment: getPrepaymentFromOrder(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),
   };
 }
