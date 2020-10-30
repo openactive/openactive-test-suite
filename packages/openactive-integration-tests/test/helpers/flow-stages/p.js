@@ -9,10 +9,12 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
+ * @typedef {import('./flow-stage').Prepayment} Prepayment
  */
 
 /**
- * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue'>>} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue'>>
+ *  & Partial<Pick<FlowStageOutput, 'prepayment'>>} Input
  * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderProposalVersion' | 'orderId'>>} Output
  */
 
@@ -23,14 +25,16 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string} args.sellerId
  * @param {OrderItem[]} args.orderItems
  * @param {number} args.totalPaymentDue
+ * @param {Prepayment} args.prepayment
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
  */
-async function runP({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, requestHelper }) {
+async function runP({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, prepayment, requestHelper }) {
   const params = {
     sellerId,
     orderItems,
     totalPaymentDue,
+    prepayment,
   };
   const response = await requestHelper.putOrderProposal(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -64,13 +68,14 @@ class PFlowStage extends FlowStage {
       getInput,
       testName: 'P',
       async runFn(input) {
-        const { orderItems, totalPaymentDue } = input;
+        const { orderItems, totalPaymentDue, prepayment } = input;
         return await runP({
           templateRef,
           uuid,
           sellerId,
           orderItems,
           totalPaymentDue,
+          prepayment,
           requestHelper,
         });
       },

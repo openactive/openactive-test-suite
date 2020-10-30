@@ -9,7 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
-const { createPaymentPart } = require('./common');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./common');
 
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
@@ -33,24 +33,6 @@ const { createPaymentPart } = require('./common');
  *   orderProposalVersion: string | null,
  * }} BReqTemplateData
  */
-
-/**
- * @param {BReqTemplateData} data
- * @returns {boolean}
- */
-function isPaidOpportunity(data) {
-  return data.totalPaymentDue > 0;
-}
-
-/**
- * Is `payment` property needed for B request?
- *
- * @param {BReqTemplateData} data
- * @returns {boolean}
- */
-function isPaymentAvailable(data) {
-  return isPaidOpportunity(data) && data.prepayment !== 'https://openactive.io/Unavailable';
-}
 
 /**
  * Some templates are meaningless if `payment` is unavailable.
