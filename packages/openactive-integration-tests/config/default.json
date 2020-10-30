@@ -61,7 +61,7 @@
     "opportunity-attendance-updates": null,
     "access-code-update-notifications": null,
     "access-pass-update-notifications": null,
-    "terms-of-service": null,
+    "terms-of-service": true,
     "terms-of-service-with-consent": null,
     "terms-of-service-with-consent-with-date-modified": null,
     "booking-partner-authentication": null,
