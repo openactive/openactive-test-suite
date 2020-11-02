@@ -44,7 +44,21 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
  */
 function assertPaymentIsAvailable(templateName, data) {
   if (!isPaymentAvailable(data)) {
-    throw new Error(`${templateName} B request incorrectly used for an Order for which prepayment is optional. Consider using another B request template or a different OpportunityCriteria`);
+    throw new Error(`${templateName} B request incorrectly used for an Order for which prepayment is unavailable. Consider using another B request template or a different OpportunityCriteria`);
+  }
+}
+
+/**
+ * Some templates are meaningless if `payment` is available.
+ * This assertion can therefore provide a helpful error for if a test criteria and
+ * B request template don't match up.
+ *
+ * @param {BReqTemplateRef} templateName
+ * @param {BReqTemplateData} data
+ */
+function assertPaymentIsUnvailable(templateName, data) {
+  if (isPaymentAvailable(data)) {
+    throw new Error(`${templateName} B request incorrectly used for an Order for which prepayment is available. Consider using another B request template or a different OpportunityCriteria`);
   }
 }
 
@@ -246,8 +260,13 @@ function createNoPaymentBReq(data) {
  * Paid B request with payment property. This is named "incorrect" as it is intended
  * to be used for a test in which the `payment` property is unnecessary (e.g.
  * prepayment=Unavailable).
+ *
+ * @param {BReqTemplateData} data
  */
-const createIncorrectOrderDueToUnnecessaryPaymentProperty = createPaidWithPaymentBReq;
+function createIncorrectOrderDueToUnnecessaryPaymentProperty(data) {
+  assertPaymentIsUnvailable('incorrectOrderDueToUnnecessaryPaymentProperty', data);
+  return createPaidWithPaymentBReq;
+}
 
 /**
  * Paid B request with payment property - though `payment.identifier` is missing.
@@ -260,6 +279,21 @@ const createIncorrectOrderDueToUnnecessaryPaymentProperty = createPaidWithPaymen
  */
 function createIncorrectOrderDueToMissingIdentifierInPaymentProperty(data) {
   assertPaymentIsAvailable('incorrectOrderDueToMissingIdentifierInPaymentProperty', data);
+  const req = createPaidWithPaymentBReq(data);
+  return dissocPath(['payment', 'identifier'], req);
+}
+
+/**
+ * Paid B request with unnecessary payment property - though `payment.identifier` is missing.
+ *
+ * This template differs from createIncorrectOrderDueToMissingIdentifierInPaymentProperty
+ * because it is for tests in which `payment` is supposed to be unavailable.
+ * It will therefore assert that `prepayment` is unavailable
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectOrderDueToUnnecessaryPaymentThoughPaymentIdentifierIsMissing(data) {
+  assertPaymentIsUnvailable('incorrectOrderDueToUnnecessaryPaymentThoughPaymentIdentifierIsMissing', data);
   const req = createPaidWithPaymentBReq(data);
   return dissocPath(['payment', 'identifier'], req);
 }
@@ -333,6 +367,7 @@ const bReqTemplates = {
   noPayment: createNoPaymentBReq,
   incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
+  incorrectOrderDueToUnnecessaryPaymentThoughPaymentIdentifierIsMissing: createIncorrectOrderDueToUnnecessaryPaymentThoughPaymentIdentifierIsMissing,
   noCustomer: createBReqWithoutCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
