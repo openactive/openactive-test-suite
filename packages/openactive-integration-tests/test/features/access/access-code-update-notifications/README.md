@@ -30,6 +30,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [access-code-update-notifications-test](./implemented/access-code-update-notifications-test-test.js) | Access code updated after B request. | Access code updated after B request is reflected in Orders feed. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [access-code-update-notifications](./implemented/access-code-update-notifications-test.js) | Access code updated after B request. | Access code updated after B request is reflected in Orders feed. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 

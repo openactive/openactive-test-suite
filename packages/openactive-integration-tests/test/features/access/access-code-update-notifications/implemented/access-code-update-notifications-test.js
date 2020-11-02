@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'access',
   testFeature: 'access-code-update-notifications',
   testFeatureImplemented: true,
-  testIdentifier: 'access-code-update-notifications-test',
+  testIdentifier: 'access-code-update-notifications',
   testName: 'Access code updated after B request.',
   testDescription: 'Access code updated after B request is reflected in Orders feed.',
   // The primary opportunity criteria to use for the primary OrderItem under test
