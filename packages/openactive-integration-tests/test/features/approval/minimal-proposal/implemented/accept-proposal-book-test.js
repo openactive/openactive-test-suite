@@ -69,6 +69,7 @@ FeatureHelper.describeFeature(module, {
     getInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
       totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
     }),
   });
   const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
