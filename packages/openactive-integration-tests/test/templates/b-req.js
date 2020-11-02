@@ -265,7 +265,7 @@ function createNoPaymentBReq(data) {
  */
 function createIncorrectOrderDueToUnnecessaryPaymentProperty(data) {
   assertPaymentIsUnvailable('incorrectOrderDueToUnnecessaryPaymentProperty', data);
-  return createPaidWithPaymentBReq;
+  return createPaidWithPaymentBReq(data);
 }
 
 /**
