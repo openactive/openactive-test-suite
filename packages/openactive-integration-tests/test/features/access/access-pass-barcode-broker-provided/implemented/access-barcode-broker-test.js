@@ -21,7 +21,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   /** @type {import('../../../../templates/b-req').AccessPassItem[]} */
   const accessPass = [{
     '@type': 'Barcode',
-    url: 'https://fallback.image.example.com/476ac24c694da79c5e33731ebbb5f1',
+    url: 'https://fallback.image.example.com/9dpe8EZX',
     text: '0123456789',
   }];
 
@@ -52,6 +52,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
     getInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
       totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
     }),
   });
 
