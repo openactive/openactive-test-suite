@@ -13,8 +13,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 /**
- * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue'>>
- *   & Partial<Pick<FlowStageOutput, 'orderProposalVersion' | 'prepayment'>>} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue' | 'prepayment'>>
+ *   & Partial<Pick<FlowStageOutput, 'orderProposalVersion'>>} Input
  * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId'>>} Output
  */
 
