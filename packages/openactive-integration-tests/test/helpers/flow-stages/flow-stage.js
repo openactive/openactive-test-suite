@@ -9,6 +9,10 @@ const pMemoize = require('p-memoize');
  */
 
 /**
+ * @typedef {'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable'} Prepayment
+ */
+
+/**
  * @typedef {object} FlowStageOutput State which may be outputted by a FlowStage
  * @property {ChakramResponse} [httpResponse] HTTP response, produced by some stages.
  *   e.g. C2 would return an httpResponse with the response from calling C2.
@@ -25,8 +29,13 @@ const pMemoize = require('p-memoize');
  * @property {string | null | undefined} [orderId] ID of the Order within the Booking
  *   System.
  *   Optional as a Booking System response may not include ID if there was an error.
- * @property {number | null | undefined} [totalPaymentDue] Optional as a Booking System
- *   response may not include totalPaymentDue if there was an error.
+ * @property {number | null | undefined} [totalPaymentDue] totalPaymentDue.price
+ *   from a Booking System Order response.
+ *   Optional as a Booking System response may not include totalPaymentDue if there
+ *   was an error.
+ * @property {Prepayment | null | undefined} [prepayment] totalPaymentDue.prepayment
+ *   from a Booking System Order response.
+ *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
  * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for

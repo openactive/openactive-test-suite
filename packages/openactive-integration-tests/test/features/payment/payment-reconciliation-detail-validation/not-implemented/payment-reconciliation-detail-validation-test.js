@@ -8,7 +8,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'payment-reconciliation-detail-validation',
   testName: 'Payment reconciliation detail validation',
   testDescription: 'C1, C2 and B - including reconciliation details - should succeed, ignoring these values',
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 notImplementedTest());
