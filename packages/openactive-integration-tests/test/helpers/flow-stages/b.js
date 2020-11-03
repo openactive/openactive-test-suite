@@ -98,6 +98,10 @@ class BFlowStage extends FlowStage {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof BFlowStage>} BFlowStageType
+ */
+
 module.exports = {
   BFlowStage,
 };
