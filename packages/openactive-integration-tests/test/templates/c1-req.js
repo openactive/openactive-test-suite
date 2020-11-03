@@ -58,6 +58,7 @@ function createStandardC1Req(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
     })),
     payment: createPaymentPart(false),
   };
@@ -73,9 +74,30 @@ function createNoBrokerNameC1Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C1 request with attendee details
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createAttendeeDetailsC1Req(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((o) => {
+    // eslint-disable-next-line no-param-reassign
+    o.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  });
+  return req;
+}
+
 const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
+  attendeeDetails: createAttendeeDetailsC1Req,
 };
 
 /**

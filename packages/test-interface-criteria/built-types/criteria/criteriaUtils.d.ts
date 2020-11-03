@@ -65,3 +65,23 @@ export function hasCapacityLimitOfOne(opportunity: Opportunity): boolean;
  * @type {OpportunityConstraint}
  */
 export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustHaveBookableOffer(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;

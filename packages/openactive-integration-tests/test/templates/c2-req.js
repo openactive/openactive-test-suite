@@ -66,6 +66,7 @@ function createStandardC2Req(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
     })),
     payment: createPaymentPart(false),
   };
@@ -91,11 +92,31 @@ function createNoBrokerNameC2Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C1 request with attendee details
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAttendeeDetailsC2Req(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((o) => {
+    // eslint-disable-next-line no-param-reassign
+    o.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  });
+  return req;
+}
 
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
+  attendeeDetails: createAttendeeDetailsC2Req,
 };
 
 /**

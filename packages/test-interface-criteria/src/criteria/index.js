@@ -14,6 +14,7 @@ const { TestOpportunityBookableNonFreePrepaymentUnavailable } = require('./TestO
 const { TestOpportunityBookableNonFreePrepaymentRequired } = require('./TestOpportunityBookableNonFreePrepaymentRequired');
 const { TestOpportunityBookableFreePrepaymentOptional } = require('./TestOpportunityBookableFreePrepaymentOptional');
 const { TestOpportunityBookableFreePrepaymentRequired } = require('./TestOpportunityBookableFreePrepaymentRequired');
+const { TestOpportunityBookableAttendeeDetails } = require('./TestOpportunityBookableAttendeeDetails');
 
 module.exports = {
   allCriteria: [
@@ -33,5 +34,6 @@ module.exports = {
     TestOpportunityBookableNonFreePrepaymentRequired,
     TestOpportunityBookableFreePrepaymentOptional,
     TestOpportunityBookableFreePrepaymentRequired,
+    TestOpportunityBookableAttendeeDetails,
   ],
 };

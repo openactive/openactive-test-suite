@@ -116,6 +116,7 @@ function createNonPaymentRelatedCoreBReq(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
     })),
   };
 }
@@ -319,6 +320,26 @@ function createIncorrectReconciliationDetails(data) {
 }
 
 /**
+ * B request with attendee details
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAttendeeDetails(data) {
+  const req = createStandardPaidBReq(data);
+  req.orderedItem.forEach((o) => {
+    // eslint-disable-next-line no-param-reassign
+    o.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  });
+  return req;
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -336,6 +357,7 @@ const bReqTemplates = {
   noCustomer: createBReqWithoutCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  attendeeDetails: createAttendeeDetails,
 };
 
 /**
