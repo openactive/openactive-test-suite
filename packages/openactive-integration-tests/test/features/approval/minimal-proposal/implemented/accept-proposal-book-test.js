@@ -98,6 +98,7 @@ FeatureHelper.describeFeature(module, {
       orderItems: fetchOpportunities.getOutput().orderItems,
       totalPaymentDue: p.getOutput().totalPaymentDue,
       orderProposalVersion: p.getOutput().orderProposalVersion,
+      prepayment: p.getOutput().prepayment,
     }),
   });
 
