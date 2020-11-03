@@ -15,21 +15,24 @@
     "OnDemandEvent": false
   },
   "implementedFeatures": {
-    "test-interface": null,
+    "test-interface": true,
     "opportunity-feed": null,
     "dataset-site": true,
     "availability-check": true,
     "common-error-conditions": true,
     "amending-order-quote": true,
-    "simple-book-free-opportunities": true,
-    "order-deletion": null,
+    "order-deletion": true,
     "agent-broker": true,
-    "simple-book-with-payment": true,
+    "free-opportunities": true,
+    "non-free-opportunities": true,
+    "prepayment-required": true,
+    "prepayment-optional": true,
+    "prepayment-unavailable": true,
     "multiple-sellers": true,
-    "payment-reconciliation-detail-validation": null,
+    "payment-reconciliation-detail-validation": true,
     "booking-window": true,
     "customer-requested-cancellation": true,
-    "cancellation-window": null,
+    "cancellation-window": true,
     "seller-requested-cancellation": true,
     "seller-requested-cancellation-message": true,
     "seller-requested-replacement": true,
@@ -53,8 +56,6 @@
     "business-to-business-tax-calculation-gross": null,
     "offer-overrides": null,
     "dynamic-payment": null,
-    "prepayment-optional": null,
-    "prepayment-unavailable": null,
     "booking-restrictions": null,
     "customer-notice-notifications": null,
     "change-of-logistics-notifications": null,
@@ -75,6 +76,11 @@
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
         "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
+      },
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
       }
     },
     "secondary": {

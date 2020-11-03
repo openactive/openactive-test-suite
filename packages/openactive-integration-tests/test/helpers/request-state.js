@@ -3,9 +3,11 @@ const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
+const { getPrepaymentFromOrder } = require('./order-utils');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
@@ -30,7 +32,7 @@ function isResponse(response) {
 
 class RequestState {
   /**
-   * @param {InstanceType<import('./logger')['Logger']>} logger
+   * @param {BaseLoggerType} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
    *   one will be generated randomly
@@ -233,6 +235,13 @@ class RequestState {
     if (!response.body.totalPaymentDue) return undefined;
 
     return response.body.totalPaymentDue.price;
+  }
+
+  /** @returns {import('./flow-stages/flow-stage').Prepayment | null | undefined} */
+  get prepayment() {
+    const response = this.c2Response || this.c1Response;
+    if (!response) return undefined;
+    return getPrepaymentFromOrder(response.body);
   }
 
   async putOrderQuote() {

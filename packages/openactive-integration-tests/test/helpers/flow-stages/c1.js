@@ -1,4 +1,4 @@
-const { getTotalPaymentDueFromOrder, getOrderId } = require('../order-utils');
+const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -13,7 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
- * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'orderId'>>} Output
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId'>>} Output
  */
 
 /**
@@ -30,12 +30,13 @@ async function runC1({ templateRef, uuid, sellerId, orderItems, requestHelper })
     sellerId,
     orderItems,
   };
-  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
+  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, null, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
     httpResponse: response,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
+    prepayment: getPrepaymentFromOrder(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),
   };
 }
@@ -75,6 +76,9 @@ class C1FlowStage extends FlowStage {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof C1FlowStage>} C1FlowStageType
+ */
 
 module.exports = {
   C1FlowStage,

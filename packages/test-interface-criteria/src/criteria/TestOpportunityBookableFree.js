@@ -20,7 +20,7 @@ const TestOpportunityBookableFree = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Only free bookable Offers',
+      'Only free bookable Offers (free offers must always either omit `prepayment` or set it to `https://openactive.io/Unavailable`) ',
       onlyFreeBookableOffers,
     ],
   ],
