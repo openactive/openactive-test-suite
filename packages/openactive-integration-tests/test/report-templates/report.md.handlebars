@@ -54,7 +54,7 @@ Response error:
 {{/if~}}
  * {{ specIcon spec.status }} {{{firstLine spec.title}}}
         {{#each spec.failureMessages}}
-    - {{{firstLine . }}}
+    - {{{extractMessage . }}}
         {{/each}}
     {{/logsFor}}
     {{#logsFor . "validations"}}
