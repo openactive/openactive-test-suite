@@ -5,6 +5,10 @@ const { isNil, isString, isNumber } = require('lodash');
 const { path, pipe } = require('ramda');
 
 /**
+ * @typedef {import('./flow-stages/flow-stage').Prepayment} Prepayment
+ */
+
+/**
  * Asserts that a value is null/undefined or satisfies some predicate.
  * If it is not null/undefined and does not satisfy the predicate, an error will
  * be thrown.
@@ -34,10 +38,36 @@ function assertValueSatisfiesPredicateIfExists(predicate, errorMessage) {
   return fn;
 }
 
+/**
+ * @template TArrayValue
+ * @param {TArrayValue[]} array
+ */
+function isInArray(array) {
+  /**
+   * @param {unknown} value
+   * @returns {value is TArrayValue}
+   */
+  const predicate = value => (
+    // TS is concerned that value may not be of the type that is contained in the
+    // array. i.e. it might not be a TArrayValue. But this is fine. An array.includes
+    // can take any kind of value and won't break.
+    array.includes(/** @type {any} */(value)));
+  return predicate;
+}
+
 /** @type {(order: unknown) => number | null | undefined} */
 const getTotalPaymentDueFromOrder = pipe(
   path(['totalPaymentDue', 'price']),
-  assertValueSatisfiesPredicateIfExists(isNumber, 'totalPaymentDue is not a number'),
+  assertValueSatisfiesPredicateIfExists(isNumber, 'totalPaymentDue.price is not a number'),
+);
+
+/** @type {(order: unknown) => Prepayment | null | undefined} */
+const getPrepaymentFromOrder = pipe(
+  path(['totalPaymentDue', 'prepayment']),
+  assertValueSatisfiesPredicateIfExists(
+    isInArray(['https://openactive.io/Required', 'https://openactive.io/Optional', 'https://openactive.io/Unavailable']),
+    'totalPaymentDue.prepayment is not a valid value',
+  ),
 );
 
 /** @type {(order: unknown) => string | null | undefined} */
@@ -54,6 +84,7 @@ const getOrderId = pipe(
 
 module.exports = {
   getTotalPaymentDueFromOrder,
+  getPrepaymentFromOrder,
   getOrderProposalVersion,
   getOrderId,
 };

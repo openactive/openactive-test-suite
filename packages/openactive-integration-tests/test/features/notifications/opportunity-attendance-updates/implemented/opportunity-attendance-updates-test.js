@@ -15,7 +15,7 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'notifications',
   testFeature: 'opportunity-attendance-updates',
   testFeatureImplemented: true,
-  testIdentifier: 'opportunity-attendance-updates-test',
+  testIdentifier: 'opportunity-attendance-updates',
   testName: "Changes to an opportunity's attendance (via OpportunityAttendanceUpdateSimulateAction) should update the Order Feed.",
   testDescription: "After B, invoke an OpportunityAttendanceUpdateSimulateAction. This should create an update in the Order Feed with the OrderItem's orderItemStatus changed to CustomerAttended",
   // The primary opportunity criteria to use for the primary OrderItem under test

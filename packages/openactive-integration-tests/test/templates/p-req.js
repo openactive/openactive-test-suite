@@ -1,3 +1,9 @@
+const { createPaymentPart, isPaymentAvailable } = require('./common');
+
+/**
+ * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
+ */
+
 /**
  * @typedef {{
  *   sellerId: string,
@@ -12,10 +18,9 @@
  *     },
  *   }[],
  *   totalPaymentDue: number,
+ *   prepayment?: Prepayment | null | undefined,
  * }} PReqTemplateData
  */
-
-const { createPaymentPart } = require('./common');
 
 /**
  * @param {PReqTemplateData} data
@@ -73,7 +78,7 @@ function createStandardPReq(data) {
     },
   };
 
-  if (data.totalPaymentDue > 0) {
+  if (isPaymentAvailable(data)) {
     result.payment = createPaymentPart();
   }
 

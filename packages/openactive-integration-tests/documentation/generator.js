@@ -1,10 +1,17 @@
+// TODO fix this file so that it no longer needs to disable these rules
+/* eslint-disable no-use-before-define */
+/* eslint-disable global-require */
+/* eslint-disable import/no-dynamic-require */
 
-const pkg = require('../package.json');
 const fg = require('fast-glob');
 const fs = require('fs');
+const chai = require('chai');
+const path = require('path');
+const pkg = require('../package.json');
+const defaultConfig = require('../config/default.json');
 
-const INDEX_FILE = "./test/features/README.md";
-const FEATURES_ROOT = "./test/features/";
+const INDEX_FILE = './test/features/README.md';
+const FEATURES_ROOT = './test/features/';
 
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
@@ -36,7 +43,10 @@ const FEATURES_ROOT = "./test/features/";
  * }} FeatureMetadataItem
  */
 
-var rootDirectory = require("path").join(__dirname, "../");
+const rootDirectory = path.join(__dirname, '../');
+
+// Stub global config
+global.IMPLEMENTED_FEATURES = {};
 
 console.log(rootDirectory);
 
@@ -46,16 +56,22 @@ global.afterEach = () => {};
 global.documentationGenerationMode = true;
 
 // Load metadata from all tests
-var tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function(file) {
-  console.log('Reading: ' + file);
+const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
+  console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
-  return /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
+  // ## Load the test
+  const data = /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
+  // ## Validate the test metadata
+  const expectedPath = `test/features/${renderFullTestPath(data)}`;
+  chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
+  chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
+  return data;
 });
 
 // Load feature.json files
 /** @type {FeatureMetadataItem[]} */
-var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function(file) {
-  console.log('Reading: ' + file);
+let featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
+  console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
 });
@@ -63,36 +79,37 @@ var featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDir
 featureMetadata = featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
 
 // Build summary of criteria required
-featureMetadata.forEach(f => {
+featureMetadata.forEach((f) => {
   const criteriaRequirement = new Map();
-  tests.filter(t => t.testFeature == f.identifier).forEach(t => {
+  tests.filter(t => t.testFeature === f.identifier).forEach((t) => {
     t.criteriaRequirement.forEach((count, opportunityCriteria) => {
       if (!criteriaRequirement.has(opportunityCriteria)) criteriaRequirement.set(opportunityCriteria, 0);
       criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
     });
   });
+  // eslint-disable-next-line no-param-reassign
   f.criteriaRequirement = criteriaRequirement;
 });
 
-fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function(err) {
-  if(err) {
+fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function (err) {
+  if (err) {
     process.exitCode = 1;
     console.error(err);
   } else {
-    console.log("FILE SAVED: " + INDEX_FILE);
+    console.log(`FILE SAVED: ${INDEX_FILE}`);
   }
-}); 
+});
 
-featureMetadata.forEach(f => {
+featureMetadata.forEach((f) => {
   const filename = `${FEATURES_ROOT}${f.category}/${f.identifier}/README.md`;
-  fs.writeFile(filename, renderFeatureReadme(f), function(err) {
-    if(err) {
+  fs.writeFile(filename, renderFeatureReadme(f), function (err) {
+    if (err) {
       process.exitCode = 1;
       console.error(err);
     } else {
-      console.log("FILE SAVED: " + filename);
+      console.log(`FILE SAVED: ${filename}`);
     }
-  }); 
+  });
 });
 
 /**
@@ -130,7 +147,7 @@ The tests for these features are fully stubbed, and are not yet implemented.
 |----------|---------|---------------|-------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 
-  `
+  `;
 }
 
 /**
@@ -141,34 +158,35 @@ function renderFeatureIndexFeatureFragment(f) {
 `;
 }
 
-function renderFeatureIndexFeatureFragmentOld(f) {
-  return `
-#### ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md))
+// TODO - unused function - delete if not needed
+// function renderFeatureIndexFeatureFragmentOld(f) {
+//   return `
+// #### ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md))
 
-${f.description}
+// ${f.description}
 
-${f.specificationReference}
-${renderCriteriaRequired(f.criteriaRequirement)}
+// ${f.specificationReference}
+// ${renderCriteriaRequired(f.criteriaRequirement)}
 
-`;
-}
+// `;
+// }
 
 /**
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureReadme(f) {
-  const implementedTests = tests.filter(t => t.testFeature == f.identifier && t.testFeatureImplemented);
-  const notImplementedTests =  tests.filter(t => t.testFeature == f.identifier && !t.testFeatureImplemented);
+  const implementedTests = tests.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented);
+  const notImplementedTests = tests.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented);
 
   return `[< Return to Overview](../../README.md)
 # ${f.name} (${f.identifier})
 
 ${f.description}
-${f.explainer ? '\n' + f.explainer : ''}${f.requiredCondition ? '\n' + f.requiredCondition : ''}
+${f.explainer ? `\n${f.explainer}` : ''}${f.requiredCondition ? `\n${f.requiredCondition}` : ''}
 
 ${f.specificationReference}
 
-Coverage Status: **${f.coverageStatus}**${f.links ? '\n\nSee also: ' + f.links.map(l => `[${l.name}](${l.href})`).join(', ') : ''}
+Coverage Status: **${f.coverageStatus}**${f.links ? `\n\nSee also: ${f.links.map(l => `[${l.name}](${l.href})`).join(', ')}` : ''}
 ${renderCriteriaRequired(f.criteriaRequirement, `### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured \`bookableOpportunityTypesInScope\`) for the configured primary Seller in order to use \`useRandomOpportunities: true\`. Alternatively the following \`testOpportunityCriteria\` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for \`useRandomOpportunities: false\`.
 
@@ -185,9 +203,9 @@ ${'```'}
 ${implementedTests.length > 0 ? `
 ## 'Implemented' tests
 
-${f.required ? 
-  "This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:" :
-  "Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:"}
+${f.required
+    ? 'This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:'
+    : "Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:"}
 
 ${'```'}json
 "implementedFeatures": {
@@ -199,7 +217,7 @@ ${'```'}
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-${implementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}
+${implementedTests.map(t => renderFeatureTest(t)).join('')}` : ''}
 
 ${notImplementedTests.length > 0 ? `
 ## 'Not Implemented' tests
@@ -217,15 +235,29 @@ ${'```'}
 ` : ''}
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-${notImplementedTests.map(t => renderFeatureTest(t)).join(``)}` : ''}`;
+${notImplementedTests.map(t => renderFeatureTest(t)).join('')}` : ''}`;
 }
 
 /**
  * @param {TestModuleExports} t
  */
 function renderFeatureTest(t) {
-  return `| [${t.testIdentifier}](./${t.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${t.testIdentifier}-test.js) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
-`
+  return `| [${t.testIdentifier}](./${renderFeatureTestPath(t)}) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
+`;
+}
+
+/**
+ * @param {TestModuleExports} t
+ */
+function renderFeatureTestPath(t) {
+  return `${t.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${t.testIdentifier}-test.js`;
+}
+
+/**
+ * @param {TestModuleExports} t
+ */
+function renderFullTestPath(t) {
+  return `${t.testCategory}/${t.testFeature}/${renderFeatureTestPath(t)}`;
 }
 
 /**
@@ -233,10 +265,9 @@ function renderFeatureTest(t) {
  * @param {string} [prefixOverride] If provided, this prefix is used rather than the default
  */
 function renderCriteriaRequired(criteriaRequired, prefixOverride) {
-  if (criteriaRequired.size == 0) {
+  if (criteriaRequired.size === 0) {
     return '';
-  } else {
-    const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
-    return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
   }
+  const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
+  return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
 }
