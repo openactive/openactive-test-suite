@@ -471,6 +471,38 @@ class RequestHelper {
     return respObj;
   }
 
+  /**
+   * @param {string} uuid
+   * @param {{ sellerId: string }} params
+   */
+  async deleteOrderQuote(uuid, params) {
+    const respObj = await this.delete(
+      'delete-order',
+      `${BOOKING_API_BASE}/orders-quotes/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }
+
+  /**
+   * @param {string} uuid
+   * @param {{ sellerId: string }} params
+   */
+  async getOrderStatus(uuid, params) {
+    const respObj = await this.get(
+      'delete-order',
+      `${BOOKING_API_BASE}/orders/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }  
+
   delay(t, v) {
     return new Promise(function (resolve) {
       setTimeout(resolve.bind(null, v), t);

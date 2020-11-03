@@ -76,6 +76,7 @@ const FlowStageRecipes = {
       c1,
       c2,
       b,
+      defaultFlowStageParams,
     };
   },
 };

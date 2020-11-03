@@ -22,7 +22,7 @@
     "common-error-conditions": true,
     "amending-order-quote": true,
     "simple-book-free-opportunities": true,
-    "order-deletion": null,
+    "order-deletion": true,
     "agent-broker": true,
     "simple-book-with-payment": true,
     "multiple-sellers": true,
