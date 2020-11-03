@@ -1,13 +1,7 @@
 const { expect } = require('chai');
 const { zip } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const RequestHelper = require('../../../../helpers/request-helper');
-const {
-  FlowStageUtils,
-  TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
-  FlowStageRecipes,
-} = require('../../../../helpers/flow-stages');
+const { TestRecipes } = require('../../../../shared-behaviours/test-recipes');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -20,37 +14,8 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const requestHelper = new RequestHelper(logger);
-
-  // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
-  const [simulateAccessPassUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'Simulate Access Pass Update (Test Interface Action)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:AccessPassUpdateSimulateAction',
-        objectType: 'Order',
-        objectId: b.getOutput().orderId,
-      }),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: b,
-      testName: 'Orders Feed (after Simulate Access Pass Update)',
-    },
-  });
-
-  // ## Set up tests
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateAccessPassUpdate);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:AccessPassUpdateSimulateAction' },
+  ({ b, orderFeedUpdate, orderItemCriteriaList }) => {
     it('should have access passes with altered values', () => {
       // original = before the AccessPassUpdateSimulationAction was invoked
       const originalOrderItems = b.getOutput().httpResponse.body.orderedItem;
@@ -75,5 +40,4 @@ FeatureHelper.describeFeature(module, {
         expect(sortedNewAccessPass).to.not.deep.equal(sortedOriginalAccessPass);
       }
     });
-  });
-});
+  }));
