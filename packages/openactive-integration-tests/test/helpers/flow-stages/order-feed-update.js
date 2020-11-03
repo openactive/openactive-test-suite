@@ -199,6 +199,11 @@ const OrderFeedUpdateFlowStageUtils = {
   },
 };
 
+/**
+ * @typedef {InstanceType<typeof OrderFeedUpdateCollector>} OrderFeedUpdateCollectorType
+ * @typedef {InstanceType<typeof OrderFeedUpdateListener>} OrderFeedUpdateListenerType
+ */
+
 module.exports = {
   OrderFeedUpdateListener,
   OrderFeedUpdateCollector,
