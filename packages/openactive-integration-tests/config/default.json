@@ -57,7 +57,7 @@
     "offer-overrides": null,
     "dynamic-payment": null,
     "booking-restrictions": null,
-    "customer-notice-notifications": null,
+    "customer-notice-notifications": true,
     "change-of-logistics-notifications": null,
     "access-code-update-notifications": true,
     "access-pass-update-notifications": true,
