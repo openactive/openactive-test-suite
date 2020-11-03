@@ -1,8 +1,9 @@
 /* eslint-disable no-use-before-define */
 const express = require('express');
+const http = require('http');
 const { default: axios } = require('axios');
 const chalk = require('chalk');
-const { Issuer } = require('openid-client');
+const { Issuer, generators } = require('openid-client');
 const config = require('config');
 const { performance } = require('perf_hooks');
 const sleep = require('util').promisify(setTimeout);
@@ -18,47 +19,56 @@ const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
 
-if (REQUEST_LOGGING_ENABLED) {
-  app.use(logger('dev'));
-}
 app.use(express.json());
 
+var client;
+var code_verifier;
 
-
-const { Issuer } = require('openid-client');
 Issuer.discover(IDENTITY_SERVER_URL) // => Promise
   .then(function (googleIssuer) {
     console.log('Discovered issuer %s %O', googleIssuer.issuer, googleIssuer.metadata);
 
-    const client = new googleIssuer.Client({
-      client_id: 'zELcpfANLqY7Oqas',
-      client_secret: 'TQV5U29k1gHibH5bx1layBo0OSAvAbRT3UYW3EWrSYBB5swxjVfWUa1BS8lqzxG/0v9wruMcrGadany3',
+    client = new googleIssuer.Client({
+      client_id: 'clientid_123',
+      client_secret: 'secret',
       redirect_uris: ['http://localhost:3000/cb'],
       response_types: ['code'],
       // id_token_signed_response_alg (default "RS256")
       // token_endpoint_auth_method (default "client_secret_basic")
     });
 
-
-  });
-
-  const { generators } = require('openid-client');
-
-  app.get('/cb', function (req, res) {
-    const code_verifier = generators.codeVerifier();
+    code_verifier = generators.codeVerifier();
     // store the code_verifier in your framework's session mechanism, if it is a cookie based solution
     // it should be httpOnly (not readable by javascript) and encrypted.
      
     const code_challenge = generators.codeChallenge(code_verifier);
      
-    client.authorizationUrl({
-      scope: 'openid email profile',
-      resource: 'https://my.api.example.com/resource/32178',
+    var url = client.authorizationUrl({
+      scope: 'openid openactive-openbooking oauth-dymamic-client-update offline_access openactive-identity',
+      //resource: 'https://my.api.example.com/resource/32178',
       code_challenge,
       code_challenge_method: 'S256',
     });
 
-      res.send('yay');
+    console.log ('Test URL: %s', url);
+
+  });
+
+  app.get('/cb', async function (req, res) {
+    res.send("Done");
+    console.log('Callback received');
+    const params = client.callbackParams(req);
+
+    var tokenSet = await client.callback('http://localhost:3000/cb', params, { code_verifier });
+
+    console.log('received and validated tokens %j', tokenSet);
+    console.log('validated ID Token claims %j', tokenSet.claims());
+    console.log('received refresh token %s', tokenSet.refresh_token);
+    const refresh_token = tokenSet.refresh_token;
+
+    const refreshedTokenSet = await client.refresh(refresh_token);
+    console.log('refreshed and validated tokens %j', refreshedTokenSet);
+    console.log('refreshed ID Token claims %j', refreshedTokenSet.claims());
   });
 
 
@@ -76,15 +86,6 @@ app.listen(port, () => log(`Broker Microservice running on port ${port}
 
 Check http://localhost:${port}/status for current harvesting status
 `));
-
-(async () => {
-  try {
-    await startPolling();
-  } catch (error) {
-    logError(error.toString());
-    process.exit(1);
-  }
-})();
 
 /**
  * Normalize a port into a number, string, or false.
