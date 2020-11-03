@@ -1,12 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const RequestHelper = require('../../../../helpers/request-helper');
-const {
-  FlowStageUtils,
-  TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
-  FlowStageRecipes,
-} = require('../../../../helpers/flow-stages');
+const { TestRecipes } = require('../../../../shared-behaviours/test-recipes');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'notifications',
@@ -19,37 +13,8 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const requestHelper = new RequestHelper(logger);
-
-  // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
-  const [simulateCustomerNoticeUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'Simulate Customer Notice Update (Test Interface Action)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:CustomerNoticeSimulateAction',
-        objectType: 'Order',
-        objectId: b.getOutput().orderId,
-      }),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: b,
-      testName: 'Orders Feed (after Simulate Customer Notice Update)',
-    },
-  });
-
-  // ## Set up tests
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateCustomerNoticeUpdate);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:CustomerNoticeSimulateAction' },
+  ({ orderFeedUpdate, orderItemCriteriaList }) => {
     it('should have customer notices with non empty string values', () => {
       // new = after the CustomerNoticeSimulateAction was invoked
       const newOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
@@ -68,5 +33,4 @@ FeatureHelper.describeFeature(module, {
           .and.to.have.lengthOf.at.least(1);
       }
     });
-  });
-});
+  }));
