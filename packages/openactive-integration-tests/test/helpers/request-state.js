@@ -3,6 +3,7 @@ const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
+const { getPrepaymentFromOrder } = require('./order-utils');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -234,6 +235,13 @@ class RequestState {
     if (!response.body.totalPaymentDue) return undefined;
 
     return response.body.totalPaymentDue.price;
+  }
+
+  /** @returns {import('./flow-stages/flow-stage').Prepayment | null | undefined} */
+  get prepayment() {
+    const response = this.c2Response || this.c1Response;
+    if (!response) return undefined;
+    return getPrepaymentFromOrder(response.body);
   }
 
   async putOrderQuote() {

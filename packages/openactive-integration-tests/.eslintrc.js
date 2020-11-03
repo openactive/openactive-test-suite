@@ -20,8 +20,9 @@ module.exports = {
         "ExportDeclaration": { "multiline": true, "minProperties": 3, "consistent": true }
     }],
     "max-len": "off",
-    "no-await-in-loop": 0,
-    "no-restricted-syntax": 0,
+    "no-await-in-loop": "off",
+    "no-console": "off",
+    "no-restricted-syntax": "off",
     "func-names": "off",
     "no-return-await": "off",
     "prefer-arrow-callback": "off",

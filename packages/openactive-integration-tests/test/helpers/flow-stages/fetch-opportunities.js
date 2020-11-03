@@ -152,6 +152,10 @@ class FetchOpportunitiesFlowStage extends FlowStage {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof FetchOpportunitiesFlowStage>} FetchOpportunitiesFlowStageType
+ */
+
 module.exports = {
   FetchOpportunitiesFlowStage,
   runFetchOpportunities,
