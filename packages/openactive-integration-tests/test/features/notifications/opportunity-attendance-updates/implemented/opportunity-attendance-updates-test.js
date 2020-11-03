@@ -1,15 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const RequestHelper = require('../../../../helpers/request-helper');
-const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
-  FlowStageUtils,
-  TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
-  BFlowStage,
-} = require('../../../../helpers/flow-stages');
+const { TestRecipes } = require('../../../../shared-behaviours/test-recipes');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'notifications',
@@ -22,63 +13,8 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const requestHelper = new RequestHelper(logger);
-
-  // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-      prepayment: c2.getOutput().prepayment,
-    }),
-  });
-  const [simulateAttendanceUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'Simulate Attendance Update (Test Interface Action)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:OpportunityAttendanceUpdateSimulateAction',
-        objectType: 'Order',
-        objectId: b.getOutput().orderId,
-      }),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: b,
-      testName: 'Orders Feed (after Simulate Attendance Update)',
-    },
-  });
-
-  // ## Set up tests
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateAttendanceUpdate);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:OpportunityAttendanceUpdateSimulateAction' },
+  ({ orderFeedUpdate, orderItemCriteriaList }) => {
     it('OrderItems should have CustomerAttended statuses', () => {
       // new = after the OpportunityAttendanceUpdateSimulateAction was invoked
       const newOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
@@ -96,5 +32,4 @@ FeatureHelper.describeFeature(module, {
         expect(orderItemStatus).to.be.equal('https://openactive.io/CustomerAttended');
       }
     });
-  });
-});
+  }));
