@@ -1,5 +1,5 @@
 const { dissocPath } = require('ramda');
-const { createPaymentPart } = require('./common');
+const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
  * @typedef {{
@@ -67,6 +67,8 @@ function createStandardC2Req(data) {
         '@id': `${orderItem.orderedItem['@id']}`,
       },
       attendee: undefined,
+      orderItemIntakeForm: undefined,
+      orderItemIntakeFormResponse: undefined,
     })),
     payment: createPaymentPart(false),
   };
@@ -93,7 +95,7 @@ function createNoBrokerNameC2Req(data) {
 }
 
 /**
- * C1 request with attendee details
+ * C2 request with attendee details
  *
  * @param {C2ReqTemplateData} data
  */
@@ -112,11 +114,55 @@ function createAttendeeDetailsC2Req(data) {
   return req;
 }
 
+/**
+ * C2 request with additional details required, but not supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
+  const req = createStandardC2Req(data);
+  return additionalDetailsRequiredNotSupplied(req);
+}
+
+/**
+ * C1 request with additional details required and supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  return additionalDetailsRequiredAndSupplied(req);
+}
+
+/**
+ * C2 request with additional details required, but invalid boolean value supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  return additionalDetailsRequiredInvalidBooleanSupplied(req);
+}
+
+/**
+ * C2 request with additional details required, but invalid dropdown value supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+}
+
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
   attendeeDetails: createAttendeeDetailsC2Req,
+  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedC2Req,
+  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,
+  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req,
+  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req,
 };
 
 /**

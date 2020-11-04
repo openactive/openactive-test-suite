@@ -41,7 +41,7 @@
     "customer-details-capture-non-essential": true,
     "customer-details-capture-identifier": true,
     "attendee-details-capture": true,
-    "additional-details-capture": null,
+    "additional-details-capture": true,
     "access-code": true,
     "access-pass-image": true,
     "access-pass-barcode-seller-provided": true,

@@ -9,7 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
-const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./common');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
@@ -117,6 +117,8 @@ function createNonPaymentRelatedCoreBReq(data) {
         '@id': `${orderItem.orderedItem['@id']}`,
       },
       attendee: undefined,
+      orderItemIntakeForm: undefined,
+      orderItemIntakeFormResponse: undefined,
     })),
   };
 }
@@ -340,6 +342,46 @@ function createAttendeeDetails(data) {
 }
 
 /**
+ * B request with additional details required, but not supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredNotSuppliedBReq(data) {
+  const req = createStandardPaidBReq(data);
+  return additionalDetailsRequiredNotSupplied(req);
+}
+
+/**
+ * B request with additional details required and supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
+  return additionalDetailsRequiredAndSupplied(req);
+}
+
+/**
+ * B request with additional details required, but invalid boolean value supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
+  return additionalDetailsRequiredInvalidBooleanSupplied(req);
+}
+
+/**
+ * B request with additional details required, but invalid dropdown value supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
+  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -358,6 +400,10 @@ const bReqTemplates = {
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
   attendeeDetails: createAttendeeDetails,
+  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedBReq,
+  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedBReq,
+  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq,
+  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq,
 };
 
 /**
