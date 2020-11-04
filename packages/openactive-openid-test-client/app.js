@@ -1,12 +1,14 @@
+/* eslint-disable no-console */
 /* eslint-disable no-use-before-define */
 const express = require('express');
 const http = require('http');
-const { default: axios } = require('axios');
+// const { default: axios } = require('axios');
 const chalk = require('chalk');
 const { Issuer, generators } = require('openid-client');
 const config = require('config');
-const { performance } = require('perf_hooks');
-const sleep = require('util').promisify(setTimeout);
+// const { performance } = require('perf_hooks');
+// const sleep = require('util').promisify(setTimeout);
+const puppeteer = require('puppeteer');
 
 const IDENTITY_SERVER_URL = config.get('identityServerUrl');
 
@@ -21,62 +23,91 @@ const log = (x) => console.log(chalk.cyan(x));
 
 app.use(express.json());
 
-var client;
-var code_verifier;
+let client;
+let codeVerifier;
 
-Issuer.discover(IDENTITY_SERVER_URL) // => Promise
-  .then(function (googleIssuer) {
-    console.log('Discovered issuer %s %O', googleIssuer.issuer, googleIssuer.metadata);
+(async () => {
+  try {
+    const issuer = await Issuer.discover(IDENTITY_SERVER_URL);
 
-    client = new googleIssuer.Client({
-      client_id: 'clientid_123',
-      client_secret: 'secret',
+    console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
+
+    const registration = await issuer.Client.register({
+      redirect_uris: ['http://localhost:3000/cb'],
+      grant_types: ['authorization_code', 'refresh_token'],
+      client_name: 'OpenActive Test Suite Client',
+      client_uri: 'https://client.example.org/',
+      logo_uri: 'https://client.example.org/newlogo.png',
+      scope: 'openid profile openactive-openbooking openactive-ordersfeed oauth-dymamic-client-update openactive-identity',
+      // id_token_signed_response_alg (default "RS256")
+      // token_endpoint_auth_method (default "client_secret_basic")
+    }, {
+      initialAccessToken: 'openactive_test_suite_client_12345xaq',
+    });
+
+    client = new issuer.Client({
+      client_id: registration.client_id,
+      client_secret: registration.client_secret,
       redirect_uris: ['http://localhost:3000/cb'],
       response_types: ['code'],
       // id_token_signed_response_alg (default "RS256")
       // token_endpoint_auth_method (default "client_secret_basic")
     });
 
-    code_verifier = generators.codeVerifier();
+    codeVerifier = generators.codeVerifier();
     // store the code_verifier in your framework's session mechanism, if it is a cookie based solution
     // it should be httpOnly (not readable by javascript) and encrypted.
-     
-    const code_challenge = generators.codeChallenge(code_verifier);
-     
-    var url = client.authorizationUrl({
+
+    const codeChallenge = generators.codeChallenge(codeVerifier);
+
+    const url = client.authorizationUrl({
       scope: 'openid openactive-openbooking oauth-dymamic-client-update offline_access openactive-identity',
-      //resource: 'https://my.api.example.com/resource/32178',
-      code_challenge,
+      // resource: 'https://my.api.example.com/resource/32178',
+      code_challenge: codeChallenge,
       code_challenge_method: 'S256',
     });
 
-    console.log ('Test URL: %s', url);
+    console.log('Test URL: %s', url);
 
+    await authorizeInteractively(url);
+  } catch (error) {
+    console.error(error);
+  }
+})();
+
+async function authorizeInteractively(url) {
+  const browser = await puppeteer.launch({
+    headless: false,
+  });
+  const page = await browser.newPage();
+  await page.goto(url);
+  await page.type("[name='username' i]", 'test');
+  await page.type("[name='password' i]", 'test');
+  await page.click('.btn-primary');
+  await page.waitForNavigation();
+  await page.click('.btn-primary');
+  await page.waitForSelector('.openactive-test-callback-success');
+  browser.close();
+}
+
+app.get('/cb', async function (req, res) {
+  res.send('<html><body><h1 class="openactive-test-callback-success">Callback Success</h1></body></html>');
+  console.log('Callback received');
+  const params = client.callbackParams(req);
+
+  const tokenSet = await client.callback('http://localhost:3000/cb', params, {
+    code_verifier: codeVerifier,
   });
 
-  app.get('/cb', async function (req, res) {
-    res.send("Done");
-    console.log('Callback received');
-    const params = client.callbackParams(req);
+  console.log('received and validated tokens %j', tokenSet);
+  console.log('validated ID Token claims %j', tokenSet.claims());
+  console.log('received refresh token %s', tokenSet.refresh_token);
+  const refreshToken = tokenSet.refresh_token;
 
-    var tokenSet = await client.callback('http://localhost:3000/cb', params, { code_verifier });
-
-    console.log('received and validated tokens %j', tokenSet);
-    console.log('validated ID Token claims %j', tokenSet.claims());
-    console.log('received refresh token %s', tokenSet.refresh_token);
-    const refresh_token = tokenSet.refresh_token;
-
-    const refreshedTokenSet = await client.refresh(refresh_token);
-    console.log('refreshed and validated tokens %j', refreshedTokenSet);
-    console.log('refreshed ID Token claims %j', refreshedTokenSet.claims());
-  });
-
-
-
-
-
-
-
+  const refreshedTokenSet = await client.refresh(refreshToken);
+  console.log('refreshed and validated tokens %j', refreshedTokenSet);
+  console.log('refreshed ID Token claims %j', refreshedTokenSet.claims());
+});
 
 const server = http.createServer(app);
 server.on('error', onError);
