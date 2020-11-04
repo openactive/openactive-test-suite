@@ -7,7 +7,7 @@
     "start": "jest",
     "test": "npm run lint && tsc && npm run doc-gen",
     "debug": "node --inspect ./node_modules/jest/bin/jest.js --runInBand",
-    "lint": "eslint \"test/**/*.js\"",
+    "lint": "eslint \"test/**/*.js\" \"documentation/**/*.js\"",
     "lint-fix": "npm run lint -- --fix",
     "doc-gen": "node documentation/generator.js",
     "certificate-validator": "node test/certification/certification-validator-microservice.js"
@@ -43,16 +43,19 @@
     "p-memoize": "^3.1.0",
     "ramda": "^0.27.1",
     "rmfr": "^2.0.0",
+    "shortid": "^2.2.16",
     "strip-ansi": "^6.0.0",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",
+    "@types/config": "0.0.36",
     "@types/jest": "^26.0.10",
     "@types/lodash": "^4.14.158",
     "@types/node": "^12.12.50",
     "@types/ramda": "^0.27.14",
     "@types/request": "^2.48.5",
+    "@types/shortid": "0.0.29",
     "@types/uuid": "^8.0.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",

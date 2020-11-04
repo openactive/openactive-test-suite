@@ -1,3 +1,9 @@
+const { createPaymentPart, isPaymentAvailable } = require('./common');
+
+/**
+ * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
+ */
+
 /**
  * @typedef {{
  *   sellerId: string,
@@ -12,6 +18,7 @@
  *     },
  *   }[],
  *   totalPaymentDue: number,
+ *   prepayment?: Prepayment | null | undefined,
  * }} PReqTemplateData
  */
 
@@ -70,14 +77,11 @@ function createStandardPReq(data) {
       priceCurrency: 'GBP',
     },
   };
-  if (data.totalPaymentDue > 0) {
-    result.payment = {
-      '@type': 'Payment',
-      name: 'AcmeBroker Points',
-      identifier: '1234567890npduy2f',
-      accountId: 'STRIP',
-    };
+
+  if (isPaymentAvailable(data)) {
+    result.payment = createPaymentPart();
   }
+
   return result;
 }
 

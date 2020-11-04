@@ -81,6 +81,8 @@ class Reporter {
     await generator.writeSummaryMeta();
 
     const {
+      numRuntimeErrorTestSuites,
+      numFailedTestSuites,
       numFailedTests,
       numPassedTests,
       numPendingTests,
@@ -106,6 +108,15 @@ class Reporter {
       ));
     }
 
+    // Output runtime failures from test suites, that will not feature in the summary
+    if (numRuntimeErrorTestSuites > 0) {
+      console.log(chalk.red('\n\nTest suite runtime errors:'));
+      testResults.filter(x => x.failureMessage !== null && x.testResults.length === 0).forEach((testFile) => {
+        console.log(chalk.red(`- ${testFile.testFilePath}`));
+        console.log(chalk.red(`  ${testFile.failureMessage}`));
+      });
+    }
+
     // Catch straggling failures that are not featured in the summary
     if (numFailedTests > 0 && generator.summaryMeta.features.every(x => x.overallStatus === 'passed')) {
       console.log(chalk.red('\n\nHidden test failures:'));
@@ -116,12 +127,12 @@ class Reporter {
           testResult.failureMessages.forEach((failureMessage) => {
             console.log(chalk.red(`    - ${failureMessage}`));
           });
-        })
+        });
       });
     }
     
     if (GENERATE_CONFORMANCE_CERTIFICATE) {
-      if (numFailedTests > 0) {
+      if (numFailedTests > 0 || numFailedTestSuites > 0 || numRuntimeErrorTestSuites > 0) {
         console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests passed."));
       } else if (numPendingTests > 0) {
           console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests were completed."));

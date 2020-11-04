@@ -172,12 +172,14 @@ FeatureHelper.describeFeature(module, {
         c2.expectResponseReceived();
 
         const errors = state.c2Response.body.orderedItem.map(oi => oi.error && oi.error[0] && oi.error[0]['@type']);
-        const factor = errors.length / 10;
+        // First, check the basic premise which will be used to test the numbers of errors - 10 errors for each
+        const factor = orderItemCriteria.length;
+        expect(factor).to.equal(errors.length / 10, 'Number of OrderItems returned is inconsistent');
 
-        const count = (array, value) => array.filter(x => x === value).length;
-        expect(count(errors, undefined)).to.equal(factor * 2);
-        expect(count(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3);
-        expect(count(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5);
+        const countMatching = (array, value) => array.filter(x => x === value).length;
+        expect(countMatching(errors, undefined)).to.equal(factor * 2, '`factor * 2` OrderItems should have no error');
+        expect(countMatching(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3, '`factor * 3` OrderItems should have OpportunityCapacityIsReservedByLeaseError');
+        expect(countMatching(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5, '`factor * 5` OrderItems should have OpportunityHasInsufficientCapacityError');
       });
     });
   });

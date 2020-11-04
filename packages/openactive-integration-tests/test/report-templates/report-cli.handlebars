@@ -13,7 +13,7 @@ See `{{{ markdownPath }}}` for more detailed info.
     {{#logsFor . "spec"}}
   {{ consoleSpecIcon spec.status }} {{{firstLine spec.title}}}
         {{#each spec.failureMessages}}
-      {{{firstLine . }}}
+      {{{extractMessage . }}}
         {{/each}}
     {{/logsFor}}
     {{#logsFor . "validations"}}
