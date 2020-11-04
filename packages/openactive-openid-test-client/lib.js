@@ -72,21 +72,17 @@ async function authorize(issuer, clientId, clientSecret, options) {
 
   console.log('Test URL: %s', url);
 
-  const { data: { callbackUrl, requiredAuthorisation } } = await (async () => {
-    try {
-      return await axios.post(`${MICROSERVICE_BASE_URL}/auth-interactive`, {
-        ...options,
-        authorizationUrl: url,
-      });
-    } catch (err) {
-      const { response: { data: { error }, status } } = err;
-      if (status === 400 && error) {
-        throw new Error(error);
-      } else {
-        throw err;
-      }
+  const { data: { callbackUrl, requiredAuthorisation } } = await axios.post(`${MICROSERVICE_BASE_URL}/auth-interactive`, {
+    ...options,
+    authorizationUrl: url,
+  }).catch((err) => {
+    const { response: { data: { error }, status } } = err;
+    if (status === 400 && error) {
+      throw new Error(error);
+    } else {
+      throw err;
     }
-  })();
+  });
 
   const params = client.callbackParams(callbackUrl);
 
