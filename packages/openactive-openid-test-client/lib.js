@@ -38,7 +38,7 @@ async function register(issuer, initialAccessToken) {
  * @param {string} clientId
  * @param {string} clientSecret
  */
-async function authorize(issuer, clientId, clientSecret, headless = false) {
+async function authorize(issuer, clientId, clientSecret, buttonClass, headless = false) {
   const client = new issuer.Client({
     client_id: clientId,
     client_secret: clientSecret,
@@ -65,8 +65,8 @@ async function authorize(issuer, clientId, clientSecret, headless = false) {
 
   const { data } = await axios.post(`${MICROSERVICE_BASE_URL}/auth-interactive`, {
     authorizationUrl: url,
+    buttonClass,
     headless,
-    buttonClass: '.btn-primary',
   });
 
   const params = client.callbackParams(data.callbackUrl);
@@ -108,7 +108,7 @@ async function oauthAuthenticate() {
 
   const initialAccessToken = 'openactive_test_suite_client_12345xaq';
   const { clientId, clientSecret } = await register(issuer, initialAccessToken);
-  const tokenSet = await authorize(issuer, clientId, clientSecret);
+  const tokenSet = await authorize(issuer, clientId, clientSecret, '.btn-primary', false);
   const refreshToken = tokenSet.refresh_token;
   const refreshedTokenSet = await refresh(issuer, clientId, clientSecret, refreshToken);
 }
