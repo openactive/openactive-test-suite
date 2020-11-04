@@ -9,6 +9,10 @@ const MICROSERVICE_BASE_URL = 'http://localhost:3000';
 
 const CALLBACK_URL = `${MICROSERVICE_BASE_URL}/cb`;
 
+/**
+ * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
+ * @param {string} initialAccessToken
+ */
 async function register(issuer, initialAccessToken) {
   const registration = await issuer.Client.register({
     redirect_uris: [CALLBACK_URL],
@@ -29,6 +33,11 @@ async function register(issuer, initialAccessToken) {
   };
 }
 
+/**
+ * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
+ * @param {string} clientId
+ * @param {string} clientSecret
+ */
 async function authorize(issuer, clientId, clientSecret, headless = false) {
   const client = new issuer.Client({
     client_id: clientId,
