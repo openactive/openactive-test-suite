@@ -2,15 +2,29 @@
 /* eslint-disable no-use-before-define */
 const express = require('express');
 const http = require('http');
-// const { default: axios } = require('axios');
 const chalk = require('chalk');
-const { Issuer, generators } = require('openid-client');
-const config = require('config');
+const { generators } = require('openid-client');
+
 // const { performance } = require('perf_hooks');
 // const sleep = require('util').promisify(setTimeout);
 const puppeteer = require('puppeteer');
+const cookieSession = require('cookie-session');
 
-const IDENTITY_SERVER_URL = config.get('identityServerUrl');
+const { oauthAuthenticate } = require('./lib.js');
+
+// const { RequestInterceptor } = require('./node_modules/node-request-interceptor/lib/index.js');
+// const withDefaultInterceptors = require('./node_modules/node-request-interceptor/lib/presets/default.js');
+
+/*
+// @ts-ignore
+const interceptor = new RequestInterceptor(withDefaultInterceptors);
+
+interceptor.use((req) => {
+  // Will print to stdout any outgoing requests
+  // without affecting their responses
+  console.log('%s %s', req.method, req.url.href);
+});
+*/
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -22,91 +36,79 @@ const logError = (x) => console.error(chalk.cyanBright(x));
 const log = (x) => console.log(chalk.cyan(x));
 
 app.use(express.json());
+app.use(cookieSession({
+  name: 'session',
+  keys: [generators.codeVerifier()], // Random string as key
 
-let client;
-let codeVerifier;
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+}));
 
 (async () => {
   try {
-    const issuer = await Issuer.discover(IDENTITY_SERVER_URL);
-
-    console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
-
-    const registration = await issuer.Client.register({
-      redirect_uris: ['http://localhost:3000/cb'],
-      grant_types: ['authorization_code', 'refresh_token'],
-      client_name: 'OpenActive Test Suite Client',
-      client_uri: 'https://client.example.org/',
-      logo_uri: 'https://client.example.org/newlogo.png',
-      scope: 'openid profile openactive-openbooking openactive-ordersfeed oauth-dymamic-client-update openactive-identity',
-      // id_token_signed_response_alg (default "RS256")
-      // token_endpoint_auth_method (default "client_secret_basic")
-    }, {
-      initialAccessToken: 'openactive_test_suite_client_12345xaq',
-    });
-
-    client = new issuer.Client({
-      client_id: registration.client_id,
-      client_secret: registration.client_secret,
-      redirect_uris: ['http://localhost:3000/cb'],
-      response_types: ['code'],
-      // id_token_signed_response_alg (default "RS256")
-      // token_endpoint_auth_method (default "client_secret_basic")
-    });
-
-    codeVerifier = generators.codeVerifier();
-    // store the code_verifier in your framework's session mechanism, if it is a cookie based solution
-    // it should be httpOnly (not readable by javascript) and encrypted.
-
-    const codeChallenge = generators.codeChallenge(codeVerifier);
-
-    const url = client.authorizationUrl({
-      scope: 'openid openactive-openbooking oauth-dymamic-client-update offline_access openactive-identity',
-      // resource: 'https://my.api.example.com/resource/32178',
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256',
-    });
-
-    console.log('Test URL: %s', url);
-
-    await authorizeInteractively(url);
+    oauthAuthenticate();
   } catch (error) {
     console.error(error);
   }
 })();
 
-async function authorizeInteractively(url) {
+async function authorizeInteractive(sessionKey, url, headless, buttonClass, context) {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless,
   });
   const page = await browser.newPage();
-  await page.goto(url);
+  await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(url)}`);
   await page.type("[name='username' i]", 'test');
   await page.type("[name='password' i]", 'test');
-  await page.click('.btn-primary');
+  context.screenshots.login = await page.screenshot({
+    encoding: 'base64',
+  });
+  await page.click(buttonClass);
   await page.waitForNavigation();
-  await page.click('.btn-primary');
+  context.screenshots.accept = await page.screenshot({
+    encoding: 'base64',
+  });
+  await page.click(buttonClass);
   await page.waitForSelector('.openactive-test-callback-success');
   browser.close();
 }
 
+let sessionKeyCounter = 0;
+const requestStore = new Map();
+app.post('/auth-interactive', async function (req, res) {
+  const sessionKey = sessionKeyCounter;
+  sessionKeyCounter += 1;
+  const context = {
+    res,
+    screenshots: {
+    },
+  };
+  requestStore.set(String(sessionKey), context);
+  const { authorizationUrl, headless, buttonClass } = req.body;
+  await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonClass, context);
+});
+
+app.get('/auth', async function (req, res) {
+  const { url, key } = req.query;
+  // Set the key in the session and redirect
+  req.session.key = key;
+  res.redirect(301, url);
+  console.log('First page');
+});
+
 app.get('/cb', async function (req, res) {
+  const sessionKey = req.session.key;
   res.send('<html><body><h1 class="openactive-test-callback-success">Callback Success</h1></body></html>');
   console.log('Callback received');
-  const params = client.callbackParams(req);
-
-  const tokenSet = await client.callback('http://localhost:3000/cb', params, {
-    code_verifier: codeVerifier,
+  if (!requestStore.has(sessionKey)) {
+    throw new Error(`Session key '${sessionKey}' not found`);
+  }
+  const context = requestStore.get(sessionKey);
+  context.res.json({
+    screenshots: context.screenshots,
+    callbackUrl: req.originalUrl,
   });
-
-  console.log('received and validated tokens %j', tokenSet);
-  console.log('validated ID Token claims %j', tokenSet.claims());
-  console.log('received refresh token %s', tokenSet.refresh_token);
-  const refreshToken = tokenSet.refresh_token;
-
-  const refreshedTokenSet = await client.refresh(refreshToken);
-  console.log('refreshed and validated tokens %j', refreshedTokenSet);
-  console.log('refreshed ID Token claims %j', refreshedTokenSet.claims());
+  requestStore.delete(sessionKey);
 });
 
 const server = http.createServer(app);
