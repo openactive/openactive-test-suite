@@ -52,25 +52,54 @@ app.use(cookieSession({
   }
 })();
 
-async function authorizeInteractive(sessionKey, url, headless, buttonClass, context) {
+const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
+async function authorizeInteractive(sessionKey, url, headless, buttonSelector, context) {
   const browser = await puppeteer.launch({
     headless,
   });
-  const page = await browser.newPage();
-  await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(url)}`);
-  await page.type("[name='username' i]", 'test');
-  await page.type("[name='password' i]", 'test');
-  context.screenshots.login = await page.screenshot({
-    encoding: 'base64',
-  });
-  await page.click(buttonClass);
-  await page.waitForNavigation();
-  context.screenshots.accept = await page.screenshot({
-    encoding: 'base64',
-  });
-  await page.click(buttonClass);
-  await page.waitForSelector('.openactive-test-callback-success');
-  browser.close();
+  try {
+    const page = await browser.newPage();
+    await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(url)}`);
+    await page.type("[name='username' i]", 'test');
+    await page.type("[name='password' i]", 'test');
+    context.screenshots.login = await page.screenshot({
+      encoding: 'base64',
+    });
+    context.screenshots.login = context.screenshots.login.substr(0, 10); // TODO: Remove substr; truncated to ease debugging
+    const hasButtonOnLoginPage = await page.$(`${buttonSelector}`);
+    if (hasButtonOnLoginPage) {
+      await Promise.all([
+        page.waitForNavigation(), // The promise resolves after navigation has finished
+        page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
+      ]);
+    } else {
+      throw new Error(`Login button matching selector '${buttonSelector}' not found`);
+    }
+    context.screenshots.accept = await page.screenshot({
+      encoding: 'base64',
+    });
+    context.screenshots.accept = context.screenshots.accept.substr(0, 10); // TODO: Remove substr; truncated to ease debugging
+    const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
+    if (!isSuccessfulFollowingLogin) {
+      const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
+      if (hasButtonOnAuthorizationPage) {
+        context.requiredAuthorisation = true;
+        // Click "Accept", if it is presented
+        await Promise.all([
+          page.waitForNavigation(), // The promise resolves after navigation has finished
+          page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
+        ]);
+      } else {
+        throw new Error(`Accept button matching selector '${buttonSelector}' not found`);
+      }
+    }
+    const isSuccessfulFollowingAuthorization = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
+    if (!isSuccessfulFollowingAuthorization) {
+      throw new Error('Callback page redirect was not detected.');
+    }
+  } finally {
+    browser.close();
+  }
 }
 
 let sessionKeyCounter = 0;
@@ -84,8 +113,18 @@ app.post('/auth-interactive', async function (req, res) {
     },
   };
   requestStore.set(String(sessionKey), context);
-  const { authorizationUrl, headless, buttonClass } = req.body;
-  await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonClass, context);
+  const { authorizationUrl, headless, buttonSelector } = req.body;
+  try {
+    await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, context);
+  } catch (err) {
+    context.error = err.message;
+    res.status(400).json({
+      error: err.message,
+      screenshots: context.screenshots,
+      requiredAuthorisation: context.requiredAuthorisation,
+    });
+    requestStore.delete(sessionKey);
+  }
 });
 
 app.get('/auth', async function (req, res) {
@@ -107,6 +146,7 @@ app.get('/cb', async function (req, res) {
   context.res.json({
     screenshots: context.screenshots,
     callbackUrl: req.originalUrl,
+    requiredAuthorisation: context.requiredAuthorisation,
   });
   requestStore.delete(sessionKey);
 });

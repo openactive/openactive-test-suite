@@ -2,6 +2,7 @@
 const { Issuer, generators } = require('openid-client');
 const config = require('config');
 const { default: axios } = require('axios');
+const { assert } = require('console');
 
 const IDENTITY_SERVER_URL = config.get('identityServerUrl');
 
@@ -33,12 +34,20 @@ async function register(issuer, initialAccessToken) {
   };
 }
 
+
+/**
+ * @typedef {Object} AuthorizeOptions
+ * @property {string} buttonSelector
+ * @property {boolean} headless
+ */
+
 /**
  * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
  * @param {string} clientId
  * @param {string} clientSecret
+ * @param {AuthorizeOptions} options
  */
-async function authorize(issuer, clientId, clientSecret, buttonClass, headless = false) {
+async function authorize(issuer, clientId, clientSecret, options) {
   const client = new issuer.Client({
     client_id: clientId,
     client_secret: clientSecret,
@@ -63,13 +72,23 @@ async function authorize(issuer, clientId, clientSecret, buttonClass, headless =
 
   console.log('Test URL: %s', url);
 
-  const { data } = await axios.post(`${MICROSERVICE_BASE_URL}/auth-interactive`, {
-    authorizationUrl: url,
-    buttonClass,
-    headless,
-  });
+  const { data: { callbackUrl, requiredAuthorisation } } = await (async () => {
+    try {
+      return await axios.post(`${MICROSERVICE_BASE_URL}/auth-interactive`, {
+        ...options,
+        authorizationUrl: url,
+      });
+    } catch (err) {
+      const { response: { data: { error }, status } } = err;
+      if (status === 400 && error) {
+        throw new Error(error);
+      } else {
+        throw err;
+      }
+    }
+  })();
 
-  const params = client.callbackParams(data.callbackUrl);
+  const params = client.callbackParams(callbackUrl);
 
   const tokenSet = await client.callback(CALLBACK_URL, params, {
     code_verifier: codeVerifier,
@@ -79,7 +98,10 @@ async function authorize(issuer, clientId, clientSecret, buttonClass, headless =
   console.log('validated ID Token claims %j', tokenSet.claims());
   console.log('received refresh token %s', tokenSet.refresh_token);
 
-  return tokenSet;
+  return {
+    tokenSet,
+    requiredAuthorisation,
+  };
 }
 
 /**
@@ -108,9 +130,31 @@ async function oauthAuthenticate() {
 
   const initialAccessToken = 'openactive_test_suite_client_12345xaq';
   const { clientId, clientSecret } = await register(issuer, initialAccessToken);
-  const tokenSet = await authorize(issuer, clientId, clientSecret, '.btn-primary', false);
+  const { tokenSet } = await authorize(issuer, clientId, clientSecret, {
+    buttonSelector: '.btn-primary2',
+    headless: false,
+  });
   const refreshToken = tokenSet.refresh_token;
   const refreshedTokenSet = await refresh(issuer, clientId, clientSecret, refreshToken);
+}
+
+async function oauthReauthenticate() {
+  const issuer = await Issuer.discover(IDENTITY_SERVER_URL);
+
+  console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
+
+  const initialAccessToken = 'openactive_test_suite_client_12345xaq';
+  const { clientId, clientSecret } = await register(issuer, initialAccessToken);
+  const firstAuthorize = await authorize(issuer, clientId, clientSecret, {
+    buttonSelector: '.btn-primary',
+    headless: false,
+  });
+  const secondAuthorize = await authorize(issuer, clientId, clientSecret, {
+    buttonSelector: '.btn-primary',
+    headless: false,
+  });
+  assert(true, firstAuthorize.requiredAuthorisation);
+  assert(false, secondAuthorize.requiredAuthorisation);
 }
 
 module.exports = {
