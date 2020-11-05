@@ -342,35 +342,6 @@ function createBReqWithBusinessCustomer(data) {
   return req;
 }
 
-// function createNoAccountId(data) {
-//   const req = createStandardPaidBReq(data);
-//   return dissocPath(['payment', 'accountId'], req);
-// }
-
-// function createNoPaymentProviderId(data) {
-//   const req = createStandardPaidBReq(data);
-//   return dissocPath(['payment', 'paymentProviderId'], req);
-// }
-
-// function createInvalidAccountId(data) {
-//   const req = createStandardPaidBReq(data);
-//   req.payment.accountId = 'some rubbish';
-//   return req;
-// }
-
-// function createInvalidPaymentProviderId(data) {
-//   const req = createStandardPaidBReq(data);
-//   req.payment.paymentProviderId = 'some rubbish';
-//   return req;
-// }
-
-// function createInvalidReconciliationDetails(data) {
-//   const req = createStandardPaidBReq(data);
-//   req.payment.accountId = 'some rubbish';
-//   req.payment.paymentProviderId = 'some rubbish';
-//   return req;
-// }
-
 /**
  * Paid B request with payment property - though reconciliation fields in `payment`
  * are missing.
@@ -432,11 +403,6 @@ const bReqTemplates = {
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
   businessCustomer: createBReqWithBusinessCustomer,
-  // noAccountId: createNoAccountId,
-  // noPaymentProviderId: createNoPaymentProviderId,
-  // invalidAccountId: createInvalidAccountId,
-  // invalidPaymentProviderId: createInvalidPaymentProviderId,
-  // invalidReconciliationDetails: createInvalidReconciliationDetails,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
 };
