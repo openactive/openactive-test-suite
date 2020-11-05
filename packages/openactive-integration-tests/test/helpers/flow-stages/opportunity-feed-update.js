@@ -54,7 +54,7 @@ const { FlowStage } = require('./flow-stage');
 async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities, requestHelper, useCacheIfAvailable }) {
   // TODO Note that waitMode is not yet used in this function. It should be. But, since
   // waitMode=wait-for-one only supports one opportunity, wait-for-one & wait-for-all
-  // are exactly equivalent, until waitMode=wait-for-one can support multiple opportunities.
+  // are exactly equivalent until waitMode=wait-for-one can support multiple opportunities.
   /**
    * Note that the reponses are stored wrapped in promises. This is because
    * opportunities are created/fetched concurrently.

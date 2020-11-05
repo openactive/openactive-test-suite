@@ -130,7 +130,6 @@ async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
   //
   // Now that we have references to some opportunities that have been found or
   // created and match our criteria, let's get the full opportunities
-  // const opportunityFeedUpdateResult = await OpportunityFeedUpdateFlowStage.run({
   const opportunityFeedExtractResponses = await fetchOpportunityFeedExtractResponses({
     testInterfaceOpportunities,
     requestHelper,
