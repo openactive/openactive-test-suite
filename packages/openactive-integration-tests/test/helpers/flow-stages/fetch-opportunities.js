@@ -4,7 +4,7 @@ const config = require('config');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
-const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector, itValidationTestsOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
+const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
@@ -204,11 +204,6 @@ class FetchOpportunitiesFlowStage extends FlowStage {
             orderItemCriteriaItem.opportunityCriteria,
           );
         });
-        // itValidationTestsOpportunityFeedUpdateCollector({
-        //   logger,
-        //   orderItemCriteriaList,
-        //   getterFn: () => flowStage.getOutput(),
-        // });
       },
     });
   }
