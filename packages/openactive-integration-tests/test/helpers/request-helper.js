@@ -252,17 +252,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/c1-req').C1ReqTemplateRef | null} [maybeC1ReqTemplateRef]
    */
-  async putOrderQuoteTemplate(uuid, params, brokerRole, maybeC1ReqTemplateRef) {
+  async putOrderQuoteTemplate(uuid, params, maybeC1ReqTemplateRef) {
     const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
-
-    if (brokerRole) {
-      payload.brokerRole = brokerRole;
-    }
 
     const c1Response = await this.put(
       'C1',
@@ -280,17 +275,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/c2-req').C2ReqTemplateRef | null} [maybeC2ReqTemplateRef]
    */
-  async putOrderQuote(uuid, params, brokerRole, maybeC2ReqTemplateRef) {
+  async putOrderQuote(uuid, params, maybeC2ReqTemplateRef) {
     const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
-
-    if (brokerRole) {
-      payload.brokerRole = brokerRole;
-    }
 
     const c2Response = await this.put(
       'C2',
@@ -308,20 +298,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrder(uuid, params, brokerRole, maybeBReqTemplateRef) {
+  async putOrder(uuid, params, maybeBReqTemplateRef) {
     const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
-
-    // a post-proposal B request doesn't include brokerRole (which would have been
-    // set in the P request), therefore, we only update brokerRole if is already
-    // part of the request
-    if (brokerRole && 'brokerRole' in payload) {
-      payload.brokerRole = brokerRole;
-    }
 
     const bResponse = await this.put(
       'B',
