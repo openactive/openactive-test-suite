@@ -31,6 +31,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
  *   totalPaymentDue: number,
  *   prepayment?: Prepayment | null | undefined,
  *   orderProposalVersion: string | null,
+ *   brokerRole: string | null,
  * }} BReqTemplateData
  */
 
@@ -75,7 +76,7 @@ function createNonPaymentRelatedCoreBReq(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
-    brokerRole: 'https://openactive.io/AgentBroker',
+    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
       name: 'MyFitnessApp',
@@ -258,6 +259,26 @@ function createNoBrokerNameBReq(data) {
 }
 
 /**
+ * Flexible B request - but with missing broker
+ *
+ * @param {BReqTemplateData} data
+ */
+function createNoBrokerBReq(data) {
+  const req = createStandardFreeOrPaidBReq(data);
+  return dissocPath(['broker'], req);
+}
+
+/**
+ * Flexible B request - but with missing broker & customer
+ *
+ * @param {BReqTemplateData} data
+ */
+function createBReqWithoutCustomerAndBroker(data) {
+  const req = createStandardFreeOrPaidBReq(data);
+  return omit(['broker', 'customer'], req);
+}
+
+/**
  * Paid B request with incorrect totalPaymentDue value.
  * The price in totalPaymentDue is less than that returned in the C2 request.
  *
@@ -397,6 +418,8 @@ const bReqTemplates = {
   paidWithPayment: createPaidWithPaymentBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
+  noBroker: createNoBrokerBReq,
+  noCustomerAndNoBroker: createBReqWithoutCustomerAndBroker,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
   noPayment: createNoPaymentBReq,
   incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,

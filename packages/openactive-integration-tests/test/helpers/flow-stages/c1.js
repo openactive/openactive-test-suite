@@ -5,7 +5,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
@@ -20,17 +20,19 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {C1ReqTemplateRef} [args.templateRef]
  * @param {string} args.uuid
+ * @param {string | null} [args.brokerRole]
  * @param {string} args.sellerId
  * @param {OrderItem[]} args.orderItems
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
  */
-async function runC1({ templateRef, uuid, sellerId, orderItems, requestHelper }) {
+async function runC1({ templateRef, uuid, brokerRole, sellerId, orderItems, requestHelper }) {
   const params = {
     sellerId,
     orderItems,
+    brokerRole,
   };
-  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, null, templateRef);
+  const response = await requestHelper.putOrderQuoteTemplate(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
@@ -50,12 +52,13 @@ class C1FlowStage extends FlowStage {
    * @param {C1ReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
    * @param {() => Input} args.getInput
+   * @param {string | null} [args.brokerRole]
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {string} args.sellerId
    */
-  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerId }) {
     super({
       prerequisite,
       getInput,
@@ -65,6 +68,7 @@ class C1FlowStage extends FlowStage {
         return await runC1({
           templateRef,
           uuid,
+          brokerRole,
           sellerId,
           orderItems,
           requestHelper,
