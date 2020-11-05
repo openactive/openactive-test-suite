@@ -1,13 +1,9 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const RequestHelper = require('../../../../helpers/request-helper');
 const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
+  FlowStageRecipes,
   FlowStageUtils,
   TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
-  BFlowStage,
+  OpportunityFeedUpdateFlowStageUtils,
 } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
@@ -19,43 +15,17 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'ChangeOfLogisticsSimulateAction triggered after B request to update name, startDate, endDate, duration or location properties of Opportunity.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
-  controlOpportunityCriteria: 'TestOpportunityBookable',
+  // It is not possible to run multiple OrderItem tests for this due to (TODO TODO TODO GH ISSUE HERE)
+  skipMultiple: true,
+  // controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const requestHelper = new RequestHelper(logger);
-
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-    }),
-  });
-  const [simulateChangeOfLogisticsUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
       ...defaultFlowStageParams,
-      testName: 'Simulate Change of Logistics Update (Test Interface Action)',
+      testName: 'TestInterfaceAction (test:ChangeOfLogisticsSimulateAction)',
       prerequisite,
       createActionFn: () => ({
         type: 'test:ChangeOfLogisticsSimulateAction',
@@ -63,10 +33,19 @@ FeatureHelper.describeFeature(module, {
         objectId: b.getOutput().orderId,
       }),
     })),
-    orderFeedUpdateParams: {
+    opportunityFeedUpdateParams: {
       ...defaultFlowStageParams,
       prerequisite: b,
-      testName: 'Orders Feed (after Simulate Change of Logistics Update)',
+      getInput: () => ({
+        testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
+      }),
+      orderItemCriteriaList,
+      testName: 'Opportunity Feed Update (after test:ChangeOfLogisticsSimulateAction)',
+      // The Broker needs to notify the Customer if any Opportunity in their Order has
+      // changed (rather than all Opportunities in the Order). So, we expect the
+      // ChangeOfLogisticsSimulateAction could be implemented in such a way as to only
+      // update one item. Hence, wait-for-one.
+      waitMode: 'wait-for-one',
     },
   });
 
@@ -76,15 +55,5 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities, () => {
-    const opportunities = fetchOpportunities.getOutput().opportunityFeedExtractResponses;
-    // TODO: compare opportunity feed items before and after ChangeOfLogisticsSimulateAction action.
-    // altered values: name, startDate, endDate, duration of opportunity and name, address or geo of location
-    it('should have changed Name value of Opportunity', () => {
-    });
-    it('should have changed startDate, endDate, duration of Opportunity', () => {
-    });
-    it('should have changed name, address or geo of location values', () => {
-    });
-  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
 });
