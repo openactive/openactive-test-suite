@@ -15,7 +15,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'ChangeOfLogisticsSimulateAction triggered after B request to update name, startDate, endDate, duration or location properties of Opportunity.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
-  // It is not possible to run multiple OrderItem tests for this due to (TODO TODO TODO GH ISSUE HERE)
+  // It is not possible to run multiple OrderItem tests for this due to (https://github.com/openactive/openactive-test-suite/issues/312)
   skipMultiple: true,
   // controlOpportunityCriteria: 'TestOpportunityBookable',
 },

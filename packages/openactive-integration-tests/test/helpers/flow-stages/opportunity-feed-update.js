@@ -142,7 +142,7 @@ class OpportunityFeedUpdateListenerFlowStage extends FlowStage {
    *   one does.
    *
    *   WARN: wait-for-one is currently not supported for multiple OrderItem tests.
-   *   In order to support this, we'd have to implement (TODO GITHUB ISSUE HERE),
+   *   In order to support this, we'd have to implement (https://github.com/openactive/openactive-test-suite/issues/312),
    *   so that opportunity feed checking can be cancelled for other opportunities
    *   when one of the opportunities is found (and JS Promises are not cancellable
    *   without specific measures).
