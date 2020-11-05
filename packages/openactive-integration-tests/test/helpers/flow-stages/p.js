@@ -5,7 +5,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../templates/p-req').PReqTemplateRef} PReqTemplateRef
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
