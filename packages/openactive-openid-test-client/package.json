@@ -2,11 +2,11 @@
   "name": "openactive-openid-test-client",
   "version": "1.0.0",
   "description": "OpenActive OpenID Connect Test Client",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node cli.js",
     "test": "npm run lint && tsc",
-    "debug": "node --inspect app.js",
+    "debug": "node --inspect cli.js",
     "lint": "eslint \"*.js\"",
     "lint-fix": "eslint \"*.js\" --fix"
   },
@@ -21,7 +21,8 @@
     "express": "^4.17.1",
     "nock": "^13.0.4",
     "openid-client": "^4.2.1",
-    "puppeteer": "^5.4.1"
+    "puppeteer": "^5.4.1",
+    "yargs": "^16.1.0"
   },
   "devDependencies": {
     "@types/node": "^14.6.0",

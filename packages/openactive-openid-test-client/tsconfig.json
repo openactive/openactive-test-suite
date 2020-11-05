@@ -9,6 +9,6 @@
     "resolveJsonModule": true
   },
   "include": [
-    "app.js"
+    "old.js"
   ]
 }
