@@ -69,11 +69,12 @@ const FlowStageRecipes = {
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
         totalPaymentDue: c2.getOutput().totalPaymentDue,
+        prepayment: c2.getOutput().prepayment,
       }),
     });
 
     return {
-      requestHelper,
+      defaultFlowStageParams,
       fetchOpportunities,
       c1,
       c2,

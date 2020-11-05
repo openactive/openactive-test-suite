@@ -19,7 +19,7 @@
  * A `wrap` function has also been provided, to reduce the boilerplate of setting
  * up a listener and collector each time.
  */
-const { getTotalPaymentDueFromOrder, getOrderProposalVersion, getOrderId } = require('../order-utils');
+const { getTotalPaymentDueFromOrder, getOrderProposalVersion, getOrderId, getPrepaymentFromOrder } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -36,7 +36,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'getOrderFromOrderFeedPromise'>>} ListenerOutput
  *
  * @typedef {ListenerOutput} CollectorInput
- * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
  */
 
 /**
@@ -67,6 +67,7 @@ async function runOrderFeedCollector({ getOrderFromOrderFeedPromise }) {
   return {
     httpResponse: response,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
+    prepayment: getPrepaymentFromOrder(bookingSystemOrder),
     orderProposalVersion: getOrderProposalVersion(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),
   };
@@ -197,6 +198,11 @@ const OrderFeedUpdateFlowStageUtils = {
     return [wrappedStage, collectOrderFeedUpdate];
   },
 };
+
+/**
+ * @typedef {InstanceType<typeof OrderFeedUpdateCollector>} OrderFeedUpdateCollectorType
+ * @typedef {InstanceType<typeof OrderFeedUpdateListener>} OrderFeedUpdateListenerType
+ */
 
 module.exports = {
   OrderFeedUpdateListener,
