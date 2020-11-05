@@ -17,7 +17,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // It is not possible to run multiple OrderItem tests for this due to (https://github.com/openactive/openactive-test-suite/issues/312)
   skipMultiple: true,
-  // controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
