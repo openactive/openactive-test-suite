@@ -2,7 +2,7 @@
 const yargs = require('yargs');
 const express = require('express');
 const http = require('http');
-const { OpenActiveOpenIdTestClient, recordWithIntercept, setupBrowserAutomationRoutes } = require('.');
+const { OpenActiveOpenIdTestClient, logWithIntercept, setupBrowserAutomationRoutes } = require('.');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -71,18 +71,13 @@ function onError(error) {
 const server = http.createServer(app);
 server.on('error', onError);
 
-app.listen(port, () => console.log(`Browser Automation service running on port ${port}`));
+app.listen(port, () => console.log(`Browser automation service running on port ${port}`));
 
 /**
  * CLI runner
  */
 
 const BASE_URL = `http://localhost:${port}`;
-
-const recordLogEntry = (entry) => {
-  console.log(JSON.stringify(entry, null, 2));
-  return entry;
-};
 
 // Create new client
 const client = new OpenActiveOpenIdTestClient(BASE_URL);
@@ -121,33 +116,36 @@ const cli = yargs
   }, async (argv) => {
     try {
       // Discovery
-      const issuer = await recordWithIntercept(recordLogEntry, 'Discovery', client.discover, argv.identityServerUrl);
-      console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
+      const issuer = await logWithIntercept('Discovery', () => client.discover(argv.identityServerUrl));
+      console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
 
       // Dynamic Client Registration
-      const { registration, clientId, clientSecret } = await recordWithIntercept(recordLogEntry, 'Dynamic Client Registration', client.register, argv.initialAccessToken);
-      console.log('Dynamic Client Registration: %O', registration);
+      const { registration, clientId, clientSecret } = await logWithIntercept('Dynamic Client Registration', () => client.register(argv.initialAccessToken));
+      console.log('Dynamic Client Registration: %O\n\n', registration);
 
       // Client Credentials Flow
-      const { clientCredentialsTokenSet } = await recordWithIntercept(recordLogEntry, 'Client Credentials Flow', client.authorizeClientCredentialsFlow, clientId, clientSecret);
-      console.log('Client Credentials Flow: received and validated tokens %j', clientCredentialsTokenSet);
+      const { tokenSet: clientCredentialsTokenSet } = await logWithIntercept('Client Credentials Flow', () => client.authorizeClientCredentialsFlow(clientId, clientSecret));
+      console.log('Client Credentials Flow: received and validated tokens %j\n\n', clientCredentialsTokenSet);
 
       // Authorization Code Flow
-      const { tokenSet } = await recordWithIntercept(recordLogEntry, 'Authorization Code Flow', client.authorizeAuthorizationCodeFlow, clientId, clientSecret, {
+      const { tokenSet } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
         buttonSelector: '.btn-primary',
         headless: true,
         username: argv.username,
         password: argv.password,
-      });
+      }));
       const refreshToken = tokenSet.refresh_token;
       console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
       console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
-      console.log('Authorization Code Flow: received refresh token %s', tokenSet.refresh_token);
+      console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);
 
       // Refresh Token
-      const refreshedTokenSet = await recordWithIntercept(recordLogEntry, 'Refresh Token', client.refresh, refreshToken, clientId, clientSecret);
+      const refreshedTokenSet = await logWithIntercept('Refresh Token', () => client.refresh(refreshToken, clientId, clientSecret));
       console.log('refreshed and validated tokens %j', refreshedTokenSet);
-      console.log('refreshed ID Token claims %j', refreshedTokenSet.claims());
+      console.log('refreshed ID Token claims %j\n\n', refreshedTokenSet.claims());
+
+      // Exit
+      process.exit(0);
     } catch (error) {
       console.log(error);
     }

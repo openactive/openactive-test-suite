@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 const { Issuer, generators } = require('openid-client');
 const { default: axios } = require('axios');
-const { SSL_OP_ALL } = require('constants');
 
 function throwIfNoIssuer(issuer) {
   if (!issuer) throw new Error('Please run `discover()` before using this client, or pass an explicit issuer');
@@ -53,6 +52,8 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @typedef {Object} AuthorizeOptions
    * @property {string} buttonSelector
    * @property {boolean} headless
+   * @property {string} username
+   * @property {string} password
    */
 
   /**

@@ -5,9 +5,8 @@ const nock = require('nock');
  * @param {function} recordLogEntry
  * @param {string} stage
  * @param {function} actionFn
- * @param  {...any} args
  */
-async function recordWithIntercept(recordLogEntry, stage, actionFn, ...args) {
+async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   const entry = recordLogEntry({
     type: 'request',
     stage,
@@ -35,7 +34,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn, ...args) {
   let result = null;
 
   try {
-    result = await actionFn(...args);
+    result = await actionFn();
   } catch (error) {
     actionError = error;
   } finally {
@@ -102,6 +101,34 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn, ...args) {
   return result;
 }
 
+/**
+ * Intecept and output to the console all http requests made during the execution of actionFn
+ * @param {string} stage
+ * @param {function} actionFn
+ */
+async function logWithIntercept(stage, actionFn) {
+  const logs = [];
+  const recordLogEntry = (entry) => {
+    const log = {
+      ...(this.testMeta),
+      ...entry,
+    };
+
+    logs.push(log);
+
+    return log;
+  };
+  let result;
+  try {
+    result = await recordWithIntercept(recordLogEntry, stage, actionFn);
+  } finally {
+    // eslint-disable-next-line no-console
+    console.log(`${stage} requests: ${JSON.stringify(logs, null, 2)}`);
+  }
+  return result;
+}
+
 module.exports = {
   recordWithIntercept,
+  logWithIntercept,
 };

@@ -4,15 +4,15 @@ const { generators } = require('openid-client');
 
 const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 
-async function authorizeInteractive(sessionKey, url, headless, buttonSelector, context) {
+async function authorizeInteractive(sessionKey, url, headless, buttonSelector, username, password, context) {
   const browser = await puppeteer.launch({
     headless,
   });
   const page = await browser.newPage();
   try {
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(url)}`);
-    await page.type("[name='username' i]", 'test');
-    await page.type("[name='password' i]", 'test');
+    await page.type("[name='username' i]", username);
+    await page.type("[name='password' i]", password);
     context.screenshots.login = await page.screenshot({
       encoding: 'base64',
     });
@@ -78,9 +78,9 @@ function setupBrowserAutomationRoutes(app) {
       },
     };
     requestStore.set(String(sessionKey), context);
-    const { authorizationUrl, headless, buttonSelector } = req.body;
+    const { authorizationUrl, headless, buttonSelector, username, password } = req.body;
     try {
-      await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, context);
+      await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, username, password, context);
     } catch (err) {
       context.error = err.message;
       res.status(400).json({

@@ -75,6 +75,8 @@ module.exports = class AuthKeyManager {
           const { tokenSet } = await this.client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
             buttonSelector: '.btn-primary',
             headless: true,
+            username: authenticationConfig.loginCredentials.username,
+            password: authenticationConfig.loginCredentials.password,
           });
           if (!tokenSet.refresh_token) {
             throw new Error('Refresh token is required, but not provided.');
