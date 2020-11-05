@@ -7,16 +7,18 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'customer-included-nobroker-mode',
   testName: 'Customer included in Order in NoBroker mode',
-  testDescription: 'Request shoud succeed if customer is included in Order in NoBroke mode for B request.',
+  testDescription: 'Request shoud succeed if broker is excluded and customer is included in Order in NoBroker mode for C1, C2 & B request.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef: 'noBroker', brokerRole: 'https://openactive.io/NoBroker' });
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
+    c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker', bReqTemplateRef: 'noBroker', brokerRole: 'https://openactive.io/NoBroker',
+  });
 
-  describe('Booking should succeed if Customer is included in Order, because we are in NoBroker mode', () => {
+  describe('In NoBroker mode, booking should succeed if Broker is excluded if Customer is included in Order', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);

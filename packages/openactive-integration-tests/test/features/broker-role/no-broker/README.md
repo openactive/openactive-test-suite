@@ -29,8 +29,8 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [broker-included-nobroker-mode](./implemented/broker-included-nobroker-mode-test.js) | Broker included in Order in NoBroker mode | Request shoud fail if broker is included in Order in NoBroker mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
-| [customer-included-nobroker-mode](./implemented/customer-included-nobroker-mode-test.js) | Customer included in Order in NoBroker mode | Request shoud succeed if customer is included in Order in NoBroke mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [broker-included-nobroker-mode](./implemented/broker-included-nobroker-mode-test.js) | Broker included in Order in NoBroker mode | Request shoud fail if broker is included in Order in NoBroker mode for C1, C2 & B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [customer-included-nobroker-mode](./implemented/customer-included-nobroker-mode-test.js) | Customer included in Order in NoBroker mode | Request shoud succeed if broker is excluded and customer is included in Order in NoBroker mode for C1, C2 & B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 | [customer-not-included-nobroker-mode](./implemented/customer-not-included-nobroker-mode-test.js) | Customer not included in Order in NoBroker mode | Request shoud succeed if customer is not included in Order in NoBroker mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 

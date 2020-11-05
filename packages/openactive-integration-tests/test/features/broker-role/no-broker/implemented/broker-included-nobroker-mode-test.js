@@ -23,7 +23,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'broker-included-nobroker-mode',
   testName: 'Broker included in Order in NoBroker mode',
-  testDescription: 'Request shoud fail if broker is included in Order in NoBroker mode for B request.',
+  testDescription: 'Request shoud fail if broker is included in Order in NoBroker mode for C1, C2 & B request.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
