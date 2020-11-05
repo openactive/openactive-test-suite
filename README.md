@@ -60,6 +60,16 @@ Any extra command line arguments will be passed to `jest` in [`openactive-integr
 npm start -- --runInBand test/features/core/availability-check/
 ```
 
+It is also possible to use a [category identifier or feature identifier](./packages/openactive-integration-tests/test/features/README.md) as short-hand:
+
+```bash
+npm start core
+```
+
+```bash
+npm start availability-check
+```
+
 Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).
 
 

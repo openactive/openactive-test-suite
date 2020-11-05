@@ -1,3 +1,20 @@
+// TODO many of the templates in this file are used by just one test
+// It may be worth, therefore, having the templates defined in the test where they
+// are used. This would reduce the chance of issues as the template definition is
+// often heavily coupled with the test (e.g. it only works if a certain criteria)
+// is used.
+// If all the templates are stored in this file, it would be tempting to use an
+// existing one for a new test where it may give false positives as it uses the
+// wrong opportunity criteria.
+// Alternatively, could we have it so that the template only works for some criteria..?
+const { dissocPath, omit } = require('ramda');
+const shortid = require('shortid');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./common');
+
+/**
+ * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
+ */
+
 /**
  * @typedef {{
  *   sellerId: string,
@@ -12,19 +29,23 @@
  *     },
  *   }[],
  *   totalPaymentDue: number,
+ *   prepayment?: Prepayment | null | undefined,
  *   orderProposalVersion: string | null,
  * }} BReqTemplateData
  */
 
-const { dissocPath } = require('ramda');
-const { createPaymentPart } = require('./common');
-
 /**
+ * Some templates are meaningless if `payment` is unavailable.
+ * This assertion can therefore provide a helpful error for if a test criteria and
+ * B request template don't match up.
+ *
+ * @param {BReqTemplateRef} templateName
  * @param {BReqTemplateData} data
- * @returns {boolean}
  */
-function isPaymentNeeded(data) {
-  return data.totalPaymentDue > 0;
+function assertPaymentIsAvailable(templateName, data) {
+  if (!isPaymentAvailable(data)) {
+    throw new Error(`${templateName} B request incorrectly used for an Order for which prepayment is optional. Consider using another B request template or a different OpportunityCriteria`);
+  }
 }
 
 /**
@@ -38,7 +59,7 @@ function createAfterPBReq(data) {
     '@type': 'Order',
     orderProposalVersion: data.orderProposalVersion,
   };
-  if (isPaymentNeeded(data)) {
+  if (isPaymentAvailable(data)) {
     result.payment = createPaymentPart();
   }
   return result;
@@ -158,9 +179,13 @@ function createStandardFreeBReq(data) {
 }
 
 /**
+ * Template for a paid opportunity for which prepayment is being made. This _should_
+ * only be used for paid opportunities with prepayment=Required|Optional, but could
+ * also be used to purposely fail tests for which prepayment is Unavailable.
+ *
  * @param {BReqTemplateData} data
  */
-function createStandardPaidBReq(data) {
+function createPaidWithPaymentBReq(data) {
   return {
     ...createNonPaymentRelatedCoreBReq(data),
     totalPaymentDue: {
@@ -173,6 +198,30 @@ function createStandardPaidBReq(data) {
 }
 
 /**
+ * Adaptable template for a paid opportunity. `totalPaymentDue` is always set, but
+ * `payment` will be set depending on `prepayment`
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardPaidBReq(data) {
+  const reqWithoutPayment = {
+    ...createNonPaymentRelatedCoreBReq(data),
+    totalPaymentDue: {
+      '@type': 'PriceSpecification',
+      price: data.totalPaymentDue,
+      priceCurrency: 'GBP',
+    },
+  };
+  if (isPaymentAvailable(data)) {
+    return {
+      ...reqWithoutPayment,
+      payment: createPaymentPart(),
+    };
+  }
+  return reqWithoutPayment;
+}
+
+/**
  * Flexibly creates a free or paid B request determined by if totalPaymentDue
  * is zero or not.
  *
@@ -182,14 +231,14 @@ function createStandardFreeOrPaidBReq(data) {
   if (data.orderProposalVersion) {
     return createAfterPBReq(data);
   }
-  if (isPaymentNeeded(data)) {
+  if (isPaidOpportunity(data)) {
     return createStandardPaidBReq(data);
   }
   return createStandardFreeBReq(data);
 }
 
 /**
- * B request with missing customer.email
+ * Flexible B request - but with missing customer.email
  *
  * @param {BReqTemplateData} data
  */
@@ -199,7 +248,7 @@ function createNoCustomerEmailBReq(data) {
 }
 
 /**
- * B request with missing customer.email
+ * Flexible B request - but with missing broker.name
  *
  * @param {BReqTemplateData} data
  */
@@ -226,33 +275,46 @@ function createIncorrectTotalPaymentDuePriceBReq(data) {
 }
 
 /**
- * Incorrect paid B request without payment property.
- * Payment property is required.
+ * B request where the `payment` property is omitted. This may be used when prepayment
+ * is not required, for free items or in order to provoke an error when a prepayment
+ * is expected.
  *
  * @param {BReqTemplateData} data
  */
-function createIncorrectOrderDueToMissingPaymentProperty(data) {
+function createNoPaymentBReq(data) {
   const req = createStandardPaidBReq(data);
   return dissocPath(['payment'], req);
 }
 
 /**
- * Paid B request with incorrect payment property as identifier is missing.
+ * Paid B request with payment property. This is named "incorrect" as it is intended
+ * to be used for a test in which the `payment` property is unnecessary (e.g.
+ * prepayment=Unavailable).
+ */
+const createIncorrectOrderDueToUnnecessaryPaymentProperty = createPaidWithPaymentBReq;
+
+/**
+ * Paid B request with payment property - though `payment.identifier` is missing.
+ *
+ * Note that the purpose of this template is to test using invalid `payment` data
+ * when `payment` is required. This template therefore asserts that `payment` should
+ * be required.
  *
  * @param {BReqTemplateData} data
  */
 function createIncorrectOrderDueToMissingIdentifierInPaymentProperty(data) {
-  const req = createStandardPaidBReq(data);
+  assertPaymentIsAvailable('incorrectOrderDueToMissingIdentifierInPaymentProperty', data);
+  const req = createPaidWithPaymentBReq(data);
   return dissocPath(['payment', 'identifier'], req);
 }
 
 /**
- * Paid B request without customer.
+ * Flexible B request - but with missing customer.
  *
  * @param {BReqTemplateData} data
  */
 function createBReqWithoutCustomer(data) {
-  const req = createStandardPaidBReq(data);
+  const req = createStandardFreeOrPaidBReq(data);
   return dissocPath(['customer'], req);
 }
 
@@ -280,32 +342,76 @@ function createBReqWithBusinessCustomer(data) {
   return req;
 }
 
-function createNoAccountId(data) {
-  const req = createStandardPaidBReq(data);
-  return dissocPath(['payment', 'accountId'], req);
+// function createNoAccountId(data) {
+//   const req = createStandardPaidBReq(data);
+//   return dissocPath(['payment', 'accountId'], req);
+// }
+
+// function createNoPaymentProviderId(data) {
+//   const req = createStandardPaidBReq(data);
+//   return dissocPath(['payment', 'paymentProviderId'], req);
+// }
+
+// function createInvalidAccountId(data) {
+//   const req = createStandardPaidBReq(data);
+//   req.payment.accountId = 'some rubbish';
+//   return req;
+// }
+
+// function createInvalidPaymentProviderId(data) {
+//   const req = createStandardPaidBReq(data);
+//   req.payment.paymentProviderId = 'some rubbish';
+//   return req;
+// }
+
+// function createInvalidReconciliationDetails(data) {
+//   const req = createStandardPaidBReq(data);
+//   req.payment.accountId = 'some rubbish';
+//   req.payment.paymentProviderId = 'some rubbish';
+//   return req;
+// }
+
+/**
+ * Paid B request with payment property - though reconciliation fields in `payment`
+ * are missing.
+ *
+ * Note that the purpose of this template is to test using invalid `payment` data
+ * when `payment` is required. This template therefore asserts that `payment` should
+ * be required.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createMissingPaymentReconciliationDetailsBReq(data) {
+  assertPaymentIsAvailable('missingPaymentReconciliationDetails', data);
+  const req = createPaidWithPaymentBReq(data);
+  return {
+    ...req,
+    payment: omit(['accountId', 'name', 'paymentProviderId'], req.payment),
+  };
 }
 
-function createNoPaymentProviderId(data) {
-  const req = createStandardPaidBReq(data);
-  return dissocPath(['payment', 'paymentProviderId'], req);
-}
-
-function createInvalidAccountId(data) {
-  const req = createStandardPaidBReq(data);
-  req.payment.accountId = 'some rubbish';
-  return req;
-}
-
-function createInvalidPaymentProviderId(data) {
-  const req = createStandardPaidBReq(data);
-  req.payment.paymentProviderId = 'some rubbish';
-  return req;
-}
-
-function createInvalidReconciliationDetails(data) {
-  const req = createStandardPaidBReq(data);
-  req.payment.accountId = 'some rubbish';
-  req.payment.paymentProviderId = 'some rubbish';
+/**
+ * Paid B request with payment property - though reconciliation fields in `payment`
+ * are incorrect.
+ *
+ * Note that the purpose of this template is to test using invalid `payment` data
+ * when `payment` is required. This template therefore asserts that `payment` should
+ * be required.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createIncorrectReconciliationDetails(data) {
+  assertPaymentIsAvailable('missingPaymentReconciliationDetails', data);
+  const req = createPaidWithPaymentBReq(data);
+  if (req.payment.accountId) {
+    req.payment.accountId = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.name) {
+    req.payment.name = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.paymentProviderId) {
+    req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
+  }
   return req;
 }
 
@@ -317,18 +423,22 @@ const bReqTemplates = {
   standardFree: createStandardFreeBReq,
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
+  paidWithPayment: createPaidWithPaymentBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   incorrectTotalPaymentDuePrice: createIncorrectTotalPaymentDuePriceBReq,
-  incorrectOrderDueToMissingPaymentProperty: createIncorrectOrderDueToMissingPaymentProperty,
+  noPayment: createNoPaymentBReq,
+  incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
   businessCustomer: createBReqWithBusinessCustomer,
-  noAccountId: createNoAccountId,
-  noPaymentProviderId: createNoPaymentProviderId,
-  invalidAccountId: createInvalidAccountId,
-  invalidPaymentProviderId: createInvalidPaymentProviderId,
-  invalidReconciliationDetails: createInvalidReconciliationDetails,
+  // noAccountId: createNoAccountId,
+  // noPaymentProviderId: createNoPaymentProviderId,
+  // invalidAccountId: createInvalidAccountId,
+  // invalidPaymentProviderId: createInvalidPaymentProviderId,
+  // invalidReconciliationDetails: createInvalidReconciliationDetails,
+  missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
+  incorrectReconciliationDetails: createIncorrectReconciliationDetails,
 };
 
 /**

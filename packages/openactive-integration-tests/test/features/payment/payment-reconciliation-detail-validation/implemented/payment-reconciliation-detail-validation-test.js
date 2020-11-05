@@ -1,6 +1,9 @@
 const { expect } = require('chai');
+const config = require('config');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+
+const { paymentReconciliationDetails } = config.get('sellers').primary;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -14,8 +17,8 @@ const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 function itShouldReturnCorrectReconciliationDetails(responseAccessor) {
   it('should return correct reconciliation details', () => {
     const { payment } = responseAccessor().body;
-    expect(payment.accountId).to.equal('SN1593');
-    expect(payment.paymentProviderId).to.equal('STRIPE');
+    // the payment will have other details like `identifier` - hence, `.include()`
+    expect(payment).to.include(paymentReconciliationDetails);
   });
 }
 
@@ -26,53 +29,31 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'payment-reconciliation-detail-validation',
   testName: 'Payment reconciliation detail validation',
   testDescription: 'C1, C2 and B including globally configured accountId, paymentProviderId and name should succeed',
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  // The latter tests are rendered slightly pointless if the test config does not include paymentReconciliationDetails
+  describe('the test config primary seller', () => {
+    // https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation
+    it('should have paymentReconciliationDetails, with at least one property', () => {
+      expect(paymentReconciliationDetails).to.be.an('object');
+      expect(paymentReconciliationDetails).to.satisfy(details => (
+        details.name || details.accountId || details.paymentProviderId
+      ), 'should have at least one property (name, accountId or paymentProviderId)');
+    });
   });
 
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldReturnCorrectReconciliationDetails(() => c1.getOutput().httpResponse);
   });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnCorrectReconciliationDetails(() => state.c1Response);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldReturnCorrectReconciliationDetails(() => c2.getOutput().httpResponse);
   });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnCorrectReconciliationDetails(() => state.c2Response);
-  });
-
-  describe('B', () => {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnCorrectReconciliationDetails(() => state.bResponse);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+    itShouldReturnCorrectReconciliationDetails(() => b.getOutput().httpResponse);
   });
 });
