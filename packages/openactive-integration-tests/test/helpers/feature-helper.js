@@ -43,6 +43,8 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  *   Used to generate the docs for each test.
  *
  *   Defaults to 1.
+ * @property {boolean} [skipTest] Similar to describe.skip. If true, this test is
+ *   skipped.
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,
@@ -54,9 +56,9 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  *   opportunityType?: string | null,
  * ) => void} RunTestsFn
  *
- * @typedef {DescribeFeatureConfiguration & {
+ * @typedef {(Omit<DescribeFeatureConfiguration, 'skipTest'> & {
  *   criteriaRequirement: Map<string, number>,
- * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
+ * }) | { skipTest: true }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
  *   This is used by the documentation generator to get data about the tests.
  *   `criteriaRequirement` is a map of how many of each opportunity criteria (e.g. TestOpportunityBookable)
  *   is required.
@@ -69,6 +71,11 @@ class FeatureHelper {
    * @param {RunTestsFn} tests
    */
   static describeFeature(documentationModule, configuration, tests) {
+    if (configuration.skipTest) {
+      // eslint-disable-next-line no-param-reassign
+      documentationModule.exports = /** @type {TestModuleExports} */({ skipTest: true });
+      return;
+    }
     /**
      * Default templates
      * @type {CreateSingleOportunityCriteriaTemplateFn}
