@@ -1,4 +1,4 @@
-const { dissocPath } = require('ramda');
+const { dissocPath, dissoc } = require('ramda');
 const { createPaymentPart } = require('./common');
 
 /**
@@ -14,6 +14,7 @@ const { createPaymentPart } = require('./common');
  *       '@id': string,
  *     },
  *   }[],
+ *   brokerRole: string | null,
  * }} C2ReqTemplateData
  */
 
@@ -24,7 +25,7 @@ function createStandardC2Req(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderQuote',
-    brokerRole: 'https://openactive.io/AgentBroker',
+    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
       name: 'MyFitnessApp',
@@ -91,11 +92,22 @@ function createNoBrokerNameC2Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C2 request with missing broker
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createNoBrokerC2Req(data) {
+  const req = createStandardC2Req(data);
+  return dissoc('broker', req);
+}
+
 
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
+  noBroker: createNoBrokerC2Req,
 };
 
 /**

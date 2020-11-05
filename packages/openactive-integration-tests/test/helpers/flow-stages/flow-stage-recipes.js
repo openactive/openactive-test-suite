@@ -48,6 +48,7 @@ const FlowStageRecipes = {
     const c1 = new C1FlowStage({
       ...defaultFlowStageParams,
       templateRef: c1ReqTemplateRef,
+      brokerRole,
       prerequisite: fetchOpportunities,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -56,6 +57,7 @@ const FlowStageRecipes = {
     const c2 = new C2FlowStage({
       ...defaultFlowStageParams,
       templateRef: c2ReqTemplateRef,
+      brokerRole,
       prerequisite: c1,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,

@@ -31,6 +31,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
  *   totalPaymentDue: number,
  *   prepayment?: Prepayment | null | undefined,
  *   orderProposalVersion: string | null,
+ *   brokerRole: string | null,
  * }} BReqTemplateData
  */
 
@@ -74,7 +75,7 @@ function createNonPaymentRelatedCoreBReq(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
-    brokerRole: 'https://openactive.io/AgentBroker',
+    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
       name: 'MyFitnessApp',
