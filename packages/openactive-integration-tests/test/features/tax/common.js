@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { GetMatch, C1, C2, B } = require('../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../helpers/flow-stages');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -26,55 +26,24 @@ function itShouldCalculateTaxCorrectly(responseAccessor) {
   });
 }
 
-function grossTest(stateFn = null, flowFn = null) {
-  return (configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
-    const state = stateFn ? stateFn(logger) : parentState;
-    const flow = flowFn ? flowFn(state) : parentFlow;
+/**
+ * @param {Omit<InitialiseSimpleC1C2BFlowOptions, 'taxMode'>} [options]
+ */
+function grossTest(options) {
+  /** @type {import('../../helpers/feature-helper').RunTestsFn} */
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+    // ## Init Flow Stages
+    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(
+      orderItemCriteriaList,
+      logger,
+      { ...options, taxMode: 'https://openactive.io/TaxGross' },
+    );
 
     beforeAll(async () => {
       await state.fetchOpportunities(orderItemCriteria, undefined, 'https://openactive.io/TaxGross');
     });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      itShouldCalculateTaxCorrectly(() => state.c1Response);
-    });
-
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      itShouldCalculateTaxCorrectly(() => state.c2Response);
-    });
-
-    describe('B', () => {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      itShouldCalculateTaxCorrectly(() => state.bResponse);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+      itShouldCalculateTaxCorrectly(() => b.getOutput().httpResponse);
     });
   };
 }
