@@ -1,21 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
-
-/**
- * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
- * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
- * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
- */
-
-/**
- * @param {C1FlowStageType | C2FlowStageType | BFlowStageType} flowStage
- */
-function runFlowStageAndExpectIncompleteCustomerDetailsError(flowStage) {
-  FlowStageUtils.describeRunAndCheckIsValid(flowStage, () => {
-    itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, () => flowStage.getOutput().httpResponse);
-  });
-}
+const { runFlowStageAndExpectIncompleteCustomerDetailsError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'broker-role',

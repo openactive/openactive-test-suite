@@ -105,12 +105,16 @@ function createNoBrokerC2Req(data) {
 /** C2 request with missing customer and broker */
 const createNoCustomerAndNoBrokerC2Req = pipe(createStandardC2Req, omit(['customer', 'broker']));
 
+/** C2 request with missing customer */
+const createNoCustomerC2Req = pipe(createStandardC2Req, dissoc('customer'));
+
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,
+  noCustomer: createNoCustomerC2Req,
 };
 
 /**

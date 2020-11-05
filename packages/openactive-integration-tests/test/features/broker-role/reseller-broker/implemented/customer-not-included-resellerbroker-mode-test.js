@@ -14,7 +14,10 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef: 'noCustomer', brokerRole: 'https://openactive.io/ResellerBroker' });
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
+    // Note that we haven't included a noCustomer template for C1 because C1 never has a customer property
+    c2ReqTemplateRef: 'noCustomer', bReqTemplateRef: 'noCustomer', brokerRole: 'https://openactive.io/ResellerBroker',
+  });
 
   describe('Booking should succeed even if Customer is not included in Order, because we are in ResellerBroker mode', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

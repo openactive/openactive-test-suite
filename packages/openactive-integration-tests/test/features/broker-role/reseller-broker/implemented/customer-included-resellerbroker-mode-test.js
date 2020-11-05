@@ -7,7 +7,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'customer-included-resellerbroker-mode',
   testName: 'Customer included in Order in ResellerBroker mode',
-  testDescription: 'Request shoud succeed if customer is included in Order in ResellerBroke mode for B request.',
+  testDescription: 'Request shoud succeed if broker and customer are included in Order in ResellerBroke mode for B request.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { brokerRole: 'https://openactive.io/ResellerBroker' });
 
-  describe('Booking should succeed if Customer is included in Order, because we are in ResellerBroker mode', () => {
+  describe('Booking should succeed if Broker and Customer are included in Order, because we are in ResellerBroker mode', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);

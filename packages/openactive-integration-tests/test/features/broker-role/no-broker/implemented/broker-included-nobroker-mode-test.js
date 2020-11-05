@@ -1,21 +1,21 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { runFlowStageAndExpectIncompleteBrokerDetailsError } = require('../../../../shared-behaviours/errors');
 
-/**
- * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
- * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
- * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
- */
+// /**
+//  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+//  * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+//  * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+//  */
 
-/**
- * @param {C1FlowStageType | C2FlowStageType | BFlowStageType} flowStage
- */
-function runFlowStageAndExpectIncompleteBrokerDetailsError(flowStage) {
-  FlowStageUtils.describeRunAndCheckIsValid(flowStage, () => {
-    itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, () => flowStage.getOutput().httpResponse);
-  });
-}
+// /**
+//  * @param {C1FlowStageType | C2FlowStageType | BFlowStageType} flowStage
+//  */
+// function runFlowStageAndExpectIncompleteBrokerDetailsError(flowStage) {
+//   FlowStageUtils.describeRunAndCheckIsValid(flowStage, () => {
+//     itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, () => flowStage.getOutput().httpResponse);
+//   });
+// }
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'broker-role',
