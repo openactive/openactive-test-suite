@@ -83,40 +83,31 @@ const BASE_URL = `http://localhost:${port}`;
 const client = new OpenActiveOpenIdTestClient(BASE_URL);
 
 const cli = yargs
-  .command('$0 [name]', 'say hello', (yargsConfig) => {
+  .command('$0 [url]', 'OpenActive OpenID Connect Test Client CLI', (yargsConfig) => {
     yargsConfig
-      .positional('name', {
-        describe: 'hello\'s target',
-        default: 'world',
-      })
-      .option('identityServerUrl', {
-        alias: 'i',
-        type: 'string',
-        description: 'Identity Server Base URI',
+      .positional('url', {
+        describe: 'Identity Server Base URI',
         default: 'https://localhost:44353',
       })
       .option('initialAccessToken', {
         alias: 't',
-        type: 'string',
         description: 'Initial Access Token for Dynamic Client Registration',
         default: 'openactive_test_suite_client_12345xaq',
       })
       .option('username', {
         alias: 'u',
-        type: 'string',
         description: 'Username of the Seller',
         default: 'test',
       })
       .option('password', {
         alias: 'p',
-        type: 'string',
         description: 'Password of the Seller',
         default: 'test',
       });
   }, async (argv) => {
     try {
       // Discovery
-      const issuer = await logWithIntercept('Discovery', () => client.discover(argv.identityServerUrl));
+      const issuer = await logWithIntercept('Discovery', () => client.discover(argv.url));
       console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
 
       // Dynamic Client Registration

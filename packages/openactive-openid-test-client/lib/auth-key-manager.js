@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-const { OpenActiveOpenIdTestClient } = require('../index.js');
+const OpenActiveOpenIdTestClient = require('./client');
 
 /**
  * Auth key manager for use by tests
  */
 
-module.exports = class AuthKeyManager {
+module.exports = class OpenActiveTestAuthKeyManager {
   constructor(log, baseUrl, identifyServerUrl, sellersConfig, bookingPartnerConfig) {
     this.log = log;
     this.identifyServerUrl = identifyServerUrl;
@@ -31,7 +31,7 @@ module.exports = class AuthKeyManager {
     }
 
     const issuer = await this.client.discover(this.identifyServerUrl);
-    this.log('Discovered OpenID Connect issuer %s', issuer.issuer);
+    this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
 
     await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
       // Ensure structure of config is correct

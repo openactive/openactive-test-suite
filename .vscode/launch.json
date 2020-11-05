@@ -43,7 +43,7 @@
             "name": "openid-test-client",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/packages/openactive-openid-test-client/cli.js",
+            "program": "${workspaceFolder}/packages/openactive-openid-test-client/old.js",
             "cwd": "${workspaceFolder}/packages/openactive-openid-test-client/"
         },
         {

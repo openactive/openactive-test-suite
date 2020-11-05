@@ -9,7 +9,7 @@ const chalk = require('chalk');
 
 const config = require('config');
 
-const AuthKeyManager = require('./subservices/auth-key-manager');
+const OpenActiveTestAuthKeyManager = require('./lib/auth-key-manager');
 const { setupBrowserAutomationRoutes } = require('./lib/browser-automation-for-auth');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -86,10 +86,10 @@ server.on('error', onError);
 
 app.listen(port, () => console.log(`Browser Automation service running on port ${port}`));
 
-const authKeyManager = new AuthKeyManager(log, 'http://localhost:3000', IDENTITY_SERVER_URL, config.get('sellers'), config.get('bookingPartners'));
+const authKeyManager = new OpenActiveTestAuthKeyManager(log, 'http://localhost:3000', IDENTITY_SERVER_URL, config.get('sellers'), config.get('bookingPartners'));
 
 app.get('/config', async function (req, res) {
-  // await authKeyManager.updateAccessTokens();
+  await authKeyManager.updateAccessTokens();
   res.json(authKeyManager.config);
 });
 
