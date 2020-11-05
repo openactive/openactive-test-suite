@@ -20,17 +20,19 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {C2ReqTemplateRef} [args.templateRef]
  * @param {string} args.uuid
+ * @param {string | null} [args.brokerRole]
  * @param {string} args.sellerId
  * @param {OrderItem[]} args.orderItems
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
  */
-async function runC2({ templateRef, uuid, sellerId, orderItems, requestHelper }) {
+async function runC2({ templateRef, uuid, brokerRole, sellerId, orderItems, requestHelper }) {
   const params = {
     sellerId,
     orderItems,
+    brokerRole,
   };
-  const response = await requestHelper.putOrderQuote(uuid, params, null, templateRef);
+  const response = await requestHelper.putOrderQuote(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
@@ -50,12 +52,13 @@ class C2FlowStage extends FlowStage {
    * @param {C2ReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown>} [args.prerequisite]
    * @param {() => Input} args.getInput
+   * @param {string | null} [args.brokerRole]
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {string} args.sellerId
    */
-  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerId }) {
     super({
       prerequisite,
       testName: 'C2',
@@ -65,6 +68,7 @@ class C2FlowStage extends FlowStage {
         return await runC2({
           templateRef,
           uuid,
+          brokerRole,
           sellerId,
           orderItems,
           requestHelper,
