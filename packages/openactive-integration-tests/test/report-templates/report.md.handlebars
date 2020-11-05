@@ -31,7 +31,7 @@ Feature Implemented: {{{ implemented }}}
 
 ---
 
-Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Responded in {{{ response.responseTime}}}ms
+Response status code: {{{ response.status }}}{{#if response.statusMessage}}} {{{ response.statusMessage}}}{{/if}}.{{#if response.responseTime}}} Responded in {{{ response.responseTime}}}ms.{{/if}}
             {{#if response.body}}
 ```json
 {{{ json response.body }}}

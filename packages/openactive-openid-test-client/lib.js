@@ -1,8 +1,11 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-console */
 const { Issuer, generators } = require('openid-client');
 const config = require('config');
 const { default: axios } = require('axios');
 const { assert } = require('console');
+
+const nock = require('nock');
 
 const IDENTITY_SERVER_URL = config.get('identityServerUrl');
 
@@ -33,7 +36,6 @@ async function register(issuer, initialAccessToken) {
     clientSecret: registration.client_secret,
   };
 }
-
 
 /**
  * @typedef {Object} AuthorizeOptions
@@ -72,7 +74,7 @@ async function authorize(issuer, clientId, clientSecret, options) {
 
   console.log('Test URL: %s', url);
 
-  const { data: { callbackUrl, requiredAuthorisation } } = await axios.post(`${MICROSERVICE_BASE_URL}/auth-interactive`, {
+  const { data: { callbackUrl, requiredAuthorisation } } = await axios.post(`${MICROSERVICE_BASE_URL}/browser-automation-for-auth`, {
     ...options,
     authorizationUrl: url,
   }).catch((err) => {
@@ -119,19 +121,130 @@ async function refresh(issuer, clientId, clientSecret, refreshToken) {
   return refreshedTokenSet;
 }
 
+const logs = [];
+
 async function oauthAuthenticate() {
-  const issuer = await Issuer.discover(IDENTITY_SERVER_URL);
+  try {
+    const issuer = await recordWithIntercept('Discovery', Issuer.discover, IDENTITY_SERVER_URL);
 
-  console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
+    console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
 
-  const initialAccessToken = 'openactive_test_suite_client_12345xaq';
-  const { clientId, clientSecret } = await register(issuer, initialAccessToken);
-  const { tokenSet } = await authorize(issuer, clientId, clientSecret, {
-    buttonSelector: '.btn-primary2',
-    headless: false,
+    const initialAccessToken = 'openactive_test_suite_client_12345xaq';
+    const { clientId, clientSecret } = await recordWithIntercept('Dynamic Client Registration', register, issuer, initialAccessToken);
+    const { tokenSet } = await recordWithIntercept('Authorization Code Flow', authorize, issuer, clientId, clientSecret, {
+      buttonSelector: '.btn-primary',
+      headless: true,
+    });
+    const refreshToken = tokenSet.refresh_token;
+    const refreshedTokenSet = await await recordWithIntercept('Refresh Token', refresh, issuer, clientId + 's', clientSecret, refreshToken);
+  } finally {
+    console.log(`Logs: ${JSON.stringify(logs, null, 2)}`);
+  }
+}
+
+function recordLogEntry(entry) {
+  const log = {
+    ...entry,
+  };
+
+  logs.push(log);
+
+  return log;
+}
+
+async function recordWithIntercept(stage, actionFn, ...args) {
+  const entry = recordLogEntry({
+    type: 'request',
+    stage,
+    request: {
+    },
+    isPending: true,
+    duration: 0,
   });
-  const refreshToken = tokenSet.refresh_token;
-  const refreshedTokenSet = await refresh(issuer, clientId, clientSecret, refreshToken);
+
+  // manually count how long it's been waiting
+  // todo: capture a timestamp and hook into test state instead
+  const responseTimer = setInterval(() => {
+    entry.duration += 100;
+  }, 100);
+
+  // Record all requests within actionFn
+  nock.recorder.rec({
+    output_objects: true,
+    dont_print: true,
+    enable_reqheaders_recording: true,
+  });
+
+  let actionError = null;
+
+  let result = null;
+
+  try {
+    result = await actionFn(...args);
+  } catch (error) {
+    actionError = error;
+  } finally {
+    clearInterval(responseTimer);
+    entry.isPending = false;
+  }
+
+  // Store requests
+  const nockCallObjects = nock.recorder.play();
+
+  // Stop recording
+  nock.recorder.clear();
+  nock.restore();
+
+  // Process requests
+  const entries = nockCallObjects.map((httpCall, i) => {
+    const thisEntry = {
+      type: 'request',
+      // Ensure stage names are unique
+      stage: `${stage}${nockCallObjects.length > 1 ? ` ${i + 1}` : ''}`,
+      request: {
+        method: httpCall.method,
+        url: `${httpCall.scope}${httpCall.path}`,
+        requestOptions: {
+          headers: httpCall.reqheader,
+        },
+      },
+      response: {
+        body: httpCall.response,
+        // responseTime: response.responseTime,
+        status: httpCall.status,
+        headers: httpCall.headers,
+      },
+      isPending: false,
+      duration: 0,
+    };
+    if (httpCall.body !== '') {
+      thisEntry.request.jsonBody = httpCall.body;
+    }
+    return thisEntry;
+  });
+
+  if (entries.length > 0) {
+    // Add any error message to the most recent entry
+    if (actionError && entries.length > 0) entries.slice(-1)[0].response.error = actionError.message;
+
+    // Overwrite the first entry
+    entry.stage = entries[0].stage;
+    entry.request = entries[0].request;
+    entry.response = entries[0].response;
+
+    // Add any additional enteries
+    entries.slice(1).forEach(recordLogEntry);
+  } else if (actionError) {
+    // If no entries have been generated, add any error message to the first entry
+    entry.response = {
+      error: actionError.message,
+    };
+  }
+
+  if (actionError) {
+    throw actionError;
+  }
+  return result;
 }
 
 async function oauthReauthenticate() {

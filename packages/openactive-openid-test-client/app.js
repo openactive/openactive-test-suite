@@ -12,20 +12,6 @@ const cookieSession = require('cookie-session');
 
 const { oauthAuthenticate } = require('./lib.js');
 
-// const { RequestInterceptor } = require('./node_modules/node-request-interceptor/lib/index.js');
-// const withDefaultInterceptors = require('./node_modules/node-request-interceptor/lib/presets/default.js');
-
-/*
-// @ts-ignore
-const interceptor = new RequestInterceptor(withDefaultInterceptors);
-
-interceptor.use((req) => {
-  // Will print to stdout any outgoing requests
-  // without affecting their responses
-  console.log('%s %s', req.method, req.url.href);
-});
-*/
-
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
@@ -53,12 +39,13 @@ app.use(cookieSession({
 })();
 
 const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
+
 async function authorizeInteractive(sessionKey, url, headless, buttonSelector, context) {
   const browser = await puppeteer.launch({
     headless,
   });
+  const page = await browser.newPage();
   try {
-    const page = await browser.newPage();
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(url)}`);
     await page.type("[name='username' i]", 'test');
     await page.type("[name='password' i]", 'test');
@@ -98,13 +85,17 @@ async function authorizeInteractive(sessionKey, url, headless, buttonSelector, c
       throw new Error('Callback page redirect was not detected.');
     }
   } finally {
+    context.screenshots.error = await page.screenshot({
+      encoding: 'base64',
+    });
+    context.screenshots.error = context.screenshots.error.substr(0, 10); // TODO: Remove substr; truncated to ease debugging
     browser.close();
   }
 }
 
 let sessionKeyCounter = 0;
 const requestStore = new Map();
-app.post('/auth-interactive', async function (req, res) {
+app.post('/browser-automation-for-auth', async function (req, res) {
   const sessionKey = sessionKeyCounter;
   sessionKeyCounter += 1;
   const context = {
