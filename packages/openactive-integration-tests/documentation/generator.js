@@ -61,12 +61,15 @@ const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (
   // TODO: Verify that the data actually conforms to the type.
   // ## Load the test
   const data = /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
+  if ('skipTest' in data) {
+    return null;
+  }
   // ## Validate the test metadata
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
   chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
   chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
   return data;
-});
+}).filter(Boolean);
 
 // Load feature.json files
 /** @type {FeatureMetadataItem[]} */

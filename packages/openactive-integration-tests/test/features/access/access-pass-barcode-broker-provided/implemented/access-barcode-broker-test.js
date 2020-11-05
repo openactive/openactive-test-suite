@@ -14,6 +14,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipTest: true, // until https://github.com/openactive/OpenActive.Server.NET/pull/80 is merged
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const requestHelper = new RequestHelper(logger);

@@ -12,6 +12,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipTest: true, // until https://github.com/openactive/OpenActive.Server.NET/pull/80 is merged
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:OpportunityAttendanceUpdateSimulateAction' },
   ({ orderFeedUpdate, orderItemCriteriaList }) => {
