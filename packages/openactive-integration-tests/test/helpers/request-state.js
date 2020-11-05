@@ -100,7 +100,6 @@ class RequestState {
 
       const sellerKey = 'primary';
       const seller = SELLER_CONFIG[sellerKey];
-      // TODO TODO TODO need to move this stuff to fetchOpportunities
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
         ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);

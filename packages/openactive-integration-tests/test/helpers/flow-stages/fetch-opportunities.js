@@ -39,7 +39,6 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-// const SELLER_CONFIG = config.get('sellers');
 const { HARVEST_START_TIME } = global;
 
 /**
@@ -88,8 +87,6 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, se
       return await reusableOpportunityResponsePromises.get(orderItemCriteriaItem.opportunityReuseKey);
     }
 
-    // const sellerKey = orderItemCriteriaItem.seller || 'primary';
-    // const seller = SELLER_CONFIG[sellerKey];
     const opportunityResponsePromise = USE_RANDOM_OPPORTUNITIES
       ? requestHelper.getRandomOpportunity(
         orderItemCriteriaItem.opportunityType,

@@ -95,7 +95,6 @@ const FlowStageUtils = {
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || /** @type {SellerConfig} */(SELLER_CONFIG.primary),
-      // sellerId: sellerId || /** @type {string} */(SELLER_CONFIG.primary['@id']),
     };
   },
 
