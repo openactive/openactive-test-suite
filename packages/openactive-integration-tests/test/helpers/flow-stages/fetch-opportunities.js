@@ -1,6 +1,7 @@
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const _ = require('lodash');
 const config = require('config');
+const sharedValidationTests = require('../../shared-behaviours/validation');
 const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
 const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector, itValidationTestsOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
@@ -133,6 +134,7 @@ async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
   const opportunityFeedExtractResponses = await fetchOpportunityFeedExtractResponses({
     testInterfaceOpportunities,
     requestHelper,
+    useCacheIfAvailable: true,
   });
 
   // ## Create OrderItem for each Opportunity
@@ -191,11 +193,22 @@ class FetchOpportunitiesFlowStage extends FlowStage {
         });
       },
       itValidationTestsFn(flowStage) {
-        itValidationTestsOpportunityFeedUpdateCollector({
-          logger,
-          orderItemCriteriaList,
-          getterFn: () => flowStage.getOutput(),
+        orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
+          sharedValidationTests.shouldBeValidResponse(
+            () => flowStage.getOutput().opportunityFeedExtractResponses[i],
+            `Opportunity Feed extract for OrderItem ${i}`,
+            logger,
+            {
+              validationMode: 'BookableRPDEFeed',
+            },
+            orderItemCriteriaItem.opportunityCriteria,
+          );
         });
+        // itValidationTestsOpportunityFeedUpdateCollector({
+        //   logger,
+        //   orderItemCriteriaList,
+        //   getterFn: () => flowStage.getOutput(),
+        // });
       },
     });
   }

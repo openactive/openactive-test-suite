@@ -181,8 +181,9 @@ const { FlowStage } = require('./flow-stage');
  * @param {object} args
  * @param {ChakramResponse[]} args.testInterfaceOpportunities
  * @param {RequestHelperType} args.requestHelper
+ * @param {boolean} [args.useCacheIfAvailable]
  */
-async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities, requestHelper }) {
+async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities, requestHelper, useCacheIfAvailable }) {
   // TODO Note that waitMode is not yet used in this function. It should be. But, since
   // waitMode=wait-for-one only supports one opportunity, wait-for-one & wait-for-all
   // are exactly equivalent, until waitMode=wait-for-one can support multiple opportunities.
@@ -210,7 +211,7 @@ async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities
         return await reusableMatchPromises.get(opportunityId);
       }
 
-      const matchPromise = requestHelper.getMatch(opportunityId, i);
+      const matchPromise = requestHelper.getMatch(opportunityId, i, useCacheIfAvailable);
       reusableMatchPromises.set(opportunityId, matchPromise);
       return await matchPromise;
     }
@@ -250,30 +251,30 @@ function itSuccessChecksOpportunityFeedUpdateCollector({ orderItemCriteriaList, 
   });
 }
 
-/**
- * @param {object} args
- * @param {BaseLoggerType} args.logger
- * @param {OpportunityCriteria[]} args.orderItemCriteriaList
- * @param {() => {
- *   opportunityFeedExtractResponses: ChakramResponse[],
- * }} args.getterFn Function which gets the state needed for this function.
- *
- *   opportunityFeedExtractResponses is supposed to have length equal to the
- *   length of orderItemCriteriaList.
- */
-function itValidationTestsOpportunityFeedUpdateCollector({ logger, orderItemCriteriaList, getterFn }) {
-  orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
-    sharedValidationTests.shouldBeValidResponse(
-      () => getterFn().opportunityFeedExtractResponses[i],
-      `Opportunity Feed extract for OrderItem ${i}`,
-      logger,
-      {
-        validationMode: 'BookableRPDEFeed',
-      },
-      orderItemCriteriaItem.opportunityCriteria,
-    );
-  });
-}
+// /**
+//  * @param {object} args
+//  * @param {BaseLoggerType} args.logger
+//  * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+//  * @param {() => {
+//  *   opportunityFeedExtractResponses: ChakramResponse[],
+//  * }} args.getterFn Function which gets the state needed for this function.
+//  *
+//  *   opportunityFeedExtractResponses is supposed to have length equal to the
+//  *   length of orderItemCriteriaList.
+//  */
+// function itValidationTestsOpportunityFeedUpdateCollector({ logger, orderItemCriteriaList, getterFn }) {
+//   orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
+//     sharedValidationTests.shouldBeValidResponse(
+//       () => getterFn().opportunityFeedExtractResponses[i],
+//       `Opportunity Feed extract for OrderItem ${i}`,
+//       logger,
+//       {
+//         validationMode: 'BookableRPDEFeed',
+//       },
+//       orderItemCriteriaItem.opportunityCriteria,
+//     );
+//   });
+// }
 
 /**
  * FlowStage which initiates the checking for updates to the Opportunity Feed.
@@ -328,6 +329,8 @@ class OpportunityFeedUpdateListenerFlowStage extends FlowStage {
         const getOpportunitiesFromOpportunityFeedPromise = fetchOpportunityFeedExtractResponses({
           testInterfaceOpportunities,
           requestHelper,
+          // because we're waiting for an update to appear at the end of the feed, we don't use the cache.
+          useCacheIfAvailable: false,
         });
         return {
           getOpportunitiesFromOpportunityFeedPromise,
@@ -354,9 +357,10 @@ class OpportunityFeedUpdateCollectorFlowStage extends FlowStage {
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {() => CollectorInput} args.getInput
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+   * @param {WaitMode} args.waitMode
    * @param {BaseLoggerType} args.logger
    */
-  constructor({ testName, prerequisite, getInput, orderItemCriteriaList, logger }) {
+  constructor({ testName, prerequisite, getInput, orderItemCriteriaList, waitMode, logger }) {
     super({
       prerequisite,
       getInput,
@@ -372,11 +376,23 @@ class OpportunityFeedUpdateCollectorFlowStage extends FlowStage {
         });
       },
       itValidationTestsFn(flowStage) {
-        itValidationTestsOpportunityFeedUpdateCollector({
-          orderItemCriteriaList,
-          getterFn: () => flowStage.getOutput(),
-          logger,
-        });
+        if (waitMode === 'wait-for-one') {
+          sharedValidationTests.shouldBeValidResponse(
+            () => flowStage.getOutput().opportunityFeedExtractResponses[0],
+            'Opportunity Feed Extract for the 1st updated OrderItem',
+            logger,
+            { validationMode: 'BookableRPDEFeed' },
+          );
+        } else {
+          orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
+            sharedValidationTests.shouldBeValidResponse(
+              () => flowStage.getOutput().opportunityFeedExtractResponses[i],
+              `Opportunity Feed extract for OrderItem ${i}`,
+              logger,
+              { validationMode: 'BookableRPDEFeed' }
+            );
+          });
+        }
       },
     });
   }
@@ -444,6 +460,7 @@ const OpportunityFeedUpdateFlowStageUtils = {
         getOpportunitiesFromOpportunityFeedPromise: listenForOpportunityFeedUpdate.getOutput().getOpportunitiesFromOpportunityFeedPromise,
       }),
       orderItemCriteriaList: opportunityFeedUpdateParams.orderItemCriteriaList,
+      waitMode: opportunityFeedUpdateParams.waitMode,
       logger: opportunityFeedUpdateParams.logger,
     });
     return [wrappedStage, collectOpportunityFeedUpdate];
@@ -457,5 +474,5 @@ module.exports = {
   OpportunityFeedUpdateFlowStageUtils,
   fetchOpportunityFeedExtractResponses,
   itSuccessChecksOpportunityFeedUpdateCollector,
-  itValidationTestsOpportunityFeedUpdateCollector,
+  // itValidationTestsOpportunityFeedUpdateCollector,
 };

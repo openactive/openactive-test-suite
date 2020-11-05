@@ -224,11 +224,16 @@ class RequestHelper {
   /**
    * @param {string} eventId
    * @param {unknown} orderItemPosition
+   * @param {boolean} [useCacheIfAvailable] If true, Broker will potentially return the
+   *   item from its cache.
+   *   Set to false if you want to wait for a new update to the feed.
+   *   Default is: true.
    */
-  async getMatch(eventId, orderItemPosition) {
+  async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
+    const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
       {
         timeout: 60000,
       },
