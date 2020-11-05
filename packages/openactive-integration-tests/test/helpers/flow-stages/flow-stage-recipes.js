@@ -18,6 +18,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
  *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
  *   bReqTemplateRef?: BReqTemplateRef | null,
+ *   brokerRole?: string | null
  * }} OptionalC1C2BReqTemplateRefs
  */
 
@@ -35,7 +36,7 @@ const FlowStageRecipes = {
    * @param {BaseLoggerType} logger
    * @param {OptionalC1C2BReqTemplateRefs} [options]
    */
-  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null } = {}) {
+  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null, brokerRole = null } = {}) {
     const requestHelper = new RequestHelper(logger);
 
     // ## Initiate Flow Stages
@@ -47,6 +48,7 @@ const FlowStageRecipes = {
     const c1 = new C1FlowStage({
       ...defaultFlowStageParams,
       templateRef: c1ReqTemplateRef,
+      brokerRole,
       prerequisite: fetchOpportunities,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -55,6 +57,7 @@ const FlowStageRecipes = {
     const c2 = new C2FlowStage({
       ...defaultFlowStageParams,
       templateRef: c2ReqTemplateRef,
+      brokerRole,
       prerequisite: c1,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -63,6 +66,7 @@ const FlowStageRecipes = {
     const b = new BFlowStage({
       ...defaultFlowStageParams,
       templateRef: bReqTemplateRef,
+      brokerRole,
       prerequisite: c2,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
