@@ -6,5 +6,5 @@ export interface OpportunityCriteria {
   control?: boolean;
   opportunityReuseKey?: number;
   usedInOrderItems?: number;
-  seller?: string;
+  // seller?: string;
 }

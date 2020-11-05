@@ -13,6 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  */
 
 /**
@@ -38,7 +39,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const SELLER_CONFIG = config.get('sellers');
+// const SELLER_CONFIG = config.get('sellers');
 const { HARVEST_START_TIME } = global;
 
 /**
@@ -61,10 +62,11 @@ function getRandomRelevantOffer(opportunity, opportunityCriteria) {
  *
  * @param {object} args
  * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+ * @param {SellerConfig} args.sellerConfig
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<ChakramResponse[]>}
  */
-async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper }) {
+async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, sellerConfig, requestHelper }) {
   // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
   /**
    * Note that the reponses are stored wrapped in promises. This is because
@@ -86,21 +88,21 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
       return await reusableOpportunityResponsePromises.get(orderItemCriteriaItem.opportunityReuseKey);
     }
 
-    const sellerKey = orderItemCriteriaItem.seller || 'primary';
-    const seller = SELLER_CONFIG[sellerKey];
+    // const sellerKey = orderItemCriteriaItem.seller || 'primary';
+    // const seller = SELLER_CONFIG[sellerKey];
     const opportunityResponsePromise = USE_RANDOM_OPPORTUNITIES
       ? requestHelper.getRandomOpportunity(
         orderItemCriteriaItem.opportunityType,
         orderItemCriteriaItem.opportunityCriteria,
         i,
-        seller['@id'],
-        seller['@type'],
+        sellerConfig['@id'],
+        sellerConfig['@type'],
       ) : requestHelper.createOpportunity(
         orderItemCriteriaItem.opportunityType,
         orderItemCriteriaItem.opportunityCriteria,
         i,
-        seller['@id'],
-        seller['@type'],
+        sellerConfig['@id'],
+        sellerConfig['@type'],
       );
 
     // If this opportunity can be reused, store it
@@ -119,12 +121,15 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
  *
  * @param {object} args
  * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+ * @param {SellerConfig} args.sellerConfig
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
   */
-async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
+async function runFetchOpportunities({ orderItemCriteriaList, sellerConfig, requestHelper }) {
   // ## Get Test Interface Opportunities
-  const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper });
+  const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({
+    orderItemCriteriaList, sellerConfig, requestHelper,
+  });
 
   // ## Get full Opportunity data for each
   //
@@ -177,14 +182,17 @@ class FetchOpportunitiesFlowStage extends FlowStage {
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid] UUID to use for Order. If excluded, this will
    *   be generated.
+   * @param {SellerConfig} args.sellerConfig
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
-  constructor({ orderItemCriteriaList, requestHelper, logger }) {
+  constructor({ orderItemCriteriaList, sellerConfig, requestHelper, logger }) {
     super({
       testName: 'Fetch Opportunities',
       getInput: FlowStageUtils.emptyGetInput,
-      runFn: async () => await runFetchOpportunities({ orderItemCriteriaList, requestHelper }),
+      runFn: async () => await runFetchOpportunities({
+        orderItemCriteriaList, requestHelper, sellerConfig,
+      }),
       itSuccessChecksFn(flowStage) {
         itSuccessChecksOpportunityFeedUpdateCollector({
           orderItemCriteriaList,

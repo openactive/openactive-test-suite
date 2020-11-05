@@ -1,6 +1,4 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
 const { grossTest } = require('../../common');
 
 FeatureHelper.describeFeature(module, {
@@ -13,7 +11,4 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookablePaidTaxGross',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-grossTest(
-  logger => new RequestState(logger, { c2ReqTemplateRef: 'businessCustomer', bReqTemplateRef: 'businessCustomer' }),
-  state => new FlowHelper(state),
-));
+grossTest({ c2ReqTemplateRef: 'businessCustomer', bReqTemplateRef: 'businessCustomer' }));
