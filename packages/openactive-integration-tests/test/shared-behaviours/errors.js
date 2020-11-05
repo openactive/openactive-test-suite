@@ -1,5 +1,4 @@
 const { expect } = require('chai');
-const { partial } = require('ramda');
 const { FlowStageUtils } = require('../helpers/flow-stages');
 
 /**
