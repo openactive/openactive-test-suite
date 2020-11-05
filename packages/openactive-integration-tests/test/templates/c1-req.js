@@ -1,4 +1,4 @@
-const { dissocPath, dissoc } = require('ramda');
+const { dissocPath, dissoc, pipe, omit } = require('ramda');
 const { createPaymentPart } = require('./common');
 
 /**
@@ -79,15 +79,19 @@ function createNoBrokerNameC1Req(data) {
  *
  * @param {C1ReqTemplateData} data
  */
-function createNoBrokerC2Req(data) {
+function createNoBrokerC1Req(data) {
   const req = createStandardC1Req(data);
   return dissoc('broker', req);
 }
 
+/** C1 request with missing customer and broker */
+const createNoCustomerAndNoBrokerC1Req = pipe(createStandardC1Req, omit(['customer', 'broker']));
+
 const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
-  noBroker: createNoBrokerC2Req,
+  noBroker: createNoBrokerC1Req,
+  noCustomerAndNoBroker: createNoCustomerAndNoBrokerC1Req,
 };
 
 /**

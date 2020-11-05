@@ -45,7 +45,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       runFlowStageAndExpectIncompleteBrokerDetailsError(c2);
     });
     describe('at B', () => {
-      // broker is included, by default, in C2 request
+      // broker is included, by default, in B request
       const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
         brokerRole: 'https://openactive.io/NoBroker', c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker',
       });
