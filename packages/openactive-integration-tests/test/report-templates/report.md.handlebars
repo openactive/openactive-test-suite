@@ -30,14 +30,35 @@ Feature Implemented: {{{ implemented }}}
         {{#if response.status}}
 
 ---
+{{#if response.body.screenshots}}
 
-Response status code: {{{ response.status }}}{{#if response.statusMessage}}} {{{ response.statusMessage}}}{{/if}}.{{#if response.responseTime}}} Responded in {{{ response.responseTime}}}ms.{{/if}}
+{{#each response.body.screenshots}}
+
+#### Screenshot: {{{ title }}}
+```json
+{{{ json url }}}
+```
+
+![Screenshot: {{{ title }}}](data:image/png;base64,{{{ image }}})
+
+{{/each}}
+
+{{#if response.body.callbackUrl}}
+#### Callback URL
+```json
+{{{ json response.body.callbackUrl }}}
+```
+{{/if}}
+
+{{else}}
+Response status code: {{{ response.status }}}{{#if response.statusMessage}} {{{ response.statusMessage}}}{{/if}}.{{#if response.responseTime}} Responded in {{{ response.responseTime}}}ms.{{/if}}
             {{#if response.body}}
 ```json
 {{{ json response.body }}}
 ```
             {{/if}}
          {{/if}}
+{{/if}}
          {{#if response.error}}
 
 ---

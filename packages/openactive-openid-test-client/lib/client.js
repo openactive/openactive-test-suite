@@ -87,8 +87,6 @@ module.exports = class OpenActiveOpenIdTestClient {
       code_challenge_method: 'S256',
     });
 
-    // console.log('Test URL: %s', url);
-
     const { data: { callbackUrl, requiredAuthorisation } } = await axios.post(`${this.baseUrl}/browser-automation-for-auth`, {
       ...options,
       authorizationUrl: url,
@@ -112,6 +110,7 @@ module.exports = class OpenActiveOpenIdTestClient {
     }
 
     return {
+      authorizationUrl: url,
       tokenSet,
       requiredAuthorisation,
     };

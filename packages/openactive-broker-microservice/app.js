@@ -10,11 +10,12 @@ const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 const { performance } = require('perf_hooks');
 const sleep = require('util').promisify(setTimeout);
+const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes } = require('@openactive/openactive-openid-test-client');
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
+const ORDERS_FEED_REQUEST_HEADERS = config.get('bookingPartners.primary.authentication.ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
 const HARVEST_START_TIME = new Date();
 
@@ -26,6 +27,10 @@ const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
 
+const PORT = normalizePort(process.env.PORT || '3000');
+const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
+const HEADLESS_AUTH = true;
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 class FatalError extends Error {
@@ -36,16 +41,19 @@ class FatalError extends Error {
 }
 
 const app = express();
+app.use(express.json());
+setupBrowserAutomationRoutes(app);
 
 // eslint-disable-next-line no-console
 const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
 
+const globalAuthKeyManager = new OpenActiveTestAuthKeyManager(log, MICROSERVICE_BASE_URL, config.get('sellers'), config.get('bookingPartners'));
+
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
 }
-app.use(express.json());
 
 // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
 const parentOpportunityMap = new Map();
@@ -338,6 +346,8 @@ app.get('/config', function (req, res) {
     harvestStartTime: HARVEST_START_TIME.toISOString(),
     // Base URL used by the integration tests
     bookingApiBaseUrl: datasetSiteJson.accessService && datasetSiteJson.accessService.endpointURL,
+    ...globalAuthKeyManager.config,
+    headlessAuth: HEADLESS_AUTH,
   });
 });
 
@@ -855,6 +865,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 async function startPolling() {
+  log('Downloading Dataset Site JSON-LD ...');
   const dataset = DATASET_DISTRIBUTION_OVERRIDE.length > 0
     ? {
       distribution: DATASET_DISTRIBUTION_OVERRIDE,
@@ -867,6 +878,22 @@ async function startPolling() {
 
   if (!dataset || !Array.isArray(dataset.distribution)) {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
+  }
+
+  if (dataset.accessService && dataset.accessService.identityServerUrl) {
+    await globalAuthKeyManager.initialise(dataset.accessService.identityServerUrl);
+  } else {
+    log('\nWarning: Open ID Connect Identity Server not found in dataset site');
+  }
+
+  try {
+    await globalAuthKeyManager.initialise('https://localhost:44353', HEADLESS_AUTH); // For testing TODO: Remove this line
+  } catch (error) {
+    logError(`
+OpenID Connect Authentication: ${error}
+
+****** NOTE: Due to OpenID Connect Authentication failure, tests unrelated to authentication will not run. Please use the 'authentication' tests to debug authentication, in order to allow other tests to run. ******
+`);
   }
 
   const harvesters = [];
@@ -918,17 +945,16 @@ setTimeout(() => {
 const server = http.createServer(app);
 server.on('error', onError);
 
-const port = normalizePort(process.env.PORT || '3000');
-app.listen(port, () => log(`Broker Microservice running on port ${port}
+app.listen(PORT, () => log(`Broker Microservice running on port ${PORT}
 
-Check http://localhost:${port}/status for current harvesting status
+Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
 `));
 
 (async () => {
   try {
     await startPolling();
   } catch (error) {
-    logError(error.toString());
+    logError(error.stack);
     process.exit(1);
   }
 })();
@@ -962,9 +988,9 @@ function onError(error) {
     throw error;
   }
 
-  const bind = typeof port === 'string'
-    ? `Pipe ${port}`
-    : `Port ${port}`;
+  const bind = typeof PORT === 'string'
+    ? `Pipe ${PORT}`
+    : `Port ${PORT}`;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {

@@ -1,5 +1,5 @@
 {
-  "name": "openactive-openid-test-client",
+  "name": "@openactive/openactive-openid-test-client",
   "version": "1.0.0",
   "description": "OpenActive OpenID Connect Test Client",
   "main": "index.js",

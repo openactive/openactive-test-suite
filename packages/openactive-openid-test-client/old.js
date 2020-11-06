@@ -86,7 +86,7 @@ server.on('error', onError);
 
 app.listen(port, () => console.log(`Browser Automation service running on port ${port}`));
 
-const authKeyManager = new OpenActiveTestAuthKeyManager(log, 'http://localhost:3000', IDENTITY_SERVER_URL, config.get('sellers'), config.get('bookingPartners'));
+const authKeyManager = new OpenActiveTestAuthKeyManager(log, 'http://localhost:3000', config.get('sellers'), config.get('bookingPartners'));
 
 app.get('/config', async function (req, res) {
   await authKeyManager.updateAccessTokens();
@@ -95,7 +95,7 @@ app.get('/config', async function (req, res) {
 
 (async () => {
   try {
-    await authKeyManager.initialise();
+    await authKeyManager.initialise(IDENTITY_SERVER_URL);
   } catch (error) {
     console.error(error);
   }

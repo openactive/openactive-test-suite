@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
+    "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
     "axios": "^0.19.2",
     "chalk": "^4.1.0",
     "config": "^3.2.4",

@@ -6,7 +6,7 @@ const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
 
-const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
+const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE } = global;
 
 
 /**
@@ -36,6 +36,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  * @property {boolean} [runOnce]
  * @property {boolean} [skipMultiple]
  * @property {boolean} [runOnlyIf]
+ * @property {boolean} [surviveAuthenticationFailure]
  * @property {number} [numOpportunitiesUsedPerCriteria] How many opportunities
  *   are used by the test per criteria. e.g. if each test iteration needs to
  *   fetch 2 opportunities, this number should be 2.
@@ -142,7 +143,11 @@ class FeatureHelper {
 
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
-    if (!(configuration.runOnlyIf !== undefined && !configuration.runOnlyIf) && implemented === configuration.testFeatureImplemented) {
+    if (
+      !(configuration.runOnlyIf !== undefined && !configuration.runOnlyIf)
+      && implemented === configuration.testFeatureImplemented
+      && !(AUTHENTICATION_FAILURE && !configuration.surviveAuthenticationFailure)
+    ) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {
           if (configuration.runOnce) {

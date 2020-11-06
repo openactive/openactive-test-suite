@@ -2,21 +2,33 @@ const puppeteer = require('puppeteer');
 const cookieSession = require('cookie-session');
 const { generators } = require('openid-client');
 
+/**
+ * Adds routes to Express that facilitate browser automation of the Authorization Code Flow
+ */
+
 const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 
-async function authorizeInteractive(sessionKey, url, headless, buttonSelector, username, password, context) {
+async function authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, username, password, context) {
+  const addScreenshot = async (page, title) => {
+    const image = await page.screenshot({
+      encoding: 'base64',
+    });
+    const url = page.url();
+    context.screenshots.push({
+      title,
+      url,
+      image,
+    });
+  };
   const browser = await puppeteer.launch({
     headless,
   });
   const page = await browser.newPage();
   try {
-    await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(url)}`);
+    await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
     await page.type("[name='username' i]", username);
     await page.type("[name='password' i]", password);
-    context.screenshots.login = await page.screenshot({
-      encoding: 'base64',
-    });
-    context.screenshots.login = context.screenshots.login.substr(0, 10); // TODO: Remove substr; truncated to ease debugging
+    await addScreenshot(page, 'Login page');
     const hasButtonOnLoginPage = await page.$(`${buttonSelector}`);
     if (hasButtonOnLoginPage) {
       await Promise.all([
@@ -26,12 +38,9 @@ async function authorizeInteractive(sessionKey, url, headless, buttonSelector, u
     } else {
       throw new Error(`Login button matching selector '${buttonSelector}' not found`);
     }
-    context.screenshots.accept = await page.screenshot({
-      encoding: 'base64',
-    });
-    context.screenshots.accept = context.screenshots.accept.substr(0, 10); // TODO: Remove substr; truncated to ease debugging
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
     if (!isSuccessfulFollowingLogin) {
+      await addScreenshot(page, 'Authorization page');
       const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
       if (hasButtonOnAuthorizationPage) {
         context.requiredAuthorisation = true;
@@ -49,10 +58,7 @@ async function authorizeInteractive(sessionKey, url, headless, buttonSelector, u
       throw new Error('Callback page redirect was not detected.');
     }
   } finally {
-    context.screenshots.error = await page.screenshot({
-      encoding: 'base64',
-    });
-    context.screenshots.error = context.screenshots.error.substr(0, 10); // TODO: Remove substr; truncated to ease debugging
+    await addScreenshot(page, 'Error encountered');
     browser.close();
   }
 }
@@ -69,49 +75,67 @@ function setupBrowserAutomationRoutes(app) {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   }));
 
-  app.post('/browser-automation-for-auth', async function (req, res) {
-    const sessionKey = sessionKeyCounter;
-    sessionKeyCounter += 1;
-    const context = {
-      res,
-      screenshots: {
-      },
-    };
-    requestStore.set(String(sessionKey), context);
-    const { authorizationUrl, headless, buttonSelector, username, password } = req.body;
+  app.post('/browser-automation-for-auth', async function (req, res, next) {
     try {
-      await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, username, password, context);
+      const sessionKey = sessionKeyCounter;
+      sessionKeyCounter += 1;
+      const context = {
+        res,
+        screenshots: [],
+      };
+      requestStore.set(String(sessionKey), context);
+      if (!req.body) {
+        throw new Error('The middleware express.json() must be set up before a call to setupBrowserAutomationRoutes(app) is made.');
+      }
+      const { authorizationUrl, headless, buttonSelector, username, password } = req.body;
+      try {
+        await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, username, password, context);
+      } catch (err) {
+        context.error = err.message;
+        res.status(400).json({
+          error: err.message,
+          screenshots: context.screenshots,
+          requiredAuthorisation: context.requiredAuthorisation,
+        });
+        requestStore.delete(sessionKey);
+      }
     } catch (err) {
-      context.error = err.message;
-      res.status(400).json({
-        error: err.message,
+      next(err);
+    }
+  });
+
+  app.get('/auth', async function (req, res, next) {
+    try {
+      const { url, key } = req.query;
+      // Set the key in the session and redirect
+      req.session.key = key;
+      if (url && url !== 'undefined') {
+        res.redirect(301, url);
+      } else {
+        res.status(400).json('No url was provided');
+      }
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/cb', async function (req, res, next) {
+    try {
+      const sessionKey = req.session.key;
+      res.send('<html><body><h1 class="openactive-test-callback-success">Callback Success</h1></body></html>');
+      if (!requestStore.has(sessionKey)) {
+        throw new Error(`Session key '${sessionKey}' not found`);
+      }
+      const context = requestStore.get(sessionKey);
+      context.res.json({
         screenshots: context.screenshots,
+        callbackUrl: req.originalUrl,
         requiredAuthorisation: context.requiredAuthorisation,
       });
       requestStore.delete(sessionKey);
+    } catch (err) {
+      next(err);
     }
-  });
-
-  app.get('/auth', async function (req, res) {
-    const { url, key } = req.query;
-    // Set the key in the session and redirect
-    req.session.key = key;
-    res.redirect(301, url);
-  });
-
-  app.get('/cb', async function (req, res) {
-    const sessionKey = req.session.key;
-    res.send('<html><body><h1 class="openactive-test-callback-success">Callback Success</h1></body></html>');
-    if (!requestStore.has(sessionKey)) {
-      throw new Error(`Session key '${sessionKey}' not found`);
-    }
-    const context = requestStore.get(sessionKey);
-    context.res.json({
-      screenshots: context.screenshots,
-      callbackUrl: req.originalUrl,
-      requiredAuthorisation: context.requiredAuthorisation,
-    });
-    requestStore.delete(sessionKey);
   });
 }
 

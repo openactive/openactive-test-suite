@@ -119,13 +119,14 @@ const cli = yargs
       console.log('Client Credentials Flow: received and validated tokens %j\n\n', clientCredentialsTokenSet);
 
       // Authorization Code Flow
-      const { tokenSet } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
+      const { tokenSet, authorizationUrl } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
         buttonSelector: '.btn-primary',
         headless: true,
         username: argv.username,
         password: argv.password,
       }));
       const refreshToken = tokenSet.refresh_token;
+      console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
       console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
       console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
       console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);

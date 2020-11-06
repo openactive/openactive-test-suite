@@ -22,6 +22,10 @@ class TestEnvironment extends NodeEnvironment {
     if (response && response.data) {
       this.global.BOOKING_API_BASE = response.data.bookingApiBaseUrl;
       this.global.HARVEST_START_TIME = new Date(response.data.harvestStartTime);
+      this.global.SELLER_CONFIG = response.data.sellersConfig;
+      this.global.BOOKING_PARTNER_CONFIG = response.data.bookingPartnersConfig;
+      this.global.AUTHENTICATION_FAILURE = response.data.authenticationFailure;
+      this.global.HEADLESS_AUTH = response.data.headlessAuth;
     } else {
       throw new Error(`Error accessing broker microservice at ${configUrl}`);
     }

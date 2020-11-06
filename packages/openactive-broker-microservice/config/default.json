@@ -3,7 +3,58 @@
   "requestLogging": false,
   "waitForHarvestCompletion": true,
   "verbose": false,
-  "ordersFeedRequestHeaders": {
-    "X-OpenActive-Test-Client-Id": "test"
+  "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://localhost:44396/api/identifiers/sellers/1",
+      "authentication": {
+        "loginCredentials": {
+          "username": "test",
+          "password": "test"
+        },
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/1"
+        }
+      }
+    },
+    "secondary": {
+      "@type": "Organization",
+      "@id": "https://localhost:44396/api/identifiers/sellers/3",
+      "authentication": {
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:44396/api/identifiers/sellers/1"
+        }
+      }
+    }
+  },
+  "testSpecificSellers": {
+    "taxNet": "primary",
+    "taxGross": "secondary",
+    "multiple-sellers": "secondary"
+  },
+  "bookingPartners": {
+    "primary": {
+      "authentication": {
+        "initialAccessToken": "openactive_test_suite_client_12345xaq",
+        "clientCredentials": {
+          "clientId": "test",
+          "clientSecret": "test"
+        },
+        "ordersFeedRequestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test"
+        }
+      }
+    },
+    "secondary": {
+      "authentication": {
+        "initialAccessToken": "12345",
+        "clientCredentials": {
+          "clientId": "test",
+          "clientSecret": "test"
+        }
+      }
+    }
   }
 }

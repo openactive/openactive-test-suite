@@ -20,6 +20,10 @@ declare global {
       documentationGenerationMode?: boolean;
       // Created in packages/openactive-integration-tests/test/setup.js
       testState: InstanceType<typeof JasmineStateReporter>;
+      BOOKING_PARTNER_CONFIG: { [bookingPartnerIdentifier: string]: { authentication: { initialAccessToken: string } } };
+      SELLER_CONFIG: { [sellerIdentifier: string]: { authentication: { loginCredentials: { username: string, password: string } } } };
+      AUTHENTICATION_FAILURE: boolean;
+      HEADLESS_AUTH: boolean;
     }
   }
 }
