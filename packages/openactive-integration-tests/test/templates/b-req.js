@@ -295,6 +295,31 @@ function createBReqWithoutCustomer(data) {
   return dissocPath(['customer'], req);
 }
 
+function createBReqWithBusinessCustomer(data) {
+  const req = createStandardPaidBReq(data);
+  // @ts-ignore
+  req.customer = {
+    '@type': 'Organization',
+    name: 'SomeCorporateClient',
+    identifier: 'CustomerIdentifierC2',
+    url: 'https://corporate.client.com',
+    description: 'A corporate client using fitness services',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'http://corporate.client.com/images/logo.png',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'A Street',
+      addressLocality: 'A Town',
+      addressRegion: 'Middlesbrough',
+      postalCode: 'TS4 3AE',
+      addressCountry: 'GB',
+    },
+  };
+  return req;
+}
+
 /**
  * Paid B request with payment property - though reconciliation fields in `payment`
  * are missing.
@@ -357,6 +382,7 @@ const bReqTemplates = {
   incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
+  businessCustomer: createBReqWithBusinessCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
 };
