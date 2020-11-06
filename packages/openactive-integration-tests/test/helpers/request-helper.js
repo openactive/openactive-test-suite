@@ -13,10 +13,7 @@ const { uReqTemplates } = require('../templates/u-req.js');
  * @typedef {import('chakram').RequestOptions} RequestOptions
  */
 
-const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
-
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
-
 
 class RequestHelper {
   /**
@@ -107,10 +104,27 @@ class RequestHelper {
     return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
-  createHeaders() {
+  /**
+   * @param {string} sellerId
+   */
+  createHeaders(sellerId = null) {
+    let primary = config.get('sellers.primary');
+    let requestHeaders;
+
+    if (sellerId == null || sellerId == primary['@id']) {
+      requestHeaders = primary.requestHeaders;
+    } else {
+      const secondary = config.get('sellers.secondary');
+      if (sellerId === secondary['@id']) {
+        requestHeaders = secondary.requestHeaders;
+      } else {
+        throw new Error('No configuration matches given seller id')
+      }
+    }
+
     return Object.assign({
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
-    }, REQUEST_HEADERS);
+    }, requestHeaders);
   }
 
   /**
@@ -269,7 +283,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/order-quote-templates/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(params.sellerId),
         timeout: 10000,
       },
     );
@@ -292,7 +306,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/order-quotes/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(params.sellerId),
         timeout: 10000,
       },
     );
@@ -315,7 +329,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/orders/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(params.sellerId),
         timeout: 10000,
       },
     );
@@ -338,7 +352,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/order-proposals/${uuid}`,
       requestBody,
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(params.sellerId),
         // allow a bit of time leeway for this request, as the P request must be
         // processed atomically
         timeout: 10000,
@@ -361,7 +375,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/orders/${uuid}`,
       payload,
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(params.sellerId),
         timeout: 10000,
       },
     );
@@ -375,7 +389,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(sellerId),
         timeout: 10000,
       },
     );
@@ -451,7 +465,7 @@ class RequestHelper {
       'delete-order',
       `${BOOKING_API_BASE}/orders/${uuid}`,
       {
-        headers: this.createHeaders(),
+        headers: this.createHeaders(params.sellerId),
         timeout: 10000,
       },
     );

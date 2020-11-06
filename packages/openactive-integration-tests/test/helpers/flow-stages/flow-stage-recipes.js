@@ -18,7 +18,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
  *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
  *   bReqTemplateRef?: BReqTemplateRef | null,
- *   brokerRole?: string | null
+ *   brokerRole?: string | null,
+ *   sellerId?: string | null,
  * }} OptionalC1C2BReqTemplateRefs
  */
 
@@ -36,11 +37,11 @@ const FlowStageRecipes = {
    * @param {BaseLoggerType} logger
    * @param {OptionalC1C2BReqTemplateRefs} [options]
    */
-  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null, brokerRole = null } = {}) {
+  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null, brokerRole = null, sellerId = null } = {}) {
     const requestHelper = new RequestHelper(logger);
 
     // ## Initiate Flow Stages
-    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger, sellerId });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
       orderItemCriteriaList,
