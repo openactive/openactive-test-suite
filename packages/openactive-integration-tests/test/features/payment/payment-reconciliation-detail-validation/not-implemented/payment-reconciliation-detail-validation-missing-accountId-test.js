@@ -15,4 +15,4 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-notImplementedTest());
+notImplementedTest({ bReqTemplateRef: 'noAccountId' }));
