@@ -319,6 +319,40 @@ function createIncorrectReconciliationDetails(data) {
 }
 
 /**
+ * Flexible B request - but with missing OrderItem.OrderedItem
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutOrderedItem(data) {
+  const req = createStandardFreeOrPaidBReq(data);
+  if (req.orderedItem) {
+    req.orderedItem.forEach((orderedItem) => {
+      const ret = orderedItem;
+      ret.orderedItem = null;
+    });
+  }
+
+  return req;
+}
+
+/**
+ * Flexible B request - but with missing OrderItem.AcceptedOffer.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutAcceptedOffer(data) {
+  const req = createStandardFreeOrPaidBReq(data);
+  if (req.orderedItem) {
+    req.orderedItem.forEach((orderedItem) => {
+      const ret = orderedItem;
+      ret.orderedItem = null;
+    });
+  }
+
+  return req;
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -336,6 +370,8 @@ const bReqTemplates = {
   noCustomer: createBReqWithoutCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  noOrderedItem: createStandardBWithoutOrderedItem,
+  noAcceptedOffer: createStandardBWithoutAcceptedOffer,
 };
 
 /**

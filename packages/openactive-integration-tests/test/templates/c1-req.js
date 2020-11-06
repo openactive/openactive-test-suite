@@ -73,9 +73,39 @@ function createNoBrokerNameC1Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C1 request with missing OrderItem.OrderedItem
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutOrderedItem(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+  return req;
+}
+
+/**
+ * C1 request with missing OrderItem.AcceptedOffer
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutAcceptedOffer(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+  return req;
+}
+
 const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
+  noOrderedItem: createStandardC1WithoutOrderedItem,
+  noAcceptedOffer: createStandardC1WithoutAcceptedOffer,
 };
 
 /**
