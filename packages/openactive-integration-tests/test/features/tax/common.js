@@ -37,15 +37,11 @@ function itShouldCalculateNetTaxCorrectly(responseAccessor) {
   it('should calculate net tax correctly', () => {
     const { body } = responseAccessor();
 
-    // const totalPaymentTax = body.totalPaymentTax.map(t => t.price).reduce((a, b) => a + b);
-    // const unitTaxSpecification = body.orderedItem.flatMap(o => o.unitTaxSpecification).map(t => t.price).reduce((a, b) => a + b);
-
-    // const totalPaymentDue = body.totalPaymentDue.price;
-    // const acceptedOfferPrice = body.orderedItem.flatMap(o => o.acceptedOffer).map(t => t.price).reduce((a, b) => a + b);
+    const totalPaymentTax = body.totalPaymentTax.map(t => t.price).reduce((a, b) => a + b);
+    const unitTaxSpecification = body.orderedItem.flatMap(o => o.unitTaxSpecification).map(t => t.price).reduce((a, b) => a + b);
 
     expect(body.taxCalculationExcluded).to.equal(undefined);
-    // expect(Math.abs(unitTaxSpecification - totalPaymentTax)).to.be.lessThan(1);
-    // expect(Math.abs(totalPaymentDue - acceptedOfferPrice)).to.be.lessThan(1); // rounding errors
+    expect(Math.abs(unitTaxSpecification - totalPaymentTax)).to.be.lessThan(1);
   });
 }
 
