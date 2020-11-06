@@ -66,6 +66,7 @@
     "terms-of-service-with-consent": null,
     "terms-of-service-with-consent-with-date-modified": null,
     "booking-partner-authentication": true,
+    "dynamic-client-registration": true,
     "minimal-proposal": true
   },
   "testDatasetIdentifier": "uat-ci",
@@ -86,6 +87,26 @@
     "secondary": {
       "@type": "Organization",
       "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/3"
+    }
+  },
+  "bookingPartnersForDynamicRegistration": {
+    "dynamicPrimary": {
+      "authentication": {
+        "initialAccessToken": "dynamic-primary-745ddf2d13019ce8b69c"
+      }
+    },
+    "dynamicSecondary": {
+      "authentication": {
+        "initialAccessToken": "dynamic-secondary-a21518cb57af7b6052df"
+      }
+    },
+    "authorizationPersisted": {
+      "authentication": {
+        "clientCredentials": {
+          "clientId": "clientid_789",
+          "clientSecret": "secret"
+        }
+      }
     }
   }
 }

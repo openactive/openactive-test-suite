@@ -60,9 +60,11 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {string} clientId
    * @param {string} clientSecret
    * @param {AuthorizeOptions} options
+   * @param {import('openid-client').AuthorizationParameters} authorizationParameters
    * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
    */
-  async authorizeAuthorizationCodeFlow(clientId, clientSecret, options, issuer = this.issuer) {
+  // eslint-disable-next-line object-curly-newline
+  async authorizeAuthorizationCodeFlow(clientId, clientSecret, options, authorizationParameters = {}, issuer = this.issuer) {
     throwIfNoIssuer(issuer);
 
     const client = new issuer.Client({
@@ -82,12 +84,13 @@ module.exports = class OpenActiveOpenIdTestClient {
 
     const url = client.authorizationUrl({
       scope: 'openid openactive-openbooking offline_access',
+      ...authorizationParameters,
       // resource: 'https://my.api.example.com/resource/32178',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
     });
 
-    const { data: { callbackUrl, requiredAuthorisation } } = await axios.post(`${this.baseUrl}/browser-automation-for-auth`, {
+    const { data: { callbackUrl, requiredConsent } } = await axios.post(`${this.baseUrl}/browser-automation-for-auth`, {
       ...options,
       authorizationUrl: url,
     }).catch((err) => {
@@ -112,7 +115,7 @@ module.exports = class OpenActiveOpenIdTestClient {
     return {
       authorizationUrl: url,
       tokenSet,
-      requiredAuthorisation,
+      requiredConsent,
     };
   }
 
@@ -158,24 +161,3 @@ module.exports = class OpenActiveOpenIdTestClient {
     return refreshedTokenSet;
   }
 };
-
-/*
-async function oauthReauthenticate() {
-  const issuer = await Issuer.discover(IDENTITY_SERVER_URL);
-
-  console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata);
-
-  const initialAccessToken = 'openactive_test_suite_client_12345xaq';
-  const { clientId, clientSecret } = await register(issuer, initialAccessToken);
-  const firstAuthorize = await authorizeAuthorizationCodeFlow(issuer, clientId, clientSecret, {
-    buttonSelector: '.btn-primary',
-    headless: false,
-  });
-  const secondAuthorize = await authorizeAuthorizationCodeFlow(issuer, clientId, clientSecret, {
-    buttonSelector: '.btn-primary',
-    headless: false,
-  });
-  assert(true, firstAuthorize.requiredAuthorisation);
-  assert(false, secondAuthorize.requiredAuthorisation);
-}
-*/

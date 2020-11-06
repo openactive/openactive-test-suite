@@ -1,16 +1,22 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai');
+const config = require('config');
+const { RequestState } = require('../../../../helpers/request-state');
+const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
+const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetDatasetSite, OpenIDConnectFlow } = require('../../../../shared-behaviours');
 
-const { BOOKING_PARTNER_CONFIG } = global;
+const { BOOKING_PARTNER_CONFIG, SELLER_CONFIG, HEADLESS_AUTH } = global;
+
+const INITIAL_ACCESS_TOKEN = config.get('bookingPartnersForDynamicRegistration.dynamicSecondary.authentication.initialAccessToken');
 
 /* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'authentication',
-  testFeature: 'booking-partner-authentication',
+  testFeature: 'dynamic-client-registration',
   testFeatureImplemented: true,
   testIdentifier: 'client-credentials-flow',
   testName: 'Client Credentials Flow and Access Orders Feed',
@@ -35,14 +41,16 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   describe('Open ID Connect Authentication', function () {
-    const { clientCredentials } = BOOKING_PARTNER_CONFIG.secondary.authentication;
+    const initialAccessToken = INITIAL_ACCESS_TOKEN;
     const discoveryUrl = 'https://localhost:44353'; // state.datasetSite.accessService.endpointURL;
 
     (new OpenIDConnectFlow({
       logger,
     }))
       .discover(discoveryUrl)
-      .setClientCredentials(clientCredentials)
+      .register({
+        initialAccessToken,
+      })
       .clientCredentialsFlow();
   });
 });

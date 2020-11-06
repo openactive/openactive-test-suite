@@ -890,7 +890,7 @@ async function startPolling() {
     await globalAuthKeyManager.initialise('https://localhost:44353', HEADLESS_AUTH); // For testing TODO: Remove this line
   } catch (error) {
     logError(`
-OpenID Connect Authentication: ${error}
+OpenID Connect Authentication: ${error.stack}
 
 ****** NOTE: Due to OpenID Connect Authentication failure, tests unrelated to authentication will not run. Please use the 'authentication' tests to debug authentication, in order to allow other tests to run. ******
 `);

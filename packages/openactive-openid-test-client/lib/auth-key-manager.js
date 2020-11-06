@@ -45,7 +45,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
       await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
         // Ensure structure of config is correct
         const authenticationConfig = bookingPartner.authentication;
-        if (authenticationConfig.clientCredentials !== null && !(authenticationConfig.clientCredentials.clientId && authenticationConfig.clientCredentials.clientSecret)) {
+        if (authenticationConfig.clientCredentials && !(authenticationConfig.clientCredentials.clientId && authenticationConfig.clientCredentials.clientSecret)) {
           throw new Error('Both clientCredentials.clientId and clientCredentials.clientSecret must be supplied in bookingPartner config');
         }
 

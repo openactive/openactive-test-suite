@@ -1,0 +1,10 @@
+{
+  "category": "authentication",
+  "identifier": "dynamic-client-registration",
+  "name": "Dynamic Client Registration for Multiple Seller Systems",
+  "description": "For multi-database booking systems where the customer manages Open Booking API client credentials.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems",
+  "required": false,
+  "coverageStatus": "none"
+}

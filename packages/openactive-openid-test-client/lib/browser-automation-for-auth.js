@@ -8,7 +8,7 @@ const { generators } = require('openid-client');
 
 const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 
-async function authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, username, password, context) {
+async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelector, username, password, context }) {
   const addScreenshot = async (page, title) => {
     const image = await page.screenshot({
       encoding: 'base64',
@@ -43,7 +43,7 @@ async function authorizeInteractive(sessionKey, authorizationUrl, headless, butt
       await addScreenshot(page, 'Authorization page');
       const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
       if (hasButtonOnAuthorizationPage) {
-        context.requiredAuthorisation = true;
+        context.requiredConsent = true;
         // Click "Accept", if it is presented
         await Promise.all([
           page.waitForNavigation(), // The promise resolves after navigation has finished
@@ -87,15 +87,18 @@ function setupBrowserAutomationRoutes(app) {
       if (!req.body) {
         throw new Error('The middleware express.json() must be set up before a call to setupBrowserAutomationRoutes(app) is made.');
       }
-      const { authorizationUrl, headless, buttonSelector, username, password } = req.body;
       try {
-        await authorizeInteractive(sessionKey, authorizationUrl, headless, buttonSelector, username, password, context);
+        await authorizeInteractive({
+          sessionKey,
+          context,
+          ...req.body,
+        });
       } catch (err) {
         context.error = err.message;
         res.status(400).json({
           error: err.message,
           screenshots: context.screenshots,
-          requiredAuthorisation: context.requiredAuthorisation,
+          requiredConsent: context.requiredConsent,
         });
         requestStore.delete(sessionKey);
       }
@@ -130,7 +133,7 @@ function setupBrowserAutomationRoutes(app) {
       context.res.json({
         screenshots: context.screenshots,
         callbackUrl: req.originalUrl,
-        requiredAuthorisation: context.requiredAuthorisation,
+        requiredConsent: context.requiredConsent,
       });
       requestStore.delete(sessionKey);
     } catch (err) {

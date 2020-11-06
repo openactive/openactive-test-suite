@@ -29,19 +29,10 @@
       }
     }
   },
-  "testSpecificSellers": {
-    "taxNet": "primary",
-    "taxGross": "secondary",
-    "multiple-sellers": "secondary"
-  },
   "bookingPartners": {
     "primary": {
       "authentication": {
         "initialAccessToken": "openactive_test_suite_client_12345xaq",
-        "clientCredentials": {
-          "clientId": "test",
-          "clientSecret": "test"
-        },
         "ordersFeedRequestHeaders": {
           "X-OpenActive-Test-Client-Id": "test"
         }
@@ -49,10 +40,9 @@
     },
     "secondary": {
       "authentication": {
-        "initialAccessToken": "12345",
         "clientCredentials": {
-          "clientId": "test",
-          "clientSecret": "test"
+          "clientId": "clientid_800",
+          "clientSecret": "secret"
         }
       }
     }
