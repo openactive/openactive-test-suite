@@ -22,7 +22,7 @@ FeatureHelper.describeFeature(module, {
       seller: 'secondary',
       primary: true,
       control: false,
-    }
+    },
   ],
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },

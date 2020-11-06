@@ -1,6 +1,7 @@
-const config = require('config')
+const config = require('config');
 const { expect } = require('chai');
 const { FlowStageRecipes, FlowStageUtils } = require('../../helpers/flow-stages');
+
 const SELLER_CONFIG = config.get('sellers');
 
 /**

@@ -41,7 +41,9 @@ const FlowStageRecipes = {
     const requestHelper = new RequestHelper(logger);
 
     // ## Initiate Flow Stages
-    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger, sellerId });
+    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({
+      requestHelper, logger, sellerId,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
       orderItemCriteriaList,
