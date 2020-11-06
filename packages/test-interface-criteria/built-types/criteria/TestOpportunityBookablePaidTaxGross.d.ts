@@ -1,5 +1,5 @@
 export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 /**
- * Implements https://openactive.io/test-interface#TestOpportunityBookablePaidTaxGross.
+ * Implements https://openactive.io/test-interface#TestOpportunityBookableNonFreeTaxGross.
  */
-export const TestOpportunityBookablePaidTaxGross: import("../types/Criteria").Criteria;
+export const TestOpportunityBookableNonFreeTaxGross: import("../types/Criteria").Criteria;
