@@ -1,7 +1,7 @@
 [< Return to Overview](../../README.md)
-# Booking Partner Authentication for Multiple Seller Systems (booking-partner-authentication)
+# Dynamic Client Registration for Multiple Seller Systems (dynamic-client-registration)
 
-OAuth based authentication for Sellers
+For multi-database booking systems where the customer manages Open Booking API client credentials.
 
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems
@@ -19,7 +19,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 ```json
 "implementedFeatures": {
   ...
-  "booking-partner-authentication": true,
+  "dynamic-client-registration": true,
   ...
 }
 ```
@@ -27,7 +27,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow and Book | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |
-| [authorization-persisted](./implemented/authorization-persisted-test.js) | Authorization Code Flow and Book | When authorisation is requested without offline access and a user has already given permission, consent should not be required. |  |
 | [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow and Access Orders Feed | ... |  |
 
 
