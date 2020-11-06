@@ -1,5 +1,5 @@
 const { createCriteria } = require('./criteriaUtils');
-const { TestOpportunityBookablePaid } = require('./TestOpportunityBookablePaid');
+const { TestOpportunityBookableUsingPayment } = require('./TestOpportunityBookableUsingPayment');
 
 /**
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -31,7 +31,7 @@ const TestOpportunityBookablePaidTaxGross = createCriteria({
     ],
   ],
   offerConstraints: [],
-  includeConstraintsFromCriteria: TestOpportunityBookablePaid,
+  includeConstraintsFromCriteria: TestOpportunityBookableUsingPayment,
 });
 
 module.exports = {

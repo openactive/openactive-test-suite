@@ -52,7 +52,7 @@
     "no-broker": null,
     "business-to-consumer-tax-calculation-net": null,
     "business-to-consumer-tax-calculation-gross": true,
-    "business-to-business-tax-calculation-net": null,
+    "business-to-business-tax-calculation-net": true,
     "business-to-business-tax-calculation-gross": true,
     "offer-overrides": null,
     "dynamic-payment": null,

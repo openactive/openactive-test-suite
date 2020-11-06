@@ -12,7 +12,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'payment-reconciliation-detail-validation',
   testName: 'Payment reconciliation detail validation',
   testDescription: 'C1, C2 and B including globally configured accountId, paymentProviderId and name should succeed',
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {

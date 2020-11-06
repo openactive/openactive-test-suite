@@ -26,15 +26,12 @@ function itShouldCalculateTaxCorrectly(responseAccessor) {
   });
 }
 
-/**
- * @param {Omit<InitialiseSimpleC1C2BFlowOptions, 'taxMode'>} [options]
- */
 function grossTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  return (configuration, orderItemCriteria, featureIsImplemented, logger, state) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(
-      orderItemCriteriaList,
+    const { b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(
+      orderItemCriteria,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxGross' },
     );
@@ -42,6 +39,7 @@ function grossTest(options) {
     beforeAll(async () => {
       await state.fetchOpportunities(orderItemCriteria, undefined, 'https://openactive.io/TaxGross');
     });
+
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
       itShouldCalculateTaxCorrectly(() => b.getOutput().httpResponse);
     });
