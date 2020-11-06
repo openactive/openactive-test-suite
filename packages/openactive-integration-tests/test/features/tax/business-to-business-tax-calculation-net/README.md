@@ -29,6 +29,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [tax-calculations](./implemented/tax-calculations-test.js) | Tax calculations | The totals of totalPaymentTax should match the sum of the unitTaxSpecification, and the totalPaymentDue.price should equal the total of all acceptedOffer.price PLUS TotalPaymentTax.price. | [TestOpportunityBookablePaidTaxNet](https://openactive.io/test-interface#TestOpportunityBookablePaidTaxNet) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [business-to-business-tax-calculation-net](./implemented/business-to-business-tax-calculation-net-test.js) | Business-to-business tax calculation (net) | The totals of totalPaymentTax should match the sum of the unitTaxSpecification, and the totalPaymentDue.price should equal the total of all acceptedOffer.price PLUS TotalPaymentTax.price. | [TestOpportunityBookablePaidTaxNet](https://openactive.io/test-interface#TestOpportunityBookablePaidTaxNet) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
