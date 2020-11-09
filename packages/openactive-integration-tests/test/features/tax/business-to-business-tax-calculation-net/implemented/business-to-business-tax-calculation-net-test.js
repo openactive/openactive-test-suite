@@ -27,7 +27,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'business-to-business-tax-calculation-net',
   testName: 'Tax calculations',
   testDescription: 'The totals of totalPaymentTax should match the sum of the unitTaxSpecification, and the totalPaymentDue.price should equal the total of all acceptedOffer.price PLUS TotalPaymentTax.price.',
-  testOpportunityCriteria: 'TestOpportunityBookablePaidTaxNet',
+  testOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxNet',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
