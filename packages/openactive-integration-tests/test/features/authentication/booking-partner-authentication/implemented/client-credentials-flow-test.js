@@ -27,8 +27,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .successChecks()
       .validationTests();
 
-    it('should include accessService.identityServerUrl of the Open Booking API', () => {
-      chakram.expect(state.datasetSite).to.have.schema('accessService.identityServerUrl', {
+    it('should include accessService.authenticationAuthority of the Open Booking API', () => {
+      chakram.expect(state.datasetSite).to.have.schema('accessService.authenticationAuthority', {
         type: 'string',
       });
     });
@@ -36,12 +36,10 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
   describe('Open ID Connect Authentication', function () {
     const { clientCredentials } = BOOKING_PARTNER_CONFIG.secondary.authentication;
-    const discoveryUrl = 'https://localhost:44353'; // state.datasetSite.accessService.endpointURL;
-
     (new OpenIDConnectFlow({
       logger,
     }))
-      .discover(discoveryUrl)
+      .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
       .setClientCredentials(clientCredentials)
       .clientCredentialsFlow();
   });

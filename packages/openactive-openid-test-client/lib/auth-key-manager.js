@@ -25,10 +25,10 @@ module.exports = class OpenActiveTestAuthKeyManager {
     };
   }
 
-  async initialise(identityServerUrl, headlessAuth = true) {
+  async initialise(authenticationAuthority, headlessAuth = true) {
     try {
-      if (!identityServerUrl) {
-        throw new Error('identityServerUrl must be provided');
+      if (!authenticationAuthority) {
+        throw new Error('authenticationAuthority must be provided');
       }
 
       // Authenticate booking partners
@@ -38,8 +38,8 @@ module.exports = class OpenActiveTestAuthKeyManager {
         return;
       }
 
-      this.log('\nAuthenticating using OpenID Connect...');
-      const issuer = await this.client.discover(identityServerUrl);
+      this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}'...`);
+      const issuer = await this.client.discover(authenticationAuthority);
       this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
 
       await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {

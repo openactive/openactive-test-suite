@@ -10,10 +10,10 @@ class OpenIDConnectFlow {
     this.keys = {};
   }
 
-  discover(discoveryUrl) {
+  discover(discoveryUrlAccessor) {
     it('should complete Discovery successfully', async () => {
       // Discovery
-      const issuer = await this.logWithIntercept('Discovery', () => this.client.discover(discoveryUrl));
+      const issuer = await this.logWithIntercept('Discovery', () => this.client.discover(discoveryUrlAccessor()));
       console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
     });
     return this;

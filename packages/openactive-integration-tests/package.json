@@ -17,9 +17,9 @@
   "eslintConfig": {},
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.37",
-    "@openactive/data-models": "^2.0.143",
-    "@openactive/test-interface-criteria": "file:../test-interface-criteria",
+    "@openactive/data-models": "^2.0.149",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
+    "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "axios": "^0.19.0",
     "chai": "^4.2.0",
     "chai-arrays": "^2.2.0",

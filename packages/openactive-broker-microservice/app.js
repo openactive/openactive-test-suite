@@ -880,20 +880,18 @@ async function startPolling() {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
   }
 
-  if (dataset.accessService && dataset.accessService.identityServerUrl) {
-    await globalAuthKeyManager.initialise(dataset.accessService.identityServerUrl);
-  } else {
-    log('\nWarning: Open ID Connect Identity Server not found in dataset site');
-  }
-
-  try {
-    await globalAuthKeyManager.initialise('https://localhost:44353', HEADLESS_AUTH); // For testing TODO: Remove this line
-  } catch (error) {
-    logError(`
+  if (dataset.accessService && dataset.accessService.authenticationAuthority) {
+    try {
+      await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
+    } catch (error) {
+      logError(`
 OpenID Connect Authentication: ${error.stack}
 
 ****** NOTE: Due to OpenID Connect Authentication failure, tests unrelated to authentication will not run. Please use the 'authentication' tests to debug authentication, in order to allow other tests to run. ******
 `);
+    }
+  } else {
+    log('\nWarning: Open ID Connect Identity Server (accessService.authenticationAuthority) not found in dataset site');
   }
 
   const harvesters = [];

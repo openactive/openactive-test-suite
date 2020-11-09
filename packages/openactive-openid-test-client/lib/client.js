@@ -14,10 +14,10 @@ module.exports = class OpenActiveOpenIdTestClient {
   }
 
   /**
-   * @param {string} identityServerUrl
+   * @param {string} authenticationAuthority
    */
-  async discover(identityServerUrl) {
-    this.issuer = await Issuer.discover(identityServerUrl);
+  async discover(authenticationAuthority) {
+    this.issuer = await Issuer.discover(authenticationAuthority);
     return this.issuer;
   }
 

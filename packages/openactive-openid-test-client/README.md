@@ -10,15 +10,3 @@ This Node.js library provides an OpenID Connect test client. It caches tokens re
 The test client can be run stand-alone, to aid debugging of an OpenID Connect implementation.
 
 `npm start -- --help`
-
-## Configuration
-
-The `./config/default.json` file configures access to the Open Booking API.
-
-### `datasetSiteUrl`
-
-The URL of the IdentityServer of the booking system under test. This dataset site is used to retrieve credentials that are used by the tests within the test suite.
-
-```json
-  "identityServerUrl": "https://openactive-reference-implementation.azurewebsites.net/",
-```
