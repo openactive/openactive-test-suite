@@ -15,7 +15,7 @@
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
         "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
-      },
+      }
     }
   }
 }
