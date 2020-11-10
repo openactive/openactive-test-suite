@@ -98,7 +98,7 @@ class RequestState {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
-      const sellerKey = 'primary';
+      const sellerKey = orderItemCriteriaItem.seller || 'primary';
       const seller = SELLER_CONFIG[sellerKey];
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
         ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
