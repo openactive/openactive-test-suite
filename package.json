@@ -21,9 +21,9 @@
     "debug-tests": "cd packages/openactive-integration-tests && npm run debug",
     "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
     "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen",
-    "git-add-newly-generated-integration-test-docs": "git add packages/openactive-integration-tests/test/features/**/README.md",
+    "git-add-newly-generated-integration-test-docs": "git add packages/openactive-integration-tests/test/**/README.md",
     "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types",
-    "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types/**/*.d.ts"
+    "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types"
   },
   "dependencies": {
     "node-cleanup": "^2.1.2"
