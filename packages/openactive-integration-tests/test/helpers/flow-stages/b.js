@@ -8,6 +8,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./flow-stage').Prepayment} Prepayment
  */
@@ -22,7 +23,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {BReqTemplateRef} [args.templateRef]
  * @param {string} args.uuid
- * @param {string} args.sellerId
+ * @param {SellerConfig} args.sellerConfig
  * @param {OrderItem[]} args.orderItems
  * @param {number} args.totalPaymentDue
  * @param {Prepayment} args.prepayment
@@ -31,9 +32,9 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string | null} args.brokerRole
  * @returns {Promise<Output>}
  */
-async function runB({ templateRef, brokerRole, uuid, sellerId, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper }) {
+async function runB({ templateRef, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper }) {
   const params = {
-    sellerId,
+    sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
     prepayment,
@@ -64,9 +65,9 @@ class BFlowStage extends FlowStage {
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {string} args.sellerId
+   * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ templateRef, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ templateRef, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig }) {
     super({
       prerequisite,
       getInput,
@@ -77,7 +78,7 @@ class BFlowStage extends FlowStage {
           templateRef,
           brokerRole,
           uuid,
-          sellerId,
+          sellerConfig,
           orderItems,
           totalPaymentDue,
           prepayment,
