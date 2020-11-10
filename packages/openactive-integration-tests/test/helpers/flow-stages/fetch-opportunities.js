@@ -1,7 +1,10 @@
+const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const _ = require('lodash');
 const config = require('config');
+const sharedValidationTests = require('../../shared-behaviours/validation');
+const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
-const { OpportunityFeedUpdateFlowStage } = require('./opportunity-feed-update');
+const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
@@ -9,8 +12,24 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
+ */
+
+/**
+ * @typedef {{
+ *   position: number;
+ *   orderedItem: {
+ *     '@type': string,
+ *     '@id': string,
+ *     [k: string]: any,
+ *   };
+ *   acceptedOffer: {
+ *     '@id': string,
+ *     [k: string]: any,
+ *   };
+ *   'test:primary': boolean;
+ *   'test:control': boolean;
+ * }} OrderItem
  */
 
 /**
@@ -20,6 +39,18 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
 const SELLER_CONFIG = config.get('sellers');
+const { HARVEST_START_TIME } = global;
+
+/**
+ * @param {unknown} opportunity
+ * @param {string} opportunityCriteria
+ */
+function getRandomRelevantOffer(opportunity, opportunityCriteria) {
+  const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity, { harvestStartTime: HARVEST_START_TIME });
+  if (relevantOffers.length === 0) { return null; }
+
+  return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
+}
 
 /**
  * For each of the Opportunity Criteria, get or create (using https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities)
@@ -99,16 +130,35 @@ async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
   //
   // Now that we have references to some opportunities that have been found or
   // created and match our criteria, let's get the full opportunities
-  const opportunityFeedUpdateResult = await OpportunityFeedUpdateFlowStage.run({
+  const opportunityFeedExtractResponses = await fetchOpportunityFeedExtractResponses({
     testInterfaceOpportunities,
-    orderItemCriteriaList,
     requestHelper,
+    useCacheIfAvailable: true,
+  });
+
+  // ## Create OrderItem for each Opportunity
+  const orderItems = opportunityFeedExtractResponses.map((opportunityFeedExtractResponse, i) => {
+    if (opportunityFeedExtractResponse && isResponse20x(opportunityFeedExtractResponse)) {
+      const acceptedOffer = getRandomRelevantOffer(opportunityFeedExtractResponse.body.data, orderItemCriteriaList[i].opportunityCriteria);
+      if (acceptedOffer === null) {
+        throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${orderItemCriteriaList[i].opportunityCriteria}`);
+      }
+      return {
+        position: i,
+        orderedItem: opportunityFeedExtractResponse.body.data,
+        acceptedOffer,
+        'test:primary': orderItemCriteriaList[i].primary,
+        'test:control': orderItemCriteriaList[i].control,
+      };
+    }
+    return null;
   });
 
   // ## Combine responses
   return {
-    ...opportunityFeedUpdateResult,
     testInterfaceOpportunities,
+    opportunityFeedExtractResponses,
+    orderItems,
   };
 }
 
@@ -136,16 +186,22 @@ class FetchOpportunitiesFlowStage extends FlowStage {
       getInput: FlowStageUtils.emptyGetInput,
       runFn: async () => await runFetchOpportunities({ orderItemCriteriaList, requestHelper }),
       itSuccessChecksFn(flowStage) {
-        OpportunityFeedUpdateFlowStage.itSuccessChecks({
+        itSuccessChecksOpportunityFeedUpdateCollector({
           orderItemCriteriaList,
           getterFn: () => flowStage.getOutput(),
         });
       },
       itValidationTestsFn(flowStage) {
-        OpportunityFeedUpdateFlowStage.itValidationTests({
-          logger,
-          orderItemCriteriaList,
-          getterFn: () => flowStage.getOutput(),
+        orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
+          sharedValidationTests.shouldBeValidResponse(
+            () => flowStage.getOutput().opportunityFeedExtractResponses[i],
+            `Opportunity Feed extract for OrderItem ${i}`,
+            logger,
+            {
+              validationMode: 'BookableRPDEFeed',
+            },
+            orderItemCriteriaItem.opportunityCriteria,
+          );
         });
       },
     });

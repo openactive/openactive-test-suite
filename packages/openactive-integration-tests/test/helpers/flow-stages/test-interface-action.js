@@ -71,6 +71,10 @@ class TestInterfaceActionFlowStage extends FlowStage {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof TestInterfaceActionFlowStage>} TestInterfaceActionFlowStageType
+ */
+
 module.exports = {
   TestInterfaceActionFlowStage,
 };
