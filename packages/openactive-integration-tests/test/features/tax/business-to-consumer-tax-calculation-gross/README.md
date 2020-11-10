@@ -30,6 +30,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [business-to-consumer-tax-calculation-gross](./implemented/business-to-consumer-tax-calculation-gross-test.js) | Tax calculations | The totals of totalPaymentTax should match the sum of the unitTaxSpecification, and the totalPaymentDue.price should equal the total of all acceptedOffer.price PLUS TotalPaymentTax.price. | [TestOpportunityBookableNonFreeTaxGross](https://openactive.io/test-interface#TestOpportunityBookableNonFreeTaxGross) x4 |
+| [business-to-consumer-tax-calculation-gross](./implemented/business-to-consumer-tax-calculation-gross-test.js) | Tax calculations | The totals of totalPaymentTax should match the sum of the unitTaxSpecification, and the totalPaymentDue.price should equal the total of all acceptedOffer.price. | [TestOpportunityBookableNonFreeTaxGross](https://openactive.io/test-interface#TestOpportunityBookableNonFreeTaxGross) x4 |
 
 
