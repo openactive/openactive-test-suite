@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { map, pipe, prop, sum } = require('ramda');
+const { sum } = require('ramda');
 const { FlowStageRecipes, FlowStageUtils } = require('../../helpers/flow-stages');
 
 /**
