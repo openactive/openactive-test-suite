@@ -86,7 +86,7 @@ class BaseReportGenerator {
       "extractMessage": function(message, options) {
         const lines = message.split("\n").map(x => stripAnsi(x).trim());
         const messageLineIndex = lines.indexOf('Message:') + 1;
-        return messageLineIndex !== 0 ? lines[messageLineIndex] : lines[0];
+        return messageLineIndex !== 0 ? lines[messageLineIndex] : message;
       },
       "pluralise": function(str, number) {
         return str + (number == 1 ? '' : 's');
