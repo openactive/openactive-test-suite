@@ -109,7 +109,10 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   if (actionError) {
     throw actionError;
   }
-  return result;
+
+  // Ensure that destructuring of a null result does not fail
+  return result || {
+  };
 }
 
 /**
