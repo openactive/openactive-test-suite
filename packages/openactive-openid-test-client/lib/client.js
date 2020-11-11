@@ -81,13 +81,15 @@ module.exports = class OpenActiveOpenIdTestClient {
 
     const codeChallenge = generators.codeChallenge(codeVerifier);
 
-    const url = client.authorizationUrl({
+    const authParams = {
       scope: 'openid openactive-openbooking offline_access',
       ...authorizationParameters,
       // resource: 'https://my.api.example.com/resource/32178',
       code_challenge: codeChallenge,
       code_challenge_method: 'S256',
-    });
+    };
+
+    const url = client.authorizationUrl(authParams);
 
     const { data: { callbackUrl, requiredConsent } } = await axios.post(`${this.baseUrl}/browser-automation-for-auth`, {
       ...options,
@@ -107,7 +109,7 @@ module.exports = class OpenActiveOpenIdTestClient {
       code_verifier: codeVerifier,
     });
 
-    if (!tokenSet.refresh_token) {
+    if (!tokenSet.refresh_token && authParams.scope.indexOf('offline_access') > -1) {
       throw new Error('Refresh token is required, but was not provided.');
     }
 

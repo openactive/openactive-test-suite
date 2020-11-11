@@ -35,7 +35,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   describe('Open ID Connect Authentication', function () {
-    const { clientCredentials } = BOOKING_PARTNER_CONFIG.secondary.authentication;
+    const { clientCredentials } = BOOKING_PARTNER_CONFIG.primary.authentication;
     (new OpenIDConnectFlow({
       logger,
     }))

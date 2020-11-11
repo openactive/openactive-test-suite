@@ -39,7 +39,9 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
       throw new Error(`Login button matching selector '${buttonSelector}' not found`);
     }
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
-    if (!isSuccessfulFollowingLogin) {
+    if (isSuccessfulFollowingLogin) {
+      context.requiredConsent = false;
+    } else {
       await addScreenshot(page, 'Authorization page');
       const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
       if (hasButtonOnAuthorizationPage) {

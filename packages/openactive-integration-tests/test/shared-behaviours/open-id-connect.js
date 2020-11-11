@@ -50,7 +50,7 @@ class OpenIDConnectFlow {
         password,
       }, authorizationParameters));
       flowRequiredConsent = requiredConsent;
-      this.keys.refreshToken = tokenSet.refresh_token;
+      if (tokenSet.refresh_token) this.keys.refreshToken = tokenSet.refresh_token;
       console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
       console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
       console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());

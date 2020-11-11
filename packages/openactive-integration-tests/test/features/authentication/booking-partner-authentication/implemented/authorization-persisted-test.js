@@ -59,7 +59,6 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         authorizationParameters: {
           scope: 'openid', // No offline_access
         },
-      })
-      .refresh();
+      });
   });
 });
