@@ -3,6 +3,7 @@
  * MIT Licensed
  */
 const { allCriteria } = require('./criteria');
+const { getOrganizerOrProvider } = require('./criteria/criteriaUtils');
 
 /**
  * @typedef {import('./types/Criteria').Criteria} Criteria
@@ -83,8 +84,13 @@ function getRelevantOffers(criteriaName, opportunity, options) {
 }
 
 module.exports = {
+  // Main
   criteria: allCriteria,
   criteriaMap,
   testMatch,
   getRelevantOffers,
+  // Utils
+  utils: {
+    getOrganizerOrProvider,
+  },
 };
