@@ -40,7 +40,7 @@ class OrderQuoteDeletionFlowStage extends FlowStage {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
-      testName: 'Order Deletion',
+      testName: 'Order Quote Deletion',
       async runFn() {
         return await runOrderQuoteDeletion({
           uuid,

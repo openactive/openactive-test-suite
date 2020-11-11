@@ -477,7 +477,7 @@ class RequestHelper {
   async deleteOrderQuote(uuid) {
     const respObj = await this.delete(
       'delete-order-quote',
-      `${BOOKING_API_BASE}/orders-quotes/${uuid}`,
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
       {
         headers: this.createHeaders(),
         timeout: 10000,
