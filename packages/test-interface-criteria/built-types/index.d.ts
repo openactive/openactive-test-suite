@@ -58,4 +58,8 @@ export function testMatch(criteria: Criteria, opportunity: Opportunity, options:
  * @param {Options} options
  */
 export function getRelevantOffers(criteriaName: string, opportunity: Opportunity, options: Options): import("./types/Offer").Offer[];
+declare const getOrganizerOrProvider: (opportunity: import("./types/Opportunity").Opportunity) => any;
+export declare namespace utils {
+    export { getOrganizerOrProvider };
+}
 export { allCriteria as criteria };

@@ -1,7 +1,6 @@
-const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-chai.use(require('chai-url'));
+const { expectTermsOfServiceToExistAndBeValid } = require('../common');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -10,16 +9,10 @@ chai.use(require('chai-url'));
 /**
  * @param {() => ChakramResponse} getHttpResponse
  */
-function itShouldValidContainTermsOfService(getHttpResponse) {
+function itShouldContainBookingServiceWithValidTermsOfService(getHttpResponse) {
   it('Should contain terms of service array in bookingService in response', () => {
     const { termsOfService } = getHttpResponse().body.bookingService;
-    chai.expect(termsOfService).to.be.an('array')
-      .that.has.lengthOf.at.least(1);
-    for (const termsOfServiceItem of termsOfService) {
-      // @ts-expect-error chai-url doesn't have a types package
-      chai.expect(termsOfServiceItem.url).that.has.protocol('https');
-      chai.expect(termsOfServiceItem['@type'] === 'PrivacyPolicy');
-    }
+    expectTermsOfServiceToExistAndBeValid(termsOfService);
   });
 }
 
@@ -41,13 +34,13 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   describe('Terms of service should be part of bookingService in all stages', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldValidContainTermsOfService(() => c1.getOutput().httpResponse);
+      itShouldContainBookingServiceWithValidTermsOfService(() => c1.getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldValidContainTermsOfService(() => c2.getOutput().httpResponse);
+      itShouldContainBookingServiceWithValidTermsOfService(() => c2.getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
-      itShouldValidContainTermsOfService(() => b.getOutput().httpResponse);
+      itShouldContainBookingServiceWithValidTermsOfService(() => b.getOutput().httpResponse);
     });
   });
 });
