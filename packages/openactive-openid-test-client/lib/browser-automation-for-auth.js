@@ -22,6 +22,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   };
   const browser = await puppeteer.launch({
     headless,
+    ignoreHTTPSErrors: true,
   });
   const page = await browser.newPage();
   try {
