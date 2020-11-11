@@ -46,7 +46,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .setClientCredentials(CLIENT_CREDENTIALS)
       .authorizeAuthorizationCodeFlow({
         ...loginCredentials,
-        assertFlowRequiredConsent: true,
+        // assertFlowRequiredConsent: true, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)
         title: 'first attempt',
         authorizationParameters: {
           scope: 'openid', // No offline_access
@@ -54,7 +54,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       })
       .authorizeAuthorizationCodeFlow({
         ...loginCredentials,
-        assertFlowRequiredConsent: false,
+        // assertFlowRequiredConsent: false, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)
         title: 'second attempt',
         authorizationParameters: {
           scope: 'openid', // No offline_access
