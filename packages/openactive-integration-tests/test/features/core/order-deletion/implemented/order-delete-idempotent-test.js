@@ -1,15 +1,10 @@
-/* eslint-disable no-unused-vars */
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
   FlowStageUtils,
-  BFlowStage,
+  OrderDeletionFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
-const { OrderDeletionFlowStage } = require('../../../../helpers/flow-stages/deleteStage');
-const RequestHelper = require('../../../../helpers/request-helper');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -22,54 +17,18 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger, state) => {
-  const requestHelper = new RequestHelper(logger);
-
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-    }),
-  });
+  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
 
   const deleteStage1 = new OrderDeletionFlowStage({
     ...defaultFlowStageParams,
     prerequisite: b,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: b.getOutput().totalPaymentDue,
-    }),
   });
 
   const deleteStage2 = new OrderDeletionFlowStage({
     ...defaultFlowStageParams,
     prerequisite: deleteStage1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: b.getOutput().totalPaymentDue,
-    }),
   });
 
   // ## Set up tests

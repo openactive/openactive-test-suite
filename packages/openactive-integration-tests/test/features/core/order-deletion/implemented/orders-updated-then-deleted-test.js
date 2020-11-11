@@ -10,7 +10,7 @@ const {
   OrderFeedUpdateFlowStageUtils,
   BFlowStage,
 } = require('../../../../helpers/flow-stages');
-const { OrderDeletionFlowStage } = require('../../../../helpers/flow-stages/deleteStage');
+const { OrderDeletionFlowStage } = require('../../../../helpers/flow-stages/order-deletion');
 const RequestHelper = require('../../../../helpers/request-helper');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 

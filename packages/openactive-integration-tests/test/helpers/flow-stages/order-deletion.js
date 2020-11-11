@@ -3,26 +3,26 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 
 /**
- * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue'>>
- *   & Partial<Pick<FlowStageOutput, 'orderProposalVersion'>>} Input
+ * @typedef {{}} Input
  * @typedef {Required<Pick<FlowStageOutput, 'httpResponse'>>} Output
  */
 
 /**
  * @param {object} args
  * @param {string} args.uuid
- * @param {string} args.sellerId
+ * @param {SellerConfig} args.sellerConfig
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
  */
-async function runOrderDeletion({ uuid, sellerId, requestHelper }) {
+async function runOrderDeletion({ uuid, sellerConfig, requestHelper }) {
+  const sellerId = sellerConfig['@id'];
   const response = await requestHelper.deleteOrder(uuid, { sellerId });
 
   return {
@@ -37,29 +37,24 @@ class OrderDeletionFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {FlowStage<unknown>} args.prerequisite
-   * @param {() => Input} args.getInput
-   * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {string} args.sellerId
+   * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ prerequisite, requestHelper, uuid, sellerConfig }) {
     super({
       prerequisite,
-      getInput,
-      testName: 'order Deletion',
+      getInput: FlowStageUtils.emptyGetInput,
+      testName: 'Order Deletion',
       async runFn() {
         return await runOrderDeletion({
           uuid,
-          sellerId,
+          sellerConfig,
           requestHelper,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp204SuccessChecks(),
-      itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
-        name: 'Order Deletion',
-        validationMode: 'OrderDeletionResponse',
-      }),
+      itValidationTestsFn: () => { },
     });
   }
 }

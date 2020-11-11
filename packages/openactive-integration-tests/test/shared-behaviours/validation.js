@@ -23,7 +23,7 @@ function priorityOfSeverity(severity) {
 }
 
 /**
- * @typedef {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed' | 'OrderDeletionResponse' } ValidationMode
+ * @typedef {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed'} ValidationMode
  */
 
 /**
@@ -111,17 +111,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
       }
     }
 
-    if (options.validationMode === 'OrderDeletionResponse')
-    {
-      results = [
-        {
-          severity: "suggestion",
-          message: `OrderDeletionResponse returns just http response no need for validation.`
-        }
-      ];     
-    } else {
-      results = await validate(body, optionsWithRemoteJson);
-    }
+    results = await validate(body, optionsWithRemoteJson);
 
     results = results.sort((a, b) => priorityOfSeverity(a.severity) - priorityOfSeverity(b.severity));
 
