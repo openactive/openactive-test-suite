@@ -27,7 +27,9 @@ module.exports = class OpenActiveOpenIdTestClient {
   async register(initialAccessToken, issuer = this.issuer) {
     throwIfNoIssuer(issuer);
 
-    // @ts-ignore TODO
+    // @ts-ignore I think this is because of an issue with openid-client's types where Client
+    // isn't properly exposed as being the Client class but rather just an function which
+    // can be used to instantiate Client instances.
     const registration = await issuer.Client.register({
       redirect_uris: [this.callbackUrl],
       grant_types: ['authorization_code', 'refresh_token', 'client_credentials'],
