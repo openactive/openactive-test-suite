@@ -25,6 +25,7 @@ class TestEnvironment extends NodeEnvironment {
       this.global.SELLER_CONFIG = response.data.sellersConfig;
       this.global.BOOKING_PARTNER_CONFIG = response.data.bookingPartnersConfig;
       this.global.AUTHENTICATION_FAILURE = response.data.authenticationFailure;
+      this.global.DYNAMIC_REGISTRATION_FAILURE = response.data.dynamicRegistrationFailure;
       this.global.HEADLESS_AUTH = response.data.headlessAuth;
     } else {
       throw new Error(`Error accessing broker microservice at ${configUrl}`);

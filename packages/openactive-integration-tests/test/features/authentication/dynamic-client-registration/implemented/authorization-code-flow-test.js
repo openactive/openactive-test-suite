@@ -23,6 +23,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'The Authorization Code Flow allows Sellers to authenticate with Booking Partners',
   runOnce: true,
   surviveAuthenticationFailure: true,
+  surviveDynamicRegistrationFailure: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   describe('Get Authentication Base Url from Dataset Site', function () {

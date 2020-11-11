@@ -6,7 +6,7 @@ const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
 
-const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE } = global;
+const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
 
 /**
@@ -37,6 +37,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  * @property {boolean} [skipMultiple]
  * @property {boolean} [runOnlyIf]
  * @property {boolean} [surviveAuthenticationFailure]
+ * @property {boolean} [surviveDynamicRegistrationFailure]
  * @property {number} [numOpportunitiesUsedPerCriteria] How many opportunities
  *   are used by the test per criteria. e.g. if each test iteration needs to
  *   fetch 2 opportunities, this number should be 2.
@@ -147,6 +148,7 @@ class FeatureHelper {
       !(configuration.runOnlyIf !== undefined && !configuration.runOnlyIf)
       && implemented === configuration.testFeatureImplemented
       && !(AUTHENTICATION_FAILURE && !configuration.surviveAuthenticationFailure)
+      && !(DYNAMIC_REGISTRATION_FAILURE && !configuration.surviveDynamicRegistrationFailure)
     ) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {

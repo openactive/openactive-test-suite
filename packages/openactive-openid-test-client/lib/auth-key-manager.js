@@ -14,6 +14,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
     this.bookingPartnersConfig = JSON.parse(JSON.stringify(bookingPartnerConfig));
     this.client = new OpenActiveOpenIdTestClient(baseUrl);
     this.authenticationFailure = false;
+    this.dynamicRegistrationFailure = false;
   }
 
   get config() {
@@ -22,6 +23,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
       sellersConfig: this.sellersConfig,
       bookingPartnersConfig: this.bookingPartnersConfig,
       authenticationFailure: this.authenticationFailure,
+      dynamicRegistrationFailure: this.dynamicRegistrationFailure,
     };
   }
 
@@ -50,13 +52,24 @@ module.exports = class OpenActiveTestAuthKeyManager {
         }
 
         if (authenticationConfig.initialAccessToken) {
-          this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials = await this.client.register(authenticationConfig.initialAccessToken);
-          this.log(`Registered client for booking partner '${bookingPartnerIdentifier}'`);
+          try {
+            this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials = await this.client.register(authenticationConfig.initialAccessToken);
+            this.log(`Registered client for booking partner '${bookingPartnerIdentifier}'`);
+          } catch (error) {
+            this.log(`Error registered client for booking partner '${bookingPartnerIdentifier}'`);
+            this.dynamicRegistrationFailure = true;
+            throw error;
+          }
         }
 
-        const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;
-        this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.orderFeedTokenSet = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret);
-        this.log(`Retrieved Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
+        try {
+          const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;
+          this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.orderFeedTokenSet = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret);
+          this.log(`Retrieved Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
+        } catch (error) {
+          this.log(`Error retrieving Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
+          throw error;
+        }
       }));
 
       // Authenticate sellers
@@ -80,18 +93,23 @@ module.exports = class OpenActiveTestAuthKeyManager {
           const bookingPartnerAuthenticationConfig = bookingPartner.authentication;
 
           if (bookingPartnerAuthenticationConfig.clientCredentials) {
-            const { clientId, clientSecret } = bookingPartnerAuthenticationConfig.clientCredentials;
-            const { tokenSet } = await this.client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
-              buttonSelector: '.btn-primary',
-              headless: headlessAuth,
-              username: authenticationConfig.loginCredentials.username,
-              password: authenticationConfig.loginCredentials.password,
-            });
-            if (!tokenSet.refresh_token) {
-              throw new Error('Refresh token is required, but not provided.');
+            try {
+              const { clientId, clientSecret } = bookingPartnerAuthenticationConfig.clientCredentials;
+              const { tokenSet } = await this.client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
+                buttonSelector: '.btn-primary',
+                headless: headlessAuth,
+                username: authenticationConfig.loginCredentials.username,
+                password: authenticationConfig.loginCredentials.password,
+              });
+              if (!tokenSet.refresh_token) {
+                throw new Error('Refresh token is required, but not provided.');
+              }
+              this.log(`Retrieved access token via Authorization Code Flow for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
+              this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets[bookingPartnerIdentifier] = tokenSet;
+            } catch (error) {
+              this.log(`Error retrieving access token via Authorization Code Flow for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}`);
+              throw error;
             }
-            this.log(`Retrieved access token via Authorization Code Flow for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
-            this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets[bookingPartnerIdentifier] = tokenSet;
           }
         }));
       }));

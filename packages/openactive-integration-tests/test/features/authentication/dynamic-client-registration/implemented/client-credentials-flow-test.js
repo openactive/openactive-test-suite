@@ -23,6 +23,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: '...',
   runOnce: true,
   surviveAuthenticationFailure: true,
+  surviveDynamicRegistrationFailure: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   describe('Get Authentication Base Url from Dataset Site', function () {

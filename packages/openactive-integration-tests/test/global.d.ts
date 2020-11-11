@@ -23,6 +23,7 @@ declare global {
       BOOKING_PARTNER_CONFIG: { [bookingPartnerIdentifier: string]: { authentication: { initialAccessToken: string, clientCredentials: { clientId: string, clientSecret: string} } } };
       SELLER_CONFIG: { [sellerIdentifier: string]: { authentication: { loginCredentials: { username: string, password: string } } } };
       AUTHENTICATION_FAILURE: boolean;
+      DYNAMIC_REGISTRATION_FAILURE: boolean;
       HEADLESS_AUTH: boolean;
     }
   }
