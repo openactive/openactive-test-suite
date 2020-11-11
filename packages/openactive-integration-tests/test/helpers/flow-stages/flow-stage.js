@@ -5,7 +5,11 @@ const pMemoize = require('p-memoize');
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
+ */
+
+/**
+ * @typedef {'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable'} Prepayment
  */
 
 /**
@@ -25,8 +29,13 @@ const pMemoize = require('p-memoize');
  * @property {string | null | undefined} [orderId] ID of the Order within the Booking
  *   System.
  *   Optional as a Booking System response may not include ID if there was an error.
- * @property {number | null | undefined} [totalPaymentDue] Optional as a Booking System
- *   response may not include totalPaymentDue if there was an error.
+ * @property {number | null | undefined} [totalPaymentDue] totalPaymentDue.price
+ *   from a Booking System Order response.
+ *   Optional as a Booking System response may not include totalPaymentDue if there
+ *   was an error.
+ * @property {Prepayment | null | undefined} [prepayment] totalPaymentDue.prepayment
+ *   from a Booking System Order response.
+ *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
  * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
@@ -37,7 +46,16 @@ const pMemoize = require('p-memoize');
  *   and then collect the result after), this promise is persisted, so that the
  *   result can be collected by resolving it.
  *
- *   The response will be for an RPDE item with { kind, id, state, data, ...etc }.
+ *   The response will be for an RPDE item with `{ kind, id, state, data, ...etc }`.
+ * @property {Promise<ChakramResponse[]>} [getOpportunitiesFromOpportunityFeedPromise]
+ *   Used for Opportunity Feed updates.
+ *
+ *   Because an Opportunity Feed update check must be initiated before another stage
+ *   and then collected after that stage has completed (e.g. initiate before a Change
+ *   of Logistics (TestInterface action) stage and then collect the result after),
+ *   this promise is persisted, so that the result can be collected by resolving it.
+ *
+ *   The response will be for an array of RPDE items with `{ kind, id, state, data, ...etc }`.
  */
 /**
  * @template {FlowStageOutput} TOutput
