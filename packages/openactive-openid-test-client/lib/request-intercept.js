@@ -50,6 +50,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   nock.restore();
 
   // Process requests
+  // @ts-ignore TODO
   const entries = nockCallObjects.map((httpCall, i) => {
     const thisEntry = {
       type: 'request',

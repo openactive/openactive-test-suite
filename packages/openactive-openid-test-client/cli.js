@@ -1,5 +1,4 @@
-/* eslint-disable no-console */
-const yargs = require('yargs');
+const yargs = require('yargs/yargs');
 const express = require('express');
 const http = require('http');
 const { OpenActiveOpenIdTestClient, logWithIntercept, setupBrowserAutomationRoutes } = require('.');
@@ -82,67 +81,73 @@ const BASE_URL = `http://localhost:${port}`;
 // Create new client
 const client = new OpenActiveOpenIdTestClient(BASE_URL);
 
-const cli = yargs
+// eslint-disable-next-line prefer-destructuring
+const argv = yargs(process.argv.slice(2))
   .command('$0 [url]', 'OpenActive OpenID Connect Test Client CLI', (yargsConfig) => {
-    yargsConfig
-      .positional('url', {
-        describe: 'Identity Server Base URI',
-        default: 'https://localhost:44353',
-      })
-      .option('initialAccessToken', {
-        alias: 't',
-        description: 'Initial Access Token for Dynamic Client Registration',
-        default: 'openactive_test_suite_client_12345xaq',
-      })
-      .option('username', {
-        alias: 'u',
-        description: 'Username of the Seller',
-        default: 'test',
-      })
-      .option('password', {
-        alias: 'p',
-        description: 'Password of the Seller',
-        default: 'test',
-      });
-  }, async (argv) => {
-    try {
-      // Discovery
-      const issuer = await logWithIntercept('Discovery', () => client.discover(argv.url));
-      console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
+    yargsConfig.positional('url', {
+      type: 'string',
+      describe: 'Identity Server Base URI',
+      default: 'https://localhost:44353',
+    });
+  })
+  .options({
+    initialAccessToken: {
+      type: 'string',
+      alias: 't',
+      description: 'Initial Access Token for Dynamic Client Registration',
+      default: 'openactive_test_suite_client_12345xaq',
+    },
+    username: {
+      type: 'string',
+      alias: 'u',
+      description: 'Username of the Seller',
+      default: 'test',
+    },
+    password: {
+      type: 'string',
+      alias: 'p',
+      description: 'Password of the Seller',
+      default: 'test',
+    },
+  })
+  .argv;
 
-      // Dynamic Client Registration
-      const { registration, clientId, clientSecret } = await logWithIntercept('Dynamic Client Registration', () => client.register(argv.initialAccessToken));
-      console.log('Dynamic Client Registration: %O\n\n', registration);
+(async () => {
+  try {
+    // Discovery
+    const issuer = await logWithIntercept('Discovery', () => client.discover(/** @type {string} */(argv.url))); // yargs can only properly type the option args - not the positional ones. Hence the TS coercion here
+    console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
 
-      // Client Credentials Flow
-      const { tokenSet: clientCredentialsTokenSet } = await logWithIntercept('Client Credentials Flow', () => client.authorizeClientCredentialsFlow(clientId, clientSecret));
-      console.log('Client Credentials Flow: received and validated tokens %j\n\n', clientCredentialsTokenSet);
+    // Dynamic Client Registration
+    const { registration, clientId, clientSecret } = await logWithIntercept('Dynamic Client Registration', () => client.register(argv.initialAccessToken));
+    console.log('Dynamic Client Registration: %O\n\n', registration);
 
-      // Authorization Code Flow
-      const { tokenSet, authorizationUrl } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
-        buttonSelector: '.btn-primary',
-        headless: true,
-        username: argv.username,
-        password: argv.password,
-      }));
-      const refreshToken = tokenSet.refresh_token;
-      console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
-      console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
-      console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
-      console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);
+    // Client Credentials Flow
+    const { tokenSet: clientCredentialsTokenSet } = await logWithIntercept('Client Credentials Flow', () => client.authorizeClientCredentialsFlow(clientId, clientSecret));
+    console.log('Client Credentials Flow: received and validated tokens %j\n\n', clientCredentialsTokenSet);
 
-      // Refresh Token
-      const refreshedTokenSet = await logWithIntercept('Refresh Token', () => client.refresh(refreshToken, clientId, clientSecret));
-      console.log('refreshed and validated tokens %j', refreshedTokenSet);
-      console.log('refreshed ID Token claims %j\n\n', refreshedTokenSet.claims());
+    // Authorization Code Flow
+    const { tokenSet, authorizationUrl } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
+      buttonSelector: '.btn-primary',
+      headless: true,
+      username: argv.username,
+      password: argv.password,
+    }));
+    const refreshToken = tokenSet.refresh_token;
+    console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
+    console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
+    console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
+    console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);
 
-      // Exit
-      process.exit(0);
-    } catch (error) {
-      console.log(error);
-    }
-  });
+    // Refresh Token
+    const refreshedTokenSet = await logWithIntercept('Refresh Token', () => client.refresh(refreshToken, clientId, clientSecret));
+    console.log('refreshed and validated tokens %j', refreshedTokenSet);
+    console.log('refreshed ID Token claims %j\n\n', refreshedTokenSet.claims());
 
-// Execute yargs
-// eslint-disable-next-line no-unused-expressions
-cli.argv;
+    // Exit
+    process.exit(0);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+})();

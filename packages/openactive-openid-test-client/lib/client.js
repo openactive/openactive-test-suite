@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 const { Issuer, generators } = require('openid-client');
 const { default: axios } = require('axios');
 
@@ -28,6 +27,7 @@ module.exports = class OpenActiveOpenIdTestClient {
   async register(initialAccessToken, issuer = this.issuer) {
     throwIfNoIssuer(issuer);
 
+    // @ts-ignore TODO
     const registration = await issuer.Client.register({
       redirect_uris: [this.callbackUrl],
       grant_types: ['authorization_code', 'refresh_token', 'client_credentials'],
@@ -63,7 +63,6 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {import('openid-client').AuthorizationParameters} authorizationParameters
    * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
    */
-  // eslint-disable-next-line object-curly-newline
   async authorizeAuthorizationCodeFlow(clientId, clientSecret, options, authorizationParameters = {}, issuer = this.issuer) {
     throwIfNoIssuer(issuer);
 

@@ -25,7 +25,9 @@
   },
   "devDependencies": {
     "@types/node": "^14.6.0",
+    "@types/openid-client": "^3.7.0",
     "@types/puppeteer": "^5.4.0",
+    "@types/yargs": "^15.0.9",
     "eslint": "^7.7.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-import": "^2.22.0",
