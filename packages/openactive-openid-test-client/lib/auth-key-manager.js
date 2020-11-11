@@ -117,7 +117,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
               this.log(`Retrieved access token via Authorization Code Flow for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
               this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets[bookingPartnerIdentifier] = tokenSet;
             } catch (error) {
-              this.log(`Error retrieving access token via Authorization Code Flow for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}`);
+              this.log(`Error retrieving access token via Authorization Code Flow for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
               throw error;
             }
           }
