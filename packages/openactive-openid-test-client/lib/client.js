@@ -17,7 +17,8 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {string} authenticationAuthority
    */
   async discover(authenticationAuthority) {
-    this.issuer = await Issuer.discover(authenticationAuthority);
+    // Only allow discovery of /.well-known/openid-configuration
+    this.issuer = await Issuer.discover(`${authenticationAuthority}/.well-known/openid-configuration`);
     return this.issuer;
   }
 

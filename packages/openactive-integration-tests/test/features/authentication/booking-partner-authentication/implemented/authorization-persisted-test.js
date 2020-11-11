@@ -7,7 +7,7 @@ const { GetDatasetSite, OpenIDConnectFlow } = require('../../../../shared-behavi
 
 const { BOOKING_PARTNER_CONFIG, SELLER_CONFIG, HEADLESS_AUTH } = global;
 
-const CLIENT_CREDENTIALS = config.get('bookingPartnersForDynamicRegistration.authorizationPersisted.authentication.clientCredentials');
+const BOOKING_PARTNER_STATIC_CONFIG = config.has('bookingPartnersForDynamicRegistration') ? config.get('bookingPartnersForDynamicRegistration') : {};
 
 /* eslint-enable no-unused-vars */
 
@@ -42,7 +42,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       logger,
     }))
       .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
-      .setClientCredentials(CLIENT_CREDENTIALS)
+      .setClientCredentials(() => BOOKING_PARTNER_STATIC_CONFIG.authorizationPersisted.authentication.clientCredentials)
       .authorizeAuthorizationCodeFlow({
         loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
         // assertFlowRequiredConsent: true, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)

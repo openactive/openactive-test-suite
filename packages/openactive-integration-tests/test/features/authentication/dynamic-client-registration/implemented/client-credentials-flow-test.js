@@ -10,7 +10,7 @@ const { GetDatasetSite, OpenIDConnectFlow } = require('../../../../shared-behavi
 
 const { BOOKING_PARTNER_CONFIG, SELLER_CONFIG, HEADLESS_AUTH } = global;
 
-const INITIAL_ACCESS_TOKEN = config.get('bookingPartnersForDynamicRegistration.dynamicSecondary.authentication.initialAccessToken');
+const BOOKING_PARTNER_STATIC_CONFIG = config.has('bookingPartnersForDynamicRegistration') ? config.get('bookingPartnersForDynamicRegistration') : {};
 
 /* eslint-enable no-unused-vars */
 
@@ -46,7 +46,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       logger,
     }))
       .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
-      .register(() => INITIAL_ACCESS_TOKEN)
+      .register(() => BOOKING_PARTNER_STATIC_CONFIG.dynamicSecondary.authentication.initialAccessToken)
       .clientCredentialsFlow();
   });
 });
