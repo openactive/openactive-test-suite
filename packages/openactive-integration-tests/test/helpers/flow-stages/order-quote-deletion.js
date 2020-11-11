@@ -15,13 +15,11 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @param {object} args
  * @param {string} args.uuid
- * @param {SellerConfig} args.sellerConfig
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
  */
-async function runOrderDeletion({ uuid, sellerConfig, requestHelper }) {
-  const sellerId = sellerConfig['@id'];
-  const response = await requestHelper.deleteOrder(uuid, { sellerId });
+async function runOrderQuoteDeletion({ uuid, requestHelper }) {
+  const response = await requestHelper.deleteOrderQuote(uuid);
 
   return {
     httpResponse: response,
@@ -31,23 +29,21 @@ async function runOrderDeletion({ uuid, sellerConfig, requestHelper }) {
 /**
  * @extends {FlowStage<Input, Output>}
  */
-class OrderDeletionFlowStage extends FlowStage {
+class OrderQuoteDeletionFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ prerequisite, requestHelper, uuid, sellerConfig }) {
+  constructor({ prerequisite, requestHelper, uuid }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
       testName: 'Order Deletion',
       async runFn() {
-        return await runOrderDeletion({
+        return await runOrderQuoteDeletion({
           uuid,
-          sellerConfig,
           requestHelper,
         });
       },
@@ -58,5 +54,5 @@ class OrderDeletionFlowStage extends FlowStage {
 }
 
 module.exports = {
-  OrderDeletionFlowStage,
+  OrderQuoteDeletionFlowStage,
 };

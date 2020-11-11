@@ -473,11 +473,10 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {{ sellerId: string }} params
    */
-  async deleteOrderQuote(uuid, params) {
+  async deleteOrderQuote(uuid) {
     const respObj = await this.delete(
-      'delete-order',
+      'delete-order-quote',
       `${BOOKING_API_BASE}/orders-quotes/${uuid}`,
       {
         headers: this.createHeaders(),
@@ -489,11 +488,10 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {{ sellerId: string }} params
    */
-  async getOrderStatus(uuid, params) {
+  async getOrderStatus(uuid) {
     const respObj = await this.get(
-      'delete-order',
+      'get-order-status',
       `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),

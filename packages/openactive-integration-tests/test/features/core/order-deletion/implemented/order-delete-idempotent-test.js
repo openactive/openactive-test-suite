@@ -1,4 +1,3 @@
-const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
@@ -36,17 +35,6 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteStage1, () => {
-    it('Delete Order should return 204', async () => {
-      const apiResponse = deleteStage1.getOutput().httpResponse;
-      expect(apiResponse.response.statusCode).to.equal(204);
-    });
-  });
-
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteStage2, () => {
-    it('Delete Order should return 204 for second delete request also', async () => {
-      const apiResponse = deleteStage2.getOutput().httpResponse;
-      expect(apiResponse.response.statusCode).to.equal(204);
-    });
-  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteStage1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteStage2);
 });

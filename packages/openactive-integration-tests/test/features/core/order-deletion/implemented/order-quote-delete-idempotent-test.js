@@ -1,15 +1,11 @@
-/* eslint-disable no-unused-vars */
-const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FetchOpportunitiesFlowStage,
   C1FlowStage,
   C2FlowStage,
   FlowStageUtils,
-  BFlowStage,
+  OrderQuoteDeletionFlowStage,
 } = require('../../../../helpers/flow-stages');
-const { OrderDeletionFlowStage } = require('../../../../helpers/flow-stages/order-deletion');
-const RequestHelper = require('../../../../helpers/request-helper');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -22,11 +18,9 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger, state) => {
-  const requestHelper = new RequestHelper(logger);
-
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,
     orderItemCriteriaList,
@@ -45,21 +39,19 @@ FeatureHelper.describeFeature(module, {
       orderItems: fetchOpportunities.getOutput().orderItems,
     }),
   });
+  const deleteOrderQuote1 = new OrderQuoteDeletionFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c2,
+  });
+  const deleteOrderQuote2 = new OrderQuoteDeletionFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: deleteOrderQuote1,
+  });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  describe('Delete Order Quote', async () => {
-    it('Delete Order Quote should return 204 for second delete request also', async () => {
-      const apiResponse = await requestHelper.deleteOrderQuote(defaultFlowStageParams.uuid, { sellerId: defaultFlowStageParams.sellerId });
-      expect(apiResponse.response.statusCode).to.equal(204);
-    });
-  });
-  describe('Delete Order Quote 2', async () => {
-    it('Delete Order Quote should return 204 for second delete request also', async () => {
-      const apiResponse = await requestHelper.deleteOrderQuote(defaultFlowStageParams.uuid, { sellerId: defaultFlowStageParams.sellerId });
-      expect(apiResponse.response.statusCode).to.equal(204);
-    });
-  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteOrderQuote1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteOrderQuote2);
 });
