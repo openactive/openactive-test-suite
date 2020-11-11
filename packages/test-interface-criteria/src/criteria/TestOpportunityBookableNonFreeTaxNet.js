@@ -1,4 +1,4 @@
-const { createCriteria } = require('./criteriaUtils');
+const { createCriteria, getOrganizerOrProvider } = require('./criteriaUtils');
 const { TestOpportunityBookableNonFree } = require('./TestOpportunityBookableNonFree');
 
 /**
@@ -9,14 +9,8 @@ const { TestOpportunityBookableNonFree } = require('./TestOpportunityBookableNon
  * @type {OpportunityConstraint}
  */
 function sellerTaxModeNet(opportunity) {
-  switch (opportunity['@type']) {
-    case 'ScheduledSession':
-      return opportunity.superEvent.organizer.taxMode === 'https://openactive.io/TaxNet';
-    case 'Slot':
-      return opportunity.facilityUse.provider.taxMode === 'https://openactive.io/TaxNet';
-    default:
-      throw new Error(`Type ${opportunity['@type']} not supported`);
-  }
+  const organization = getOrganizerOrProvider(opportunity);
+  return organization && organization.taxMode === 'https://openactive.io/TaxNet';
 }
 
 /**
