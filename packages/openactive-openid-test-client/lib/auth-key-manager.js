@@ -45,13 +45,20 @@ module.exports = class OpenActiveTestAuthKeyManager {
       const useDynamicRegistration = Object.entries(this.bookingPartnersConfig).some(([, s]) => s.authentication && s.authentication.initialAccessToken);
 
       this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}' with dynamic registration ${useDynamicRegistration ? 'enabled' : 'disabled'}...`);
-      try {
-        const issuer = await this.client.discover(authenticationAuthority);
-        this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
-      } catch (error) {
-        this.log(`Error discovering OpenID Connect issuer '${authenticationAuthority}'`);
-        if (useDynamicRegistration) this.dynamicRegistrationFailure = true;
-        throw error;
+
+      // Due to some authentication services (e.g. IdentityServer) taking time to boot in CI, the microservice tries three times to access the IdentityServer
+      for (let attempt = 1; ; attempt += 1) {
+        try {
+          const issuer = await this.client.discover(authenticationAuthority);
+          this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
+        } catch (error) {
+          this.log(`Error discovering OpenID Connect issuer '${authenticationAuthority}' (attempt ${attempt}): ${error.message}`);
+          if (attempt >= 3) {
+            if (useDynamicRegistration) this.dynamicRegistrationFailure = true;
+            throw error;
+          }
+        }
+        if (this.client.issuer !== null) break;
       }
 
       await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
