@@ -9,6 +9,7 @@ const {
   TestInterfaceActionFlowStage,
   OrderFeedUpdateFlowStageUtils,
   BFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 const { OrderDeletionFlowStage } = require('../../../../helpers/flow-stages/order-deletion');
 const RequestHelper = require('../../../../helpers/request-helper');
@@ -26,37 +27,9 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger, state) => {
-  const requestHelper = new RequestHelper(logger);
-
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const { uuid, sellerId } = defaultFlowStageParams;
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-    }),
-  });
+  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+
   const [simulateSellerCancellation, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
       ...defaultFlowStageParams,
@@ -80,10 +53,6 @@ FeatureHelper.describeFeature(module, {
     wrappedStageFn: prerequisite => (new OrderDeletionFlowStage({
       ...defaultFlowStageParams,
       prerequisite: orderFeedUpdate,
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        totalPaymentDue: b.getOutput().totalPaymentDue,
-      }),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
