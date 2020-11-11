@@ -10,7 +10,7 @@ const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 const { performance } = require('perf_hooks');
 const sleep = require('util').promisify(setTimeout);
-const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes } = require('@openactive/openactive-openid-test-client');
+const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
@@ -32,13 +32,6 @@ const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
 const HEADLESS_AUTH = true;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-class FatalError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'FatalError';
-  }
-}
 
 const app = express();
 app.use(express.json());
@@ -884,6 +877,10 @@ async function startPolling() {
     try {
       await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
     } catch (error) {
+      if (error instanceof FatalError) {
+        // If a fatal error, just rethrow
+        throw error;
+      }
       logError(`
 OpenID Connect Authentication: ${error.stack}
 

@@ -1,6 +1,7 @@
 const sleep = require('util').promisify(setTimeout);
 
 /* eslint-disable no-console */
+const FatalError = require('./fatal-error');
 const OpenActiveOpenIdTestClient = require('./client');
 /**
  * Auth key manager for use by tests
@@ -30,7 +31,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
   async initialise(authenticationAuthority, headlessAuth = true) {
     try {
       if (!authenticationAuthority) {
-        throw new Error('authenticationAuthority must be provided');
+        throw new FatalError('authenticationAuthority must be provided');
       }
 
       // Authenticate booking partners
@@ -40,15 +41,24 @@ module.exports = class OpenActiveTestAuthKeyManager {
         return;
       }
 
-      this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}'...`);
-      const issuer = await this.client.discover(authenticationAuthority);
-      this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
+      // Is dynamic registration enabled?
+      const useDynamicRegistration = Object.entries(this.bookingPartnersConfig).some(([, s]) => s.authentication && s.authentication.initialAccessToken);
+
+      this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}' with dynamic registration ${useDynamicRegistration ? 'enabled' : 'disabled'}...`);
+      try {
+        const issuer = await this.client.discover(authenticationAuthority);
+        this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
+      } catch (error) {
+        this.log(`Error discovering OpenID Connect issuer '${authenticationAuthority}'`);
+        if (useDynamicRegistration) this.dynamicRegistrationFailure = true;
+        throw error;
+      }
 
       await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
         // Ensure structure of config is correct
         const authenticationConfig = bookingPartner.authentication;
         if (authenticationConfig.clientCredentials && !(authenticationConfig.clientCredentials.clientId && authenticationConfig.clientCredentials.clientSecret)) {
-          throw new Error('Both clientCredentials.clientId and clientCredentials.clientSecret must be supplied in bookingPartner config');
+          throw new FatalError('Both clientCredentials.clientId and clientCredentials.clientSecret must be supplied in bookingPartner config');
         }
 
         if (authenticationConfig.initialAccessToken) {
@@ -82,7 +92,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
         // Ensure structure of config is correct
         const authenticationConfig = seller.authentication;
         if (authenticationConfig.loginCredentials !== null && !(authenticationConfig.loginCredentials.username && authenticationConfig.loginCredentials.password)) {
-          throw new Error('Both loginCredentials.username and loginCredentials.password must be supplied in seller config');
+          throw new FatalError('Both loginCredentials.username and loginCredentials.password must be supplied in seller config');
         }
 
         this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets = {
