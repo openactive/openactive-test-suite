@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'booking-partner-authentication',
   testFeatureImplemented: true,
   testIdentifier: 'authorization-persisted',
-  testName: 'Authorization Code Flow and Book',
+  testName: 'Authorization persists when not requesting offline access',
   testDescription: 'When authorisation is requested without offline access and a user has already given permission, consent should not be required.',
   runOnce: true,
   surviveAuthenticationFailure: true,

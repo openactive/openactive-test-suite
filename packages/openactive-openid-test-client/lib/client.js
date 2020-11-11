@@ -1,5 +1,6 @@
 const { Issuer, generators } = require('openid-client');
 const { default: axios } = require('axios');
+const sleep = require('util').promisify(setTimeout);
 
 function throwIfNoIssuer(issuer) {
   if (!issuer) throw new Error('Please run `discover()` before using this client, or pass an explicit issuer');
@@ -42,6 +43,9 @@ module.exports = class OpenActiveOpenIdTestClient {
     }, {
       initialAccessToken,
     });
+
+    // Always wait 500ms after registration, to give the auth server time to catch up
+    await sleep(500);
 
     return {
       clientId: registration.client_id,
