@@ -19,9 +19,10 @@ class OpenIDConnectFlow {
     return this;
   }
 
-  register({ initialAccessToken }) {
+  register(initialAccessTokenAccessor) {
     it('should complete Dynamic Client Registration successfully', async () => {
       // Dynamic Client Registration
+      const initialAccessToken = initialAccessTokenAccessor();
       const { registration, clientId, clientSecret } = await this.logWithIntercept('Dynamic Client Registration', () => this.client.register(initialAccessToken));
       this.keys.clientId = clientId;
       this.keys.clientSecret = clientSecret;
@@ -30,15 +31,19 @@ class OpenIDConnectFlow {
     return this;
   }
 
-  setClientCredentials({ clientId, clientSecret }) {
-    this.keys.clientId = clientId;
-    this.keys.clientSecret = clientSecret;
+  setClientCredentials(clientCrendentialsAccessor) {
+    beforeAll(() => {
+      const { clientId, clientSecret } = clientCrendentialsAccessor();
+      this.keys.clientId = clientId;
+      this.keys.clientSecret = clientSecret;
+    });
     return this;
   }
 
-  authorizeAuthorizationCodeFlow({ username, password, offlineAccess = true, assertFlowRequiredConsent = null, title = '', authorizationParameters = undefined }) {
+  authorizeAuthorizationCodeFlow({ loginCredentialsAccessor, offlineAccess = true, assertFlowRequiredConsent = null, title = '', authorizationParameters = undefined }) {
     let flowRequiredConsent;
     it('should complete Authorization Code Flow successfully', async () => {
+      const { username, password } = loginCredentialsAccessor();
       chai.expect(this.keys).to.have.property('clientId');
       chai.expect(this.keys).to.have.property('clientSecret');
       // Authorization Code Flow

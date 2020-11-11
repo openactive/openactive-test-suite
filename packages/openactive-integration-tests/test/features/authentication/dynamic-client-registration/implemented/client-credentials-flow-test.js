@@ -42,14 +42,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   describe('Open ID Connect Authentication', function () {
-    const initialAccessToken = INITIAL_ACCESS_TOKEN;
     (new OpenIDConnectFlow({
       logger,
     }))
       .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
-      .register({
-        initialAccessToken,
-      })
+      .register(() => INITIAL_ACCESS_TOKEN)
       .clientCredentialsFlow();
   });
 });

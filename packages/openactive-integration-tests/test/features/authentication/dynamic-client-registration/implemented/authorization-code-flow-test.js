@@ -42,16 +42,12 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   describe('Open ID Connect Authentication', function () {
-    const initialAccessToken = INITIAL_ACCESS_TOKEN;
-    const { loginCredentials } = SELLER_CONFIG.primary.authentication;
     (new OpenIDConnectFlow({
       logger,
     }))
       .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
-      .register({
-        initialAccessToken,
-      })
-      .authorizeAuthorizationCodeFlow(loginCredentials)
+      .register(() => INITIAL_ACCESS_TOKEN)
+      .authorizeAuthorizationCodeFlow({ loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials })
       .refresh();
   });
 });

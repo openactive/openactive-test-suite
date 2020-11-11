@@ -35,12 +35,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   describe('Open ID Connect Authentication', function () {
-    const { clientCredentials } = BOOKING_PARTNER_CONFIG.primary.authentication;
     (new OpenIDConnectFlow({
       logger,
     }))
       .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
-      .setClientCredentials(clientCredentials)
+      .setClientCredentials(() => BOOKING_PARTNER_CONFIG.primary.authentication.clientCredentials)
       .clientCredentialsFlow();
   });
 });

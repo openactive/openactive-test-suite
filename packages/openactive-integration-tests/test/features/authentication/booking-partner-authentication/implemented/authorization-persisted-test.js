@@ -38,14 +38,13 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   });
 
   describe('Open ID Connect Authentication', function () {
-    const { loginCredentials } = SELLER_CONFIG.primary.authentication;
     (new OpenIDConnectFlow({
       logger,
     }))
       .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
       .setClientCredentials(CLIENT_CREDENTIALS)
       .authorizeAuthorizationCodeFlow({
-        ...loginCredentials,
+        loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
         // assertFlowRequiredConsent: true, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)
         title: 'first attempt',
         authorizationParameters: {
@@ -53,7 +52,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
         },
       })
       .authorizeAuthorizationCodeFlow({
-        ...loginCredentials,
+        loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
         // assertFlowRequiredConsent: false, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)
         title: 'second attempt',
         authorizationParameters: {
