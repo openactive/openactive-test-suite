@@ -51,6 +51,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
         try {
           const issuer = await this.client.discover(authenticationAuthority);
           this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
+          break;
         } catch (error) {
           this.log(`Error discovering OpenID Connect issuer '${authenticationAuthority}' (attempt ${attempt}): ${error.message}`);
           if (attempt >= 3) {
@@ -58,7 +59,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
             throw error;
           }
         }
-        if (this.client.issuer !== null) break;
       }
 
       await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
