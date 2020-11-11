@@ -1,8 +1,19 @@
 const nock = require('nock');
 
 /**
+ * @typedef {{
+ *   type: 'request',
+ *   stage: string,
+ *   request: {[k: string]: unknown},
+ *   response?: {[k: string]: unknown},
+ *   isPending: boolean,
+ *   duration: number
+ * }} Entry
+ */
+
+/**
  * Intecept and log all http requests made during the execution of actionFn
- * @param {function} recordLogEntry
+ * @param {(Entry) => Entry} recordLogEntry
  * @param {string} stage
  * @param {function} actionFn
  */
@@ -43,14 +54,13 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   }
 
   // Store requests
-  const nockCallObjects = nock.recorder.play();
+  const nockCallObjects = /** @type {nock.Definition[]} */(nock.recorder.play()); // TS suggests this could also be string[]
 
   // Stop recording
   nock.recorder.clear();
   nock.restore();
 
   // Process requests
-  // @ts-ignore TODO
   const entries = nockCallObjects.map((httpCall, i) => {
     const thisEntry = {
       type: 'request',
@@ -60,7 +70,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
         method: httpCall.method,
         url: `${httpCall.scope}${httpCall.path}`,
         requestOptions: {
-          headers: httpCall.reqheader,
+          headers: httpCall.reqheaders,
         },
       },
       response: {
@@ -109,8 +119,12 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
  */
 async function logWithIntercept(stage, actionFn) {
   const logs = [];
+  /**
+   * @param {Entry} entry
+   */
   const recordLogEntry = (entry) => {
     const log = {
+      // FIXME where does testMeta come from?
       ...(this.testMeta),
       ...entry,
     };
@@ -123,7 +137,6 @@ async function logWithIntercept(stage, actionFn) {
   try {
     result = await recordWithIntercept(recordLogEntry, stage, actionFn);
   } finally {
-    // eslint-disable-next-line no-console
     console.log(`${stage} requests: ${JSON.stringify(logs, null, 2)}`);
   }
   return result;
