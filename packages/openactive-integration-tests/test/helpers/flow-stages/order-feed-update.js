@@ -5,7 +5,7 @@
  * starts checking when instructed. Therefore, if, say, an order is cancelled and
  * then the Test Suite is instructed to check for the associated Order Feed update,
  * it is possible that the Booking System's order feed (if it was really quick!)
- * to process the cancellation and release an update to their feed before the Test
+ * processes the cancellation and releases an update to their feed before the Test
  * Suite starts checking. Therefore, the Test Suite would miss the update and the
  * request would timeout.
  *
@@ -19,13 +19,13 @@
  * A `wrap` function has also been provided, to reduce the boilerplate of setting
  * up a listener and collector each time.
  */
-const { getTotalPaymentDueFromOrder, getOrderProposalVersion, getOrderId } = require('../order-utils');
+const { getTotalPaymentDueFromOrder, getOrderProposalVersion, getOrderId, getPrepaymentFromOrder } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
@@ -36,7 +36,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'getOrderFromOrderFeedPromise'>>} ListenerOutput
  *
  * @typedef {ListenerOutput} CollectorInput
- * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
  */
 
 /**
@@ -67,6 +67,7 @@ async function runOrderFeedCollector({ getOrderFromOrderFeedPromise }) {
   return {
     httpResponse: response,
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
+    prepayment: getPrepaymentFromOrder(bookingSystemOrder),
     orderProposalVersion: getOrderProposalVersion(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),
   };
@@ -88,13 +89,13 @@ class OrderFeedUpdateListener extends FlowStage {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
-      testName: '_Order Feed Update Initiator',
+      testName: '_Order Feed Update Listener',
       shouldDescribeFlowStage: false,
       async runFn() {
         return runOrderFeedListener({ uuid, requestHelper });
       },
-      itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdate stage */ },
-      itValidationTestsFn() { /* there are no validation tests - validation happens at the OrderFeedUpdate stage */ },
+      itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdateCollector stage */ },
+      itValidationTestsFn() { /* there are no validation tests - validation happens at the OrderFeedUpdateCollector stage */ },
     });
   }
 }
@@ -109,10 +110,6 @@ class OrderFeedUpdateListener extends FlowStage {
  */
 class OrderFeedUpdateCollector extends FlowStage {
   /**
-   * FlowStage which collects the results from an initiated Order Feed Update.
-   *
-   * This stage must come after a Order Feed update initiator stage (@see OrderFeedUpdateFlowStage.createInitiator).
-   *
    * @param {object} args
    * @param {string} args.testName
    * @param {FlowStage<unknown>} args.prerequisite
@@ -197,6 +194,11 @@ const OrderFeedUpdateFlowStageUtils = {
     return [wrappedStage, collectOrderFeedUpdate];
   },
 };
+
+/**
+ * @typedef {InstanceType<typeof OrderFeedUpdateCollector>} OrderFeedUpdateCollectorType
+ * @typedef {InstanceType<typeof OrderFeedUpdateListener>} OrderFeedUpdateListenerType
+ */
 
 module.exports = {
   OrderFeedUpdateListener,

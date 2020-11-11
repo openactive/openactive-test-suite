@@ -3,6 +3,7 @@ const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
+const { getPrepaymentFromOrder } = require('./order-utils');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -55,7 +56,7 @@ class RequestState {
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
-    this._brokerRole = brokerRole;
+    this.brokerRole = brokerRole;
   }
 
   get uuid() {
@@ -207,8 +208,8 @@ class RequestState {
 
   async putOrderQuoteTemplate() {
     const result = this._c1ReqTemplateRef
-      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole, this._c1ReqTemplateRef)
-      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole);
+      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._c1ReqTemplateRef)
+      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
 
     this.c1Response = result;
 
@@ -236,10 +237,17 @@ class RequestState {
     return response.body.totalPaymentDue.price;
   }
 
+  /** @returns {import('./flow-stages/flow-stage').Prepayment | null | undefined} */
+  get prepayment() {
+    const response = this.c2Response || this.c1Response;
+    if (!response) return undefined;
+    return getPrepaymentFromOrder(response.body);
+  }
+
   async putOrderQuote() {
     const result = this._c2ReqTemplateRef
-      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole, this._c2ReqTemplateRef)
-      : await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole);
+      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
+      : await this.requestHelper.putOrderQuote(this.uuid, this);
 
     this.c2Response = result;
 
@@ -256,8 +264,8 @@ class RequestState {
 
   async putOrder() {
     const result = this._bReqTemplateRef
-      ? await this.requestHelper.putOrder(this.uuid, this, this._brokerRole, this._bReqTemplateRef)
-      : await this.requestHelper.putOrder(this.uuid, this, this._brokerRole);
+      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, this);
 
     this.bResponse = result;
 

@@ -1,4 +1,5 @@
 const RequestHelper = require('../request-helper');
+const { getSellerConfigWithTaxMode, primarySeller } = require('../sellers');
 const { BFlowStage } = require('./b');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
@@ -18,7 +19,9 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
  *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
  *   bReqTemplateRef?: BReqTemplateRef | null,
- * }} OptionalC1C2BReqTemplateRefs
+ *   brokerRole?: string | null,
+ *   taxMode?: string | null,
+ * }} InitialiseSimpleC1C2BFlowOptions
  */
 
 const FlowStageRecipes = {
@@ -33,13 +36,16 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
-   * @param {OptionalC1C2BReqTemplateRefs} [options]
+   * @param {InitialiseSimpleC1C2BFlowOptions} [options]
    */
-  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null } = {}) {
-    const requestHelper = new RequestHelper(logger);
+  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null, brokerRole = null, taxMode = null } = {}) {
+    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : primarySeller;
+    const requestHelper = new RequestHelper(logger, sellerConfig);
 
     // ## Initiate Flow Stages
-    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
+    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({
+      requestHelper, logger, sellerConfig,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
       orderItemCriteriaList,
@@ -47,6 +53,7 @@ const FlowStageRecipes = {
     const c1 = new C1FlowStage({
       ...defaultFlowStageParams,
       templateRef: c1ReqTemplateRef,
+      brokerRole,
       prerequisite: fetchOpportunities,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -55,6 +62,7 @@ const FlowStageRecipes = {
     const c2 = new C2FlowStage({
       ...defaultFlowStageParams,
       templateRef: c2ReqTemplateRef,
+      brokerRole,
       prerequisite: c1,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -63,15 +71,17 @@ const FlowStageRecipes = {
     const b = new BFlowStage({
       ...defaultFlowStageParams,
       templateRef: bReqTemplateRef,
+      brokerRole,
       prerequisite: c2,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
         totalPaymentDue: c2.getOutput().totalPaymentDue,
+        prepayment: c2.getOutput().prepayment,
       }),
     });
 
     return {
-      requestHelper,
+      defaultFlowStageParams,
       fetchOpportunities,
       c1,
       c2,

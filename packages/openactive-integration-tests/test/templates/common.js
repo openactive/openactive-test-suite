@@ -1,5 +1,9 @@
 const config = require('config');
 
+/**
+ * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
+ */
+
 const PAYMENT_RECONCILIATION_DETAILS = config.get('sellers').primary.paymentReconciliationDetails;
 
 /**
@@ -42,4 +46,26 @@ function createPaymentPart(includeIdentifier = true) {
   return payment;
 }
 
-module.exports = { createPaymentPart };
+/**
+ * @param {{ totalPaymentDue: number }} data
+ * @returns {boolean}
+ */
+function isPaidOpportunity(data) {
+  return data.totalPaymentDue > 0;
+}
+
+/**
+ * Is `payment` property needed for B/P request?
+ *
+ * @param {{ totalPaymentDue: number, prepayment?: Prepayment | null | undefined }} data
+ * @returns {boolean}
+ */
+function isPaymentAvailable(data) {
+  return isPaidOpportunity(data) && data.prepayment !== 'https://openactive.io/Unavailable';
+}
+
+module.exports = {
+  createPaymentPart,
+  isPaidOpportunity,
+  isPaymentAvailable,
+};

@@ -5,10 +5,10 @@ const { OrderDeletionFlowStage } = require('./deleteStage');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
 const { FlowStageRecipes } = require('./flow-stage-recipes');
 const { FlowStageUtils } = require('./flow-stage-utils');
+const { OpportunityFeedUpdateCollectorFlowStage, OpportunityFeedUpdateFlowStageUtils, OpportunityFeedUpdateListenerFlowStage } = require('./opportunity-feed-update');
 const { OrderFeedUpdateFlowStageUtils, OrderFeedUpdateListener, OrderFeedUpdateCollector } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
-
 
 module.exports = {
   FetchOpportunitiesFlowStage,
@@ -17,6 +17,9 @@ module.exports = {
   OrderDeletionFlowStage,
   BFlowStage,
   PFlowStage,
+  OpportunityFeedUpdateCollectorFlowStage,
+  OpportunityFeedUpdateFlowStageUtils,
+  OpportunityFeedUpdateListenerFlowStage,
   OrderFeedUpdateFlowStageUtils,
   OrderFeedUpdateListener,
   OrderFeedUpdateCollector,

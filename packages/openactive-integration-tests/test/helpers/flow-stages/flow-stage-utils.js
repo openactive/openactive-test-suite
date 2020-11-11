@@ -15,6 +15,7 @@ const { generateUuid } = require('../generate-uuid');
  *   unknown,
  *   Required<Pick<FlowStageOutput, 'httpResponse'>>,
  * >} FlowStageTypeWithHttpResponseOutput
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  */
 
 const SELLER_CONFIG = config.get('sellers');
@@ -96,14 +97,14 @@ const FlowStageUtils = {
    * @param {RequestHelperType} args.requestHelper
    * @param {BaseLoggerType} args.logger
    * @param {string} [args.uuid]
-   * @param {string} [args.sellerId]
+   * @param {SellerConfig} [args.sellerConfig]
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerId }) {
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
-      sellerId: sellerId || /** @type {string} */(SELLER_CONFIG.primary['@id']),
+      sellerConfig: sellerConfig || /** @type {SellerConfig} */(SELLER_CONFIG.primary),
     };
   },
 
