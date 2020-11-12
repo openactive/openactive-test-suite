@@ -69,6 +69,9 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
 let sessionKeyCounter = 0;
 const requestStore = new Map();
 
+/**
+ * @param {import('express').Application} app
+ */
 function setupBrowserAutomationRoutes(app) {
   app.use(cookieSession({
     name: 'session',
@@ -113,6 +116,9 @@ function setupBrowserAutomationRoutes(app) {
   app.get('/auth', async function (req, res, next) {
     try {
       const { url, key } = req.query;
+      if (typeof url !== 'string') {
+        return res.status(400).json({ error: `url query param should be a string. Value: ${url}` });
+      }
       // Set the key in the session and redirect
       req.session.key = key;
       if (url && url !== 'undefined') {
