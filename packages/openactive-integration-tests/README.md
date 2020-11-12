@@ -44,6 +44,12 @@ The `./config/default.json` file configures which tests are run. This should be 
 - `"useRandomOpportunities": true`: Opportunities that match the [prerequisite criteria for each test](./test/features/README.md) must exist in the booking system for the configured primary Seller. These opportunities will be chosen at random, and used for each test. Note that opportunities are not reused between tests within the same run of the test suite.
 - `"useRandomOpportunities": false`: The test interface of the booking system is used to create prerequisite opportunities before each test is run, based on the supplied `testOpportunityCriteria`.
 
+### `requestHeaderLogging`
+
+Set this property to `true` to capture request headers in the markdown logs, which can be useful for debugging authentication.
+
+It is recommended that this property be set to `false` when generating conformance certificates, for security.
+
 ### `bookableOpportunityTypesInScope`
 
 Tests will be repeated for each opportunity type that is set to `true`. Multiple OrderItem tests will include a mixture of the opportunity types set to `true`.

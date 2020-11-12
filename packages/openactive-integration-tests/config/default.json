@@ -3,6 +3,7 @@
   "useRandomOpportunities": true,
   "generateConformanceCertificate": true,
   "conformanceCertificateId": "https://www.example.com/",
+  "requestHeaderLogging": true,
   "bookableOpportunityTypesInScope": {
     "ScheduledSession": true,
     "FacilityUseSlot": true,

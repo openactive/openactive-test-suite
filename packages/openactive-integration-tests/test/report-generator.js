@@ -7,6 +7,7 @@ const _ = require("lodash");
 const config = require("config");
 const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
 const OUTPUT_PATH = config.get('outputPath');
+const ENABLE_HEADER_LOGGING = config.get('requestHeaderLogging');
 
 class BaseReportGenerator {
   get templateName () {
@@ -93,6 +94,9 @@ class BaseReportGenerator {
       },
       "json": function(data, options) {
         return JSON.stringify(data, null, 2);
+      },
+      "headers": function(data, options) {
+        return ENABLE_HEADER_LOGGING && data && _.isObject(data.headers) ? `\n${Object.entries(data.headers).map(([k, v], i) => `* **${k}:** \`${JSON.stringify(v)}\`\n`).join('')}` : '';
       },
       "logsFor": (suite, type, options) => {
         let first = true;

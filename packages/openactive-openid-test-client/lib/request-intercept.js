@@ -97,7 +97,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     entry.request = entries[0].request;
     entry.response = entries[0].response;
 
-    // Add any additional enteries
+    // Add any additional entries
     entries.slice(1).forEach(recordLogEntry);
   } else if (actionError) {
     // If no entries have been generated, add any error message to the first entry
@@ -127,8 +127,6 @@ async function logWithIntercept(stage, actionFn) {
    */
   const recordLogEntry = (entry) => {
     const log = {
-      // FIXME where does testMeta come from?
-      ...(this.testMeta),
       ...entry,
     };
 
