@@ -1,6 +1,7 @@
 const { BFlowStage } = require('./b');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
+const { OrderDeletionFlowStage } = require('./order-deletion');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
 const { FlowStageRecipes } = require('./flow-stage-recipes');
 const { FlowStageUtils } = require('./flow-stage-utils');
@@ -8,6 +9,8 @@ const { OpportunityFeedUpdateCollectorFlowStage, OpportunityFeedUpdateFlowStageU
 const { OrderFeedUpdateFlowStageUtils, OrderFeedUpdateListener, OrderFeedUpdateCollector } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
+const { OrderQuoteDeletionFlowStage } = require('./order-quote-deletion');
+
 
 module.exports = {
   FetchOpportunitiesFlowStage,
@@ -18,9 +21,11 @@ module.exports = {
   OpportunityFeedUpdateCollectorFlowStage,
   OpportunityFeedUpdateFlowStageUtils,
   OpportunityFeedUpdateListenerFlowStage,
+  OrderDeletionFlowStage,
   OrderFeedUpdateFlowStageUtils,
   OrderFeedUpdateListener,
   OrderFeedUpdateCollector,
+  OrderQuoteDeletionFlowStage,
   TestInterfaceActionFlowStage,
   FlowStageRecipes,
   FlowStageUtils,

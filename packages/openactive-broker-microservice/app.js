@@ -612,31 +612,31 @@ app.post('/assert-unmatched-criteria', function (req, res) {
 const orderResponses = {
 };
 
-app.get('/get-order/:id', function (req, res) {
+app.get('/get-order/:orderUuid', function (req, res) {
   if (DO_NOT_HARVEST_ORDERS_FEED) {
     res.status(403).json({
       error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
     });
-  } else if (req.params.id) {
-    const { id } = req.params;
+  } else if (req.params.orderUuid) {
+    const { orderUuid } = req.params;
 
-    // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-    if (orderResponses[id] && orderResponses[id] !== null) orderResponses[id].cancel();
-    orderResponses[id] = {
+    // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
+    if (orderResponses[orderUuid] && orderResponses[orderUuid] !== null) orderResponses[orderUuid].cancel();
+    orderResponses[orderUuid] = {
       send(json) {
-        orderResponses[id] = null;
+        orderResponses[orderUuid] = null;
         res.json(json);
       },
       cancel() {
-        log(`Ignoring previous request for "${id}"`);
+        log(`Ignoring previous request for "${orderUuid}"`);
         res.status(400).json({
-          error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
+          error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
         });
       },
     };
   } else {
     res.status(400).json({
-      error: 'id is required',
+      error: 'orderUuid is required',
     });
   }
 });
@@ -816,7 +816,7 @@ function processOpportunityItem(item) {
 /** @type {RpdePageProcessor} */
 function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
-    if (item.data && item.id && orderResponses[item.id]) {
+    if (item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
     }
   });
