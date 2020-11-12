@@ -3,12 +3,34 @@ const cookieSession = require('cookie-session');
 const { generators } = require('openid-client');
 
 /**
+ * @typedef {{
+ *   res: import('express').Response,
+ *   screenshots: { title: string, url: string, image: string }[],
+ *   requiredConsent?: boolean,
+ * }} Context
+ */
+
+/**
  * Adds routes to Express that facilitate browser automation of the Authorization Code Flow
  */
 
 const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 
+/**
+ * @param {object} args
+ * @param {string} args.sessionKey
+ * @param {string} args.authorizationUrl
+ * @param {boolean} [args.headless]
+ * @param {string} args.buttonSelector
+ * @param {string} args.username
+ * @param {string} args.password
+ * @param {Context} args.context
+ */
 async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelector, username, password, context }) {
+  /**
+   * @param {import('puppeteer').Page} page
+   * @param {string} title
+   */
   const addScreenshot = async (page, title) => {
     const image = await page.screenshot({
       encoding: 'base64',
@@ -30,7 +52,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
     await page.type("[name='username' i]", username);
     await page.type("[name='password' i]", password);
     await addScreenshot(page, 'Login page');
-    const hasButtonOnLoginPage = await page.$(`${buttonSelector}`);
+    const hasButtonOnLoginPage = await page.$(buttonSelector);
     if (hasButtonOnLoginPage) {
       await Promise.all([
         page.waitForNavigation(), // The promise resolves after navigation has finished
@@ -67,8 +89,12 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
 }
 
 let sessionKeyCounter = 0;
+/** @type {Map<string, Context>} */
 const requestStore = new Map();
 
+/**
+ * @param {import('express').Application} app
+ */
 function setupBrowserAutomationRoutes(app) {
   app.use(cookieSession({
     name: 'session',
@@ -78,7 +104,7 @@ function setupBrowserAutomationRoutes(app) {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   }));
 
-  app.post('/browser-automation-for-auth', async function (req, res, next) {
+  app.post('/browser-automation-for-auth', async (req, res, next) => {
     try {
       const sessionKey = sessionKeyCounter;
       sessionKeyCounter += 1;
@@ -91,6 +117,7 @@ function setupBrowserAutomationRoutes(app) {
         throw new Error('The middleware express.json() must be set up before a call to setupBrowserAutomationRoutes(app) is made.');
       }
       try {
+        // TODO verify that req.body has the correct (and correctly typed properties)
         await authorizeInteractive({
           sessionKey,
           context,
@@ -103,16 +130,19 @@ function setupBrowserAutomationRoutes(app) {
           screenshots: context.screenshots,
           requiredConsent: context.requiredConsent,
         });
-        requestStore.delete(sessionKey);
+        requestStore.delete(String(sessionKey));
       }
     } catch (err) {
       next(err);
     }
   });
 
-  app.get('/auth', async function (req, res, next) {
+  app.get('/auth', async (req, res, next) => {
     try {
       const { url, key } = req.query;
+      if (typeof url !== 'string') {
+        return res.status(400).json({ error: `url query param should be a string. Value: ${url}` });
+      }
       // Set the key in the session and redirect
       req.session.key = key;
       if (url && url !== 'undefined') {
@@ -125,7 +155,7 @@ function setupBrowserAutomationRoutes(app) {
     }
   });
 
-  app.get('/cb', async function (req, res, next) {
+  app.get('/cb', async (req, res, next) => {
     try {
       const sessionKey = req.session.key;
       res.send('<html><body><h1 class="openactive-test-callback-success">Callback Success</h1></body></html>');

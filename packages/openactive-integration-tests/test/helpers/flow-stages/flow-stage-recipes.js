@@ -1,5 +1,3 @@
-const RequestHelper = require('../request-helper');
-const { getSellerConfigWithTaxMode, primarySeller } = require('../sellers');
 const { BFlowStage } = require('./b');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
@@ -39,13 +37,8 @@ const FlowStageRecipes = {
    * @param {InitialiseSimpleC1C2BFlowOptions} [options]
    */
   initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null, brokerRole = null, taxMode = null } = {}) {
-    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : primarySeller;
-    const requestHelper = new RequestHelper(logger, sellerConfig);
-
     // ## Initiate Flow Stages
-    const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig,
-    });
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
       orderItemCriteriaList,
