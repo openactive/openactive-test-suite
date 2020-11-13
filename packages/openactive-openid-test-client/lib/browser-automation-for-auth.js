@@ -4,7 +4,7 @@ const { generators } = require('openid-client');
 
 /**
  * @typedef {{
- *   res: import('express').Response,
+ *   send: (status: number, json: any) => void,
  *   screenshots: { title: string, url: string, image: string }[],
  *   requiredConsent?: boolean,
  * }} Context
@@ -109,7 +109,11 @@ function setupBrowserAutomationRoutes(app) {
       const sessionKey = sessionKeyCounter;
       sessionKeyCounter += 1;
       const context = {
-        res,
+        send(status, json) {
+          // Log if send is called twice
+          context.send = (status, json) => { console.error(`Error: Browser automation service swallowed response with status '${status}' and content '${JSON.stringify(json, null, 2)}'`) };
+          res.status(status).json(json);
+        },
         screenshots: [],
       };
       requestStore.set(String(sessionKey), context);
@@ -125,7 +129,7 @@ function setupBrowserAutomationRoutes(app) {
         });
       } catch (err) {
         context.error = err.message;
-        res.status(400).json({
+        context.send(400, {
           error: err.message,
           screenshots: context.screenshots,
           requiredConsent: context.requiredConsent,
@@ -163,7 +167,7 @@ function setupBrowserAutomationRoutes(app) {
         throw new Error(`Session key '${sessionKey}' not found`);
       }
       const context = requestStore.get(sessionKey);
-      context.res.json({
+      context.send(200, {
         screenshots: context.screenshots,
         callbackUrl: req.originalUrl,
         requiredConsent: context.requiredConsent,

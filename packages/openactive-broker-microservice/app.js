@@ -930,8 +930,8 @@ addFeed('DatasetSite');
 // Ensure bucket allocation does not become stale
 setTimeout(() => {
   logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
-  if (!DISABLE_BROKER_TIMEOUT) {
-    const message = 'The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
+    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
     logError(`${message}\n`);
     throw new Error(message);
   }
