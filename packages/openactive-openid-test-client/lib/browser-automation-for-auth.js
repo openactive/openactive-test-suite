@@ -17,6 +17,23 @@ const { generators } = require('openid-client');
 const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 
 /**
+ * @param {import('puppeteer').Page} page
+ * @param {string} title
+ * @param {Context} context
+ */
+async function addScreenshot(page, title, context) {
+  const image = await page.screenshot({
+    encoding: 'base64',
+  });
+  const url = page.url();
+  context.screenshots.push({
+    title,
+    url,
+    image,
+  });
+};
+
+/**
  * @param {object} args
  * @param {string} args.sessionKey
  * @param {string} args.authorizationUrl
@@ -27,21 +44,6 @@ const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
  * @param {Context} args.context
  */
 async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelector, username, password, context }) {
-  /**
-   * @param {import('puppeteer').Page} page
-   * @param {string} title
-   */
-  const addScreenshot = async (page, title) => {
-    const image = await page.screenshot({
-      encoding: 'base64',
-    });
-    const url = page.url();
-    context.screenshots.push({
-      title,
-      url,
-      image,
-    });
-  };
   const browser = await puppeteer.launch({
     headless,
     ignoreHTTPSErrors: true,
@@ -49,9 +51,19 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   const page = await browser.newPage();
   try {
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
-    await page.type("[name='username' i]", username);
-    await page.type("[name='password' i]", password);
-    await addScreenshot(page, 'Login page');
+    try {
+      await page.type("[name='username' i]", username);
+    } catch (e) {
+      await addScreenshot(page, 'Error encountered trying to enter username', context);
+      return { success: false, message: `Error encountered trying to enter username. ${e.message}`};
+    }
+    try {
+      await page.type("[name='password' i]", password);
+    } catch (e) {
+      await addScreenshot(page, 'Error encountered trying to enter password', context);
+      return { success: false, message: `Error encountered trying to enter password. ${e.message}`};
+    }
+    await addScreenshot(page, 'Login page', context);
     const hasButtonOnLoginPage = await page.$(buttonSelector);
     if (hasButtonOnLoginPage) {
       await Promise.all([
@@ -59,13 +71,14 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
         page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
       ]);
     } else {
-      throw new Error(`Login button matching selector '${buttonSelector}' not found`);
+      await addScreenshot(page, 'Error encountered', context);
+      return { success: false, message: `Login button matching selector '${buttonSelector}' not found`};
     }
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
     if (isSuccessfulFollowingLogin) {
       context.requiredConsent = false;
     } else {
-      await addScreenshot(page, 'Authorization page');
+      await addScreenshot(page, 'Authorization page', context);
       const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
       if (hasButtonOnAuthorizationPage) {
         context.requiredConsent = true;
@@ -75,16 +88,23 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
           page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
         ]);
       } else {
-        throw new Error(`Accept button matching selector '${buttonSelector}' not found`);
+        await addScreenshot(page, 'Error encountered', context);
+        return { success: false, message: `Accept button matching selector '${buttonSelector}' not found`};
       }
     }
     const isSuccessfulFollowingAuthorization = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
     if (!isSuccessfulFollowingAuthorization) {
-      throw new Error('Callback page redirect was not detected.');
+      await addScreenshot(page, 'Error encountered', context);
+      return { success: false, message: 'Callback page redirect was not detected.'};
     }
+    return { success: true };
+  } catch (e) {
+    try {
+      await addScreenshot(page, 'Error encountered', context);
+    } catch {}
+    return { success: false, message: `Unexpected browser automation error encountered: ${e.stack}`};
   } finally {
-    await addScreenshot(page, 'Error encountered');
-    browser.close();
+    await browser.close();
   }
 }
 
@@ -120,17 +140,17 @@ function setupBrowserAutomationRoutes(app) {
       if (!req.body) {
         throw new Error('The middleware express.json() must be set up before a call to setupBrowserAutomationRoutes(app) is made.');
       }
-      try {
-        // TODO verify that req.body has the correct (and correctly typed properties)
-        await authorizeInteractive({
-          sessionKey,
-          context,
-          ...req.body,
-        });
-      } catch (err) {
-        context.error = err.message;
+
+      // TODO verify that req.body has the correct (and correctly typed properties)
+      const result = await authorizeInteractive({
+        sessionKey,
+        context,
+        ...req.body,
+      });
+      if (!result.success) {
+        context.error = result.message;
         context.send(400, {
-          error: err.message,
+          error: result.message,
           screenshots: context.screenshots,
           requiredConsent: context.requiredConsent,
         });
