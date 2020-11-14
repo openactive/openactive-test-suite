@@ -26,6 +26,7 @@ const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') 
 const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
+const LOG_AUTH_CONFIG = config.has('logAuthConfig') ? config.get('logAuthConfig') : false;
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -332,16 +333,22 @@ app.get('/health-check', function (req, res) {
   }
 });
 
-// Config endpoint used to get global variables within the integration tests
-app.get('/config', function (req, res) {
-  res.json({
+function getConfig() {
+  return {
     // Allow a consistent startDate to be used when calling test-interface-criteria
     harvestStartTime: HARVEST_START_TIME.toISOString(),
     // Base URL used by the integration tests
-    bookingApiBaseUrl: datasetSiteJson.accessService && datasetSiteJson.accessService.endpointURL,
+    bookingApiBaseUrl: datasetSiteJson.accessService?.endpointURL,
+    // Base URL used by the authentication tests
+    authenticationAuthority: datasetSiteJson.accessService?.authenticationAuthority,
     ...globalAuthKeyManager.config,
     headlessAuth: HEADLESS_AUTH,
-  });
+  };
+}
+
+// Config endpoint used to get global variables within the integration tests
+app.get('/config', function (req, res) {
+  res.json(getConfig());
 });
 
 app.get('/dataset-site', function (req, res) {
@@ -890,6 +897,8 @@ OpenID Connect Authentication: ${error.stack}
   } else {
     log('\nWarning: Open ID Connect Identity Server (accessService.authenticationAuthority) not found in dataset site');
   }
+
+  if (LOG_AUTH_CONFIG) log(`\nAugmented config supplied to Integration Tests: ${JSON.stringify(getConfig(), null, 2)}\n`);
 
   const harvesters = [];
 

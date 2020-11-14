@@ -2,9 +2,7 @@
 const chakram = require('chakram');
 const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetDatasetSite, OpenIDConnectFlow } = require('../../../../shared-behaviours');
-
-const { BOOKING_PARTNER_CONFIG } = global;
+const { OpenIDConnectFlow } = require('../../../../shared-behaviours');
 
 /* eslint-enable no-unused-vars */
 
@@ -18,28 +16,13 @@ FeatureHelper.describeFeature(module, {
   runOnce: true,
   surviveAuthenticationFailure: true,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  describe('Get Authentication Base Url from Dataset Site', function () {
-    (new GetDatasetSite({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    it('should include accessService.authenticationAuthority of the Open Booking API', () => {
-      chakram.expect(state.datasetSite).to.have.schema('accessService.authenticationAuthority', {
-        type: 'string',
-      });
-    });
-  });
-
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   describe('Open ID Connect Authentication', function () {
     (new OpenIDConnectFlow({
       logger,
     }))
-      .discover(() => state.datasetSite.body.accessService.authenticationAuthority)
-      .setClientCredentials(() => BOOKING_PARTNER_CONFIG.primary.authentication.clientCredentials)
+      .discover()
+      .setClientCredentials(false, 'primary')
       .clientCredentialsFlow();
   });
 });

@@ -15,6 +15,12 @@ Feature Implemented: {{{ implemented }}}
 {{#each activeSuites }}
 
 ## {{{ renderSuiteName . }}}
+    {{#logsFor . "information"}}
+
+### {{title}}
+
+{{{message}}}
+    {{/logsFor}}
     {{#logsFor . "request"}}
 
 ### {{stage}} Request

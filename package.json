@@ -31,7 +31,7 @@
     "node-cleanup": "^2.1.2"
   },
   "engines": {
-    "node": "12.18.2"
+    "node": "14.15.0"
   },
   "devDependencies": {
     "husky": "^4.2.5"

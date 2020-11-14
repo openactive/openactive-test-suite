@@ -29,10 +29,23 @@ class BaseLogger {
     };
   }
 
-  recordLogEntry (entry) {
-    let log = {
+  recordLogEntry(entry) {
+    const log = {
       ...(this.testMeta),
       ...entry,
+    };
+
+    this.logs.push(log);
+
+    return log;
+  }
+
+  recordLogMessage(title, message) {
+    const log = {
+      ...(this.testMeta),
+      type: 'information',
+      title,
+      message,
     };
 
     this.logs.push(log);

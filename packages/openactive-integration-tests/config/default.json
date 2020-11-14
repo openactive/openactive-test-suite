@@ -96,7 +96,7 @@
       "taxMode": "https://openactive.io/TaxNet"
     }
   },
-  "bookingPartnersForDynamicRegistration": {
+  "bookingPartnersForSpecificTests": {
     "dynamicPrimary": {
       "authentication": {
         "initialAccessToken": "dynamic-primary-745ddf2d13019ce8b69c"

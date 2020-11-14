@@ -36,8 +36,8 @@ module.exports = class OpenActiveOpenIdTestClient {
       redirect_uris: [this.callbackUrl],
       grant_types: ['authorization_code', 'refresh_token', 'client_credentials'],
       client_name: 'OpenActive Test Suite Client',
-      client_uri: 'https://client.example.org/',
-      logo_uri: 'https://client.example.org/newlogo.png',
+      client_uri: 'https://github.com/openactive/openactive-test-suite',
+      logo_uri: 'https://via.placeholder.com/512x256.png?text=Logo',
       scope: 'openid profile openactive-openbooking openactive-ordersfeed oauth-dymamic-client-update openactive-identity',
       // id_token_signed_response_alg (default "RS256")
       // token_endpoint_auth_method (default "client_secret_basic")
