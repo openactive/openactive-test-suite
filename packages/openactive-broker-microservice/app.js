@@ -880,7 +880,7 @@ async function startPolling() {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
   }
 
-  if (dataset.accessService && dataset.accessService.authenticationAuthority) {
+  if (dataset.accessService?.authenticationAuthority) {
     try {
       await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
     } catch (error) {
