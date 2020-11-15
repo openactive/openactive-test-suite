@@ -6,16 +6,29 @@ export type Offer = {
     '@type': string;
     '@id': string;
 };
+export type TestDataHints = {
+    startDateMin: string;
+    startDateMax: string;
+    durationMin: string;
+    durationMax: string;
+    remainingCapacityMin: number;
+    remainingCapacityMax: number;
+    validFromNull: boolean;
+    validFromMin: string;
+    validFromMax: string;
+};
 export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type Criteria = {
     name: string;
     opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
     offerConstraints: [string, import("../types/Criteria").OfferConstraint][];
+    testDataHints: import("../types/Criteria").TestDataHintsGenerator;
 };
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
+ * @typedef {import('../types/TestDataHints').TestDataHints} TestDataHints
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
@@ -25,14 +38,16 @@ export type Criteria = {
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
+ * @param {TestDataHints} args.testDataHints
  * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-export function createCriteria({ name, opportunityConstraints, offerConstraints, includeConstraintsFromCriteria }: {
+export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataHints, includeConstraintsFromCriteria }: {
     name: string;
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
+    testDataHints: TestDataHints;
     includeConstraintsFromCriteria: Criteria | null;
 }): Criteria;
 /**
@@ -52,10 +67,6 @@ export function getType(opportunity: Opportunity): string;
  *   remainingUses, therefore the return value may be null-ish.
  */
 export function getRemainingCapacity(opportunity: Opportunity): number | null | undefined;
-/**
- * @type {OfferConstraint}
- */
-export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
 /**
  * @param {Opportunity} opportunity
  * @returns {boolean}

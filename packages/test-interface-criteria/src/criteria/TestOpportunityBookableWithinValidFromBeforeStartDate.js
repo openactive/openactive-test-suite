@@ -1,5 +1,7 @@
+const moment = require('moment');
+
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
-const { createCriteria, mustBeWithinBookingWindow } = require('./criteriaUtils');
+const { createCriteria } = require('./criteriaUtils');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -9,7 +11,15 @@ const { createCriteria, mustBeWithinBookingWindow } = require('./criteriaUtils')
  * @type {OfferConstraint}
  */
 function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
-  return offer.validFromBeforeStartDate && mustBeWithinBookingWindow(offer, opportunity, options);
+  if (!offer || !offer.validFromBeforeStartDate) {
+    return null; // Required for validation step
+  }
+
+  const start = moment(opportunity.startDate);
+  const duration = moment.duration(offer.validFromBeforeStartDate);
+
+  const valid = start.subtract(duration).isBefore(options.harvestStartTime);
+  return valid;
 }
 
 const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
@@ -22,6 +32,11 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  testDataHints: (options) => ({
+    validFromNull: false,
+    validFromMin: moment(options.harvestStartTime).subtract(moment.duration('P28D')).toISOString(),
+    validFromMax: moment(options.harvestStartTime).toISOString(),
+  }),
 });
 
 module.exports = {

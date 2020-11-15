@@ -37,6 +37,12 @@ const InternalTestOpportunityBookable = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+  testDataHints: (options) => ({
+    remainingCapacityMin: 2,
+    remainingCapacityMax: 100,
+    validFromNull: true,
+    validFromMin: moment(options.harvestStartTime).toISOString(),
+  }),
 });
 
 module.exports = {

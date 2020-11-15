@@ -10,7 +10,8 @@
     "lint": "eslint \"test/**/*.js\" \"documentation/**/*.js\"",
     "lint-fix": "npm run lint -- --fix",
     "doc-gen": "node documentation/generator.js",
-    "certificate-validator": "node test/certification/certification-validator-microservice.js"
+    "certificate-validator": "node test/certification/certification-validator-microservice.js",
+    "test-data-generator": "node test-data-generator/test-data-generator.js"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",

@@ -42,5 +42,8 @@ module.exports = {
       }
     ],
     "no-underscore-dangle": "off"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020
   }
 }

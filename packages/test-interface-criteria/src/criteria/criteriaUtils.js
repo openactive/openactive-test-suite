@@ -4,6 +4,7 @@ const { isObject } = require('lodash');
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
+ * @typedef {import('../types/TestDataHints').TestDataHints} TestDataHints
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
@@ -14,13 +15,29 @@ const { isObject } = require('lodash');
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
+ * @param {TestDataHints} args.testDataHints
  * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-function createCriteria({ name, opportunityConstraints, offerConstraints, includeConstraintsFromCriteria = null }) {
+function createCriteria({ name, opportunityConstraints, offerConstraints, testDataHints, includeConstraintsFromCriteria = null }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
+  const baseTestDataHints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : {
+  };
+  /**
+   * @param {(hint: any) => any} hintAccessor
+   * @param {(thisHint: any, baseHint: any) => boolean} chooseThisHintOverBaseHint
+   * @returns {any}
+   */
+  const chooseNarrowerLimit = (hintAccessor, chooseThisHintOverBaseHint) => {
+    const thisHint = hintAccessor(testDataHints) ?? null;
+    const baseHint = hintAccessor(baseTestDataHints) ?? null;
+    if (thisHint === null || baseHint === null) {
+      return thisHint ?? baseHint;
+    }
+    return chooseThisHintOverBaseHint(thisHint, baseHint) ? thisHint : baseHint;
+  };
   return {
     name,
     opportunityConstraints: [
@@ -31,6 +48,22 @@ function createCriteria({ name, opportunityConstraints, offerConstraints, includ
       ...baseOfferConstraints,
       ...offerConstraints,
     ],
+    testDataHints: {
+      ...baseTestDataHints,
+      ...testDataHints,
+      startDateMin: chooseNarrowerLimit((hint) => hint.startDateMin, (thisHint, baseHint) => moment(thisHint).isBefore(baseHint)),
+      startDateMax: chooseNarrowerLimit((hint) => hint.startDateMax, (thisHint, baseHint) => moment(thisHint).isAfter(baseHint)),
+      validFromMin: chooseNarrowerLimit((hint) => hint.validFromMin, (thisHint, baseHint) => moment(thisHint).isBefore(baseHint)),
+      validFromMax: chooseNarrowerLimit((hint) => hint.validFromMax, (thisHint, baseHint) => moment(thisHint).isAfter(baseHint)),
+      durationMin: chooseNarrowerLimit((hint) => hint.durationMin,
+        (thisHint, baseHint) => moment.duration(thisHint).asMilliseconds() > moment.duration(baseHint).asMilliseconds()),
+      durationMax: chooseNarrowerLimit((hint) => hint.durationMax,
+        (thisHint, baseHint) => moment.duration(thisHint).asMilliseconds() < moment.duration(baseHint).asMilliseconds()),
+      remainingCapacityMin: chooseNarrowerLimit((hint) => hint.remainingCapacityMin,
+        (thisHint, baseHint) => thisHint > baseHint),
+      remainingCapacityMax: chooseNarrowerLimit((hint) => hint.remainingCapacityMax,
+        (thisHint, baseHint) => thisHint < baseHint),
+    },
   };
 }
 
@@ -71,21 +104,6 @@ function getRemainingCapacity(opportunity) {
 }
 
 /**
- * @type {OfferConstraint}
- */
-function mustBeWithinBookingWindow(offer, opportunity, options) {
-  if (!offer || !offer.validFromBeforeStartDate) {
-    return null; // Required for validation step
-  }
-
-  const start = moment(opportunity.startDate);
-  const duration = moment.duration(offer.validFromBeforeStartDate);
-
-  const valid = start.subtract(duration).isBefore(options.harvestStartTime);
-  return valid;
-}
-
-/**
  * @type {OpportunityConstraint}
  */
 function remainingCapacityMustBeAtLeastTwo(opportunity) {
@@ -118,7 +136,6 @@ module.exports = {
   getId,
   getType,
   getRemainingCapacity,
-  mustBeWithinBookingWindow,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
   getOrganizerOrProvider,

@@ -37,6 +37,10 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
     ],
   ],
   offerConstraints: [],
+  testDataHints: (options) => ({
+    startDateMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+    eventStatusOptions: ['https://schema.org/EventScheduled'],
+  }),
 });
 
 module.exports = {
