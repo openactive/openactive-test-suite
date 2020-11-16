@@ -18,6 +18,9 @@ const nock = require('nock');
  * @param {function} actionFn
  */
 async function recordWithIntercept(recordLogEntry, stage, actionFn) {
+  /**
+   * This log entry is mutated - it is updated as more information becomes available
+   */
   const entry = recordLogEntry({
     type: 'request',
     stage,
@@ -28,7 +31,8 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   });
 
   // manually count how long it's been waiting
-  // todo: capture a timestamp and hook into test state instead
+  // note this is copied from the logger within openactive-integration-tests
+  // because process can terminated by Jest at any time, there is no hook to capture the end time
   const responseTimer = setInterval(() => {
     entry.duration += 100;
   }, 100);
@@ -75,7 +79,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
       },
       response: {
         body: httpCall.response,
-        // responseTime: response.responseTime,
+        // responseTime: (does not exist in nock)
         status: httpCall.status,
         headers: httpCall.headers,
       },
@@ -92,7 +96,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     // Add any error message to the most recent entry
     if (actionError && entries.length > 0) entries.slice(-1)[0].response.error = actionError.message;
 
-    // Overwrite the first entry
+    // Overwrite the first entry (which has already been written to the log)
     entry.stage = entries[0].stage;
     entry.request = entries[0].request;
     entry.response = entries[0].response;
@@ -117,10 +121,14 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
 
 /**
  * Intecept and output to the console all http requests made during the execution of actionFn
+ * This is used primarily for the CLI
  * @param {string} stage
  * @param {function} actionFn
  */
 async function logWithIntercept(stage, actionFn) {
+  /**
+   * These logs are mutated - they are updated after being added by recordWithIntercept
+   */
   const logs = [];
   /**
    * @param {Entry} entry

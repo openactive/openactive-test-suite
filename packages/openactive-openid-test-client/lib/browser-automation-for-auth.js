@@ -78,6 +78,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
     if (isSuccessfulFollowingLogin) {
       context.requiredConsent = false;
     } else {
+      // If we do not see the callback page, then it is likely we're being asked for consent to authorize access
       await addScreenshot(page, 'Authorization page', context);
       const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
       if (hasButtonOnAuthorizationPage) {
@@ -114,8 +115,9 @@ const requestStore = new Map();
 
 /**
  * @param {import('express').Application} app
+ * @param {string} buttonSelector
  */
-function setupBrowserAutomationRoutes(app) {
+function setupBrowserAutomationRoutes(app, buttonSelector) {
   app.use(cookieSession({
     name: 'session',
     keys: [generators.codeVerifier()], // Random string as key
@@ -128,6 +130,7 @@ function setupBrowserAutomationRoutes(app) {
     try {
       const sessionKey = sessionKeyCounter;
       sessionKeyCounter += 1;
+      // Context maintained throughout authorisation code flow lifecycle
       const context = {
         send(status, json) {
           // Log if send is called twice
@@ -145,6 +148,7 @@ function setupBrowserAutomationRoutes(app) {
       const result = await authorizeInteractive({
         sessionKey,
         context,
+        buttonSelector,
         ...req.body,
       });
       if (!result.success) {
@@ -161,6 +165,7 @@ function setupBrowserAutomationRoutes(app) {
     }
   });
 
+  // Private endpoint, only called by authorizeInteractive function
   app.get('/auth', async (req, res, next) => {
     try {
       const { url, key } = req.query;
@@ -179,6 +184,7 @@ function setupBrowserAutomationRoutes(app) {
     }
   });
 
+  // Private endpoint, only called by authorizeInteractive function
   app.get('/cb', async (req, res, next) => {
     try {
       const sessionKey = req.session.key;

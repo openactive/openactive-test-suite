@@ -17,6 +17,14 @@ class OpenIDConnectFlow {
     this.logWithIntercept = async (...args) => await recordWithIntercept((entry) => logger.recordLogEntry(entry), ...args);
     this.logger = logger;
     this.client = new OpenActiveOpenIdTestClient(global.MICROSERVICE_BASE);
+    /**
+     * Keys are maintained between stages of the flow
+     * @type {{
+     *   clientId?: string,
+     *   clientSecret?: string,
+     *   refreshToken?: string,
+     * }}
+     */
     this.keys = {};
   }
 
@@ -79,7 +87,9 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
   }
 
   authorizeAuthorizationCodeFlow({ loginCredentialsAccessor, offlineAccess = true, assertFlowRequiredConsent = null, title = '', authorizationParameters = undefined }) {
-    let flowRequiredConsent;
+    const flowState = {
+      requiredConsent: null,
+    };
     it('should complete Authorization Code Flow successfully', async () => {
       throwIfNoAuthenticationAuthority();
       const { username, password } = loginCredentialsAccessor();
@@ -87,13 +97,12 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
       chai.expect(this.keys).to.have.property('clientSecret');
       // Authorization Code Flow
       const { tokenSet, authorizationUrl, requiredConsent } = await this.logWithIntercept(`Authorization Code Flow${title ? ` (${title})` : ''}`, () => this.client.authorizeAuthorizationCodeFlow(this.keys.clientId, this.keys.clientSecret, {
-        buttonSelector: '.btn-primary',
         headless: HEADLESS_AUTH,
         offlineAccess,
         username,
         password,
       }, authorizationParameters));
-      flowRequiredConsent = requiredConsent;
+      flowState.requiredConsent = requiredConsent;
       if (tokenSet.refresh_token) this.keys.refreshToken = tokenSet.refresh_token;
       console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
       console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
@@ -103,7 +112,7 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
     if (assertFlowRequiredConsent !== null) {
       it(`should ${!assertFlowRequiredConsent ? 'not ' : ''}require a consent prompt for Authorization Code Flow${title ? ` (${title})` : ''}`, async () => {
         throwIfNoAuthenticationAuthority();
-        chai.expect(flowRequiredConsent).to.equal(assertFlowRequiredConsent);
+        chai.expect(flowState.requiredConsent).to.equal(assertFlowRequiredConsent);
       });
     }
     return this;

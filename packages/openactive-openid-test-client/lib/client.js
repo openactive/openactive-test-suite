@@ -57,7 +57,6 @@ module.exports = class OpenActiveOpenIdTestClient {
 
   /**
    * @typedef {Object} AuthorizeOptions
-   * @property {string} buttonSelector
    * @property {boolean} headless
    * @property {string} username
    * @property {string} password

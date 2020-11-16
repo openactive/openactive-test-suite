@@ -19,7 +19,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
   }
 
   get config() {
-    this.updateAccessTokens();
     return {
       sellersConfig: this.sellersConfig,
       bookingPartnersConfig: this.bookingPartnersConfig,
@@ -107,7 +106,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
             try {
               const { clientId, clientSecret } = bookingPartnerAuthenticationConfig.clientCredentials;
               const { tokenSet } = await this.client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
-                buttonSelector: '.btn-primary',
                 headless: headlessAuth,
                 username: authenticationConfig.loginCredentials.username,
                 password: authenticationConfig.loginCredentials.password,
@@ -130,7 +128,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
     }
   }
 
-  async updateAccessTokens() {
+  async refreshAccessTokensIfNeeded() {
     // Only run the update if initialise ran successfully
     if (!this.client.issuer) return;
 

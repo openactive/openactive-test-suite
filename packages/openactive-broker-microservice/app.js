@@ -27,6 +27,7 @@ const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
 const LOG_AUTH_CONFIG = config.has('logAuthConfig') ? config.get('logAuthConfig') : false;
+const BUTTON_SELECTOR = config.has('loginPageButtonSelector') ? config.get('loginPageButtonSelector') : '.btn-primary';
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -36,7 +37,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
 app.use(express.json());
-setupBrowserAutomationRoutes(app);
+setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
 
 // eslint-disable-next-line no-console
 const logError = (x) => console.error(chalk.cyanBright(x));
@@ -347,7 +348,8 @@ function getConfig() {
 }
 
 // Config endpoint used to get global variables within the integration tests
-app.get('/config', function (req, res) {
+app.get('/config', async function (req, res) {
+  await globalAuthKeyManager.refreshAccessTokensIfNeeded();
   res.json(getConfig());
 });
 

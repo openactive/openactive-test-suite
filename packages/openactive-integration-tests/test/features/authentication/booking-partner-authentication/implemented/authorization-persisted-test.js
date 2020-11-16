@@ -14,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'authorization-persisted',
   testName: 'Authorization persists when not requesting offline access',
-  testDescription: 'When authorisation is requested without offline access and a user has already given permission, consent should not be required.',
+  testDescription: 'When authorisation is requested without offline access and a user has already given permission, consent must not be required.',
   runOnce: true,
   surviveAuthenticationFailure: true,
 },
@@ -26,8 +26,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       .discover()
       .setClientCredentials(true, 'authorizationPersisted')
       .authorizeAuthorizationCodeFlow({
+        // Note we cannot assert assertFlowRequiredConsent === true as authorization could already have been granted from a previous test run
         loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
-        // assertFlowRequiredConsent: true, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)
         title: 'first attempt',
         authorizationParameters: {
           scope: 'openid', // No offline_access
@@ -35,7 +35,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       })
       .authorizeAuthorizationCodeFlow({
         loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
-        // assertFlowRequiredConsent: false, // TODO: reintroduce this when there's a test interface for auth actions (to remove client authorization)
+        assertFlowRequiredConsent: false,
         title: 'second attempt',
         authorizationParameters: {
           scope: 'openid', // No offline_access

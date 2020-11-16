@@ -4,14 +4,7 @@ const http = require('http');
 const { OpenActiveOpenIdTestClient, logWithIntercept, setupBrowserAutomationRoutes } = require('.');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-/**
- * Set up brower automation service
- */
-
-const app = express();
-app.use(express.json());
-setupBrowserAutomationRoutes(app);
+const port = normalizePort(process.env.PORT || '3000');
 
 /**
  * Normalize a port into a number, string, or false.
@@ -32,8 +25,6 @@ function normalizePort(val) {
 
   return false;
 }
-
-const port = normalizePort(process.env.PORT || '3000');
 
 /**
  * Event listener for HTTP server "error" event.
@@ -64,15 +55,6 @@ function onError(error) {
 }
 
 /**
- * Local server
- */
-
-const server = http.createServer(app);
-server.on('error', onError);
-
-app.listen(port, () => console.log(`Browser automation service running on port ${port}`));
-
-/**
  * CLI runner
  */
 
@@ -87,7 +69,7 @@ const argv = yargs(process.argv.slice(2))
     yargsConfig.positional('url', {
       type: 'string',
       describe: 'Identity Server Base URI',
-      default: 'https://localhost:44353',
+      default: 'https://localhost:5003',
     });
   })
   .options({
@@ -109,11 +91,27 @@ const argv = yargs(process.argv.slice(2))
       description: 'Password of the Seller',
       default: 'test',
     },
+    loginPageButtonSelector: {
+      type: 'string',
+      alias: 'l',
+      description: 'CSS selector for the login button',
+      default: '.btn-primary',
+    },
   })
   .argv;
 
 (async () => {
   try {
+    // Set up brower automation service
+    const app = express();
+    app.use(express.json());
+    setupBrowserAutomationRoutes(app, argv.loginPageButtonSelector);
+
+    const server = http.createServer(app);
+    server.on('error', onError);
+
+    app.listen(port, () => console.log(`Browser automation service running on port ${port}`));
+
     // Discovery
     const issuer = await logWithIntercept('Discovery', () => client.discover(/** @type {string} */(argv.url))); // yargs can only properly type the option args - not the positional ones. Hence the TS coercion here
     console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
@@ -128,7 +126,6 @@ const argv = yargs(process.argv.slice(2))
 
     // Authorization Code Flow
     const { tokenSet, authorizationUrl } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
-      buttonSelector: '.btn-primary',
       headless: true,
       username: argv.username,
       password: argv.password,
