@@ -17,6 +17,12 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
 
 /**
  * @typedef {{
+ *   '@type': 'ImageObject' | 'Barcode',
+ *   url?: string,
+ *   text?: string,
+ * }} AccessPassItem
+ *
+ * @typedef {{
  *   sellerId: string,
  *   orderItems: {
  *     position: number,
@@ -31,6 +37,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
  *   totalPaymentDue: number,
  *   prepayment?: Prepayment | null | undefined,
  *   orderProposalVersion: string | null,
+ *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
  * }} BReqTemplateData
  */
@@ -107,18 +114,24 @@ function createNonPaymentRelatedCoreBReq(data) {
       familyName: 'CapesB',
       identifier: 'CustomerIdentifierB',
     },
-    orderedItem: data.orderItems.map(orderItem => ({
-      '@type': 'OrderItem',
-      position: orderItem.position,
-      acceptedOffer: {
-        '@type': 'Offer',
-        '@id': `${orderItem.acceptedOffer['@id']}`,
-      },
-      orderedItem: {
-        '@type': `${orderItem.orderedItem['@type']}`,
-        '@id': `${orderItem.orderedItem['@id']}`,
-      },
-    })),
+    orderedItem: data.orderItems.map((orderItem) => {
+      const result = {
+        '@type': 'OrderItem',
+        position: orderItem.position,
+        acceptedOffer: {
+          '@type': 'Offer',
+          '@id': `${orderItem.acceptedOffer['@id']}`,
+        },
+        orderedItem: {
+          '@type': `${orderItem.orderedItem['@type']}`,
+          '@id': `${orderItem.orderedItem['@id']}`,
+        },
+      };
+      if (data.accessPass) {
+        result.accessPass = data.accessPass;
+      }
+      return result;
+    }),
   };
 }
 
