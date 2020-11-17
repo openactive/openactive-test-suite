@@ -7,9 +7,10 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
  * @typedef {import('../../templates/b-req').BReqTemplateData} BReqTemplateData
  * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./flow-stage').Prepayment} Prepayment
  */
@@ -22,28 +23,29 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @param {object} args
- * @param {AccessPassItem[]} [args.accessPass]
  * @param {BReqTemplateRef} [args.templateRef]
+ * @param {AccessPassItem[]} [args.accessPass]
  * @param {string} args.uuid
- * @param {string} args.sellerId
+ * @param {SellerConfig} args.sellerConfig
  * @param {OrderItem[]} args.orderItems
  * @param {number} args.totalPaymentDue
  * @param {Prepayment} args.prepayment
  * @param {string} [args.orderProposalVersion]
  * @param {RequestHelperType} args.requestHelper
+ * @param {string | null} args.brokerRole
  * @returns {Promise<Output>}
  */
-async function runB({ templateRef, accessPass, uuid, sellerId, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper }) {
-  /** @type {import('../../templates/b-req').BReqTemplateData} */
+async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper }) {
   const params = {
-    sellerId,
+    sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
     prepayment,
     orderProposalVersion,
     accessPass,
+    brokerRole,
   };
-  const response = await requestHelper.putOrder(uuid, params, null, templateRef);
+  const response = await requestHelper.putOrder(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
 
   return {
@@ -63,14 +65,15 @@ class BFlowStage extends FlowStage {
    * @param {BReqTemplateRef} [args.templateRef]
    * @param {AccessPassItem[]} [args.accessPass] Access pass that is sent from the broker to the Booking System
    *   (https://www.openactive.io/open-booking-api/EditorsDraft/#extension-point-for-barcode-based-access-control)
+   * @param {string | null} [args.brokerRole]
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {() => Input} args.getInput
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {string} args.sellerId
+   * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ templateRef, accessPass, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ templateRef, accessPass, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig }) {
     super({
       prerequisite,
       getInput,
@@ -80,8 +83,9 @@ class BFlowStage extends FlowStage {
         return await runB({
           templateRef,
           accessPass,
+          brokerRole,
           uuid,
-          sellerId,
+          sellerConfig,
           orderItems,
           totalPaymentDue,
           prepayment,
