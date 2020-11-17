@@ -15,9 +15,13 @@ const { uReqTemplates } = require('../templates/u-req.js');
  */
 
 
+// eslint-disable-next-line camelcase
+const DEFAULT_ACCESS_TOKEN = global.SELLER_CONFIG?.primary?.authentication?.bookingPartnerTokenSets?.primary?.access_token;
 /** @type {SellerConfig['requestHeaders']} */
 const DEFAULT_REQUEST_HEADERS = {
-  Authorization: `Bearer ${global.SELLER_CONFIG.primary.authentication.bookingPartnerTokenSets.primary.access_token}`,
+  ...(!DEFAULT_ACCESS_TOKEN ? undefined : {
+    Authorization: `Bearer ${DEFAULT_ACCESS_TOKEN}`,
+  }),
   ...global.SELLER_CONFIG.primary.authentication.requestHeaders,
 };
 
