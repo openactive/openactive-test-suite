@@ -11,8 +11,7 @@ const { getPrepaymentFromOrder } = require('./order-utils');
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const SELLER_CONFIG = config.get('sellers');
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, SELLER_CONFIG } = global;
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -304,7 +303,7 @@ class RequestState {
   }
 
   get orderItemId() {
-    if (!this.bResponse) return;
+    if (!this.bResponse) { return null; }
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
       return this.bResponse.body.orderedItem[0]['@id'];

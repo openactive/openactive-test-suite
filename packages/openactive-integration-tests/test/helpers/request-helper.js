@@ -1,5 +1,5 @@
+// TODO fix eslint ignores in this file
 const chakram = require('chakram');
-const config = require('config');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
@@ -8,21 +8,13 @@ const { pReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
 
 /**
- * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
- * @typedef {import('./sellers').SellerConfig} SellerConfig
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
  */
 
-
-/** @type {SellerConfig['requestHeaders']} */
-const DEFAULT_REQUEST_HEADERS = {
-  Authorization: `Bearer ${global.SELLER_CONFIG.primary.authentication.bookingPartnerTokenSets.primary.access_token}`,
-  ...global.SELLER_CONFIG.primary.authentication.requestHeaders,
-};
-
-const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
-
+const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
 class RequestHelper {
   /**
@@ -31,7 +23,7 @@ class RequestHelper {
    */
   constructor(logger, sellerConfig) {
     this.logger = logger;
-    this._sellerConfig = sellerConfig;
+    this._sellerConfig = sellerConfig ?? SELLER_CONFIG.primary;
   }
 
   /**
@@ -116,10 +108,15 @@ class RequestHelper {
   }
 
   _getSellerRequestHeaders() {
-    if (this._sellerConfig) {
-      return this._sellerConfig.requestHeaders;
-    }
-    return DEFAULT_REQUEST_HEADERS;
+    return {
+      Authorization: `Bearer ${this._sellerConfig.authentication.bookingPartnerTokenSets.primary.access_token}`,
+      ...this._sellerConfig.authentication.requestHeaders,
+    };
+    // if (this._sellerConfig) {
+    //   return this._sellerConfig.authentication.requestHeaders;
+    //   // return this._sellerConfig.requestHeaders;
+    // }
+    // return DEFAULT_REQUEST_HEADERS;
   }
 
   createHeaders() {
@@ -135,6 +132,7 @@ class RequestHelper {
    * @param {string | null} [sellerId]
    * @param {string | null} [sellerType]
    */
+  // eslint-disable-next-line class-methods-use-this
   opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
     let template = null;
     const seller = sellerId ? {
@@ -462,7 +460,7 @@ class RequestHelper {
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */
-  async deleteOrder(uuid, params) {
+  async deleteOrder(uuid, params) { // eslint-disable-line no-unused-vars
     const respObj = await this.delete(
       'delete-order',
       `${BOOKING_API_BASE}/orders/${uuid}`,
@@ -502,8 +500,9 @@ class RequestHelper {
       },
     );
     return respObj;
-  }  
+  }
 
+  // eslint-disable-next-line class-methods-use-this
   delay(t, v) {
     return new Promise(function (resolve) {
       setTimeout(resolve.bind(null, v), t);
