@@ -1,7 +1,10 @@
+const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const _ = require('lodash');
 const config = require('config');
+const sharedValidationTests = require('../../shared-behaviours/validation');
+const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
-const { OpportunityFeedUpdateFlowStage } = require('./opportunity-feed-update');
+const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
@@ -9,8 +12,25 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
+ */
+
+/**
+ * @typedef {{
+ *   position: number;
+ *   orderedItem: {
+ *     '@type': string,
+ *     '@id': string,
+ *     [k: string]: any,
+ *   };
+ *   acceptedOffer: {
+ *     '@id': string,
+ *     [k: string]: any,
+ *   };
+ *   'test:primary': boolean;
+ *   'test:control': boolean;
+ * }} OrderItem
  */
 
 /**
@@ -19,7 +39,18 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const SELLER_CONFIG = config.get('sellers');
+const { HARVEST_START_TIME } = global;
+
+/**
+ * @param {unknown} opportunity
+ * @param {string} opportunityCriteria
+ */
+function getRandomRelevantOffer(opportunity, opportunityCriteria) {
+  const relevantOffers = getRelevantOffers(opportunityCriteria, opportunity, { harvestStartTime: HARVEST_START_TIME });
+  if (relevantOffers.length === 0) { return null; }
+
+  return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
+}
 
 /**
  * For each of the Opportunity Criteria, get or create (using https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities)
@@ -30,10 +61,11 @@ const SELLER_CONFIG = config.get('sellers');
  *
  * @param {object} args
  * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+ * @param {SellerConfig} args.sellerConfig
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<ChakramResponse[]>}
  */
-async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper }) {
+async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, sellerConfig, requestHelper }) {
   // If an opportunityReuseKey is set, reuse the same opportunity for each OrderItem with that same opportunityReuseKey
   /**
    * Note that the reponses are stored wrapped in promises. This is because
@@ -55,21 +87,19 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
       return await reusableOpportunityResponsePromises.get(orderItemCriteriaItem.opportunityReuseKey);
     }
 
-    const sellerKey = orderItemCriteriaItem.seller || 'primary';
-    const seller = SELLER_CONFIG[sellerKey];
     const opportunityResponsePromise = USE_RANDOM_OPPORTUNITIES
       ? requestHelper.getRandomOpportunity(
         orderItemCriteriaItem.opportunityType,
         orderItemCriteriaItem.opportunityCriteria,
         i,
-        seller['@id'],
-        seller['@type'],
+        sellerConfig['@id'],
+        sellerConfig['@type'],
       ) : requestHelper.createOpportunity(
         orderItemCriteriaItem.opportunityType,
         orderItemCriteriaItem.opportunityCriteria,
         i,
-        seller['@id'],
-        seller['@type'],
+        sellerConfig['@id'],
+        sellerConfig['@type'],
       );
 
     // If this opportunity can be reused, store it
@@ -88,27 +118,49 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, re
  *
  * @param {object} args
  * @param {OpportunityCriteria[]} args.orderItemCriteriaList
+ * @param {SellerConfig} args.sellerConfig
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
   */
-async function runFetchOpportunities({ orderItemCriteriaList, requestHelper }) {
+async function runFetchOpportunities({ orderItemCriteriaList, sellerConfig, requestHelper }) {
   // ## Get Test Interface Opportunities
-  const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, requestHelper });
+  const testInterfaceOpportunities = await getOrCreateTestInterfaceOpportunities({
+    orderItemCriteriaList, sellerConfig, requestHelper,
+  });
 
   // ## Get full Opportunity data for each
   //
   // Now that we have references to some opportunities that have been found or
   // created and match our criteria, let's get the full opportunities
-  const opportunityFeedUpdateResult = await OpportunityFeedUpdateFlowStage.run({
+  const opportunityFeedExtractResponses = await fetchOpportunityFeedExtractResponses({
     testInterfaceOpportunities,
-    orderItemCriteriaList,
     requestHelper,
+    useCacheIfAvailable: true,
+  });
+
+  // ## Create OrderItem for each Opportunity
+  const orderItems = opportunityFeedExtractResponses.map((opportunityFeedExtractResponse, i) => {
+    if (opportunityFeedExtractResponse && isResponse20x(opportunityFeedExtractResponse)) {
+      const acceptedOffer = getRandomRelevantOffer(opportunityFeedExtractResponse.body.data, orderItemCriteriaList[i].opportunityCriteria);
+      if (acceptedOffer === null) {
+        throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${orderItemCriteriaList[i].opportunityCriteria}`);
+      }
+      return {
+        position: i,
+        orderedItem: opportunityFeedExtractResponse.body.data,
+        acceptedOffer,
+        'test:primary': orderItemCriteriaList[i].primary,
+        'test:control': orderItemCriteriaList[i].control,
+      };
+    }
+    return null;
   });
 
   // ## Combine responses
   return {
-    ...opportunityFeedUpdateResult,
     testInterfaceOpportunities,
+    opportunityFeedExtractResponses,
+    orderItems,
   };
 }
 
@@ -127,25 +179,34 @@ class FetchOpportunitiesFlowStage extends FlowStage {
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid] UUID to use for Order. If excluded, this will
    *   be generated.
+   * @param {SellerConfig} args.sellerConfig
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
-  constructor({ orderItemCriteriaList, requestHelper, logger }) {
+  constructor({ orderItemCriteriaList, sellerConfig, requestHelper, logger }) {
     super({
       testName: 'Fetch Opportunities',
       getInput: FlowStageUtils.emptyGetInput,
-      runFn: async () => await runFetchOpportunities({ orderItemCriteriaList, requestHelper }),
+      runFn: async () => await runFetchOpportunities({
+        orderItemCriteriaList, requestHelper, sellerConfig,
+      }),
       itSuccessChecksFn(flowStage) {
-        OpportunityFeedUpdateFlowStage.itSuccessChecks({
+        itSuccessChecksOpportunityFeedUpdateCollector({
           orderItemCriteriaList,
           getterFn: () => flowStage.getOutput(),
         });
       },
       itValidationTestsFn(flowStage) {
-        OpportunityFeedUpdateFlowStage.itValidationTests({
-          logger,
-          orderItemCriteriaList,
-          getterFn: () => flowStage.getOutput(),
+        orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
+          sharedValidationTests.shouldBeValidResponse(
+            () => flowStage.getOutput().opportunityFeedExtractResponses[i],
+            `Opportunity Feed extract for OrderItem ${i}`,
+            logger,
+            {
+              validationMode: 'BookableRPDEFeed',
+            },
+            orderItemCriteriaItem.opportunityCriteria,
+          );
         });
       },
     });

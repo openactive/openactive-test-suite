@@ -56,7 +56,7 @@ class RequestState {
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
-    this._brokerRole = brokerRole;
+    this.brokerRole = brokerRole;
   }
 
   get uuid() {
@@ -208,8 +208,8 @@ class RequestState {
 
   async putOrderQuoteTemplate() {
     const result = this._c1ReqTemplateRef
-      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole, this._c1ReqTemplateRef)
-      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._brokerRole);
+      ? await this.requestHelper.putOrderQuoteTemplate(this.uuid, this, this._c1ReqTemplateRef)
+      : await this.requestHelper.putOrderQuoteTemplate(this.uuid, this);
 
     this.c1Response = result;
 
@@ -246,8 +246,8 @@ class RequestState {
 
   async putOrderQuote() {
     const result = this._c2ReqTemplateRef
-      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole, this._c2ReqTemplateRef)
-      : await this.requestHelper.putOrderQuote(this.uuid, this, this._brokerRole);
+      ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
+      : await this.requestHelper.putOrderQuote(this.uuid, this);
 
     this.c2Response = result;
 
@@ -264,8 +264,8 @@ class RequestState {
 
   async putOrder() {
     const result = this._bReqTemplateRef
-      ? await this.requestHelper.putOrder(this.uuid, this, this._brokerRole, this._bReqTemplateRef)
-      : await this.requestHelper.putOrder(this.uuid, this, this._brokerRole);
+      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, this);
 
     this.bResponse = result;
 

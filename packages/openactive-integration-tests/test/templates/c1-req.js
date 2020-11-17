@@ -1,4 +1,4 @@
-const { dissocPath } = require('ramda');
+const { dissocPath, dissoc, pipe, omit } = require('ramda');
 const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
@@ -14,6 +14,7 @@ const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetai
  *       '@id': string,
  *     },
  *   }[],
+ *   brokerRole: string | null,
  * }} C1ReqTemplateData
  */
 
@@ -24,7 +25,7 @@ function createStandardC1Req(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderQuote',
-    brokerRole: 'https://openactive.io/AgentBroker',
+    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
       name: 'MyFitnessApp',
@@ -83,16 +84,15 @@ function createNoBrokerNameC1Req(data) {
  */
 function createAttendeeDetailsC1Req(data) {
   const req = createStandardC1Req(data);
-  req.orderedItem.forEach((o) => {
-    // eslint-disable-next-line no-param-reassign
-    o.attendee = {
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
       '@type': 'Person',
       telephone: '07712345678',
       givenName: 'Fred',
       familyName: 'Bloggs',
       email: 'fred.bloggs@mailinator.com',
     };
-  });
+  }
   return req;
 }
 
@@ -136,6 +136,19 @@ function createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req(data) {
   return additionalDetailsRequiredInvalidDropdownSupplied(req);
 }
 
+/**
+ * C1 request with missing broker
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createNoBrokerC1Req(data) {
+  const req = createStandardC1Req(data);
+  return dissoc('broker', req);
+}
+
+/** C1 request with missing customer and broker */
+const createNoCustomerAndNoBrokerC1Req = pipe(createStandardC1Req, omit(['customer', 'broker']));
+
 const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
@@ -144,6 +157,8 @@ const c1ReqTemplates = {
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC1Req,
   additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC1Req,
   additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req,
+  noBroker: createNoBrokerC1Req,
+  noCustomerAndNoBroker: createNoCustomerAndNoBrokerC1Req,
 };
 
 /**

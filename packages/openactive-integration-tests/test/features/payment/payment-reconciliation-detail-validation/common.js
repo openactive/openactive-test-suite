@@ -6,11 +6,11 @@ const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours
  * @typedef {import('../../../helpers/logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../../helpers/request-state').RequestStateType} RequestStateType
  * @typedef {import('../../../templates/b-req').BReqTemplateRef} BReqTemplateRef
- * @typedef {import('../../../helpers/flow-stages/flow-stage-recipes').OptionalC1C2BReqTemplateRefs} OptionalC1C2BReqTemplateRefs
+ * @typedef {import('../../../helpers/flow-stages/flow-stage-recipes').InitialiseSimpleC1C2BFlowOptions} InitialiseSimpleC1C2BFlowOptions
  */
 
 /**
- * @param {OptionalC1C2BReqTemplateRefs} [reqTemplateRefs]
+ * @param {InitialiseSimpleC1C2BFlowOptions} [reqTemplateRefs]
  */
 function notImplementedTest(reqTemplateRefs) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */

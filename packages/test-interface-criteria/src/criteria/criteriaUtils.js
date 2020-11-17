@@ -1,4 +1,5 @@
 const moment = require('moment');
+const { isObject } = require('lodash');
 
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
@@ -131,6 +132,25 @@ function mustHaveBookableOffer(offer, opportunity, options) {
     && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
+/**
+ * For a session, get `organizer`. For a facility, get `provider`.
+ * These can be used interchangeably as `organizer` is either a Person or an Organization
+ * and `provider` is an Organization.
+ *
+ * @param {Opportunity} opportunity
+ */
+function getOrganizerOrProvider(opportunity) {
+  if (isObject(opportunity.superEvent)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.superEvent).organizer;
+  }
+  if (isObject(opportunity.facilityUse)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.facilityUse).provider;
+  }
+  throw new Error(`Opportunity has neither superEvent nor facilityUse from which to get organizer/provider. Opportunity fields: ${Object.keys(opportunity).join(', ')}`);
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -144,4 +164,5 @@ module.exports = {
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   mustHaveBookableOffer,
+  getOrganizerOrProvider,
 };
