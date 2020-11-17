@@ -1,14 +1,15 @@
-const config = require('config');
-
+// /**
+//  * @typedef {{
+//  *   requestHeaders: {[headerName: string]: string},
+//  *   '@id': string,
+//  *   '@type': string,
+//  * }} SellerConfig
+//  */
 /**
- * @typedef {{
- *   requestHeaders: {[headerName: string]: string},
- *   '@id': string,
- *   '@type': string,
- * }} SellerConfig
+ * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
  */
 
-const SELLER_CONFIG = config.get('sellers');
+const { SELLER_CONFIG } = global;
 
 /**
  * Get the seller config whose taxMode matches the specified one.

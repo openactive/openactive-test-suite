@@ -1,9 +1,8 @@
 const { expect } = require('chai');
-const config = require('config');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
-const { paymentReconciliationDetails } = config.get('sellers').primary;
+const { paymentReconciliationDetails } = global.SELLER_CONFIG.primary;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse

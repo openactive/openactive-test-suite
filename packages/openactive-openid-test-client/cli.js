@@ -4,12 +4,10 @@ const http = require('http');
 const { OpenActiveOpenIdTestClient, logWithIntercept, setupBrowserAutomationRoutes } = require('.');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const port = normalizePort(process.env.PORT || '3000');
 
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
   const integerPort = parseInt(val, 10);
 
@@ -25,6 +23,8 @@ function normalizePort(val) {
 
   return false;
 }
+
+const port = normalizePort(process.env.PORT || '3000');
 
 /**
  * Event listener for HTTP server "error" event.

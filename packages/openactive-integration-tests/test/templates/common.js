@@ -1,10 +1,8 @@
-const config = require('config');
-
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
  */
 
-const PAYMENT_RECONCILIATION_DETAILS = config.get('sellers').primary.paymentReconciliationDetails;
+const PAYMENT_RECONCILIATION_DETAILS = global.SELLER_CONFIG.primary.paymentReconciliationDetails;
 
 /**
  * @typedef {{
