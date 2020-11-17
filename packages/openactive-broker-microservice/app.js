@@ -15,7 +15,6 @@ const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes, FatalError }
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-const ORDERS_FEED_REQUEST_HEADERS = config.get('bookingPartners.primary.authentication.ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
 const HARVEST_START_TIME = new Date();
 
@@ -99,7 +98,7 @@ function getAllDatasets() {
 /**
  * @param {string} baseUrl
  * @param {string} feedIdentifier
- * @param {Object.<string, string>} headers
+ * @param {() => Promise<Object.<string, string>>} headers
  * @param {RpdePageProcessor} processPage
  */
 async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
@@ -113,18 +112,19 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
   feedContextMap.set(feedIdentifier, context);
-  const options = {
-    headers: {
-      Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
-      'Cache-Control': 'max-age=0',
-      ...headers || {
-      },
-    },
-  };
   let url = baseUrl;
   // Harvest forever, until a 404 is encountered
   for (;;) {
     try {
+      const options = {
+        headers: {
+          Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
+          'Cache-Control': 'max-age=0',
+          ...await headers() || {
+          },
+        },
+      };
+
       const timerStart = performance.now();
       const response = await axios.get(url, options);
       const timerEnd = performance.now();
@@ -347,9 +347,17 @@ function getConfig() {
   };
 }
 
+async function getOrdersFeedHeader() {
+  await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
+  return {
+    Authorization: `Bearer ${getConfig().bookingPartnersConfig.primary.authentication.orderFeedTokenSet.access_token}`,
+    ...getConfig().bookingPartnersConfig.primary.authentication.ordersFeedRequestHeaders,
+  };
+}
+
 // Config endpoint used to get global variables within the integration tests
 app.get('/config', async function (req, res) {
-  await globalAuthKeyManager.refreshAccessTokensIfNeeded();
+  await globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
   res.json(getConfig());
 });
 
@@ -911,10 +919,10 @@ OpenID Connect Authentication: ${error.stack}
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse'
       || dataDownload.additionalType === 'https://openactive.io/IndividualFacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
     } else {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
     }
   });
 
@@ -924,7 +932,7 @@ OpenID Connect Authentication: ${error.stack}
     const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
     addFeed(feedIdentifier);
-    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
+    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, getOrdersFeedHeader, monitorOrdersPage));
   }
 
   // Finished processing dataset site

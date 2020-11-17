@@ -16,7 +16,10 @@ const { uReqTemplates } = require('../templates/u-req.js');
 
 
 /** @type {SellerConfig['requestHeaders']} */
-const DEFAULT_REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
+const DEFAULT_REQUEST_HEADERS = {
+  Authorization: `Bearer ${global.SELLER_CONFIG.primary.authentication.bookingPartnerTokenSets.primary.access_token}`,
+  ...global.SELLER_CONFIG.primary.authentication.requestHeaders,
+};
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 

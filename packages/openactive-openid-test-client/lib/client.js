@@ -88,7 +88,7 @@ module.exports = class OpenActiveOpenIdTestClient {
     const codeChallenge = generators.codeChallenge(codeVerifier);
 
     const authParams = {
-      scope: 'openid openactive-openbooking offline_access',
+      scope: 'openid openactive-openbooking offline_access openactive-identity',
       ...authorizationParameters,
       // resource: 'https://my.api.example.com/resource/32178',
       code_challenge: codeChallenge,

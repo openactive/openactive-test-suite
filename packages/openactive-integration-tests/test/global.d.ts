@@ -22,7 +22,7 @@ declare global {
       // Created in packages/openactive-integration-tests/test/setup.js
       testState: InstanceType<typeof JasmineStateReporter>;
       BOOKING_PARTNER_CONFIG: { [bookingPartnerIdentifier: string]: { authentication: { initialAccessToken: string, clientCredentials: { clientId: string, clientSecret: string} } } };
-      SELLER_CONFIG: { [sellerIdentifier: string]: { authentication: { loginCredentials: { username: string, password: string } } } };
+      SELLER_CONFIG: { [sellerIdentifier: string]: { authentication: { loginCredentials: { username: string, password: string }, requestHeaders: { [header: string]: string }, bookingPartnerTokenSets: { [bookingPartner: string]: { access_token: string } } } } };
       AUTHENTICATION_FAILURE: boolean;
       DYNAMIC_REGISTRATION_FAILURE: boolean;
       HEADLESS_AUTH: boolean;
