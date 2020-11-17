@@ -11,8 +11,6 @@ const OPENACTIVE_CLAIMS = {
   sellerLogo: 'https://openactive.io/sellerLogo',
   sellerUrl: 'https://openactive.io/sellerUrl',
   sellerId: 'https://openactive.io/sellerId',
-  bookingServiceName: 'https://openactive.io/bookingServiceName',
-  bookingServiceUrl: 'https://openactive.io/bookingServiceUrl',
 };
 
 function throwIfNoAuthenticationAuthority() {
@@ -145,8 +143,6 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
         chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerName);
         chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerLogo);
         chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerUrl);
-        chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.bookingServiceName);
-        chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.bookingServiceUrl);
       });
     }
     if (assertFlowRequiredConsent !== null) {
