@@ -30,16 +30,18 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
         title: 'first attempt',
         authorizationParameters: {
-          scope: 'openid', // No offline_access
+          scope: 'openid openactive-identity', // No offline_access
         },
+        assertSellerIdClaim: SELLER_CONFIG.primary['@id'],
       })
       .authorizeAuthorizationCodeFlow({
         loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
         assertFlowRequiredConsent: false,
         title: 'second attempt',
         authorizationParameters: {
-          scope: 'openid', // No offline_access
+          scope: 'openid openactive-identity', // No offline_access
         },
+        assertSellerIdClaim: SELLER_CONFIG.primary['@id'],
       });
   });
 });

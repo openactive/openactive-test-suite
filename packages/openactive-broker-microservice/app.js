@@ -101,7 +101,7 @@ function getAllDatasets() {
  * @param {() => Promise<Object.<string, string>>} headers
  * @param {RpdePageProcessor} processPage
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotStallForThisFeed = false) {
   const context = {
     currentPage: baseUrl,
     pages: 0,
@@ -167,6 +167,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         url = json.next;
       }
     } catch (error) {
+      // Do not wait for the Orders feed if failing (as it might be an auth error)
+      if (WAIT_FOR_HARVEST && doNotStallForThisFeed) {
+        setFeedIsUpToDate(feedIdentifier);
+      }
       if (error instanceof FatalError) {
         // If a fatal error, just rethrow
         throw error;
@@ -349,8 +353,11 @@ function getConfig() {
 
 async function getOrdersFeedHeader() {
   await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
+  const accessToken = getConfig()?.bookingPartnersConfig?.primary?.authentication?.orderFeedTokenSet?.access_token;
   return {
-    Authorization: `Bearer ${getConfig().bookingPartnersConfig.primary.authentication.orderFeedTokenSet.access_token}`,
+    ...(!accessToken ? undefined : {
+      Authorization: `Bearer ${accessToken}`,
+    }),
     ...getConfig().bookingPartnersConfig.primary.authentication.ordersFeedRequestHeaders,
   };
 }
@@ -932,7 +939,7 @@ OpenID Connect Authentication: ${error.stack}
     const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
     addFeed(feedIdentifier);
-    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, getOrdersFeedHeader, monitorOrdersPage));
+    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, getOrdersFeedHeader, monitorOrdersPage, true));
   }
 
   // Finished processing dataset site

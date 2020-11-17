@@ -21,7 +21,8 @@ Feature Implemented: {{{ implemented }}}
 
 {{{message}}}
     {{/logsFor}}
-    {{#logsFor . "request"}}
+    {{#logsFor . "request,result"}}
+{{#ifEquals type "request"}}
 
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
@@ -75,6 +76,19 @@ Response error:
 {{{ response.error }}}
 ```
         {{/if}}
+{{/ifEquals}}
+{{#ifEquals type "result"}}
+
+### {{stage}} Result
+
+{{{description}}}
+
+{{#if jsonResult}}
+```json
+{{{ json jsonResult }}}
+```
+{{/if}}
+{{/ifEquals}}
     {{/logsFor}}
     {{#logsFor . "spec"}}
 {{~#if @first}}

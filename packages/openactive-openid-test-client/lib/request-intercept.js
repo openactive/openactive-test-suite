@@ -69,7 +69,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     const thisEntry = {
       type: 'request',
       // Ensure stage names are unique
-      stage: `${stage}${nockCallObjects.length > 1 ? ` ${i + 1}` : ''}`,
+      stage: `${stage}${nockCallObjects.length > 1 ? ` - ${i + 1}` : ''}`,
       request: {
         method: httpCall.method,
         url: `${httpCall.scope}${httpCall.path}`,
