@@ -48,7 +48,7 @@ function createStandardC1Req(data) {
       '@type': 'Organization',
       '@id': data.sellerId,
     },
-    orderedItem: data.orderItems.map(orderItem => ({
+    orderedItem: data.orderItems.map((orderItem) => ({
       '@type': 'OrderItem',
       position: orderItem.position,
       acceptedOffer: {
