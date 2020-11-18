@@ -33,14 +33,14 @@ module.exports = class OpenActiveTestAuthKeyManager {
 
       // Authenticate booking partners
       const bookingPartners = Object.entries(this.bookingPartnersConfig ?? {
-      }).filter(([, s]) => s.authentication);
+      }).filter(([, s]) => s?.authentication?.initialAccessToken || s?.authentication?.clientCredentials);
       if (bookingPartners.length === 0) {
         this.log('\n*** WARNING: Booking partner authentication configuration not found ***\n');
         return;
       }
 
       // Is dynamic registration enabled?
-      const useDynamicRegistration = Object.entries(this.bookingPartnersConfig).some(([, s]) => s.authentication && s.authentication.initialAccessToken);
+      const useDynamicRegistration = Object.entries(this.bookingPartnersConfig).some(([, s]) => s?.authentication?.initialAccessToken);
 
       this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}' with dynamic registration ${useDynamicRegistration ? 'enabled' : 'disabled'}...`);
 

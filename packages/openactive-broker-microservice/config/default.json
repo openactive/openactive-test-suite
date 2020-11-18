@@ -35,10 +35,7 @@
   "bookingPartners": {
     "primary": {
       "authentication": {
-        "initialAccessToken": "openactive_test_suite_client_12345xaq",
-        "ordersFeedRequestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test"
-        }
+        "initialAccessToken": "openactive_test_suite_client_12345xaq"
       }
     },
     "secondary": {

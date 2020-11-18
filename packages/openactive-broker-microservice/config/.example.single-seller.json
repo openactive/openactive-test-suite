@@ -13,8 +13,15 @@
     },
     "secondary": null
   },
-  "bookingPartners": null,
-  "ordersFeedRequestHeaders": {
-    "X-OpenActive-Test-Client-Id": "test"
+  "bookingPartners": {
+    "primary": {
+      "authentication": {
+        "initialAccessToken": null,
+        "ordersFeedRequestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test"
+        }
+      }
+    },
+    "secondary": null
   }
 }
