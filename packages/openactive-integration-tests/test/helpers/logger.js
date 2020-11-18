@@ -40,7 +40,21 @@ class BaseLogger {
     return log;
   }
 
-  recordLogMessage(title, message) {
+  recordLogResult(stage, description, json) {
+    const log = {
+      ...(this.testMeta),
+      type: 'result',
+      stage,
+      description,
+      jsonResult: json,
+    };
+
+    this.logs.push(log);
+
+    return log;
+  }
+
+  recordLogHeadlineMessage(title, message) {
     const log = {
       ...(this.testMeta),
       type: 'information',
@@ -419,10 +433,11 @@ class ReporterLogger extends BaseLogger {
   }
 
   logsFor (suite, type) {
+    const types = type.split(',');
     let result = this.logs.filter((log) => {
-      if (!suite && log.type == type) return true;
+      if (!suite && types.includes(log.type)) return true;
 
-      return _.isEqual(log.ancestorTitles, suite) && log.type == type;
+      return _.isEqual(log.ancestorTitles, suite) && types.includes(log.type);
     });
 
     return result;
@@ -430,6 +445,7 @@ class ReporterLogger extends BaseLogger {
 }
 
 /**
+ * @typedef {InstanceType<typeof Logger>} LoggerType
  * @typedef {InstanceType<typeof BaseLogger>} BaseLoggerType
  */
 

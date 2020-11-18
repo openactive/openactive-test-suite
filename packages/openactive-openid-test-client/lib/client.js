@@ -56,9 +56,9 @@ module.exports = class OpenActiveOpenIdTestClient {
   }
 
   /**
-   * @typedef {Object} AuthorizeOptions
-   * @property {string} buttonSelector
+   * @typedef {object} AuthorizeOptions
    * @property {boolean} headless
+   * @property {boolean} [offlineAccess]
    * @property {string} username
    * @property {string} password
    */
@@ -70,7 +70,14 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {import('openid-client').AuthorizationParameters} authorizationParameters
    * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
    */
-  async authorizeAuthorizationCodeFlow(clientId, clientSecret, options, authorizationParameters = {}, issuer = this.issuer) {
+  async authorizeAuthorizationCodeFlow(
+    clientId,
+    clientSecret,
+    options,
+    authorizationParameters = {
+    },
+    issuer = this.issuer,
+  ) {
     throwIfNoIssuer(issuer);
 
     const client = new issuer.Client({
@@ -89,7 +96,7 @@ module.exports = class OpenActiveOpenIdTestClient {
     const codeChallenge = generators.codeChallenge(codeVerifier);
 
     const authParams = {
-      scope: 'openid openactive-openbooking offline_access',
+      scope: 'openid openactive-openbooking offline_access openactive-identity',
       ...authorizationParameters,
       // resource: 'https://my.api.example.com/resource/32178',
       code_challenge: codeChallenge,

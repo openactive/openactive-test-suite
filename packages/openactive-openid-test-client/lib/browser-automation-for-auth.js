@@ -31,7 +31,7 @@ async function addScreenshot(page, title, context) {
     url,
     image,
   });
-};
+}
 
 /**
  * @param {object} args
@@ -55,31 +55,38 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
       await page.type("[name='username' i]", username);
     } catch (e) {
       await addScreenshot(page, 'Error encountered trying to enter username', context);
-      return { success: false, message: `Error encountered trying to enter username. ${e.message}`};
+      return {
+        success: false, message: `Error encountered trying to enter username. ${e.message}`,
+      };
     }
     try {
       await page.type("[name='password' i]", password);
     } catch (e) {
       await addScreenshot(page, 'Error encountered trying to enter password', context);
-      return { success: false, message: `Error encountered trying to enter password. ${e.message}`};
+      return {
+        success: false, message: `Error encountered trying to enter password. ${e.message}`,
+      };
     }
     await addScreenshot(page, 'Login page', context);
     const hasButtonOnLoginPage = await page.$(buttonSelector);
     if (hasButtonOnLoginPage) {
+      // As far as we can tell, consent does not seem to be required yet.
+      context.requiredConsent = false;
       await Promise.all([
         page.waitForNavigation(), // The promise resolves after navigation has finished
         page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
       ]);
     } else {
       await addScreenshot(page, 'Error encountered', context);
-      return { success: false, message: `Login button matching selector '${buttonSelector}' not found`};
+      return {
+        success: false, message: `Login button matching selector '${buttonSelector}' not found`,
+      };
     }
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
-    if (isSuccessfulFollowingLogin) {
-      context.requiredConsent = false;
-    } else {
+    if (!isSuccessfulFollowingLogin) {
+      // If we do not see the callback page, then it is likely we're being asked for consent to authorize access
       await addScreenshot(page, 'Authorization page', context);
-      const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
+      const hasButtonOnAuthorizationPage = await page.$(buttonSelector);
       if (hasButtonOnAuthorizationPage) {
         context.requiredConsent = true;
         // Click "Accept", if it is presented
@@ -89,20 +96,30 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
         ]);
       } else {
         await addScreenshot(page, 'Error encountered', context);
-        return { success: false, message: `Accept button matching selector '${buttonSelector}' not found`};
+        return {
+          success: false, message: `Accept button matching selector '${buttonSelector}' not found`,
+        };
       }
     }
     const isSuccessfulFollowingAuthorization = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
     if (!isSuccessfulFollowingAuthorization) {
       await addScreenshot(page, 'Error encountered', context);
-      return { success: false, message: 'Callback page redirect was not detected.'};
+      return {
+        success: false, message: 'Callback page redirect was not detected.',
+      };
     }
-    return { success: true };
+    return {
+      success: true,
+    };
   } catch (e) {
     try {
       await addScreenshot(page, 'Error encountered', context);
-    } catch {}
-    return { success: false, message: `Unexpected browser automation error encountered: ${e.stack}`};
+    } catch {
+      // Ignore
+    }
+    return {
+      success: false, message: `Unexpected browser automation error encountered: ${e.stack}`,
+    };
   } finally {
     await browser.close();
   }
@@ -114,8 +131,9 @@ const requestStore = new Map();
 
 /**
  * @param {import('express').Application} app
+ * @param {string} buttonSelector
  */
-function setupBrowserAutomationRoutes(app) {
+function setupBrowserAutomationRoutes(app, buttonSelector) {
   app.use(cookieSession({
     name: 'session',
     keys: [generators.codeVerifier()], // Random string as key
@@ -128,10 +146,13 @@ function setupBrowserAutomationRoutes(app) {
     try {
       const sessionKey = sessionKeyCounter;
       sessionKeyCounter += 1;
+      // Context maintained throughout authorisation code flow lifecycle
       const context = {
         send(status, json) {
-          // Log if send is called twice
-          context.send = (status, json) => { console.error(`Error: Browser automation service swallowed response with status '${status}' and content '${JSON.stringify(json, null, 2)}'`) };
+          // Don't allow send to be called twice
+          context.send = (status_, json_) => {
+            console.error(`Error: Browser automation service swallowed response with status '${status_}' and content '${JSON.stringify(json_, null, 2)}'`);
+          };
           res.status(status).json(json);
         },
         screenshots: [],
@@ -145,6 +166,7 @@ function setupBrowserAutomationRoutes(app) {
       const result = await authorizeInteractive({
         sessionKey,
         context,
+        buttonSelector,
         ...req.body,
       });
       if (!result.success) {
@@ -161,11 +183,15 @@ function setupBrowserAutomationRoutes(app) {
     }
   });
 
-  app.get('/auth', async (req, res, next) => {
+  // Private endpoint, only called by authorizeInteractive function
+  app.get('/auth', (req, res, next) => {
     try {
       const { url, key } = req.query;
       if (typeof url !== 'string') {
-        return res.status(400).json({ error: `url query param should be a string. Value: ${url}` });
+        res.status(400).json({
+          error: `url query param should be a string. Value: ${url}`,
+        });
+        return;
       }
       // Set the key in the session and redirect
       req.session.key = key;
@@ -179,6 +205,7 @@ function setupBrowserAutomationRoutes(app) {
     }
   });
 
+  // Private endpoint, only called by authorizeInteractive function
   app.get('/cb', async (req, res, next) => {
     try {
       const sessionKey = req.session.key;

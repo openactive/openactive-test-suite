@@ -8,8 +8,6 @@ test/helpers/flow-helper.js
 test/helpers/index.js
 test/helpers/logger.js
 test/helpers/mapping.js
-test/helpers/request-helper.js
-test/helpers/request-state.js
 test/report-generator.js
 test/reporter.js
 test/setup.js

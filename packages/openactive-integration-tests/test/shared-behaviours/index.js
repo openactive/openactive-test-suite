@@ -7,7 +7,7 @@ const { P } = require('./p');
 const { OrderFeedUpdate } = require('./order-feed-update');
 const { TestInterfaceAction } = require('./test-interface-action');
 const { Common } = require('./common');
-const { OpenIDConnectFlow } = require('./open-id-connect');
+const { OpenIDConnectFlow } = require('./open-id-connect-flow');
 
 module.exports = {
   GetDatasetSite,

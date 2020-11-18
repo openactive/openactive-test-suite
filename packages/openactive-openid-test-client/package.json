@@ -2,13 +2,16 @@
   "name": "@openactive/openactive-openid-test-client",
   "version": "1.0.0",
   "description": "OpenActive OpenID Connect Test Client",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "built-types/lib/index.d.ts",
   "scripts": {
+    "check-types": "tsc --project tsconfig.check.json",
+    "gen-types": "tsc --project tsconfig.gen.json",
     "start": "node cli.js",
-    "test": "npm run lint && tsc",
-    "debug": "node --inspect cli.js",
-    "lint": "eslint \"*.js\"",
-    "lint-fix": "eslint \"*.js\" --fix"
+    "test": "npm run lint && npm run check-types",
+    "debug": "node --inspect lib/cli.js",
+    "lint": "eslint \"lib/*.js\"",
+    "lint-fix": "eslint \"lib/*.js\" --fix"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",

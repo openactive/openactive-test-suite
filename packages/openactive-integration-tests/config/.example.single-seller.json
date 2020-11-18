@@ -11,6 +11,8 @@
     }
   },
   "implementedFeatures": {
-    "multiple-sellers": false
+    "multiple-sellers": false,
+    "booking-partner-authentication": false,
+    "dynamic-client-registration": false
   }
 }

@@ -10,7 +10,6 @@ const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours')
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
 
-
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',

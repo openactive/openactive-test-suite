@@ -26,7 +26,10 @@
     "git-add-newly-generated-integration-test-docs": "git add packages/openactive-integration-tests/test/**/README.md",
     "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types",
     "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types",
-    "test-data-generator": "cd packages/openactive-integration-tests && npm run test-data-generator"
+    "test-data-generator": "cd packages/openactive-integration-tests && npm run test-data-generator",
+    "gen-openid-client-types": "cd packages/openactive-openid-test-client && npm run gen-types",
+    "git-add-newly-generated-openid-client-types": "git add packages/openactive-openid-test-client/built-types",
+    "gen-and-git-add-everything": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run gen-openid-client-types && npm run git-add-newly-generated-openid-client-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs"
   },
   "dependencies": {
     "node-cleanup": "^2.1.2"
@@ -39,7 +42,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs"
+      "pre-commit": "npm run gen-and-git-add-everything"
     }
   }
 }

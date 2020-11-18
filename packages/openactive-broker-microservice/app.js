@@ -15,7 +15,6 @@ const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes, FatalError }
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-const ORDERS_FEED_REQUEST_HEADERS = config.get('bookingPartners.primary.authentication.ordersFeedRequestHeaders');
 const VERBOSE = config.get('verbose');
 const HARVEST_START_TIME = new Date();
 
@@ -27,6 +26,7 @@ const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
 const LOG_AUTH_CONFIG = config.has('logAuthConfig') ? config.get('logAuthConfig') : false;
+const BUTTON_SELECTOR = config.has('loginPageButtonSelector') ? config.get('loginPageButtonSelector') : '.btn-primary';
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -36,7 +36,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const app = express();
 app.use(express.json());
-setupBrowserAutomationRoutes(app);
+setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
 
 // eslint-disable-next-line no-console
 const logError = (x) => console.error(chalk.cyanBright(x));
@@ -98,10 +98,10 @@ function getAllDatasets() {
 /**
  * @param {string} baseUrl
  * @param {string} feedIdentifier
- * @param {Object.<string, string>} headers
+ * @param {() => Promise<Object.<string, string>>} headers
  * @param {RpdePageProcessor} processPage
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotStallForThisFeed = false) {
   const context = {
     currentPage: baseUrl,
     pages: 0,
@@ -112,18 +112,19 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
   feedContextMap.set(feedIdentifier, context);
-  const options = {
-    headers: {
-      Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
-      'Cache-Control': 'max-age=0',
-      ...headers || {
-      },
-    },
-  };
   let url = baseUrl;
   // Harvest forever, until a 404 is encountered
   for (;;) {
     try {
+      const options = {
+        headers: {
+          Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
+          'Cache-Control': 'max-age=0',
+          ...await headers() || {
+          },
+        },
+      };
+
       const timerStart = performance.now();
       const response = await axios.get(url, options);
       const timerEnd = performance.now();
@@ -166,6 +167,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         url = json.next;
       }
     } catch (error) {
+      // Do not wait for the Orders feed if failing (as it might be an auth error)
+      if (WAIT_FOR_HARVEST && doNotStallForThisFeed) {
+        setFeedIsUpToDate(feedIdentifier);
+      }
       if (error instanceof FatalError) {
         // If a fatal error, just rethrow
         throw error;
@@ -346,8 +351,21 @@ function getConfig() {
   };
 }
 
+async function getOrdersFeedHeader() {
+  await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
+  const accessToken = getConfig()?.bookingPartnersConfig?.primary?.authentication?.orderFeedTokenSet?.access_token;
+  const requestHeaders = getConfig()?.bookingPartnersConfig?.primary?.authentication?.ordersFeedRequestHeaders;
+  return {
+    ...(!accessToken ? undefined : {
+      Authorization: `Bearer ${accessToken}`,
+    }),
+    ...requestHeaders,
+  };
+}
+
 // Config endpoint used to get global variables within the integration tests
-app.get('/config', function (req, res) {
+app.get('/config', async function (req, res) {
+  await globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
   res.json(getConfig());
 });
 
@@ -909,10 +927,10 @@ OpenID Connect Authentication: ${error.stack}
       || dataDownload.additionalType === 'https://openactive.io/FacilityUse'
       || dataDownload.additionalType === 'https://openactive.io/IndividualFacilityUse') {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
     } else {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
     }
   });
 
@@ -922,7 +940,7 @@ OpenID Connect Authentication: ${error.stack}
     const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
     addFeed(feedIdentifier);
-    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
+    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, getOrdersFeedHeader, monitorOrdersPage, true));
   }
 
   // Finished processing dataset site

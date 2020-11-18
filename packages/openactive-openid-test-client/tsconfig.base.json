@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "noEmit": true,
+    "outDir": "built-types/lib",
     "allowJs": true,
     "checkJs": true,
     "downlevelIteration": true,
@@ -9,7 +9,6 @@
     "resolveJsonModule": true
   },
   "include": [
-    "*.js",
     "lib/*.js"
   ]
 }

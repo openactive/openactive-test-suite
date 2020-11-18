@@ -89,6 +89,9 @@ class BaseReportGenerator {
         const messageLineIndex = lines.indexOf('Message:') + 1;
         return messageLineIndex !== 0 ? lines[messageLineIndex] : lines[0];
       },
+      "ifEquals": function(arg1, arg2, options) {
+        return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+      },
       "pluralise": function(str, number) {
         return str + (number == 1 ? '' : 's');
       },

@@ -1,14 +1,15 @@
-const config = require('config');
-
+// /**
+//  * @typedef {{
+//  *   requestHeaders: {[headerName: string]: string},
+//  *   '@id': string,
+//  *   '@type': string,
+//  * }} SellerConfig
+//  */
 /**
- * @typedef {{
- *   requestHeaders: {[headerName: string]: string},
- *   '@id': string,
- *   '@type': string,
- * }} SellerConfig
+ * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
  */
 
-const SELLER_CONFIG = config.get('sellers');
+const { SELLER_CONFIG } = global;
 
 /**
  * Get the seller config whose taxMode matches the specified one.
@@ -28,10 +29,10 @@ function getSellerConfigWithTaxMode(taxMode) {
   throw new Error(`No seller specified for tax mode: ${taxMode}`);
 }
 
-/** @type {SellerConfig} */
-const primarySeller = SELLER_CONFIG.primary;
+// /** @type {SellerConfig} */
+// const primarySeller = SELLER_CONFIG.primary;
 
 module.exports = {
   getSellerConfigWithTaxMode,
-  primarySeller,
+  // primarySeller,
 };

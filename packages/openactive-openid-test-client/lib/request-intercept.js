@@ -13,11 +13,16 @@ const nock = require('nock');
 
 /**
  * Intecept and log all http requests made during the execution of actionFn
+ * @template TActionFnResult
  * @param {(Entry) => Entry} recordLogEntry
  * @param {string} stage
- * @param {function} actionFn
+ * @param {() => TActionFnResult} actionFn
+ * @returns {Promise<TActionFnResult>}
  */
 async function recordWithIntercept(recordLogEntry, stage, actionFn) {
+  /**
+   * This log entry is mutated - it is updated as more information becomes available
+   */
   const entry = recordLogEntry({
     type: 'request',
     stage,
@@ -28,7 +33,8 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   });
 
   // manually count how long it's been waiting
-  // todo: capture a timestamp and hook into test state instead
+  // note this is copied from the logger within openactive-integration-tests
+  // because process can terminated by Jest at any time, there is no hook to capture the end time
   const responseTimer = setInterval(() => {
     entry.duration += 100;
   }, 100);
@@ -42,6 +48,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
 
   let actionError = null;
 
+  /** @type {TActionFnResult} */
   let result = null;
 
   try {
@@ -65,7 +72,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     const thisEntry = {
       type: 'request',
       // Ensure stage names are unique
-      stage: `${stage}${nockCallObjects.length > 1 ? ` ${i + 1}` : ''}`,
+      stage: `${stage}${nockCallObjects.length > 1 ? ` - ${i + 1}` : ''}`,
       request: {
         method: httpCall.method,
         url: `${httpCall.scope}${httpCall.path}`,
@@ -75,7 +82,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
       },
       response: {
         body: httpCall.response,
-        // responseTime: response.responseTime,
+        // responseTime: (does not exist in nock)
         status: httpCall.status,
         headers: httpCall.headers,
       },
@@ -92,7 +99,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     // Add any error message to the most recent entry
     if (actionError && entries.length > 0) entries.slice(-1)[0].response.error = actionError.message;
 
-    // Overwrite the first entry
+    // Overwrite the first entry (which has already been written to the log)
     entry.stage = entries[0].stage;
     entry.request = entries[0].request;
     entry.response = entries[0].response;
@@ -110,17 +117,20 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     throw actionError;
   }
 
-  // Ensure that destructuring of a null result does not fail
-  return result || {
-  };
+  return result;
 }
 
 /**
  * Intecept and output to the console all http requests made during the execution of actionFn
+ * This is used primarily for the CLI
+ * @template TActionFnResult
  * @param {string} stage
- * @param {function} actionFn
+ * @param {() => TActionFnResult} actionFn
  */
 async function logWithIntercept(stage, actionFn) {
+  /**
+   * These logs are mutated - they are updated after being added by recordWithIntercept
+   */
   const logs = [];
   /**
    * @param {Entry} entry

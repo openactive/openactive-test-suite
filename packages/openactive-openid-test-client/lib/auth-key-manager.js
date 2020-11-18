@@ -1,5 +1,3 @@
-const sleep = require('util').promisify(setTimeout);
-
 /* eslint-disable no-console */
 const FatalError = require('./fatal-error');
 const OpenActiveOpenIdTestClient = require('./client');
@@ -19,7 +17,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
   }
 
   get config() {
-    this.updateAccessTokens();
     return {
       sellersConfig: this.sellersConfig,
       bookingPartnersConfig: this.bookingPartnersConfig,
@@ -35,14 +32,15 @@ module.exports = class OpenActiveTestAuthKeyManager {
       }
 
       // Authenticate booking partners
-      const bookingPartners = Object.entries(this.bookingPartnersConfig).filter(([, s]) => s.authentication);
+      const bookingPartners = Object.entries(this.bookingPartnersConfig ?? {
+      }).filter(([, s]) => s?.authentication?.initialAccessToken || s?.authentication?.clientCredentials);
       if (bookingPartners.length === 0) {
-        this.log('Warning: Booking partner configuration not found');
+        this.log('\n*** WARNING: Booking partner authentication configuration not found ***\n');
         return;
       }
 
       // Is dynamic registration enabled?
-      const useDynamicRegistration = Object.entries(this.bookingPartnersConfig).some(([, s]) => s.authentication && s.authentication.initialAccessToken);
+      const useDynamicRegistration = Object.entries(this.bookingPartnersConfig).some(([, s]) => s?.authentication?.initialAccessToken);
 
       this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}' with dynamic registration ${useDynamicRegistration ? 'enabled' : 'disabled'}...`);
 
@@ -62,6 +60,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
           throw new FatalError('Both clientCredentials.clientId and clientCredentials.clientSecret must be supplied in bookingPartner config');
         }
 
+        // Resolve dynamic registration for the booking partner, if initialAccessToken provided
         if (authenticationConfig.initialAccessToken) {
           try {
             this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials = await this.client.register(authenticationConfig.initialAccessToken);
@@ -72,16 +71,10 @@ module.exports = class OpenActiveTestAuthKeyManager {
             throw error;
           }
         }
-
-        try {
-          const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;
-          this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.orderFeedTokenSet = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret);
-          this.log(`Retrieved Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
-        } catch (error) {
-          this.log(`Error retrieving Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
-          throw error;
-        }
       }));
+
+      // Get Client Credentials for Orders feed
+      await this.refreshClientCredentialsAccessTokensIfNeeded();
 
       // Authenticate sellers
       const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s.authentication && s.authentication.loginCredentials);
@@ -107,7 +100,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
             try {
               const { clientId, clientSecret } = bookingPartnerAuthenticationConfig.clientCredentials;
               const { tokenSet } = await this.client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
-                buttonSelector: '.btn-primary',
                 headless: headlessAuth,
                 username: authenticationConfig.loginCredentials.username,
                 password: authenticationConfig.loginCredentials.password,
@@ -130,7 +122,36 @@ module.exports = class OpenActiveTestAuthKeyManager {
     }
   }
 
-  async updateAccessTokens() {
+  /**
+   * Tokens retrieved through the Client Credentials Flow expire, and so must be refreshed periodically using the client credentials
+   */
+  async refreshClientCredentialsAccessTokensIfNeeded() {
+    // Only run the update if initialise ran successfully
+    if (!this.client.issuer) return;
+
+    await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
+      // Do not refresh tokens that have at least 1 minute remaining
+      const { orderFeedTokenSet } = bookingPartner.authentication;
+      if (orderFeedTokenSet?.expires_in && orderFeedTokenSet.expires_in > 60) {
+        return;
+      }
+
+      try {
+        const { clientId, clientSecret } = bookingPartner.authentication.clientCredentials;
+        const { tokenSet } = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret);
+        this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.orderFeedTokenSet = tokenSet;
+        this.log(`Retrieved Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
+      } catch (error) {
+        this.log(`Error retrieving Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
+        throw error;
+      }
+    }));
+  }
+
+  /**
+   * Tokens retrieved through the Authorization Code Flow expire, and so must be refreshed periodically using a refresh token
+   */
+  async refreshAuthorizationCodeFlowAccessTokensIfNeeded() {
     // Only run the update if initialise ran successfully
     if (!this.client.issuer) return;
 
@@ -138,7 +159,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
     await Promise.all(sellers.map(async ([sellerIdentifier, seller]) => {
       await Promise.all(Object.entries(seller.authentication.bookingPartnerTokenSets).map(async ([bookingPartnerIdentifier, tokenSet]) => {
         // Do not refresh tokens that have at least 10 minutes remaining
-        if (tokenSet.expires_in && tokenSet.expires_in > 10 * 60) {
+        if (tokenSet?.expires_in && tokenSet.expires_in > 10 * 60) {
           return;
         }
         const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;

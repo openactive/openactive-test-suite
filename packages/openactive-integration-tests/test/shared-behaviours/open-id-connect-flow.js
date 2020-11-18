@@ -2,9 +2,20 @@ const chai = require('chai');
 const config = require('config');
 const { OpenActiveOpenIdTestClient, recordWithIntercept } = require('@openactive/openactive-openid-test-client');
 
+/**
+ * @typedef {import('../helpers/logger').LoggerType} LoggerType
+ */
+
 const { HEADLESS_AUTH, BOOKING_PARTNER_CONFIG, AUTHENTICATION_AUTHORITY } = global;
 const BOOKING_PARTNER_SPECIFIC_CONFIG = config.has('bookingPartnersForSpecificTests') ? config.get('bookingPartnersForSpecificTests') : {};
 const ENABLE_HEADER_LOGGING = config.get('requestHeaderLogging');
+
+const OPENACTIVE_CLAIMS = {
+  sellerName: 'https://openactive.io/sellerName',
+  sellerLogo: 'https://openactive.io/sellerLogo',
+  sellerUrl: 'https://openactive.io/sellerUrl',
+  sellerId: 'https://openactive.io/sellerId',
+};
 
 function throwIfNoAuthenticationAuthority() {
   if (!AUTHENTICATION_AUTHORITY) {
@@ -12,11 +23,39 @@ function throwIfNoAuthenticationAuthority() {
   }
 }
 
+function throwIfNoIdToken(tokenSet) {
+  if (!tokenSet) {
+    throw new Error('Tokens were not returned from Authorization Code Flow');
+  }
+  if (!tokenSet.id_token) {
+    throw new Error('id_token was not returned from Authorization Code Flow');
+  }
+}
+
 class OpenIDConnectFlow {
+  /**
+   * @param {object} args
+   * @param {LoggerType} args.logger
+   */
   constructor({ logger }) {
-    this.logWithIntercept = async (...args) => await recordWithIntercept((entry) => logger.recordLogEntry(entry), ...args);
+    /**
+     * @template TActionFnResult
+     * @param {string} stage
+     * @param {() => TActionFnResult} actionFn
+     */
+    this.logWithIntercept = async (stage, actionFn) => (
+      await recordWithIntercept(entry => logger.recordLogEntry(entry), stage, actionFn)
+    );
     this.logger = logger;
     this.client = new OpenActiveOpenIdTestClient(global.MICROSERVICE_BASE);
+    /**
+     * Keys are maintained between stages of the flow
+     * @type {{
+     *   clientId?: string,
+     *   clientSecret?: string,
+     *   refreshToken?: string,
+     * }}
+     */
     this.keys = {};
   }
 
@@ -36,7 +75,7 @@ class OpenIDConnectFlow {
       const configSource = specificConfig ? BOOKING_PARTNER_SPECIFIC_CONFIG : BOOKING_PARTNER_CONFIG;
       const configSourceName = specificConfig ? 'bookingPartnersForSpecificTests' : 'bookingPartners';
       const { initialAccessToken } = configSource?.[clientCredentialsKey]?.authentication ?? {};
-      this.logger.recordLogMessage(`Credentials${initialAccessToken ? '' : ' Not Found (!)'}`, `
+      this.logger.recordLogHeadlineMessage(`Credentials${initialAccessToken ? '' : ' Not Found (!)'}`, `
 The test suite is ${initialAccessToken ? 'using' : 'attempting to use'} Dynamic Client Registration to retrieve credentials as part of this test, using the following configuration within \`${configSourceName}.${clientCredentialsKey}.authentication\`:
 * **initialAccessToken**: \`${ENABLE_HEADER_LOGGING ? initialAccessToken : "<please enable 'requestHeaderLogging' to expose credentials>"}\`
 
@@ -62,7 +101,7 @@ ${initialAccessToken ? 'Hence the `client_id` and `client_secret` can be found w
       const { initialAccessToken } = configSource?.[clientCredentialsKey]?.authentication ?? {};
       this.keys.clientId = clientId;
       this.keys.clientSecret = clientSecret;
-      this.logger.recordLogMessage(`Credentials${clientId && clientSecret ? '' : ' Not Found (!)'}`, `
+      this.logger.recordLogHeadlineMessage(`Credentials${clientId && clientSecret ? '' : ' Not Found (!)'}`, `
 The test suite is ${clientId && clientSecret ? 'using' : 'attempting to use'} the credentials ${initialAccessToken ? 'below' : `configured by \`${configSourceName}.${clientCredentialsKey}.authentication.clientCredentials\``} for this test:
 * **clientId**: \`${ENABLE_HEADER_LOGGING ? clientId : "<please enable 'requestHeaderLogging' to expose credentials>"}\`
 * **clientSecret**: \`${ENABLE_HEADER_LOGGING ? clientSecret : "<please enable 'requestHeaderLogging' to expose credentials>"}\`
@@ -78,32 +117,53 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
     return this;
   }
 
-  authorizeAuthorizationCodeFlow({ loginCredentialsAccessor, offlineAccess = true, assertFlowRequiredConsent = null, title = '', authorizationParameters = undefined }) {
-    let flowRequiredConsent;
+  authorizeAuthorizationCodeFlow({ loginCredentialsAccessor, offlineAccess = true, assertFlowRequiredConsent = null, assertSellerIdClaim = null, title = '', authorizationParameters = undefined }) {
+    const flowState = {
+      requiredConsent: null,
+      tokenSet: null,
+    };
     it('should complete Authorization Code Flow successfully', async () => {
       throwIfNoAuthenticationAuthority();
       const { username, password } = loginCredentialsAccessor();
       chai.expect(this.keys).to.have.property('clientId');
       chai.expect(this.keys).to.have.property('clientSecret');
       // Authorization Code Flow
-      const { tokenSet, authorizationUrl, requiredConsent } = await this.logWithIntercept(`Authorization Code Flow${title ? ` (${title})` : ''}`, () => this.client.authorizeAuthorizationCodeFlow(this.keys.clientId, this.keys.clientSecret, {
-        buttonSelector: '.btn-primary',
+      const stage = `Authorization Code Flow${title ? ` (${title})` : ''}`;
+      const { tokenSet, authorizationUrl, requiredConsent } = await this.logWithIntercept(stage, () => this.client.authorizeAuthorizationCodeFlow(this.keys.clientId, this.keys.clientSecret, {
         headless: HEADLESS_AUTH,
         offlineAccess,
         username,
         password,
       }, authorizationParameters));
-      flowRequiredConsent = requiredConsent;
+      flowState.requiredConsent = requiredConsent;
+      flowState.tokenSet = tokenSet;
+      this.logger.recordLogResult(`${stage} - Claims`, '`id_token` claims:', tokenSet.claims());
       if (tokenSet.refresh_token) this.keys.refreshToken = tokenSet.refresh_token;
       console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
       console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
       console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
       console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);
     });
+    if (assertSellerIdClaim !== null) {
+      it(`should include expected \`${OPENACTIVE_CLAIMS.sellerId}\` claim in \`id_token\``, async () => {
+        throwIfNoAuthenticationAuthority();
+        throwIfNoIdToken(flowState.tokenSet);
+        const claims = flowState.tokenSet.claims();
+        chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerId, assertSellerIdClaim);
+      });
+      it('should return claims within `id_token` as defined in specification', async () => {
+        throwIfNoAuthenticationAuthority();
+        throwIfNoIdToken(flowState.tokenSet);
+        const claims = flowState.tokenSet.claims();
+        chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerName);
+        chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerLogo);
+        chai.expect(claims).to.have.property(OPENACTIVE_CLAIMS.sellerUrl);
+      });
+    }
     if (assertFlowRequiredConsent !== null) {
       it(`should ${!assertFlowRequiredConsent ? 'not ' : ''}require a consent prompt for Authorization Code Flow${title ? ` (${title})` : ''}`, async () => {
         throwIfNoAuthenticationAuthority();
-        chai.expect(flowRequiredConsent).to.equal(assertFlowRequiredConsent);
+        chai.expect(flowState.requiredConsent).to.equal(assertFlowRequiredConsent);
       });
     }
     return this;

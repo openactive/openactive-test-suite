@@ -1,4 +1,7 @@
 import { JasmineStateReporter } from './test-framework/jasmine-state-reporter';
+import { BookingPartnerConfig } from './types/BookingPartnerConfig';
+import { SellerConfig } from './types/SellerConfig';
+
 
 /**
  * Extensions to the `global` object that are used in this code base.
@@ -21,8 +24,14 @@ declare global {
       documentationGenerationMode?: boolean;
       // Created in packages/openactive-integration-tests/test/setup.js
       testState: InstanceType<typeof JasmineStateReporter>;
-      BOOKING_PARTNER_CONFIG: { [bookingPartnerIdentifier: string]: { authentication: { initialAccessToken: string, clientCredentials: { clientId: string, clientSecret: string} } } };
-      SELLER_CONFIG: { [sellerIdentifier: string]: { authentication: { loginCredentials: { username: string, password: string } } } };
+      BOOKING_PARTNER_CONFIG: {
+        primary: BookingPartnerConfig;
+        secondary: BookingPartnerConfig;
+      };
+      SELLER_CONFIG: {
+        primary: SellerConfig;
+        secondary: SellerConfig
+      };
       AUTHENTICATION_FAILURE: boolean;
       DYNAMIC_REGISTRATION_FAILURE: boolean;
       HEADLESS_AUTH: boolean;

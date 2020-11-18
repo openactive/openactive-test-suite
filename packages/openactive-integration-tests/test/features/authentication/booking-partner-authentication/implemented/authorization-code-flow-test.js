@@ -25,7 +25,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     }))
       .discover()
       .setClientCredentials(false, 'primary')
-      .authorizeAuthorizationCodeFlow({ loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials, assertFlowRequiredConsent: true })
+      .authorizeAuthorizationCodeFlow({
+        loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
+        assertFlowRequiredConsent: true,
+        assertSellerIdClaim: SELLER_CONFIG.primary['@id'],
+      })
       .refresh();
   });
 });
