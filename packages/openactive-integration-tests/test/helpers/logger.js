@@ -445,6 +445,7 @@ class ReporterLogger extends BaseLogger {
 }
 
 /**
+ * @typedef {InstanceType<typeof Logger>} LoggerType
  * @typedef {InstanceType<typeof BaseLogger>} BaseLoggerType
  */
 

@@ -66,6 +66,8 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
     await addScreenshot(page, 'Login page', context);
     const hasButtonOnLoginPage = await page.$(buttonSelector);
     if (hasButtonOnLoginPage) {
+      // As far as we can tell, consent does not seem to be required yet.
+      context.requiredConsent = false;
       await Promise.all([
         page.waitForNavigation(), // The promise resolves after navigation has finished
         page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
@@ -75,12 +77,10 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
       return { success: false, message: `Login button matching selector '${buttonSelector}' not found`};
     }
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
-    if (isSuccessfulFollowingLogin) {
-      context.requiredConsent = false;
-    } else {
+    if (!isSuccessfulFollowingLogin) {
       // If we do not see the callback page, then it is likely we're being asked for consent to authorize access
       await addScreenshot(page, 'Authorization page', context);
-      const hasButtonOnAuthorizationPage = await page.$(`${buttonSelector}`);
+      const hasButtonOnAuthorizationPage = await page.$(buttonSelector);
       if (hasButtonOnAuthorizationPage) {
         context.requiredConsent = true;
         // Click "Accept", if it is presented

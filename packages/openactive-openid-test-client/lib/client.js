@@ -98,6 +98,7 @@ module.exports = class OpenActiveOpenIdTestClient {
 
     const url = client.authorizationUrl(authParams);
 
+    // TODO why doesn't this just use a try/catch
     const { data: { callbackUrl, requiredConsent } } = await axios.post(`${this.baseUrl}/browser-automation-for-auth`, {
       ...options,
       authorizationUrl: url,

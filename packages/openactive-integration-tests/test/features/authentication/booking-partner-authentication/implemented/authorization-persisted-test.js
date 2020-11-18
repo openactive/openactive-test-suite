@@ -1,12 +1,7 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { OpenIDConnectFlow } = require('../../../../shared-behaviours');
 
 const { SELLER_CONFIG } = global;
-
-/* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'authentication',

@@ -2,6 +2,10 @@ const chai = require('chai');
 const config = require('config');
 const { OpenActiveOpenIdTestClient, recordWithIntercept } = require('@openactive/openactive-openid-test-client');
 
+/**
+ * @typedef {import('../helpers/logger').LoggerType} LoggerType
+ */
+
 const { HEADLESS_AUTH, BOOKING_PARTNER_CONFIG, AUTHENTICATION_AUTHORITY } = global;
 const BOOKING_PARTNER_SPECIFIC_CONFIG = config.has('bookingPartnersForSpecificTests') ? config.get('bookingPartnersForSpecificTests') : {};
 const ENABLE_HEADER_LOGGING = config.get('requestHeaderLogging');
@@ -29,6 +33,10 @@ function throwIfNoIdToken(tokenSet) {
 }
 
 class OpenIDConnectFlow {
+  /**
+   * @param {object} args
+   * @param {LoggerType} args.logger
+   */
   constructor({ logger }) {
     /**
      * @template TActionFnResult
