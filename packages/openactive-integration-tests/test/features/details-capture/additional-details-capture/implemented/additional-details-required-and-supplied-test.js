@@ -21,6 +21,7 @@ FeatureHelper.describeFeature(module, {
 
   // ## Run Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  // TODO TODO TODO fix validator for following stages
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
