@@ -41,7 +41,7 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
-  testDataHints: (options) => ({
+  testDataRequirements: (options) => ({
     validFromNull: false,
     validFromMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
     validFromMax: moment(options.harvestStartTime).add(moment.duration('P28D')).toISOString(),

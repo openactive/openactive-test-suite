@@ -4,10 +4,11 @@ const { isObject } = require('lodash');
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
- * @typedef {import('../types/TestDataHints').TestDataHints} TestDataHints
+ * @typedef {import('../types/Options').Options} Options
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
+ * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
  */
 
 /**
@@ -15,28 +16,61 @@ const { isObject } = require('lodash');
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {TestDataHints} args.testDataHints
+ * @param {Criteria['testDataRequirements']} args.testDataRequirements
  * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-function createCriteria({ name, opportunityConstraints, offerConstraints, testDataHints, includeConstraintsFromCriteria = null }) {
+function createCriteria({ name, opportunityConstraints, offerConstraints, testDataRequirements, includeConstraintsFromCriteria = null }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
-  const baseTestDataHints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : {
-  };
+  const baseTestDataRequirements = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataRequirements : {};
+  // /**
+  //  * @param {(hint: any) => any} hintAccessor
+  //  * @param {(thisHint: any, baseHint: any) => boolean} chooseThisHintOverBaseHint
+  //  * @returns {any}
+  //  */
+  // const chooseNarrowerLimit = (hintAccessor, chooseThisHintOverBaseHint) => {
+  //   const thisHint = hintAccessor(testDataRequirements) ?? null;
+  //   const baseHint = hintAccessor(baseTestDataRequirements) ?? null;
+  //   if (thisHint === null || baseHint === null) {
+  //     return thisHint ?? baseHint;
+  //   }
+  //   return chooseThisHintOverBaseHint(thisHint, baseHint) ? thisHint : baseHint;
+  // };
   /**
-   * @param {(hint: any) => any} hintAccessor
-   * @param {(thisHint: any, baseHint: any) => boolean} chooseThisHintOverBaseHint
-   * @returns {any}
+   * Combine the test data requirements from the base criteria with the new criteria by
+   * choosing, for each field, the narrower requirement (e.g. if durationMin is 60 or
+   * 90, choose 90).
+   *
+   * @template {keyof TestDataRequirements} TRequirementField
+   * @param {TRequirementField} requirementField
+   * @param {(
+   *   thisRequirementValue: TestDataRequirements[TRequirementField],
+   *   thatRequirementValue: TestDataRequirements[TRequirementField]
+   * ) => boolean} chooseThisRequirementOverThatRequirement
    */
-  const chooseNarrowerLimit = (hintAccessor, chooseThisHintOverBaseHint) => {
-    const thisHint = hintAccessor(testDataHints) ?? null;
-    const baseHint = hintAccessor(baseTestDataHints) ?? null;
-    if (thisHint === null || baseHint === null) {
-      return thisHint ?? baseHint;
+  const chooseNarrowerRequirement = (requirementField, chooseThisRequirementOverThatRequirement) => {
+    // TODO TODO TODO what's going on with this type here??
+    /** @type {(options: Options) => TestDataRequirements[TRequirementField] | null} */
+    const thisRequirementFactory = testDataRequirements[requirementField] ?? null;
+    const baseRequirementFactory = baseTestDataRequirements[requirementField] ?? null;
+    if (thisRequirementFactory === null || baseRequirementFactory === null) {
+      return thisRequirementFactory ?? baseRequirementFactory;
     }
-    return chooseThisHintOverBaseHint(thisHint, baseHint) ? thisHint : baseHint;
+    /**
+     * @param {Options} options
+     * @returns {TestDataRequirements[TRequirementField]}
+     */
+    const combinedTestDataRequirementFactory = (options) => {
+      /** @type {TestDataRequirements[TRequirementField]} */
+      const thisTestDataRequirement = thisRequirementFactory(options);
+      const baseTestDataRequirement = baseRequirementFactory(options);
+      return chooseThisRequirementOverThatRequirement(thisTestDataRequirement, baseTestDataRequirement)
+        ? thisTestDataRequirement
+        : baseTestDataRequirement;
+    };
+    return combinedTestDataRequirementFactory;
   };
   return {
     name,
@@ -48,9 +82,9 @@ function createCriteria({ name, opportunityConstraints, offerConstraints, testDa
       ...baseOfferConstraints,
       ...offerConstraints,
     ],
-    testDataHints: {
-      ...baseTestDataHints,
-      ...testDataHints,
+    testDataRequirements: {
+      ...baseTestDataRequirements,
+      ...testDataRequirements,
       startDateMin: chooseNarrowerLimit((hint) => hint.startDateMin, (thisHint, baseHint) => moment(thisHint).isBefore(baseHint)),
       startDateMax: chooseNarrowerLimit((hint) => hint.startDateMax, (thisHint, baseHint) => moment(thisHint).isAfter(baseHint)),
       validFromMin: chooseNarrowerLimit((hint) => hint.validFromMin, (thisHint, baseHint) => moment(thisHint).isBefore(baseHint)),
@@ -63,6 +97,7 @@ function createCriteria({ name, opportunityConstraints, offerConstraints, testDa
         (thisHint, baseHint) => thisHint > baseHint),
       remainingCapacityMax: chooseNarrowerLimit((hint) => hint.remainingCapacityMax,
         (thisHint, baseHint) => thisHint < baseHint),
+      // TODO eventStatusOptions
     },
   };
 }

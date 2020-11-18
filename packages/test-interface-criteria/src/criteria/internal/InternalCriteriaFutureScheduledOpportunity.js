@@ -1,4 +1,5 @@
 const moment = require('moment');
+const { always } = require('ramda');
 
 /**
  * @typedef {import('../../types/Criteria').Criteria} Criteria
@@ -37,10 +38,14 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
     ],
   ],
   offerConstraints: [],
-  testDataHints: (options) => ({
-    startDateMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
-    eventStatusOptions: ['https://schema.org/EventScheduled'],
-  }),
+  testDataRequirements: {
+    startDateMin: options => moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+    eventStatusOptions: always(['https://schema.org/EventScheduled']),
+  },
+  // testDataRequirements: (options) => ({
+  //   startDateMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+  //   eventStatusOptions: ['https://schema.org/EventScheduled'],
+  // }),
 });
 
 module.exports = {
