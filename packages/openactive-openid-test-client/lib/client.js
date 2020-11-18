@@ -70,7 +70,14 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {import('openid-client').AuthorizationParameters} authorizationParameters
    * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
    */
-  async authorizeAuthorizationCodeFlow(clientId, clientSecret, options, authorizationParameters = {}, issuer = this.issuer) {
+  async authorizeAuthorizationCodeFlow(
+    clientId,
+    clientSecret,
+    options,
+    authorizationParameters = {
+    },
+    issuer = this.issuer,
+  ) {
     throwIfNoIssuer(issuer);
 
     const client = new issuer.Client({
