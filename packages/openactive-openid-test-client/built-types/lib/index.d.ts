@@ -1,5 +1,5 @@
 export const setupBrowserAutomationRoutes: (app: import("express").Application, buttonSelector: string) => void;
-export const recordWithIntercept: (recordLogEntry: (Entry: any) => {
+export const recordWithIntercept: <TActionFnResult>(recordLogEntry: (Entry: any) => {
     type: "request";
     stage: string;
     request: {
@@ -10,8 +10,8 @@ export const recordWithIntercept: (recordLogEntry: (Entry: any) => {
     };
     isPending: boolean;
     duration: number;
-}, stage: string, actionFn: Function) => Promise<any>;
-export const logWithIntercept: (stage: string, actionFn: Function) => Promise<any>;
+}, stage: string, actionFn: () => TActionFnResult) => Promise<TActionFnResult>;
+export const logWithIntercept: <TActionFnResult>(stage: string, actionFn: () => TActionFnResult) => Promise<TActionFnResult>;
 export const OpenActiveOpenIdTestClient: {
     new (baseUrl: any): import("./client");
 };

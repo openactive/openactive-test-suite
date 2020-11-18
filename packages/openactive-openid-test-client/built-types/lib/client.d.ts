@@ -18,8 +18,9 @@ declare class OpenActiveOpenIdTestClient {
         registration: any;
     }>;
     /**
-     * @typedef {Object} AuthorizeOptions
+     * @typedef {object} AuthorizeOptions
      * @property {boolean} headless
+     * @property {boolean} [offlineAccess]
      * @property {string} username
      * @property {string} password
      */
@@ -32,6 +33,7 @@ declare class OpenActiveOpenIdTestClient {
      */
     authorizeAuthorizationCodeFlow(clientId: string, clientSecret: string, options: {
         headless: boolean;
+        offlineAccess?: boolean;
         username: string;
         password: string;
     }, authorizationParameters?: import('openid-client').AuthorizationParameters, issuer?: import("openid-client").Issuer<import("openid-client").Client>): Promise<{

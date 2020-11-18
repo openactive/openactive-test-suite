@@ -13,9 +13,11 @@ const nock = require('nock');
 
 /**
  * Intecept and log all http requests made during the execution of actionFn
+ * @template TActionFnResult
  * @param {(Entry) => Entry} recordLogEntry
  * @param {string} stage
- * @param {function} actionFn
+ * @param {() => TActionFnResult} actionFn
+ * @returns {Promise<TActionFnResult>}
  */
 async function recordWithIntercept(recordLogEntry, stage, actionFn) {
   /**
@@ -46,6 +48,7 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
 
   let actionError = null;
 
+  /** @type {TActionFnResult} */
   let result = null;
 
   try {
@@ -114,16 +117,15 @@ async function recordWithIntercept(recordLogEntry, stage, actionFn) {
     throw actionError;
   }
 
-  // Ensure that destructuring of a null result does not fail
-  return result || {
-  };
+  return result;
 }
 
 /**
  * Intecept and output to the console all http requests made during the execution of actionFn
  * This is used primarily for the CLI
+ * @template TActionFnResult
  * @param {string} stage
- * @param {function} actionFn
+ * @param {() => TActionFnResult} actionFn
  */
 async function logWithIntercept(stage, actionFn) {
   /**
