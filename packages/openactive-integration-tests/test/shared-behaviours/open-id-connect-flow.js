@@ -30,7 +30,7 @@ function throwIfNoIdToken(tokenSet) {
 
 class OpenIDConnectFlow {
   constructor({ logger }) {
-    this.logWithIntercept = async (...args) => await recordWithIntercept((entry) => logger.recordLogEntry(entry), ...args);
+    this.logWithIntercept = async (...args) => await recordWithIntercept(entry => logger.recordLogEntry(entry), ...args);
     this.logger = logger;
     this.client = new OpenActiveOpenIdTestClient(global.MICROSERVICE_BASE);
     /**

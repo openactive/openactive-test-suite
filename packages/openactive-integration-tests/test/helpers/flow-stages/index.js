@@ -11,7 +11,6 @@ const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 const { OrderQuoteDeletionFlowStage } = require('./order-quote-deletion');
 
-
 module.exports = {
   FetchOpportunitiesFlowStage,
   C1FlowStage,

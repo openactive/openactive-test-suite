@@ -8,7 +8,6 @@ const { FlowHelper } = require('./flow-helper');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
-
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  *
@@ -130,12 +129,9 @@ class FeatureHelper {
         });
       }
 
-
       // This function mutates its arg, documentationModule
       // eslint-disable-next-line no-param-reassign
-      documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
-        criteriaRequirement,
-      }));
+      documentationModule.exports = /** @type {TestModuleExports} */({ ...configuration, criteriaRequirement });
       return;
     }
 
@@ -224,18 +220,16 @@ class FeatureHelper {
    * @param {DescribeFeatureConfiguration} configuration
    */
   static describeRequiredFeature(documentationModule, configuration) {
-    this.describeFeature(documentationModule, Object.assign({
-      testDescription: 'This feature is required by the specification and must be implemented.',
-    }, configuration),
+    this.describeFeature(documentationModule, { testDescription: 'This feature is required by the specification and must be implemented.', ...configuration },
     // eslint-disable-next-line no-unused-vars
-    function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
-      describe('Feature', function () {
-        it('must be implemented', () => {
+      function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
+        describe('Feature', function () {
+          it('must be implemented', () => {
           // eslint-disable-next-line no-unused-expressions
-          throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
+            throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
+          });
         });
       });
-    });
   }
 
   /**
@@ -245,11 +239,12 @@ class FeatureHelper {
    * }} configuration
    */
   static describeUnmatchedCriteriaFeature(documentationModule, configuration) {
-    this.describeFeature(documentationModule, Object.assign({
+    this.describeFeature(documentationModule, {
       testDescription: `Assert that no opportunities that match criteria ${configuration.unmatchedOpportunityCriteria.map(x => `'${x}'`).join(' or ')} are available in the opportunity feeds.`,
       skipMultiple: true,
-      runOne: false,
-    }, configuration),
+      runOnce: false,
+      ...configuration,
+    },
     function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType) {
       if (opportunityType != null) {
         configuration.unmatchedOpportunityCriteria.forEach((criteria) => {

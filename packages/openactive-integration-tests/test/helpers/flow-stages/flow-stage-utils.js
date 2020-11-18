@@ -2,7 +2,7 @@ const chakram = require('chakram');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
-const { getSellerConfigWithTaxMode, primarySeller } = require('../sellers');
+const { getSellerConfigWithTaxMode } = require('../sellers');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -119,7 +119,7 @@ const FlowStageUtils = {
    * @param {string | null} [args.taxMode]
    */
   createSimpleDefaultFlowStageParams({ logger, taxMode = null }) {
-    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : primarySeller;
+    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : SELLER_CONFIG.primary;
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
       requestHelper, logger, sellerConfig,

@@ -29,10 +29,10 @@ function getSellerConfigWithTaxMode(taxMode) {
   throw new Error(`No seller specified for tax mode: ${taxMode}`);
 }
 
-/** @type {SellerConfig} */
-const primarySeller = SELLER_CONFIG.primary;
+// /** @type {SellerConfig} */
+// const primarySeller = SELLER_CONFIG.primary;
 
 module.exports = {
   getSellerConfigWithTaxMode,
-  primarySeller,
+  // primarySeller,
 };
