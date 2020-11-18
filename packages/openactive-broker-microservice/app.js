@@ -354,11 +354,12 @@ function getConfig() {
 async function getOrdersFeedHeader() {
   await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
   const accessToken = getConfig()?.bookingPartnersConfig?.primary?.authentication?.orderFeedTokenSet?.access_token;
+  const requestHeaders = getConfig()?.bookingPartnersConfig?.primary?.authentication?.ordersFeedRequestHeaders;
   return {
     ...(!accessToken ? undefined : {
       Authorization: `Bearer ${accessToken}`,
     }),
-    ...getConfig().bookingPartnersConfig.primary.authentication.ordersFeedRequestHeaders,
+    ...requestHeaders,
   };
 }
 

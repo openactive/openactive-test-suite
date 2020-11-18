@@ -110,11 +110,12 @@ class RequestHelper {
   _getSellerRequestHeaders() {
     // If broker microservice authentication fails, no accessToken will be supplied
     const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.primary?.access_token;
+    const requestHeaders = this._sellerConfig?.authentication?.requestHeaders;
     return {
       ...(!accessToken ? undefined : {
         Authorization: `Bearer ${accessToken}`,
       }),
-      ...this._sellerConfig.authentication.requestHeaders,
+      ...requestHeaders,
     };
     // if (this._sellerConfig) {
     //   return this._sellerConfig.authentication.requestHeaders;

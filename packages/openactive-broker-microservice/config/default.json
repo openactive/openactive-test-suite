@@ -11,10 +11,6 @@
         "loginCredentials": {
           "username": "test1",
           "password": "test1"
-        },
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
         }
       },
       "taxMode": "https://openactive.io/TaxGross",
@@ -31,10 +27,6 @@
         "loginCredentials": {
           "username": "test2",
           "password": "test2"
-        },
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
         }
       },
       "taxMode": "https://openactive.io/TaxNet"

@@ -32,9 +32,10 @@ module.exports = class OpenActiveTestAuthKeyManager {
       }
 
       // Authenticate booking partners
-      const bookingPartners = Object.entries(this.bookingPartnersConfig).filter(([, s]) => s.authentication);
+      const bookingPartners = Object.entries(this.bookingPartnersConfig ?? {
+      }).filter(([, s]) => s.authentication);
       if (bookingPartners.length === 0) {
-        this.log('Warning: Booking partner configuration not found');
+        this.log('\n*** WARNING: Booking partner authentication configuration not found ***\n');
         return;
       }
 
