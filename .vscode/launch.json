@@ -40,13 +40,6 @@
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/"
         },
         {
-            "name": "openid-test-client",
-            "type": "node",
-            "request": "launch",
-            "program": "${workspaceFolder}/packages/openactive-openid-test-client/old.js",
-            "cwd": "${workspaceFolder}/packages/openactive-openid-test-client/"
-        },
-        {
             "name": "combined",
             "type": "node",
             "request": "launch",
