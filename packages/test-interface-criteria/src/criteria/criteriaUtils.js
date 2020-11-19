@@ -8,6 +8,7 @@ const { isObject } = require('lodash');
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
+ * @typedef {import('../types/Criteria').TestDataRequirementsFactory} TestDataRequirementsFactory
  * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
  */
 
@@ -21,57 +22,17 @@ const { isObject } = require('lodash');
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-function createCriteria({ name, opportunityConstraints, offerConstraints, testDataRequirements, includeConstraintsFromCriteria = null }) {
+function createCriteria({
+  name,
+  opportunityConstraints,
+  offerConstraints,
+  testDataRequirements: testDataRequirementsFactory,
+  includeConstraintsFromCriteria = null
+}) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
-  const baseTestDataRequirements = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataRequirements : {};
-  // /**
-  //  * @param {(hint: any) => any} hintAccessor
-  //  * @param {(thisHint: any, baseHint: any) => boolean} chooseThisHintOverBaseHint
-  //  * @returns {any}
-  //  */
-  // const chooseNarrowerLimit = (hintAccessor, chooseThisHintOverBaseHint) => {
-  //   const thisHint = hintAccessor(testDataRequirements) ?? null;
-  //   const baseHint = hintAccessor(baseTestDataRequirements) ?? null;
-  //   if (thisHint === null || baseHint === null) {
-  //     return thisHint ?? baseHint;
-  //   }
-  //   return chooseThisHintOverBaseHint(thisHint, baseHint) ? thisHint : baseHint;
-  // };
-  /**
-   * Combine the test data requirements from the base criteria with the new criteria by
-   * choosing, for each field, the narrower requirement (e.g. if durationMin is 60 or
-   * 90, choose 90).
-   *
-   * @template {keyof TestDataRequirements} TRequirementField
-   * @param {TRequirementField} requirementField
-   * @param {(
-   *   thisRequirementValue: TestDataRequirements[TRequirementField],
-   *   thatRequirementValue: TestDataRequirements[TRequirementField]
-   * ) => boolean} chooseThisRequirementOverThatRequirement
-   */
-  const chooseNarrowerRequirement = (requirementField, chooseThisRequirementOverThatRequirement) => {
-    // TODO TODO TODO what's going on with this type here??
-    /** @type {(options: Options) => TestDataRequirements[TRequirementField] | null} */
-    const thisRequirementFactory = testDataRequirements[requirementField] ?? null;
-    const baseRequirementFactory = baseTestDataRequirements[requirementField] ?? null;
-    if (thisRequirementFactory === null || baseRequirementFactory === null) {
-      return thisRequirementFactory ?? baseRequirementFactory;
-    }
-    /**
-     * @param {Options} options
-     * @returns {TestDataRequirements[TRequirementField]}
-     */
-    const combinedTestDataRequirementFactory = (options) => {
-      /** @type {TestDataRequirements[TRequirementField]} */
-      const thisTestDataRequirement = thisRequirementFactory(options);
-      const baseTestDataRequirement = baseRequirementFactory(options);
-      return chooseThisRequirementOverThatRequirement(thisTestDataRequirement, baseTestDataRequirement)
-        ? thisTestDataRequirement
-        : baseTestDataRequirement;
-    };
-    return combinedTestDataRequirementFactory;
-  };
+  /** @type {TestDataRequirementsFactory} */
+  const baseTestDataRequirementsFactory = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataRequirements : () => ({});
   return {
     name,
     opportunityConstraints: [
@@ -82,22 +43,49 @@ function createCriteria({ name, opportunityConstraints, offerConstraints, testDa
       ...baseOfferConstraints,
       ...offerConstraints,
     ],
-    testDataRequirements: {
-      ...baseTestDataRequirements,
-      ...testDataRequirements,
-      startDateMin: chooseNarrowerLimit((hint) => hint.startDateMin, (thisHint, baseHint) => moment(thisHint).isBefore(baseHint)),
-      startDateMax: chooseNarrowerLimit((hint) => hint.startDateMax, (thisHint, baseHint) => moment(thisHint).isAfter(baseHint)),
-      validFromMin: chooseNarrowerLimit((hint) => hint.validFromMin, (thisHint, baseHint) => moment(thisHint).isBefore(baseHint)),
-      validFromMax: chooseNarrowerLimit((hint) => hint.validFromMax, (thisHint, baseHint) => moment(thisHint).isAfter(baseHint)),
-      durationMin: chooseNarrowerLimit((hint) => hint.durationMin,
-        (thisHint, baseHint) => moment.duration(thisHint).asMilliseconds() > moment.duration(baseHint).asMilliseconds()),
-      durationMax: chooseNarrowerLimit((hint) => hint.durationMax,
-        (thisHint, baseHint) => moment.duration(thisHint).asMilliseconds() < moment.duration(baseHint).asMilliseconds()),
-      remainingCapacityMin: chooseNarrowerLimit((hint) => hint.remainingCapacityMin,
-        (thisHint, baseHint) => thisHint > baseHint),
-      remainingCapacityMax: chooseNarrowerLimit((hint) => hint.remainingCapacityMax,
-        (thisHint, baseHint) => thisHint < baseHint),
-      // TODO eventStatusOptions
+    testDataRequirements: (options) => {
+      const baseTestDataRequirements = baseTestDataRequirementsFactory(options);
+      const thisTestDataRequirements = testDataRequirementsFactory(options);
+      /**
+       * Combine the test data requirements from the base criteria with the new criteria by
+       * choosing, for each field, the narrower requirement (e.g. if durationMin is 60 or
+       * 90, choose 90).
+       *
+       * @template {keyof TestDataRequirements} TRequirementField
+       * @param {TRequirementField} requirementField
+       * @param {(
+       *   thisTestDataRequirementValue: TestDataRequirements[TRequirementField],
+       *   thatTestDataRequirementValue: TestDataRequirements[TRequirementField],
+       * ) => boolean} chooseThisRequirementOverThatRequirement
+       * @returns {TestDataRequirements[TRequirementField]}
+       */
+      const chooseNarrowerRequirement = (requirementField, chooseThisRequirementOverThatRequirement) => {
+        const thisTestDataRequirementValue = thisTestDataRequirements[requirementField] ?? null;
+        const baseTestDataRequirementValue = baseTestDataRequirements[requirementField] ?? null;
+        if (thisTestDataRequirementValue === null || baseTestDataRequirementValue === null) {
+          return thisTestDataRequirementValue ?? baseTestDataRequirementValue;
+        }
+        return chooseThisRequirementOverThatRequirement(thisTestDataRequirementValue, baseTestDataRequirementValue)
+          ? thisTestDataRequirementValue
+          : baseTestDataRequirementValue;
+      };
+      return {
+        ...baseTestDataRequirements,
+        ...testDataRequirementsFactory,
+        startDateMin: chooseNarrowerRequirement('startDateMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
+        startDateMax: chooseNarrowerRequirement('startDateMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
+        validFromMin: chooseNarrowerRequirement('validFromMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
+        validFromMax: chooseNarrowerRequirement('validFromMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
+        durationMin: chooseNarrowerRequirement('durationMin',
+          (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() > moment.duration(thatValue).asMilliseconds()),
+        durationMax: chooseNarrowerRequirement('durationMax',
+          (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() < moment.duration(thatValue).asMilliseconds()),
+        remainingCapacityMin: chooseNarrowerRequirement('remainingCapacityMin',
+          (thisValue, thatValue) => thisValue > thatValue),
+        remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
+          (thisValue, thatValue) => thisValue < thatValue),
+        // TODO and eventStatusOptions
+      };
     },
   };
 }

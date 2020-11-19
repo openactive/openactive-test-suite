@@ -7,7 +7,7 @@ export type OpportunityConstraint = (opportunity: Opportunity, options?: Options
 
 export type OfferConstraint = (offer: Offer, opportunity: Opportunity, options?: Options) => boolean;
 
-// export type TestDataRequirementsGenerator = (options?: Options) => TestDataRequirements;
+export type TestDataRequirementsFactory = (options: Options) => TestDataRequirements;
 
 export type Criteria = {
   name: string,
@@ -36,7 +36,5 @@ export type Criteria = {
   /**
    * Test data requirements that are applicable for this criteria.
    */
-  testDataRequirements: {
-    [k in keyof TestDataRequirements]: (options: Options) => TestDataRequirements[k];
-  };
+  testDataRequirements: TestDataRequirementsFactory,
 };
