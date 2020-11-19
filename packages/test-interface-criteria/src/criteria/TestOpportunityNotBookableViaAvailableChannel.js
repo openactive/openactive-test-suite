@@ -24,6 +24,9 @@ const TestOpportunityNotBookableViaAvailableChannel = createCriteria({
       mustNotHaveAvailableChannel,
     ],
   ],
+  testDataRequirements: (options) => ({
+    availableChannelExcludes: 'https://openactive.io/OpenBookingPrepayment',
+  }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 

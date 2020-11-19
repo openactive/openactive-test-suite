@@ -82,8 +82,8 @@ function createCriteria({
           (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() < moment.duration(thatValue).asMilliseconds()),
         remainingCapacityMin: chooseNarrowerRequirement('remainingCapacityMin',
           (thisValue, thatValue) => thisValue > thatValue),
-        // remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
-        //   (thisValue, thatValue) => thisValue < thatValue),
+        remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
+          (thisValue, thatValue) => thisValue < thatValue),
         // TODO There are requirements that have no clear way of merging (e.g. eventStatusIsEventScheduled).
         // These should error if there is an overwrite
         //

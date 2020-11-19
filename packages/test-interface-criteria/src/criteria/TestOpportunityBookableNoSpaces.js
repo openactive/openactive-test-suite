@@ -24,6 +24,9 @@ const TestOpportunityBookableNoSpaces = createCriteria({
     ],
   ],
   offerConstraints: [],
+  testDataRequirements: (options) => ({
+    remainingCapacityMax: 0,
+  }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 

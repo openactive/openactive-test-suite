@@ -50,16 +50,16 @@ export type TestDataRequirements = {
    */
   remainingCapacityMin?: number;
   /**
+   * "remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
+   * or remainingUses (facilities)
+   */
+  remainingCapacityMax?: number;
+  /**
    * eventStatus must be one of these values
    */
   // eventStatusAllowlist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   eventStatusBlocklist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   // eventStatusOptions?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
-  // /**
-  //  * "remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
-  //  * or remainingUses (facilities)
-  //  */
-  // remainingCapacityMax?: number;
   // ## Offer Requirements
   /**
    * Is `validFromBeforeStartDate` required to be included?
@@ -77,6 +77,10 @@ export type TestDataRequirements = {
    * availableChannel must include this value
    */
   availableChannelIncludes?: 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
+  /**
+   * availableChannel must NOT include this value
+   */
+  availableChannelExcludes?: 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
   /**
    * advanceBooking must NOT be one of these values
    */

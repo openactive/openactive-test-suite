@@ -12,7 +12,7 @@ const { createCriteria } = require('./criteriaUtils');
  */
 function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return null; // has no booking window
+    return false; // has no booking window
   }
 
   const start = moment(opportunity.startDate);
