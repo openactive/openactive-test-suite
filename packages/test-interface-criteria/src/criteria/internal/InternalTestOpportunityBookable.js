@@ -36,13 +36,14 @@ const InternalTestOpportunityBookable = createCriteria({
       mustHaveBookableOffer,
     ],
   ],
-  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
-  testDataHints: (options) => ({
+  testDataRequirements: (options) => ({
     remainingCapacityMin: 2,
-    remainingCapacityMax: 100,
-    validFromNull: true,
+    availableChannelIncludes: 'https://openactive.io/OnlinePrepayment',
+    validFromIsRequired: false,
     validFromMin: moment(options.harvestStartTime).toISOString(),
+    advanceBookingBlocklist: ['https://openactive.io/Unavailable'],
   }),
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 
 module.exports = {

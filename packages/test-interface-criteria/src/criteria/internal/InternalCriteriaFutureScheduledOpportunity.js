@@ -38,13 +38,9 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
     ],
   ],
   offerConstraints: [],
-  // testDataRequirements: (options) => {
-    // startDateMin: options => moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
-    // eventStatusOptions: always(['https://schema.org/EventScheduled']),
-  // },
   testDataRequirements: (options) => ({
     startDateMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
-    eventStatusOptions: ['https://schema.org/EventScheduled'],
+    eventStatusAllowlist: ['https://schema.org/EventScheduled'],
   }),
 });
 

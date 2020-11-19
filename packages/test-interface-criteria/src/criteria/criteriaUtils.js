@@ -82,9 +82,18 @@ function createCriteria({
           (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() < moment.duration(thatValue).asMilliseconds()),
         remainingCapacityMin: chooseNarrowerRequirement('remainingCapacityMin',
           (thisValue, thatValue) => thisValue > thatValue),
-        remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
-          (thisValue, thatValue) => thisValue < thatValue),
-        // TODO and eventStatusOptions
+        // remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
+        //   (thisValue, thatValue) => thisValue < thatValue),
+        // TODO There are requirements that have no clear way of merging (e.g. eventStatusIsEventScheduled).
+        // These should error if there is an overwrite
+        //
+        // [obsolete] TODO eventStatusOptions cannot be merged in this way. Either:
+        // - MAKE IT MERGEABLE
+        //   - make a more generic method for merging values so that eventStatusOptions can use an intersection
+        // - MAKE IT UN-MERGEABLE
+        //   - If a base criteria has a value for this and a child criteria has a value, raise an error.
+        //   - I think it would also be clearer that it cannot be merged if it was a singular value ("eventStatusOption")
+        //     rather than an array
       };
     },
   };
