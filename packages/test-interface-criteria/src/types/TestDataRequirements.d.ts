@@ -9,7 +9,7 @@ startDate: {
 },
 validFrom: {
   type: 'DateRange', min, max,
-  isRequired: false, // defaults to true
+  allowNull?: true,
 }
 eventStatus: {
   type: 'Allowlist',
