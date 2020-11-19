@@ -6,16 +6,8 @@ export type Offer = {
     '@type': string;
     '@id': string;
 };
-export type TestDataHints = {
-    startDateMin: string;
-    startDateMax: string;
-    durationMin: string;
-    durationMax: string;
-    remainingCapacityMin: number;
-    remainingCapacityMax: number;
-    validFromNull: boolean;
-    validFromMin: string;
-    validFromMax: string;
+export type Options = {
+    harvestStartTime: Date;
 };
 export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
@@ -23,31 +15,60 @@ export type Criteria = {
     name: string;
     opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
     offerConstraints: [string, import("../types/Criteria").OfferConstraint][];
-    testDataHints: import("../types/Criteria").TestDataHintsGenerator;
+    testDataRequirements: import("../types/Criteria").TestDataRequirementsFactory;
+};
+export type TestDataRequirementsFactory = (options: import("../types/Options").Options) => import("../types/TestDataRequirements").TestDataRequirements;
+export type TestDataRequirements = {
+    startDateMin?: string;
+    startDateMax?: string;
+    durationMin?: string;
+    durationMax?: string;
+    remainingCapacityMin?: number;
+    remainingCapacityMax?: number;
+    eventStatusBlocklist?: ("https://schema.org/EventCancelled" | "https://schema.org/EventPostponed" | "https://schema.org/EventScheduled")[];
+    taxModeAllowlist?: ("https://openactive.io/TaxGross" | "https://openactive.io/TaxNet")[];
+    priceAllowlist?: [0];
+    priceBlocklist?: [0];
+    prepaymentAllowlist?: ("https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable")[];
+    prepaymentBlocklist?: ("https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable")[];
+    prepaymentAllowNull?: true;
+    validFromAllowNull?: true;
+    validFromMin?: string;
+    validFromMax?: string;
+    availableChannelIncludes?: "https://openactive.io/OpenBookingPrepayment" | "https://openactive.io/TelephoneAdvanceBooking" | "https://openactive.io/TelephonePrepayment" | "https://openactive.io/OnlinePrepayment";
+    availableChannelExcludes?: "https://openactive.io/OpenBookingPrepayment" | "https://openactive.io/TelephoneAdvanceBooking" | "https://openactive.io/TelephonePrepayment" | "https://openactive.io/OnlinePrepayment";
+    advanceBookingBlocklist?: ("https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable")[];
+    openBookingFlowRequirementIncludes?: "https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange";
+    openBookingFlowRequirementExcludes?: "https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange";
+    openBookingFlowRequirementExcludesAll?: ("https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange")[];
+    latestCancellationBeforeStartDateExists?: boolean;
+    termsOfServiceArrayMinLength?: number;
 };
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
- * @typedef {import('../types/TestDataHints').TestDataHints} TestDataHints
+ * @typedef {import('../types/Options').Options} Options
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
+ * @typedef {import('../types/Criteria').TestDataRequirementsFactory} TestDataRequirementsFactory
+ * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
  */
 /**
  * @param {object} args
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {TestDataHints} args.testDataHints
+ * @param {Criteria['testDataRequirements']} args.testDataRequirements
  * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataHints, includeConstraintsFromCriteria }: {
+export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataRequirements: testDataRequirementsFactory, includeConstraintsFromCriteria }: {
     name: string;
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
-    testDataHints: TestDataHints;
+    testDataRequirements: Criteria['testDataRequirements'];
     includeConstraintsFromCriteria: Criteria | null;
 }): Criteria;
 /**

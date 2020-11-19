@@ -1,13 +1,13 @@
 import { Opportunity } from './Opportunity';
 import { Offer } from './Offer';
 import { Options } from './Options';
-import { TestDataHints } from './TestDataHints';
+import { TestDataRequirements } from './TestDataRequirements';
 
 export type OpportunityConstraint = (opportunity: Opportunity, options?: Options) => boolean;
 
 export type OfferConstraint = (offer: Offer, opportunity: Opportunity, options?: Options) => boolean;
 
-export type TestDataHintsGenerator = (options?: Options) => TestDataHints;
+export type TestDataRequirementsFactory = (options: Options) => TestDataRequirements;
 
 export type Criteria = {
   name: string,
@@ -34,7 +34,7 @@ export type Criteria = {
     [string, OfferConstraint]
   )[],
   /**
-   * Test data hints that are applicable for this criteria.
+   * Test data requirements that are applicable for this criteria.
    */
-  testDataHints: TestDataHintsGenerator
+  testDataRequirements: TestDataRequirementsFactory,
 };
