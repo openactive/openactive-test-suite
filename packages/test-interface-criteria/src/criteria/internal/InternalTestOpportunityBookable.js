@@ -39,7 +39,7 @@ const InternalTestOpportunityBookable = createCriteria({
   testDataRequirements: (options) => ({
     remainingCapacityMin: 2,
     availableChannelIncludes: 'https://openactive.io/OpenBookingPrepayment',
-    validFromIsRequired: false,
+    validFromAllowNull: false,
     validFromMin: moment(options.harvestStartTime).toISOString(),
     advanceBookingBlocklist: ['https://openactive.io/Unavailable'],
   }),

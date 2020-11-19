@@ -24,6 +24,9 @@ const TestOpportunityBookableCancellable = createCriteria({
       offersMustNotHaveCancellationWindow,
     ],
   ],
+  testDataRequirements: (options) => ({
+    latestCancellationBeforeStartDateExists: false,
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

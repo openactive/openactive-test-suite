@@ -22,12 +22,13 @@ eventStatus: {
 
 
 
+//  * - -IsRequired (boolean): Value is or is not required.
 /**
  * Suffixes:
  * - -Min (T): Value must be greater or equal to this.
  * - -Max (T): Value must be less than or equal to this.
  * - -Allowlist (T[]): Value must be one of this list of options.
- * - -IsRequired (boolean): Value is or is not required.
+ * - -AllowNull (true): Value may be null (or undefined or property excluded).
  *   This is only needed when:
  *   - Set to false and combined with a requirement that implicitly requires a value
  *     e.g. `validFromMin=..` by itself means that `validFromBeforeStartDate` is required.
@@ -35,6 +36,9 @@ eventStatus: {
  *     if it is included, it must adhere to the other requirements.
  * - -Includes (T extends any[]): Value (which is a list) must include this value.
  * - -Excludes (T extends any[]): Value (which is a list) must exclude this value.
+ * - -ExcludesAll (T extends any[]): Value (which is a list) must exclude all of these values.
+ * - -Exists (boolean): Value must or must not exist. (here, "exists" is taken to mean that the
+ *   property is included in an object and is not nullish).
  */
 export type TestDataRequirements = {
   // ## Opportunity Requirements
@@ -55,16 +59,21 @@ export type TestDataRequirements = {
    */
   remainingCapacityMax?: number;
   /**
-   * eventStatus must be one of these values
+   * eventStatus must NOT be one of these values
    */
   // eventStatusAllowlist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   eventStatusBlocklist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   // eventStatusOptions?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   // ## Offer Requirements
+  // These allow/blocklists allow specifying free or non-free offers.
+  priceAllowlist?: [0];
+  priceBlocklist?: [0];
+  prepaymentAllowlist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
+  prepaymentAllowNull?: true;
   /**
    * Is `validFromBeforeStartDate` required to be included?
    */
-  validFromIsRequired?: boolean;
+  validFromAllowNull?: true;
   /**
    * ISO date string. Min value for `startDate - validFromBeforeStartDate`
    */
@@ -73,22 +82,11 @@ export type TestDataRequirements = {
    * ISO date string. Max value for `startDate - validFromBeforeStartDate`
    */
   validFromMax?: string;
-  /**
-   * availableChannel must include this value
-   */
   availableChannelIncludes?: 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
-  /**
-   * availableChannel must NOT include this value
-   */
   availableChannelExcludes?: 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
-  /**
-   * advanceBooking must NOT be one of these values
-   */
   advanceBookingBlocklist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
-  // /**
-  //  * Should availableChannel include https://openactive.io/OpenBookingPrepayment?
-  //  * - If true, availableChannel MUST include OpenBookingPrepayment
-  //  * - If false, availableChannel MUST NOT include OpenBookingPrepayment
-  //  */
-  // availableChannelIncludesOpenBookingPrepayment?: boolean;
+  openBookingFlowRequirementIncludes?: 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
+  openBookingFlowRequirementExcludes?: 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
+  openBookingFlowRequirementExcludesAll?: ('https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange')[];
+  latestCancellationBeforeStartDateExists?: boolean;
 };
