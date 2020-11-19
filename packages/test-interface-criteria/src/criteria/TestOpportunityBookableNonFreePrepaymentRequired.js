@@ -24,6 +24,10 @@ const TestOpportunityBookableNonFreePrepaymentRequired = createCriteria({
       onlyPaidBookableOffersWithPrepaymentRequired,
     ],
   ],
+  testDataRequirements: (options) => ({
+    priceBlocklist: [0],
+    prepaymentAllowlist: ['https://openactive.io/Required'],
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

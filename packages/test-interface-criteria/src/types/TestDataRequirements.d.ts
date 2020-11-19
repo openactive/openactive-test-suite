@@ -61,14 +61,14 @@ export type TestDataRequirements = {
   /**
    * eventStatus must NOT be one of these values
    */
-  // eventStatusAllowlist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   eventStatusBlocklist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
-  // eventStatusOptions?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
+  taxModeAllowlist?: ('https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet')[];
   // ## Offer Requirements
-  // These allow/blocklists allow specifying free or non-free offers.
+  // These price allow/blocklists allow specifying free or non-free offers.
   priceAllowlist?: [0];
   priceBlocklist?: [0];
   prepaymentAllowlist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
+  prepaymentBlocklist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
   prepaymentAllowNull?: true;
   /**
    * Is `validFromBeforeStartDate` required to be included?
