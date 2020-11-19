@@ -75,7 +75,7 @@ function createCriteria({
         startDateMin: chooseNarrowerRequirement('startDateMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
         startDateMax: chooseNarrowerRequirement('startDateMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
         validFromMin: chooseNarrowerRequirement('validFromMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
-        validFromMax: chooseNarrowerRequirement('validFromMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
+        // validFromMax: chooseNarrowerRequirement('validFromMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
         durationMin: chooseNarrowerRequirement('durationMin',
           (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() > moment.duration(thatValue).asMilliseconds()),
         durationMax: chooseNarrowerRequirement('durationMax',

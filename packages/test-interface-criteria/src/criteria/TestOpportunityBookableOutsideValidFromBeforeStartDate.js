@@ -10,9 +10,9 @@ const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteri
 /**
  * @type {OfferConstraint}
  */
-function mustBeOutsideBookingWindow(offer, opportunity, options) {
+function musHaveBookingWindowAndBeOutsideOfIt(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return null; // Required for validation step
+    return false; // has no booking window
   }
 
   const start = moment(opportunity.startDate);
@@ -30,21 +30,21 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
   name: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
   opportunityConstraints: [
     [
-      'Remaining capacity must be at least two',
+      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
       remainingCapacityMustBeAtLeastTwo,
     ],
   ],
   offerConstraints: [
     [
       'Must be outside booking window',
-      mustBeOutsideBookingWindow,
+      musHaveBookingWindowAndBeOutsideOfIt,
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
   testDataRequirements: (options) => ({
-    validFromNull: false,
+    remainingCapacityMin: 2,
     validFromMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
-    validFromMax: moment(options.harvestStartTime).add(moment.duration('P28D')).toISOString(),
+    // validFromMax: moment(options.harvestStartTime).add(moment.duration('P28D')).toISOString(),
   }),
 });
 

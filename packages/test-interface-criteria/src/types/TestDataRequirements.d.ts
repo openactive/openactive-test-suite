@@ -52,7 +52,8 @@ export type TestDataRequirements = {
   /**
    * eventStatus must be one of these values
    */
-  eventStatusAllowlist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
+  // eventStatusAllowlist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
+  eventStatusBlocklist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   // eventStatusOptions?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
   // /**
   //  * "remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)

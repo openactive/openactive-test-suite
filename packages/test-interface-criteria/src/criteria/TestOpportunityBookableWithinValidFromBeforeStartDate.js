@@ -12,7 +12,7 @@ const { createCriteria } = require('./criteriaUtils');
  */
 function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return null; // Required for validation step
+    return null; // has no booking window
   }
 
   const start = moment(opportunity.startDate);
@@ -32,9 +32,9 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,
-  testDataHints: (options) => ({
-    validFromNull: false,
-    validFromMin: moment(options.harvestStartTime).subtract(moment.duration('P28D')).toISOString(),
+  testDataRequirements: (options) => ({
+    // validFromNull: false,
+    // validFromMin: moment(options.harvestStartTime).subtract(moment.duration('P28D')).toISOString(),
     validFromMax: moment(options.harvestStartTime).toISOString(),
   }),
 });
