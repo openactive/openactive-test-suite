@@ -1,10 +1,16 @@
 /**
  * @typedef {import('./types/TestDataRequirements').DateRange} DateRange
+ * @typedef {import('./types/TestDataRequirements').EventStatusType} EventStatusType
  * @typedef {import('./types/TestDataRequirements').QuantitativeValue} QuantitativeValue
  * @typedef {import('./types/TestDataRequirements').BlockedField} BlockedField
  * @typedef {import('./types/TestDataRequirements').TestDataRequirements} TestDataRequirements
  * @typedef {import('./types/TestDataRequirements').ValueType} ValueType
  */
+
+// /** @type {EventStatusType} */
+// const EVENT_STATUS_EVENT_CANCELLED = 'https://schema.org/EventCancelled';
+// /** @type {EventStatusType} */
+// const EVENT_STATUS_EVENT_POSTPONED = 'https://schema.org/EventPostponed';
 
 /**
  * @param {Omit<TestDataRequirements['test:testOpportunityDataRequirements'], '@type'>} requirements
@@ -82,6 +88,8 @@ const BLOCKED_FIELD = {
 };
 
 module.exports = {
+  EVENT_STATUS_EVENT_CANCELLED,
+  EVENT_STATUS_EVENT_POSTPONED,
   testOpportunityDataRequirements,
   testOfferDataRequirements,
   dateRange,

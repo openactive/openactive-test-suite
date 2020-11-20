@@ -170,13 +170,13 @@ export interface TestDataRequirements {
      * or remainingUses (facilities)
      */
     'test:remainingCapacity'?: QuantitativeValue;
-    'test:eventStatus'?: OptionRequirements<EventStatusType[], 'schema:EventStatusType'>;
-    'test:taxMode'?: OptionRequirements<TaxMode[], 'oa:TaxMode'>;
+    'test:eventStatus'?: OptionRequirements<EventStatusType, 'schema:EventStatusType'>;
+    'test:taxMode'?: OptionRequirements<TaxMode, 'oa:TaxMode'>;
   };
   'test:testOfferDataRequirements'?: {
     '@type': 'test:OfferTestDataRequirements';
     'test:price'?: QuantitativeValue;
-    'test:prepayment'?: OptionRequirements<RequiredStatusType[],'oa:RequiredStatusType'>;
+    'test:prepayment'?: OptionRequirements<RequiredStatusType,'oa:RequiredStatusType'>;
     /**
      * Refers to the date calculated as `startDate - validFromBeforeStartDate`.
      * For this particular DateRange, `allowNull` refers to whether `validFromBeforeStartDate`

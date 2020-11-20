@@ -1,4 +1,11 @@
 const moment = require('moment');
+const {
+  // EVENT_STATUS_EVENT_CANCELLED,
+  // EVENT_STATUS_EVENT_POSTPONED,
+  testOpportunityDataRequirements,
+  dateRange,
+  optionRequirements,
+} = require('../../testDataRequirements');
 
 /**
  * @typedef {import('../../types/Criteria').Criteria} Criteria
@@ -38,9 +45,24 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   ],
   offerConstraints: [],
   testDataRequirements: (options) => ({
-    startDateMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
-    eventStatusBlocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
-    // eventStatusAllowlist: ['https://schema.org/EventScheduled'],
+    'test:testOpportunityDataRequirements': testOpportunityDataRequirements({
+      'test:startDate': dateRange({
+        minRange: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+      }),
+      // 'test:eventStatus': {
+      //   '@type': 'test:OptionRequirements',
+      //   valueType: 'schema:EventStatusType',
+      //   blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
+      // },
+      'test:eventStatus': optionRequirements({
+        valueType: 'schema:EventStatusType',
+        // blocklist: /** @type {import('../../types/TestDataRequirements').EventStatusType[]} */(['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed']),
+        blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
+        // blocklist: [EVENT_STATUS_EVENT_CANCELLED, EVENT_STATUS_EVENT_POSTPONED],
+      }),
+    }),
+    // startDateMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+    // eventStatusBlocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
   }),
 });
 
