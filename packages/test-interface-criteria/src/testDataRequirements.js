@@ -1,6 +1,10 @@
 /**
- * @typedef {import('./types/TestDataRequirements').DateRange} DateRange
  * @typedef {import('./types/TestDataRequirements').EventStatusType} EventStatusType
+ * @typedef {import('./types/TestDataRequirements').TaxMode} TaxMode
+ * @typedef {import('./types/TestDataRequirements').RequiredStatusType} RequiredStatusType
+ * @typedef {import('./types/TestDataRequirements').AvailableChannelType} AvailableChannelType
+ * @typedef {import('./types/TestDataRequirements').OpenBookingFlowRequirement} OpenBookingFlowRequirement
+ * @typedef {import('./types/TestDataRequirements').DateRange} DateRange
  * @typedef {import('./types/TestDataRequirements').QuantitativeValue} QuantitativeValue
  * @typedef {import('./types/TestDataRequirements').BlockedField} BlockedField
  * @typedef {import('./types/TestDataRequirements').TestDataRequirements} TestDataRequirements
@@ -12,6 +16,7 @@
 // /** @type {EventStatusType} */
 // const EVENT_STATUS_EVENT_POSTPONED = 'https://schema.org/EventPostponed';
 
+// # Generic requirements
 /**
  * @param {Omit<TestDataRequirements['test:testOpportunityDataRequirements'], '@type'>} requirements
  * @returns {TestDataRequirements['test:testOpportunityDataRequirements']}
@@ -87,9 +92,43 @@ const BLOCKED_FIELD = {
   '@type': 'test:BlockedField',
 };
 
+// # Specific Requirements
+/**
+ * @param {Omit<import('./types/TestDataRequirements').OptionRequirements<EventStatusType, 'schema:EventStatusType'>, '@type' | 'valueType'>} requirements
+ * @returns {import('./types/TestDataRequirements').OptionRequirements<EventStatusType, 'schema:EventStatusType'>}
+ */
+function eventStatusOptionRequirements(requirements) {
+  return optionRequirements({
+    valueType: 'schema:EventStatusType',
+    ...requirements,
+  });
+}
+
+/**
+ * @param {Omit<import('./types/TestDataRequirements').OptionRequirements<RequiredStatusType, 'oa:RequiredStatusType'>, '@type' | 'valueType'>} requirements
+ * @returns {import('./types/TestDataRequirements').OptionRequirements<RequiredStatusType, 'oa:RequiredStatusType'>}
+ */
+function advanceBookingOptionRequirements(requirements) {
+  return optionRequirements({
+    valueType: 'oa:RequiredStatusType',
+    ...requirements,
+  });
+}
+
+/**
+ * @param {Omit<import('./types/TestDataRequirements').ArrayRequirements<AvailableChannelType, 'oa:AvailableChannelType'>, '@type' | 'valueType'>} requirements
+ * @returns {import('./types/TestDataRequirements').ArrayRequirements<AvailableChannelType, 'oa:AvailableChannelType'>}
+ */
+function availableChannelArrayRequirements(requirements) {
+  return arrayRequirements({
+    valueType: 'oa:AvailableChannelType',
+    ...requirements,
+  });
+}
+
 module.exports = {
-  EVENT_STATUS_EVENT_CANCELLED,
-  EVENT_STATUS_EVENT_POSTPONED,
+  // EVENT_STATUS_EVENT_CANCELLED,
+  // EVENT_STATUS_EVENT_POSTPONED,
   testOpportunityDataRequirements,
   testOfferDataRequirements,
   dateRange,
@@ -97,4 +136,7 @@ module.exports = {
   optionRequirements,
   arrayRequirements,
   BLOCKED_FIELD,
+  eventStatusOptionRequirements,
+  advanceBookingOptionRequirements,
+  availableChannelArrayRequirements,
 };

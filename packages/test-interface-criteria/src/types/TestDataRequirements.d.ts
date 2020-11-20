@@ -29,9 +29,9 @@ export type OpenBookingFlowRequirement = 'https://openactive.io/OpenBookingIntak
 export interface DateRange {
   '@type': 'test:DateRange';
   /** ISO date string */
-  minRange?: string;
+  minValue?: string;
   /** ISO date string */
-  maxRange?: string;
+  maxValue?: string;
   /** If true (default is false), the value can alternatively be null or undefined */
   allowNull?: true;
 }
