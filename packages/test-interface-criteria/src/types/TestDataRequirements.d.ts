@@ -1,25 +1,3 @@
-/*
-Alternative approach:
-
-a generic system for each field like:
-
-startDate: {
-  type: 'DateRange',
-  min: '..', max: '..'
-},
-validFrom: {
-  type: 'DateRange', min, max,
-  allowNull?: true,
-}
-eventStatus: {
-  type: 'OptionRequirements',
-  mustBeOneOf: ['../EventCancelled'],
-} | {
-  type: 'Blocklist',
-  mustBeNoneOf: ['../EventCancelled'],
-}
- */
-
 export type EventStatusType = 'https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled';
 export type TaxMode = 'https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet';
 export type RequiredStatusType = 'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable';
@@ -79,40 +57,6 @@ export interface OptionRequirements<
   allowNull?: true;
 }
 
-// /**
-//  * Value must be one of the items in `mustBeOneOf`
-//  */
-// export interface Allowlist<
-//   TMustBeOneOf extends any[],
-//   TValueType extends ValueType,
-// > {
-//   '@type': 'test:Allowlist';
-//   mustBeOneOf: TMustBeOneOf;
-//   /**
-//    * Type of item in the array. A reference to a schema.org or OpenActive type, prefixed
-//    * e.g. oa:RequiredStatusType or schema:EventStatusType
-//    */
-//   valueType: TValueType;
-//   /** If true (default is false), the value can alternatively be null or undefined */
-//   allowNull?: true;
-// }
-
-// /**
-//  * Value must not be one of the items in `mustNotBeOneOf`
-//  */
-// export interface Blocklist<
-//   TMustNotBeOneOf extends any[],
-//   TValueType extends ValueType,
-// > {
-//   '@type': 'test:Blocklist';
-//   mustNotBeOneOf: TMustNotBeOneOf;
-//   /**
-//    * Type of item in the array. A reference to a schema.org or OpenActive type, prefixed
-//    * e.g. oa:RequiredStatusType or schema:EventStatusType
-//    */
-//   valueType: TValueType;
-// }
-
 export interface ArrayRequirements<
   TArrayOf,
   TValueType extends ValueType
@@ -138,24 +82,6 @@ export interface BlockedField {
   '@type': 'test:BlockedField';
 }
 
-// /**
-//  * Suffixes:
-//  * - -Min (T): Value must be greater or equal to this.
-//  * - -Max (T): Value must be less than or equal to this.
-//  * - -Allowlist (T[]): Value must be one of this list of options.
-//  * - -AllowNull (true): Value may be null (or undefined or property excluded).
-//  *   This is only needed when:
-//  *   - Set to false and combined with a requirement that implicitly requires a value
-//  *     e.g. `validFromMin=..` by itself means that `validFromBeforeStartDate` is required.
-//  *     But, `validFromMin=.., validFromIsRequired=false` means that it is not required but,
-//  *     if it is included, it must adhere to the other requirements.
-//  * - -Includes (T extends any[]): Value (which is an array) must include this value.
-//  * - -Excludes (T extends any[]): Value (which is an array) must exclude this value.
-//  * - -ExcludesAll (T extends any[]): Value (which is an array) must exclude all of these values.
-//  * - -Exists (boolean): Value must or must not exist. (here, "exists" is taken to mean that the
-//  *   property is included in an object and is not nullish).
-//  * - -ArrayMinLength (number): Value (which is an array) must have at least this many items
-//  */
 /**
  * For a particular criteria, test data requirements that must be met by an opportunity
  * and offer so that they meet the criteria.
@@ -192,54 +118,3 @@ export interface TestDataRequirements {
     'test:termsOfService'?: ArrayRequirements<unknown, 'oa:Terms'>;
   };
 };
-
-  // // ## Opportunity Requirements
-  // /** ISO date string */
-  // startDateMin?: string;
-  // /** ISO date string */
-  // startDateMax?: string;
-  // // durationMin?: string;
-  // // durationMax?: string;
-  // /**
-  //  * "remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
-  //  * or remainingUses (facilities)
-  //  */
-  // remainingCapacityMin?: number;
-  // /**
-  //  * "remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
-  //  * or remainingUses (facilities)
-  //  */
-  // remainingCapacityMax?: number;
-  // /**
-  //  * eventStatus must NOT be one of these values
-  //  */
-  // eventStatusBlocklist?: ('https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled')[];
-  // taxModeAllowlist?: ('https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet')[];
-
-  // ## Offer Requirements
-  // // These price allow/blocklists allow specifying free or non-free offers.
-  // priceAllowlist?: [0];
-  // priceBlocklist?: [0];
-  // prepaymentAllowlist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
-  // prepaymentBlocklist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
-  // prepaymentAllowNull?: true;
-  // /**
-  //  * Is `validFromBeforeStartDate` required to be included?
-  //  */
-  // validFromAllowNull?: true;
-  // /**
-  //  * ISO date string. Min value for `startDate - validFromBeforeStartDate`
-  //  */
-  // validFromMin?: string;
-  // /**
-  //  * ISO date string. Max value for `startDate - validFromBeforeStartDate`
-  //  */
-  // validFromMax?: string;
-  // availableChannelIncludes?: 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
-  // availableChannelExcludes?: 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
-  // advanceBookingBlocklist?: ('https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable')[];
-  // openBookingFlowRequirementIncludes?: 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
-  // openBookingFlowRequirementExcludes?: 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
-  // openBookingFlowRequirementExcludesAll?: ('https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange')[];
-  // latestCancellationBeforeStartDateExists?: boolean;
-  // termsOfServiceArrayMinLength?: number;
