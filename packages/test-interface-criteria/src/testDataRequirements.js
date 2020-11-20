@@ -126,6 +126,17 @@ function availableChannelArrayRequirements(requirements) {
   });
 }
 
+/**
+ * @param {Omit<import('./types/TestDataRequirements').ArrayRequirements<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>, '@type' | 'valueType'>} requirements
+ * @returns {import('./types/TestDataRequirements').ArrayRequirements<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>}
+ */
+function openBookingFlowRequirementArrayRequirements(requirements) {
+  return arrayRequirements({
+    valueType: 'oa:OpenBookingFlowRequirement',
+    ...requirements,
+  });
+}
+
 module.exports = {
   // EVENT_STATUS_EVENT_CANCELLED,
   // EVENT_STATUS_EVENT_POSTPONED,
@@ -139,4 +150,5 @@ module.exports = {
   eventStatusOptionRequirements,
   advanceBookingOptionRequirements,
   availableChannelArrayRequirements,
+  openBookingFlowRequirementArrayRequirements,
 };

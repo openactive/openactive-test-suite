@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria } = require('./criteriaUtils');
+const { testOfferDataRequirements, BLOCKED_FIELD } = require('../testDataRequirements');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -25,7 +26,9 @@ const TestOpportunityBookableCancellable = createCriteria({
     ],
   ],
   testDataRequirements: () => ({
-    latestCancellationBeforeStartDateExists: false,
+    'test:testOfferDataRequirements': testOfferDataRequirements({
+      'test:latestCancellationBeforeStartDate': BLOCKED_FIELD,
+    }),
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
