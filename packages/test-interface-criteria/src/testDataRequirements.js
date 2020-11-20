@@ -119,6 +119,17 @@ const advanceBookingOptionRequirements = requiredStatusTypeOptionRequirements;
 const prepaymentOptionRequirements = requiredStatusTypeOptionRequirements;
 
 /**
+ * @param {Omit<import('./types/TestDataRequirements').OptionRequirements<TaxMode, 'oa:TaxMode'>, '@type' | 'valueType'>} requirements
+ * @returns {import('./types/TestDataRequirements').OptionRequirements<TaxMode, 'oa:TaxMode'>}
+ */
+function taxModeOptionRequirements(requirements) {
+  return optionRequirements({
+    valueType: 'oa:TaxMode',
+    ...requirements,
+  });
+}
+
+/**
  * @param {Omit<import('./types/TestDataRequirements').ArrayRequirements<AvailableChannelType, 'oa:AvailableChannelType'>, '@type' | 'valueType'>} requirements
  * @returns {import('./types/TestDataRequirements').ArrayRequirements<AvailableChannelType, 'oa:AvailableChannelType'>}
  */
@@ -153,6 +164,7 @@ module.exports = {
   eventStatusOptionRequirements,
   advanceBookingOptionRequirements,
   prepaymentOptionRequirements,
+  taxModeOptionRequirements,
   availableChannelArrayRequirements,
   openBookingFlowRequirementArrayRequirements,
 };

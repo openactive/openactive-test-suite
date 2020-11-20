@@ -1,3 +1,4 @@
+const { testOpportunityDataRequirements, taxModeOptionRequirements } = require('../testDataRequirements');
 const { createCriteria, getOrganizerOrProvider } = require('./criteriaUtils');
 const { TestOpportunityBookableNonFree } = require('./TestOpportunityBookableNonFree');
 
@@ -26,7 +27,11 @@ const TestOpportunityBookableNonFreeTaxGross = createCriteria({
   ],
   offerConstraints: [],
   testDataRequirements: () => ({
-    taxModeAllowlist: ['https://openactive.io/TaxGross'],
+    'test:testOpportunityDataRequirements': testOpportunityDataRequirements({
+      'test:taxMode': taxModeOptionRequirements({
+        allowlist: ['https://openactive.io/TaxGross'],
+      }),
+    }),
   }),
   includeConstraintsFromCriteria: TestOpportunityBookableNonFree,
 });
