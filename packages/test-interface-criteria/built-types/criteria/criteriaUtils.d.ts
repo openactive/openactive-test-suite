@@ -64,7 +64,7 @@ export type TestDataRequirements = {
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataRequirements: testDataRequirementsFactory, includeConstraintsFromCriteria }: {
+export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataRequirements: testDataRequirementsFactory, includeConstraintsFromCriteria, }: {
     name: string;
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];

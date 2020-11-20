@@ -1,5 +1,4 @@
 const moment = require('moment');
-const { always } = require('ramda');
 
 /**
  * @typedef {import('../../types/Criteria').Criteria} Criteria

@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/InternalCriteriaFutureScheduledOpportunity');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./InternalCriteriaFutureScheduledOpportunity');
 const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('../criteriaUtils');
 
 /**

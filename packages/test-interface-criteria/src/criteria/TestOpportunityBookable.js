@@ -21,7 +21,7 @@ const TestOpportunityBookable = createCriteria({
       doesNotSupportMinimalProposalFlow,
     ],
   ],
-  testDataRequirements: (options) => ({
+  testDataRequirements: () => ({
     openBookingFlowRequirementExcludes: 'https://openactive.io/OpenBookingApproval',
   }),
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,

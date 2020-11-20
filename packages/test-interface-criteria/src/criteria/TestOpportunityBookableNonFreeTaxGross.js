@@ -25,7 +25,7 @@ const TestOpportunityBookableNonFreeTaxGross = createCriteria({
     ],
   ],
   offerConstraints: [],
-  testDataRequirements: (options) => ({
+  testDataRequirements: () => ({
     taxModeAllowlist: ['https://openactive.io/TaxGross'],
   }),
   includeConstraintsFromCriteria: TestOpportunityBookableNonFree,

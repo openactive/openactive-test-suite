@@ -27,12 +27,13 @@ function createCriteria({
   opportunityConstraints,
   offerConstraints,
   testDataRequirements: testDataRequirementsFactory,
-  includeConstraintsFromCriteria = null
+  includeConstraintsFromCriteria = null,
 }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
   /** @type {TestDataRequirementsFactory} */
-  const baseTestDataRequirementsFactory = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataRequirements : () => ({});
+  const baseTestDataRequirementsFactory = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataRequirements : () => ({
+  });
   return {
     name,
     opportunityConstraints: [

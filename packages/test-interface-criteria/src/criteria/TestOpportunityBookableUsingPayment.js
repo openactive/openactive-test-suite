@@ -24,7 +24,7 @@ const TestOpportunityBookableUsingPayment = createCriteria({
       onlyPaidBookableOffers,
     ],
   ],
-  testDataRequirements: (options) => ({
+  testDataRequirements: () => ({
     priceBlocklist: [0],
     prepaymentBlocklist: ['https://openactive.io/Unavailable'],
   }),

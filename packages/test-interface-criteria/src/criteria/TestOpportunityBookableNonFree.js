@@ -24,7 +24,7 @@ const TestOpportunityBookableNonFree = createCriteria({
       onlyNonFreeBookableOffers,
     ],
   ],
-  testDataRequirements: (options) => ({
+  testDataRequirements: () => ({
     priceBlocklist: [0],
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,

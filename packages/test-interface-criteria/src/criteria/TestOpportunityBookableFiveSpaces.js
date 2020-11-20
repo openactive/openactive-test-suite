@@ -24,7 +24,7 @@ const TestOpportunityBookableFiveSpaces = createCriteria({
     ],
   ],
   offerConstraints: [],
-  testDataRequirements: (options) => ({
+  testDataRequirements: () => ({
     remainingCapacityMin: 5,
     remainingCapacityMax: 5,
   }),

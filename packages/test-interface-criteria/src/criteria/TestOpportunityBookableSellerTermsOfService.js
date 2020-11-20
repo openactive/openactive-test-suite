@@ -25,7 +25,7 @@ const TestOpportunityBookableSellerTermsOfService = createCriteria({
     ],
   ],
   offerConstraints: [],
-  testDataRequirements: (options) => ({
+  testDataRequirements: () => ({
     termsOfServiceArrayMinLength: 1,
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
