@@ -108,12 +108,15 @@ function eventStatusOptionRequirements(requirements) {
  * @param {Omit<import('./types/TestDataRequirements').OptionRequirements<RequiredStatusType, 'oa:RequiredStatusType'>, '@type' | 'valueType'>} requirements
  * @returns {import('./types/TestDataRequirements').OptionRequirements<RequiredStatusType, 'oa:RequiredStatusType'>}
  */
-function advanceBookingOptionRequirements(requirements) {
+function requiredStatusTypeOptionRequirements(requirements) {
   return optionRequirements({
     valueType: 'oa:RequiredStatusType',
     ...requirements,
   });
 }
+
+const advanceBookingOptionRequirements = requiredStatusTypeOptionRequirements;
+const prepaymentOptionRequirements = requiredStatusTypeOptionRequirements;
 
 /**
  * @param {Omit<import('./types/TestDataRequirements').ArrayRequirements<AvailableChannelType, 'oa:AvailableChannelType'>, '@type' | 'valueType'>} requirements
@@ -149,6 +152,7 @@ module.exports = {
   BLOCKED_FIELD,
   eventStatusOptionRequirements,
   advanceBookingOptionRequirements,
+  prepaymentOptionRequirements,
   availableChannelArrayRequirements,
   openBookingFlowRequirementArrayRequirements,
 };

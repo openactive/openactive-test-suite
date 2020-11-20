@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria } = require('./criteriaUtils');
+const { testOfferDataRequirements, quantitativeValue, prepaymentOptionRequirements } = require('../testDataRequirements');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -25,8 +26,14 @@ const TestOpportunityBookableFreePrepaymentOptional = createCriteria({
     ],
   ],
   testDataRequirements: () => ({
-    priceAllowlist: [0],
-    prepaymentAllowlist: ['https://openactive.io/Optional'],
+    'test:testOfferDataRequirements': testOfferDataRequirements({
+      'test:price': quantitativeValue({
+        maxValue: 0,
+      }),
+      'test:prepayment': prepaymentOptionRequirements({
+        allowlist: ['https://openactive.io/Optional'],
+      }),
+    }),
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
