@@ -119,4 +119,4 @@ export interface TestDataRequirements {
     // we don't use includes/excludes rules for this field, so it's irrelevant.
     'test:termsOfService'?: ArrayRequirements<unknown, 'oa:Terms'>;
   };
-};
+}

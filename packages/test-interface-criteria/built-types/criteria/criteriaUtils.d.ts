@@ -18,32 +18,7 @@ export type Criteria = {
     testDataRequirements: import("../types/Criteria").TestDataRequirementsFactory;
 };
 export type TestDataRequirementsFactory = (options: import("../types/Options").Options) => import("../types/TestDataRequirements").TestDataRequirements;
-export type TestDataRequirements = {
-    startDateMin?: string;
-    startDateMax?: string;
-    durationMin?: string;
-    durationMax?: string;
-    remainingCapacityMin?: number;
-    remainingCapacityMax?: number;
-    eventStatusBlocklist?: ("https://schema.org/EventCancelled" | "https://schema.org/EventPostponed" | "https://schema.org/EventScheduled")[];
-    taxModeAllowlist?: ("https://openactive.io/TaxGross" | "https://openactive.io/TaxNet")[];
-    priceAllowlist?: [0];
-    priceBlocklist?: [0];
-    prepaymentAllowlist?: ("https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable")[];
-    prepaymentBlocklist?: ("https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable")[];
-    prepaymentAllowNull?: true;
-    validFromAllowNull?: true;
-    validFromMin?: string;
-    validFromMax?: string;
-    availableChannelIncludes?: "https://openactive.io/OpenBookingPrepayment" | "https://openactive.io/TelephoneAdvanceBooking" | "https://openactive.io/TelephonePrepayment" | "https://openactive.io/OnlinePrepayment";
-    availableChannelExcludes?: "https://openactive.io/OpenBookingPrepayment" | "https://openactive.io/TelephoneAdvanceBooking" | "https://openactive.io/TelephonePrepayment" | "https://openactive.io/OnlinePrepayment";
-    advanceBookingBlocklist?: ("https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable")[];
-    openBookingFlowRequirementIncludes?: "https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange";
-    openBookingFlowRequirementExcludes?: "https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange";
-    openBookingFlowRequirementExcludesAll?: ("https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange")[];
-    latestCancellationBeforeStartDateExists?: boolean;
-    termsOfServiceArrayMinLength?: number;
-};
+export type TestDataRequirements = import("../types/TestDataRequirements").TestDataRequirements;
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer

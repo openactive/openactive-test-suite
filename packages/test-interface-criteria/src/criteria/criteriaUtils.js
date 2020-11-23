@@ -1,4 +1,4 @@
-const moment = require('moment');
+// const moment = require('moment');
 const { isObject } = require('lodash');
 
 /**
@@ -45,57 +45,76 @@ function createCriteria({
       ...offerConstraints,
     ],
     testDataRequirements: (options) => {
+      if (!includeConstraintsFromCriteria) { return testDataRequirementsFactory(options); }
       const baseTestDataRequirements = baseTestDataRequirementsFactory(options);
       const thisTestDataRequirements = testDataRequirementsFactory(options);
-      /**
-       * Combine the test data requirements from the base criteria with the new criteria by
-       * choosing, for each field, the narrower requirement (e.g. if durationMin is 60 or
-       * 90, choose 90).
-       *
-       * @template {keyof TestDataRequirements} TRequirementField
-       * @param {TRequirementField} requirementField
-       * @param {(
-       *   thisTestDataRequirementValue: TestDataRequirements[TRequirementField],
-       *   thatTestDataRequirementValue: TestDataRequirements[TRequirementField],
-       * ) => boolean} chooseThisRequirementOverThatRequirement
-       * @returns {TestDataRequirements[TRequirementField]}
-       */
-      const chooseNarrowerRequirement = (requirementField, chooseThisRequirementOverThatRequirement) => {
-        const thisTestDataRequirementValue = thisTestDataRequirements[requirementField] ?? null;
-        const baseTestDataRequirementValue = baseTestDataRequirements[requirementField] ?? null;
-        if (thisTestDataRequirementValue === null || baseTestDataRequirementValue === null) {
-          return thisTestDataRequirementValue ?? baseTestDataRequirementValue;
+      // TODO if needed, create functionality for merging requirements. e.g. two dateRanges could be merged by taking the latest minDate and the earliest maxDate (i.e. an intersection of both requirements)
+      // Do any of the opportunity requirements overlap?
+      if (baseTestDataRequirements['test:testOpportunityDataRequirements'] && thisTestDataRequirements['test:testOpportunityDataRequirements']) {
+        for (const key of Object.keys(baseTestDataRequirements['test:testOpportunityDataRequirements'])) {
+          if (key in thisTestDataRequirements['test:testOpportunityDataRequirements']) {
+            throw new Error(`Criteria (name: "${name}") cannot extend Criteria (name: "${includeConstraintsFromCriteria.name}") as it has overlapping testOpportunityDataRequirements (key: "${key}"). This can be fixed by improving the logic so that these requirements can be merged`);
+          }
         }
-        return chooseThisRequirementOverThatRequirement(thisTestDataRequirementValue, baseTestDataRequirementValue)
-          ? thisTestDataRequirementValue
-          : baseTestDataRequirementValue;
-      };
-      return {
-        ...baseTestDataRequirements,
-        ...testDataRequirementsFactory,
-        startDateMin: chooseNarrowerRequirement('startDateMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
-        startDateMax: chooseNarrowerRequirement('startDateMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
-        validFromMin: chooseNarrowerRequirement('validFromMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
-        validFromMax: chooseNarrowerRequirement('validFromMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
-        // durationMin: chooseNarrowerRequirement('durationMin',
-        //   (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() > moment.duration(thatValue).asMilliseconds()),
-        // durationMax: chooseNarrowerRequirement('durationMax',
-        //   (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() < moment.duration(thatValue).asMilliseconds()),
-        remainingCapacityMin: chooseNarrowerRequirement('remainingCapacityMin',
-          (thisValue, thatValue) => thisValue > thatValue),
-        remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
-          (thisValue, thatValue) => thisValue < thatValue),
-        // TODO There are requirements that have no clear way of merging (e.g. eventStatusIsEventScheduled).
-        // These should error if there is an overwrite
-        //
-        // [obsolete] TODO eventStatusOptions cannot be merged in this way. Either:
-        // - MAKE IT MERGEABLE
-        //   - make a more generic method for merging values so that eventStatusOptions can use an intersection
-        // - MAKE IT UN-MERGEABLE
-        //   - If a base criteria has a value for this and a child criteria has a value, raise an error.
-        //   - I think it would also be clearer that it cannot be merged if it was a singular value ("eventStatusOption")
-        //     rather than an array
-      };
+      }
+      // Do any of the offer requirements overlap?
+      if (baseTestDataRequirements['test:testOfferDataRequirements'] && thisTestDataRequirements['test:testOfferDataRequirements']) {
+        for (const key of Object.keys(baseTestDataRequirements['test:testOfferDataRequirements'])) {
+          if (key in thisTestDataRequirements['test:testOfferDataRequirements']) {
+            throw new Error(`Criteria (name: "${name}") cannot extend Criteria (name: "${includeConstraintsFromCriteria.name}") as it has overlapping testOfferDataRequirements (key: "${key}"). This can be fixed by improving the logic so that these requirements can be merged`);
+          }
+        }
+      }
+      return thisTestDataRequirements;
+      // /**
+      //  * Combine the test data requirements from the base criteria with the new criteria by
+      //  * choosing, for each field, the narrower requirement (e.g. if durationMin is 60 or
+      //  * 90, choose 90).
+      //  *
+      //  * @template {keyof TestDataRequirements} TRequirementField
+      //  * @param {TRequirementField} requirementField
+      //  * @param {(
+      //  *   thisTestDataRequirementValue: TestDataRequirements[TRequirementField],
+      //  *   thatTestDataRequirementValue: TestDataRequirements[TRequirementField],
+      //  * ) => boolean} chooseThisRequirementOverThatRequirement
+      //  * @returns {TestDataRequirements[TRequirementField]}
+      //  */
+      // const chooseNarrowerRequirement = (requirementField, chooseThisRequirementOverThatRequirement) => {
+      //   const thisTestDataRequirementValue = thisTestDataRequirements[requirementField] ?? null;
+      //   const baseTestDataRequirementValue = baseTestDataRequirements[requirementField] ?? null;
+      //   if (thisTestDataRequirementValue === null || baseTestDataRequirementValue === null) {
+      //     return thisTestDataRequirementValue ?? baseTestDataRequirementValue;
+      //   }
+      //   return chooseThisRequirementOverThatRequirement(thisTestDataRequirementValue, baseTestDataRequirementValue)
+      //     ? thisTestDataRequirementValue
+      //     : baseTestDataRequirementValue;
+      // };
+      // return {
+      //   ...baseTestDataRequirements,
+      //   ...testDataRequirementsFactory,
+      //   startDateMin: chooseNarrowerRequirement('startDateMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
+      //   startDateMax: chooseNarrowerRequirement('startDateMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
+      //   validFromMin: chooseNarrowerRequirement('validFromMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
+      //   validFromMax: chooseNarrowerRequirement('validFromMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
+      //   // durationMin: chooseNarrowerRequirement('durationMin',
+      //   //   (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() > moment.duration(thatValue).asMilliseconds()),
+      //   // durationMax: chooseNarrowerRequirement('durationMax',
+      //   //   (thisValue, thatValue) => moment.duration(thisValue).asMilliseconds() < moment.duration(thatValue).asMilliseconds()),
+      //   remainingCapacityMin: chooseNarrowerRequirement('remainingCapacityMin',
+      //     (thisValue, thatValue) => thisValue > thatValue),
+      //   remainingCapacityMax: chooseNarrowerRequirement('remainingCapacityMax',
+      //     (thisValue, thatValue) => thisValue < thatValue),
+      //   // TODO There are requirements that have no clear way of merging (e.g. eventStatusIsEventScheduled).
+      //   // These should error if there is an overwrite
+      //   //
+      //   // [obsolete] TODO eventStatusOptions cannot be merged in this way. Either:
+      //   // - MAKE IT MERGEABLE
+      //   //   - make a more generic method for merging values so that eventStatusOptions can use an intersection
+      //   // - MAKE IT UN-MERGEABLE
+      //   //   - If a base criteria has a value for this and a child criteria has a value, raise an error.
+      //   //   - I think it would also be clearer that it cannot be merged if it was a singular value ("eventStatusOption")
+      //   //     rather than an array
+      // };
     },
   };
 }
