@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria } = require('./criteriaUtils');
+const { testOfferDataRequirements, NON_FREE_PRICE_QUANTITATIVE_VALUE } = require('../testDataRequirements');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -25,7 +26,9 @@ const TestOpportunityBookableNonFree = createCriteria({
     ],
   ],
   testDataRequirements: () => ({
-    priceBlocklist: [0],
+    'test:testOfferDataRequirements': testOfferDataRequirements({
+      'test:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+    }),
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });

@@ -1,3 +1,4 @@
+const { testOfferDataRequirements, openBookingFlowRequirementArrayRequirements } = require('../testDataRequirements');
 const { createCriteria } = require('./criteriaUtils');
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
 const { supportsMinimalProposalFlow } = require('./sharedConstraints');
@@ -12,8 +13,12 @@ const TestOpportunityBookableFlowRequirementOnlyApproval = createCriteria({
     ],
   ],
   testDataRequirements: () => ({
-    openBookingFlowRequirementIncludes: 'https://openactive.io/OpenBookingApproval',
-    openBookingFlowRequirementExcludesAll: ['https://openactive.io/OpenBookingAttendeeDetails', 'https://openactive.io/OpenBookingIntakeForm', 'https://openactive.io/OpenBookingMessageExchange', 'https://openactive.io/OpenBookingNegotiation'],
+    'test:testOfferDataRequirements': testOfferDataRequirements({
+      'test:openBookingFlowRequirement': openBookingFlowRequirementArrayRequirements({
+        includesAll: ['https://openactive.io/OpenBookingApproval'],
+        excludesAll: ['https://openactive.io/OpenBookingAttendeeDetails', 'https://openactive.io/OpenBookingIntakeForm', 'https://openactive.io/OpenBookingMessageExchange', 'https://openactive.io/OpenBookingNegotiation'],
+      }),
+    }),
   }),
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,
 });

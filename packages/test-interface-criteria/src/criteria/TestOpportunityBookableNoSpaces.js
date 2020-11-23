@@ -1,5 +1,6 @@
 const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
+const { testOpportunityDataRequirements, quantitativeValue } = require('../testDataRequirements');
 
 /**
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -25,7 +26,11 @@ const TestOpportunityBookableNoSpaces = createCriteria({
   ],
   offerConstraints: [],
   testDataRequirements: () => ({
-    remainingCapacityMax: 0,
+    'test:testOpportunityDataRequirements': testOpportunityDataRequirements({
+      'test:remainingCapacity': quantitativeValue({
+        maxValue: 0,
+      }),
+    }),
   }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
