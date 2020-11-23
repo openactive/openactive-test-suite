@@ -4,7 +4,6 @@ const {
   // EVENT_STATUS_EVENT_POSTPONED,
   testOpportunityDataRequirements,
   dateRange,
-  optionRequirements,
   eventStatusOptionRequirements,
 } = require('../../testDataRequirements');
 
@@ -48,7 +47,7 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   testDataRequirements: (options) => ({
     'test:testOpportunityDataRequirements': testOpportunityDataRequirements({
       'test:startDate': dateRange({
-        minValue: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+        minDate: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
       }),
       'test:eventStatus': eventStatusOptionRequirements({
         blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],

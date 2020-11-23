@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria, getOrganizerOrProvider } = require('./criteriaUtils');
+const { testOfferDataRequirements, termsOfServiceArrayRequirements } = require('../testDataRequirements');
 
 /**
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -26,7 +27,9 @@ const TestOpportunityBookableSellerTermsOfService = createCriteria({
   ],
   offerConstraints: [],
   testDataRequirements: () => ({
-    termsOfServiceArrayMinLength: 1,
+    'test:testOfferDataRequirements': testOfferDataRequirements({
+      'test:termsOfService': termsOfServiceArrayRequirements(1),
+    }),
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });

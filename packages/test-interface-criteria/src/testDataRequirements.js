@@ -61,6 +61,14 @@ function quantitativeValue(requirements) {
   };
 }
 
+const FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
+  maxValue: 0,
+});
+
+const NON_FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
+  minValue: 0.01, // must cost at least £0.01
+});
+
 /**
  * @template TOptionType
  * @template {ValueType} TValueType
@@ -151,6 +159,17 @@ function openBookingFlowRequirementArrayRequirements(requirements) {
   });
 }
 
+/**
+ * @param {number} minLength
+ * @returns {import('./types/TestDataRequirements').ArrayRequirements<unknown, 'oa:Terms'>}
+ */
+function termsOfServiceArrayRequirements(minLength) {
+  return arrayRequirements({
+    valueType: 'oa:Terms',
+    minLength,
+  });
+}
+
 module.exports = {
   // EVENT_STATUS_EVENT_CANCELLED,
   // EVENT_STATUS_EVENT_POSTPONED,
@@ -158,6 +177,8 @@ module.exports = {
   testOfferDataRequirements,
   dateRange,
   quantitativeValue,
+  FREE_PRICE_QUANTITATIVE_VALUE,
+  NON_FREE_PRICE_QUANTITATIVE_VALUE,
   optionRequirements,
   arrayRequirements,
   BLOCKED_FIELD,
@@ -167,4 +188,5 @@ module.exports = {
   taxModeOptionRequirements,
   availableChannelArrayRequirements,
   openBookingFlowRequirementArrayRequirements,
+  termsOfServiceArrayRequirements,
 };

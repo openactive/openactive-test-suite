@@ -7,12 +7,14 @@ export type OpenBookingFlowRequirement = 'https://openactive.io/OpenBookingIntak
 export interface DateRange {
   '@type': 'test:DateRange';
   /** ISO date string */
-  minValue?: string;
+  minDate?: string;
   /** ISO date string */
-  maxValue?: string;
+  maxDate?: string;
   /** If true (default is false), the value can alternatively be null or undefined */
   allowNull?: true;
 }
+
+// TODO TODO TODO prefix/suffix for all fields like 'test:prepayment'
 
 export interface QuantitativeValue {
   '@type': 'QuantitativeValue';

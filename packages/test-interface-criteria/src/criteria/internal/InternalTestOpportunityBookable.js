@@ -2,7 +2,7 @@ const moment = require('moment');
 
 const { InternalCriteriaFutureScheduledOpportunity } = require('./InternalCriteriaFutureScheduledOpportunity');
 const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('../criteriaUtils');
-const { testOpportunityDataRequirements, quantitativeValue, testOfferDataRequirements, arrayRequirements, availableChannelArrayRequirements, dateRange, advanceBookingOptionRequirements } = require('../../testDataRequirements');
+const { testOpportunityDataRequirements, quantitativeValue, testOfferDataRequirements, availableChannelArrayRequirements, dateRange, advanceBookingOptionRequirements } = require('../../testDataRequirements');
 
 /**
  * @typedef {import('../../types/Criteria').OfferConstraint} OfferConstraint
@@ -48,7 +48,7 @@ const InternalTestOpportunityBookable = createCriteria({
         includesAll: ['https://openactive.io/OpenBookingPrepayment'],
       }),
       'test:validFrom': dateRange({
-        minValue: moment(options.harvestStartTime).toISOString(),
+        minDate: moment(options.harvestStartTime).toISOString(),
         allowNull: true,
       }),
       'test:advanceBooking': advanceBookingOptionRequirements({

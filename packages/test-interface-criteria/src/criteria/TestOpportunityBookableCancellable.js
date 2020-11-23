@@ -10,6 +10,8 @@ const { testOfferDataRequirements, BLOCKED_FIELD } = require('../testDataRequire
  * @type {OfferConstraint}
  */
 function offersMustNotHaveCancellationWindow(offer) {
+  // TODO TODO TODO this should instead check that latestCancellationBeforeStartDate is either missing or such that it can be cancelled now
+  // There should also be a separate criteria for outside cancellation window (https://imin.slack.com/archives/D03BQL0P1/p1605884759021000)
   return !offer.latestCancellationBeforeStartDate;
 }
 
