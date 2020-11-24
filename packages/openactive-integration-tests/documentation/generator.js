@@ -9,7 +9,6 @@ const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
 const defaultConfig = require('../config/default.json');
-const { fromPairs } = require('ramda');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
@@ -287,15 +286,21 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
 function renderCriteraRequirementsJson(features) {
   /**
    * @type {{
-   *   [featureIdentifier: string]: {
-   *     [criteriaIdentifier: string]: number,
+   *   _createdByDocumentationGeneratorScript: true,
+   *   criteriaRequirementsByFeature: {
+   *     [featureIdentifier: string]: {
+   *       [criteriaIdentifier: string]: number,
+   *     },
    *   },
    * }}
    */
-  const obj = Object.fromEntries(features.map(feature => ([
-    feature.identifier,
-    Object.fromEntries(feature.criteriaRequirement),
-  ])));
+  const obj = {
+    _createdByDocumentationGeneratorScript: true,
+    criteriaRequirementsByFeature: Object.fromEntries(features.map(feature => ([
+      feature.identifier,
+      Object.fromEntries(feature.criteriaRequirement),
+    ]))),
+  };
   return JSON.stringify(obj, null, 2);
 }
 
