@@ -9,9 +9,11 @@ const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
 const defaultConfig = require('../config/default.json');
+const { fromPairs } = require('ramda');
 
-const INDEX_FILE = './test/features/README.md';
-const FEATURES_ROOT = './test/features/';
+const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
+const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
+const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria-requirements.json');
 
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
@@ -70,47 +72,52 @@ const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (
 
 // Load feature.json files
 /** @type {FeatureMetadataItem[]} */
-let featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
+const featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
 });
 
-featureMetadata = featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
+// Sort features so that required ones are first
+featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
 
 // Build summary of criteria required
-featureMetadata.forEach((f) => {
+for (const featureMetadataItem of featureMetadata) {
+  /** @type {Map<string, number>} */
   const criteriaRequirement = new Map();
-  tests.filter(t => t.testFeature === f.identifier).forEach((t) => {
+  tests.filter(t => t.testFeature === featureMetadataItem.identifier).forEach((t) => {
     t.criteriaRequirement.forEach((count, opportunityCriteria) => {
       if (!criteriaRequirement.has(opportunityCriteria)) criteriaRequirement.set(opportunityCriteria, 0);
       criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
     });
   });
-  // eslint-disable-next-line no-param-reassign
-  f.criteriaRequirement = criteriaRequirement;
-});
+  featureMetadataItem.criteriaRequirement = criteriaRequirement;
+}
 
-fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function (err) {
-  if (err) {
-    process.exitCode = 1;
-    console.error(err);
-  } else {
-    console.log(`FILE SAVED: ${INDEX_FILE}`);
-  }
-});
+// Save opportunity criteria requirements for each future to a machine-readable (JSON)
+// file.
+// This file will be used by the test-data-generator script to help seed random
+// mode tests.
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_CRITERIA_REQUIREMENTS_JSON_FILE,
+  renderCriteraRequirementsJson(featureMetadata),
+);
 
+// Save a README.md at test/features which has a human-readable summary of all the
+// features and the opportunity criteria required in order to run those features'
+// tests.
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_README_FILE,
+  renderFeatureIndex(featureMetadata),
+);
+
+// For each feature, save a summary README.md in its folder
 featureMetadata.forEach((f) => {
-  const filename = `${FEATURES_ROOT}${f.category}/${f.identifier}/README.md`;
-  fs.writeFile(filename, renderFeatureReadme(f), function (err) {
-    if (err) {
-      process.exitCode = 1;
-      console.error(err);
-    } else {
-      console.log(`FILE SAVED: ${filename}`);
-    }
-  });
+  const filename = path.join(FEATURES_ROOT, f.category, f.identifier, 'README.md');
+  writeFileSetErrorExitCodeButDontThrowIfFails(filename, renderFeatureReadme(f));
 });
+
+// # README rendering functions
 
 /**
  * @param {FeatureMetadataItem[]} features
@@ -270,4 +277,43 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
   }
   const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
   return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
+}
+
+// # JSON rendering functions
+
+/**
+ * @param {FeatureMetadataItem[]} features
+ */
+function renderCriteraRequirementsJson(features) {
+  /**
+   * @type {{
+   *   [featureIdentifier: string]: {
+   *     [criteriaIdentifier: string]: number,
+   *   },
+   * }}
+   */
+  const obj = Object.fromEntries(features.map(feature => ([
+    feature.identifier,
+    Object.fromEntries(feature.criteriaRequirement),
+  ])));
+  return JSON.stringify(obj, null, 2);
+}
+
+// # Utils
+
+/**
+ * @param {string} filePath
+ * @param {string} contents
+ */
+function writeFileSetErrorExitCodeButDontThrowIfFails(filePath, contents) {
+  fs.writeFile(filePath, contents, (err) => {
+    if (err) {
+      // The script is allowed to continue writing other files, but it will exit
+      // with an error code.
+      process.exitCode = 1;
+      console.error(`ERROR SAVING FILE (${filePath}):`, err);
+    } else {
+      console.info(`FILE SAVED: ${filePath}`);
+    }
+  });
 }

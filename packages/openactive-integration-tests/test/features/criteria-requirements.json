@@ -1,0 +1,119 @@
+{
+  "minimal-proposal": {
+    "TestOpportunityBookableFlowRequirementOnlyApproval": 9,
+    "TestOpportunityBookable": 3
+  },
+  "agent-broker": {
+    "TestOpportunityBookable": 8
+  },
+  "amending-order-quote": {
+    "TestOpportunityBookable": 32
+  },
+  "availability-check": {
+    "TestOpportunityBookable": 5,
+    "TestOpportunityBookableNoSpaces": 3
+  },
+  "common-error-conditions": {
+    "TestOpportunityBookable": 20
+  },
+  "dataset-site": {},
+  "opportunity-feed": {},
+  "order-deletion": {
+    "TestOpportunityBookable": 12
+  },
+  "access-code": {
+    "TestOpportunityBookable": 4
+  },
+  "access-code-update-notifications": {},
+  "access-pass-barcode-broker-provided": {},
+  "access-pass-barcode-seller-provided": {
+    "TestOpportunityBookable": 4
+  },
+  "access-pass-image": {
+    "TestOpportunityBookable": 4
+  },
+  "access-pass-update-notifications": {},
+  "dynamic-payment": {},
+  "offer-overrides": {},
+  "booking-partner-authentication": {},
+  "dynamic-client-registration": {},
+  "no-broker": {},
+  "reseller-broker": {},
+  "reseller-broker-tax-calculation": {},
+  "cancellation-window": {},
+  "customer-requested-cancellation": {
+    "TestOpportunityBookableCancellable": 3
+  },
+  "seller-requested-cancellation": {
+    "TestOpportunityBookable": 4
+  },
+  "seller-requested-cancellation-message": {
+    "TestOpportunityBookable": 4
+  },
+  "seller-requested-replacement": {},
+  "multiple-sellers": {
+    "TestOpportunityBookable": 2
+  },
+  "test-interface": {
+    "TestOpportunityBookable": 1
+  },
+  "additional-details-capture": {},
+  "attendee-details-capture-with-payment": {},
+  "attendee-details-capture-without-payment": {},
+  "customer-details-capture-identifier": {
+    "TestOpportunityBookable": 4
+  },
+  "customer-details-capture-non-essential": {
+    "TestOpportunityBookable": 4
+  },
+  "anonymous-leasing": {
+    "TestOpportunityBookableFiveSpaces": 2,
+    "TestOpportunityBookable": 4
+  },
+  "named-leasing": {
+    "TestOpportunityBookableFiveSpaces": 2,
+    "TestOpportunityBookable": 4
+  },
+  "change-of-logistics-notifications": {},
+  "customer-notice-notifications": {},
+  "opportunity-attendance-updates": {},
+  "free-opportunities": {
+    "TestOpportunityBookableFree": 6
+  },
+  "non-free-opportunities": {},
+  "payment-reconciliation-detail-validation": {
+    "TestOpportunityBookableUsingPayment": 15,
+    "TestOpportunityBookable": 5
+  },
+  "prepayment-optional": {
+    "TestOpportunityBookableNonFreePrepaymentOptional": 8
+  },
+  "prepayment-required": {
+    "TestOpportunityBookableNonFreePrepaymentRequired": 8
+  },
+  "prepayment-unavailable": {
+    "TestOpportunityBookableNonFreePrepaymentUnavailable": 9,
+    "TestOpportunityBookableFree": 3
+  },
+  "booking-restrictions": {},
+  "booking-window": {
+    "TestOpportunityBookableWithinValidFromBeforeStartDate": 3,
+    "TestOpportunityBookable": 2,
+    "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
+  },
+  "business-to-business-tax-calculation-gross": {
+    "TestOpportunityBookableNonFreeTaxGross": 4
+  },
+  "business-to-business-tax-calculation-net": {
+    "TestOpportunityBookableNonFreeTaxNet": 4
+  },
+  "business-to-consumer-tax-calculation-gross": {
+    "TestOpportunityBookableNonFreeTaxGross": 4
+  },
+  "business-to-consumer-tax-calculation-net": {
+    "TestOpportunityBookableNonFreeTaxNet": 4
+  },
+  "terms-of-service": {},
+  "terms-of-service-with-consent": {},
+  "terms-of-service-with-consent-with-date-modified": {}
+}
