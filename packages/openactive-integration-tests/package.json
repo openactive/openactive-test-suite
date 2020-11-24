@@ -7,7 +7,7 @@
     "start": "jest",
     "test": "npm run lint && tsc && npm run doc-gen",
     "debug": "node --inspect ./node_modules/jest/bin/jest.js --runInBand",
-    "lint": "eslint \"test/**/*.js\" \"documentation/**/*.js\"",
+    "lint": "eslint \"test/**/*.js\" \"documentation/**/*.js\" \"test-data-generator/**/*.js\"",
     "lint-fix": "npm run lint -- --fix",
     "doc-gen": "node documentation/generator.js",
     "certificate-validator": "node test/certification/certification-validator-microservice.js",

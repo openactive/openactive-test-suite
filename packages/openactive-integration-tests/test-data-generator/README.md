@@ -44,7 +44,7 @@ The `item` within the file format is identical to the Controlled Opportunity Cre
         "test:startDateMin": "2020-12-20",
         "test:startDateMax": "2020-12-25"
       },
-      "test:numberofInstancesInDistribution": 32
+      "test:numberOfInstancesInDistribution": 32
     }
   ]
 }

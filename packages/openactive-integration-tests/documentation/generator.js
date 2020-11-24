@@ -19,6 +19,17 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
  */
 
 /**
+ * @typedef {{
+ *   _createdByDocumentationGeneratorScript: true,
+ *   criteriaRequirementsByFeature: {
+ *     [featureIdentifier: string]: {
+ *       [criteriaIdentifier: string]: number,
+ *     },
+ *   },
+ * }} CriteriaRequirementsJson
+ */
+
+/**
  * @typedef {object} FeatureJsonLink
  * @property {string} name
  * @property {string} href
@@ -284,16 +295,7 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
  * @param {FeatureMetadataItem[]} features
  */
 function renderCriteraRequirementsJson(features) {
-  /**
-   * @type {{
-   *   _createdByDocumentationGeneratorScript: true,
-   *   criteriaRequirementsByFeature: {
-   *     [featureIdentifier: string]: {
-   *       [criteriaIdentifier: string]: number,
-   *     },
-   *   },
-   * }}
-   */
+  /** @type {CriteriaRequirementsJson} */
   const obj = {
     _createdByDocumentationGeneratorScript: true,
     criteriaRequirementsByFeature: Object.fromEntries(features.map(feature => ([
