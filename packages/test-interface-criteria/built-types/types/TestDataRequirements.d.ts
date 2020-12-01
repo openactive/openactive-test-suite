@@ -14,8 +14,6 @@ export interface DateRange {
   allowNull?: true;
 }
 
-// TODO TODO TODO prefix/suffix for all fields like 'test:prepayment'
-
 export interface QuantitativeValue {
   '@type': 'QuantitativeValue';
   minValue?: number;
