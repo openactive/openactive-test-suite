@@ -41,8 +41,30 @@ The `item` within the file format is identical to the Controlled Opportunity Cre
           }
         },
         "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookable",
-        "test:startDateMin": "2020-12-20",
-        "test:startDateMax": "2020-12-25"
+        "test:testOpportunityDataRequirements": {
+          "@type": "test:OpportunityTestDataRequirements",
+          "test:startDate": {
+            "@type": "test:DateRange",
+            "minDate": "2020-12-20",
+            "maxDate": "2020-12-25",
+          },
+          "test:remainingCapacity": {
+            "@type": "QuantitativeValue",
+            "minValue": 1,
+          }
+        },
+        "test:testOfferDataRequirements": {
+          "@type": "test:OfferTestDataRequirements",
+          "test:price": {
+            "@type": "QuantitativeValue",
+            "minValue": 0.01,
+          },
+          "test:prepayment": {
+            "@type": "test:OptionRequirements",
+            "valueType": "oa:RequiredStatusType",
+            "blocklist": ["https://openactive.io/Unavailable"]
+          }
+        }
       },
       "test:numberOfInstancesInDistribution": 32
     }
