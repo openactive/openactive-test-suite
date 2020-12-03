@@ -34,7 +34,6 @@ function getConfigVarOrThrow(subConfigPath, key) {
   return config.get(dottedPath);
 }
 
-//  * @returns {import('ts-toolbelt').Object.Path<Config, [TSubConfigPath, TKey]>}
 /**
  * Wrapper around config.get. Improves it by returning the correct type for the value.
  *
@@ -55,7 +54,19 @@ function getConfigVarOrDefault(subConfigPath, key, defaultValue) {
   return defaultValue;
 }
 
+/**
+ * Note: Sellers Config should, for tests, be consumed from the broker microservice - NOT
+ * DIRECTLY FROM CONFIG. This is because the broker microservice augments the config with
+ * oauth tokens.
+ *
+ * So, this constant should only be used by scripts outside of tests like documentation/test data
+ * generation.
+ * @type {Config['sellers']}
+ */
+const SELLER_CONFIG = config.get('sellers');
+
 module.exports = {
   getConfigVarOrThrow,
   getConfigVarOrDefault,
+  SELLER_CONFIG,
 };

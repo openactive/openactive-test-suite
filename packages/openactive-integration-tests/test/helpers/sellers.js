@@ -1,12 +1,6 @@
-// /**
-//  * @typedef {{
-//  *   requestHeaders: {[headerName: string]: string},
-//  *   '@id': string,
-//  *   '@type': string,
-//  * }} SellerConfig
-//  */
 /**
  * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/OpportunityCriteria').SellerCriteria} SellerCriteria
  */
 
 const { SELLER_CONFIG } = global;
@@ -29,10 +23,27 @@ function getSellerConfigWithTaxMode(taxMode) {
   throw new Error(`No seller specified for tax mode: ${taxMode}`);
 }
 
-// /** @type {SellerConfig} */
-// const primarySeller = SELLER_CONFIG.primary;
+/**
+ * @param {SellerCriteria | null | undefined} sellerCriteria
+ */
+function getSellerConfigFromSellerCriteria(sellerCriteria) {
+  if (sellerCriteria == null) {
+    return SELLER_CONFIG.primary;
+  }
+  switch (sellerCriteria) {
+    case 'primary':
+    case 'secondary':
+      return SELLER_CONFIG[sellerCriteria];
+    case 'taxGross':
+      return getSellerConfigWithTaxMode('https://openactive.io/TaxGross');
+    case 'taxNet':
+      return getSellerConfigWithTaxMode('https://openactive.io/TaxNet');
+    default:
+      throw new Error(`Unrecognized sellerCriteria: ${sellerCriteria}`);
+  }
+}
 
 module.exports = {
   getSellerConfigWithTaxMode,
-  // primarySeller,
+  getSellerConfigFromSellerCriteria,
 };

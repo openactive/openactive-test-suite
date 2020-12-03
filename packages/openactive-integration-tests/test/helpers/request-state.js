@@ -4,6 +4,7 @@ const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
 const { getPrepaymentFromOrder } = require('./order-utils');
 const { getConfigVarOrThrow } = require('./config-utils');
+const { getSellerConfigFromSellerCriteria } = require('./sellers');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -97,8 +98,7 @@ class RequestState {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
-      const sellerKey = orderItemCriteriaItem.seller || 'primary';
-      const seller = SELLER_CONFIG[sellerKey];
+      const seller = getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria);
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
         ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);

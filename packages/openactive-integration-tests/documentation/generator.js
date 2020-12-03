@@ -9,6 +9,7 @@ const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
 const defaultConfig = require('../../../config/default.json');
+const { TallyMap, DefaultMap } = require('../test/helpers/map-utils');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
@@ -16,14 +17,22 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
 
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
+ * @typedef {import('../test/types/OpportunityCriteria').SellerCriteria} SellerCriteria
  */
 
 /**
  * @typedef {{
+ *   [criteriaIdentifier: string]: number,
+ * }} CriteriaRequirementsDatum
+ *
+ * @typedef {{
  *   _createdByDocumentationGeneratorScript: true,
- *   criteriaRequirementsByFeature: {
+ *   criteriaRequirements: {
  *     [featureIdentifier: string]: {
- *       [criteriaIdentifier: string]: number,
+ *       primary?: CriteriaRequirementsDatum,
+ *       secondary?: CriteriaRequirementsDatum,
+ *       taxGross?: CriteriaRequirementsDatum,
+ *       taxNet?: CriteriaRequirementsDatum,
  *     },
  *   },
  * }} CriteriaRequirementsJson
@@ -52,6 +61,7 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
 /**
  * @typedef {FeatureJson & {
  *   criteriaRequirement?: Map<string, number>,
+ *   criteriaRequirementBySellerCriteria?: Map<string, Map<string, number>>,
  * }} FeatureMetadataItem
  */
 
@@ -68,7 +78,7 @@ global.afterEach = () => {};
 global.documentationGenerationMode = true;
 
 // Load metadata from all tests
-const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
+const testMetadata = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   // ## Load the test
@@ -93,15 +103,29 @@ featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
 
 // Build summary of criteria required
 for (const featureMetadataItem of featureMetadata) {
-  /** @type {Map<string, number>} */
-  const criteriaRequirement = new Map();
-  tests.filter(t => t.testFeature === featureMetadataItem.identifier).forEach((t) => {
-    t.criteriaRequirement.forEach((count, opportunityCriteria) => {
-      if (!criteriaRequirement.has(opportunityCriteria)) criteriaRequirement.set(opportunityCriteria, 0);
-      criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
+  /** @type {TallyMap<string>} */
+  const criteriaRequirement = new TallyMap();
+  /** @type {DefaultMap<SellerCriteria, TallyMap<string>>} */
+  const criteriaRequirementBySellerCriteria = new DefaultMap(() => new TallyMap());
+  // For each test in the feature, add up how many opportunities are required for
+  // each opportunity criteria and each seller criteria.
+  for (const testMetadataItem of testMetadata.filter(t => t.testFeature === featureMetadataItem.identifier)) {
+    criteriaRequirement.addFromAnotherMap(testMetadataItem.criteriaRequirement);
+    testMetadataItem.criteriaRequirementBySellerCriteria.forEach((tallyMap, sellerCriteria) => {
+      criteriaRequirementBySellerCriteria.get(sellerCriteria).addFromAnotherMap(tallyMap);
     });
-  });
+  }
   featureMetadataItem.criteriaRequirement = criteriaRequirement;
+  featureMetadataItem.criteriaRequirementBySellerCriteria = criteriaRequirementBySellerCriteria;
+  // /** @type {Map<string, number>} */
+  // const criteriaRequirement = new Map();
+  // testMetadatas.filter(t => t.testFeature === featureMetadataItem.identifier).forEach((t) => {
+  //   t.criteriaRequirement.forEach((count, opportunityCriteria) => {
+  //     if (!criteriaRequirement.has(opportunityCriteria)) criteriaRequirement.set(opportunityCriteria, 0);
+  //     criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
+  //   });
+  // });
+  // featureMetadataItem.criteriaRequirement = criteriaRequirement;
 }
 
 // Save opportunity criteria requirements for each future to a machine-readable (JSON)
@@ -192,8 +216,8 @@ function renderFeatureIndexFeatureFragment(f) {
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureReadme(f) {
-  const implementedTests = tests.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented);
-  const notImplementedTests = tests.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented);
+  const implementedTests = testMetadata.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented);
+  const notImplementedTests = testMetadata.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented);
 
   return `[< Return to Overview](../../README.md)
 # ${f.name} (${f.identifier})
@@ -298,10 +322,17 @@ function renderCriteraRequirementsJson(features) {
   /** @type {CriteriaRequirementsJson} */
   const obj = {
     _createdByDocumentationGeneratorScript: true,
-    criteriaRequirementsByFeature: Object.fromEntries(features.map(feature => ([
+    criteriaRequirements: Object.fromEntries(features.map(feature => ([
       feature.identifier,
-      Object.fromEntries(feature.criteriaRequirement),
+      Object.fromEntries(Array.from(feature.criteriaRequirementBySellerCriteria).map(([sellerCriteria, tallyByCriteria]) => ([
+        sellerCriteria,
+        Object.fromEntries(tallyByCriteria),
+      ]))),
     ]))),
+    // criteriaRequirementsByFeature: Object.fromEntries(features.map(feature => ([
+    //   feature.identifier,
+    //   Object.fromEntries(feature.criteriaRequirement),
+    // ]))),
   };
   return JSON.stringify(obj, null, 2);
 }
