@@ -23,16 +23,13 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
 /**
  * @typedef {{
  *   [criteriaIdentifier: string]: number,
- * }} CriteriaRequirementsDatum
+ * }} CriteriaRequirementsDatumObj
  *
  * @typedef {{
  *   _createdByDocumentationGeneratorScript: true,
  *   criteriaRequirements: {
  *     [featureIdentifier: string]: {
- *       primary?: CriteriaRequirementsDatum,
- *       secondary?: CriteriaRequirementsDatum,
- *       taxGross?: CriteriaRequirementsDatum,
- *       taxNet?: CriteriaRequirementsDatum,
+ *       [sellerCriteria in SellerCriteria]?: CriteriaRequirementsDatumObj;
  *     },
  *   },
  * }} CriteriaRequirementsJson
@@ -308,15 +305,12 @@ function renderCriteraRequirementsJson(features) {
     _createdByDocumentationGeneratorScript: true,
     criteriaRequirements: Object.fromEntries(features.map(feature => ([
       feature.identifier,
+      // TODO TODO TODO make this easier to read
       Object.fromEntries(Array.from(feature.sellerCriteriaRequirements).map(([sellerCriteria, tallyByCriteria]) => ([
         sellerCriteria,
         Object.fromEntries(tallyByCriteria),
       ]))),
     ]))),
-    // criteriaRequirementsByFeature: Object.fromEntries(features.map(feature => ([
-    //   feature.identifier,
-    //   Object.fromEntries(feature.criteriaRequirement),
-    // ]))),
   };
   return JSON.stringify(obj, null, 2);
 }

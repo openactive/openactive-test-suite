@@ -30,6 +30,7 @@ module.exports = {
     'max-len': 'off',
     'no-await-in-loop': 'off',
     'no-console': 'off',
+    'no-continue': 'off',
     'no-restricted-syntax': 'off',
     'func-names': 'off',
     'no-return-await': 'off',

@@ -120,7 +120,6 @@ class FeatureHelper {
 
     if (global.documentationGenerationMode) {
       const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
-      // TODO TODO TODO perhaps here is where we should also specify criteria requirement by seller profile
       const criteriaRequirement = new CriteriaRequirementsDatum();
       const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
@@ -136,10 +135,6 @@ class FeatureHelper {
           sellerCriteriaRequirements.get(sellerCriteria).add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
           criteriaRequirement.add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
         }
-        // orderItemCriteria.forEach((x) => {
-        //   if (!criteriaRequirement.has(x.opportunityCriteria)) criteriaRequirement.set(x.opportunityCriteria, 0);
-        //   criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + numOpportunitiesUsedPerCriteria);
-        // });
       }
 
       // This function mutates its arg, documentationModule

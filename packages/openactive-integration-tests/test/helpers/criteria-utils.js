@@ -12,11 +12,14 @@ class CriteriaRequirementsDatum extends TallyMap { }
 
 /**
  * { [sellerCriteria] => { [opportunityCriteria] => [numOpportunitiesRequired] } }
- * @extends {DefaultMap<SellerCriteria, TallyMap<string>}
+ * @extends {DefaultMap<SellerCriteria, CriteriaRequirementsDatum>}
  */
 class SellerCriteriaRequirements extends DefaultMap {
-  constructor() {
-    super(() => new CriteriaRequirementsDatum());
+  /**
+   * @param {[SellerCriteria, CriteriaRequirementsDatum][]} [entries]
+   */
+  constructor(entries) {
+    super(() => new CriteriaRequirementsDatum(), entries);
   }
 
   /**

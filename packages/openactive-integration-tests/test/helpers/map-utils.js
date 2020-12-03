@@ -27,9 +27,10 @@ function mergeMapsWithMut(mergerFnMut, mapThatIsMergedIntoMut, maps) {
 class DefaultMap extends Map {
   /**
    * @param {() => TValue} getDefaultFn
+   * @param {[TKey, TValue][]} [entries]
    */
-  constructor(getDefaultFn) {
-    super();
+  constructor(getDefaultFn, entries) {
+    super(entries);
     this._getDefaultFn = getDefaultFn;
   }
 
@@ -58,8 +59,11 @@ class DefaultMap extends Map {
  * @extends {DefaultMap<TKey, number>}
  */
 class TallyMap extends DefaultMap {
-  constructor() {
-    super(always(0));
+  /**
+   * @param {[TKey, number][]} [entries]
+   */
+  constructor(entries) {
+    super(always(0), entries);
   }
 
   /**
