@@ -5,7 +5,7 @@ const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
-const { TallyMap, DefaultMap } = require('./map-utils');
+const { CriteriaRequirementsDatum, SellerCriteriaRequirements } = require('./criteria-utils');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
@@ -58,15 +58,16 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
- *   criteriaRequirement: Map<string, number>,
- *   criteriaRequirementBySellerCriteria: Map<SellerCriteria, Map<string, number>>,
+ *   criteriaRequirement: CriteriaRequirementsDatum,
+ *   sellerCriteriaRequirements: SellerCriteriaRequirements,
  * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
  *   This is used by the documentation generator to get data about the tests.
  *
  *   `criteriaRequirement` is a map of how many of each opportunity criteria (e.g. TestOpportunityBookable)
- *   is required.
+ *   is required. THIS FIELD IS OBSOLETE. PLEASE USE sellerCriteriaRequirements, which groups requirements
+ *   by seller.
  *
- *   `criteriaRequirementBySellerCriteria`: { [sellerCriteria] => { [criteria] => [number] } }
+ *   `sellerCriteriaRequirements`: { [sellerCriteria] => { [opportunityCriteria] => [number] } }
  */
 
 class FeatureHelper {
@@ -120,13 +121,8 @@ class FeatureHelper {
     if (global.documentationGenerationMode) {
       const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
       // TODO TODO TODO perhaps here is where we should also specify criteria requirement by seller profile
-      /** @type {TallyMap<string>} */
-      const criteriaRequirement = new TallyMap();
-      /**
-       * { [sellerCriteria] => { [criteria] => [number] } }
-       * @type {DefaultMap<SellerCriteria, TallyMap<string>>}
-       */
-      const criteriaRequirementBySellerCriteria = new DefaultMap(() => new TallyMap());
+      const criteriaRequirement = new CriteriaRequirementsDatum();
+      const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
       if (!configuration.runOnce) {
         /** @type {OpportunityCriteria[]} */
@@ -137,7 +133,7 @@ class FeatureHelper {
 
         for (const orderItemCriteria of orderItemCriteriaList) {
           const sellerCriteria = orderItemCriteria.sellerCriteria || 'primary';
-          criteriaRequirementBySellerCriteria.get(sellerCriteria).add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
+          sellerCriteriaRequirements.get(sellerCriteria).add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
           criteriaRequirement.add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
         }
         // orderItemCriteria.forEach((x) => {
@@ -151,7 +147,7 @@ class FeatureHelper {
       documentationModule.exports = /** @type {TestModuleExports} */({
         ...configuration,
         criteriaRequirement,
-        criteriaRequirementBySellerCriteria,
+        sellerCriteriaRequirements,
       });
       return;
     }

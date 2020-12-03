@@ -1,6 +1,23 @@
 const { always } = require('ramda');
 
 /**
+ * TODO TODO TODO document
+ *
+ * @template {Map<unknown>} TMap
+ * @param {(mapThatIsMergedIntoMut: TMap, mapThatIsMergedFrom: TMap) => void} mergerFnMut
+ *   Function that merges one map into another.
+ * @param {TMap} mapThatIsMergedIntoMut Maps will be merged into this one. It will be mutated.
+ * @param {TMap[]} maps
+ * @returns {TMap}
+ */
+function mergeMapsWithMut(mergerFnMut, mapThatIsMergedIntoMut, maps) {
+  for (const map of maps) {
+    mergerFnMut(mapThatIsMergedIntoMut, map);
+  }
+  return mapThatIsMergedIntoMut;
+}
+
+/**
  * Map that has a default value when an element doesn't exist. Inspired by defaultdict in Python.
  *
  * @template TKey
@@ -57,25 +74,30 @@ class TallyMap extends DefaultMap {
   }
 
   /**
-   * Add tallys from another Map.
+   * Merges TallyMaps by adding the tallies together for keys which are in both maps.
    *
-   * @param {Map<TKey, number>} anotherMap
+   * @template TKey
+   * @param {TallyMap<TKey>} mapThatIsMergedIntoMut
+   * @param {TallyMap<TKey>} mapThatIsMergedFrom
    */
-  addFromAnotherMap(anotherMap) {
-    anotherMap.forEach((tally, key) => {
-      this.add(key, tally);
+  static mergerMut(mapThatIsMergedIntoMut, mapThatIsMergedFrom) {
+    mapThatIsMergedFrom.forEach((tally, key) => {
+      mapThatIsMergedIntoMut.add(key, tally);
     });
   }
 
-  // /**
-  //  * @param {TKey} key
-  //  */
-  // increment(key) {
-  //   this.add(key, 1);
-  // }
+  /**
+   * @template TKey
+   * @param {TallyMap<TKey>[]} tallyMaps
+   * @returns {TallyMap<TKey>}
+   */
+  static combine(tallyMaps) {
+    return mergeMapsWithMut(TallyMap.mergerMut, new TallyMap(), tallyMaps);
+  }
 }
 
 module.exports = {
+  mergeMapsWithMut,
   DefaultMap,
   TallyMap,
 };

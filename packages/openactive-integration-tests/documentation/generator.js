@@ -9,7 +9,7 @@ const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
 const defaultConfig = require('../../../config/default.json');
-const { TallyMap, DefaultMap } = require('../test/helpers/map-utils');
+const { CriteriaRequirementsDatum, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
@@ -61,7 +61,7 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
 /**
  * @typedef {FeatureJson & {
  *   criteriaRequirement?: Map<string, number>,
- *   criteriaRequirementBySellerCriteria?: Map<string, Map<string, number>>,
+ *   sellerCriteriaRequirements?: Map<string, Map<string, number>>,
  * }} FeatureMetadataItem
  */
 
@@ -103,29 +103,13 @@ featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
 
 // Build summary of criteria required
 for (const featureMetadataItem of featureMetadata) {
-  /** @type {TallyMap<string>} */
-  const criteriaRequirement = new TallyMap();
-  /** @type {DefaultMap<SellerCriteria, TallyMap<string>>} */
-  const criteriaRequirementBySellerCriteria = new DefaultMap(() => new TallyMap());
+  const testMetadataThatAreWithinFeature = testMetadata.filter(t => t.testFeature === featureMetadataItem.identifier);
   // For each test in the feature, add up how many opportunities are required for
   // each opportunity criteria and each seller criteria.
-  for (const testMetadataItem of testMetadata.filter(t => t.testFeature === featureMetadataItem.identifier)) {
-    criteriaRequirement.addFromAnotherMap(testMetadataItem.criteriaRequirement);
-    testMetadataItem.criteriaRequirementBySellerCriteria.forEach((tallyMap, sellerCriteria) => {
-      criteriaRequirementBySellerCriteria.get(sellerCriteria).addFromAnotherMap(tallyMap);
-    });
-  }
+  const criteriaRequirement = CriteriaRequirementsDatum.combine(testMetadataThatAreWithinFeature.map(t => t.criteriaRequirement));
+  const sellerCriteriaRequirements = SellerCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.sellerCriteriaRequirements));
   featureMetadataItem.criteriaRequirement = criteriaRequirement;
-  featureMetadataItem.criteriaRequirementBySellerCriteria = criteriaRequirementBySellerCriteria;
-  // /** @type {Map<string, number>} */
-  // const criteriaRequirement = new Map();
-  // testMetadatas.filter(t => t.testFeature === featureMetadataItem.identifier).forEach((t) => {
-  //   t.criteriaRequirement.forEach((count, opportunityCriteria) => {
-  //     if (!criteriaRequirement.has(opportunityCriteria)) criteriaRequirement.set(opportunityCriteria, 0);
-  //     criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
-  //   });
-  // });
-  // featureMetadataItem.criteriaRequirement = criteriaRequirement;
+  featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;
 }
 
 // Save opportunity criteria requirements for each future to a machine-readable (JSON)
@@ -324,7 +308,7 @@ function renderCriteraRequirementsJson(features) {
     _createdByDocumentationGeneratorScript: true,
     criteriaRequirements: Object.fromEntries(features.map(feature => ([
       feature.identifier,
-      Object.fromEntries(Array.from(feature.criteriaRequirementBySellerCriteria).map(([sellerCriteria, tallyByCriteria]) => ([
+      Object.fromEntries(Array.from(feature.sellerCriteriaRequirements).map(([sellerCriteria, tallyByCriteria]) => ([
         sellerCriteria,
         Object.fromEntries(tallyByCriteria),
       ]))),
