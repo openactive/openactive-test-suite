@@ -1,16 +1,16 @@
 const _ = require('lodash');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
-const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
 const { getPrepaymentFromOrder } = require('./order-utils');
+const { getConfigVarOrThrow } = require('./config-utils');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 const { HARVEST_START_TIME, SELLER_CONFIG } = global;
 
 function isResponse20x(response) {

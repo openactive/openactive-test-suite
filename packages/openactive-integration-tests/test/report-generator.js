@@ -4,10 +4,11 @@ const fs = require("fs").promises;
 const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
-const config = require("config");
-const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
-const OUTPUT_PATH = config.get('outputPath');
-const ENABLE_HEADER_LOGGING = config.get('requestHeaderLogging');
+const { getConfigVarOrThrow } = require('./helpers/config-utils');
+
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const ENABLE_HEADER_LOGGING = getConfigVarOrThrow('integrationTests', 'requestHeaderLogging');
 
 class BaseReportGenerator {
   get templateName () {

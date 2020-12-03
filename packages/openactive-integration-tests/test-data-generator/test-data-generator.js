@@ -1,6 +1,6 @@
-const config = require('config');
 const fs = require('fs').promises;
 const path = require('path');
+const { getConfigVarOrThrow } = require('../test/helpers/config-utils');
 // const { sum } = require('ramda');
 
 /**
@@ -26,8 +26,8 @@ const path = require('path');
  * }} TestDataListItem
  */
 
-/** @type {{ [featureIdentifier: string]: boolean | null }} */
-const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
+// /** @type {{ [featureIdentifier: string]: boolean | null }} */
+const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 
 const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'criteria-requirements.json');
 

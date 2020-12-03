@@ -8,7 +8,7 @@ const fs = require('fs');
 const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
-const defaultConfig = require('../config/default.json');
+const defaultConfig = require('../../../config/default.json');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
@@ -76,7 +76,7 @@ const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (
   // ## Validate the test metadata
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
   chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
-  chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
+  chai.expect(defaultConfig.integrationTests.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
   return data;
 });
 

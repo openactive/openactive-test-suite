@@ -1,12 +1,12 @@
 const NodeEnvironment = require('jest-environment-node');
 const axios = require('axios');
-const config = require('config');
+const { getConfigVarOrThrow } = require('./helpers/config-utils');
 
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
-const TEST_DATASET_IDENTIFIER = config.get('testDatasetIdentifier');
+const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
 
-const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
-const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 
 class TestEnvironment extends NodeEnvironment {
   constructor(config) {

@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai');
-const config = require('config');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { OpenIDConnectFlow } = require('../../../../shared-behaviours');

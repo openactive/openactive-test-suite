@@ -3,30 +3,34 @@ const express = require('express');
 const http = require('http');
 const logger = require('morgan');
 const { default: axios } = require('axios');
-const config = require('config');
 const { criteria, testMatch } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
+const path = require('path');
 const { performance } = require('perf_hooks');
 const sleep = require('util').promisify(setTimeout);
 const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 
-const DATASET_SITE_URL = config.get('datasetSiteUrl');
-const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
-const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-const VERBOSE = config.get('verbose');
+// Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
+process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
+const config = require('config');
+
+const DATASET_SITE_URL = config.get('broker.datasetSiteUrl');
+const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
+const WAIT_FOR_HARVEST = config.get('broker.waitForHarvestCompletion');
+const VERBOSE = config.get('broker.verbose');
 const HARVEST_START_TIME = new Date();
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
-const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeaders') ? config.get('opportunityFeedRequestHeaders') : {
+const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {
 };
-const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
-const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
-const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
-const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
-const LOG_AUTH_CONFIG = config.has('logAuthConfig') ? config.get('logAuthConfig') : false;
-const BUTTON_SELECTOR = config.has('loginPageButtonSelector') ? config.get('loginPageButtonSelector') : '.btn-primary';
+const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
+const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
+const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
+const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
+const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
+const BUTTON_SELECTOR = config.has('broker.loginPageButtonSelector') ? config.get('broker.loginPageButtonSelector') : '.btn-primary';
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -43,7 +47,7 @@ const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
 
-const globalAuthKeyManager = new OpenActiveTestAuthKeyManager(log, MICROSERVICE_BASE_URL, config.get('sellers'), config.get('bookingPartners'));
+const globalAuthKeyManager = new OpenActiveTestAuthKeyManager(log, MICROSERVICE_BASE_URL, config.get('sellers'), config.get('broker.bookingPartners'));
 
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
