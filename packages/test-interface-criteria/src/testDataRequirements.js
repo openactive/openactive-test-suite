@@ -11,11 +11,6 @@
  * @typedef {import('./types/TestDataRequirements').ValueType} ValueType
  */
 
-// /** @type {EventStatusType} */
-// const EVENT_STATUS_EVENT_CANCELLED = 'https://schema.org/EventCancelled';
-// /** @type {EventStatusType} */
-// const EVENT_STATUS_EVENT_POSTPONED = 'https://schema.org/EventPostponed';
-
 // # Generic requirements
 /**
  * @param {Omit<TestDataRequirements['test:testOpportunityDataRequirements'], '@type'>} requirements
@@ -171,8 +166,6 @@ function termsOfServiceArrayRequirements(minLength) {
 }
 
 module.exports = {
-  // EVENT_STATUS_EVENT_CANCELLED,
-  // EVENT_STATUS_EVENT_POSTPONED,
   testOpportunityDataRequirements,
   testOfferDataRequirements,
   dateRange,

@@ -1,4 +1,3 @@
-// TODO fix eslint ignores in this file
 const chakram = require('chakram');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');

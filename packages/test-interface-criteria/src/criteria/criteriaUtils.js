@@ -10,7 +10,65 @@ const { isObject } = require('lodash');
  * @typedef {import('../types/Criteria').Criteria} Criteria
  * @typedef {import('../types/Criteria').TestDataRequirementsFactory} TestDataRequirementsFactory
  * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
+ * @typedef {import('../types/TestDataRequirements').TestDataFieldRequirement} TestDataFieldRequirement
+ * @typedef {import('../types/TestDataRequirements').DateRange} DateRange
  */
+
+/**
+ * @template {TestDataFieldRequirement} TRequirement
+ * @param {TRequirement['@type']} expectedType
+ * @param {TestDataFieldRequirement} requirement
+ * @param {string} criteriaName
+ * @returns {TRequirement}
+ */
+function assertFieldRequirementType(expectedType, requirement, criteriaName) {
+  if (requirement['@type'] !== expectedType) {
+    throw new Error(`Cannot merge requirements for criteria "${criteriaName}" as they have different types. "${requirement['@type']}" !== "${expectedType}`);
+  }
+  return /** @type {any} */(requirement);
+}
+
+/**
+ * @param {DateRange} reqA
+ * @param {DateRange} reqB
+ * @returns {DateRange}
+ */
+function mergeDateRange(reqA, reqB) {
+  if (reqA.minDate && reqB.minDate) { throw new Error('unsupported'); }
+  if (reqA.maxDate && reqB.maxDate) { throw new Error('unsupported'); }
+  /** @type {DateRange} */
+  const dateRange = {
+    '@type': 'test:DateRange',
+  };
+  const allowNull = reqA.allowNull && reqB.allowNull;
+  if (allowNull) {
+    dateRange.allowNull = true;
+  }
+  const minDate = reqA.minDate || reqB.minDate;
+  if (minDate) {
+    dateRange.minDate = minDate;
+  }
+  const maxDate = reqA.maxDate || reqB.maxDate;
+  if (maxDate) {
+    dateRange.maxDate = maxDate;
+  }
+  return dateRange;
+}
+
+/**
+ * @param {TestDataFieldRequirement} reqA
+ * @param {TestDataFieldRequirement} reqB
+ * @param {string} criteriaName
+ * @returns {TestDataFieldRequirement}
+ */
+function mergeTestData(reqA, reqB, criteriaName) {
+  switch (reqA['@type']) {
+    case 'test:DateRange':
+      return mergeDateRange(reqA, assertFieldRequirementType('test:DateRange', reqB, criteriaName));
+    default:
+      throw new Error(`Merging is not supported for requirements of type "${reqA['@type']}" (criteria "${criteriaName}")`);
+  }
+}
 
 /**
  * @param {object} args
@@ -48,20 +106,27 @@ function createCriteria({
       if (!includeConstraintsFromCriteria) { return testDataRequirementsFactory(options); }
       const baseTestDataRequirements = baseTestDataRequirementsFactory(options);
       const thisTestDataRequirements = testDataRequirementsFactory(options);
+      // TODO TODO TODO run test-data-generator and see the issue
       // TODO if needed, create functionality for merging requirements. e.g. two dateRanges could be merged by taking the latest minDate and the earliest maxDate (i.e. an intersection of both requirements)
       // Do any of the opportunity requirements overlap?
       if (baseTestDataRequirements['test:testOpportunityDataRequirements'] && thisTestDataRequirements['test:testOpportunityDataRequirements']) {
         for (const key of Object.keys(baseTestDataRequirements['test:testOpportunityDataRequirements'])) {
+          if (key === '@type') { continue; } // this is not a requirement field
           if (key in thisTestDataRequirements['test:testOpportunityDataRequirements']) {
-            throw new Error(`Criteria (name: "${name}") cannot extend Criteria (name: "${includeConstraintsFromCriteria.name}") as it has overlapping testOpportunityDataRequirements (key: "${key}"). This can be fixed by improving the logic so that these requirements can be merged`);
+            const baseFieldRequirement = baseTestDataRequirements['test:testOpportunityDataRequirements'][key];
+            const thisFieldRequirement = thisTestDataRequirements['test:testOpportunityDataRequirements'][key];
+            thisTestDataRequirements['test:testOpportunityDataRequirements'][key] = mergeTestData(baseFieldRequirement, thisFieldRequirement, name);
           }
         }
       }
       // Do any of the offer requirements overlap?
       if (baseTestDataRequirements['test:testOfferDataRequirements'] && thisTestDataRequirements['test:testOfferDataRequirements']) {
         for (const key of Object.keys(baseTestDataRequirements['test:testOfferDataRequirements'])) {
+          if (key === '@type') { continue; } // this is not a requirement field
           if (key in thisTestDataRequirements['test:testOfferDataRequirements']) {
-            throw new Error(`Criteria (name: "${name}") cannot extend Criteria (name: "${includeConstraintsFromCriteria.name}") as it has overlapping testOfferDataRequirements (key: "${key}"). This can be fixed by improving the logic so that these requirements can be merged`);
+            const baseFieldRequirement = baseTestDataRequirements['test:testOfferDataRequirements'][key];
+            const thisFieldRequirement = thisTestDataRequirements['test:testOfferDataRequirements'][key];
+            thisTestDataRequirements['test:testOfferDataRequirements'][key] = mergeTestData(baseFieldRequirement, thisFieldRequirement, name);
           }
         }
       }

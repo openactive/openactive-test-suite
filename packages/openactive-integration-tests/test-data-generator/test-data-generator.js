@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
+const util = require('util');
 const { getConfigVarOrThrow, SELLER_CONFIG } = require('../test/helpers/config-utils');
 const { SellerCriteriaRequirements, OpportunityCriteriaRequirements } = require('../test/helpers/criteria-utils');
 const { getSellerConfigFromSellerCriteria } = require('../test/helpers/sellers');
@@ -98,5 +99,5 @@ const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 
     numberOfItems,
     itemListElement,
   };
-  console.log(testData);
+  console.log(util.inspect(testData, false, 10, true));
 })();

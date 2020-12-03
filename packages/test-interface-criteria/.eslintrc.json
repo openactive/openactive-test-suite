@@ -15,6 +15,7 @@
     }],
     "max-len": "off",
     "no-await-in-loop": 0,
+    "no-continue": "off",
     "no-restricted-syntax": 0,
     "func-names": "off",
     "prefer-arrow-callback": "off",
