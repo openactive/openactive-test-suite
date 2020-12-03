@@ -5,7 +5,7 @@ const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
-const { CriteriaRequirementsDatum, SellerCriteriaRequirements } = require('./criteria-utils');
+const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
@@ -58,7 +58,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
- *   criteriaRequirement: CriteriaRequirementsDatum,
+ *   criteriaRequirement: OpportunityCriteriaRequirements,
  *   sellerCriteriaRequirements: SellerCriteriaRequirements,
  * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
  *   This is used by the documentation generator to get data about the tests.
@@ -120,7 +120,7 @@ class FeatureHelper {
 
     if (global.documentationGenerationMode) {
       const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
-      const criteriaRequirement = new CriteriaRequirementsDatum();
+      const criteriaRequirement = new OpportunityCriteriaRequirements();
       const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
       if (!configuration.runOnce) {

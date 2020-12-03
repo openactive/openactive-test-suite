@@ -1,7 +1,9 @@
 const fs = require('fs').promises;
 const path = require('path');
-const { getConfigVarOrThrow } = require('../test/helpers/config-utils');
-const { SellerCriteriaRequirements, CriteriaRequirementsDatum } = require('../test/helpers/criteria-utils');
+const { getConfigVarOrThrow, SELLER_CONFIG } = require('../test/helpers/config-utils');
+const { SellerCriteriaRequirements, OpportunityCriteriaRequirements } = require('../test/helpers/criteria-utils');
+const { getSellerConfigFromSellerCriteria } = require('../test/helpers/sellers');
+const { createTestInterfaceOpportunity } = require('../test/helpers/test-interface-opportunities');
 
 /**
  * @typedef {import('../documentation/generator').CriteriaRequirementsJson} CriteriaRequirementsJson
@@ -27,8 +29,12 @@ const { SellerCriteriaRequirements, CriteriaRequirementsDatum } = require('../te
  * }} TestDataListItem
  */
 
-// /** @type {{ [featureIdentifier: string]: boolean | null }} */
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+/** An array of those opportunity types which the Booking System is testing */
+const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ)
+  .filter(([_, isInScope]) => isInScope) // eslint-disable-line no-unused-vars
+  .map(([opportunityType, _]) => opportunityType); // eslint-disable-line no-unused-vars
 
 const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'criteria-requirements.json');
 
@@ -54,29 +60,43 @@ const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 
     const sellerCriteriaRequirementsObjEntries = /** @type {any} */(Object.entries(sellerCriteriaRequirementsObj));
     // This is a bit baroque. It's converting the JSON object into Maps (specifically,
     // our SellerCriteriaRequirements maps).
-    const sellerCriteriaRequirements = new SellerCriteriaRequirements(sellerCriteriaRequirementsObjEntries.map(([sellerCriteria, criteriaRequirementsDatum]) => ([
+    const sellerCriteriaRequirements = new SellerCriteriaRequirements(sellerCriteriaRequirementsObjEntries.map(([sellerCriteria, opportunityCriteriaRequirements]) => ([
       sellerCriteria,
-      new CriteriaRequirementsDatum(Object.entries(criteriaRequirementsDatum)),
+      new OpportunityCriteriaRequirements(Object.entries(opportunityCriteriaRequirements)),
     ])));
     sellerCriteriaRequirementMaps.push(sellerCriteriaRequirements);
   }
   const combinedSellerRequirements = SellerCriteriaRequirements.combine(sellerCriteriaRequirementMaps);
-  console.log(combinedSellerRequirements); // TODO delete me
 
-  // // # Create Test Data
-  // //
-  // // One for each criteria
-  // /** @type {TestData['itemListElement']} */
-  // const itemListElement = Array.from(criteriaCounts, ([criteriaIdentifier, count]) => ({
-  //   '@type': 'ListItem',
-  //   'test:numberOfInstancesInDistribution': count,
-  //   item: null,
-  // }));
-  // /** @type {TestData} */
-  // const testData = {
-  //   '@context': ['https://openactive.io/', 'https://openactive.io/test-interface'],
-  //   '@type': 'ItemList',
-  //   numberOfItems: sum(Array.from(criteriaCounts.values())),
-  //   itemListElement,
-  // };
+  // # Create Test Data
+  //
+  // One for each seller x opportunity criteria
+  /** @type {TestDataListItem[]} */
+  const itemListElement = [];
+  let numberOfItems = 0;
+  for (const [sellerCriteria, opportunityCriteriaRequirements] of combinedSellerRequirements) {
+    // We're overriding the seller config in this call because this function, by default,
+    // gets seller config from global.SELLER_CONFIG, which is set by broker.
+    // Broker is not running, so we override it with seller config directly from the config file.
+    const seller = getSellerConfigFromSellerCriteria(sellerCriteria, SELLER_CONFIG);
+    for (const [opportunityCriteria, numOpportunitiesRequired] of opportunityCriteriaRequirements) {
+      for (const opportunityType of IMPLEMENTED_OPPORTUNITY_TYPES) {
+        numberOfItems += numOpportunitiesRequired;
+        const testInterfaceOpportunity = createTestInterfaceOpportunity(opportunityType, opportunityCriteria, seller['@id'], seller['@type']);
+        itemListElement.push({
+          '@type': 'ListItem',
+          'test:numberOfInstancesInDistribution': numOpportunitiesRequired,
+          item: testInterfaceOpportunity,
+        });
+      }
+    }
+  }
+  /** @type {TestData} */
+  const testData = {
+    '@context': ['https://openactive.io/', 'https://openactive.io/test-interface'],
+    '@type': 'ItemList',
+    numberOfItems,
+    itemListElement,
+  };
+  console.log(testData);
 })();

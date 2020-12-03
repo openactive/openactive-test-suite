@@ -8,18 +8,18 @@ const { mergeMapsWithMut, DefaultMap, TallyMap } = require('./map-utils');
  * { [opportunityCriteria] => [numOpportunitiesRequired]}
  * @extends {TallyMap<string>}
  */
-class CriteriaRequirementsDatum extends TallyMap { }
+class OpportunityCriteriaRequirements extends TallyMap { }
 
 /**
  * { [sellerCriteria] => { [opportunityCriteria] => [numOpportunitiesRequired] } }
- * @extends {DefaultMap<SellerCriteria, CriteriaRequirementsDatum>}
+ * @extends {DefaultMap<SellerCriteria, OpportunityCriteriaRequirements>}
  */
 class SellerCriteriaRequirements extends DefaultMap {
   /**
-   * @param {[SellerCriteria, CriteriaRequirementsDatum][]} [entries]
+   * @param {[SellerCriteria, OpportunityCriteriaRequirements][]} [entries]
    */
   constructor(entries) {
-    super(() => new CriteriaRequirementsDatum(), entries);
+    super(() => new OpportunityCriteriaRequirements(), entries);
   }
 
   /**
@@ -29,8 +29,8 @@ class SellerCriteriaRequirements extends DefaultMap {
    * @param {SellerCriteriaRequirements} mapThatIsMergedFrom
    */
   static mergerMut(mapThatIsMergedIntoMut, mapThatIsMergedFrom) {
-    mapThatIsMergedFrom.forEach((criteriaRequirementsDatum, sellerCriteria) => {
-      TallyMap.mergerMut(mapThatIsMergedIntoMut.get(sellerCriteria), criteriaRequirementsDatum);
+    mapThatIsMergedFrom.forEach((opportunityCriteriaRequirements, sellerCriteria) => {
+      TallyMap.mergerMut(mapThatIsMergedIntoMut.get(sellerCriteria), opportunityCriteriaRequirements);
     });
   }
 
@@ -44,6 +44,6 @@ class SellerCriteriaRequirements extends DefaultMap {
 }
 
 module.exports = {
-  CriteriaRequirementsDatum,
+  OpportunityCriteriaRequirements,
   SellerCriteriaRequirements,
 };

@@ -25,15 +25,16 @@ function getSellerConfigWithTaxMode(taxMode) {
 
 /**
  * @param {SellerCriteria | null | undefined} sellerCriteria
+ * @param {typeof SELLER_CONFIG} sellerConfig Seller Config can be overridden here
  */
-function getSellerConfigFromSellerCriteria(sellerCriteria) {
+function getSellerConfigFromSellerCriteria(sellerCriteria, sellerConfig = SELLER_CONFIG) {
   if (sellerCriteria == null) {
-    return SELLER_CONFIG.primary;
+    return sellerConfig.primary;
   }
   switch (sellerCriteria) {
     case 'primary':
     case 'secondary':
-      return SELLER_CONFIG[sellerCriteria];
+      return sellerConfig[sellerCriteria];
     case 'taxGross':
       return getSellerConfigWithTaxMode('https://openactive.io/TaxGross');
     case 'taxNet':

@@ -20,7 +20,8 @@ export interface BaseTestInterfaceOpportunity {
     'https://openactive.io/test-interface',
   ];
   'test:testOpportunityCriteria': string;
-  'test:testDataRequirements': TestDataRequirements;
+  'test:testOpportunityDataRequirements'?: TestDataRequirements['test:testOpportunityDataRequirements'];
+  'test:testOfferDataRequirements'?: TestDataRequirements['test:testOfferDataRequirements'];
 }
 
 export interface TestInterfaceScheduledSessionData extends BaseTestInterfaceOpportunity {

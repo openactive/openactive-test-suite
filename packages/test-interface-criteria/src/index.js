@@ -10,9 +10,21 @@ const { getOrganizerOrProvider } = require('./criteria/criteriaUtils');
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
+ * @typedef {import('./types/TestDataRequirements').TestDataRequirements} TestDataRequirements
  */
 
 const criteriaMap = new Map(allCriteria.map((criteria) => [criteria.name, criteria]));
+
+/**
+ * @param {string} criteriaName
+ */
+function getCriteriaAndAssertExists(criteriaName) {
+  const criteria = criteriaMap.get(criteriaName);
+  if (criteria == null) {
+    throw new Error(`Unrecognised criteriaName: ${criteriaName}`);
+  }
+  return criteria;
+}
 
 /**
  * @param {Opportunity} opportunity
@@ -79,8 +91,18 @@ function testMatch(criteria, opportunity, options) {
  * @param {Options} options
  */
 function getRelevantOffers(criteriaName, opportunity, options) {
-  if (!criteriaMap.has(criteriaName)) throw new Error('Invalid criteria name');
-  return filterRelevantOffers(criteriaMap.get(criteriaName), opportunity, options);
+  const criteria = getCriteriaAndAssertExists(criteriaName);
+  return filterRelevantOffers(criteria, opportunity, options);
+}
+
+/**
+ * @param {string} criteriaName
+ * @param {Options} options
+ * @returns {TestDataRequirements}
+ */
+function getTestDataRequirements(criteriaName, options) {
+  const criteria = getCriteriaAndAssertExists(criteriaName);
+  return criteria.testDataRequirements(options);
 }
 
 module.exports = {
@@ -89,6 +111,7 @@ module.exports = {
   criteriaMap,
   testMatch,
   getRelevantOffers,
+  getTestDataRequirements,
   // Utils
   utils: {
     getOrganizerOrProvider,

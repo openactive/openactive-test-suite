@@ -9,7 +9,7 @@ const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
 const defaultConfig = require('../../../config/default.json');
-const { CriteriaRequirementsDatum, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
+const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
@@ -23,13 +23,13 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
 /**
  * @typedef {{
  *   [criteriaIdentifier: string]: number,
- * }} CriteriaRequirementsDatumObj
+ * }} OpportunityCriteriaRequirementsObj
  *
  * @typedef {{
  *   _createdByDocumentationGeneratorScript: true,
  *   criteriaRequirements: {
  *     [featureIdentifier: string]: {
- *       [sellerCriteria in SellerCriteria]?: CriteriaRequirementsDatumObj;
+ *       [sellerCriteria in SellerCriteria]?: OpportunityCriteriaRequirementsObj;
  *     },
  *   },
  * }} CriteriaRequirementsJson
@@ -103,7 +103,7 @@ for (const featureMetadataItem of featureMetadata) {
   const testMetadataThatAreWithinFeature = testMetadata.filter(t => t.testFeature === featureMetadataItem.identifier);
   // For each test in the feature, add up how many opportunities are required for
   // each opportunity criteria and each seller criteria.
-  const criteriaRequirement = CriteriaRequirementsDatum.combine(testMetadataThatAreWithinFeature.map(t => t.criteriaRequirement));
+  const criteriaRequirement = OpportunityCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.criteriaRequirement));
   const sellerCriteriaRequirements = SellerCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.sellerCriteriaRequirements));
   featureMetadataItem.criteriaRequirement = criteriaRequirement;
   featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;

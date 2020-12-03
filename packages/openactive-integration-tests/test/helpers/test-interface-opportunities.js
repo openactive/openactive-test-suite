@@ -1,6 +1,10 @@
+const { getTestDataRequirements } = require('@openactive/test-interface-criteria');
+
 /**
  * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
  */
+
+const { HARVEST_START_TIME } = global;
 
 /**
  * Create opportunity data for sending to https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities
@@ -12,15 +16,16 @@
  * @returns {TestInterfaceOpportunity}
  */
 function createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
-  /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testDataRequirements'>} */
+  const testDataRequirements = getTestDataRequirements(testOpportunityCriteria, { harvestStartTime: HARVEST_START_TIME });
+  /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpportunityDataRequirements' | 'test:testOfferDataRequirements'>} */
   const testInterfaceOpportunityFields = {
     '@context': [
       'https://openactive.io/',
       'https://openactive.io/test-interface',
     ],
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
-    // TODO TODO TODO -v
-    'test:testDataRequirements': null,
+    'test:testOpportunityDataRequirements': testDataRequirements['test:testOpportunityDataRequirements'],
+    'test:testOfferDataRequirements': testDataRequirements['test:testOfferDataRequirements'],
   };
   const seller = sellerId ? {
     '@type': sellerType,
