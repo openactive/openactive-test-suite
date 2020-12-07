@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { dissoc } = require('ramda');
+const yargs = require('yargs/yargs');
 const { getConfigVarOrThrow, SELLER_CONFIG } = require('../test/helpers/config-utils');
 const { SellerCriteriaRequirements, OpportunityCriteriaRequirements } = require('../test/helpers/criteria-utils');
 const { getSellerConfigFromSellerCriteria } = require('../test/helpers/sellers');
@@ -30,6 +31,11 @@ const { createTestInterfaceOpportunity } = require('../test/helpers/test-interfa
  * }} TestDataListItem
  */
 
+// # Constants - File Paths
+const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'criteria-requirements.json');
+const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.json');
+
+// # Constants - Config
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
 /** An array of those opportunity types which the Booking System is testing */
@@ -37,8 +43,26 @@ const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_
   .filter(([_, isInScope]) => isInScope) // eslint-disable-line no-unused-vars
   .map(([opportunityType, _]) => opportunityType); // eslint-disable-line no-unused-vars
 
-const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'criteria-requirements.json');
-const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.json');
+// # Process CLI Args
+const argv = yargs(process.argv.slice(2)) // eslint-disable-line prefer-destructuring
+  .command('$0 [category-or-feature]', 'OpenActive Test Data Generator', (yargsConfig) => {
+    yargsConfig.positional('category-or-feature', {
+      type: 'string',
+      describe: 'Category (e.g. authentication) or Feature (e.g. agent-broker)',
+      default: '*',
+    });
+  })
+  .options({
+    output: {
+      type: 'string',
+      alias: 'o',
+      description: 'Output Directory',
+      default: DEFAULT_OUTPUT_FILE_PATH,
+    },
+  })
+  .argv;
+
+const { output: outputFilePath, 'category-or-feature': categoryOrFeature } = argv;
 
 (async () => {
   // # Load Requirements
@@ -103,7 +127,7 @@ const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.js
   // # Write Test Data
   //
   // Create the directory if it doesn't exist
-  await fs.mkdir(path.dirname(DEFAULT_OUTPUT_FILE_PATH), { recursive: true });
-  await fs.writeFile(DEFAULT_OUTPUT_FILE_PATH, JSON.stringify(testData, null, 2));
-  console.log(`FILE SAVED: ${DEFAULT_OUTPUT_FILE_PATH}`);
+  await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
+  await fs.writeFile(outputFilePath, JSON.stringify(testData, null, 2));
+  console.log(`FILE SAVED: ${outputFilePath}`);
 })();

@@ -47,7 +47,8 @@
     "rmfr": "^2.0.0",
     "shortid": "^2.2.16",
     "strip-ansi": "^6.0.0",
-    "uuid": "^8.3.0"
+    "uuid": "^8.3.0",
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",
