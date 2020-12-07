@@ -38,6 +38,7 @@ const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_
   .map(([opportunityType, _]) => opportunityType); // eslint-disable-line no-unused-vars
 
 const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'criteria-requirements.json');
+const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.json');
 
 (async () => {
   // # Load Requirements
@@ -99,5 +100,10 @@ const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 
     numberOfItems,
     itemListElement,
   };
-  console.log(util.inspect(testData, false, 10, true));
+  // # Write Test Data
+  //
+  // Create the directory if it doesn't exist
+  await fs.mkdir(path.dirname(DEFAULT_OUTPUT_FILE_PATH), { recursive: true });
+  await fs.writeFile(DEFAULT_OUTPUT_FILE_PATH, JSON.stringify(testData, null, 2));
+  console.log(`FILE SAVED: ${DEFAULT_OUTPUT_FILE_PATH}`);
 })();

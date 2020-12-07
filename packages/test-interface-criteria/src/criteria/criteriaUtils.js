@@ -100,7 +100,9 @@ function mergeTestData(reqA, reqB, criteriaName) {
     case 'QuantitativeValue':
       return mergeQuantitativeValues(reqA, assertFieldRequirementType('QuantitativeValue', reqB, criteriaName));
     default:
-      throw new Error(`Merging is not supported for requirements of type "${reqA['@type']}" (criteria "${criteriaName}")`);
+      throw new Error(`Merging is not supported for requirements of type "${reqA['@type']}" (criteria "${criteriaName}").
+
+Please consider implementing merging for this requirements if necessary.`);
   }
 }
 
@@ -140,8 +142,6 @@ function createCriteria({
       if (!includeConstraintsFromCriteria) { return testDataRequirementsFactory(options); }
       const baseTestDataRequirements = baseTestDataRequirementsFactory(options);
       const thisTestDataRequirements = testDataRequirementsFactory(options);
-      // TODO TODO TODO run test-data-generator and see the issue
-      // TODO if needed, create functionality for merging requirements. e.g. two dateRanges could be merged by taking the latest minDate and the earliest maxDate (i.e. an intersection of both requirements)
       // Do any of the opportunity requirements overlap?
       if (baseTestDataRequirements['test:testOpportunityDataRequirements'] && thisTestDataRequirements['test:testOpportunityDataRequirements']) {
         for (const key of Object.keys(baseTestDataRequirements['test:testOpportunityDataRequirements'])) {

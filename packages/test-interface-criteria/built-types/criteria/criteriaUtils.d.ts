@@ -19,16 +19,9 @@ export type Criteria = {
 };
 export type TestDataRequirementsFactory = (options: import("../types/Options").Options) => import("../types/TestDataRequirements").TestDataRequirements;
 export type TestDataRequirements = import("../types/TestDataRequirements").TestDataRequirements;
-/**
- * @typedef {import('../types/Opportunity').Opportunity} Opportunity
- * @typedef {import('../types/Offer').Offer} Offer
- * @typedef {import('../types/Options').Options} Options
- * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
- * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
- * @typedef {import('../types/Criteria').Criteria} Criteria
- * @typedef {import('../types/Criteria').TestDataRequirementsFactory} TestDataRequirementsFactory
- * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
- */
+export type TestDataFieldRequirement = import("../types/TestDataRequirements").DateRange | import("../types/TestDataRequirements").QuantitativeValue | import("../types/TestDataRequirements").BlockedField | import("../types/TestDataRequirements").OptionRequirements<any, any> | import("../types/TestDataRequirements").ArrayRequirements<any, any>;
+export type DateRange = import("../types/TestDataRequirements").DateRange;
+export type QuantitativeValue = import("../types/TestDataRequirements").QuantitativeValue;
 /**
  * @param {object} args
  * @param {string} args.name
