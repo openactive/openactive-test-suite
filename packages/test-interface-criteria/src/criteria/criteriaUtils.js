@@ -1,5 +1,6 @@
 // const moment = require('moment');
 const { isObject } = require('lodash');
+const moment = require('moment');
 
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
@@ -12,6 +13,7 @@ const { isObject } = require('lodash');
  * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
  * @typedef {import('../types/TestDataRequirements').TestDataFieldRequirement} TestDataFieldRequirement
  * @typedef {import('../types/TestDataRequirements').DateRange} DateRange
+ * @typedef {import('../types/TestDataRequirements').QuantitativeValue} QuantitativeValue
  */
 
 /**
@@ -29,30 +31,60 @@ function assertFieldRequirementType(expectedType, requirement, criteriaName) {
 }
 
 /**
+ * @template {TestDataFieldRequirement} TRequirement
+ * @template {keyof TRequirement} TFieldName
+ * @param {TFieldName} fieldName
+ * @param {TRequirement} reqA
+ * @param {TRequirement} reqB
+ * @param {(reqAField: TRequirement[TFieldName], reqBField: TRequirement[TFieldName]) => TRequirement[TFieldName] | null} getValueIfBothExist
+ * @returns {{} | Pick<TRequirement, TFieldName>} This format makes it easy to merge this data into an object literal.
+ *   The result will look like e.g. `{ minValue: 3 }`.
+ *   It can also be an empty object to cater for instances in which neither of the requirements have the field
+ *   and therefore this field should not be added to the merged requirement.
+ */
+function mergeTestDataFieldRequirementField(fieldName, reqA, reqB, getValueIfBothExist) {
+  if (reqA[fieldName] == null && reqB[fieldName] == null) {
+    return {};
+  }
+  if (reqA[fieldName] != null) {
+    return { [fieldName]: reqA[fieldName] };
+  }
+  if (reqB[fieldName] != null) {
+    return { [fieldName]: reqB[fieldName] };
+  }
+  const mergedValue = getValueIfBothExist(reqA[fieldName], reqB[fieldName]);
+  if (mergedValue == null) { return {}; }
+  return { [fieldName]: mergedValue };
+}
+
+/**
  * @param {DateRange} reqA
  * @param {DateRange} reqB
  * @returns {DateRange}
  */
-function mergeDateRange(reqA, reqB) {
-  if (reqA.minDate && reqB.minDate) { throw new Error('unsupported'); }
-  if (reqA.maxDate && reqB.maxDate) { throw new Error('unsupported'); }
+function mergeDateRanges(reqA, reqB) {
   /** @type {DateRange} */
-  const dateRange = {
+  return {
     '@type': 'test:DateRange',
+    ...mergeTestDataFieldRequirementField('allowNull', reqA, reqB, (a, b) => (a && b ? true : null)),
+    ...mergeTestDataFieldRequirementField('minDate', reqA, reqB, (a, b) => (
+      moment.max(moment(a), moment(b)).utc().format())),
+    ...mergeTestDataFieldRequirementField('maxDate', reqA, reqB, (a, b) => (
+      moment.min(moment(a), moment(b)).utc().format())),
   };
-  const allowNull = reqA.allowNull && reqB.allowNull;
-  if (allowNull) {
-    dateRange.allowNull = true;
-  }
-  const minDate = reqA.minDate || reqB.minDate;
-  if (minDate) {
-    dateRange.minDate = minDate;
-  }
-  const maxDate = reqA.maxDate || reqB.maxDate;
-  if (maxDate) {
-    dateRange.maxDate = maxDate;
-  }
-  return dateRange;
+}
+
+/**
+ * @param {QuantitativeValue} reqA
+ * @param {QuantitativeValue} reqB
+ * @returns {QuantitativeValue}
+ */
+function mergeQuantitativeValues(reqA, reqB) {
+  return {
+    '@type': 'QuantitativeValue',
+    ...mergeTestDataFieldRequirementField('minValue', reqA, reqB, Math.max),
+    ...mergeTestDataFieldRequirementField('maxValue', reqA, reqB, Math.min),
+  };
 }
 
 /**
@@ -64,7 +96,9 @@ function mergeDateRange(reqA, reqB) {
 function mergeTestData(reqA, reqB, criteriaName) {
   switch (reqA['@type']) {
     case 'test:DateRange':
-      return mergeDateRange(reqA, assertFieldRequirementType('test:DateRange', reqB, criteriaName));
+      return mergeDateRanges(reqA, assertFieldRequirementType('test:DateRange', reqB, criteriaName));
+    case 'QuantitativeValue':
+      return mergeQuantitativeValues(reqA, assertFieldRequirementType('QuantitativeValue', reqB, criteriaName));
     default:
       throw new Error(`Merging is not supported for requirements of type "${reqA['@type']}" (criteria "${criteriaName}")`);
   }
@@ -118,6 +152,8 @@ function createCriteria({
             thisTestDataRequirements['test:testOpportunityDataRequirements'][key] = mergeTestData(baseFieldRequirement, thisFieldRequirement, name);
           }
         }
+      } else if (baseTestDataRequirements['test:testOpportunityDataRequirements']) {
+        thisTestDataRequirements['test:testOpportunityDataRequirements'] = baseTestDataRequirements['test:testOpportunityDataRequirements'];
       }
       // Do any of the offer requirements overlap?
       if (baseTestDataRequirements['test:testOfferDataRequirements'] && thisTestDataRequirements['test:testOfferDataRequirements']) {
@@ -129,6 +165,8 @@ function createCriteria({
             thisTestDataRequirements['test:testOfferDataRequirements'][key] = mergeTestData(baseFieldRequirement, thisFieldRequirement, name);
           }
         }
+      } else if (baseTestDataRequirements['test:testOfferDataRequirements']) {
+        thisTestDataRequirements['test:testOfferDataRequirements'] = baseTestDataRequirements['test:testOfferDataRequirements'];
       }
       return thisTestDataRequirements;
       // /**
