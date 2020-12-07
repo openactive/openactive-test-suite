@@ -11,9 +11,12 @@ const { uReqTemplates } = require('../templates/u-req.js');
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
+ * @typedef {import('./sellers').SellerConfig} SellerConfig
  */
 
-const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
+
+/** @type {SellerConfig['requestHeaders']} */
+const DEFAULT_REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 
@@ -21,9 +24,11 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
+   * @param {SellerConfig | null} [sellerConfig]
    */
-  constructor(logger) {
+  constructor(logger, sellerConfig) {
     this.logger = logger;
+    this._sellerConfig = sellerConfig;
   }
 
   /**
@@ -107,24 +112,39 @@ class RequestHelper {
     return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
-  createHeaders() {
-    return Object.assign({
-      'Content-Type': 'application/vnd.openactive.booking+json; version=1',
-    }, REQUEST_HEADERS);
+  _getSellerRequestHeaders() {
+    if (this._sellerConfig) {
+      return this._sellerConfig.requestHeaders;
+    }
+    return DEFAULT_REQUEST_HEADERS;
   }
 
-  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType) {
+  createHeaders() {
+    return {
+      'Content-Type': 'application/vnd.openactive.booking+json; version=1',
+      ...this._getSellerRequestHeaders(),
+    };
+  }
+
+  /**
+   * @param {string} opportunityType
+   * @param {string} testOpportunityCriteria
+   * @param {string | null} [sellerId]
+   * @param {string | null} [sellerType]
+   */
+  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
     let template = null;
+    const seller = sellerId ? {
+      '@type': sellerType,
+      '@id': sellerId,
+    } : undefined;
     switch (opportunityType) {
       case 'ScheduledSession':
         template = {
           '@type': 'ScheduledSession',
           superEvent: {
             '@type': 'SessionSeries',
-            organizer: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            organizer: seller,
           },
         };
         break;
@@ -133,10 +153,7 @@ class RequestHelper {
           '@type': 'Slot',
           facilityUse: {
             '@type': 'FacilityUse',
-            provider: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            provider: seller,
           },
         };
         break;
@@ -145,20 +162,14 @@ class RequestHelper {
           '@type': 'Slot',
           facilityUse: {
             '@type': 'IndividualFacilityUse',
-            provider: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            provider: seller,
           },
         };
         break;
       case 'CourseInstance':
         template = {
           '@type': 'CourseInstance',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       case 'CourseInstanceSubEvent':
@@ -166,20 +177,14 @@ class RequestHelper {
           '@type': 'Event',
           superEvent: {
             '@type': 'CourseInstance',
-            organizer: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            organizer: seller,
           },
         };
         break;
       case 'HeadlineEvent':
         template = {
           '@type': 'HeadlineEvent',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       case 'HeadlineEventSubEvent':
@@ -187,29 +192,20 @@ class RequestHelper {
           '@type': 'Event',
           superEvent: {
             '@type': 'HeadlineEvent',
-            organizer: {
-              '@type': sellerType,
-              '@id': sellerId,
-            },
+            organizer: seller,
           },
         };
         break;
       case 'Event':
         template = {
           '@type': 'Event',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       case 'OnDemandEvent':
         template = {
           '@type': 'OnDemandEvent',
-          organizer: {
-            '@type': sellerType,
-            '@id': sellerId,
-          },
+          organizer: seller,
         };
         break;
       default:
@@ -223,6 +219,9 @@ class RequestHelper {
     return template;
   }
 
+  /**
+   * @param {string} uuid
+   */
   async getOrder(uuid) {
     const ordersFeedUpdate = await this.get(
       'get-order',
@@ -238,11 +237,16 @@ class RequestHelper {
   /**
    * @param {string} eventId
    * @param {unknown} orderItemPosition
+   * @param {boolean} [useCacheIfAvailable] If true, Broker will potentially return the
+   *   item from its cache.
+   *   Set to false if you want to wait for a new update to the feed.
+   *   Default is: true.
    */
-  async getMatch(eventId, orderItemPosition) {
+  async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
+    const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
       {
         timeout: 60000,
       },
@@ -266,9 +270,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {import('../templates/c1-req').C1ReqTemplateRef} c1ReqTemplateRef
+   * @param {import('../templates/c1-req').C1ReqTemplateRef | null} [maybeC1ReqTemplateRef]
    */
-  async putOrderQuoteTemplate(uuid, params, c1ReqTemplateRef = 'standard') {
+  async putOrderQuoteTemplate(uuid, params, maybeC1ReqTemplateRef) {
+    const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
 
@@ -288,9 +293,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {import('../templates/c2-req').C2ReqTemplateRef} c2ReqTemplateRef
+   * @param {import('../templates/c2-req').C2ReqTemplateRef | null} [maybeC2ReqTemplateRef]
    */
-  async putOrderQuote(uuid, params, c2ReqTemplateRef = 'standard') {
+  async putOrderQuote(uuid, params, maybeC2ReqTemplateRef) {
+    const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
 
@@ -310,9 +316,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {import('../templates/b-req').BReqTemplateRef} bReqTemplateRef
+   * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrder(uuid, params, bReqTemplateRef = 'standard') {
+  async putOrder(uuid, params, maybeBReqTemplateRef) {
+    const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
 
@@ -332,9 +339,10 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef} pReqTemplateRef
+   * @param {import('../templates/p-req').PReqTemplateRef | null} [maybePReqTemplateRef]
    */
-  async putOrderProposal(uuid, params, pReqTemplateRef = 'standard') {
+  async putOrderProposal(uuid, params, maybePReqTemplateRef) {
+    const pReqTemplateRef = maybePReqTemplateRef || 'standard';
     const templateFn = pReqTemplates[pReqTemplateRef];
     const requestBody = templateFn(params);
 
@@ -432,6 +440,22 @@ class RequestHelper {
   }
 
   /**
+   * @param {string} opportunityType
+   * @param {string} testOpportunityCriteria
+   */
+  async callAssertUnmatchedCriteria(opportunityType, testOpportunityCriteria) {
+    const response = await this.post(
+      `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
+      `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
+      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
+      {
+        timeout: 10000,
+      },
+    );
+    return response;
+  }
+
+  /**
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */
@@ -447,11 +471,45 @@ class RequestHelper {
     return respObj;
   }
 
+  /**
+   * @param {string} uuid
+   */
+  async deleteOrderQuote(uuid) {
+    const respObj = await this.delete(
+      'delete-order-quote',
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }
+
+  /**
+   * @param {string} uuid
+   */
+  async getOrderStatus(uuid) {
+    const respObj = await this.get(
+      'get-order-status',
+      `${BOOKING_API_BASE}/orders/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }  
+
   delay(t, v) {
     return new Promise(function (resolve) {
       setTimeout(resolve.bind(null, v), t);
     });
   }
 }
+
+/**
+ * @typedef {InstanceType<typeof RequestHelper>} RequestHelperType
+ */
 
 module.exports = RequestHelper;

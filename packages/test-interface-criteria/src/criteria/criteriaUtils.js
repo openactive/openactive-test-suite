@@ -1,4 +1,5 @@
 const moment = require('moment');
+const { isObject } = require('lodash');
 
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
@@ -50,7 +51,6 @@ function getType(opportunity) {
   return opportunity['@type'] || opportunity.type;
 }
 
-
 /**
  * @param {Opportunity} opportunity
  * @returns {boolean}
@@ -75,7 +75,7 @@ function getRemainingCapacity(opportunity) {
  */
 function mustBeWithinBookingWindow(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return false;
+    return null; // Required for validation step
   }
 
   const start = moment(opportunity.startDate);
@@ -85,6 +85,34 @@ function mustBeWithinBookingWindow(offer, opportunity, options) {
   return valid;
 }
 
+/**
+ * @type {OpportunityConstraint}
+ */
+function remainingCapacityMustBeAtLeastTwo(opportunity) {
+  // A capacity of at least 2 is needed for cases other than IndividualFacilityUse because the multiple OrderItem tests use 2 of the same item (via the opportunityReuseKey).
+  // The opportunityReuseKey is not used for IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
+  return getRemainingCapacity(opportunity) > (hasCapacityLimitOfOne(opportunity) ? 0 : 1);
+}
+
+/**
+ * For a session, get `organizer`. For a facility, get `provider`.
+ * These can be used interchangeably as `organizer` is either a Person or an Organization
+ * and `provider` is an Organization.
+ *
+ * @param {Opportunity} opportunity
+ */
+function getOrganizerOrProvider(opportunity) {
+  if (isObject(opportunity.superEvent)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.superEvent).organizer;
+  }
+  if (isObject(opportunity.facilityUse)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.facilityUse).provider;
+  }
+  throw new Error(`Opportunity has neither superEvent nor facilityUse from which to get organizer/provider. Opportunity fields: ${Object.keys(opportunity).join(', ')}`);
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -92,4 +120,6 @@ module.exports = {
   getRemainingCapacity,
   mustBeWithinBookingWindow,
   hasCapacityLimitOfOne,
+  remainingCapacityMustBeAtLeastTwo,
+  getOrganizerOrProvider,
 };

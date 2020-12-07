@@ -1,4 +1,5 @@
-const { dissocPath } = require('ramda');
+const { dissocPath, dissoc, pipe, omit } = require('ramda');
+const { createPaymentPart } = require('./common');
 
 /**
  * @typedef {{
@@ -13,17 +14,65 @@ const { dissocPath } = require('ramda');
  *       '@id': string,
  *     },
  *   }[],
+ *   brokerRole: string | null,
  * }} C2ReqTemplateData
  */
 
 /**
+ * @typedef {{
+ *   '@context': string,
+ *   '@type': string,
+ *   brokerRole: string,
+ *   broker: {
+ *     '@type': string,
+ *     name: string,
+ *     url: string,
+ *     description: string,
+ *     logo: {
+ *       '@type': string,
+ *       url: string,
+ *     },
+ *     address: {
+ *       '@type': string,
+ *       streetAddress: string,
+ *       addressLocality: string,
+ *       addressRegion: string,
+ *       postalCode: string,
+ *       addressCountry: string,
+ *     },
+ *   },
+ *   seller: {
+ *     '@type': string,
+ *     '@id': string,
+ *   },
+ *   customer: any, // ToDo: add this?
+ *   orderedItem: {
+ *     '@type': string,
+ *     position: number,
+ *     acceptedOffer: {
+ *       '@type': string,
+ *       '@id': string,
+ *     },
+ *     orderedItem: {
+ *       '@type': string,
+ *       '@id': string,
+ *     },
+ *   }[],
+ *   payment: {
+ *     '@type': string,
+ *   },
+ * }} C2Req
+ */
+
+/**
  * @param {C2ReqTemplateData} data
+ * @returns {C2Req}
  */
 function createStandardC2Req(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderQuote',
-    brokerRole: 'https://openactive.io/AgentBroker',
+    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
       name: 'MyFitnessApp',
@@ -48,11 +97,11 @@ function createStandardC2Req(data) {
     },
     customer: {
       '@type': 'Person',
-      email: 'geoffcapes@example.com',
-      telephone: '020 811 8055',
-      givenName: 'Geoff',
-      familyName: 'Capes',
-      identifier: 'CustomerIdentifier',
+      email: 'geoffcapesStageC2@example.com',
+      telephone: '020 811 8002',
+      givenName: 'GeoffC2',
+      familyName: 'CapesC2',
+      identifier: 'CustomerIdentifierC2',
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
@@ -66,6 +115,7 @@ function createStandardC2Req(data) {
         '@id': `${orderItem.orderedItem['@id']}`,
       },
     })),
+    payment: createPaymentPart(false),
   };
 }
 
@@ -89,11 +139,53 @@ function createNoBrokerNameC2Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+function createBusinessCustomerC2Req(data) {
+  const req = createStandardC2Req(data);
+  req.customer = {
+    '@type': 'Organization',
+    name: 'SomeCorporateClient',
+    identifier: 'CustomerIdentifierC2',
+    url: 'https://corporate.client.com',
+    description: 'A corporate client using fitness services',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'http://corporate.client.com/images/logo.png',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'A Street',
+      addressLocality: 'A Town',
+      addressRegion: 'Middlesbrough',
+      postalCode: 'TS4 3AE',
+      addressCountry: 'GB',
+    },
+  };
+  return req;
+}
+/**
+ * C2 request with missing broker
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createNoBrokerC2Req(data) {
+  const req = createStandardC2Req(data);
+  return dissoc('broker', req);
+}
+
+/** C2 request with missing customer and broker */
+const createNoCustomerAndNoBrokerC2Req = pipe(createStandardC2Req, omit(['customer', 'broker']));
+
+/** C2 request with missing customer */
+const createNoCustomerC2Req = pipe(createStandardC2Req, dissoc('customer'));
 
 const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
+  businessCustomer: createBusinessCustomerC2Req,
+  noBroker: createNoBrokerC2Req,
+  noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,
+  noCustomer: createNoCustomerC2Req,
 };
 
 /**

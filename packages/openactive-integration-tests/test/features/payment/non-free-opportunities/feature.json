@@ -1,0 +1,17 @@
+{
+  "category": "payment",
+  "identifier": "non-free-opportunities",
+  "name": "Opportunities with a non-zero price",
+  "description": "The most simple form of booking with payment. Does not check for leases.",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description",
+  "required": false,
+  "coverageStatus": "partial",
+  "links": [
+    {
+      "name": ".NET Tutorial",
+      "href": "https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order"
+    }
+  ],
+  "requiresOneOfIfImplemented": ["prepayment-optional", "prepayment-required",  "prepayment-unavailable"]
+}

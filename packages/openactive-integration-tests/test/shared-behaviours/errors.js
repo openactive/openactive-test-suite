@@ -1,7 +1,13 @@
 const { expect } = require('chai');
+const { FlowStageUtils } = require('../helpers/flow-stages');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../helpers/flow-stages/flow-stage').FlowStageOutput} FlowStageOutput
+ * @typedef {import('../helpers/flow-stages/flow-stage').FlowStageType<
+ *   unknown,
+ *   Required<Pick<FlowStageOutput, 'httpResponse'>>
+ * >} FlowStageWhichOutputsHttpResponse
  */
 
 /**
@@ -20,6 +26,29 @@ function itShouldReturnAnOpenBookingError(errorType, statusCode, getChakramRespo
   });
 }
 
+/**
+ * Run the flowStage (in a describe block) and expect it to return a given OpenBookingError
+ *
+ * @param {string} errorType e.g. IncompleteBrokerDetailsError
+ * @param {number} statusCode Expected HTTP status
+ */
+function createRunFlowStageAndExpectOpenBookingErrorFn(errorType, statusCode) {
+  /**
+   * @param {FlowStageWhichOutputsHttpResponse} flowStage
+   */
+  const runFlowStageFn = (flowStage) => {
+    FlowStageUtils.describeRunAndCheckIsValid(flowStage, () => {
+      itShouldReturnAnOpenBookingError(errorType, statusCode, () => flowStage.getOutput().httpResponse);
+    });
+  };
+  return runFlowStageFn;
+}
+
+const runFlowStageAndExpectIncompleteBrokerDetailsError = createRunFlowStageAndExpectOpenBookingErrorFn('IncompleteBrokerDetailsError', 400);
+const runFlowStageAndExpectIncompleteCustomerDetailsError = createRunFlowStageAndExpectOpenBookingErrorFn('IncompleteCustomerDetailsError', 400);
+
 module.exports = {
   itShouldReturnAnOpenBookingError,
+  runFlowStageAndExpectIncompleteBrokerDetailsError,
+  runFlowStageAndExpectIncompleteCustomerDetailsError,
 };

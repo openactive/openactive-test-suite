@@ -28,6 +28,13 @@ const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? 
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+class FatalError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'FatalError';
+  }
+}
+
 const app = express();
 
 // eslint-disable-next-line no-console
@@ -54,6 +61,7 @@ let datasetSiteJson = {
 };
 
 // Buckets for criteria matches
+/** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
 const matchingCriteriaOpportunityIds = new Map();
 criteria.map((c) => c.name).forEach((criteriaName) => {
   const typeBucket = new Map();
@@ -156,7 +164,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         url = json.next;
       }
     } catch (error) {
-      if (!error.response) {
+      if (error instanceof FatalError) {
+        // If a fatal error, just rethrow
+        throw error;
+      } else if (!error.response) {
         log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
         // Force retry, after a delay
         await sleep(5000);
@@ -212,6 +223,20 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
   };
 }
 
+/**
+ * @param {string} opportunityType
+ * @param {string} criteriaName
+ */
+function assertOpportunityCriteriaNotFound(opportunityType, criteriaName) {
+  const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
+  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
+  const bucket = criteriaBucket.get(opportunityType);
+  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+
+  // Check that all sellerCompartments are empty
+  return Array.from(bucket).every(([, items]) => (items.size === 0));
+}
+
 function releaseOpportunityLocks(testDatasetIdentifier) {
   const testDataset = getTestDataset(testDatasetIdentifier);
   log(`Cleared dataset '${testDatasetIdentifier}' of opportunity locks ${Array.from(testDataset).join(', ')}`);
@@ -262,11 +287,11 @@ function setFeedIsUpToDate(feedIdentifier) {
         if (totalChildren === 0) {
           logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
           logError('Please ensure that the opportunities feeds conforms to RPDE using https://validator.openactive.io/rpde.\n');
-          throw new Error('Zero opportunities could be harvested from the opportunities feeds');
+          throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          throw new Error('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+          throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
@@ -555,35 +580,60 @@ app.delete('/test-interface/datasets/:testDatasetIdentifier', function (req, res
   res.status(204).send();
 });
 
+app.post('/assert-unmatched-criteria', function (req, res) {
+  if (DO_NOT_FILL_BUCKETS) {
+    res.status(403).json({
+      error: 'Bucket functionality is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+    return;
+  }
+
+  const opportunity = req.body;
+  const opportunityType = detectOpportunityType(opportunity);
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+
+  const result = assertOpportunityCriteriaNotFound(opportunityType, criteriaName);
+
+  if (result) {
+    log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    res.status(204).send();
+  } else {
+    logError(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
+    res.status(404).json({
+      error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
+    });
+  }
+});
+
 /** @type {{[id: string]: PendingResponse}} */
 const orderResponses = {
 };
 
-app.get('/get-order/:id', function (req, res) {
+app.get('/get-order/:orderUuid', function (req, res) {
   if (DO_NOT_HARVEST_ORDERS_FEED) {
     res.status(403).json({
       error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
     });
-  } else if (req.params.id) {
-    const { id } = req.params;
+  } else if (req.params.orderUuid) {
+    const { orderUuid } = req.params;
 
-    // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-    if (orderResponses[id] && orderResponses[id] !== null) orderResponses[id].cancel();
-    orderResponses[id] = {
+    // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
+    if (orderResponses[orderUuid] && orderResponses[orderUuid] !== null) orderResponses[orderUuid].cancel();
+    orderResponses[orderUuid] = {
       send(json) {
-        orderResponses[id] = null;
+        orderResponses[orderUuid] = null;
         res.json(json);
       },
       cancel() {
-        log(`Ignoring previous request for "${id}"`);
+        log(`Ignoring previous request for "${orderUuid}"`);
         res.status(400).json({
-          error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
+          error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
         });
       },
     };
   } else {
     res.status(400).json({
-      error: 'id is required',
+      error: 'orderUuid is required',
     });
   }
 });
@@ -763,7 +813,7 @@ function processOpportunityItem(item) {
 /** @type {RpdePageProcessor} */
 function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
-    if (item.data && item.id && orderResponses[item.id]) {
+    if (item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
     }
   });

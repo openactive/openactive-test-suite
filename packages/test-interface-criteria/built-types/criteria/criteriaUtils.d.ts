@@ -61,3 +61,15 @@ export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer,
  * @returns {boolean}
  */
 export function hasCapacityLimitOfOne(opportunity: Opportunity): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * For a session, get `organizer`. For a facility, get `provider`.
+ * These can be used interchangeably as `organizer` is either a Person or an Organization
+ * and `provider` is an Organization.
+ *
+ * @param {Opportunity} opportunity
+ */
+export function getOrganizerOrProvider(opportunity: Opportunity): any;
