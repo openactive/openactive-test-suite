@@ -82,6 +82,14 @@ export interface BlockedField {
   '@type': 'test:BlockedField';
 }
 
+/** Range of possible types for a single field's data requirement */
+export type TestDataFieldRequirement =
+  | DateRange
+  | QuantitativeValue
+  | OptionRequirements<any, any>
+  | ArrayRequirements<any, any>
+  | BlockedField;
+
 /**
  * For a particular criteria, test data requirements that must be met by an opportunity
  * and offer so that they meet the criteria.
