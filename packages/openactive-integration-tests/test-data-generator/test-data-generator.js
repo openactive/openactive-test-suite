@@ -1,3 +1,7 @@
+// TODO Support specifying category in the CLI args e.g. "authorization"
+// This should be supported as well as feature, which is currently supported
+// This should look something like `npm run test-data-generator -- [category-or-feature]`
+// e.g. `npm run test-data-generator -- authorization`
 const fs = require('fs').promises;
 const path = require('path');
 const { dissoc } = require('ramda');
@@ -129,6 +133,9 @@ const { output: outputFilePath, feature } = argv;
 function tallySellerCriteriaRequirements(criteriaRequirementsJson, onlyThisFeatureIdentifier = '*') {
   if (onlyThisFeatureIdentifier && onlyThisFeatureIdentifier !== '*') {
     const sellerCriteriaRequirementsObj = criteriaRequirementsJson.criteriaRequirements[onlyThisFeatureIdentifier];
+    if (!sellerCriteriaRequirementsObj) {
+      throw new Error(`Feature not found: "${onlyThisFeatureIdentifier}"`);
+    }
     return getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj);
   }
   // All Features

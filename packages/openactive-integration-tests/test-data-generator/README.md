@@ -9,11 +9,9 @@ Test data is outputted to `./test-data/test-data.json` by default.
 ```bash
 npm run test-data-generator # all active features specified in the current config
 
-npm run test-data-generator authentication # subset of active features within the authentication category
+npm run test-data-generator -- common-error-conditions # only enough data for the common-error-conditions feature
 
-npm run test-data-generator common-error-conditions # only enough data for the common-error-conditions feature
-
-npm run test-data-generator --output ./test-data.json # output to ./test-data.json
+npm run test-data-generator -- --output ./test-data.json # output to ./test-data.json
 ```
 
 ## Test data file format
