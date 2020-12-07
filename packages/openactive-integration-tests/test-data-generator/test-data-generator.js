@@ -1,6 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
-const util = require('util');
+const { dissoc } = require('ramda');
 const { getConfigVarOrThrow, SELLER_CONFIG } = require('../test/helpers/config-utils');
 const { SellerCriteriaRequirements, OpportunityCriteriaRequirements } = require('../test/helpers/criteria-utils');
 const { getSellerConfigFromSellerCriteria } = require('../test/helpers/sellers');
@@ -26,7 +26,7 @@ const { createTestInterfaceOpportunity } = require('../test/helpers/test-interfa
  * @typedef {{
  *   '@type': 'ListItem',
  *   'test:numberOfInstancesInDistribution': number,
- *   item: TestInterfaceOpportunity,
+ *   item: Omit<TestInterfaceOpportunity, '@context'>,
  * }} TestDataListItem
  */
 
@@ -88,7 +88,7 @@ const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.js
         itemListElement.push({
           '@type': 'ListItem',
           'test:numberOfInstancesInDistribution': numOpportunitiesRequired,
-          item: testInterfaceOpportunity,
+          item: dissoc('@context', testInterfaceOpportunity),
         });
       }
     }
