@@ -45,10 +45,10 @@ const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_
 
 // # Process CLI Args
 const argv = yargs(process.argv.slice(2)) // eslint-disable-line prefer-destructuring
-  .command('$0 [category-or-feature]', 'OpenActive Test Data Generator', (yargsConfig) => {
-    yargsConfig.positional('category-or-feature', {
+  .command('$0 [feature]', 'OpenActive Test Data Generator', (yargsConfig) => {
+    yargsConfig.positional('feature', {
       type: 'string',
-      describe: 'Category (e.g. authentication) or Feature (e.g. agent-broker)',
+      describe: 'If selected, only generate test data for this Feature (e.g. agent-broker)',
       default: '*',
     });
   })
@@ -62,45 +62,30 @@ const argv = yargs(process.argv.slice(2)) // eslint-disable-line prefer-destruct
   })
   .argv;
 
-const { output: outputFilePath, 'category-or-feature': categoryOrFeature } = argv;
+const { output: outputFilePath, feature } = argv;
+
+// # Main
 
 (async () => {
-  // # Load Requirements
+  // ## Load Requirements
   console.info(`Reading: ${CRITERIA_REQUIREMENTS_JSON_FILE_PATH}`);
   const criteriaRequirementsJsonRaw = await fs.readFile(CRITERIA_REQUIREMENTS_JSON_FILE_PATH);
   /** @type {CriteriaRequirementsJson} */
   const criteriaRequirementsJson = JSON.parse(criteriaRequirementsJsonRaw.toString());
 
-  // # Tally the requirements from each implemented feature
-  /**
-   * The SellerCriteriaRequirements for every implemented features
-   * @type {SellerCriteriaRequirements[]}
-   */
-  const sellerCriteriaRequirementMaps = [];
-  for (const [featureIdentifier, sellerCriteriaRequirementsObj] of Object.entries(criteriaRequirementsJson.criteriaRequirements)) {
-    // Feature isn't implemented, so we don't consider it
-    if (!IMPLEMENTED_FEATURES[featureIdentifier]) { continue; }
-    // Type casting is necessary here as Object.entries, in TypeScript, does not endow keys with the more
-    // specific key type (https://github.com/microsoft/TypeScript/issues/20322)
-    /** @type {[SellerCriteria, CriteriaRequirementsJson['criteriaRequirements'][string][SellerCriteria]][]} */
-    const sellerCriteriaRequirementsObjEntries = /** @type {any} */(Object.entries(sellerCriteriaRequirementsObj));
-    // This is a bit baroque. It's converting the JSON object into Maps (specifically,
-    // our SellerCriteriaRequirements maps).
-    const sellerCriteriaRequirements = new SellerCriteriaRequirements(sellerCriteriaRequirementsObjEntries.map(([sellerCriteria, opportunityCriteriaRequirements]) => ([
-      sellerCriteria,
-      new OpportunityCriteriaRequirements(Object.entries(opportunityCriteriaRequirements)),
-    ])));
-    sellerCriteriaRequirementMaps.push(sellerCriteriaRequirements);
-  }
-  const combinedSellerRequirements = SellerCriteriaRequirements.combine(sellerCriteriaRequirementMaps);
+  // ## Tally the requirements from each implemented feature
+  const sellerRequirements = tallySellerCriteriaRequirements(
+    criteriaRequirementsJson,
+    /** @type {string} */(feature), // yargs can only properly type the option args - not the positional ones. Hence the TS coercion here
+  );
 
-  // # Create Test Data
+  // ## Create Test Data
   //
   // One for each seller x opportunity criteria
   /** @type {TestDataListItem[]} */
   const itemListElement = [];
   let numberOfItems = 0;
-  for (const [sellerCriteria, opportunityCriteriaRequirements] of combinedSellerRequirements) {
+  for (const [sellerCriteria, opportunityCriteriaRequirements] of sellerRequirements) {
     // We're overriding the seller config in this call because this function, by default,
     // gets seller config from global.SELLER_CONFIG, which is set by broker.
     // Broker is not running, so we override it with seller config directly from the config file.
@@ -124,10 +109,55 @@ const { output: outputFilePath, 'category-or-feature': categoryOrFeature } = arg
     numberOfItems,
     itemListElement,
   };
-  // # Write Test Data
+  // ## Write Test Data
   //
   // Create the directory if it doesn't exist
   await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
   await fs.writeFile(outputFilePath, JSON.stringify(testData, null, 2));
   console.log(`FILE SAVED: ${outputFilePath}`);
 })();
+
+// # Utils
+
+/**
+ * @param {CriteriaRequirementsJson} criteriaRequirementsJson
+ * @param {string} [onlyThisFeatureIdentifier]
+ *   If included (and not '*'), only generates test data for this feature identifier
+ *   If excluded, is equivalent to '*', in which case test data is generated for all features
+ * @returns {SellerCriteriaRequirements}
+ */
+function tallySellerCriteriaRequirements(criteriaRequirementsJson, onlyThisFeatureIdentifier = '*') {
+  if (onlyThisFeatureIdentifier && onlyThisFeatureIdentifier !== '*') {
+    const sellerCriteriaRequirementsObj = criteriaRequirementsJson.criteriaRequirements[onlyThisFeatureIdentifier];
+    return getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj);
+  }
+  // All Features
+  /**
+   * The SellerCriteriaRequirements for every implemented features
+   * @type {SellerCriteriaRequirements[]}
+   */
+  const sellerCriteriaRequirementMaps = [];
+  for (const [featureIdentifier, sellerCriteriaRequirementsObj] of Object.entries(criteriaRequirementsJson.criteriaRequirements)) {
+    // Feature isn't implemented, so we don't consider it
+    if (!IMPLEMENTED_FEATURES[featureIdentifier]) { continue; }
+    const sellerCriteriaRequirements = getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj);
+    sellerCriteriaRequirementMaps.push(sellerCriteriaRequirements);
+  }
+  return SellerCriteriaRequirements.combine(sellerCriteriaRequirementMaps);
+}
+
+/**
+ * @param {CriteriaRequirementsJson['criteriaRequirements'][string]} sellerCriteriaRequirementsObj
+ */
+function getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj) {
+  // Type casting is necessary here as Object.entries, in TypeScript, does not endow keys with the more
+  // specific key type (https://github.com/microsoft/TypeScript/issues/20322)
+  /** @type {[SellerCriteria, CriteriaRequirementsJson['criteriaRequirements'][string][SellerCriteria]][]} */
+  const sellerCriteriaRequirementsObjEntries = /** @type {any} */(Object.entries(sellerCriteriaRequirementsObj));
+  // This is a bit baroque. It's converting the JSON object into Maps (specifically,
+  // our SellerCriteriaRequirements maps).
+  return new SellerCriteriaRequirements(sellerCriteriaRequirementsObjEntries.map(([sellerCriteria, opportunityCriteriaRequirements]) => ([
+    sellerCriteria,
+    new OpportunityCriteriaRequirements(Object.entries(opportunityCriteriaRequirements)),
+  ])));
+}

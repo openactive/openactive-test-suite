@@ -51,6 +51,7 @@ module.exports = {
       },
     ],
     'no-underscore-dangle': 'off',
+    'no-use-before-define': ['error', { functions: false, classes: false }],
   },
   parserOptions: {
     ecmaVersion: 2020,
