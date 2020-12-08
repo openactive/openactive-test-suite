@@ -10,10 +10,12 @@ const path = require('path');
 const pkg = require('../package.json');
 const defaultConfig = require('../../../config/default.json');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
+const { DefaultMap } = require('../test/helpers/map-utils');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
 const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria-requirements.json');
+const INDEX_CATEGORIES_JSON_FILE = path.join(FEATURES_ROOT, 'categories.json');
 
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
@@ -33,6 +35,18 @@ const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria
  *     },
  *   },
  * }} CriteriaRequirementsJson
+ *
+ * @typedef {{
+ *   _createdByDocumentationGeneratorScript: true,
+ *   categories: {
+ *     [categoryIdentifier: string]: {
+ *       [featureIdentifier: string]: true
+ *     },
+ *   },
+ * }} CategoriesJson Note that the featureIdentifiers are stored as an object rather
+ *   than an array. This is just a very simple way to express them as a "Set"-like
+ *   object (i.e. no duplicates) in JSON.
+ *   They can still easily be interpreted as an array with Object.keys().
  */
 
 /**
@@ -109,13 +123,22 @@ for (const featureMetadataItem of featureMetadata) {
   featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;
 }
 
-// Save opportunity criteria requirements for each future to a machine-readable (JSON)
+// Save opportunity criteria requirements for each feature to a machine-readable (JSON)
 // file.
 // This file will be used by the test-data-generator script to help seed random
 // mode tests.
 writeFileSetErrorExitCodeButDontThrowIfFails(
   INDEX_CRITERIA_REQUIREMENTS_JSON_FILE,
   renderCriteraRequirementsJson(featureMetadata),
+);
+
+// Save categories information to a machine-readable (JSON) file.
+// This information includes which features are contained in which category.
+// This file will be used by the test-data-generator script to help seed random
+// mode tests when only testing for one category (e.g. core).
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_CATEGORIES_JSON_FILE,
+  renderCategoriesJson(featureMetadata),
 );
 
 // Save a README.md at test/features which has a human-readable summary of all the
@@ -305,12 +328,29 @@ function renderCriteraRequirementsJson(features) {
     _createdByDocumentationGeneratorScript: true,
     criteriaRequirements: Object.fromEntries(features.map(feature => ([
       feature.identifier,
-      // TODO TODO TODO make this easier to read
       Object.fromEntries(Array.from(feature.sellerCriteriaRequirements).map(([sellerCriteria, tallyByCriteria]) => ([
         sellerCriteria,
         Object.fromEntries(tallyByCriteria),
       ]))),
     ]))),
+  };
+  return JSON.stringify(obj, null, 2);
+}
+
+/**
+ * @param {FeatureMetadataItem[]} features
+ */
+function renderCategoriesJson(features) {
+  // This is just a map so that we can use DefaultMap (i.e. programmer laziness)
+  const categoriesMap = new DefaultMap(() => /** @type {CategoriesJson['categories'][string]} */({}));
+  for (const feature of features) {
+    const categoryFeatures = categoriesMap.get(feature.category);
+    categoryFeatures[feature.identifier] = true;
+  }
+  /** @type {CategoriesJson} */
+  const obj = {
+    _createdByDocumentationGeneratorScript: true,
+    categories: Object.fromEntries(categoriesMap),
   };
   return JSON.stringify(obj, null, 2);
 }
