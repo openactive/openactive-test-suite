@@ -1,5 +1,5 @@
 {
-  "datasetSiteUrl": "http://localhost:15564/openactive",
+  "datasetSiteUrl": "https://localhost:5001/openactive",
   "requestLogging": false,
   "waitForHarvestCompletion": true,
   "verbose": false,

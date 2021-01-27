@@ -22,7 +22,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *
  * @typedef {{
  *   type: TestInterfaceActionType,
- *   objectType: 'Order' | 'OrderProposal',
+ *   objectType: string,
  *   objectId: string,
  * }} ActionSpec
  *

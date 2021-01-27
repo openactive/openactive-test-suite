@@ -72,10 +72,10 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "http://localhost:15564/api/identifiers/sellers/1",
+      "@id": "https://localhost:5001/api/identifiers/sellers/1",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "http://localhost:15564/api/identifiers/sellers/1"
+        "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
       },
       "paymentReconciliationDetails": {
         "name": "AcmeBroker Points",
@@ -85,7 +85,7 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "http://localhost:15564/api/identifiers/sellers/3"
+      "@id": "https://localhost:5001/api/identifiers/sellers/3"
     }
   }
 }

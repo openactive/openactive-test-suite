@@ -28,8 +28,8 @@ FeatureHelper.describeFeature(module, {
       prerequisite,
       createActionFn: () => ({
         type: 'test:ChangeOfLogisticsSimulateAction',
-        objectType: 'Order',
-        objectId: b.getOutput().orderId,
+        objectType: fetchOpportunities.getOutput().orderItems[0].orderedItem['@type'],
+        objectId: fetchOpportunities.getOutput().orderItems[0].orderedItem['@id'],
       }),
     })),
     opportunityFeedUpdateParams: {
