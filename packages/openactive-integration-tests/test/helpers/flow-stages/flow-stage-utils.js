@@ -2,6 +2,8 @@ const chakram = require('chakram');
 const config = require('config');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
+const RequestHelper = require('../request-helper');
+const { getSellerConfigWithTaxMode, primarySeller } = require('../sellers');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -15,6 +17,7 @@ const { generateUuid } = require('../generate-uuid');
  *   unknown,
  *   Required<Pick<FlowStageOutput, 'httpResponse'>>,
  * >} FlowStageTypeWithHttpResponseOutput
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  */
 
 const SELLER_CONFIG = config.get('sellers');
@@ -79,6 +82,16 @@ const FlowStageUtils = {
     return FlowStageUtils.simpleHttpXXXSuccessChecks(200);
   },
 
+  /**
+   * Create itSuccessChecksFn that will just check that a FlowStage's result
+   * has an HTTP 204 status.
+   *
+   * This only works for FlowStages whose result is just an HTTP response.
+   */
+  simpleHttp204SuccessChecks() {
+    return FlowStageUtils.simpleHttpXXXSuccessChecks(204);
+  },
+
   // # Utilities for test specs
 
   /**
@@ -86,15 +99,32 @@ const FlowStageUtils = {
    * @param {RequestHelperType} args.requestHelper
    * @param {BaseLoggerType} args.logger
    * @param {string} [args.uuid]
-   * @param {string} [args.sellerId]
+   * @param {SellerConfig} [args.sellerConfig]
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerId }) {
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
-      sellerId: sellerId || /** @type {string} */(SELLER_CONFIG.primary['@id']),
+      sellerConfig: sellerConfig || /** @type {SellerConfig} */(SELLER_CONFIG.primary),
     };
+  },
+
+  /**
+   * Uses reasonable values for:
+   * - sellerConfig: derived from tax mode (if provided) - otherwise, primary seller
+   * - requestHelper: A new one is created using the data present
+   *
+   * @param {object} args
+   * @param {BaseLoggerType} args.logger
+   * @param {string | null} [args.taxMode]
+   */
+  createSimpleDefaultFlowStageParams({ logger, taxMode = null }) {
+    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : primarySeller;
+    const requestHelper = new RequestHelper(logger, sellerConfig);
+    return FlowStageUtils.createDefaultFlowStageParams({
+      requestHelper, logger, sellerConfig,
+    });
   },
 
   /**

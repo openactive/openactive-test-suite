@@ -17,6 +17,12 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
 
 /**
  * @typedef {{
+ *   '@type': 'ImageObject' | 'Barcode',
+ *   url?: string,
+ *   text?: string,
+ * }} AccessPassItem
+ *
+ * @typedef {{
  *   sellerId: string,
  *   orderItems: {
  *     position: number,
@@ -31,6 +37,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
  *   totalPaymentDue: number,
  *   prepayment?: Prepayment | null | undefined,
  *   orderProposalVersion: string | null,
+ *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
  * }} BReqTemplateData
  */
@@ -70,6 +77,7 @@ function createAfterPBReq(data) {
  * Create a B request, excluding the payment related details
  *
  * @param {BReqTemplateData} data
+ * @returns {BReq}
  */
 function createNonPaymentRelatedCoreBReq(data) {
   return {
@@ -106,20 +114,69 @@ function createNonPaymentRelatedCoreBReq(data) {
       familyName: 'CapesB',
       identifier: 'CustomerIdentifierB',
     },
-    orderedItem: data.orderItems.map(orderItem => ({
-      '@type': 'OrderItem',
-      position: orderItem.position,
-      acceptedOffer: {
-        '@type': 'Offer',
-        '@id': `${orderItem.acceptedOffer['@id']}`,
-      },
-      orderedItem: {
-        '@type': `${orderItem.orderedItem['@type']}`,
-        '@id': `${orderItem.orderedItem['@id']}`,
-      },
-    })),
+    orderedItem: data.orderItems.map((orderItem) => {
+      const result = {
+        '@type': 'OrderItem',
+        position: orderItem.position,
+        acceptedOffer: {
+          '@type': 'Offer',
+          '@id': `${orderItem.acceptedOffer['@id']}`,
+        },
+        orderedItem: {
+          '@type': `${orderItem.orderedItem['@type']}`,
+          '@id': `${orderItem.orderedItem['@id']}`,
+        },
+      };
+      if (data.accessPass) {
+        result.accessPass = data.accessPass;
+      }
+      return result;
+    }),
   };
 }
+
+/**
+ * @typedef {{
+  *   '@context': string,
+  *   '@type': string,
+  *   brokerRole: string,
+  *   broker: {
+  *     '@type': string,
+  *     name: string,
+  *     url: string,
+  *     description: string,
+  *     logo: {
+  *       '@type': string,
+  *       url: string,
+  *     },
+  *     address: {
+  *       '@type': string,
+  *       streetAddress: string,
+  *       addressLocality: string,
+  *       addressRegion: string,
+  *       postalCode: string,
+  *       addressCountry: string,
+  *     },
+  *   },
+  *   seller: {
+  *     '@type': string,
+  *     '@id': string,
+  *   },
+  *   customer: any, // ToDo: add this?
+  *   orderedItem: {
+  *     '@type': string,
+  *     position: number,
+  *     acceptedOffer: {
+  *       '@type': string,
+  *       '@id': string,
+  *     },
+  *     orderedItem: {
+  *       '@type': string,
+  *       '@id': string,
+  *     },
+  *   }[],
+  * }} BReq
+  */
 
 /**
  * @param {BReqTemplateData} data
@@ -295,6 +352,30 @@ function createBReqWithoutCustomer(data) {
   return dissocPath(['customer'], req);
 }
 
+function createBReqWithBusinessCustomer(data) {
+  const req = createStandardPaidBReq(data);
+  req.customer = {
+    '@type': 'Organization',
+    name: 'SomeCorporateClient',
+    identifier: 'CustomerIdentifierC2',
+    url: 'https://corporate.client.com',
+    description: 'A corporate client using fitness services',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'http://corporate.client.com/images/logo.png',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'A Street',
+      addressLocality: 'A Town',
+      addressRegion: 'Middlesbrough',
+      postalCode: 'TS4 3AE',
+      addressCountry: 'GB',
+    },
+  };
+  return req;
+}
+
 /**
  * Paid B request with payment property - though reconciliation fields in `payment`
  * are missing.
@@ -357,6 +438,7 @@ const bReqTemplates = {
   incorrectOrderDueToUnnecessaryPaymentProperty: createIncorrectOrderDueToUnnecessaryPaymentProperty,
   incorrectOrderDueToMissingIdentifierInPaymentProperty: createIncorrectOrderDueToMissingIdentifierInPaymentProperty,
   noCustomer: createBReqWithoutCustomer,
+  businessCustomer: createBReqWithBusinessCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
 };
