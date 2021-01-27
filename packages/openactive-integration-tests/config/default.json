@@ -72,10 +72,10 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
+      "@id": "http://localhost:15564/api/identifiers/sellers/1",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
+        "X-OpenActive-Test-Seller-Id": "http://localhost:15564/api/identifiers/sellers/1"
       },
       "paymentReconciliationDetails": {
         "name": "AcmeBroker Points",
@@ -85,7 +85,7 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/3"
+      "@id": "http://localhost:15564/api/identifiers/sellers/3"
     }
   }
 }
