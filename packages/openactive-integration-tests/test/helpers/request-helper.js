@@ -11,9 +11,12 @@ const { uReqTemplates } = require('../templates/u-req.js');
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
+ * @typedef {import('./sellers').SellerConfig} SellerConfig
  */
 
-const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
+
+/** @type {SellerConfig['requestHeaders']} */
+const DEFAULT_REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 
@@ -21,9 +24,11 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
+   * @param {SellerConfig | null} [sellerConfig]
    */
-  constructor(logger) {
+  constructor(logger, sellerConfig) {
     this.logger = logger;
+    this._sellerConfig = sellerConfig;
   }
 
   /**
@@ -107,10 +112,18 @@ class RequestHelper {
     return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
+  _getSellerRequestHeaders() {
+    if (this._sellerConfig) {
+      return this._sellerConfig.requestHeaders;
+    }
+    return DEFAULT_REQUEST_HEADERS;
+  }
+
   createHeaders() {
-    return Object.assign({
+    return {
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
-    }, REQUEST_HEADERS);
+      ...this._getSellerRequestHeaders(),
+    };
   }
 
   /**
@@ -457,6 +470,36 @@ class RequestHelper {
     );
     return respObj;
   }
+
+  /**
+   * @param {string} uuid
+   */
+  async deleteOrderQuote(uuid) {
+    const respObj = await this.delete(
+      'delete-order-quote',
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }
+
+  /**
+   * @param {string} uuid
+   */
+  async getOrderStatus(uuid) {
+    const respObj = await this.get(
+      'get-order-status',
+      `${BOOKING_API_BASE}/orders/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }  
 
   delay(t, v) {
     return new Promise(function (resolve) {

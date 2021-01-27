@@ -21,14 +21,14 @@ jobs:
         path: tests
     - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
       if: ${{ startsWith(github.head_ref, 'coverage/') }}
-      run: echo "::set-env name=mirror_ref::${{ github.head_ref }}"
-    - name: Checkout OpenActive.Server.NET ${{ env.mirror_ref }}
+      id: refs
+      run: echo "::set-output name=mirror_ref::${{ github.head_ref }}"
+    - name: Checkout OpenActive.Server.NET ${{ steps.refs.outputs.mirror_ref }}
       uses: actions/checkout@v2
       with:
         repository: openactive/OpenActive.Server.NET
-        ref: ${{ env.mirror_ref }}
+        ref: ${{ steps.refs.outputs.mirror_ref }}
         path: server
-
 
     - name: Setup .NET Core 2.1.808
       uses: actions/setup-dotnet@v1
