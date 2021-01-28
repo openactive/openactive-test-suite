@@ -72,10 +72,10 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/1",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
+        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
       },
       "taxMode": "https://openactive.io/TaxGross",
       "paymentReconciliationDetails": {
@@ -86,10 +86,10 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/2",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
+        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2"
       },
       "taxMode": "https://openactive.io/TaxNet"
     }
