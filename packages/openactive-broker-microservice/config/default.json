@@ -1,5 +1,5 @@
 {
-  "datasetSiteUrl": "https://localhost:5001/openactive",
+  "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
   "requestLogging": false,
   "waitForHarvestCompletion": true,
   "verbose": false,
