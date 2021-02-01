@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest, macos-latest]
 
     steps:
     - name: Checkout OpenActive Test Suite
@@ -45,7 +45,7 @@ jobs:
       working-directory: server
     - name: Start OpenActive.Server.NET Reference Implementation
       run: |
-        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build
+        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
       working-directory: server
 
 
