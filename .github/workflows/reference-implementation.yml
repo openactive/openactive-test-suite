@@ -38,8 +38,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - name: Trust .NET dev certs
-      run: dotnet dev-certs https --trust
 
 
     - name: Build OpenActive.Server.NET Reference Implementation with dependencies
