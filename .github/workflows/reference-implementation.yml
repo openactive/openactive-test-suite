@@ -59,7 +59,7 @@ jobs:
         FORCE_COLOR: 1
         NODE_CONFIG: |
           {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
-        NODE_ENV: 
+        NODE_ENV: default-ci
         NODE_APP_INSTANCE: ci
       working-directory: tests
     - name: Upload test output for Random Mode as artifact
@@ -75,7 +75,7 @@ jobs:
         FORCE_COLOR: 1
         NODE_CONFIG: |
           {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
-        NODE_ENV: 
+        NODE_ENV: default-ci
         NODE_APP_INSTANCE: ci
       working-directory: tests
     - name: Upload test output for Controlled Mode as artifact
