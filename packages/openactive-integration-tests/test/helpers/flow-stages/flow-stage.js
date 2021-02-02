@@ -5,7 +5,7 @@ const pMemoize = require('p-memoize');
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  */
 
 /**
@@ -46,7 +46,16 @@ const pMemoize = require('p-memoize');
  *   and then collect the result after), this promise is persisted, so that the
  *   result can be collected by resolving it.
  *
- *   The response will be for an RPDE item with { kind, id, state, data, ...etc }.
+ *   The response will be for an RPDE item with `{ kind, id, state, data, ...etc }`.
+ * @property {Promise<ChakramResponse[]>} [getOpportunitiesFromOpportunityFeedPromise]
+ *   Used for Opportunity Feed updates.
+ *
+ *   Because an Opportunity Feed update check must be initiated before another stage
+ *   and then collected after that stage has completed (e.g. initiate before a Change
+ *   of Logistics (TestInterface action) stage and then collect the result after),
+ *   this promise is persisted, so that the result can be collected by resolving it.
+ *
+ *   The response will be for an array of RPDE items with `{ kind, id, state, data, ...etc }`.
  */
 /**
  * @template {FlowStageOutput} TOutput

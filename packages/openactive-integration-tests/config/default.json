@@ -50,10 +50,10 @@
     "reseller-broker": true,
     "reseller-broker-tax-calculation": null,
     "no-broker": true,
-    "business-to-consumer-tax-calculation-net": null,
-    "business-to-consumer-tax-calculation-gross": null,
-    "business-to-business-tax-calculation-net": null,
-    "business-to-business-tax-calculation-gross": null,
+    "business-to-consumer-tax-calculation-net": true,
+    "business-to-consumer-tax-calculation-gross": true,
+    "business-to-business-tax-calculation-net": true,
+    "business-to-business-tax-calculation-gross": true,
     "offer-overrides": null,
     "dynamic-payment": null,
     "booking-restrictions": null,
@@ -77,6 +77,7 @@
         "X-OpenActive-Test-Client-Id": "test",
         "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
       },
+      "taxMode": "https://openactive.io/TaxGross",
       "paymentReconciliationDetails": {
         "name": "AcmeBroker Points",
         "accountId": "SN1593",
@@ -85,7 +86,12 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/3"
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
+      "requestHeaders": {
+        "X-OpenActive-Test-Client-Id": "test",
+        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2"
+      },
+      "taxMode": "https://openactive.io/TaxNet"
     }
   }
 }

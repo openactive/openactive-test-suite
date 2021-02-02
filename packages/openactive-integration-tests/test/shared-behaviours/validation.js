@@ -28,6 +28,8 @@ function priorityOfSeverity(severity) {
 /**
  * Use OpenActive validator to validate the response from a flow request (e.g. C2).
  *
+ * Note: This creates a describe() and it() blocks in which the validation tests run.
+ *
  * @param {() => ChakramResponse} getter Thunk which returns the HTTP response
  *   from calling the flow endpoint (e.g. C2)
  * @param {string} name Used to log the results and describe the test
@@ -35,7 +37,8 @@ function priorityOfSeverity(severity) {
  * @param {object} options
  * @param {ValidationMode} options.validationMode
  *   What type of response is being validated. Some modes have special handling behaviours.
- * @param {string} [opportunityCriteria]
+ * @param {string} [opportunityCriteria] If included, this will check that the opportunity
+ *   matches the criteria.
  */
 function shouldBeValidResponse(getter, name, logger, options, opportunityCriteria) {
   let results = null;
