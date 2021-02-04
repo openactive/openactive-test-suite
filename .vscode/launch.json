@@ -40,7 +40,10 @@
             "request": "launch",
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
-            "runtimeVersion": "12.18.2"
+            "runtimeVersion": "12.18.2",
+            "env": {
+              "NODE_ENV": "dev"
+            },
         },
         {
             "name": "combined",
@@ -48,7 +51,10 @@
             "request": "launch",
             "autoAttachChildProcesses": true,
             "program": "${workspaceFolder}/start.js",
-            "runtimeVersion": "12.18.2"
+            "runtimeVersion": "12.18.2",
+            "env": {
+              "NODE_ENV": "default"
+            },
         }
     ]
 }
