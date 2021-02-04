@@ -1,21 +1,28 @@
 {
-  "datasetSiteUrl": "https://localhost:5001/openactive",
+  "datasetSiteUrl": "http://localhost:5000/openactive",
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/1",
+      "@id": "http://localhost:5000/api/identifiers/sellers/1",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
+        "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/1"
+      },
+      "taxMode": "https://openactive.io/TaxGross",
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
       }
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/2",
+      "@id": "http://localhost:5000/api/identifiers/sellers/2",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
-      }
+        "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/2"
+      },
+      "taxMode": "https://openactive.io/TaxNet"
     }
   }
 }
