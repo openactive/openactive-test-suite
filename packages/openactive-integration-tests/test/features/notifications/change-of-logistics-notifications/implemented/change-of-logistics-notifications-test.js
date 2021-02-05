@@ -19,40 +19,85 @@ FeatureHelper.describeFeature(module, {
   skipMultiple: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
-  const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'TestInterfaceAction (test:ChangeOfLogisticsSimulateAction)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:ChangeOfLogisticsSimulateAction',
-        objectType: fetchOpportunities.getOutput().orderItems[0].orderedItem['@type'],
-        objectId: fetchOpportunities.getOutput().orderItems[0].orderedItem['@id'],
-      }),
-    })),
-    opportunityFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: b,
-      getInput: () => ({
-        testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
-      }),
-      orderItemCriteriaList,
-      testName: 'Opportunity Feed Update (after test:ChangeOfLogisticsSimulateAction)',
-      // The Broker needs to notify the Customer if any Opportunity in their Order has
-      // changed (rather than all Opportunities in the Order). So, we expect the
-      // ChangeOfLogisticsSimulateAction could be implemented in such a way as to only
-      // update one item. Hence, wait-for-one.
-      waitMode: 'wait-for-one',
-    },
+  describe.skip('ChangeOfLogisticsSimulateAction triggered in the child Event (Slot or ScheduledSession) (eg startDate)', () => {
+    // ## Initiate Flow Stages
+    const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+    const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+        ...defaultFlowStageParams,
+        testName: 'TestInterfaceAction (test:ChangeOfLogisticsSimulateAction)',
+        prerequisite,
+        createActionFn: () => ({
+          type: 'test:ChangeOfLogisticsSimulateAction',
+          objectType: fetchOpportunities.getOutput().orderItems[0].orderedItem['@type'],
+          objectId: fetchOpportunities.getOutput().orderItems[0].orderedItem['@id'],
+        }),
+      })),
+      opportunityFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        prerequisite: b,
+        getInput: () => ({
+          testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
+        }),
+        orderItemCriteriaList,
+        testName: 'Opportunity Feed Update (after test:ChangeOfLogisticsSimulateAction)',
+        // The Broker needs to notify the Customer if any Opportunity in their Order has
+        // changed (rather than all Opportunities in the Order). So, we expect the
+        // ChangeOfLogisticsSimulateAction could be implemented in such a way as to only
+        // update one item. Hence, wait-for-one.
+        waitMode: 'wait-for-one',
+      },
+    });
+
+    // ## Set up tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
   });
 
-  // ## Set up tests
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
+  describe('ChangeOfLogisticsSimulateAction triggered in the parent Event (FacilityUse or SessionSeries) (eg name)', () => {
+    // ## Initiate Flow Stages
+    const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+    const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+        ...defaultFlowStageParams,
+        testName: 'TestInterfaceAction (test:ChangeOfLogisticsSimulateAction)',
+        prerequisite,
+        createActionFn: () => ({
+          type: 'test:ChangeOfLogisticsSimulateAction',
+          objectType: fetchOpportunities.getOutput().orderItems[0].orderedItem.superEvent
+            ? fetchOpportunities.getOutput().orderItems[0].orderedItem.superEvent['@type']
+            : fetchOpportunities.getOutput().orderItems[0].orderedItem.faciltyUse['@type'],
+          objectId: fetchOpportunities.getOutput().orderItems[0].orderedItem.superEvent
+            ? fetchOpportunities.getOutput().orderItems[0].orderedItem.superEvent['@id']
+            : fetchOpportunities.getOutput().orderItems[0].orderedItem.faciltyUse['@id'],
+        }),
+      })),
+      opportunityFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        prerequisite: b,
+        getInput: () => ({
+          testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
+        }),
+        orderItemCriteriaList,
+        testName: 'Opportunity Feed Update (after test:ChangeOfLogisticsSimulateAction)',
+        // The Broker needs to notify the Customer if any Opportunity in their Order has
+        // changed (rather than all Opportunities in the Order). So, we expect the
+        // ChangeOfLogisticsSimulateAction could be implemented in such a way as to only
+        // update one item. Hence, wait-for-one.
+        waitMode: 'wait-for-one',
+      },
+    });
+
+    // ## Set up tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
+  });
 });
