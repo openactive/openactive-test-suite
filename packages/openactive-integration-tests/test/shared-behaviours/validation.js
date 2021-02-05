@@ -1,6 +1,12 @@
-const assert = require("assert");
-const { validate } = require("@openactive/data-model-validator");
-const { criteriaMap, testMatch } = require("@openactive/test-interface-criteria");
+const { validate } = require('@openactive/data-model-validator');
+const { criteriaMap, testMatch } = require('@openactive/test-interface-criteria');
+
+const { HARVEST_START_TIME } = global;
+
+/**
+ * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../helpers/logger').BaseLoggerType} BaseLoggerType
+ */
 
 function priorityOfSeverity(severity) {
   switch (severity) {
@@ -15,30 +21,49 @@ function priorityOfSeverity(severity) {
   }
 }
 
-function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCriteria) {
+/**
+ * @typedef {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed'} ValidationMode
+ */
+
+/**
+ * Use OpenActive validator to validate the response from a flow request (e.g. C2).
+ *
+ * Note: This creates a describe() and it() blocks in which the validation tests run.
+ *
+ * @param {() => ChakramResponse} getter Thunk which returns the HTTP response
+ *   from calling the flow endpoint (e.g. C2)
+ * @param {string} name Used to log the results and describe the test
+ * @param {BaseLoggerType} logger
+ * @param {object} options
+ * @param {ValidationMode} options.validationMode
+ *   What type of response is being validated. Some modes have special handling behaviours.
+ * @param {string} [opportunityCriteria] If included, this will check that the opportunity
+ *   matches the criteria.
+ */
+function shouldBeValidResponse(getter, name, logger, options, opportunityCriteria) {
   let results = null;
 
-  let doCriteriaMatch = (criteriaName) => {
-      let response = getter();
-  
-      if (!response) {
-        throw new Error('No response to match against criteria');
-      }
-  
-      let body = response.body.data;
-  
-      if (!criteriaMap.has(criteriaName)) {
-        throw new Error(`Criteria '${criteriaName}' not supported by the @openactive/test-interface-criteria library`);
-      }
+  const doCriteriaMatch = (criteriaName) => {
+    const response = getter();
 
-      let { matchesCriteria, unmetCriteriaDetails } = testMatch(criteriaMap.get(criteriaName), body);
-  
-      if (!matchesCriteria) {
-        throw new Error(`Does not match criteria https://openactive.io/test-interface#${criteriaName}: ${unmetCriteriaDetails.join(', ')}`);
-      }
-  }
+    if (!response) {
+      throw new Error('No response to match against criteria');
+    }
 
-  let doValidate = async () => {
+    const body = response.body.data;
+
+    if (!criteriaMap.has(criteriaName)) {
+      throw new Error(`Criteria '${criteriaName}' not supported by the @openactive/test-interface-criteria library`);
+    }
+
+    const { matchesCriteria, unmetCriteriaDetails } = testMatch(criteriaMap.get(criteriaName), body, { harvestStartTime: HARVEST_START_TIME });
+
+    if (!matchesCriteria) {
+      throw new Error(`Does not match criteria https://openactive.io/test-interface#${criteriaName}: ${unmetCriteriaDetails.join(', ')}`);
+    }
+  };
+
+  const doValidate = async () => {
     if (results) return results;
 
     /**
@@ -49,38 +74,38 @@ function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCr
      *   validationMode?: string,
      * }} & typeof options
      */
-    let optionsWithRemoteJson = Object.assign({
+    const optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
       remoteJsonCachePath: './tmp',
-      remoteJsonCacheTimeToLive: 3600
+      remoteJsonCacheTimeToLive: 3600,
     }, options);
 
-    let response = getter();
+    const response = getter();
 
     if (!response) {
       throw new Error('No response to validate');
     }
 
-    let body = response.body;
+    let { body } = response;
 
-    if (["OrdersFeed", "BookableRPDEFeed"].includes(options.validationMode)) {
+    if (['OrdersFeed', 'BookableRPDEFeed'].includes(options.validationMode)) {
       body = body.data;
     }
 
-    let statusCode = response.response && response.response.statusCode;
-    let statusMessage = response.response && response.response.statusMessage;
+    const statusCode = response.response && response.response.statusCode;
+    const statusMessage = response.response && response.response.statusMessage;
 
     // Note C1Response and C2Response are permitted to return 409 errors of type `OrderQuote`, instead of `OpenBookingError`
-    if ((statusCode < 200 || statusCode >= 300) && !( statusCode == 409 && ( options.validationMode == "C1Response" || options.validationMode == "C2Response") ) ) {
-      optionsWithRemoteJson.validationMode = "OpenBookingError";
+    if ((statusCode < 200 || statusCode >= 300) && !(statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response'))) {
+      optionsWithRemoteJson.validationMode = 'OpenBookingError';
 
       // little nicer error message for completely failed responses.
       if (!body) {
         return [
           {
-            severity: "failure",
-            message: `Server returned an error ${statusCode} (${statusMessage}) with an empty body.`
-          }
+            severity: 'failure',
+            message: `Server returned an error ${statusCode} (${statusMessage}) with an empty body.`,
+          },
         ];
       }
     }
@@ -92,25 +117,23 @@ function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCr
     return results;
   };
 
-  describe("validation of " + name, function() {
-    it("passes validation checks", async function() {
-      let results = await doValidate();
+  describe(`validation of ${name}`, function () {
+    it('passes validation checks', async function () {
+      const results = await doValidate();
 
       logger.recordResponseValidations(name, results);
 
-      let errors = results
-        .filter(result => result.severity === "failure")
-        .map(result => {
-          return `FAILURE: ${result.path}: ${result.message.split("\n")[0]}`;
-        });
+      const errors = results
+        .filter(result => result.severity === 'failure')
+        .map(result => `FAILURE: ${result.path}: ${result.message.split('\n')[0]}`);
 
       if (errors.length > 0) {
-        throw new Error(errors.join("\n"));
+        throw new Error(errors.join('\n'));
       }
     });
 
     if (opportunityCriteria) {
-      it(`matches the criteria '${opportunityCriteria}' required for this test`, async function() {
+      it(`matches the criteria '${opportunityCriteria}' required for this test`, async function () {
         doCriteriaMatch(opportunityCriteria);
       });
     }
@@ -118,5 +141,5 @@ function shouldBeValidResponse(getter, name, logger, options = {}, opportunityCr
 }
 
 module.exports = {
-  shouldBeValidResponse
+  shouldBeValidResponse,
 };

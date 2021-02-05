@@ -1,7 +1,9 @@
 const _ = require('lodash');
+const chakram = require('chakram');
 
 const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
+const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
@@ -49,6 +51,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  *   logger: InstanceType<typeof Logger>,
  *   state: InstanceType<typeof RequestState>,
  *   flow: InstanceType<typeof FlowHelper>,
+ *   opportunityType?: string | null,
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
@@ -88,14 +91,14 @@ class FeatureHelper {
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: true,
       control: false,
-      opportunityReuseKey: i,
+      opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
     },
     {
       opportunityType,
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: false,
       control: false,
-      opportunityReuseKey: i,
+      opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
     },
     {
       opportunityType,
@@ -126,6 +129,8 @@ class FeatureHelper {
       }
 
 
+      // This function mutates its arg, documentationModule
+      // eslint-disable-next-line no-param-reassign
       documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
         criteriaRequirement,
       }));
@@ -170,7 +175,7 @@ class FeatureHelper {
 
                 const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
 
-                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
+                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
               });
             });
 
@@ -195,7 +200,7 @@ class FeatureHelper {
                   });
                 }
 
-                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow);
+                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null);
               });
             }
           }
@@ -223,6 +228,33 @@ class FeatureHelper {
           throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
         });
       });
+    });
+  }
+
+  /**
+   * @param {NodeModule} documentationModule
+   * @param {DescribeFeatureConfiguration & {
+   *   unmatchedOpportunityCriteria: string[],
+   * }} configuration
+   */
+  static describeUnmatchedCriteriaFeature(documentationModule, configuration) {
+    this.describeFeature(documentationModule, Object.assign({
+      testDescription: `Assert that no opportunities that match criteria ${configuration.unmatchedOpportunityCriteria.map(x => `'${x}'`).join(' or ')} are available in the opportunity feeds.`,
+      skipMultiple: true,
+      runOne: false,
+    }, configuration),
+    function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType) {
+      if (opportunityType != null) {
+        configuration.unmatchedOpportunityCriteria.forEach((criteria) => {
+          describe(`${criteria} opportunity feed items`, function () {
+            it(`should be no events matching the [${criteria}](https://openactive.io/test-interface#${criteria}) criteria in the '${opportunityType}' feed(s)`, async () => {
+              const requestHelper = new RequestHelper(logger);
+              const response = await requestHelper.callAssertUnmatchedCriteria(opportunityType, criteria);
+              chakram.expect(response).to.have.status(204);
+            });
+          });
+        });
+      }
     });
   }
 }

@@ -1,4 +1,4 @@
-const { CriteriaFutureScheduledOpportunity } = require('./CriteriaFutureScheduledOpportunity');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria } = require('./criteriaUtils');
 
 /**
@@ -15,17 +15,17 @@ function mustNotHaveAvailableChannel(offer) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityNotBookableViaAvailableChannel
  */
-const TestOpportunityNotBookableViaAvailableChannel = createCriteria(
-  'TestOpportunityNotBookable',
-  [],
-  [
+const TestOpportunityNotBookableViaAvailableChannel = createCriteria({
+  name: 'TestOpportunityNotBookableViaAvailableChannel',
+  opportunityConstraints: [],
+  offerConstraints: [
     [
       'Must not have available channel',
       mustNotHaveAvailableChannel,
     ],
   ],
-  CriteriaFutureScheduledOpportunity,
-);
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+});
 
 module.exports = {
   TestOpportunityNotBookableViaAvailableChannel,

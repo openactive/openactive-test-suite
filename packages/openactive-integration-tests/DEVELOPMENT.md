@@ -6,9 +6,23 @@ The testing architecture is documented in [ARCHITECTURE.md](./architecture.md). 
 
 ## Structure
 
-Tests are namespaced by Category, Integration Test, Feature and finally implemented/non-implemented.
+Tests exist in a path that includes identifiers for the Category, Feature, and Test, whether it is implemented or non-implemented, and a postfix of `-test.js`, as follows:
 
-i.e. `features/payment/simple-book-with-payment/implemented/with-payment-property-test.js`
+`test/features/<testCategory>/<testFeature>/<implemented|non-implemented>/<testIdentifier>-test.js`
+
+### Example
+
+The following test:
+
+```javascript
+FeatureHelper.describeFeature(module, {
+  testCategory: 'payment',
+  testFeature: 'simple-book-with-payment',
+  testFeatureImplemented: true,
+  testIdentifier: 'with-payment-property',
+```
+
+Will exist in the path `test/features/payment/simple-book-with-payment/implemented/with-payment-property-test.js`.
 
 ## Implemented / non-implemented
 
@@ -66,7 +80,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking with payment property',
   testDescription: 'A successful end to end booking with the `payment` property included.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookablePaid',
+  testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },

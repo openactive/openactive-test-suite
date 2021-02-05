@@ -19,9 +19,9 @@ Feature Implemented: {{{ implemented }}}
 
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
-    {{#if request.params}}
+    {{#if request.jsonBody}}
 ```json
-{{{ json request.params }}}
+{{{ json request.jsonBody }}}
 ```
     {{/if}}
         {{#if isPending}}
@@ -54,7 +54,7 @@ Response error:
 {{/if~}}
  * {{ specIcon spec.status }} {{{firstLine spec.title}}}
         {{#each spec.failureMessages}}
-    - {{{firstLine . }}}
+    - {{{extractMessage . }}}
         {{/each}}
     {{/logsFor}}
     {{#logsFor . "validations"}}

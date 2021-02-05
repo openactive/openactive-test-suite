@@ -15,17 +15,17 @@ function offersMustNotHaveCancellationWindow(offer) {
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableCancellable
  */
-const TestOpportunityBookableCancellable = createCriteria(
-  'TestOpportunityBookableCancellable',
-  [],
-  [
+const TestOpportunityBookableCancellable = createCriteria({
+  name: 'TestOpportunityBookableCancellable',
+  opportunityConstraints: [],
+  offerConstraints: [
     [
       'Offers must not have cancellation window',
       offersMustNotHaveCancellationWindow,
     ],
   ],
-  TestOpportunityBookable,
-);
+  includeConstraintsFromCriteria: TestOpportunityBookable,
+});
 
 module.exports = {
   TestOpportunityBookableCancellable,

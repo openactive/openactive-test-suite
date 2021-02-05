@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
     - name: Checkout OpenActive Test Suite
@@ -21,14 +21,14 @@ jobs:
         path: tests
     - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
       if: ${{ startsWith(github.head_ref, 'coverage/') }}
-      run: echo "::set-env name=mirror_ref::${{ github.head_ref }}"
-    - name: Checkout OpenActive.Server.NET ${{ env.mirror_ref }}
+      id: refs
+      run: echo "::set-output name=mirror_ref::${{ github.head_ref }}"
+    - name: Checkout OpenActive.Server.NET ${{ steps.refs.outputs.mirror_ref }}
       uses: actions/checkout@v2
       with:
         repository: openactive/OpenActive.Server.NET
-        ref: ${{ env.mirror_ref }}
+        ref: ${{ steps.refs.outputs.mirror_ref }}
         path: server
-
 
     - name: Setup .NET Core 2.1.808
       uses: actions/setup-dotnet@v1
@@ -58,8 +58,9 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/random/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/1", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/2" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
+          {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
         NODE_ENV: 
+        NODE_APP_INSTANCE: ci
       working-directory: tests
     - name: Upload test output for Random Mode as artifact
       uses: actions/upload-artifact@v2
@@ -73,8 +74,9 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/controlled/", "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/1", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/2" } }, "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
+          {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
         NODE_ENV: 
+        NODE_APP_INSTANCE: ci
       working-directory: tests
     - name: Upload test output for Controlled Mode as artifact
       uses: actions/upload-artifact@v2

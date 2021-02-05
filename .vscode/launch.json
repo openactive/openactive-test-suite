@@ -5,48 +5,56 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - cancellation/customer-requested-cancellation/unknown-order-test",
+            "name": "integration-tests - this test file",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
                 "start-tests",
                 "--",
                 "--runInBand",
-                "test/features/cancellation/customer-requested-cancellation/implemented/unknown-order-test.js"
+                "${relativeFile}",
             ],
             "runtimeExecutable": "npm",
-            "runtimeVersion": "12.18.2",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "type": "node",
             "env": {
               "NODE_ENV": "dev"
-            }
+            },
+            "runtimeVersion": "12.18.2"
         },
         {
-            "name": "integration-tests",
+            "name": "integration-tests - all tests",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
-            "runtimeVersion": "12.18.2",
             "runtimeArgs": ["run-script", "debug"],
-            "port": 9229
+            "port": 9229,
+            "runtimeVersion": "12.18.2"
         },
         {
             "name": "broker-microservice",
             "type": "node",
             "request": "launch",
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
-            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/"
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
+            "runtimeVersion": "12.18.2",
+            "env": {
+              "NODE_ENV": "dev"
+            },
         },
         {
             "name": "combined",
             "type": "node",
             "request": "launch",
             "autoAttachChildProcesses": true,
-            "program": "${workspaceFolder}/start.js"
+            "program": "${workspaceFolder}/start.js",
+            "runtimeVersion": "12.18.2",
+            "env": {
+              "NODE_ENV": "default"
+            },
         }
     ]
 }

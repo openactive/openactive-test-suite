@@ -1,9 +1,9 @@
 const NodeEnvironment = require('jest-environment-node');
-const axios = require("axios");
-const config = require("config");
+const axios = require('axios');
+const config = require('config');
 
-const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}/`;
-const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
+const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
+const TEST_DATASET_IDENTIFIER = config.get('testDatasetIdentifier');
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
 const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
@@ -16,10 +16,14 @@ class TestEnvironment extends NodeEnvironment {
   async setup() {
     await super.setup();
 
-    // Get endpoint URL from Dataset Site
-    let response = await axios.get(MICROSERVICE_BASE + "dataset-site");
-    if (response && response.data && response.data.accessService && response.data.accessService.endpointURL) {
-      this.global.BOOKING_API_BASE = response.data.accessService.endpointURL;
+    // Get endpoint URL from Broker Microservice
+    const configUrl = `${MICROSERVICE_BASE}/config`;
+    const response = await axios.get(configUrl);
+    if (response && response.data) {
+      this.global.BOOKING_API_BASE = response.data.bookingApiBaseUrl;
+      this.global.HARVEST_START_TIME = new Date(response.data.harvestStartTime);
+    } else {
+      throw new Error(`Error accessing broker microservice at ${configUrl}`);
     }
     this.global.MICROSERVICE_BASE = MICROSERVICE_BASE;
     this.global.TEST_DATASET_IDENTIFIER = TEST_DATASET_IDENTIFIER;

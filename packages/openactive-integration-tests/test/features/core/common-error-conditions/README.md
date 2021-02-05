@@ -10,7 +10,7 @@ Coverage Status: **partial**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x21, [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x20
 
 
 ### Running tests for only this feature
@@ -37,7 +37,7 @@ This feature is **required** by the Open Booking API specification, and so must 
 |------------|------|-------------|---------------|
 | [incomplete-broker-details](./implemented/incomplete-broker-details-test.js) | Expect an IncompleteBrokerDetailsError when broker details are missing name | Run each of C1, C2 and B for a valid opportunity, with broker details incomplete (missing name), expecting an IncompleteBrokerDetailsError to be returned | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x12 |
 | [incomplete-customer-details](./implemented/incomplete-customer-details-test.js) | Expect an IncompleteCustomerDetailsError when customer details are incomplete | Run each of C2 and B for a valid opportunity, with customer details incomplete, expecting an IncompleteCustomerDetailsError to be returned (C1 is ignored because customer details are not accepted for C1) | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x8 |
-| [payment-mismatch](./implemented/payment-mismatch-test.js) | Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match | Run B for a valid opportunity, with totalPaymentDue not matching the value returned by C2, expecting a TotalPaymentDueMismatchError to be returned (C1 and C2 ignored as they do not have totalPaymentDue) | [TestOpportunityBookablePaid](https://openactive.io/test-interface#TestOpportunityBookablePaid) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [unknown-endpoint](./implemented/unknown-endpoint-test.js) | Expect an UnknownOrIncorrectEndpointError for requests to unknown endpoints | Send a request to an endpoint that does not exist, and expect an UnknownOrIncorrectEndpointError to be returned |  |
 
 
 
