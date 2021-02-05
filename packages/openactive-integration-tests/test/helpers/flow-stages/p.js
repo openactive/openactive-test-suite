@@ -5,11 +5,12 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../templates/p-req').PReqTemplateRef} PReqTemplateRef
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./flow-stage').Prepayment} Prepayment
+ * @typedef {import('../sellers').SellerConfig} SellerConfig
  */
 
 /**
@@ -22,16 +23,16 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {PReqTemplateRef} [args.templateRef]
  * @param {string} args.uuid
- * @param {string} args.sellerId
+ * @param {SellerConfig} args.sellerConfig
  * @param {OrderItem[]} args.orderItems
  * @param {number} args.totalPaymentDue
  * @param {Prepayment} args.prepayment
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<Output>}
  */
-async function runP({ templateRef, uuid, sellerId, orderItems, totalPaymentDue, prepayment, requestHelper }) {
+async function runP({ templateRef, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, requestHelper }) {
   const params = {
-    sellerId,
+    sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
     prepayment,
@@ -60,9 +61,9 @@ class PFlowStage extends FlowStage {
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {string} args.sellerId
+   * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerId }) {
+  constructor({ templateRef, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig }) {
     super({
       prerequisite,
       getInput,
@@ -72,7 +73,7 @@ class PFlowStage extends FlowStage {
         return await runP({
           templateRef,
           uuid,
-          sellerId,
+          sellerConfig,
           orderItems,
           totalPaymentDue,
           prepayment,
