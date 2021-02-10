@@ -9,6 +9,8 @@ const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookabl
 const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportunityNotBookableViaAvailableChannel');
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
+const { TestOpportunityBookableCancellableWithinWindow } = require('./TestOpportunityBookableCancellableWithinWindow');
+const { TestOpportunityBookableCancellableOutsideWindow } = require('./TestOpportunityBookableCancellableOutsideWindow');
 const { TestOpportunityBookableNonFreeTaxNet } = require('./TestOpportunityBookableNonFreeTaxNet');
 const { TestOpportunityBookableNonFreeTaxGross } = require('./TestOpportunityBookableNonFreeTaxGross');
 const { TestOpportunityBookableNonFreePrepaymentOptional } = require('./TestOpportunityBookableNonFreePrepaymentOptional');
@@ -31,6 +33,8 @@ module.exports = {
     TestOpportunityNotBookableViaAvailableChannel,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
+    TestOpportunityBookableCancellableWithinWindow,
+    TestOpportunityBookableCancellableOutsideWindow,
     TestOpportunityBookableNonFreeTaxNet,
     TestOpportunityBookableNonFreeTaxGross,
     TestOpportunityBookableNonFreePrepaymentOptional,
