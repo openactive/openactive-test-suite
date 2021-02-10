@@ -35,7 +35,7 @@
     "cancellation-window": true,
     "seller-requested-cancellation": true,
     "seller-requested-cancellation-message": true,
-    "seller-requested-replacement": null,
+    "seller-requested-replacement": true,
     "named-leasing": true,
     "anonymous-leasing": true,
     "customer-details-capture-non-essential": true,
