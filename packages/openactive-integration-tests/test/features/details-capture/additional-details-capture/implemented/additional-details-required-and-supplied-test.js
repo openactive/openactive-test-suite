@@ -21,8 +21,10 @@ FeatureHelper.describeFeature(module, {
 
   // ## Run Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  // TODO TODO TODO fix validator for following stages
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+
+  // Change the below to `FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1)` etc when
+  // https://github.com/openactive/data-model-validator/issues/367 is fixed in the validator
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, c1);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, c2);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, b);
 });
