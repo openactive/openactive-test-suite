@@ -10,7 +10,7 @@ Coverage Status: **partial**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x29, [TestOpportunityBookableOutsideValidFromBeforeStartDate](https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate) x3
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x25, [TestOpportunityBookableOutsideValidFromBeforeStartDate](https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate) x3
 
 
 ### Running tests for only this feature
@@ -40,7 +40,6 @@ This feature is **required** by the Open Booking API specification, and so must 
 | [incomplete-order-item](./implemented/incomplete-order-item-test.js) | Test for IncompleteOrderItemError (at C1, C2 and B) | Test for IncompleteOrderItemError (at C1, C2 and B). If there is a missing acceptedOffer or orderedItem property on the OrderItem. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 | [not-bookable](./implemented/not-bookable-test.js) | Expect an OpportunityOfferPairNotBookableError when booking not bookable opportunity | Runs C1, C2 and B for an opportunity that is not bookable, expecting an OpportunityOfferPairNotBookableError to be returned | [TestOpportunityBookableOutsideValidFromBeforeStartDate](https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 | [unknown-endpoint](./implemented/unknown-endpoint-test.js) | Expect an UnknownOrIncorrectEndpointError for requests to unknown endpoints | Send a request to an endpoint that does not exist, and expect an UnknownOrIncorrectEndpointError to be returned |  |
-| [unknown-opportunity](./implemented/unknown-opportunity-test.js) | Expect an UnknownOpportunityDetailsError when opportunity has fictional identifiers | Runs C1, C2 and B for an unknown opportunity (fictional identifiers), expecting an UnknownOpportunityDetailsError error to be returned | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
 

@@ -437,7 +437,7 @@ function createIncorrectReconciliationDetails(data) {
  */
 function createStandardBWithoutOrderedItem(data) {
   if (!data.orderProposalVersion) {
-    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data); 
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
@@ -476,7 +476,7 @@ function createAttendeeDetails(data) {
  */
 function createStandardBWithoutAcceptedOffer(data) {
   if (!data.orderProposalVersion) {
-    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data); 
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
