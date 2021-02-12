@@ -17,11 +17,17 @@
     "test-interface-criteria": "cd packages/test-interface-criteria && npm test",
     "test-tests": "cd packages/openactive-integration-tests && npm test",
     "test": "npm run test-broker && npm run test-interface-criteria && npm run test-tests",
+    "lint-fix-broker": "cd packages/openactive-broker-microservice && npm run lint-fix",
+    "lint-fix-interface-criteria": "cd packages/test-interface-criteria && npm run lint-fix",
+    "lint-fix-tests": "cd packages/openactive-integration-tests && npm run lint-fix",
+    "lint-fix": "npm run lint-fix-broker && npm run lint-fix-interface-criteria && npm run lint-fix-tests",
     "debug-broker": "cd packages/openactive-broker-microservice && npm run debug",
     "debug-tests": "cd packages/openactive-integration-tests && npm run debug",
     "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
     "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen",
-    "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types"
+    "git-add-newly-generated-integration-test-docs": "git add packages/openactive-integration-tests/test/**/README.md",
+    "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types",
+    "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types"
   },
   "dependencies": {
     "node-cleanup": "^2.1.2"
@@ -34,7 +40,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run gen-interface-criteria-types && npm run doc-gen"
+      "pre-commit": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs"
     }
   }
 }

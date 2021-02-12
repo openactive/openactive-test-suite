@@ -56,6 +56,7 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  * @type {OfferConstraint}
  */
 export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+export function mustBeWithinCancellationWindow(offer: any, opportunity: any, options: any): boolean;
 /**
  * @param {Opportunity} opportunity
  * @returns {boolean}
@@ -65,3 +66,31 @@ export function hasCapacityLimitOfOne(opportunity: Opportunity): boolean;
  * @type {OpportunityConstraint}
  */
 export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustHaveBookableOffer(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+/**
+ * For a session, get `organizer`. For a facility, get `provider`.
+ * These can be used interchangeably as `organizer` is either a Person or an Organization
+ * and `provider` is an Organization.
+ *
+ * @param {Opportunity} opportunity
+ */
+export function getOrganizerOrProvider(opportunity: Opportunity): any;

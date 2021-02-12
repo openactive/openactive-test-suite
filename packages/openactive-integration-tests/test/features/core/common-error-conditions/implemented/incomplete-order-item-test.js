@@ -59,7 +59,7 @@ FeatureHelper.describeFeature(module, {
     itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => b.getOutput().httpResponse);
   });
 
-  // // ## Set up tests for noAcceptedOffer
+  // ## Set up tests for noAcceptedOffer
   const second = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger,
     {
       c1ReqTemplateRef: 'noAcceptedOffer', c2ReqTemplateRef: 'noAcceptedOffer', bReqTemplateRef: 'noAcceptedOffer',

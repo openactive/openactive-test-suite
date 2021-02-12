@@ -11,9 +11,12 @@ const { uReqTemplates } = require('../templates/u-req.js');
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
+ * @typedef {import('./sellers').SellerConfig} SellerConfig
  */
 
-const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
+
+/** @type {SellerConfig['requestHeaders']} */
+const DEFAULT_REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 
@@ -21,9 +24,11 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
 class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
+   * @param {SellerConfig | null} [sellerConfig]
    */
-  constructor(logger) {
+  constructor(logger, sellerConfig) {
     this.logger = logger;
+    this._sellerConfig = sellerConfig;
   }
 
   /**
@@ -107,10 +112,18 @@ class RequestHelper {
     return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
+  _getSellerRequestHeaders() {
+    if (this._sellerConfig) {
+      return this._sellerConfig.requestHeaders;
+    }
+    return DEFAULT_REQUEST_HEADERS;
+  }
+
   createHeaders() {
-    return Object.assign({
+    return {
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
-    }, REQUEST_HEADERS);
+      ...this._getSellerRequestHeaders(),
+    };
   }
 
   /**
@@ -224,11 +237,16 @@ class RequestHelper {
   /**
    * @param {string} eventId
    * @param {unknown} orderItemPosition
+   * @param {boolean} [useCacheIfAvailable] If true, Broker will potentially return the
+   *   item from its cache.
+   *   Set to false if you want to wait for a new update to the feed.
+   *   Default is: true.
    */
-  async getMatch(eventId, orderItemPosition) {
+  async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
+    const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
       {
         timeout: 60000,
       },
@@ -252,17 +270,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/c1-req').C1ReqTemplateRef | null} [maybeC1ReqTemplateRef]
    */
-  async putOrderQuoteTemplate(uuid, params, brokerRole, maybeC1ReqTemplateRef) {
+  async putOrderQuoteTemplate(uuid, params, maybeC1ReqTemplateRef) {
     const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
-
-    if (brokerRole) {
-      payload.brokerRole = brokerRole;
-    }
 
     const c1Response = await this.put(
       'C1',
@@ -280,17 +293,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/c2-req').C2ReqTemplateRef | null} [maybeC2ReqTemplateRef]
    */
-  async putOrderQuote(uuid, params, brokerRole, maybeC2ReqTemplateRef) {
+  async putOrderQuote(uuid, params, maybeC2ReqTemplateRef) {
     const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
-
-    if (brokerRole) {
-      payload.brokerRole = brokerRole;
-    }
 
     const c2Response = await this.put(
       'C2',
@@ -308,20 +316,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrder(uuid, params, brokerRole, maybeBReqTemplateRef) {
+  async putOrder(uuid, params, maybeBReqTemplateRef) {
     const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
-
-    // a post-proposal B request doesn't include brokerRole (which would have been
-    // set in the P request), therefore, we only update brokerRole if is already
-    // part of the request
-    if (brokerRole && 'brokerRole' in payload) {
-      payload.brokerRole = brokerRole;
-    }
 
     const bResponse = await this.put(
       'B',
@@ -363,11 +363,13 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {{ sellerId: string }} params
+   * @param {import('../templates/u-req.js').UReqTemplateData} params
+   * @param {import('../templates/u-req').UReqTemplateRef | null} [maybeUReqTemplateRef]
    */
-  async cancelOrder(uuid, params, uReqTemplateRef = 'standard') {
+  async cancelOrder(uuid, params, maybeUReqTemplateRef) {
+    const uReqTemplateRef = maybeUReqTemplateRef || 'standard';
     const templateFn = uReqTemplates[uReqTemplateRef];
-    const payload = templateFn(params, uuid);
+    const payload = templateFn(params);
 
     const uResponse = await this.patch(
       'U',
@@ -470,6 +472,36 @@ class RequestHelper {
     );
     return respObj;
   }
+
+  /**
+   * @param {string} uuid
+   */
+  async deleteOrderQuote(uuid) {
+    const respObj = await this.delete(
+      'delete-order-quote',
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }
+
+  /**
+   * @param {string} uuid
+   */
+  async getOrderStatus(uuid) {
+    const respObj = await this.get(
+      'get-order-status',
+      `${BOOKING_API_BASE}/orders/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: 10000,
+      },
+    );
+    return respObj;
+  }  
 
   delay(t, v) {
     return new Promise(function (resolve) {
