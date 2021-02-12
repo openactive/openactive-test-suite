@@ -88,6 +88,18 @@ function mustBeWithinBookingWindow(offer, opportunity, options) {
 /**
  * @type {OfferConstraint}
  */
+function mustRequireAttendeeDetails(offer) {
+  return Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails');
+}
+
+/**
+ * @type {OfferConstraint}
+ */
+function mustNotRequireAttendeeDetails(offer) {
+  return !offer.openBookingFlowRequirement
+    || (Array.isArray(offer.openBookingFlowRequirement) && !offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails'));
+}
+
 function mustBeWithinCancellationWindow(offer, opportunity, options) {
   if (!offer || !offer.latestCancellationBeforeStartDate) {
     return null; // Required for validation step
@@ -107,6 +119,29 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
   // A capacity of at least 2 is needed for cases other than IndividualFacilityUse because the multiple OrderItem tests use 2 of the same item (via the opportunityReuseKey).
   // The opportunityReuseKey is not used for IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
   return getRemainingCapacity(opportunity) > (hasCapacityLimitOfOne(opportunity) ? 0 : 1);
+}
+
+/**
+ * @type {OpportunityConstraint}
+ */
+function startDateMustBe2HrsInAdvance(opportunity, options) {
+  return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
+}
+
+/**
+ * @type {OpportunityConstraint}
+ */
+function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
+  return !(opportunity.eventStatus === 'https://schema.org/EventCancelled' || opportunity.eventStatus === 'https://schema.org/EventPostponed');
+}
+
+/**
+ * @type {OfferConstraint}
+ */
+function mustHaveBookableOffer(offer, opportunity, options) {
+  return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
+    && offer.advanceBooking !== 'https://openactive.io/Unavailable'
+    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
 /**
@@ -137,5 +172,10 @@ module.exports = {
   mustBeWithinCancellationWindow,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
+  mustRequireAttendeeDetails,
+  mustNotRequireAttendeeDetails,
+  startDateMustBe2HrsInAdvance,
+  eventStatusMustNotBeCancelledOrPostponed,
+  mustHaveBookableOffer,
   getOrganizerOrProvider,
 };

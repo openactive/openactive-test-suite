@@ -18,6 +18,7 @@ const { TestOpportunityBookableNonFreePrepaymentUnavailable } = require('./TestO
 const { TestOpportunityBookableNonFreePrepaymentRequired } = require('./TestOpportunityBookableNonFreePrepaymentRequired');
 const { TestOpportunityBookableFreePrepaymentOptional } = require('./TestOpportunityBookableFreePrepaymentOptional');
 const { TestOpportunityBookableFreePrepaymentRequired } = require('./TestOpportunityBookableFreePrepaymentRequired');
+const { TestOpportunityBookableAttendeeDetails } = require('./TestOpportunityBookableAttendeeDetails');
 const { TestOpportunityBookableSellerTermsOfService } = require('./TestOpportunityBookableSellerTermsOfService');
 
 module.exports = {
@@ -42,6 +43,7 @@ module.exports = {
     TestOpportunityBookableNonFreePrepaymentRequired,
     TestOpportunityBookableFreePrepaymentOptional,
     TestOpportunityBookableFreePrepaymentRequired,
+    TestOpportunityBookableAttendeeDetails,
     TestOpportunityBookableSellerTermsOfService,
   ],
 };

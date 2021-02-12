@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart } = require('./common');
+const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
  * @typedef {{
@@ -56,6 +56,13 @@ const { createPaymentPart } = require('./common');
  *     orderedItem: {
  *       '@type': string,
  *       '@id': string,
+ *     },
+ *     attendee?: {
+ *       '@type': 'Person'
+ *       telephone: string,
+ *       givenName: string,
+ *       familyName: string,
+ *       email: string,
  *     },
  *   }[],
  *   payment: {
@@ -114,6 +121,9 @@ function createStandardC2Req(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
+      orderItemIntakeForm: undefined,
+      orderItemIntakeFormResponse: undefined,
     })),
     payment: createPaymentPart(false),
   };
@@ -139,6 +149,68 @@ function createNoBrokerNameC2Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C2 request with attendee details
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAttendeeDetailsC2Req(data) {
+  const req = createStandardC2Req(data);
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  }
+  return req;
+}
+
+/**
+ * C2 request with additional details required, but not supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
+  const req = createStandardC2Req(data);
+  return additionalDetailsRequiredNotSupplied(req);
+}
+
+/**
+ * C2 request with additional details required and supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  return additionalDetailsRequiredAndSupplied(req);
+}
+
+/**
+ * C2 request with additional details required, but invalid boolean value supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  return additionalDetailsRequiredInvalidBooleanSupplied(req);
+}
+
+/**
+ * C2 request with additional details required, but invalid dropdown value supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+}
+
+/**
+ * @param {C2ReqTemplateData} data
+ */
 function createBusinessCustomerC2Req(data) {
   const req = createStandardC2Req(data);
   req.customer = {
@@ -162,6 +234,7 @@ function createBusinessCustomerC2Req(data) {
   };
   return req;
 }
+
 /**
  * C2 request with missing broker
  *
@@ -182,6 +255,11 @@ const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
+  attendeeDetails: createAttendeeDetailsC2Req,
+  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedC2Req,
+  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,
+  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req,
+  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req,
   businessCustomer: createBusinessCustomerC2Req,
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,

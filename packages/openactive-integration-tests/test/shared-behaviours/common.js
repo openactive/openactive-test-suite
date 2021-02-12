@@ -1,5 +1,4 @@
-const {expect} = require("chakram");
-const sharedValidationTests = require("./validation");
+const { expect } = require('chakram');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -10,7 +9,6 @@ const sharedValidationTests = require("./validation");
  */
 
 class Common {
-
   /**
    * Note: This generates an it() block. Therefore, this must be run within a describe() block.
    *
@@ -59,5 +57,5 @@ class Common {
 }
 
 module.exports = {
-  Common
+  Common,
 };
