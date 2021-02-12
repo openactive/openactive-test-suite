@@ -56,6 +56,7 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  * @type {OfferConstraint}
  */
 export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+export function mustBeWithinCancellationWindow(offer: any, opportunity: any, options: any): boolean;
 /**
  * @param {Opportunity} opportunity
  * @returns {boolean}

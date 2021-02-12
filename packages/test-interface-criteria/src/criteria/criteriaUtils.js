@@ -97,7 +97,19 @@ function mustRequireAttendeeDetails(offer) {
  */
 function mustNotRequireAttendeeDetails(offer) {
   return !offer.openBookingFlowRequirement
-         || (Array.isArray(offer.openBookingFlowRequirement) && !offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails'));
+    || (Array.isArray(offer.openBookingFlowRequirement) && !offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails'));
+}
+
+function mustBeWithinCancellationWindow(offer, opportunity, options) {
+  if (!offer || !offer.latestCancellationBeforeStartDate) {
+    return null; // Required for validation step
+  }
+
+  const start = moment(opportunity.startDate);
+  const duration = moment.duration(offer.latestCancellationBeforeStartDate);
+
+  const valid = !start.subtract(duration).isBefore(options.harvestStartTime);
+  return valid;
 }
 
 /**
@@ -157,6 +169,7 @@ module.exports = {
   getType,
   getRemainingCapacity,
   mustBeWithinBookingWindow,
+  mustBeWithinCancellationWindow,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
   mustRequireAttendeeDetails,

@@ -1,6 +1,7 @@
 const { BFlowStage } = require('./b');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
+const { CancelOrderFlowStage } = require('./cancel-order');
 const { OrderDeletionFlowStage } = require('./order-deletion');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
 const { FlowStageRecipes } = require('./flow-stage-recipes');
@@ -18,6 +19,7 @@ module.exports = {
   C2FlowStage,
   BFlowStage,
   PFlowStage,
+  CancelOrderFlowStage,
   OpportunityFeedUpdateCollectorFlowStage,
   OpportunityFeedUpdateFlowStageUtils,
   OpportunityFeedUpdateListenerFlowStage,
