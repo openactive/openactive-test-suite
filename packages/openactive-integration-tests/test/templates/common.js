@@ -79,7 +79,7 @@ function isPaymentAvailable(data) {
 function additionalDetailsRequiredNotSupplied(req) {
   return {
     ...req,
-    orderedItem: req.orderedItem.map((orderItem) => ({
+    orderedItem: req.orderedItem.map(orderItem => ({
       ...orderItem,
       orderItemIntakeForm: [
         {
@@ -163,7 +163,7 @@ function additionalDetailsRequiredAndSupplied(req) {
   const withOrderItemIntakeForm = additionalDetailsRequiredNotSupplied(req);
   return {
     ...withOrderItemIntakeForm,
-    orderedItem: withOrderItemIntakeForm.orderedItem.map((orderItem) => ({
+    orderedItem: withOrderItemIntakeForm.orderedItem.map(orderItem => ({
       ...orderItem,
       orderItemIntakeFormResponse: [
         {
@@ -205,7 +205,7 @@ function additionalDetailsRequiredInvalidBooleanSupplied(req) {
   const withAdditionalDetails = additionalDetailsRequiredAndSupplied(req);
   return {
     ...withAdditionalDetails,
-    orderedItem: withAdditionalDetails.orderedItem.map((orderItem) => ({
+    orderedItem: withAdditionalDetails.orderedItem.map(orderItem => ({
       ...orderItem,
       orderItemIntakeFormResponse: orderItem.orderItemIntakeFormResponse.map((responseItem) => {
         if (responseItem.propertyID === 'https://example.com/photoconsent') {
@@ -239,7 +239,7 @@ function additionalDetailsRequiredInvalidDropdownSupplied(req) {
   const withAdditionalDetails = additionalDetailsRequiredAndSupplied(req);
   return {
     ...withAdditionalDetails,
-    orderedItem: withAdditionalDetails.orderedItem.map((orderItem) => ({
+    orderedItem: withAdditionalDetails.orderedItem.map(orderItem => ({
       ...orderItem,
       orderItemIntakeFormResponse: orderItem.orderItemIntakeFormResponse.map((responseItem) => {
         if (responseItem.propertyID === 'https://example.com/age') {
