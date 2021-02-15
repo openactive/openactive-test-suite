@@ -150,6 +150,21 @@ function createNoBrokerNameC2Req(data) {
 }
 
 /**
+ * C2 request with missing OrderItem.OrderedItem
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createStandardC2WithoutOrderedItem(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+
+  return req;
+}
+
+/**
  * C2 request with attendee details
  *
  * @param {C2ReqTemplateData} data
@@ -168,6 +183,19 @@ function createAttendeeDetailsC2Req(data) {
   return req;
 }
 
+/**
+ * C2 request missing OrderItem.AcceptedOffer
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createStandardC2WithoutAcceptedOffer(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.acceptedOffer = null;
+  });
+  return req;
+}
 /**
  * C2 request with additional details required, but not supplied
  *
@@ -255,6 +283,8 @@ const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
+  noOrderedItem: createStandardC2WithoutOrderedItem,
+  noAcceptedOffer: createStandardC2WithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetailsC2Req,
   additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedC2Req,
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,

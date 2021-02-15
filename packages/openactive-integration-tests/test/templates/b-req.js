@@ -431,6 +431,26 @@ function createIncorrectReconciliationDetails(data) {
 }
 
 /**
+ * Flexible B request - but with missing OrderItem.OrderedItem
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutOrderedItem(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        const ret = orderedItem;
+        ret.orderedItem = null;
+      });
+    }
+    return req;
+  }
+
+  return null;
+}
+
+/**
  * B request with attendee details
  *
  * @param {BReqTemplateData} data
@@ -447,6 +467,26 @@ function createAttendeeDetails(data) {
     };
   }
   return req;
+}
+
+/**
+ * Flexible B request - but with missing OrderItem.AcceptedOffer.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutAcceptedOffer(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        const ret = orderedItem;
+        ret.acceptedOffer = null;
+      });
+    }
+    return req;
+  }
+
+  return null;
 }
 
 /**
@@ -510,6 +550,8 @@ const bReqTemplates = {
   businessCustomer: createBReqWithBusinessCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  noOrderedItem: createStandardBWithoutOrderedItem,
+  noAcceptedOffer: createStandardBWithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetails,
   additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedBReq,
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedBReq,

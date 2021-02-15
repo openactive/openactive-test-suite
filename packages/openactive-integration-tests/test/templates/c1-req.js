@@ -78,6 +78,21 @@ function createNoBrokerNameC1Req(data) {
 }
 
 /**
+ * C1 request with missing OrderItem.OrderedItem
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutOrderedItem(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+
+  return req;
+}
+
+/**
  * C1 request with attendee details
  *
  * @param {C1ReqTemplateData} data
@@ -95,6 +110,21 @@ function createAttendeeDetailsC1Req(data) {
   }
   return req;
 }
+
+/**
+ * C1 request with missing OrderItem.AcceptedOffer
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutAcceptedOffer(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+  return req;
+}
+
 
 /**
  * C1 request with additional details required, but not supplied
@@ -159,6 +189,8 @@ const c1ReqTemplates = {
   additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req,
   noBroker: createNoBrokerC1Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC1Req,
+  noOrderedItem: createStandardC1WithoutOrderedItem,
+  noAcceptedOffer: createStandardC1WithoutAcceptedOffer,
 };
 
 /**
