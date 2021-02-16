@@ -23,7 +23,6 @@
             "env": {
               "NODE_ENV": "dev"
             },
-            "runtimeVersion": "12.18.2"
         },
         {
             "name": "integration-tests - all tests",
@@ -34,7 +33,6 @@
             "runtimeVersion": "12.18.2",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229,
-            "runtimeVersion": "12.18.2"
         },
         {
             "name": "broker-microservice",
@@ -43,7 +41,6 @@
             "runtimeVersion": "12.18.2",
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
-            "runtimeVersion": "12.18.2",
             "env": {
               "NODE_ENV": "dev"
             },
@@ -55,7 +52,6 @@
             "runtimeVersion": "12.18.2",
             "autoAttachChildProcesses": true,
             "program": "${workspaceFolder}/start.js",
-            "runtimeVersion": "12.18.2",
             "env": {
               "NODE_ENV": "default"
             },
