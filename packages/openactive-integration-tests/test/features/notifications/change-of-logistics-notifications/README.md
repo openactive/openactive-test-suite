@@ -30,6 +30,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [change-of-logistics-notifications](./implemented/change-of-logistics-notifications-test.js) | Updating logistics information in after B request. | ChangeOfLogisticsSimulateAction triggered after B request to update name, startDate, endDate, duration or location properties of Opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [change-of-logistics-notifications](./implemented/change-of-logistics-notifications-test.js) | Updating logistics information in after B request. | ChangeOfLogisticsSimulateAction triggered after B request to update name, time, or location properties of Opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 

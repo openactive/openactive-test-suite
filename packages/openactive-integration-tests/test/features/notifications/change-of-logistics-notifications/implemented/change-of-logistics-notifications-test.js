@@ -1,4 +1,3 @@
-const { expect } = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageRecipes,
