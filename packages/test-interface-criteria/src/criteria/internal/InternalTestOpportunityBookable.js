@@ -1,21 +1,17 @@
 const moment = require('moment');
 
 const { InternalCriteriaFutureScheduledOpportunity } = require('./InternalCriteriaFutureScheduledOpportunity');
-const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('../criteriaUtils');
 const { testOpportunityDataRequirements, quantitativeValue, testOfferDataRequirements, availableChannelArrayRequirements, dateRange, advanceBookingOptionRequirements } = require('../../testDataRequirements');
+const {
+  createCriteria,
+  mustNotRequireAttendeeDetails,
+  remainingCapacityMustBeAtLeastTwo,
+  mustHaveBookableOffer,
+} = require('../criteriaUtils');
 
 /**
  * @typedef {import('../../types/Criteria').OfferConstraint} OfferConstraint
  */
-
-/**
- * @type {OfferConstraint}
- */
-function mustHaveBookableOffer(offer, opportunity, options) {
-  return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
-    && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
-}
 
 /**
  * Internal criteria which almost implements https://openactive.io/test-interface#TestOpportunityBookable
@@ -35,6 +31,10 @@ const InternalTestOpportunityBookable = createCriteria({
     [
       'Must have "bookable" offer',
       mustHaveBookableOffer,
+    ],
+    [
+      'Must not require attendee details',
+      mustNotRequireAttendeeDetails,
     ],
   ],
   testDataRequirements: (options) => ({

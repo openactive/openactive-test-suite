@@ -10,7 +10,9 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {'test:AccessCodeUpdateSimulateAction'
  *   | 'test:AccessPassUpdateSimulateAction'
- *   | 'test:ChangeOfLogisticsSimulateAction'
+ *   | 'test:ChangeOfLogisticsTimeSimulateAction'
+ *   | 'test:ChangeOfLogisticsNameSimulateAction'
+ *   | 'test:ChangeOfLogisticsLocationSimulateAction'
  *   | 'test:CustomerNoticeSimulateAction'
  *   | 'test:OpportunityAttendanceUpdateSimulateAction'
  *   | 'test:ReplacementSimulateAction'
@@ -22,7 +24,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *
  * @typedef {{
  *   type: TestInterfaceActionType,
- *   objectType: 'Order' | 'OrderProposal',
+ *   objectType: string,
  *   objectId: string,
  * }} ActionSpec
  *

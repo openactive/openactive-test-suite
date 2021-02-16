@@ -9,7 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
-const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./common');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
@@ -126,6 +126,9 @@ function createNonPaymentRelatedCoreBReq(data) {
           '@type': `${orderItem.orderedItem['@type']}`,
           '@id': `${orderItem.orderedItem['@id']}`,
         },
+        attendee: undefined,
+        orderItemIntakeForm: undefined,
+        orderItemIntakeFormResponse: undefined,
       };
       if (data.accessPass) {
         result.accessPass = data.accessPass;
@@ -174,6 +177,13 @@ function createNonPaymentRelatedCoreBReq(data) {
   *       '@type': string,
   *       '@id': string,
   *     },
+ *      attendee?: {
+ *        '@type': 'Person'
+ *        telephone: string,
+ *        givenName: string,
+ *        familyName: string,
+ *        email: string,
+ *      },
   *   }[],
   * }} BReq
   */
@@ -421,6 +431,105 @@ function createIncorrectReconciliationDetails(data) {
 }
 
 /**
+ * Flexible B request - but with missing OrderItem.OrderedItem
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutOrderedItem(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        const ret = orderedItem;
+        ret.orderedItem = null;
+      });
+    }
+    return req;
+  }
+
+  return null;
+}
+
+/**
+ * B request with attendee details
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAttendeeDetails(data) {
+  const req = createStandardPaidBReq(data);
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  }
+  return req;
+}
+
+/**
+ * Flexible B request - but with missing OrderItem.AcceptedOffer.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutAcceptedOffer(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        const ret = orderedItem;
+        ret.acceptedOffer = null;
+      });
+    }
+    return req;
+  }
+
+  return null;
+}
+
+/**
+ * B request with additional details required, but not supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredNotSuppliedBReq(data) {
+  const req = createStandardPaidBReq(data);
+  return additionalDetailsRequiredNotSupplied(req);
+}
+
+/**
+ * B request with additional details required and supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
+  return additionalDetailsRequiredAndSupplied(req);
+}
+
+/**
+ * B request with additional details required, but invalid boolean value supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
+  return additionalDetailsRequiredInvalidBooleanSupplied(req);
+}
+
+/**
+ * B request with additional details required, but invalid dropdown value supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq(data) {
+  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
+  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+}
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -441,6 +550,13 @@ const bReqTemplates = {
   businessCustomer: createBReqWithBusinessCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  noOrderedItem: createStandardBWithoutOrderedItem,
+  noAcceptedOffer: createStandardBWithoutAcceptedOffer,
+  attendeeDetails: createAttendeeDetails,
+  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedBReq,
+  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedBReq,
+  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq,
+  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq,
 };
 
 /**
