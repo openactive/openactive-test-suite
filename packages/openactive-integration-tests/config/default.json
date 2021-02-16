@@ -57,7 +57,7 @@
     "dynamic-payment": null,
     "booking-restrictions": null,
     "customer-notice-notifications": true,
-    "change-of-logistics-notifications": null,
+    "change-of-logistics-notifications": true,
     "access-code-update-notifications": true,
     "access-pass-update-notifications": true,
     "opportunity-attendance-updates": true,
