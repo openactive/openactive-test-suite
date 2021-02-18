@@ -13,8 +13,8 @@
 
 // # Generic requirements
 /**
- * @param {Omit<TestDataShape.opportunityConstraints, '@type'>} requirements
- * @returns {TestDataShape.opportunityConstraints}
+ * @param {Omit<TestDataShape['opportunityConstraints'], '@type'>} requirements
+ * @returns {TestDataShape['opportunityConstraints']}
  */
 function testOpportunityDataShapeExpression(requirements) {
   return {
@@ -23,8 +23,8 @@ function testOpportunityDataShapeExpression(requirements) {
 }
 
 /**
- * @param {Omit<TestDataShape.offerConstraints, '@type'>} requirements
- * @returns {TestDataShape.offerConstraints}
+ * @param {Omit<TestDataShape['offerConstraints'], '@type'>} requirements
+ * @returns {TestDataShape['offerConstraints']}
  */
 function testOfferDataShapeExpression(requirements) {
   return {

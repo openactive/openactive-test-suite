@@ -98,7 +98,7 @@ function getRelevantOffers(criteriaName, opportunity, options) {
 /**
  * @param {string} criteriaName
  * @param {Options} options
- * @returns {TestDataShape}
+ * @returns {any}
  */
 function getTestDataShapeExpressions(criteriaName, remainingCapacityPredicate, options) {
   const criteria = getCriteriaAndAssertExists(criteriaName);
