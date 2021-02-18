@@ -25,7 +25,8 @@
     },
     "common-error-conditions": {
       "primary": {
-        "TestOpportunityBookable": 20
+        "TestOpportunityBookable": 25,
+        "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
       }
     },
     "dataset-site": {},
@@ -40,8 +41,16 @@
         "TestOpportunityBookable": 4
       }
     },
-    "access-code-update-notifications": {},
-    "access-pass-barcode-broker-provided": {},
+    "access-code-update-notifications": {
+      "primary": {
+        "TestOpportunityBookable": 4
+      }
+    },
+    "access-pass-barcode-broker-provided": {
+      "primary": {
+        "TestOpportunityBookable": 4
+      }
+    },
     "access-pass-barcode-seller-provided": {
       "primary": {
         "TestOpportunityBookable": 4
@@ -52,15 +61,33 @@
         "TestOpportunityBookable": 4
       }
     },
-    "access-pass-update-notifications": {},
+    "access-pass-update-notifications": {
+      "primary": {
+        "TestOpportunityBookable": 4
+      }
+    },
     "dynamic-payment": {},
     "offer-overrides": {},
     "booking-partner-authentication": {},
     "dynamic-client-registration": {},
-    "no-broker": {},
-    "reseller-broker": {},
+    "no-broker": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
+    "reseller-broker": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
     "reseller-broker-tax-calculation": {},
-    "cancellation-window": {},
+    "cancellation-window": {
+      "primary": {
+        "TestOpportunityBookableCancellableOutsideWindow": 3,
+        "TestOpportunityBookable": 2,
+        "TestOpportunityBookableCancellableWithinWindow": 3
+      }
+    },
     "customer-requested-cancellation": {
       "primary": {
         "TestOpportunityBookableCancellable": 3
@@ -76,7 +103,11 @@
         "TestOpportunityBookable": 4
       }
     },
-    "seller-requested-replacement": {},
+    "seller-requested-replacement": {
+      "primary": {
+        "TestOpportunityBookable": 4
+      }
+    },
     "multiple-sellers": {
       "primary": {
         "TestOpportunityBookable": 1
@@ -90,9 +121,17 @@
         "TestOpportunityBookable": 1
       }
     },
-    "additional-details-capture": {},
-    "attendee-details-capture-with-payment": {},
-    "attendee-details-capture-without-payment": {},
+    "additional-details-capture": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
+    "attendee-details-capture": {
+      "primary": {
+        "TestOpportunityBookableAttendeeDetails": 6,
+        "TestOpportunityBookable": 2
+      }
+    },
     "customer-details-capture-identifier": {
       "primary": {
         "TestOpportunityBookable": 4
@@ -115,9 +154,21 @@
         "TestOpportunityBookable": 4
       }
     },
-    "change-of-logistics-notifications": {},
-    "customer-notice-notifications": {},
-    "opportunity-attendance-updates": {},
+    "change-of-logistics-notifications": {
+      "primary": {
+        "TestOpportunityBookable": 1
+      }
+    },
+    "customer-notice-notifications": {
+      "primary": {
+        "TestOpportunityBookable": 4
+      }
+    },
+    "opportunity-attendance-updates": {
+      "primary": {
+        "TestOpportunityBookable": 4
+      }
+    },
     "free-opportunities": {
       "primary": {
         "TestOpportunityBookableFree": 6
@@ -174,7 +225,12 @@
         "TestOpportunityBookableNonFreeTaxNet": 4
       }
     },
-    "terms-of-service": {},
+    "terms-of-service": {
+      "primary": {
+        "TestOpportunityBookable": 4,
+        "TestOpportunityBookableSellerTermsOfService": 4
+      }
+    },
     "terms-of-service-with-consent": {},
     "terms-of-service-with-consent-with-date-modified": {}
   }
