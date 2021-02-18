@@ -2,7 +2,7 @@ const moment = require('moment');
 
 const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteriaUtils');
-const { testOpportunityDataRequirements, quantitativeValue, testOfferDataRequirements, dateRange } = require('../testDataRequirements');
+const { quantitativeValue, dateRange } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -42,17 +42,17 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
-  testDataRequirements: (options) => ({
-    'test:testOpportunityDataRequirements': testOpportunityDataRequirements({
-      'test:remainingCapacity': quantitativeValue({
-        minValue: 2,
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      'placeholder:remainingCapacity': quantitativeValue({
+        mininclusive: 2,
       }),
-    }),
-    'test:testOfferDataRequirements': testOfferDataRequirements({
-      'test:validFrom': dateRange({
+    },
+    offerConstraints: {
+      'oa:validFromBeforeStartDate': dateRange({
         minDate: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
       }),
-    }),
+    },
     // remainingCapacityMin: 2,
     // validFromMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
     // validFromMax: moment(options.harvestStartTime).add(moment.duration('P28D')).toISOString(),

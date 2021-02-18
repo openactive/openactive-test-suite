@@ -10,7 +10,7 @@ const { getOrganizerOrProvider } = require('./criteria/criteriaUtils');
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
- * @typedef {import('./types/TestDataRequirements').TestDataRequirements} TestDataRequirements
+ * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  */
 
 const criteriaMap = new Map(allCriteria.map((criteria) => [criteria.name, criteria]));
@@ -98,11 +98,22 @@ function getRelevantOffers(criteriaName, opportunity, options) {
 /**
  * @param {string} criteriaName
  * @param {Options} options
- * @returns {TestDataRequirements}
+ * @returns {TestDataShape}
  */
-function getTestDataRequirements(criteriaName, options) {
+function getTestDataShapeExpressions(criteriaName, remainingCapacityPredicate, options) {
   const criteria = getCriteriaAndAssertExists(criteriaName);
-  return criteria.testDataRequirements(options);
+  const shape = criteria.testDataShape(options);
+  const contextualisePredicate = (predicate) => (predicate === 'placeholder:remainingCapacity' ? remainingCapacityPredicate : predicate);
+  const convertToShapeExpression = (constraints) => Object.entries(constraints || {}).map(([predicate, constraint]) => ({
+    '@type': 'test:TripleConstraint',
+    predicate: contextualisePredicate(predicate).replace('oa:', 'https://openactive.io/').replace('schema:', 'https://schema.org/'),
+    valueExpr: constraint,
+  }));
+  // TODO: Transform into shape expression
+  return {
+    'test:testOpportunityDataShapeExpression': convertToShapeExpression(shape.opportunityConstraints),
+    'test:testOfferDataShapeExpression': convertToShapeExpression(shape.offerConstraints),
+  };
 }
 
 module.exports = {
@@ -111,7 +122,7 @@ module.exports = {
   criteriaMap,
   testMatch,
   getRelevantOffers,
-  getTestDataRequirements,
+  getTestDataShapeExpressions,
   // Utils
   utils: {
     getOrganizerOrProvider,

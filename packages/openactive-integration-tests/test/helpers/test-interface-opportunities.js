@@ -1,4 +1,4 @@
-const { getTestDataRequirements } = require('@openactive/test-interface-criteria');
+const { getTestDataShapeExpressions } = require('@openactive/test-interface-criteria');
 
 /**
  * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
@@ -16,16 +16,17 @@ const { HARVEST_START_TIME } = global;
  * @returns {TestInterfaceOpportunity}
  */
 function createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
-  const testDataRequirements = getTestDataRequirements(testOpportunityCriteria, { harvestStartTime: HARVEST_START_TIME });
-  /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpportunityDataRequirements' | 'test:testOfferDataRequirements'>} */
+  const remainingCapacityPredicate = opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot' ? 'oa:remainingUses' : 'schema:remainingAttendeeCapacity';
+  const testDataShapeExpressions = getTestDataShapeExpressions(testOpportunityCriteria, remainingCapacityPredicate, { harvestStartTime: HARVEST_START_TIME });
+  /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
   const testInterfaceOpportunityFields = {
     '@context': [
       'https://openactive.io/',
       'https://openactive.io/test-interface',
     ],
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
-    'test:testOpportunityDataRequirements': testDataRequirements['test:testOpportunityDataRequirements'],
-    'test:testOfferDataRequirements': testDataRequirements['test:testOfferDataRequirements'],
+    'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
+    'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
   };
   const seller = sellerId ? {
     '@type': sellerType,

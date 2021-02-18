@@ -39,30 +39,29 @@ The `item` within the file format is identical to the Controlled Opportunity Cre
           }
         },
         "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookable",
-        "test:testOpportunityDataRequirements": {
-          "@type": "test:OpportunityTestDataRequirements",
-          "test:startDate": {
-            "@type": "test:DateRange",
-            "minDate": "2020-12-20",
-            "maxDate": "2020-12-25",
-          },
-          "test:remainingCapacity": {
-            "@type": "QuantitativeValue",
-            "minValue": 1,
+        "test:testOpportunityDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/remainingAttendeeCapacity",
+            "valueExpr": {
+              "@type": "NumericNodeConstraint",
+              "mininclusive": 2
+            }
           }
-        },
-        "test:testOfferDataRequirements": {
-          "@type": "test:OfferTestDataRequirements",
-          "test:price": {
-            "@type": "QuantitativeValue",
-            "minValue": 0.01,
-          },
-          "test:prepayment": {
-            "@type": "test:OptionRequirements",
-            "valueType": "oa:RequiredStatusType",
-            "blocklist": ["https://openactive.io/Unavailable"]
+        ],
+        "test:testOfferDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingFlowRequirement",
+            "valueExpr": {
+              "@type": "test:ArrayConstraint",
+              "datatype": "oa:OpenBookingFlowRequirement",
+              "excludesAll": [
+                "https://openactive.io/OpenBookingApproval"
+              ]
+            }
           }
-        }
+        ]
       },
       "test:numberOfInstancesInDistribution": 32
     }
