@@ -11,6 +11,9 @@
     }
   },
   "implementedFeatures": {
-    "multiple-sellers": false
+    "multiple-sellers": false,
+    // Without multiple sellers 
+    "business-to-consumer-tax-calculation-net": false,
+    "business-to-business-tax-calculation-net": false
   }
 }
