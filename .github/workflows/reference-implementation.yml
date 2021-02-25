@@ -47,7 +47,8 @@ jobs:
       run: |
         dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
       working-directory: server
-
+      env:
+        ASPNETCORE_ENVIRONMENT: all-features
 
     - name: Install OpenActive Test Suite
       run: | 
