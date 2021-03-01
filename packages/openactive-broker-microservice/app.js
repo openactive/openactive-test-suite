@@ -876,22 +876,34 @@ function extractJSONLDfromHTML(url, html) {
 }
 
 async function extractJSONLDfromDatasetSiteUrl(url) {
-  const response = await axios.get(url);
+  if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
+    log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
+    return {
+      distribution: DATASET_DISTRIBUTION_OVERRIDE,
+    };
+  }
+  try {
+    log(`Downloading Dataset Site JSON-LD from "${url}"...`);
+    const response = await axios.get(url);
 
-  const jsonld = extractJSONLDfromHTML(url, response.data);
-  return jsonld;
+    const jsonld = extractJSONLDfromHTML(url, response.data);
+    return jsonld;
+  } catch (error) {
+    if (!error.response) {
+      logError(`Error while extracting JSON-LD from datasetSiteUrl "${url}"`);
+      throw error;
+    } else {
+      throw new Error(`Error ${error.response.status} for datasetSiteUrl "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+    }
+  }
 }
 
 async function startPolling() {
-  log('Downloading Dataset Site JSON-LD ...');
-  const dataset = DATASET_DISTRIBUTION_OVERRIDE.length > 0
-    ? {
-      distribution: DATASET_DISTRIBUTION_OVERRIDE,
-    }
-    : await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
+  const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
   log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
 
+  // Set global based on data result
   datasetSiteJson = dataset;
 
   if (!dataset || !Array.isArray(dataset.distribution)) {
@@ -967,19 +979,21 @@ setTimeout(() => {
 const server = http.createServer(app);
 server.on('error', onError);
 
-app.listen(PORT, () => log(`Broker Microservice running on port ${PORT}
+app.listen(PORT, () => {
+  log(`Broker Microservice running on port ${PORT}
 
 Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
 `));
-
-(async () => {
-  try {
-    await startPolling();
-  } catch (error) {
-    logError(error.stack);
-    process.exit(1);
-  }
-})();
+  // Start polling after HTTP server starts listening
+  (async () => {
+    try {
+      await startPolling();
+    } catch (error) {
+      logError(error.stack);
+      process.exit(1);
+    }
+  })();
+});
 
 /**
  * Normalize a port into a number, string, or false.
