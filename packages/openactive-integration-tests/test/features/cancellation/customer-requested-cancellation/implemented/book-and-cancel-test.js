@@ -6,6 +6,7 @@ const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, OrderDeletionFlowStage, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
 
 const { expect } = chakram;
 /* eslint-enable no-unused-vars */
@@ -21,93 +22,55 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  // TODO: Refactor 'Orders Feed' tests so they work with multiple OrderItems
-  skipMultiple: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
-
-    return chakram.wait();
+  // ## Initiate Flow Stages
+  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
+  
+  // ### Cancel 1st Order Item
+  const [cancelOrderItem, orderFeedUpdateAfter1stCancel] = OrderFeedUpdateFlowStageUtils.wrap({
+    wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      getOrderItemId: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
+    })),
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: b,
+      testName: 'Orders Feed (after OrderCancellation)',
+    },
   });
 
-  afterAll(async function () {
-    await state.deleteOrder();
-    return chakram.wait();
+  // ### Cancel 1st Order Item again test idempotency
+  const [cancelOrderItemAgain, orderFeedUpdateAfter2ndCancel] = OrderFeedUpdateFlowStageUtils.wrap({
+    wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      getOrderItemId: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
+    })),
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: b,
+      testName: 'Orders Feed (after OrderCancellation)',
+    },
   });
 
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
 
-  describe('C1', function () {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C2', function () {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('B', function () {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  // TODO Refactor: Use shared-behaviours/order-feed-update
-  describe('Orders Feed', function () {
-    beforeAll(async function () {
-      await flow.getFeedUpdateAfterU();
-    });
-
-    it(`Orders feed result should have ${orderItemCriteria.length} orderedItem(s)`, function () {
-      expect(state.getOrderAfterUResponse).to.have.schema('data.orderedItem', {
-        minItems: orderItemCriteria.length,
-        maxItems: orderItemCriteria.length,
-      });
-    });
-
-    /* TODO: Map position to @id at B, then use OrderItem @id to check prices here against opportunity feed
-    Common.itForOrderItem(orderItemCriteria, state, null, () => state.ordersFeedUpdate.body.data,
-      'price should match open data feed',
-      (feedOrderItem, responseOrderItem) => {
-        chai.expect(responseOrderItem).to.nested.include({
-          'acceptedOffer.price': feedOrderItem.acceptedOffer.price,
-        });
-      });
-    */
-
-    it('Order Cancellation return 204 on success', function () {
-      expect(state.uResponse).to.have.status(204);
-    });
-
-    it('Orders feed should have CustomerCancelled as orderItemStatus', function () {
-      expect(state.getOrderAfterUResponse).to.have.json(
-        'data.orderedItem[0].orderItemStatus',
-        'https://openactive.io/CustomerCancelled',
-      );
-    });
-
-    sharedValidationTests.shouldBeValidResponse(() => state.getOrderAfterUResponse, 'Orders feed', logger, {
-      validationMode: 'OrdersFeed',
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItem);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter1stCancel, () => {
+    it('should have orderItemStatus: CustomerCancelled', () => {
+      const orderItems = orderFeedUpdateAfter1stCancel.getOutput().httpResponse.body.data.orderedItem;
+      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteria.length);
+      expect(orderItems[0]).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
+      for (const orderItem of orderItems.slice(1)) {
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/OrderItemConfirmed');
+      }
     });
   });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItemAgain);
 });

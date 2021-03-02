@@ -30,6 +30,7 @@
     "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types"
   },
   "dependencies": {
+    "@openactive/data-models": "^2.0.181",
     "node-cleanup": "^2.1.2"
   },
   "engines": {
