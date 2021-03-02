@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, OrderDeletionFlowStage, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
@@ -14,10 +14,10 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
-  
+
   // ### Cancel 1st Order Item
   const [cancelOrderItem, orderFeedUpdateAfter1stCancel] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({

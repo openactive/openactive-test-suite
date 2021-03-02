@@ -12,7 +12,7 @@ const { BOOKING_API_BASE } = global;
  * @param {UReqTemplateData} data
  */
 function createStandardUReq(data) {
-  let req = {
+  const req = {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
     orderedItem: [],
@@ -22,11 +22,10 @@ function createStandardUReq(data) {
       '@type': 'OrderItem',
       '@id': `${orderItemId}`,
       orderItemStatus: 'https://openactive.io/CustomerCancelled',
-    })
+    });
   }
 
   return req;
-  
 }
 
 /**

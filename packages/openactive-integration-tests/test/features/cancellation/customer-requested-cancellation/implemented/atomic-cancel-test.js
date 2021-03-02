@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, OrderDeletionFlowStage, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
@@ -27,16 +27,16 @@ FeatureHelper.describeFeature(module, {
   ],
   skipMultiple: true,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
-  
+
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
   const [cancelNotCancellableOrderItems] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getSpecificedOrderItemIdsFromB(b, [1,2]),
+      getOrderItemIdArray: CancelOrderFlowStage.getSpecificedOrderItemIdsFromB(b, [1, 2]),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,

@@ -44,7 +44,7 @@ class CancelOrderFlowStage extends FlowStage {
    *   ```js
    *   const b = new BFlowStage({ ... });
    *   const cancelOrder = new CancelOrderFlowStage({
-   *     getOrderItemId: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
+   *     getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
    *   ```
    *
    *  or, for a preceding B stage, just use `CancelOrderFlowStage.getFirstOrderItemIdFromB(b)`
@@ -94,9 +94,8 @@ class CancelOrderFlowStage extends FlowStage {
   }
 
   /**
-   * 
-   * @param {BFlowStageType} bFlowStage 
-   * @param {number[]} orderItemIndexes 
+   * @param {BFlowStageType} bFlowStage
+   * @param {number[]} orderItemIndexes
    */
   static getSpecificedOrderItemIdsFromB(bFlowStage, orderItemIndexes) {
     return () => {
@@ -104,9 +103,9 @@ class CancelOrderFlowStage extends FlowStage {
       const order = bFlowStage.getOutput().httpResponse.body;
       for (const index of orderItemIndexes) {
         orderIds.push(get(order, ['orderedItem', index, '@id']));
-      };
+      }
       return orderIds;
-    }
+    };
   }
 }
 
