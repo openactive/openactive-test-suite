@@ -1,29 +1,42 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, OrderDeletionFlowStage, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
   testFeature: 'customer-requested-cancellation',
   testFeatureImplemented: true,
-  testIdentifier: 'book-and-cancel',
-  testName: 'Successful booking and cancellation.',
-  testDescription: 'A successful end to end booking including cancellation, including checking the Orders Feed.',
-  // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookableCancellable',
-  // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunityBookable',
+  testIdentifier: 'atomic-cancel',
+  testName: 'Successful booking and successful cancellation after atomic failed cancellation request',
+  testDescription: 'After a successful booking, and an unsuccessful but atomic cancellation request, successfully cancel, including checking the Orders feed.',
+  // Single Opportunity Criteria is overridden here as this test must have three Order Items
+  singleOpportunityCriteriaTemplate: opportunityType => [
+    {
+      opportunityType,
+      opportunityCriteria: 'TestOpportunityBookableCancellable',
+    },
+    {
+      opportunityType,
+      opportunityCriteria: 'TestOpportunityBookableCancellable',
+    },
+    {
+      opportunityType,
+      opportunityCriteria: 'TestOpportunityBookableCancellableOutsideWindow',
+    },
+  ],
+  skipMultiple: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
   
-  // ### Cancel 1st Order Item
-  const [cancelOrderItem, orderFeedUpdateAfter1stCancel] = OrderFeedUpdateFlowStageUtils.wrap({
+  // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
+  const [cancelNotCancellableOrderItems] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
+      getOrderItemIdArray: CancelOrderFlowStage.getSpecificedOrderItemIdsFromB(b, [1,2]),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
@@ -32,8 +45,8 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     },
   });
 
-  // ### Cancel 1st Order Item again test idempotency
-  const [cancelOrderItemAgain] = OrderFeedUpdateFlowStageUtils.wrap({
+  // ### Cancel 1st Order Item which is cancellable
+  const [cancelCancellableOrderItem, orderFeedUpdateAfter2ndCancel] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
@@ -41,7 +54,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: cancelOrderItem,
+      prerequisite: cancelNotCancellableOrderItems,
       testName: 'Orders Feed (after OrderCancellation)',
     },
   });
@@ -52,10 +65,13 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItem);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter1stCancel, () => {
+  FlowStageUtils.describeRunAndCheckIsValid(cancelNotCancellableOrderItems, () => {
+    itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancelNotCancellableOrderItems.getOutput().httpResponse);
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter2ndCancel, () => {
     it('should have orderItemStatus: CustomerCancelled', () => {
-      const orderItems = orderFeedUpdateAfter1stCancel.getOutput().httpResponse.body.data.orderedItem;
+      const orderItems = orderFeedUpdateAfter2ndCancel.getOutput().httpResponse.body.data.orderedItem;
       expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteria.length);
       expect(orderItems[0]).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
       for (const orderItem of orderItems.slice(1)) {
@@ -63,5 +79,4 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       }
     });
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItemAgain);
 });
