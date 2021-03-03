@@ -11,14 +11,18 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'additional-details-required-but-not-supplied',
   testName: 'Booking opportunity with additional details supplied but not included',
   testDescription: 'Should error',
+  // TODO TODO TODO a criteria which requires orderIntakeForm
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   const state = new RequestState(logger, {
-    c1ReqTemplateRef: 'additionalDetailsRequiredNotSupplied',
-    c2ReqTemplateRef: 'additionalDetailsRequiredNotSupplied',
-    bReqTemplateRef: 'additionalDetailsRequiredNotSupplied',
+    // c1ReqTemplateRef: 'additionalDetailsRequiredNotSupplied',
+    // c2ReqTemplateRef: 'additionalDetailsRequiredNotSupplied',
+    // bReqTemplateRef: 'additionalDetailsRequiredNotSupplied',
+    c1ReqTemplateRef: 'standard',
+    c2ReqTemplateRef: 'standard',
+    bReqTemplateRef: 'standardPaid',
   });
   const flow = new FlowHelper(state);
 

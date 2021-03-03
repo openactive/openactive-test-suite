@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
  * @typedef {{
@@ -196,15 +196,16 @@ function createStandardC2WithoutAcceptedOffer(data) {
   });
   return req;
 }
-/**
- * C2 request with additional details required, but not supplied
- *
- * @param {C2ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
-  const req = createStandardC2Req(data);
-  return additionalDetailsRequiredNotSupplied(req);
-}
+
+// /**
+//  * C2 request with additional details required, but not supplied
+//  *
+//  * @param {C2ReqTemplateData} data
+//  */
+// function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
+//   const req = createStandardC2Req(data);
+//   return additionalDetailsRequiredNotSupplied(req);
+// }
 
 /**
  * C2 request with additional details required and supplied
@@ -212,7 +213,7 @@ function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
  * @param {C2ReqTemplateData} data
  */
 function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  const req = createStandardC2Req(data);
   return additionalDetailsRequiredAndSupplied(req);
 }
 
@@ -222,7 +223,7 @@ function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
  * @param {C2ReqTemplateData} data
  */
 function createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  const req = createStandardC2Req(data);
   return additionalDetailsRequiredInvalidBooleanSupplied(req);
 }
 
@@ -232,7 +233,7 @@ function createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req(data) {
  * @param {C2ReqTemplateData} data
  */
 function createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
+  const req = createStandardC2Req(data);
   return additionalDetailsRequiredInvalidDropdownSupplied(req);
 }
 
@@ -286,7 +287,6 @@ const c2ReqTemplates = {
   noOrderedItem: createStandardC2WithoutOrderedItem,
   noAcceptedOffer: createStandardC2WithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetailsC2Req,
-  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedC2Req,
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,
   additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req,
   additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req,

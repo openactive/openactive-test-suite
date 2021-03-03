@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
 
 /**
  * @typedef {{
@@ -126,15 +126,15 @@ function createStandardC1WithoutAcceptedOffer(data) {
 }
 
 
-/**
- * C1 request with additional details required, but not supplied
- *
- * @param {C1ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredNotSuppliedC1Req(data) {
-  const req = createStandardC1Req(data);
-  return additionalDetailsRequiredNotSupplied(req);
-}
+// /**
+//  * C1 request with additional details required, but not supplied
+//  *
+//  * @param {C1ReqTemplateData} data
+//  */
+// function createAdditionalDetailsRequiredNotSuppliedC1Req(data) {
+//   const req = createStandardC1Req(data);
+//   return additionalDetailsRequiredNotSupplied(req);
+// }
 
 /**
  * C1 request with additional details required and supplied
@@ -142,7 +142,7 @@ function createAdditionalDetailsRequiredNotSuppliedC1Req(data) {
  * @param {C1ReqTemplateData} data
  */
 function createAdditionalDetailsRequiredAndSuppliedC1Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC1Req(data);
+  const req = createStandardC1Req(data);
   return additionalDetailsRequiredAndSupplied(req);
 }
 
@@ -152,7 +152,7 @@ function createAdditionalDetailsRequiredAndSuppliedC1Req(data) {
  * @param {C1ReqTemplateData} data
  */
 function createAdditionalDetailsRequiredInvalidBooleanSuppliedC1Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC1Req(data);
+  const req = createStandardC1Req(data);
   return additionalDetailsRequiredInvalidBooleanSupplied(req);
 }
 
@@ -162,7 +162,7 @@ function createAdditionalDetailsRequiredInvalidBooleanSuppliedC1Req(data) {
  * @param {C1ReqTemplateData} data
  */
 function createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC1Req(data);
+  const req = createStandardC1Req(data);
   return additionalDetailsRequiredInvalidDropdownSupplied(req);
 }
 
@@ -183,7 +183,6 @@ const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
   attendeeDetails: createAttendeeDetailsC1Req,
-  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedC1Req,
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC1Req,
   additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC1Req,
   additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req,

@@ -64,106 +64,104 @@ function isPaymentAvailable(data) {
   return isPaidOpportunity(data) && data.prepayment !== 'https://openactive.io/Unavailable';
 }
 
+// /**
+//  * Additional details required, but not supplied
+//  *
+//  * @template {{}} TOrderedItem
 //  * @template {{
-//  *   orderedItem: {}[],
+//  *   orderedItem: TOrderedItem[],
 //  * }} TReq
-/**
- * Additional details required, but not supplied
- *
- * @template {{}} TOrderedItem
- * @template {{
- *   orderedItem: TOrderedItem[],
- * }} TReq
- * @param {TReq} req
- */
-function additionalDetailsRequiredNotSupplied(req) {
-  return {
-    ...req,
-    orderedItem: req.orderedItem.map(orderItem => ({
-      ...orderItem,
-      orderItemIntakeForm: [
-        {
-          '@type': 'ShortAnswerFormSpecification',
-          '@id': 'https://example.com/experience',
-          name: 'Level of experience',
-          description: 'Have you played before? Are you a complete beginner or seasoned pro?',
-          valueRequired: true,
-        },
-        {
-          '@type': 'DropdownFormFieldSpecification',
-          '@id': 'https://example.com/age',
-          name: 'Age',
-          description: 'Your age is useful for us to place you in the correct group on the day',
-          valueOption: ['0-18', '18-30', '30+'],
-          valueRequired: true,
-        },
-        {
-          '@type': 'DropdownFormFieldSpecification',
-          '@id': 'https://example.com/gender',
-          name: 'Gender',
-          description: 'We use this information for equality and diversity monitoring',
-          valueOption: ['male', 'female', 'non-binary', 'other'],
-          valueRequired: false,
-        },
-        {
-          '@type': 'BooleanFormFieldSpecification',
-          '@id': 'https://example.com/photoconsent',
-          name: 'Photo Consent',
-          description: 'Are you happy for us to include photos of you in our marketing materials?',
-        },
-      ],
-    })),
-  };
-  // for (const orderItem of req.orderedItem) {
-  //   orderItem.orderItemIntakeForm = [
-  //     {
-  //       '@type': 'ShortAnswerFormSpecification',
-  //       '@id': 'https://example.com/experience',
-  //       name: 'Level of experience',
-  //       description: 'Have you played before? Are you a complete beginner or seasoned pro?',
-  //       valueRequired: true,
-  //     },
-  //     {
-  //       '@type': 'DropdownFormFieldSpecification',
-  //       '@id': 'https://example.com/age',
-  //       name: 'Age',
-  //       description: 'Your age is useful for us to place you in the correct group on the day',
-  //       valueOption: ['0-18', '18-30', '30+'],
-  //       valueRequired: true,
-  //     },
-  //     {
-  //       '@type': 'DropdownFormFieldSpecification',
-  //       '@id': 'https://example.com/gender',
-  //       name: 'Gender',
-  //       description: 'We use this information for equality and diversity monitoring',
-  //       valueOption: ['male', 'female', 'non-binary', 'other'],
-  //       valueRequired: false,
-  //     },
-  //     {
-  //       '@type': 'BooleanFormFieldSpecification',
-  //       '@id': 'https://example.com/photoconsent',
-  //       name: 'Photo Consent',
-  //       description: 'Are you happy for us to include photos of you in our marketing materials?',
-  //     },
-  //   ];
-  // }
-  // return req;
-}
+//  * @param {TReq} req
+//  */
+// function additionalDetailsRequiredNotSupplied(req) {
+//   return {
+//     ...req,
+//     orderedItem: req.orderedItem.map(orderItem => ({
+//       ...orderItem,
+//       orderItemIntakeForm: [
+//         {
+//           '@type': 'ShortAnswerFormSpecification',
+//           '@id': 'https://example.com/experience',
+//           name: 'Level of experience',
+//           description: 'Have you played before? Are you a complete beginner or seasoned pro?',
+//           valueRequired: true,
+//         },
+//         {
+//           '@type': 'DropdownFormFieldSpecification',
+//           '@id': 'https://example.com/age',
+//           name: 'Age',
+//           description: 'Your age is useful for us to place you in the correct group on the day',
+//           valueOption: ['0-18', '18-30', '30+'],
+//           valueRequired: true,
+//         },
+//         {
+//           '@type': 'DropdownFormFieldSpecification',
+//           '@id': 'https://example.com/gender',
+//           name: 'Gender',
+//           description: 'We use this information for equality and diversity monitoring',
+//           valueOption: ['male', 'female', 'non-binary', 'other'],
+//           valueRequired: false,
+//         },
+//         {
+//           '@type': 'BooleanFormFieldSpecification',
+//           '@id': 'https://example.com/photoconsent',
+//           name: 'Photo Consent',
+//           description: 'Are you happy for us to include photos of you in our marketing materials?',
+//         },
+//       ],
+//     })),
+//   };
+//   // for (const orderItem of req.orderedItem) {
+//   //   orderItem.orderItemIntakeForm = [
+//   //     {
+//   //       '@type': 'ShortAnswerFormSpecification',
+//   //       '@id': 'https://example.com/experience',
+//   //       name: 'Level of experience',
+//   //       description: 'Have you played before? Are you a complete beginner or seasoned pro?',
+//   //       valueRequired: true,
+//   //     },
+//   //     {
+//   //       '@type': 'DropdownFormFieldSpecification',
+//   //       '@id': 'https://example.com/age',
+//   //       name: 'Age',
+//   //       description: 'Your age is useful for us to place you in the correct group on the day',
+//   //       valueOption: ['0-18', '18-30', '30+'],
+//   //       valueRequired: true,
+//   //     },
+//   //     {
+//   //       '@type': 'DropdownFormFieldSpecification',
+//   //       '@id': 'https://example.com/gender',
+//   //       name: 'Gender',
+//   //       description: 'We use this information for equality and diversity monitoring',
+//   //       valueOption: ['male', 'female', 'non-binary', 'other'],
+//   //       valueRequired: false,
+//   //     },
+//   //     {
+//   //       '@type': 'BooleanFormFieldSpecification',
+//   //       '@id': 'https://example.com/photoconsent',
+//   //       name: 'Photo Consent',
+//   //       description: 'Are you happy for us to include photos of you in our marketing materials?',
+//   //     },
+//   //   ];
+//   // }
+//   // return req;
+// }
 
 /**
  * Additional details required and supplied
  *
- * @template {{}} TOrderedItem
+ * @template {{[k: string]: any}} TOrderedItem
  * @template {{
  *   orderedItem: TOrderedItem[],
  * }} TReq
  * @param {TReq} req
  */
 function additionalDetailsRequiredAndSupplied(req) {
-  const withOrderItemIntakeForm = additionalDetailsRequiredNotSupplied(req);
+  // TODO TODO TODO form response based on questions in orderItemIntakeForm
+  // TODO TODO TODO maybe name this addOrderItemIntakeFormResponse?
   return {
-    ...withOrderItemIntakeForm,
-    orderedItem: withOrderItemIntakeForm.orderedItem.map(orderItem => ({
+    ...req,
+    orderedItem: req.orderedItem.map(orderItem => ({
       ...orderItem,
       orderItemIntakeFormResponse: [
         {
@@ -258,7 +256,6 @@ module.exports = {
   createPaymentPart,
   isPaidOpportunity,
   isPaymentAvailable,
-  additionalDetailsRequiredNotSupplied,
   additionalDetailsRequiredAndSupplied,
   additionalDetailsRequiredInvalidBooleanSupplied,
   additionalDetailsRequiredInvalidDropdownSupplied,
