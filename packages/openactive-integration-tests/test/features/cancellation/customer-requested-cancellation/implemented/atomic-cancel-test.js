@@ -22,7 +22,7 @@ FeatureHelper.describeFeature(module, {
     },
     {
       opportunityType,
-      opportunityCriteria: 'TestOpportunityBookableCancellableOutsideWindow',
+      opportunityCriteria: 'TestOpportunityBookableNotCancellable',
     },
   ],
   skipMultiple: true,
@@ -36,12 +36,12 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getSpecificedOrderItemIdsFromB(b, [1, 2]),
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [1, 2]),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
       prerequisite: b,
-      testName: 'Orders Feed (after OrderCancellation)',
+      testName: 'Orders Feed (after attempted OrderCancellation)',
     },
   });
 
@@ -50,12 +50,12 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [0]),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: cancelNotCancellableOrderItems,
-      testName: 'Orders Feed (after OrderCancellation)',
+      prerequisite: b,
+      testName: 'Orders Feed (after successful OrderCancellation)',
     },
   });
 

@@ -95,16 +95,18 @@ class CancelOrderFlowStage extends FlowStage {
 
   /**
    * @param {BFlowStageType} bFlowStage
-   * @param {number[]} orderItemIndexes
+   * @param {number[]} orderItemPositions
    */
-  static getSpecificedOrderItemIdsFromB(bFlowStage, orderItemIndexes) {
+  static getOrderItemIdsByPositionFromB(bFlowStage, orderItemPositions) {
     return () => {
-      const orderIds = [];
       const order = bFlowStage.getOutput().httpResponse.body;
-      for (const index of orderItemIndexes) {
-        orderIds.push(get(order, ['orderedItem', index, '@id']));
-      }
-      return orderIds;
+      const orderItems = order.orderedItem;
+      const orderItemIds = orderItemPositions.map((position) => {
+        const orderItem = orderItems.find(o => o.position === position);
+        return orderItem['@id'];
+      });
+
+      return orderItemIds;
     };
   }
 }
