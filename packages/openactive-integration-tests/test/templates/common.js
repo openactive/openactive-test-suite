@@ -170,16 +170,19 @@ function additionalDetailsRequiredAndSupplied(req) {
           '@type': 'PropertyValue',
           propertyID: 'https://example.com/experience',
           value: 'I\'ve played twice before, but I\'m a quick learner so I hope to keep up!',
+          name: 'Level of experience',
         },
         {
           '@type': 'PropertyValue',
           propertyID: 'https://example.com/age',
           value: '0-18',
+          name: 'Age',
         },
         {
           '@type': 'PropertyValue',
           propertyID: 'https://example.com/photoconsent',
           value: 'true',
+          name: 'Photo Consent'
         },
       ],
     })),
