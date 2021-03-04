@@ -182,7 +182,7 @@ function additionalDetailsRequiredAndSupplied(req) {
           '@type': 'PropertyValue',
           propertyID: 'https://example.com/photoconsent',
           value: 'true',
-          name: 'Photo Consent'
+          name: 'Photo Consent',
         },
       ],
     })),
