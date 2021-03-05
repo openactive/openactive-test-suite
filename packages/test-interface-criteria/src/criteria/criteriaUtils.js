@@ -145,6 +145,20 @@ function mustHaveBookableOffer(offer, opportunity, options) {
 }
 
 /**
+ * @type {OfferConstraint}
+ */
+function mustNotAllowFullRefund(offer) {
+  return offer.allowCustomerCancellationFullRefund === false;
+}
+
+/**
+ * @type {OfferConstraint}
+ */
+function mustAllowFullRefund(offer) {
+  return offer.allowCustomerCancellationFullRefund === true;
+}
+
+/**
  * For a session, get `organizer`. For a facility, get `provider`.
  * These can be used interchangeably as `organizer` is either a Person or an Organization
  * and `provider` is an Organization.
@@ -178,4 +192,6 @@ module.exports = {
   eventStatusMustNotBeCancelledOrPostponed,
   mustHaveBookableOffer,
   getOrganizerOrProvider,
+  mustNotAllowFullRefund,
+  mustAllowFullRefund,
 };
