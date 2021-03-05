@@ -18,13 +18,13 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @param {object} args
  * @param {UReqTemplateRef} [args.templateRef]
- * @param {string} args.orderItemId
+ * @param {string[]} args.orderItemIdArray[]
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  */
-async function runCancelOrder({ templateRef, orderItemId, uuid, requestHelper }) {
+async function runCancelOrder({ templateRef, orderItemIdArray, uuid, requestHelper }) {
   /** @type {import('../../templates/u-req').UReqTemplateData} */
-  const params = { orderItemId, _uuid: uuid };
+  const params = { orderItemIdArray, _uuid: uuid };
   const httpResponse = await requestHelper.cancelOrder(uuid, params, templateRef);
   return { httpResponse };
 }
@@ -36,7 +36,7 @@ class CancelOrderFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {UReqTemplateRef} [args.templateRef]
-   * @param {() => string} args.getOrderItemId Cancellation must be run against
+   * @param {() => string[]} args.getOrderItemIdArray Cancellation must be run against
    *   a specific order. The function passed here should return the ID of the OrderItem
    *   to cancel. For convenience, use the CancelOrderFlowStage.getFirstOrderItemId
    *   function for this value e.g.:
@@ -44,7 +44,7 @@ class CancelOrderFlowStage extends FlowStage {
    *   ```js
    *   const b = new BFlowStage({ ... });
    *   const cancelOrder = new CancelOrderFlowStage({
-   *     getOrderItemId: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
+   *     getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
    *   ```
    *
    *  or, for a preceding B stage, just use `CancelOrderFlowStage.getFirstOrderItemIdFromB(b)`
@@ -52,16 +52,16 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    */
-  constructor({ templateRef, getOrderItemId, prerequisite, requestHelper, uuid }) {
+  constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
       testName: 'Cancel Order',
       async runFn() {
-        const orderItemId = getOrderItemId();
+        const orderItemIdArray = getOrderItemIdArray();
         return await runCancelOrder({
           templateRef,
-          orderItemId,
+          orderItemIdArray,
           uuid,
           requestHelper,
         });
@@ -79,7 +79,7 @@ class CancelOrderFlowStage extends FlowStage {
   static getFirstOrderItemId(getOrder) {
     return () => {
       const order = getOrder();
-      return get(order, ['orderedItem', 0, '@id']);
+      return [get(order, ['orderedItem', 0, '@id'])];
     };
   }
 
@@ -91,6 +91,23 @@ class CancelOrderFlowStage extends FlowStage {
    */
   static getFirstOrderItemIdFromB(bFlowStage) {
     return CancelOrderFlowStage.getFirstOrderItemId(() => bFlowStage.getOutput().httpResponse.body);
+  }
+
+  /**
+   * @param {BFlowStageType} bFlowStage
+   * @param {number[]} orderItemPositions
+   */
+  static getOrderItemIdsByPositionFromB(bFlowStage, orderItemPositions) {
+    return () => {
+      const order = bFlowStage.getOutput().httpResponse.body;
+      const orderItems = order.orderedItem;
+      const orderItemIds = orderItemPositions.map((position) => {
+        const orderItem = orderItems.find(o => o.position === position);
+        return orderItem['@id'];
+      });
+
+      return orderItemIds;
+    };
   }
 }
 
