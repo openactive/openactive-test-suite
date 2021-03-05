@@ -4,6 +4,7 @@ const { RequestState } = require('../../../../helpers/request-state');
 const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
+// TODO TODO TODO this test erroneously passes
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
   testFeature: 'additional-details-capture',
