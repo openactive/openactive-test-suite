@@ -19,7 +19,7 @@ const TestOpportunityBookableCancellableWithinWindow = createCriteria({
     [
       'Must allow full refund',
       mustAllowFullRefund,
-    ]
+    ],
   ],
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
