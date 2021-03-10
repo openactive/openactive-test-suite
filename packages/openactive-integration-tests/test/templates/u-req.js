@@ -3,7 +3,7 @@ const { BOOKING_API_BASE } = global;
 /**
  * @typedef {{
  *    _uuid: string,
-  *   orderItemId: string
+  *   orderItemIdArray: string[]
   * }} UReqTemplateData
   */
 
@@ -12,17 +12,20 @@ const { BOOKING_API_BASE } = global;
  * @param {UReqTemplateData} data
  */
 function createStandardUReq(data) {
-  return {
+  const req = {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
-    orderedItem: [
-      {
-        '@type': 'OrderItem',
-        '@id': `${data.orderItemId}`,
-        orderItemStatus: 'https://openactive.io/CustomerCancelled',
-      },
-    ],
+    orderedItem: [],
   };
+  for (const orderItemId of data.orderItemIdArray) {
+    req.orderedItem.push({
+      '@type': 'OrderItem',
+      '@id': `${orderItemId}`,
+      orderItemStatus: 'https://openactive.io/CustomerCancelled',
+    });
+  }
+
+  return req;
 }
 
 /**

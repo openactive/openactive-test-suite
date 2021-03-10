@@ -11,6 +11,7 @@ const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./Te
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
 const { TestOpportunityBookableCancellableWithinWindow } = require('./TestOpportunityBookableCancellableWithinWindow');
 const { TestOpportunityBookableCancellableOutsideWindow } = require('./TestOpportunityBookableCancellableOutsideWindow');
+const { TestOpportunityBookableNotCancellable } = require('./TestOpportunityBookableNotCancellable');
 const { TestOpportunityBookableNonFreeTaxNet } = require('./TestOpportunityBookableNonFreeTaxNet');
 const { TestOpportunityBookableNonFreeTaxGross } = require('./TestOpportunityBookableNonFreeTaxGross');
 const { TestOpportunityBookableNonFreePrepaymentOptional } = require('./TestOpportunityBookableNonFreePrepaymentOptional');
@@ -20,6 +21,7 @@ const { TestOpportunityBookableFreePrepaymentOptional } = require('./TestOpportu
 const { TestOpportunityBookableFreePrepaymentRequired } = require('./TestOpportunityBookableFreePrepaymentRequired');
 const { TestOpportunityBookableAttendeeDetails } = require('./TestOpportunityBookableAttendeeDetails');
 const { TestOpportunityBookableSellerTermsOfService } = require('./TestOpportunityBookableSellerTermsOfService');
+const { TestOpportunityOnlineBookable } = require('./TestOpportunityOnlineBookable');
 
 module.exports = {
   allCriteria: [
@@ -31,6 +33,7 @@ module.exports = {
     TestOpportunityBookableFiveSpaces,
     TestOpportunityBookableWithinValidFromBeforeStartDate,
     TestOpportunityBookableCancellable,
+    TestOpportunityBookableNotCancellable,
     TestOpportunityNotBookableViaAvailableChannel,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
@@ -45,5 +48,6 @@ module.exports = {
     TestOpportunityBookableFreePrepaymentRequired,
     TestOpportunityBookableAttendeeDetails,
     TestOpportunityBookableSellerTermsOfService,
+    TestOpportunityOnlineBookable,
   ],
 };
