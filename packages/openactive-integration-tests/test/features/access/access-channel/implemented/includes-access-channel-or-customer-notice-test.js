@@ -18,7 +18,8 @@ FeatureHelper.describeFeature(module, {
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
 
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  // TODO beta:affiliatedLocation being not valid as beta namespace not in context
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {

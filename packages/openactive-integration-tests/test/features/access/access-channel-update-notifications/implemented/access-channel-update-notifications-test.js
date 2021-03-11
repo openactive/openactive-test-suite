@@ -1,6 +1,8 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { TestRecipes } = require('../../../../shared-behaviours/test-recipes');
+const { OrderFeedUpdateFlowStageUtils, TestInterfaceActionFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes } = require('../../../../helpers/flow-stages/flow-stage-recipes');
+const { FlowStageUtils } = require('../../../../helpers/flow-stages/flow-stage-utils');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -12,16 +14,43 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-},
-TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:AccessChannelUpdateSimulateAction' },
-  ({ b, orderFeedUpdate }) => {
+}, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+
+  const [simulateAccessChannelUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+      ...defaultFlowStageParams,
+      testName: 'Test Interface Action (test:AccessChannelUpdateSimulateAction)',
+      prerequisite,
+      createActionFn: () => ({
+        type: 'test:AccessChannelUpdateSimulateAction',
+        // Note that these 2 fields may need to be configurable in future:
+        objectType: 'Order',
+        objectId: b.getOutput().orderId,
+      }),
+    })),
+    orderFeedUpdateParams: {
+      ...defaultFlowStageParams,
+      prerequisite: b,
+      testName: 'Orders Feed (after test:AccessChannelUpdateSimulateAction)',
+    },
+  });
+
+  // TODO beta:affiliatedLocation being not valid as beta namespace not in context
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateAccessChannelUpdate);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
     it('should have a new access channel value', () => {
       // original = before the AccessChannelUpdateSimulationAction was invoked
-      const originalOnlineOrderItem = b.getOutput().httpResponse.body.orderedItem.find(orderItem => (
-        orderItem.position === 0));
+      const originalOnlineOrderItem = b.getOutput().httpResponse.body.orderedItem[0];
+      const orderItemId = originalOnlineOrderItem.id;
       // new = after the AccessChannelUpdateSimulationAction was invoked
       const newOnlineOrderItem = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem.find(orderItem => (
-        orderItem.position === 0));
+        orderItem.id === orderItemId));
       expect(newOnlineOrderItem.accessChannel).to.not.deep.equal(originalOnlineOrderItem.accessChannel);
     });
-  }));
+  });
+});
