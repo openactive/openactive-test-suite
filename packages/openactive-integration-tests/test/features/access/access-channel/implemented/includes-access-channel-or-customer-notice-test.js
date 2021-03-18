@@ -2,13 +2,6 @@ const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
-/**
- * @param {string} opportunityType
- */
-function isOpportunityTypeScheduledSession(opportunityType) {
-  return opportunityType === 'ScheduledSession';
-}
-
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
   testFeature: 'access-channel',
@@ -22,7 +15,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  runOnlyIfTemplate: isOpportunityTypeScheduledSession
+  skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
 

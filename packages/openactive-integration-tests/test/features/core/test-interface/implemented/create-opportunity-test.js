@@ -1,10 +1,10 @@
 const config = require('config');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch} = require('../../../../shared-behaviours');
+const { GetMatch } = require('../../../../shared-behaviours');
 
 function isNotUsingRandomOpportunities() {
-  return !Boolean(config.get('useRandomOpportunities'));
+  return !config.get('useRandomOpportunities');
 }
 
 // Only run this test if the test interface is in use
