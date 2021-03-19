@@ -1,5 +1,5 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria, mustBeWithinCancellationWindow } = require('./criteriaUtils');
+const { createCriteria, mustBeWithinCancellationWindow, mustAllowFullRefund } = require('./criteriaUtils');
 
 /**
  * Note that this criteria will ALWAYS reject any event whose latestCancellationBeforeStartDate
@@ -15,6 +15,10 @@ const TestOpportunityBookableCancellableWithinWindow = createCriteria({
     [
       'Must be within cancellation window',
       mustBeWithinCancellationWindow,
+    ],
+    [
+      'Must allow full refund',
+      mustAllowFullRefund,
     ],
   ],
   includeConstraintsFromCriteria: TestOpportunityBookable,
