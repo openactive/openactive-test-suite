@@ -294,6 +294,8 @@ async function setFeedIsUpToDate(feedIdentifier) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           logError(`Visit http://localhost:${port}/orphans for more information\n`);
+          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+          // User interaction is not required to exit for compatibility with CI
           await sleep(60000);
           throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
