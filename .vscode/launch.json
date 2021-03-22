@@ -42,7 +42,7 @@
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
             "env": {
-              "NODE_ENV": "dev"
+              "NODE_ENV": "ki"
             },
         },
         {
