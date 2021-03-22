@@ -28,6 +28,8 @@ const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? 
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+const port = normalizePort(process.env.PORT || '3000');
+
 class FatalError extends Error {
   constructor(message) {
     super(message);
@@ -140,7 +142,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
         if (WAIT_FOR_HARVEST) {
-          setFeedIsUpToDate(feedIdentifier);
+          await setFeedIsUpToDate(feedIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
@@ -172,7 +174,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         // Force retry, after a delay
         await sleep(5000);
       } else if (error.response.status === 404) {
-        if (WAIT_FOR_HARVEST) setFeedIsUpToDate(feedIdentifier);
+        if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
         log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
@@ -272,7 +274,7 @@ function addFeed(feedUrl) {
   incompleteFeeds.push(feedUrl);
 }
 
-function setFeedIsUpToDate(feedIdentifier) {
+async function setFeedIsUpToDate(feedIdentifier) {
   if (incompleteFeeds.length !== 0) {
     const index = incompleteFeeds.indexOf(feedIdentifier);
     if (index > -1) {
@@ -291,10 +293,15 @@ function setFeedIsUpToDate(feedIdentifier) {
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          logError(`Visit http://localhost:${port}/orphans for more information\n`);
+          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+          // User interaction is not required to exit for compatibility with CI
+          await sleep(60000);
           throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          logError(`Visit http://localhost:${port}/orphans for more information\n`);
         }
 
         healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
@@ -884,17 +891,29 @@ async function startPolling() {
 
   const harvesters = [];
 
+  const isParentFeed = {
+    'https://openactive.io/SessionSeries': true,
+    'https://openactive.io/FacilityUse': true,
+    'https://openactive.io/IndividualFacilityUse': true,
+    'https://openactive.io/ScheduledSession': false,
+    'https://openactive.io/Slot': false,
+    'https://schema.org/Event': false,
+    'https://schema.org/OnDemandEvent': false,
+  };
+
   dataset.distribution.forEach((dataDownload) => {
     const feedIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
-    addFeed(feedIdentifier);
-    if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
-      || dataDownload.additionalType === 'https://openactive.io/FacilityUse'
-      || dataDownload.additionalType === 'https://openactive.io/IndividualFacilityUse') {
+    if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
+      addFeed(feedIdentifier);
       harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
-    } else {
+    } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
+      addFeed(feedIdentifier);
       harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
+    } else {
+      logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
+      logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
     }
   });
 
@@ -909,7 +928,7 @@ async function startPolling() {
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
-  setFeedIsUpToDate('DatasetSite');
+  await setFeedIsUpToDate('DatasetSite');
 
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
@@ -931,7 +950,6 @@ setTimeout(() => {
 const server = http.createServer(app);
 server.on('error', onError);
 
-const port = normalizePort(process.env.PORT || '3000');
 app.listen(port, () => {
   log(`Broker Microservice running on port ${port}
 
