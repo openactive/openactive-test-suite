@@ -75,22 +75,21 @@ let datasetSiteJson = {
  * Use OpenActive validator to validate the RPDE item
  *
  * @param {any} body the data item
- * @param {boolean} isOrdersFeed Whether this is an orders feed
  */
-async function validateItem(body, isOrdersFeed) {
+async function validateItem(body) {
   /**
    * @type {{
    *   loadRemoteJson: boolean,
    *   remoteJsonCachePath: string,
    *   remoteJsonCacheTimeToLive: number,
    *   validationMode?: string,
-   * }} & typeof options
+   * }}
    */
   const optionsWithRemoteJson = {
     loadRemoteJson: true,
     remoteJsonCachePath: '../openactive-integration-tests/tmp',
     remoteJsonCacheTimeToLive: 3600,
-    validationMode: isOrdersFeed ? 'OrdersFeed' : 'BookableRPDEFeed',
+    validationMode: 'BookableRPDEFeed',
   };
 
   const errors = (await validate(body, optionsWithRemoteJson))
@@ -106,9 +105,9 @@ const validationResults = new Map();
  *
  * @param {any} data opportunity JSON-LD object
  */
-async function storeValidationResults(data) {
+async function validateAndStoreValidationResults(data) {
   const id = data['@id'] || data.id;
-  const errors = await validateItem(data, false);
+  const errors = await validateItem(data);
   for (const error of errors) {
     // Use the first line of the error message to uniquely identify it
     const errorShortMessage = error.message.split('\n')[0];
@@ -911,7 +910,7 @@ async function processOpportunityItem(item) {
     const id = item.data['@id'] || item.data.id;
 
     // Store any validation results associated with this item
-    await storeValidationResults(item.data);
+    await validateAndStoreValidationResults(item.data);
 
     // Fill buckets
     const matchingCriteria = [];
