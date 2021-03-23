@@ -5,11 +5,20 @@ const logger = require('morgan');
 const { default: axios } = require('axios');
 const config = require('config');
 const { criteria, testMatch } = require('@openactive/test-interface-criteria');
+const { validate } = require('@openactive/data-model-validator');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 const { performance } = require('perf_hooks');
+const { Base64 } = require('js-base64');
 const sleep = require('util').promisify(setTimeout);
+const Handlebars = require('handlebars');
+const fs = require('fs').promises;
+const { Remarkable } = require('remarkable');
+
+const markdown = new Remarkable({
+  linkify: true,
+});
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
@@ -61,6 +70,108 @@ const startTime = new Date();
 
 let datasetSiteJson = {
 };
+
+/**
+ * Use OpenActive validator to validate the RPDE item
+ *
+ * @param {any} body the data item
+ * @param {boolean} isOrdersFeed Whether this is an orders feed
+ */
+async function validateItem(body, isOrdersFeed) {
+  /**
+   * @type {{
+   *   loadRemoteJson: boolean,
+   *   remoteJsonCachePath: string,
+   *   remoteJsonCacheTimeToLive: number,
+   *   validationMode?: string,
+   * }} & typeof options
+   */
+  const optionsWithRemoteJson = {
+    loadRemoteJson: true,
+    remoteJsonCachePath: '../openactive-integration-tests/tmp',
+    remoteJsonCacheTimeToLive: 3600,
+    validationMode: isOrdersFeed ? 'OrdersFeed' : 'BookableRPDEFeed',
+  };
+
+  const errors = (await validate(body, optionsWithRemoteJson))
+    .filter((result) => result.severity === 'failure');
+
+  return errors;
+}
+
+const validationResults = new Map();
+
+/**
+ * Use OpenActive validator to validate the opportunity
+ *
+ * @param {any} data opportunity JSON-LD object
+ */
+async function storeValidationResults(data) {
+  const id = data['@id'] || data.id;
+  const errors = await validateItem(data, false);
+  for (const error of errors) {
+    // Use the first line of the error message to uniquely identify it
+    const errorShortMessage = error.message.split('\n')[0];
+    const errorKey = `${error.path}: ${errorShortMessage}`;
+
+    // Create a new entry if this is a new error
+    let currentValidationResults = validationResults.get(errorKey);
+    if (!currentValidationResults) {
+      currentValidationResults = {
+        path: error.path,
+        message: errorShortMessage,
+        occurrences: 0,
+        examples: [],
+      };
+      validationResults.set(errorKey, currentValidationResults);
+    }
+
+    // Keep track of examples of each error, with a preference for newer ones (later in the feed)
+    currentValidationResults.occurrences += 1;
+    currentValidationResults.examples.unshift(id);
+    if (currentValidationResults.examples.length > 5) {
+      currentValidationResults.examples.pop();
+    }
+  }
+}
+
+/**
+ * Render a validator URL based on the cached data relating to the `@id`
+ *
+ * @param {string} id The `@id` of the JSON-LD object
+ */
+function renderOpenValidatorHref(id) {
+  const cachedResponse = getOpportunityById(id);
+  if (cachedResponse) {
+    const jsonString = JSON.stringify(cachedResponse, null, 2);
+    return `https://validator.openactive.io/?validationMode=BookableRPDEFeed#/json/${Base64.encodeURI(jsonString)}`;
+  }
+  return '';
+}
+
+/**
+ * Render the specified Handlebars template with the supplied data
+ *
+ * @param {string} templateName Filename of the Handlebars template
+ * @param {any} data JSON to pass into the Handlebars template
+ */
+async function renderTemplate(templateName, data) {
+  const getTemplate = async (name) => {
+    const file = await fs.readFile(`${__dirname}/templates/${name}.handlebars`, 'utf8');
+    return Handlebars.compile(file);
+  };
+
+  const template = await getTemplate(templateName);
+
+  return template(data, {
+    allowProtoMethodsByDefault: true,
+    allowProtoPropertiesByDefault: true,
+    helpers: {
+      renderOpenValidatorHref,
+      renderMarkdown: (text) => markdown.render(text),
+    },
+  });
+}
 
 // Buckets for criteria matches
 /** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
@@ -162,7 +273,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
             }, next: '${json.next}'`,
           );
         }
-        processPage(json, feedIdentifier);
+        await processPage(json, feedIdentifier);
         url = json.next;
       }
     } catch (error) {
@@ -295,13 +406,23 @@ async function setFeedIsUpToDate(feedIdentifier) {
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           logError(`Visit http://localhost:${port}/orphans for more information\n`);
           // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-          // User interaction is not required to exit for compatibility with CI
+          // User interaction is not required to exit, for compatibility with CI
           await sleep(60000);
           throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           logError(`Visit http://localhost:${port}/orphans for more information\n`);
+        }
+
+        if (validationResults.size > 0) {
+          const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
+          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
+          logError(`Visit http://localhost:${port}/validation-errors for more information\n`);
+          // Sleep for 1 minute to allow the user to access the /validation-errors page, before throwing the fatal error
+          // User interaction is not required to exit, for compatibility with CI
+          await sleep(60000);
+          throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
         healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
@@ -372,6 +493,15 @@ function millisToMinutesAndSeconds(millis) {
   const seconds = ((millis % 60000) / 1000);
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
+
+app.get('/validation-errors', async function (req, res) {
+  res.send(await renderTemplate('validation-errors', {
+    validationErrors: [...validationResults.entries()].map(([errorKey, obj]) => ({
+      errorKey,
+      ...obj,
+    })),
+  }));
+});
 
 app.get('/orphans', function (req, res) {
   const rows = Array.from(rowStoreMap.values());
@@ -652,7 +782,7 @@ app.get('/get-order/:orderUuid', function (req, res) {
  */
 
 /** @type {RpdePageProcessor} */
-function ingestParentOpportunityPage(rpdePage, feedIdentifier) {
+async function ingestParentOpportunityPage(rpdePage, feedIdentifier) {
   const feedPrefix = `${feedIdentifier}---`;
   rpdePage.items.forEach((item) => {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -673,15 +803,15 @@ function ingestParentOpportunityPage(rpdePage, feedIdentifier) {
   });
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  touchOpportunityItems(rpdePage.items
+  await touchOpportunityItems(rpdePage.items
     .filter((item) => item.state !== 'deleted')
     .map((item) => item.data['@id'] || item.data.id));
 }
 
 /** @type {RpdePageProcessor} */
-function ingestOpportunityPage(rpdePage, feedIdentifier) {
+async function ingestOpportunityPage(rpdePage, feedIdentifier) {
   const feedPrefix = `${feedIdentifier}---`;
-  rpdePage.items.forEach((item) => {
+  await Promise.all(rpdePage.items.map(async (item) => {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
       const jsonLdId = opportunityRpdeMap.get(feedItemIdentifier);
@@ -694,12 +824,12 @@ function ingestOpportunityPage(rpdePage, feedIdentifier) {
       opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       opportunityMap.set(jsonLdId, item.data);
 
-      storeOpportunityItem(item);
+      await storeOpportunityItem(item);
     }
-  });
+  }));
 }
 
-function touchOpportunityItems(parentIds) {
+async function touchOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
   parentIds.forEach((parentId) => {
@@ -710,14 +840,14 @@ function touchOpportunityItems(parentIds) {
     }
   });
 
-  opportunitiesToUpdate.forEach((jsonLdId) => {
+  await Promise.all([...opportunitiesToUpdate].map(async (jsonLdId) => {
     if (rowStoreMap.has(jsonLdId)) {
       const row = rowStoreMap.get(jsonLdId);
       row.feedModified = Date.now() + 1000; // 1 second in the future
       row.parentIngested = true;
-      processRow(row);
+      await processRow(row);
     }
-  });
+  }));
 }
 
 function deleteOpportunityItem(jsonLdId) {
@@ -731,7 +861,7 @@ function deleteOpportunityItem(jsonLdId) {
   }
 }
 
-function storeOpportunityItem(item) {
+async function storeOpportunityItem(item) {
   const row = {
     id: item.id,
     modified: item.modified,
@@ -752,11 +882,11 @@ function storeOpportunityItem(item) {
   rowStoreMap.set(row.jsonLdId, row);
 
   if (row.parentIngested) {
-    processRow(row);
+    await processRow(row);
   }
 }
 
-function processRow(row) {
+async function processRow(row) {
   const newItem = {
     state: row.deleted ? 'deleted' : 'updated',
     id: row.jsonLdId,
@@ -773,13 +903,17 @@ function processRow(row) {
     },
   };
 
-  processOpportunityItem(newItem);
+  await processOpportunityItem(newItem);
 }
 
-function processOpportunityItem(item) {
+async function processOpportunityItem(item) {
   if (item.data) {
     const id = item.data['@id'] || item.data.id;
 
+    // Store any validation results associated with this item
+    await storeValidationResults(item.data);
+
+    // Fill buckets
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
 
@@ -818,7 +952,7 @@ function processOpportunityItem(item) {
 }
 
 /** @type {RpdePageProcessor} */
-function monitorOrdersPage(rpde) {
+async function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
     if (item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
