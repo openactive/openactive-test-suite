@@ -90,7 +90,7 @@ async function validateItem(body) {
    */
   const optionsWithRemoteJson = {
     loadRemoteJson: true,
-    remoteJsonCachePath: '../openactive-integration-tests/tmp',
+    remoteJsonCachePath: VALIDATOR_TMP_DIR,
     remoteJsonCacheTimeToLive: 3600,
     validationMode: 'BookableRPDEFeed',
   };
