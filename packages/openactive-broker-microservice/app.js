@@ -15,15 +15,18 @@ const sleep = require('util').promisify(setTimeout);
 const Handlebars = require('handlebars');
 const fs = require('fs').promises;
 const { Remarkable } = require('remarkable');
+const mkdirp = require('mkdirp');
 
 const markdown = new Remarkable({
   linkify: true,
 });
 
+const VALIDATOR_TMP_DIR = './tmp';
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
+const OUTPUT_PATH = config.get('outputPath');
 const VERBOSE = config.get('verbose');
 const HARVEST_START_TIME = new Date();
 
@@ -132,6 +135,18 @@ async function validateAndStoreValidationResults(data) {
       currentValidationResults.examples.pop();
     }
   }
+}
+
+/**
+ * Render the currently stored validation errors as HTML
+ */
+async function renderValidationErrorsHtml() {
+  return renderTemplate('validation-errors', {
+    validationErrors: [...validationResults.entries()].map(([errorKey, obj]) => ({
+      errorKey,
+      ...obj,
+    })),
+  });
 }
 
 /**
@@ -398,7 +413,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
 
         if (totalChildren === 0) {
           logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
-          logError('Please ensure that the opportunities feeds conforms to RPDE using https://validator.openactive.io/rpde.\n');
+          logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
           throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
@@ -415,12 +430,10 @@ async function setFeedIsUpToDate(feedIdentifier) {
         }
 
         if (validationResults.size > 0) {
+          await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
-          logError(`Visit http://localhost:${port}/validation-errors for more information\n`);
-          // Sleep for 1 minute to allow the user to access the /validation-errors page, before throwing the fatal error
-          // User interaction is not required to exit, for compatibility with CI
-          await sleep(60000);
+          logError(`Visit ${OUTPUT_PATH}validation-errors.html for more information\n`);
           throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
@@ -493,14 +506,6 @@ function millisToMinutesAndSeconds(millis) {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
 
-app.get('/validation-errors', async function (req, res) {
-  res.send(await renderTemplate('validation-errors', {
-    validationErrors: [...validationResults.entries()].map(([errorKey, obj]) => ({
-      errorKey,
-      ...obj,
-    })),
-  }));
-});
 
 app.get('/orphans', function (req, res) {
   const rows = Array.from(rowStoreMap.values());
@@ -1011,6 +1016,9 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 async function startPolling() {
+  await mkdirp(VALIDATOR_TMP_DIR);
+  await mkdirp(OUTPUT_PATH);
+
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
   log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
