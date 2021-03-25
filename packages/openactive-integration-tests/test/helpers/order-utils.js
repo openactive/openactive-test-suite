@@ -6,6 +6,8 @@ const { path, pipe } = require('ramda');
 
 /**
  * @typedef {import('./flow-stages/flow-stage').Prepayment} Prepayment
+ * @typedef {import('./flow-stages/fetch-opportunities').OrderItem} OrderItem
+ * @typedef {import('./flow-stages/flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 /**
@@ -82,9 +84,30 @@ const getOrderId = pipe(
   assertValueSatisfiesPredicateIfExists(isString, 'orderId (@id) is not a string'),
 );
 
+/**
+ * @param {{
+ * orderedItem: OrderItem[]
+ * }} order
+ */
+function createPositionOrderIntakeFormMap(order) {
+  /** @type {Object.<number, OrderItemIntakeForm>} */
+  let map;
+
+  for (const orderItem of order.orderedItem) {
+    if (!isNil(orderItem.orderItemIntakeForm)) {
+      map = {
+        ...map,
+        [orderItem.position]: orderItem.orderItemIntakeForm,
+      };
+    }
+  }
+  return isNil(map) ? {} : map;
+}
+
 module.exports = {
   getTotalPaymentDueFromOrder,
   getPrepaymentFromOrder,
   getOrderProposalVersion,
   getOrderId,
+  createPositionOrderIntakeFormMap,
 };

@@ -2,6 +2,7 @@ const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/Inte
 const {
   createCriteria,
   mustNotRequireAttendeeDetails,
+  mustNotRequireAdditionalDetails,
   remainingCapacityMustBeAtLeastTwo,
   mustHaveBookableOffer,
 } = require('../criteriaUtils');
@@ -28,6 +29,10 @@ const InternalTestOpportunityBookable = createCriteria({
     [
       'Must not require attendee details',
       mustNotRequireAttendeeDetails,
+    ],
+    [
+      'Must not require additional details',
+      mustNotRequireAdditionalDetails,
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,

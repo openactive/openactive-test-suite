@@ -1,10 +1,7 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
-// TODO TODO TODO this test erroneously passes
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
   testFeature: 'additional-details-capture',
@@ -12,60 +9,33 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'additional-details-required-invalid-details-supplied',
   testName: 'Booking opportunity with additional details supplied but not included',
   testDescription: 'Should error',
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
-  function testInvalidAdditionalData(template) {
-    const state = new RequestState(logger, {
-      c1ReqTemplateRef: template,
-      c2ReqTemplateRef: template,
-      bReqTemplateRef: template,
+// ## Initiate Flow Stages
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger,
+    { c2ReqTemplateRef: 'additionalDetailsRequiredInvalidSupplied', bReqTemplateRef: 'additionalDetailsRequiredInvalidSupplied' });
+
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    it('should an IncompleteAttendeeDetailsError on the OrderItem', () => {
+      const positionsOfOrderItemsThatNeedIntakeForms = Object.keys(c1.getOutput().positionOrderIntakeFormMap).map(parseInt);
+      const orderItemsThatNeedIntakeForms = c2.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => positionsOfOrderItemsThatNeedIntakeForms.includes(orderItem.position));
+
+      for (const orderItem of orderItemsThatNeedIntakeForms) {
+        expect(orderItem).toHaveProperty('error');
+        const errors = orderItem.error;
+        const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
+        expect(incompleteIntakeFormErrors.length > 0);
+      }
     });
-    const flow = new FlowHelper(state);
-
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
-    });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup();
-
-      itShouldReturnAnOpenBookingError('InvalidIntakeFormError', 409, () => state.c1Response);
-    });
-
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup();
-
-      itShouldReturnAnOpenBookingError('InvalidIntakeFormError', 409, () => state.c2Response);
-    });
-
-    describe('B', () => {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldReturnAnOpenBookingError('InvalidIntakeFormError', 409, () => state.bResponse);
-    });
-  }
-
-  testInvalidAdditionalData('additionalDetailsRequiredInvalidBooleanSupplied');
-  testInvalidAdditionalData('additionalDetailsRequiredInvalidDropdownSupplied');
+  });
+  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
+    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => b.getOutput().httpResponse);
+  });
 });

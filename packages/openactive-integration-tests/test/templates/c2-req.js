@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
  * @typedef {{
@@ -15,6 +15,7 @@ const { createPaymentPart, additionalDetailsRequiredAndSupplied, additionalDetai
  *     },
  *   }[],
  *   brokerRole: string | null,
+ *   positionOrderIntakeFormMap: Object.<number, import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm>
  * }} C2ReqTemplateData
  */
 
@@ -214,27 +215,21 @@ function createStandardC2WithoutAcceptedOffer(data) {
  */
 function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
   const req = createStandardC2Req(data);
-  return additionalDetailsRequiredAndSupplied(req);
+  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
 }
 
 /**
- * C2 request with additional details required, but invalid boolean value supplied
+ * C2 request with additional details required but invalidly supplied.
+ * The invalid details supplied are dynamically created depending on the type of additional
+ * details required (ShortAnswer, Paragraph, Dropdown, or Boolean)
  *
  * @param {C2ReqTemplateData} data
  */
-function createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req(data) {
+function createAdditionalDetailsRequiredInvalidSuppliedC2Req(data) {
   const req = createStandardC2Req(data);
-  return additionalDetailsRequiredInvalidBooleanSupplied(req);
-}
-
-/**
- * C2 request with additional details required, but invalid dropdown value supplied
- *
- * @param {C2ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req(data) {
-  const req = createStandardC2Req(data);
-  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
 }
 
 /**
@@ -288,8 +283,7 @@ const c2ReqTemplates = {
   noAcceptedOffer: createStandardC2WithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetailsC2Req,
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,
-  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req,
-  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req,
+  additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedC2Req,
   businessCustomer: createBusinessCustomerC2Req,
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,

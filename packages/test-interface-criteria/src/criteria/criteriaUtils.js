@@ -100,6 +100,21 @@ function mustNotRequireAttendeeDetails(offer) {
     || (Array.isArray(offer.openBookingFlowRequirement) && !offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails'));
 }
 
+/**
+ * @type {OfferConstraint}
+ */
+function mustRequireAdditionalDetails(offer) {
+  return Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingIntakeForm');
+}
+
+/**
+ * @type {OfferConstraint}
+ */
+function mustNotRequireAdditionalDetails(offer) {
+  return !offer.openBookingFlowRequirement
+  || !(Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingIntakeForm'));
+}
+
 function mustBeWithinCancellationWindow(offer, opportunity, options) {
   if (!offer || !offer.latestCancellationBeforeStartDate) {
     return null; // Required for validation step
@@ -194,4 +209,6 @@ module.exports = {
   getOrganizerOrProvider,
   mustNotAllowFullRefund,
   mustAllowFullRefund,
+  mustRequireAdditionalDetails,
+  mustNotRequireAdditionalDetails,
 };

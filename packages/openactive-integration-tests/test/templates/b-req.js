@@ -9,7 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
-const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
@@ -39,6 +39,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, additionalDeta
  *   orderProposalVersion: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
+ *   positionOrderIntakeFormMap: Object.<number, import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm>
  * }} BReqTemplateData
  */
 
@@ -489,16 +490,6 @@ function createStandardBWithoutAcceptedOffer(data) {
   return null;
 }
 
-// /**
-//  * B request with additional details required, but not supplied
-//  *
-//  * @param {BReqTemplateData} data
-//  */
-// function createAdditionalDetailsRequiredNotSuppliedBReq(data) {
-//   const req = createStandardPaidBReq(data);
-//   return additionalDetailsRequiredNotSupplied(req);
-// }
-
 /**
  * B request with additional details required and supplied
  *
@@ -506,28 +497,23 @@ function createStandardBWithoutAcceptedOffer(data) {
  */
 function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
   const req = createStandardPaidBReq(data);
-  return additionalDetailsRequiredAndSupplied(req);
+  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
 }
 
 /**
- * B request with additional details required, but invalid boolean value supplied
+ * B request with additional details required but invalidly supplied.
+ * The invalid details supplied are dynamically created depending on the type of additional
+ * details required (ShortAnswer, Paragraph, Dropdown, or Boolean)
  *
  * @param {BReqTemplateData} data
  */
-function createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq(data) {
+function createAdditionalDetailsRequiredInvalidSuppliedBReq(data) {
   const req = createStandardPaidBReq(data);
-  return additionalDetailsRequiredInvalidBooleanSupplied(req);
+  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
 }
 
-/**
- * B request with additional details required, but invalid dropdown value supplied
- *
- * @param {BReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq(data) {
-  const req = createStandardPaidBReq(data);
-  return additionalDetailsRequiredInvalidDropdownSupplied(req);
-}
 
 /**
  * Template functions are put into this object so that the function can be
@@ -554,8 +540,7 @@ const bReqTemplates = {
   noAcceptedOffer: createStandardBWithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetails,
   additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedBReq,
-  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq,
-  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq,
+  additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedBReq,
 };
 
 /**

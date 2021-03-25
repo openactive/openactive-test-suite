@@ -33,6 +33,9 @@
             "runtimeVersion": "12.18.2",
             "runtimeArgs": ["run-script", "debug"],
             "port": 9229,
+            "env": {
+              "NODE_ENV": "dev"
+            },
         },
         {
             "name": "broker-microservice",
