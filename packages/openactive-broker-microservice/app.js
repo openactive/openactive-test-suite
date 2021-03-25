@@ -17,9 +17,7 @@ const fs = require('fs').promises;
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 
-const markdown = new Remarkable({
-  linkify: true,
-});
+const markdown = new Remarkable();
 
 const VALIDATOR_TMP_DIR = './tmp';
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
