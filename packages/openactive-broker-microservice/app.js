@@ -412,8 +412,6 @@ async function setFeedIsUpToDate(feedIdentifier) {
         if (totalChildren === 0) {
           logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
           logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
-          // Sleep for 5 seconds to allow log from CI to flush
-          await sleep(5000);
           throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
@@ -434,8 +432,6 @@ async function setFeedIsUpToDate(feedIdentifier) {
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
           logError(`Open ${OUTPUT_PATH}validation-errors.html in your browser for more information\n`);
-          // Sleep for 5 seconds to allow log from CI to flush
-          await sleep(5000);
           throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
