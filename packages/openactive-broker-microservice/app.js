@@ -16,6 +16,7 @@ const Handlebars = require('handlebars');
 const fs = require('fs').promises;
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
+const cliProgress = require('cli-progress');
 
 const markdown = new Remarkable();
 
@@ -68,6 +69,9 @@ const rowStoreMap = new Map();
 const parentIdIndex = new Map();
 
 const startTime = new Date();
+
+// create new progress bar container
+let multibar = null;
 
 let datasetSiteJson = {
 };
@@ -224,7 +228,13 @@ function getAllDatasets() {
  * @param {Object.<string, string>} headers
  * @param {RpdePageProcessor} processPage
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, totalItems) {
+  let progressbar = !bar ? null : bar.create(totalItems || 0, 0, {
+    feedIdentifier,
+    pages: 0,
+    responseTime: '-',
+    status: 'Harvesting...',
+  });
   const context = {
     currentPage: baseUrl,
     pages: 0,
@@ -264,6 +274,15 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
+        if (progressbar) {
+          progressbar.update(context.items, {
+            pages: context.pages,
+            responseTime: Math.round(responseTime),
+            status: 'Complete',
+          });
+          progressbar.stop();
+          progressbar = null;
+        }
         if (WAIT_FOR_HARVEST) {
           await setFeedIsUpToDate(feedIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
@@ -277,6 +296,12 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         context.pages += 1;
         context.items += json.items.length;
         delete context.sleepMode;
+        if (progressbar) {
+          progressbar.update(context.items, {
+            pages: context.pages,
+            responseTime: Math.round(responseTime),
+          });
+        }
         if (REQUEST_LOGGING_ENABLED) {
           const kind = json.items && json.items[0] && json.items[0].kind;
           log(
@@ -406,6 +431,8 @@ async function setFeedIsUpToDate(feedIdentifier) {
 
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
+        if (multibar) multibar.stop();
+
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
 
@@ -503,7 +530,6 @@ function millisToMinutesAndSeconds(millis) {
   const seconds = ((millis % 60000) / 1000);
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
-
 
 app.get('/orphans', function (req, res) {
   const rows = Array.from(rowStoreMap.values());
@@ -913,7 +939,7 @@ async function processOpportunityItem(item) {
     const id = item.data['@id'] || item.data.id;
 
     // Store any validation results associated with this item
-    await validateAndStoreValidationResults(item.data);
+    // await validateAndStoreValidationResults(item.data);
 
     // Fill buckets
     const matchingCriteria = [];
@@ -1040,16 +1066,25 @@ async function startPolling() {
     'https://schema.org/OnDemandEvent': false,
   };
 
+  const hasTotalItems = dataset.distribution.filter(x => x.totalItems).length > 0;
+  multibar = new cliProgress.MultiBar({
+    clearOnComplete: false,
+    hideCursor: true,
+    format: hasTotalItems
+      ? '{feedIdentifier} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total} | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Status: {status}'
+      : '{feedIdentifier} | {value} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Status: {status}',
+  }, cliProgress.Presets.shades_grey);
+
   dataset.distribution.forEach((dataDownload) => {
     const feedIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage, multibar, dataDownload.totalItems));
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage, multibar, dataDownload.totalItems));
     } else {
       logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
       logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
