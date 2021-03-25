@@ -1,7 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
-// TODO TODO TODO probably just a coincidence that this test runs successfully?
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
   testFeature: 'additional-details-capture',

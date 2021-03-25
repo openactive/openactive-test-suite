@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart } = require('./common');
 
 /**
  * @typedef {{
@@ -125,47 +125,6 @@ function createStandardC1WithoutAcceptedOffer(data) {
   return req;
 }
 
-
-// /**
-//  * C1 request with additional details required, but not supplied
-//  *
-//  * @param {C1ReqTemplateData} data
-//  */
-// function createAdditionalDetailsRequiredNotSuppliedC1Req(data) {
-//   const req = createStandardC1Req(data);
-//   return additionalDetailsRequiredNotSupplied(req);
-// }
-
-/**
- * C1 request with additional details required and supplied
- *
- * @param {C1ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredAndSuppliedC1Req(data) {
-  const req = createStandardC1Req(data);
-  return additionalDetailsRequiredAndSupplied(req);
-}
-
-/**
- * C1 request with additional details required, but invalid boolean value supplied
- *
- * @param {C1ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidBooleanSuppliedC1Req(data) {
-  const req = createStandardC1Req(data);
-  return additionalDetailsRequiredInvalidBooleanSupplied(req);
-}
-
-/**
- * C1 request with additional details required, but invalid dropdown value supplied
- *
- * @param {C1ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req(data) {
-  const req = createStandardC1Req(data);
-  return additionalDetailsRequiredInvalidDropdownSupplied(req);
-}
-
 /**
  * C1 request with missing broker
  *
@@ -183,9 +142,6 @@ const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
   attendeeDetails: createAttendeeDetailsC1Req,
-  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC1Req,
-  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC1Req,
-  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC1Req,
   noBroker: createNoBrokerC1Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC1Req,
   noOrderedItem: createStandardC1WithoutOrderedItem,

@@ -198,16 +198,6 @@ function createStandardC2WithoutAcceptedOffer(data) {
   return req;
 }
 
-// /**
-//  * C2 request with additional details required, but not supplied
-//  *
-//  * @param {C2ReqTemplateData} data
-//  */
-// function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
-//   const req = createStandardC2Req(data);
-//   return additionalDetailsRequiredNotSupplied(req);
-// }
-
 /**
  * C2 request with additional details required and supplied
  *
@@ -215,8 +205,8 @@ function createStandardC2WithoutAcceptedOffer(data) {
  */
 function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
   const req = createStandardC2Req(data);
-  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = true;
-  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
+  const isOrderIntakeResponseValid = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**
@@ -228,8 +218,8 @@ function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
  */
 function createAdditionalDetailsRequiredInvalidSuppliedC2Req(data) {
   const req = createStandardC2Req(data);
-  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = false;
-  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
+  const isOrderIntakeResponseValid = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**

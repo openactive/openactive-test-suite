@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
@@ -22,11 +23,18 @@ FeatureHelper.describeFeature(module, {
 
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
     it('should an IncompleteAttendeeDetailsError on the OrderItem', () => {
-      const orderItemAtPosition0 = c2.getOutput().httpResponse.body.orderedItem.find(orderItem => orderItem.position === 0);
-      expect(orderItemAtPosition0).toHaveProperty('error');
-      const errors = orderItemAtPosition0.error;
-      const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
-      expect(incompleteIntakeFormErrors.length > 0);
+      const positionsOfOrderItemsThatNeedAttendeeDetails = c1.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => !_.isNil(orderItem.attendeeDetailsRequired))
+        .map(orderItem => orderItem.position);
+      const orderItemsThatNeedAttendeeDetails = c2.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => positionsOfOrderItemsThatNeedAttendeeDetails.includes(orderItem.position));
+
+      for (const orderItem of orderItemsThatNeedAttendeeDetails) {
+        expect(orderItem).toHaveProperty('error');
+        const errors = orderItem.error;
+        const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
+        expect(incompleteIntakeFormErrors.length > 0);
+      }
     });
   });
   FlowStageUtils.describeRunAndCheckIsValid(b, () => {

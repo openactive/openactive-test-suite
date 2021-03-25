@@ -497,8 +497,8 @@ function createStandardBWithoutAcceptedOffer(data) {
  */
 function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
   const req = createStandardPaidBReq(data);
-  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = true;
-  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
+  const isOrderIntakeResponseValid = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**
@@ -510,8 +510,8 @@ function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
  */
 function createAdditionalDetailsRequiredInvalidSuppliedBReq(data) {
   const req = createStandardPaidBReq(data);
-  const CREATE_VALID_ORDER_ITEM_INTAKE_FORM = false;
-  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, CREATE_VALID_ORDER_ITEM_INTAKE_FORM);
+  const isOrderIntakeResponseValid = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 

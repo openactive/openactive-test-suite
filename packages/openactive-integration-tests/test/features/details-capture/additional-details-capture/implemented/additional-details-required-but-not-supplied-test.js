@@ -18,16 +18,20 @@ FeatureHelper.describeFeature(module, {
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-  FlowStageUtils.describeRunAndRunChecks({ doCheckSuccess: true, doCheckIsValid: false }, c1); // check valid when valueRequired not Boolean bug is fixed
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
 
-  FlowStageUtils.describeRunAndRunChecks({ doCheckSuccess: false, doCheckIsValid: false }, c2, () => { // check valid when valueRequired not Boolean bug is fixed
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
     it('should an IncompleteIntakeFormError on the OrderItem', () => {
-      const orderItemAtPosition0 = c2.getOutput().httpResponse.body.orderedItem.find(orderItem => orderItem.position === 0);
-      expect(orderItemAtPosition0).toHaveProperty('error');
-      const errors = orderItemAtPosition0.error;
-      const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteIntakeFormError');
-      expect(incompleteIntakeFormErrors.length > 0);
+      const positionsOfOrderItemsThatNeedIntakeForms = Object.keys(c1.getOutput().positionOrderIntakeFormMap).map(parseInt);
+      const orderItemsThatNeedIntakeForms = c2.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => positionsOfOrderItemsThatNeedIntakeForms.includes(orderItem.position));
+
+      for (const orderItem of orderItemsThatNeedIntakeForms) {
+        expect(orderItem).toHaveProperty('error');
+        const errors = orderItem.error;
+        const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteIntakeFormError');
+        expect(incompleteIntakeFormErrors.length > 0);
+      }
     });
   });
   FlowStageUtils.describeRunAndCheckIsValid(b, () => {
