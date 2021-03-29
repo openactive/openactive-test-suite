@@ -9,12 +9,22 @@ const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 const { performance } = require('perf_hooks');
+const { Base64 } = require('js-base64');
 const sleep = require('util').promisify(setTimeout);
+const Handlebars = require('handlebars');
+const fs = require('fs').promises;
+const { Remarkable } = require('remarkable');
+const mkdirp = require('mkdirp');
+const cliProgress = require('cli-progress');
+const AsyncValidatorWorker = require('./validator/async-validator');
+
+const markdown = new Remarkable();
 
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
 const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
+const OUTPUT_PATH = config.get('outputPath');
 const VERBOSE = config.get('verbose');
 const HARVEST_START_TIME = new Date();
 
@@ -26,7 +36,12 @@ const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
 
+// Note this is duplicated between app.js and validator.js, for efficiency
+const VALIDATOR_TMP_DIR = './tmp';
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+const port = normalizePort(process.env.PORT || '3000');
 
 class FatalError extends Error {
   constructor(message) {
@@ -57,8 +72,99 @@ const parentIdIndex = new Map();
 
 const startTime = new Date();
 
+// create new progress bar container
+let multibar = null;
+
 let datasetSiteJson = {
 };
+
+const validatorThreadArray = [];
+const validationResults = new Map();
+
+/**
+ * Use OpenActive validator to validate the opportunity
+ *
+ * @param {any} data opportunity JSON-LD object
+ */
+async function validateAndStoreValidationResults(data, validator) {
+  const id = data['@id'] || data.id;
+  const errors = await validator.validateItem(data);
+  if (!errors) return;
+  for (const error of errors) {
+    // Use the first line of the error message to uniquely identify it
+    const errorShortMessage = error.message.split('\n')[0];
+    const errorKey = `${error.path}: ${errorShortMessage}`;
+
+    // Create a new entry if this is a new error
+    let currentValidationResults = validationResults.get(errorKey);
+    if (!currentValidationResults) {
+      currentValidationResults = {
+        path: error.path,
+        message: errorShortMessage,
+        occurrences: 0,
+        examples: [],
+      };
+      validationResults.set(errorKey, currentValidationResults);
+    }
+
+    // Keep track of examples of each error, with a preference for newer ones (later in the feed)
+    currentValidationResults.occurrences += 1;
+    currentValidationResults.examples.unshift(id);
+    if (currentValidationResults.examples.length > 5) {
+      currentValidationResults.examples.pop();
+    }
+  }
+}
+
+/**
+ * Render the currently stored validation errors as HTML
+ */
+async function renderValidationErrorsHtml() {
+  return renderTemplate('validation-errors', {
+    validationErrors: [...validationResults.entries()].map(([errorKey, obj]) => ({
+      errorKey,
+      ...obj,
+    })),
+  });
+}
+
+/**
+ * Render a validator URL based on the cached data relating to the `@id`
+ *
+ * @param {string} id The `@id` of the JSON-LD object
+ */
+function renderOpenValidatorHref(id) {
+  const cachedResponse = opportunityMap.get(id) || parentOpportunityMap.get(id);
+  if (cachedResponse) {
+    const jsonString = JSON.stringify(cachedResponse, null, 2);
+    return `https://validator.openactive.io/?validationMode=BookableRPDEFeed#/json/${Base64.encodeURI(jsonString)}`;
+  }
+  return '';
+}
+
+/**
+ * Render the specified Handlebars template with the supplied data
+ *
+ * @param {string} templateName Filename of the Handlebars template
+ * @param {any} data JSON to pass into the Handlebars template
+ */
+async function renderTemplate(templateName, data) {
+  const getTemplate = async (name) => {
+    const file = await fs.readFile(`${__dirname}/templates/${name}.handlebars`, 'utf8');
+    return Handlebars.compile(file);
+  };
+
+  const template = await getTemplate(templateName);
+
+  return template(data, {
+    allowProtoMethodsByDefault: true,
+    allowProtoPropertiesByDefault: true,
+    helpers: {
+      renderOpenValidatorHref,
+      renderMarkdown: (text) => markdown.render(text),
+    },
+  });
+}
 
 // Buckets for criteria matches
 /** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
@@ -99,13 +205,31 @@ function getAllDatasets() {
  * @param {Object.<string, string>} headers
  * @param {RpdePageProcessor} processPage
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, totalItems, waitForValidation) {
+  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation);
+  validatorThreadArray.push(validator);
+
   const context = {
     currentPage: baseUrl,
     pages: 0,
     items: 0,
     responseTimes: [],
+    totalItemsQueuedForValidation: 0,
+    validatedItems: 0,
   };
+  const progressFromContext = (c) => ({
+    totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
+    validatedItems: c.validatedItems,
+    validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
+  });
+  const progressbar = !bar ? null : bar.create(totalItems || 0, 0, {
+    feedIdentifier,
+    pages: 0,
+    responseTime: '-',
+    status: 'Harvesting...',
+    ...progressFromContext(context),
+  });
+
   if (feedContextMap.has(feedIdentifier)) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
@@ -139,8 +263,17 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
+        if (progressbar) {
+          progressbar.update(context.items, {
+            pages: context.pages,
+            responseTime: Math.round(responseTime),
+            status: 'Complete',
+            ...progressFromContext(context),
+          });
+          progressbar.stop();
+        }
         if (WAIT_FOR_HARVEST) {
-          setFeedIsUpToDate(feedIdentifier);
+          await setFeedIsUpToDate(feedIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
@@ -160,7 +293,24 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
             }, next: '${json.next}'`,
           );
         }
-        processPage(json, feedIdentifier);
+        // eslint-disable-next-line no-loop-func
+        await processPage(json, feedIdentifier, (item) => {
+          context.totalItemsQueuedForValidation += 1;
+          validateAndStoreValidationResults(item, validator).then(() => {
+            context.validatedItems += 1;
+            progressbar.update(context.items, progressFromContext(context));
+            if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+              progressbar.stop();
+            }
+          });
+        });
+        if (progressbar) {
+          progressbar.update(context.items, {
+            pages: context.pages,
+            responseTime: Math.round(responseTime),
+            ...progressFromContext(context),
+          });
+        }
         url = json.next;
       }
     } catch (error) {
@@ -172,7 +322,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage) {
         // Force retry, after a delay
         await sleep(5000);
       } else if (error.response.status === 404) {
-        if (WAIT_FOR_HARVEST) setFeedIsUpToDate(feedIdentifier);
+        if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
         log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
@@ -272,7 +422,7 @@ function addFeed(feedUrl) {
   incompleteFeeds.push(feedUrl);
 }
 
-function setFeedIsUpToDate(feedIdentifier) {
+async function setFeedIsUpToDate(feedIdentifier) {
   if (incompleteFeeds.length !== 0) {
     const index = incompleteFeeds.indexOf(feedIdentifier);
     if (index > -1) {
@@ -281,20 +431,43 @@ function setFeedIsUpToDate(feedIdentifier) {
 
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
+        if (multibar) multibar.stop();
+
+        // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
+        for (const validator of validatorThreadArray) {
+          await validator.terminate();
+        }
+
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
 
         if (totalChildren === 0) {
           logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
-          logError('Please ensure that the opportunities feeds conforms to RPDE using https://validator.openactive.io/rpde.\n');
+          logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
           throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          logError(`Visit http://localhost:${port}/orphans for more information\n`);
+          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+          // User interaction is not required to exit, for compatibility with CI
+          await sleep(60000);
           throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+          logError(`Visit http://localhost:${port}/orphans for more information\n`);
+        }
+
+        if (validationResults.size > 0) {
+          await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
+          const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
+          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
+          logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${port}/validation-errors in your browser for more information\n`);
+          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+          // User interaction is not required to exit, for compatibility with CI
+          await sleep(60000);
+          throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
         healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
@@ -306,6 +479,7 @@ function setFeedIsUpToDate(feedIdentifier) {
 }
 
 // Provide helpful homepage as binding for root to allow the service to run in a container
+// @ts-ignore
 app.get('/', (req, res) => {
   res.send(`<!doctype html>
 <html lang="en">
@@ -317,6 +491,7 @@ app.get('/', (req, res) => {
 <body>
   <h1>OpenActive Test Suite - Broker Microservice</h1>
   <a href="/status">Status Page</a>
+  <a href="/validation-errors">Validation Errors</a>
 </body>
 </html>`);
 });
@@ -416,6 +591,10 @@ app.get('/status', function (req, res) {
     },
     buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(matchingCriteriaOpportunityIds),
   });
+});
+
+app.get('/validation-errors', async function (req, res) {
+  res.send(await renderValidationErrorsHtml());
 });
 
 app.get('/opportunity-cache/:id', function (req, res) {
@@ -642,18 +821,27 @@ app.get('/get-order/:orderUuid', function (req, res) {
  * @callback RpdePageProcessor
  * @param {any} rpdePage
  * @param {string} feedIdentifier
+ * @param {ValidateItemCallback} validateItemFn
+ */
+
+/**
+ * @callback ValidateItemCallback
+ * @param {any} data
  */
 
 /** @type {RpdePageProcessor} */
-function ingestParentOpportunityPage(rpdePage, feedIdentifier) {
+async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
   const feedPrefix = `${feedIdentifier}---`;
-  rpdePage.items.forEach((item) => {
+  for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
       const jsonLdId = parentOpportunityRpdeMap.get(feedItemIdentifier);
       parentOpportunityMap.delete(jsonLdId);
       parentOpportunityRpdeMap.delete(feedItemIdentifier);
     } else {
+      // Run any validation logic for this item
+      await validateItemFn(item.data);
+
       const jsonLdId = item.data['@id'] || item.data.id;
       parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       // Remove nested @context
@@ -663,18 +851,18 @@ function ingestParentOpportunityPage(rpdePage, feedIdentifier) {
       };
       parentOpportunityMap.set(jsonLdId, dataWithoutContext);
     }
-  });
+  };
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  touchOpportunityItems(rpdePage.items
+  await touchOpportunityItems(rpdePage.items
     .filter((item) => item.state !== 'deleted')
     .map((item) => item.data['@id'] || item.data.id));
 }
 
 /** @type {RpdePageProcessor} */
-function ingestOpportunityPage(rpdePage, feedIdentifier) {
+async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
   const feedPrefix = `${feedIdentifier}---`;
-  rpdePage.items.forEach((item) => {
+  for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
       const jsonLdId = opportunityRpdeMap.get(feedItemIdentifier);
@@ -683,16 +871,19 @@ function ingestOpportunityPage(rpdePage, feedIdentifier) {
 
       deleteOpportunityItem(jsonLdId);
     } else {
+      // Run any validation logic for this item
+      await validateItemFn(item.data);
+
       const jsonLdId = item.data['@id'] || item.data.id;
       opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       opportunityMap.set(jsonLdId, item.data);
 
-      storeOpportunityItem(item);
+      await storeOpportunityItem(item);
     }
-  });
+  }
 }
 
-function touchOpportunityItems(parentIds) {
+async function touchOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
   parentIds.forEach((parentId) => {
@@ -703,14 +894,14 @@ function touchOpportunityItems(parentIds) {
     }
   });
 
-  opportunitiesToUpdate.forEach((jsonLdId) => {
+  await Promise.all([...opportunitiesToUpdate].map(async (jsonLdId) => {
     if (rowStoreMap.has(jsonLdId)) {
       const row = rowStoreMap.get(jsonLdId);
       row.feedModified = Date.now() + 1000; // 1 second in the future
       row.parentIngested = true;
-      processRow(row);
+      await processRow(row);
     }
-  });
+  }));
 }
 
 function deleteOpportunityItem(jsonLdId) {
@@ -724,7 +915,7 @@ function deleteOpportunityItem(jsonLdId) {
   }
 }
 
-function storeOpportunityItem(item) {
+async function storeOpportunityItem(item) {
   const row = {
     id: item.id,
     modified: item.modified,
@@ -745,11 +936,11 @@ function storeOpportunityItem(item) {
   rowStoreMap.set(row.jsonLdId, row);
 
   if (row.parentIngested) {
-    processRow(row);
+    await processRow(row);
   }
 }
 
-function processRow(row) {
+async function processRow(row) {
   const newItem = {
     state: row.deleted ? 'deleted' : 'updated',
     id: row.jsonLdId,
@@ -766,13 +957,14 @@ function processRow(row) {
     },
   };
 
-  processOpportunityItem(newItem);
+  await processOpportunityItem(newItem);
 }
 
-function processOpportunityItem(item) {
+async function processOpportunityItem(item) {
   if (item.data) {
     const id = item.data['@id'] || item.data.id;
 
+    // Fill buckets
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
 
@@ -811,7 +1003,7 @@ function processOpportunityItem(item) {
 }
 
 /** @type {RpdePageProcessor} */
-function monitorOrdersPage(rpde) {
+async function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
     if (item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
@@ -871,6 +1063,9 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 async function startPolling() {
+  await mkdirp(VALIDATOR_TMP_DIR);
+  await mkdirp(OUTPUT_PATH);
+
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
   log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
@@ -884,17 +1079,38 @@ async function startPolling() {
 
   const harvesters = [];
 
+  const isParentFeed = {
+    'https://openactive.io/SessionSeries': true,
+    'https://openactive.io/FacilityUse': true,
+    'https://openactive.io/IndividualFacilityUse': true,
+    'https://openactive.io/ScheduledSession': false,
+    'https://openactive.io/Slot': false,
+    'https://schema.org/Event': false,
+    'https://schema.org/OnDemandEvent': false,
+  };
+
+  const hasTotalItems = dataset.distribution.filter(x => x.totalItems).length > 0;
+  multibar = new cliProgress.MultiBar({
+    clearOnComplete: false,
+    hideCursor: true,
+    format: hasTotalItems
+      ? '{feedIdentifier} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total} | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}'
+      : '{feedIdentifier} | {value} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}',
+  }, cliProgress.Presets.shades_grey);
+
   dataset.distribution.forEach((dataDownload) => {
     const feedIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
-    addFeed(feedIdentifier);
-    if (dataDownload.additionalType === 'https://openactive.io/SessionSeries'
-      || dataDownload.additionalType === 'https://openactive.io/FacilityUse'
-      || dataDownload.additionalType === 'https://openactive.io/IndividualFacilityUse') {
+    if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage));
-    } else {
+      addFeed(feedIdentifier);
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage, multibar, dataDownload.totalItems, true));
+    } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage));
+      addFeed(feedIdentifier);
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage, multibar, dataDownload.totalItems, false));
+    } else {
+      logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
+      logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
     }
   });
 
@@ -909,7 +1125,7 @@ async function startPolling() {
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
-  setFeedIsUpToDate('DatasetSite');
+  await setFeedIsUpToDate('DatasetSite');
 
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
@@ -931,7 +1147,6 @@ setTimeout(() => {
 const server = http.createServer(app);
 server.on('error', onError);
 
-const port = normalizePort(process.env.PORT || '3000');
 app.listen(port, () => {
   log(`Broker Microservice running on port ${port}
 
