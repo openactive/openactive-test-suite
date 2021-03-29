@@ -491,7 +491,7 @@ function createStandardBWithoutAcceptedOffer(data) {
 }
 
 /**
- * B request with additional details required and supplied
+ * B request with additional details supplied
  *
  * @param {BReqTemplateData} data
  */

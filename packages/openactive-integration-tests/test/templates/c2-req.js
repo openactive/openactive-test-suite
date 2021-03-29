@@ -199,7 +199,7 @@ function createStandardC2WithoutAcceptedOffer(data) {
 }
 
 /**
- * C2 request with additional details required and supplied
+ * C2 request with additional details supplied
  *
  * @param {C2ReqTemplateData} data
  */

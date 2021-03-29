@@ -5,6 +5,7 @@ const {
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   mustHaveBookableOffer,
+  mustNotRequireAdditionalDetails,
 } = require('./criteriaUtils');
 
 const TestOpportunityBookableAttendeeDetails = createCriteria({
@@ -31,6 +32,10 @@ const TestOpportunityBookableAttendeeDetails = createCriteria({
     [
       'Must require attendee details',
       mustRequireAttendeeDetails,
+    ],
+    [
+      'Must not require additional details',
+      mustNotRequireAdditionalDetails,
     ],
   ],
 });

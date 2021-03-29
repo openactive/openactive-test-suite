@@ -90,18 +90,15 @@ const getOrderId = pipe(
  * }} order
  */
 function createPositionOrderIntakeFormMap(order) {
-  /** @type {Object.<number, OrderItemIntakeForm>} */
-  let map;
+  /** @type {{[k: string]:OrderItemIntakeForm}} */
+  let map = {};
 
   for (const orderItem of order.orderedItem) {
     if (!isNil(orderItem.orderItemIntakeForm)) {
-      map = {
-        ...map,
-        [orderItem.position]: orderItem.orderItemIntakeForm,
-      };
+      map[String(orderItem.position)] = orderItem.orderItemIntakeForm;
     }
   }
-  return isNil(map) ? {} : map;
+  return map;
 }
 
 module.exports = {

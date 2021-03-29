@@ -71,7 +71,7 @@ const pMemoize = require('p-memoize');
  *   this promise is persisted, so that the result can be collected by resolving it.
  *
  *   The response will be for an array of RPDE items with `{ kind, id, state, data, ...etc }`.
- *  @property {{ [k:number]: OrderItemIntakeForm }| {}} [positionOrderIntakeFormMap]
+ *  @property {{ [k:number]: OrderItemIntakeForm }} [positionOrderIntakeFormMap]
  *   A map with OrderItem position and it's OrderItemIntakeForm.
  *   If the OrderItem does not need additional details, this map will just be null.
  *   If present, this will only be on the C1FlowStage output as that is the only

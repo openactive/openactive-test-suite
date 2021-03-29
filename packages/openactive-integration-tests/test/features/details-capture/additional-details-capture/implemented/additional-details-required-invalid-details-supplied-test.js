@@ -1,3 +1,4 @@
+const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
@@ -7,7 +8,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'additional-details-capture',
   testFeatureImplemented: true,
   testIdentifier: 'additional-details-required-invalid-details-supplied',
-  testName: 'Booking opportunity with additional details supplied but not included',
+  testName: 'Booking opportunity with additional details supplied but not supplied',
   testDescription: 'Should error',
   testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
@@ -22,16 +23,16 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
 
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    it('should an IncompleteAttendeeDetailsError on the OrderItem', () => {
+    it('should return an IncompleteAttendeeDetailsError on the OrderItem', () => {
       const positionsOfOrderItemsThatNeedIntakeForms = Object.keys(c1.getOutput().positionOrderIntakeFormMap).map(parseInt);
       const orderItemsThatNeedIntakeForms = c2.getOutput().httpResponse.body.orderedItem
         .filter(orderItem => positionsOfOrderItemsThatNeedIntakeForms.includes(orderItem.position));
 
       for (const orderItem of orderItemsThatNeedIntakeForms) {
-        expect(orderItem).toHaveProperty('error');
+        chai.expect(orderItem).to.have.property('error');
         const errors = orderItem.error;
-        const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
-        expect(incompleteIntakeFormErrors.length > 0);
+        const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'InvalidIntakeFormError');
+        chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0)
       }
     });
   });

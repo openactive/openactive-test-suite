@@ -96,8 +96,7 @@ function mustRequireAttendeeDetails(offer) {
  * @type {OfferConstraint}
  */
 function mustNotRequireAttendeeDetails(offer) {
-  return !offer.openBookingFlowRequirement
-    || (Array.isArray(offer.openBookingFlowRequirement) && !offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails'));
+  return !mustRequireAttendeeDetails(offer);
 }
 
 /**
@@ -111,8 +110,7 @@ function mustRequireAdditionalDetails(offer) {
  * @type {OfferConstraint}
  */
 function mustNotRequireAdditionalDetails(offer) {
-  return !offer.openBookingFlowRequirement
-  || !(Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingIntakeForm'));
+  return !mustRequireAdditionalDetails(offer); 
 }
 
 function mustBeWithinCancellationWindow(offer, opportunity, options) {

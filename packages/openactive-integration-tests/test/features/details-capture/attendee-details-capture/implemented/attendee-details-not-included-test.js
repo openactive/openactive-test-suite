@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
@@ -30,10 +31,10 @@ FeatureHelper.describeFeature(module, {
         .filter(orderItem => positionsOfOrderItemsThatNeedAttendeeDetails.includes(orderItem.position));
 
       for (const orderItem of orderItemsThatNeedAttendeeDetails) {
-        expect(orderItem).toHaveProperty('error');
+        chai.expect(orderItem).to.have.property('error');
         const errors = orderItem.error;
         const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
-        expect(incompleteIntakeFormErrors.length > 0);
+        chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0)
       }
     });
   });
