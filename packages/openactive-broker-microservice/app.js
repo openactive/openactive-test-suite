@@ -204,6 +204,9 @@ function getAllDatasets() {
  * @param {string} feedIdentifier
  * @param {Object.<string, string>} headers
  * @param {RpdePageProcessor} processPage
+ * @param {import('cli-progress').MultiBar} [bar]
+ * @param {number} [totalItems]
+ * @param {boolean} [waitForValidation]
  */
 async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, totalItems, waitForValidation) {
   const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation);
@@ -298,9 +301,11 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
           context.totalItemsQueuedForValidation += 1;
           validateAndStoreValidationResults(item, validator).then(() => {
             context.validatedItems += 1;
-            progressbar.update(context.items, progressFromContext(context));
-            if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-              progressbar.stop();
+            if (progressbar) {
+              progressbar.update(context.items, progressFromContext(context));
+              if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+                progressbar.stop();
+              }
             }
           });
         });
@@ -851,7 +856,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
       };
       parentOpportunityMap.set(jsonLdId, dataWithoutContext);
     }
-  };
+  }
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
   await touchOpportunityItems(rpdePage.items
@@ -1089,7 +1094,7 @@ async function startPolling() {
     'https://schema.org/OnDemandEvent': false,
   };
 
-  const hasTotalItems = dataset.distribution.filter(x => x.totalItems).length > 0;
+  const hasTotalItems = dataset.distribution.filter((x) => x.totalItems).length > 0;
   multibar = new cliProgress.MultiBar({
     clearOnComplete: false,
     hideCursor: true,
