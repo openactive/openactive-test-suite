@@ -23,7 +23,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
 
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    it('should an IncompleteAttendeeDetailsError on the OrderItem', () => {
+    it('should return an IncompleteAttendeeDetailsError on the OrderItem', () => {
       const positionsOfOrderItemsThatNeedAttendeeDetails = c1.getOutput().httpResponse.body.orderedItem
         .filter(orderItem => !_.isNil(orderItem.attendeeDetailsRequired))
         .map(orderItem => orderItem.position);
