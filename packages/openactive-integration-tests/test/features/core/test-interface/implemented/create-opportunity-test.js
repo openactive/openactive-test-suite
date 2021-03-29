@@ -3,9 +3,7 @@ const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch } = require('../../../../shared-behaviours');
 
-function isNotUsingRandomOpportunities() {
-  return !config.get('useRandomOpportunities');
-}
+const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
 
 // Only run this test if the test interface is in use
 FeatureHelper.describeFeature(module, {
@@ -18,7 +16,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   skipMultiple: true,
-  runOnlyIfTemplate: isNotUsingRandomOpportunities,
+  runOnlyIf: USE_RANDOM_OPPORTUNITIES,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {
