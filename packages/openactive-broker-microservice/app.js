@@ -1106,6 +1106,7 @@ async function startPolling() {
   multibar = new cliProgress.MultiBar({
     clearOnComplete: false,
     hideCursor: true,
+    noTTYOutput: true,
     format: hasTotalItems
       ? '{feedIdentifier} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total} | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}'
       : '{feedIdentifier} | {value} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}',
