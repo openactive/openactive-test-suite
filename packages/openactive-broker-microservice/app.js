@@ -395,11 +395,23 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
 
 function getOpportunityById(opportunityId) {
   const opportunity = opportunityMap.get(opportunityId);
-  if (opportunity && parentOpportunityMap.has(opportunity.superEvent || opportunity.facilityUse)) {
+  const superEvent = parentOpportunityMap.get(opportunity.superEvent);
+  const facilityUse = parentOpportunityMap.get(opportunity.facilityUse);
+  if (opportunity && (superEvent || facilityUse)) {
     return {
-      ...opportunity,
-      superEvent: parentOpportunityMap.get(opportunity.superEvent),
-      facilityUse: parentOpportunityMap.get(opportunity.facilityUse),
+      '@context': getMergedJsonLdContext(opportunity, superEvent, facilityUse),
+      ...{
+        ...opportunity,
+        '@context': undefined,
+      },
+      superEvent: !superEvent ? undefined : {
+        ...superEvent,
+        '@context': undefined,
+      },
+      facilityUse: !facilityUse ? undefined : {
+        ...facilityUse,
+        '@context': undefined,
+      },
     };
   }
   return null;
@@ -844,12 +856,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 
       const jsonLdId = item.data['@id'] || item.data.id;
       parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-      // Remove nested @context
-      const dataWithoutContext = {
-        ...item.data,
-        '@context': undefined,
-      };
-      parentOpportunityMap.set(jsonLdId, dataWithoutContext);
+      parentOpportunityMap.set(jsonLdId, item.data);
     }
   };
 
@@ -940,19 +947,40 @@ async function storeOpportunityItem(item) {
   }
 }
 
+function sortWithOpenActiveOnTop(arr) {
+  const firstList = [];
+  if (arr.includes('https://openactive.io/')) firstList.push('https://openactive.io/');
+  if (arr.includes('https://schema.org/')) firstList.push('https://schema.org/');
+  const remainingList = arr.filter((x) => x !== 'https://openactive.io/' && x !== 'https://schema.org/');
+  return firstList.concat(remainingList.sort());
+}
+
+function getMergedJsonLdContext(...contexts) {
+  return sortWithOpenActiveOnTop([...new Set(contexts.map((x) => x && x['@context']).filter((x) => x).flat())]);
+}
+
 async function processRow(row) {
+  const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
+  const parentOpportunityWithoutContext = {
+    ...parentOpportunity,
+    '@context': undefined,
+  };
   const newItem = {
     state: row.deleted ? 'deleted' : 'updated',
     id: row.jsonLdId,
     modified: row.feedModified,
     data: {
-      ...row.jsonLd,
+      '@context': getMergedJsonLdContext(row.jsonLd, parentOpportunity),
+      ...{
+        ...row.jsonLd,
+        '@context': undefined,
+      },
       ...(row.jsonLdType === 'Slot'
         ? {
-          facilityUse: parentOpportunityMap.get(row.jsonLdParentId),
+          facilityUse: parentOpportunityWithoutContext,
         }
         : {
-          superEvent: parentOpportunityMap.get(row.jsonLdParentId),
+          superEvent: parentOpportunityWithoutContext,
         }),
     },
   };
