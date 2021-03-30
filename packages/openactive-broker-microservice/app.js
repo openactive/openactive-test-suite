@@ -282,7 +282,6 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
             ...progressFromContext(context),
           });
           progressbar.setTotal(context.totalItemsQueuedForValidation);
-          progressbar.stop();
         }
         if (WAIT_FOR_HARVEST) {
           await setFeedIsUpToDate(feedIdentifier);
@@ -447,12 +446,13 @@ async function setFeedIsUpToDate(feedIdentifier) {
 
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
-        if (multibar) multibar.stop();
-
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
+        // Note in some circumstances threads will complete their work before terminating 
         for (const validator of validatorThreadArray) {
           await validator.terminate();
         }
+
+        if (multibar) multibar.stop();
 
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
