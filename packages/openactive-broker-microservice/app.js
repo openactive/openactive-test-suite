@@ -231,8 +231,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
     totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
     validatedItems: c.validatedItems,
     validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
+    items: c.items,
   });
-  const progressbar = !bar ? null : bar.create(totalItems || 0, 0, {
+  const progressbar = !bar ? null : bar.create(0, 0, {
     feedIdentifier,
     pages: 0,
     responseTime: '-',
@@ -274,12 +275,13 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
         if (progressbar) {
-          progressbar.update(context.items, {
+          progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
             status: 'Complete',
             ...progressFromContext(context),
           });
+          progressbar.setTotal(context.totalItemsQueuedForValidation);
           progressbar.stop();
         }
         if (WAIT_FOR_HARVEST) {
@@ -309,7 +311,8 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
           validateAndStoreValidationResults(item, validator).then(() => {
             context.validatedItems += 1;
             if (progressbar) {
-              progressbar.update(context.items, progressFromContext(context));
+              progressbar.update(context.validatedItems, progressFromContext(context));
+              progressbar.setTotal(context.totalItemsQueuedForValidation);
               if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
                 progressbar.stop();
               }
@@ -317,11 +320,12 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
           });
         });
         if (progressbar) {
-          progressbar.update(context.items, {
+          progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
             ...progressFromContext(context),
           });
+          progressbar.setTotal(context.totalItemsQueuedForValidation);
         }
         url = json.next;
       }
@@ -1107,9 +1111,11 @@ async function startPolling() {
     clearOnComplete: false,
     hideCursor: true,
     noTTYOutput: true,
+    emptyOnZero: true,
+    etaBuffer: 500,
     format: hasTotalItems
       ? '{feedIdentifier} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total} | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}'
-      : '{feedIdentifier} | {value} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}',
+      : '{feedIdentifier} | {items} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {value} of {total} ({percentage}%) | ETA: {eta_formatted} | Status: {status}',
   }, cliProgress.Presets.shades_grey);
 
   dataset.distribution.forEach((dataDownload) => {
