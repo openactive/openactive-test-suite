@@ -278,7 +278,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
-            status: 'Complete',
+            status: 'Harvesting Complete',
             ...progressFromContext(context),
           });
           progressbar.setTotal(context.totalItemsQueuedForValidation);
@@ -313,6 +313,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
               progressbar.update(context.validatedItems, progressFromContext(context));
               progressbar.setTotal(context.totalItemsQueuedForValidation);
               if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+                progressbar.update(context.validatedItems, {
+                  status: 'Validation Complete',
+                });
                 progressbar.stop();
               }
             }
