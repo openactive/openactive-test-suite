@@ -10,7 +10,7 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 async function ping() {
   let response = await axios.get(MICROSERVICE_BASE + "/health-check", {
-    timeout: 1000 * 60 * 300,
+    timeout: 1000 * 60 * 30,
   });
 
   assert.strictEqual(response.data, "openactive-broker");

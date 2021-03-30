@@ -511,6 +511,7 @@ app.get('/', (req, res) => {
 app.get('/health-check', function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
+  req.setTimeout(1000*60*4);
   if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
     healthCheckResponsesWaitingForHarvest.push(res);
   } else {
