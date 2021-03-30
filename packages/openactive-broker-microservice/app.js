@@ -515,7 +515,8 @@ app.get('/', (req, res) => {
 app.get('/health-check', function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
-  req.setTimeout(1000*60*4);
+  // Allow blocking for up to 10 minutes to fully harvest the feed
+  req.setTimeout(1000 * 60 * 10);
   if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
     healthCheckResponsesWaitingForHarvest.push(res);
   } else {
@@ -1115,7 +1116,7 @@ async function startPolling() {
     etaBuffer: 500,
     format: hasTotalItems
       ? '{feedIdentifier} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total} | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}'
-      : '{feedIdentifier} | {items} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {value} of {total} ({percentage}%) | ETA: {eta_formatted} | Status: {status}',
+      : '{feedIdentifier} | {items} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {value} of {total} ({percentage}%) ETA: {eta_formatted} | Status: {status}',
   }, cliProgress.Presets.shades_grey);
 
   dataset.distribution.forEach((dataDownload) => {
@@ -1144,7 +1145,15 @@ async function startPolling() {
   }
 
   // Finished processing dataset site
-  if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
+  if (WAIT_FOR_HARVEST) {
+    log('\nBlocking integration tests to wait for harvest completion...');
+    setTimeout(async () => {
+      // Kill validation threads after 5 minutes, even if validation is not complete
+      for (const validator of validatorThreadArray) {
+        await validator.terminate(true);
+      }
+    }, 1000 * 60 * 5);
+  }
   await setFeedIsUpToDate('DatasetSite');
 
   // Wait until all harvesters error catastrophically before existing

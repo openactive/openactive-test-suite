@@ -9,9 +9,9 @@ class AsyncValidatorWorker {
     this.blockUntilQueueEmpty = blockUntilQueueEmpty;
   }
 
-  async terminate() {
+  async terminate(force) {
     // Finish the tasks remaining if there's less than 50 items left, or if the configured to block
-    if (this.blockUntilQueueEmpty || this.queueLength < 50) {
+    if (!force && (this.blockUntilQueueEmpty || this.queueLength < 50)) {
       await this.pool.terminate();
     } else {
       await this.pool.terminate(true);
