@@ -219,8 +219,12 @@ function getAllDatasets() {
  * @param {boolean} [waitForValidation]
  */
 async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, totalItems, waitForValidation) {
-  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation);
+  // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
+  const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
+  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, startTime, validatorTimeout);
   validatorThreadArray.push(validator);
+
+  let initialHarvestComplete = false;
 
   const context = {
     currentPage: baseUrl,
@@ -277,14 +281,15 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
-        if (progressbar) {
+        if (!initialHarvestComplete && progressbar) {
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
-            status: 'Harvesting Complete, Validating...',
             ...progressFromContext(context),
+            status: 'Harvesting Complete, Validating...',
           });
           progressbar.setTotal(context.totalItemsQueuedForValidation);
+          initialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST) {
           await setFeedIsUpToDate(feedIdentifier);
@@ -309,24 +314,26 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
         }
         // eslint-disable-next-line no-loop-func
         await processPage(json, feedIdentifier, (item) => {
-          context.totalItemsQueuedForValidation += 1;
-          validateAndStoreValidationResults(item, validator).then(() => {
-            context.validatedItems += 1;
-            if (progressbar) {
-              progressbar.setTotal(context.totalItemsQueuedForValidation);
-              if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-                progressbar.update(context.validatedItems, {
-                  ...progressFromContext(context),
-                  status: 'Validation Complete',
-                });
-                progressbar.stop();
-              } else {
-                progressbar.update(context.validatedItems, progressFromContext(context));
+          if (!initialHarvestComplete) {
+            context.totalItemsQueuedForValidation += 1;
+            validateAndStoreValidationResults(item, validator).then(() => {
+              context.validatedItems += 1;
+              if (progressbar) {
+                progressbar.setTotal(context.totalItemsQueuedForValidation);
+                if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+                  progressbar.update(context.validatedItems, {
+                    ...progressFromContext(context),
+                    status: 'Validation Complete',
+                  });
+                  progressbar.stop();
+                } else {
+                  progressbar.update(context.validatedItems, progressFromContext(context));
+                }
               }
-            }
-          });
+            });
+          }
         });
-        if (progressbar) {
+        if (!initialHarvestComplete && progressbar) {
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
@@ -455,10 +462,8 @@ async function setFeedIsUpToDate(feedIdentifier) {
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
-        // Note in some circumstances threads will complete their work before terminating 
-        for (const validator of validatorThreadArray) {
-          await validator.terminate();
-        }
+        // Note in some circumstances threads will complete their work before terminating
+        await Promise.all(validatorThreadArray.map((validator) => validator.terminate));
 
         if (multibar) multibar.stop();
 
@@ -1153,15 +1158,7 @@ async function startPolling() {
   }
 
   // Finished processing dataset site
-  if (WAIT_FOR_HARVEST) {
-    log('\nBlocking integration tests to wait for harvest completion...');
-    setTimeout(async () => {
-      // Kill validation threads after 5 minutes, even if validation is not complete
-      for (const validator of validatorThreadArray) {
-        await validator.terminate(true);
-      }
-    }, 1000 * 60 * 5);
-  }
+  if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
   await setFeedIsUpToDate('DatasetSite');
 
   // Wait until all harvesters error catastrophically before existing
