@@ -79,5 +79,3 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
     });
   });
 });
-
-// something in here?
