@@ -17,6 +17,7 @@ const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const AsyncValidatorWorker = require('./validator/async-validator');
+const { suppress } = require('./src/util/suppress-unauthorized-warning');
 
 const markdown = new Remarkable();
 
@@ -39,6 +40,8 @@ const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? 
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
 
+// Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
+suppress();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const port = normalizePort(process.env.PORT || '3000');
@@ -94,6 +97,13 @@ async function validateAndStoreValidationResults(data, validator) {
     // Use the first line of the error message to uniquely identify it
     const errorShortMessage = error.message.split('\n')[0];
     const errorKey = `${error.path}: ${errorShortMessage}`;
+
+    // Ignore the error that a SessionSeries must have children as they haven't been combined yet.
+    // This is being done because I don't know if there is a validator.validationMode for this, and without ignoring the broker does not run
+    if (!(data['@type'] === 'SessionSeries' && errorShortMessage === 'A SessionSeries must have an eventSchedule or at least one subEvent.')) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
 
     // Create a new entry if this is a new error
     let currentValidationResults = validationResults.get(errorKey);
@@ -204,10 +214,17 @@ function getAllDatasets() {
  * @param {string} feedIdentifier
  * @param {Object.<string, string>} headers
  * @param {RpdePageProcessor} processPage
+ * @param {import('cli-progress').MultiBar} [bar]
+ * @param {number} [totalItems]
+ * @param {boolean} [waitForValidation]
  */
 async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, totalItems, waitForValidation) {
-  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation);
+  // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
+  const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
+  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, startTime, validatorTimeout);
   validatorThreadArray.push(validator);
+
+  let initialHarvestComplete = false;
 
   const context = {
     currentPage: baseUrl,
@@ -221,8 +238,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
     totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
     validatedItems: c.validatedItems,
     validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
+    items: c.items,
   });
-  const progressbar = !bar ? null : bar.create(totalItems || 0, 0, {
+  const progressbar = !bar ? null : bar.create(0, 0, {
     feedIdentifier,
     pages: 0,
     responseTime: '-',
@@ -263,14 +281,15 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
-        if (progressbar) {
-          progressbar.update(context.items, {
+        if (!initialHarvestComplete && progressbar) {
+          progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
-            status: 'Complete',
             ...progressFromContext(context),
+            status: 'Harvesting Complete, Validating...',
           });
-          progressbar.stop();
+          progressbar.setTotal(context.totalItemsQueuedForValidation);
+          initialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST) {
           await setFeedIsUpToDate(feedIdentifier);
@@ -295,21 +314,32 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
         }
         // eslint-disable-next-line no-loop-func
         await processPage(json, feedIdentifier, (item) => {
-          context.totalItemsQueuedForValidation += 1;
-          validateAndStoreValidationResults(item, validator).then(() => {
-            context.validatedItems += 1;
-            progressbar.update(context.items, progressFromContext(context));
-            if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-              progressbar.stop();
-            }
-          });
+          if (!initialHarvestComplete) {
+            context.totalItemsQueuedForValidation += 1;
+            validateAndStoreValidationResults(item, validator).then(() => {
+              context.validatedItems += 1;
+              if (progressbar) {
+                progressbar.setTotal(context.totalItemsQueuedForValidation);
+                if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+                  progressbar.update(context.validatedItems, {
+                    ...progressFromContext(context),
+                    status: 'Validation Complete',
+                  });
+                  progressbar.stop();
+                } else {
+                  progressbar.update(context.validatedItems, progressFromContext(context));
+                }
+              }
+            });
+          }
         });
-        if (progressbar) {
-          progressbar.update(context.items, {
+        if (!initialHarvestComplete && progressbar) {
+          progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
             ...progressFromContext(context),
           });
+          progressbar.setTotal(context.totalItemsQueuedForValidation);
         }
         url = json.next;
       }
@@ -443,12 +473,11 @@ async function setFeedIsUpToDate(feedIdentifier) {
 
       // If the list is now empty, trigger responses to healthcheck
       if (incompleteFeeds.length === 0) {
-        if (multibar) multibar.stop();
-
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
-        for (const validator of validatorThreadArray) {
-          await validator.terminate();
-        }
+        // Note in some circumstances threads will complete their work before terminating
+        await Promise.all(validatorThreadArray.map(async (validator) => validator.terminate));
+
+        if (multibar) multibar.stop();
 
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
@@ -511,6 +540,8 @@ app.get('/', (req, res) => {
 app.get('/health-check', function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
+  // Allow blocking for up to 10 minutes to fully harvest the feed
+  req.setTimeout(1000 * 60 * 10);
   if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
     healthCheckResponsesWaitingForHarvest.push(res);
   } else {
@@ -858,7 +889,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
       parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       parentOpportunityMap.set(jsonLdId, item.data);
     }
-  };
+  }
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
   await touchOpportunityItems(rpdePage.items
@@ -1117,13 +1148,16 @@ async function startPolling() {
     'https://schema.org/OnDemandEvent': false,
   };
 
-  const hasTotalItems = dataset.distribution.filter(x => x.totalItems).length > 0;
+  const hasTotalItems = dataset.distribution.filter((x) => x.totalItems).length > 0;
   multibar = new cliProgress.MultiBar({
     clearOnComplete: false,
     hideCursor: true,
+    noTTYOutput: true,
+    emptyOnZero: true,
+    etaBuffer: 500,
     format: hasTotalItems
       ? '{feedIdentifier} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total} | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}'
-      : '{feedIdentifier} | {value} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {validatedItems} of {totalItemsQueuedForValidation} ({validatedPercentage}%) | Status: {status}',
+      : '{feedIdentifier} | {items} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {value} of {total} ({percentage}%) ETA: {eta_formatted} | Status: {status}',
   }, cliProgress.Presets.shades_grey);
 
   dataset.distribution.forEach((dataDownload) => {
