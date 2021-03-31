@@ -17,7 +17,7 @@ const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const AsyncValidatorWorker = require('./validator/async-validator');
-const { suppress } = require('./src/util/suppress_unauthorized_warning');
+const { suppress } = require('./src/util/suppress-unauthorized-warning');
 
 const markdown = new Remarkable();
 
