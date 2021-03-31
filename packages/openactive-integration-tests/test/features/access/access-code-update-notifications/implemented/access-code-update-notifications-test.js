@@ -15,20 +15,22 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:AccessCodeUpdateSimulateAction' },
-  ({ b, orderFeedUpdate, orderItemCriteriaList }) => {
+  ({ b, orderFeedUpdate }) => {
     it('should have access codes with altered values', () => {
+      // Virtual sessions do not have accessPasses so need to be filtered out
+
       // original = before the AccessCodeUpdateSimulationAction was invoked
-      const originalOrderItems = b.getOutput().httpResponse.body.orderedItem;
+      const originalPhysicalOrderItems = b.getOutput().httpResponse.body.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
       // new = after the AccessCodeUpdateSimulationAction was invoked
-      const newOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
+      const newPhysicalOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      expect(newOrderItems).to.be.an('array')
+      expect(newPhysicalOrderItems).to.be.an('array')
         .and.to.have.lengthOf.above(0)
-        .and.to.have.lengthOf(orderItemCriteriaList.length);
+        .and.to.have.lengthOf(originalPhysicalOrderItems.length);
 
-      for (const [originalOrderItem, newOrderItem] of zip(originalOrderItems, newOrderItems)) {
+      for (const [originalOrderItem, newOrderItem] of zip(originalPhysicalOrderItems, newPhysicalOrderItems)) {
         const originalAccessCodes = originalOrderItem.accessCode;
         const newAccessCodes = newOrderItem.accessCode;
 

@@ -110,7 +110,7 @@ function mustRequireAdditionalDetails(offer) {
  * @type {OfferConstraint}
  */
 function mustNotRequireAdditionalDetails(offer) {
-  return !mustRequireAdditionalDetails(offer); 
+  return !mustRequireAdditionalDetails(offer);
 }
 
 function mustBeWithinCancellationWindow(offer, opportunity, options) {

@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai');
-chai.use(require('chai-arrays'));
 chai.use(require('chai-url'));
 
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
@@ -68,20 +67,21 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
       .successChecks()
       .validationTests();
 
-    // TODO: refactor to check every element.
     it('Response should include accessPass array with url field that includes the `https` protocol', () => {
-      // @ts-expect-error chai-arrays doesn't have a types package
-      chai.expect(state.bResponse.body.orderedItem).to.be.array();
+      chai.expect(state.bResponse.body.orderedItem).to.be.an('array')
+        .that.has.lengthOf.above(0)
+        .and.has.lengthOf(orderItemCriteria.length);
 
-      state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
-        // @ts-expect-error chai-arrays doesn't have a types package
-        chai.expect(orderItem.accessPass).to.be.array();
-
-        orderItem.accessPass.forEach((accessPass, accessPassIndex) => {
-          // @ts-expect-error chai-url doesn't have a types package
-          chai.expect(state.bResponse.body).to.have.nested.property(`orderedItem[${orderItemIndex}].accessPass[${accessPassIndex}].url`).that.has.protocol('https');
-        });
-      });
+      for (const orderItem of state.bResponse.body.orderedItem) {
+        // Virtual sessions do not have accessPasses so need to be filtered out
+        if (!orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation') {
+          chai.expect(orderItem.accessPass).to.be.an('array');
+          for (const anAccessPass of orderItem.accessPass) {
+            // @ts-expect-error chai-url doesn't have a types package
+            chai.expect(anAccessPass).to.have.property('url').that.has.protocol('https');
+          }
+        }
+      }
     });
   });
 });
