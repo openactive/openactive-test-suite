@@ -17,6 +17,7 @@ const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const AsyncValidatorWorker = require('./validator/async-validator');
+const { suppress } = require('./src/util/suppress_unauthorized_warning');
 
 const markdown = new Remarkable();
 
@@ -39,6 +40,8 @@ const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? 
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
 
+// Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
+suppress();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const port = normalizePort(process.env.PORT || '3000');
@@ -278,7 +281,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
-            status: 'Harvesting Complete',
+            status: 'Harvesting Complete, Validating...',
             ...progressFromContext(context),
           });
           progressbar.setTotal(context.totalItemsQueuedForValidation);
@@ -310,13 +313,15 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
           validateAndStoreValidationResults(item, validator).then(() => {
             context.validatedItems += 1;
             if (progressbar) {
-              progressbar.update(context.validatedItems, progressFromContext(context));
               progressbar.setTotal(context.totalItemsQueuedForValidation);
               if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
                 progressbar.update(context.validatedItems, {
+                  ...progressFromContext(context),
                   status: 'Validation Complete',
                 });
                 progressbar.stop();
+              } else {
+                progressbar.update(context.validatedItems, progressFromContext(context));
               }
             }
           });

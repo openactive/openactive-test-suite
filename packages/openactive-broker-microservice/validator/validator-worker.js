@@ -4,7 +4,6 @@ const { expose } = require('threads/worker');
 
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 /**
  * Use OpenActive validator to validate the RPDE item
