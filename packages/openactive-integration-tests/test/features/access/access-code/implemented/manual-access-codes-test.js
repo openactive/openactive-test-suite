@@ -67,8 +67,9 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
     it('Response should include accessCode array with appropriate fields (name and description) for each OrderItem', () => {
       chai.expect(state.bResponse.body.orderedItem).to.be.an('array');
+      const physicalOrderItems = state.bResponse.body.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
 
-      state.bResponse.body.orderedItem.forEach((orderItem, orderItemIndex) => {
+      physicalOrderItems.forEach((orderItem, orderItemIndex) => {
         chai.expect(orderItem.accessCode).to.be.an('array');
 
         orderItem.accessCode.forEach((accessCode, accessCodeIndex) => {
