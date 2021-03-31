@@ -425,24 +425,34 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
 
 function getOpportunityById(opportunityId) {
   const opportunity = opportunityMap.get(opportunityId);
+  if (!opportunity) {
+    return null;
+  }
   const superEvent = parentOpportunityMap.get(opportunity.superEvent);
   const facilityUse = parentOpportunityMap.get(opportunity.facilityUse);
   if (opportunity && (superEvent || facilityUse)) {
-    return {
-      '@context': getMergedJsonLdContext(opportunity, superEvent, facilityUse),
-      ...{
-        ...opportunity,
-        '@context': undefined,
-      },
-      superEvent: !superEvent ? undefined : {
-        ...superEvent,
-        '@context': undefined,
-      },
-      facilityUse: !facilityUse ? undefined : {
-        ...facilityUse,
-        '@context': undefined,
-      },
-    };
+    const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
+    delete opportunity['@context'];
+    const returnObj = {
+      '@context': mergedContexts,
+      ...opportunity,
+    }
+    if (superEvent) {
+      const superEventWithoutContext = { ...superEvent };
+      delete superEventWithoutContext['@context'];
+      return {
+        ...returnObj,
+        superEvent: superEventWithoutContext,
+      }
+    }
+    if (facilityUse) {
+      const facilityUseWithoutContext = { ...facilityUse };
+      delete facilityUseWithoutContext['@context'];
+      return {
+        ...returnObj,
+        facilityUse: facilityUseWithoutContext,
+      }
+    }
   }
   return null;
 }
@@ -450,7 +460,7 @@ function getOpportunityById(opportunityId) {
 /**
  * @typedef {Object} PendingResponse
  * @property {(json: any) => void} send
- * @property {() => void} cancel
+ * @property {(resObj: any) => void} cancel
  */
 
 /** @type {{[id: string]: PendingResponse}} */
@@ -681,15 +691,15 @@ app.get('/opportunity/:id', function (req, res) {
       log(`listening for "${id}"`);
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (responses[id] && responses[id] !== null) responses[id].cancel();
+      if (responses[id] && responses[id] !== null) responses[id].cancel(res);
       responses[id] = {
         send(json) {
           responses[id] = null;
           res.json(json);
         },
-        cancel() {
+        cancel(resObj) {
           log(`Ignoring previous request for "${id}"`);
-          res.status(400).json({
+          resObj.status(400).json({
             error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
           });
         },
@@ -992,29 +1002,45 @@ function getMergedJsonLdContext(...contexts) {
 
 async function processRow(row) {
   const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
+  const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
+  
   const parentOpportunityWithoutContext = {
     ...parentOpportunity,
-    '@context': undefined,
   };
-  const newItem = {
+  delete parentOpportunityWithoutContext['@context'];
+  
+  const rowJsonLdWithoutContext = {
+    ...row.jsonLd,
+  }
+  delete rowJsonLdWithoutContext['@context'];
+  
+  let newItem = {
     state: row.deleted ? 'deleted' : 'updated',
     id: row.jsonLdId,
     modified: row.feedModified,
     data: {
-      '@context': getMergedJsonLdContext(row.jsonLd, parentOpportunity),
-      ...{
-        ...row.jsonLd,
-        '@context': undefined,
-      },
-      ...(row.jsonLdType === 'Slot'
-        ? {
-          facilityUse: parentOpportunityWithoutContext,
-        }
-        : {
-          superEvent: parentOpportunityWithoutContext,
-        }),
+      '@context': mergedContexts,
+      ...rowJsonLdWithoutContext,
     },
   };
+
+  if (row.jsonLdType === 'Slot') {
+    newItem = {
+      ...newItem,
+      data: {
+        ...newItem.data,
+        facilityUse: parentOpportunityWithoutContext
+      }
+    }
+  } else {
+    newItem = {
+      ...newItem,
+      data: {
+        ...newItem.data,
+        superEvent: parentOpportunityWithoutContext
+      }
+    }
+  }
 
   await processOpportunityItem(newItem);
 }
