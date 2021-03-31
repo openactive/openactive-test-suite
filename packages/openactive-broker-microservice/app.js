@@ -460,7 +460,7 @@ function getOpportunityById(opportunityId) {
 /**
  * @typedef {Object} PendingResponse
  * @property {(json: any) => void} send
- * @property {(resObj: any) => void} cancel
+ * @property {() => void} cancel
  */
 
 /** @type {{[id: string]: PendingResponse}} */
@@ -691,15 +691,15 @@ app.get('/opportunity/:id', function (req, res) {
       log(`listening for "${id}"`);
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (responses[id] && responses[id] !== null) responses[id].cancel(res);
+      if (responses[id] && responses[id] !== null) responses[id].cancel();
       responses[id] = {
         send(json) {
           responses[id] = null;
           res.json(json);
         },
-        cancel(resObj) {
+        cancel() {
           log(`Ignoring previous request for "${id}"`);
-          resObj.status(400).json({
+          res.status(400).json({
             error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
           });
         },
