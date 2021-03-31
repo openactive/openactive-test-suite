@@ -1234,7 +1234,7 @@ app.listen(PORT, () => {
   log(`Broker Microservice running on port ${PORT}
 
 Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
-`));
+`);
   // Start polling after HTTP server starts listening
   (async () => {
     try {
