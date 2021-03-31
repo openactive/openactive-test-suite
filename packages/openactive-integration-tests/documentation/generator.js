@@ -130,14 +130,14 @@ The tests for these features cover all known edge cases, including both happy an
 | Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'complete').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
-
+${!features.some(f => f.coverageStatus === 'partial') ? '' : `
 ## Partial Test Coverage
 
 The tests for these features provide partial coverage but do not include all known edgecases, and do not exercise all code paths and error conditions.
 
 | Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
 |----------|---------|---------------|-------------|-------------------|
-${features.filter(f => f.coverageStatus === 'partial').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
+${features.filter(f => f.coverageStatus === 'partial').map(f => renderFeatureIndexFeatureFragment(f)).join('')}`}
 
 ## No Test Coverage
 
@@ -154,7 +154,7 @@ ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexF
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureIndexFeatureFragment(f) {
-  return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | [${f.required ? 'Required' : 'Optional'}](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} |
+  return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | ${f.required ? 'Required' : 'Optional'}<br>[View Spec](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} |
 `;
 }
 

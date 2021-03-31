@@ -6,7 +6,7 @@ Cancellation triggered by the Customer through the Broker
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation
 
-Coverage Status: **partial**
+Coverage Status: **complete**
 
 See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-7-cancellation)
 ### Test prerequisites

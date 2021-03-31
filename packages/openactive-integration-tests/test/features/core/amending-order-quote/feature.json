@@ -6,5 +6,5 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#amending-the-orderquote-before-b",
   "required": true,
-  "coverageStatus": "partial"
+  "coverageStatus": "complete"
 }

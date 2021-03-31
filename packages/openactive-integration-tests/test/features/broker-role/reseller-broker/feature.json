@@ -6,5 +6,5 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#resellerbroker",
   "required": false,
-  "coverageStatus": "none"
+  "coverageStatus": "complete"
 }

@@ -6,7 +6,7 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#seller-requested-cancellation",
   "required": false,
-  "coverageStatus": "none",
+  "coverageStatus": "complete",
   "links": [
     {
       "name": ".NET Tutorial",

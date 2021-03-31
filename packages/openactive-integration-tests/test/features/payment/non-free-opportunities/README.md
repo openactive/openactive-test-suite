@@ -6,7 +6,7 @@ The most simple form of booking with payment. Does not check for leases.
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description
 
-Coverage Status: **partial**
+Coverage Status: **complete**
 
 See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order)
 

@@ -6,13 +6,19 @@ Duration of window before an opportunity where it is bookable
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair
 
-Coverage Status: **none**
+Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
 [TestOpportunityBookableWithinValidFromBeforeStartDate](https://openactive.io/test-interface#TestOpportunityBookableWithinValidFromBeforeStartDate) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2, [TestOpportunityBookableOutsideValidFromBeforeStartDate](https://openactive.io/test-interface#TestOpportunityBookableOutsideValidFromBeforeStartDate) x3
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/restrictions/booking-window/
+```
+
 
 
 ## 'Implemented' tests

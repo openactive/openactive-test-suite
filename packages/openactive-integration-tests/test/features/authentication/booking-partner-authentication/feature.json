@@ -6,5 +6,5 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems",
   "required": false,
-  "coverageStatus": "none"
+  "coverageStatus": "complete"
 }

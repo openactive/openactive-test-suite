@@ -6,13 +6,19 @@ Support for capturing additional details
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#additional-details-capture
 
-Coverage Status: **none**
+Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
 [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x12
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/details-capture/additional-details-capture/
+```
+
 
 
 ## 'Implemented' tests

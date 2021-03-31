@@ -6,10 +6,16 @@ Support for genderRestriction, ageRestriction and additionalAdmissionRestriction
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#booking-restrictions
 
-Coverage Status: **none**
+Coverage Status: **complete**
 
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/restrictions/booking-restrictions/
+```
+
 
 
 
