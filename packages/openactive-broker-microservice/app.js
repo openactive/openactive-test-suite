@@ -436,22 +436,26 @@ function getOpportunityById(opportunityId) {
     const returnObj = {
       '@context': mergedContexts,
       ...opportunity,
-    }
+    };
     if (superEvent) {
-      const superEventWithoutContext = { ...superEvent };
+      const superEventWithoutContext = {
+        ...superEvent,
+      };
       delete superEventWithoutContext['@context'];
       return {
         ...returnObj,
         superEvent: superEventWithoutContext,
-      }
+      };
     }
     if (facilityUse) {
-      const facilityUseWithoutContext = { ...facilityUse };
+      const facilityUseWithoutContext = {
+        ...facilityUse,
+      };
       delete facilityUseWithoutContext['@context'];
       return {
         ...returnObj,
         facilityUse: facilityUseWithoutContext,
-      }
+      };
     }
   }
   return null;
@@ -1003,17 +1007,17 @@ function getMergedJsonLdContext(...contexts) {
 async function processRow(row) {
   const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
   const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
-  
+
   const parentOpportunityWithoutContext = {
     ...parentOpportunity,
   };
   delete parentOpportunityWithoutContext['@context'];
-  
+
   const rowJsonLdWithoutContext = {
     ...row.jsonLd,
-  }
+  };
   delete rowJsonLdWithoutContext['@context'];
-  
+
   let newItem = {
     state: row.deleted ? 'deleted' : 'updated',
     id: row.jsonLdId,
@@ -1029,17 +1033,17 @@ async function processRow(row) {
       ...newItem,
       data: {
         ...newItem.data,
-        facilityUse: parentOpportunityWithoutContext
-      }
-    }
+        facilityUse: parentOpportunityWithoutContext,
+      },
+    };
   } else {
     newItem = {
       ...newItem,
       data: {
         ...newItem.data,
-        superEvent: parentOpportunityWithoutContext
-      }
-    }
+        superEvent: parentOpportunityWithoutContext,
+      },
+    };
   }
 
   await processOpportunityItem(newItem);
