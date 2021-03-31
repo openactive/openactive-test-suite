@@ -226,6 +226,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   validatorThreadArray.push(validator);
 
   let initialHarvestComplete = false;
+  let numberOfRetries = 0;
 
   const context = {
     currentPage: baseUrl,
@@ -345,6 +346,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         }
         url = json.next;
       }
+      numberOfRetries = 0;
     } catch (error) {
       // Do not wait for the Orders feed if failing (as it might be an auth error)
       if (WAIT_FOR_HARVEST && doNotStallForThisFeed) {
@@ -354,23 +356,37 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         // If a fatal error, just rethrow
         throw error;
       } else if (!error.response) {
-        log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
-        // Force retry, after a delay
-        await sleep(5000);
+        log(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
+        // Force retry, after a delay, up to 12 times
+        if (numberOfRetries < 12) {
+          numberOfRetries += 1;
+          await sleep(5000);
+        } else {
+          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          // just rethrow
+          throw error;
+        }
       } else if (error.response.status === 404) {
         if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
-        log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
+        log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
       } else if (error.response.status === 401) {
         if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
-        log(`Not authorised error for RPDE feed "${url}", feed will be ignored.`);
+        log(`\nNot authorised error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
       } else {
-        log(`Error ${error.response.status} for RPDE page "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
-        // Force retry, after a delay
-        await sleep(5000);
+        log(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        // Force retry, after a delay, up to 12 times
+        if (numberOfRetries < 12) {
+          numberOfRetries += 1;
+          await sleep(5000);
+        } else {
+          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          // just rethrow
+          throw error;
+        }
       }
     }
   }
@@ -510,12 +526,18 @@ async function setFeedIsUpToDate(feedIdentifier) {
           throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
-        healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
-        // Clear response array
-        healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
+        unlockHealthCheck();
       }
     }
   }
+}
+
+function unlockHealthCheck() {
+  healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
+  // Clear response array
+  healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
+  // Clear incompleteFeeds array
+  incompleteFeeds.splice(0, incompleteFeeds.length);
 }
 
 // Provide helpful homepage as binding for root to allow the service to run in a container
@@ -1117,7 +1139,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
     return jsonld;
   } catch (error) {
     if (!error.response) {
-      logError(`Error while extracting JSON-LD from datasetSiteUrl "${url}"`);
+      logError(`\nError while extracting JSON-LD from datasetSiteUrl "${url}"\n`);
       throw error;
     } else {
       throw new Error(`Error ${error.response.status} for datasetSiteUrl "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
@@ -1149,10 +1171,27 @@ async function startPolling() {
         throw error;
       }
       logError(`
-OpenID Connect Authentication: ${error.stack}
+OpenID Connect Authentication Error: ${error.stack}
 
-****** NOTE: Due to OpenID Connect Authentication failure, tests unrelated to authentication will not run. Please use the 'authentication' tests to debug authentication, in order to allow other tests to run. ******
+
+
+
+***************************************************************************
+|                   OpenID Connect Authentication Error!                  |
+|                                                                         |
+| NOTE: Due to OpenID Connect Authentication failure, tests unrelated to  |
+| authentication will not run and open data harvesting will be skipped.   |
+| Please use the 'authentication' tests to debug authentication,          |
+| in order to allow other tests to run.                                   |
+|                                                                         |
+***************************************************************************
+
+
+
 `);
+      // Skip harvesting
+      unlockHealthCheck();
+      return;
     }
   } else {
     log('\nWarning: Open ID Connect Identity Server (accessService.authenticationAuthority) not found in dataset site');
