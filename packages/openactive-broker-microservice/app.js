@@ -53,13 +53,6 @@ const VALIDATOR_TMP_DIR = './tmp';
 suppress();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-class FatalError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'FatalError';
-  }
-}
-
 const app = express();
 app.use(express.json());
 setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
