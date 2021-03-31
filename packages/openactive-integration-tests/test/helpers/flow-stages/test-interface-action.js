@@ -8,7 +8,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 /**
- * @typedef {'test:AccessCodeUpdateSimulateAction'
+ * @typedef {'test:AccessChannelUpdateSimulateAction'
+ *   | 'test:AccessCodeUpdateSimulateAction'
  *   | 'test:AccessPassUpdateSimulateAction'
  *   | 'test:ChangeOfLogisticsTimeSimulateAction'
  *   | 'test:ChangeOfLogisticsNameSimulateAction'

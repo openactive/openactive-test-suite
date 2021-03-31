@@ -22,6 +22,7 @@ const { TestOpportunityBookableFreePrepaymentRequired } = require('./TestOpportu
 const { TestOpportunityBookableAttendeeDetails } = require('./TestOpportunityBookableAttendeeDetails');
 const { TestOpportunityBookableAdditionalDetails } = require('./TestOpportunityBookableAdditionalDetails');
 const { TestOpportunityBookableSellerTermsOfService } = require('./TestOpportunityBookableSellerTermsOfService');
+const { TestOpportunityOnlineBookable } = require('./TestOpportunityOnlineBookable');
 
 module.exports = {
   allCriteria: [
@@ -49,5 +50,6 @@ module.exports = {
     TestOpportunityBookableAttendeeDetails,
     TestOpportunityBookableAdditionalDetails,
     TestOpportunityBookableSellerTermsOfService,
+    TestOpportunityOnlineBookable,
   ],
 };
