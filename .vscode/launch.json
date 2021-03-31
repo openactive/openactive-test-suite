@@ -53,7 +53,7 @@
             "autoAttachChildProcesses": true,
             "program": "${workspaceFolder}/start.js",
             "env": {
-              "NODE_ENV": "default-ci"
+              "NODE_ENV": "default"
             },
         }
     ]
