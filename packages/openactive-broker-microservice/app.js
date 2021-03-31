@@ -25,8 +25,6 @@ const markdown = new Remarkable();
 const DATASET_SITE_URL = config.get('datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
 const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-
-const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
 const OUTPUT_PATH = config.get('outputPath');
 
 const VERBOSE = config.get('verbose');
@@ -362,6 +360,11 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       } else if (error.response.status === 404) {
         if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
         log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
+        // Stop polling feed
+        return;
+      } else if (error.response.status === 401) {
+        if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
+        log(`Not authorised error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
       } else {
