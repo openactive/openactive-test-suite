@@ -1,4 +1,5 @@
 {
+  "outputPath": "./output/",
   "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
   "requestLogging": false,
   "waitForHarvestCompletion": true,

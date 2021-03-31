@@ -17,7 +17,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const { defaultFlowStageParams, fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
   const cancelOrder = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
-    getOrderItemId: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
+    getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
     prerequisite: b,
   });
 

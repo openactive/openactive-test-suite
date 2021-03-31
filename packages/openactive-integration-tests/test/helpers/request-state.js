@@ -302,14 +302,14 @@ class RequestState {
     return this.pResponse.body.orderProposalVersion;
   }
 
-  get orderItemId() {
+  get orderItemIdArray() {
     if (!this.bResponse) { return null; }
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
-      return this.bResponse.body.orderedItem[0]['@id'];
+      return [this.bResponse.body.orderedItem[0]['@id']];
     }
 
-    return 'NONE';
+    return ['NONE'];
   }
 
   async deleteOrder() {

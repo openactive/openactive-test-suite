@@ -94,3 +94,11 @@ export function mustHaveBookableOffer(offer: import("../types/Offer").Offer, opp
  * @param {Opportunity} opportunity
  */
 export function getOrganizerOrProvider(opportunity: Opportunity): any;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustAllowFullRefund(offer: import("../types/Offer").Offer): boolean;
