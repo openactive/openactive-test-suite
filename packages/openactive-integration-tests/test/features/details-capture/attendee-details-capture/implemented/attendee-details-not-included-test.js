@@ -34,7 +34,7 @@ FeatureHelper.describeFeature(module, {
         chai.expect(orderItem).to.have.property('error');
         const errors = orderItem.error;
         const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
-        chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0)
+        chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0);
       }
     });
   });

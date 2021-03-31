@@ -203,7 +203,7 @@ function createStandardC2WithoutAcceptedOffer(data) {
  *
  * @param {C2ReqTemplateData} data
  */
-function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
+function createAdditionalDetailsSuppliedC2Req(data) {
   const req = createStandardC2Req(data);
   const isOrderIntakeResponseValid = true;
   return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
@@ -272,7 +272,7 @@ const c2ReqTemplates = {
   noOrderedItem: createStandardC2WithoutOrderedItem,
   noAcceptedOffer: createStandardC2WithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetailsC2Req,
-  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,
+  additionalDetailsSupplied: createAdditionalDetailsSuppliedC2Req,
   additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedC2Req,
   businessCustomer: createBusinessCustomerC2Req,
   noBroker: createNoBrokerC2Req,

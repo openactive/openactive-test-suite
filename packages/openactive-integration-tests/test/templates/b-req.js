@@ -495,7 +495,7 @@ function createStandardBWithoutAcceptedOffer(data) {
  *
  * @param {BReqTemplateData} data
  */
-function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
+function createAdditionalDetailsSuppliedBReq(data) {
   const req = createStandardPaidBReq(data);
   const isOrderIntakeResponseValid = true;
   return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
@@ -539,7 +539,7 @@ const bReqTemplates = {
   noOrderedItem: createStandardBWithoutOrderedItem,
   noAcceptedOffer: createStandardBWithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetails,
-  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedBReq,
+  additionalDetailsSupplied: createAdditionalDetailsSuppliedBReq,
   additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedBReq,
 };
 

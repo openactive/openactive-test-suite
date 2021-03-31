@@ -6,7 +6,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'additional-details-capture',
   testFeatureImplemented: true,
   testIdentifier: 'additional-details-required-and-supplied',
-  testName: 'Booking opportunity with additional details supplied and included',
+  testName: 'Booking opportunity with additional details supplied',
   testDescription: 'Should pass',
   testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
@@ -14,8 +14,8 @@ FeatureHelper.describeFeature(module, {
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initialize Flow Stages
   const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
-    c2ReqTemplateRef: 'additionalDetailsRequiredAndSupplied',
-    bReqTemplateRef: 'additionalDetailsRequiredAndSupplied',
+    c2ReqTemplateRef: 'additionalDetailsSupplied',
+    bReqTemplateRef: 'additionalDetailsSupplied',
   });
 
   // ## Run Tests

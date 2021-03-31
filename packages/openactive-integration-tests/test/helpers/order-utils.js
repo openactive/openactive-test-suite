@@ -91,7 +91,7 @@ const getOrderId = pipe(
  */
 function createPositionOrderIntakeFormMap(order) {
   /** @type {{[k: string]:OrderItemIntakeForm}} */
-  let map = {};
+  const map = {};
 
   for (const orderItem of order.orderedItem) {
     if (!isNil(orderItem.orderItemIntakeForm)) {
