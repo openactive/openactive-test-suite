@@ -5,8 +5,7 @@ const { TestOpportunityBookable } = require('./TestOpportunityBookable');
  * Check if event is offline without checking its `superEvent`
  */
 function isEventIndependentlyOffline(event) {
-  return event.eventAttendanceMode === 'https://schema.org/MixedEventAttendanceMode'
-    || event.eventAttendanceMode === 'https://schema.org/OfflineEventAttendanceMode';
+  return event.eventAttendanceMode === 'https://schema.org/OfflineEventAttendanceMode';
 }
 
 function isOpportunityEventAttendanceModeEqualToMixedOrOffline(opportunity) {
