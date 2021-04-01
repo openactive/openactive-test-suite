@@ -2,22 +2,22 @@ const moment = require('moment');
 const { isObject } = require('lodash');
 
 /**
- * @typedef {import('../types/Opportunity').Opportunity} Opportunity
- * @typedef {import('../types/Offer').Offer} Offer
- * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
- * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
- * @typedef {import('../types/Criteria').Criteria} Criteria
- */
+* @typedef {import('../types/Opportunity').Opportunity} Opportunity
+* @typedef {import('../types/Offer').Offer} Offer
+* @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
+* @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
+* @typedef {import('../types/Criteria').Criteria} Criteria
+*/
 
 /**
- * @param {object} args
- * @param {string} args.name
- * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
- * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
- *   opportunity and offer constraints will be included from this criteria.
- * @returns {Criteria}
- */
+* @param {object} args
+* @param {string} args.name
+* @param {Criteria['opportunityConstraints']} args.opportunityConstraints
+* @param {Criteria['offerConstraints']} args.offerConstraints
+* @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
+*   opportunity and offer constraints will be included from this criteria.
+* @returns {Criteria}
+*/
 function createCriteria({ name, opportunityConstraints, offerConstraints, includeConstraintsFromCriteria = null }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
@@ -35,44 +35,44 @@ function createCriteria({ name, opportunityConstraints, offerConstraints, includ
 }
 
 /**
- * @param {Opportunity} opportunity
- * @returns {string}
- */
+* @param {Opportunity} opportunity
+* @returns {string}
+*/
 function getId(opportunity) {
   // return '@id' in opportunity ? opportunity['@id'] : opportunity.id;
   return opportunity['@id'] || opportunity.id;
 }
 
 /**
- * @param {Opportunity} opportunity
- * @returns {string}
- */
+* @param {Opportunity} opportunity
+* @returns {string}
+*/
 function getType(opportunity) {
   return opportunity['@type'] || opportunity.type;
 }
 
 /**
- * @param {Opportunity} opportunity
- * @returns {boolean}
- */
+* @param {Opportunity} opportunity
+* @returns {boolean}
+*/
 function hasCapacityLimitOfOne(opportunity) {
   // return true for a Slot of an IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
   return opportunity && opportunity.facilityUse && getType(opportunity.facilityUse) === 'IndividualFacilityUse';
 }
 
 /**
- * @param {Opportunity} opportunity
- * @returns {number | null | undefined} Not all opportunities have
- *   remainingAttendeeCapacity (which is optional in ScheduledSessions) or
- *   remainingUses, therefore the return value may be null-ish.
- */
+* @param {Opportunity} opportunity
+* @returns {number | null | undefined} Not all opportunities have
+*   remainingAttendeeCapacity (which is optional in ScheduledSessions) or
+*   remainingUses, therefore the return value may be null-ish.
+*/
 function getRemainingCapacity(opportunity) {
   return opportunity.remainingAttendeeCapacity !== undefined ? opportunity.remainingAttendeeCapacity : opportunity.remainingUses;
 }
 
 /**
- * @type {OfferConstraint}
- */
+* @type {OfferConstraint}
+*/
 function mustBeWithinBookingWindow(offer, opportunity, options) {
   if (!offer || !offer.validFromBeforeStartDate) {
     return null; // Required for validation step
@@ -86,15 +86,15 @@ function mustBeWithinBookingWindow(offer, opportunity, options) {
 }
 
 /**
- * @type {OfferConstraint}
- */
+* @type {OfferConstraint}
+*/
 function mustRequireAttendeeDetails(offer) {
   return Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingAttendeeDetails');
 }
 
 /**
- * @type {OfferConstraint}
- */
+* @type {OfferConstraint}
+*/
 function mustNotRequireAttendeeDetails(offer) {
   return !mustRequireAttendeeDetails(offer);
 }
@@ -126,8 +126,8 @@ function mustBeWithinCancellationWindow(offer, opportunity, options) {
 }
 
 /**
- * @type {OpportunityConstraint}
- */
+* @type {OpportunityConstraint}
+*/
 function remainingCapacityMustBeAtLeastTwo(opportunity) {
   // A capacity of at least 2 is needed for cases other than IndividualFacilityUse because the multiple OrderItem tests use 2 of the same item (via the opportunityReuseKey).
   // The opportunityReuseKey is not used for IndividualFacilityUse, which is limited to a maximumUses of 1 by the specification.
@@ -135,49 +135,49 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 }
 
 /**
- * @type {OpportunityConstraint}
- */
+* @type {OpportunityConstraint}
+*/
 function startDateMustBe2HrsInAdvance(opportunity, options) {
   return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
 }
 
 /**
- * @type {OpportunityConstraint}
- */
+* @type {OpportunityConstraint}
+*/
 function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
   return !(opportunity.eventStatus === 'https://schema.org/EventCancelled' || opportunity.eventStatus === 'https://schema.org/EventPostponed');
 }
 
 /**
- * @type {OfferConstraint}
- */
+* @type {OfferConstraint}
+*/
 function mustHaveBookableOffer(offer, opportunity, options) {
   return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
-    && offer.advanceBooking !== 'https://openactive.io/Unavailable'
-    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
+   && offer.advanceBooking !== 'https://openactive.io/Unavailable'
+   && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
 /**
- * @type {OfferConstraint}
- */
+* @type {OfferConstraint}
+*/
 function mustNotAllowFullRefund(offer) {
   return offer.allowCustomerCancellationFullRefund === false;
 }
 
 /**
- * @type {OfferConstraint}
- */
+* @type {OfferConstraint}
+*/
 function mustAllowFullRefund(offer) {
   return offer.allowCustomerCancellationFullRefund === true;
 }
 
 /**
- * For a session, get `organizer`. For a facility, get `provider`.
- * These can be used interchangeably as `organizer` is either a Person or an Organization
- * and `provider` is an Organization.
- *
- * @param {Opportunity} opportunity
- */
+* For a session, get `organizer`. For a facility, get `provider`.
+* These can be used interchangeably as `organizer` is either a Person or an Organization
+* and `provider` is an Organization.
+*
+* @param {Opportunity} opportunity
+*/
 function getOrganizerOrProvider(opportunity) {
   if (isObject(opportunity.superEvent)) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why

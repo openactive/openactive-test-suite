@@ -15,7 +15,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking with access barcode from seller.',
   testDescription: 'Access pass contains barcode returned for B request from seller.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },

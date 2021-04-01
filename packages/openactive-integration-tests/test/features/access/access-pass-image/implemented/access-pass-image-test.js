@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking with access pass image.',
   testDescription: 'Access pass image returned for B request.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
