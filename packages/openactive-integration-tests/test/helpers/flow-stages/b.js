@@ -34,7 +34,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string} [args.orderProposalVersion]
  * @param {RequestHelperType} args.requestHelper
  * @param {string | null} args.brokerRole
- * @param {Object.<number,OrderItemIntakeForm>} args.positionOrderIntakeFormMap
+ * @param {{[k:string]: OrderItemIntakeForm}} args.positionOrderIntakeFormMap
  * @returns {Promise<Output>}
  */
 async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper, positionOrderIntakeFormMap }) {

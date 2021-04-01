@@ -15,7 +15,7 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *     },
  *   }[],
  *   brokerRole: string | null,
- *   positionOrderIntakeFormMap: Object.<number, import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm>
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} C2ReqTemplateData
  */
 

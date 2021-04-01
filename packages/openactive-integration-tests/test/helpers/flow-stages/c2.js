@@ -26,7 +26,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {SellerConfig} args.sellerConfig
  * @param {OrderItem[]} args.orderItems
  * @param {RequestHelperType} args.requestHelper
- * @param {Object.<number,OrderItemIntakeForm>} args.positionOrderIntakeFormMap
+ * @param {{[k:string]: OrderItemIntakeForm}} args.positionOrderIntakeFormMap
  * @returns {Promise<Output>}
  */
 async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, requestHelper, positionOrderIntakeFormMap }) {

@@ -134,7 +134,7 @@ function createOrderIntakeFormResponse(orderIntakeForm, isResponseValid) {
  *   orderedItem: TOrderedItem[],
  * }} TReq
  * @param {TReq} req
- * @param {Object.<number, OrderItemIntakeForm>} positionOrderIntakeFormMap
+ * @param {{[k:string]: OrderItemIntakeForm}} positionOrderIntakeFormMap
  * @param {boolean} isOrderItemIntakeResponseValid
  */
 function addOrderItemIntakeFormResponse(req, positionOrderIntakeFormMap, isOrderItemIntakeResponseValid = true) {

@@ -39,7 +39,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   orderProposalVersion: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
- *   positionOrderIntakeFormMap: Object.<number, import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm>
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} BReqTemplateData
  */
 
