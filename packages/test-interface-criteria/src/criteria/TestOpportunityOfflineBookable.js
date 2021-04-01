@@ -10,13 +10,16 @@ function isEventIndependentlyOffline(event) {
 }
 
 function isOpportunityEventAttendanceModeEqualToMixedOrOffline(opportunity) {
+  // Note that if it's a FacilityUse it is always Offline
+  if (opportunity.facilityUse) {
+    return true;
+  }
   if (opportunity.eventAttendanceMode) {
     return isEventIndependentlyOffline(opportunity);
   }
   if (opportunity.superEvent) {
     return isEventIndependentlyOffline(opportunity.superEvent);
   }
-  // Note that we don't consider `.facilityUse` as a FacilityUse cannot have `eventAttendanceMode`
   return false;
 }
 
