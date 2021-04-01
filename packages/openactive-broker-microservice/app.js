@@ -1181,7 +1181,7 @@ async function startPolling() {
   const hasTotalItems = dataset.distribution.filter((x) => x.totalItems).length > 0;
   multibar = new cliProgress.MultiBar({
     clearOnComplete: false,
-    hideCursor: true,
+    hideCursor: false,
     noTTYOutput: true,
     emptyOnZero: true,
     etaBuffer: 500,
