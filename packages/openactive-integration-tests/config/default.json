@@ -70,23 +70,6 @@
     "minimal-proposal": true
   },
   "testDatasetIdentifier": "uat-ci",
-  "sellers": {
-    "primary": {
-      "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
-      "taxMode": "https://openactive.io/TaxGross",
-      "paymentReconciliationDetails": {
-        "name": "AcmeBroker Points",
-        "accountId": "SN1593",
-        "paymentProviderId": "STRIPE"
-      }
-    },
-    "secondary": {
-      "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
-      "taxMode": "https://openactive.io/TaxNet"
-    }
-  },
   "bookingPartnersForSpecificTests": {
     "dynamicPrimary": {
       "authentication": {

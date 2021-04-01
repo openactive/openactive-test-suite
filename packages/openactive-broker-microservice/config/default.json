@@ -7,7 +7,7 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/1",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
       "authentication": {
         "loginCredentials": {
           "username": "test1",
@@ -23,7 +23,7 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/2",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
       "authentication": {
         "loginCredentials": {
           "username": "test2",

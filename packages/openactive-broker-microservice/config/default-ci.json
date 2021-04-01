@@ -1,3 +1,11 @@
 {
-  "datasetSiteUrl": "http://localhost:5000/openactive"
+  "datasetSiteUrl": "http://localhost:5001/openactive",
+  "sellers": {
+    "primary": {
+      "@id": "https://localhost:5001/api/identifiers/sellers/1"
+    },
+    "secondary": {
+      "@id": "https://localhost:5001/api/identifiers/sellers/2"
+    }
+  }
 }

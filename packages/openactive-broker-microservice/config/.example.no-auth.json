@@ -1,17 +1,23 @@
 {
   "sellers": {
     "primary": {
-      "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/seller",
       "authentication": {
         "loginCredentials": null,
         "requestHeaders": {
           "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/seller"
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
         }
       }
     },
-    "secondary": null
+    "secondary": {
+      "authentication": {
+        "loginCredentials": null,
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
+        }
+      }
+    }
   },
   "bookingPartners": {
     "primary": {
