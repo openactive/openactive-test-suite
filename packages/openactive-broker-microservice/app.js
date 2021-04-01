@@ -371,11 +371,6 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
-      } else if (error.response.status === 401) {
-        if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
-        log(`\nNot authorised error for RPDE feed "${url}", feed will be ignored.`);
-        // Stop polling feed
-        return;
       } else {
         log(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
         // Force retry, after a delay, up to 12 times
