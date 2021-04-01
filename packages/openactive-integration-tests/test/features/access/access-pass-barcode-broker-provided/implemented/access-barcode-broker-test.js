@@ -11,7 +11,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking with access barcode from broker.',
   testDescription: 'Barcode access pass provided by broker returned in B response.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
@@ -68,13 +68,16 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
         .and.has.lengthOf(orderItemCriteriaList.length);
 
       for (const orderItem of orderItems) {
-        expect(orderItem.accessPass).to.be.an('array')
-          .that.has.lengthOf.above(0)
-          .and.has.lengthOf.at.least(accessPass.length)
+        // Virtual sessions do not have accessPasses so need to be filtered out
+        if (!orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation') {
+          expect(orderItem.accessPass).to.be.an('array')
+            .that.has.lengthOf.above(0)
+            .and.has.lengthOf.at.least(accessPass.length)
           // .deep.include.members is used rather than .deep.equals because the
           // OrderItem's .accessPass could include additional items, put on by the
           // Booking System (https://openactive.io/open-booking-api/EditorsDraft/#extension-point-for-barcode-based-access-control)
-          .and.to.deep.include.members(accessPass);
+            .and.to.deep.include.members(accessPass);
+        }
       }
     });
   });
