@@ -1,0 +1,22 @@
+{
+  "generateConformanceCertificate": false,
+  "sellers": {
+    "primary": {
+      "requestHeaders": {
+        "X-OpenActive-Test-Client-Id": "test",
+        "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/1"
+      }
+    },
+    "secondary": {
+      "requestHeaders": {
+        "X-OpenActive-Test-Client-Id": "test",
+        "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/2"
+      }
+    }
+  },
+  "implementedFeatures": {
+    "booking-partner-authentication": false,
+    "dynamic-client-registration": false
+  }
+}
+

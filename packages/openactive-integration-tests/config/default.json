@@ -74,10 +74,6 @@
     "primary": {
       "@type": "Organization",
       "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
-      "requestHeaders": {
-        "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
-      },
       "taxMode": "https://openactive.io/TaxGross",
       "paymentReconciliationDetails": {
         "name": "AcmeBroker Points",
@@ -88,10 +84,6 @@
     "secondary": {
       "@type": "Organization",
       "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
-      "requestHeaders": {
-        "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2"
-      },
       "taxMode": "https://openactive.io/TaxNet"
     }
   },

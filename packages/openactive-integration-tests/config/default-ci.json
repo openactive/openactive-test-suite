@@ -4,10 +4,6 @@
     "primary": {
       "@type": "Organization",
       "@id": "http://localhost:5000/api/identifiers/sellers/1",
-      "requestHeaders": {
-        "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/1"
-      },
       "taxMode": "https://openactive.io/TaxGross",
       "paymentReconciliationDetails": {
         "name": "AcmeBroker Points",
@@ -18,10 +14,6 @@
     "secondary": {
       "@type": "Organization",
       "@id": "http://localhost:5000/api/identifiers/sellers/2",
-      "requestHeaders": {
-        "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/2"
-      },
       "taxMode": "https://openactive.io/TaxNet"
     }
   }
