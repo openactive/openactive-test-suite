@@ -1,5 +1,7 @@
+const _ = require('lodash');
+const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
@@ -12,45 +14,31 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableAttendeeDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteria, featureIsImplemented, logger) => {
+  // ## Initiate Flow Stages
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
+
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    it('should return an IncompleteAttendeeDetailsError on the OrderItem', () => {
+      const positionsOfOrderItemsThatNeedAttendeeDetails = c1.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => !_.isNil(orderItem.attendeeDetailsRequired))
+        .map(orderItem => orderItem.position);
+      const orderItemsThatNeedAttendeeDetails = c2.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => positionsOfOrderItemsThatNeedAttendeeDetails.includes(orderItem.position));
+
+      for (const orderItem of orderItemsThatNeedAttendeeDetails) {
+        chai.expect(orderItem).to.have.property('error');
+        const errors = orderItem.error;
+        const incompleteIntakeFormErrors = errors.filter(error => error['@type'] === 'IncompleteAttendeeDetailsError');
+        chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0);
+      }
+    });
   });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup();
-
-    itShouldReturnAnOpenBookingError('IncompleteAttendeeDetailsError', 409, () => state.c1Response);
-  });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup();
-
-    itShouldReturnAnOpenBookingError('IncompleteAttendeeDetailsError', 409, () => state.c2Response);
-  });
-
-  describe('B', () => {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    itShouldReturnAnOpenBookingError('IncompleteAttendeeDetailsError', 409, () => state.bResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
+    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => b.getOutput().httpResponse);
   });
 });

@@ -17,7 +17,7 @@ FeatureHelper.describeFeature(module, {
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:AccessPassUpdateSimulateAction' },
   ({ b, orderFeedUpdate }) => {
     it('should have access passes with altered values', () => {
-    // original = before the AccessPassUpdateSimulationAction was invoked
+      // original = before the AccessPassUpdateSimulationAction was invoked
       const originalPhysicalOrderItems = b.getOutput().httpResponse.body.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
       // new = after the AccessPassUpdateSimulationAction was invoked
       const newPhysicalOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');

@@ -103,10 +103,10 @@ export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer): b
 */
 export function mustAllowFullRefund(offer: import("../types/Offer").Offer): boolean;
 /**
-* @type {OfferConstraint}
-*/
+ * @type {OfferConstraint}
+ */
 export function mustRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;
 /**
-* @type {OfferConstraint}
-*/
+ * @type {OfferConstraint}
+ */
 export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;

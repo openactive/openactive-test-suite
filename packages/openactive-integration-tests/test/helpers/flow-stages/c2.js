@@ -10,10 +10,11 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('../sellers').SellerConfig} SellerConfig
+ * @typedef {import('./flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 /**
- * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
+ * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>> & Partial<Pick<FlowStageOutput, 'positionOrderIntakeFormMap'>>} Input
  * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId'>>} Output
  */
 
@@ -25,13 +26,15 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {SellerConfig} args.sellerConfig
  * @param {OrderItem[]} args.orderItems
  * @param {RequestHelperType} args.requestHelper
+ * @param {{[k:string]: OrderItemIntakeForm}} args.positionOrderIntakeFormMap
  * @returns {Promise<Output>}
  */
-async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, requestHelper }) {
+async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, requestHelper, positionOrderIntakeFormMap }) {
   const params = {
     sellerId: sellerConfig['@id'],
     orderItems,
     brokerRole,
+    positionOrderIntakeFormMap,
   };
   const response = await requestHelper.putOrderQuote(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -65,7 +68,7 @@ class C2FlowStage extends FlowStage {
       testName: 'C2',
       getInput,
       async runFn(input) {
-        const { orderItems } = input;
+        const { orderItems, positionOrderIntakeFormMap } = input;
         return await runC2({
           templateRef,
           uuid,
@@ -73,6 +76,7 @@ class C2FlowStage extends FlowStage {
           sellerConfig,
           orderItems,
           requestHelper,
+          positionOrderIntakeFormMap,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),

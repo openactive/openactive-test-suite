@@ -1,15 +1,15 @@
 const {
   createCriteria,
-  mustRequireAttendeeDetails,
+  mustRequireAdditionalDetails,
   remainingCapacityMustBeAtLeastTwo,
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   mustHaveBookableOffer,
-  mustNotRequireAdditionalDetails,
+  mustNotRequireAttendeeDetails,
 } = require('./criteriaUtils');
 
-const TestOpportunityBookableAttendeeDetails = createCriteria({
-  name: 'TestOpportunityBookableAttendeeDetails',
+const TestOpportunityBookableAdditionalDetails = createCriteria({
+  name: 'TestOpportunityBookableAdditionalDetails',
   opportunityConstraints: [
     [
       'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
@@ -30,16 +30,16 @@ const TestOpportunityBookableAttendeeDetails = createCriteria({
       mustHaveBookableOffer,
     ],
     [
-      'Must require attendee details',
-      mustRequireAttendeeDetails,
+      'Must require additional details',
+      mustRequireAdditionalDetails,
     ],
     [
-      'Must not require additional details',
-      mustNotRequireAdditionalDetails,
+      'Must not require attendee details',
+      mustNotRequireAttendeeDetails,
     ],
   ],
 });
 
 module.exports = {
-  TestOpportunityBookableAttendeeDetails,
+  TestOpportunityBookableAdditionalDetails,
 };
