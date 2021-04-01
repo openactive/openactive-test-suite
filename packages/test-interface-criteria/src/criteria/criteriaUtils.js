@@ -9,21 +9,21 @@ const moment = require('moment');
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  * @typedef {import('../types/Criteria').Criteria} Criteria
- * @typedef {import('../types/Criteria').TestDataRequirementsFactory} TestDataRequirementsFactory
- * @typedef {import('../types/TestDataRequirements').TestDataRequirements} TestDataRequirements
- * @typedef {import('../types/TestDataRequirements').TestDataFieldRequirement} TestDataFieldRequirement
- * @typedef {import('../types/TestDataRequirements').DateRange} DateRange
- * @typedef {import('../types/TestDataRequirements').QuantitativeValue} QuantitativeValue
+ * @typedef {import('../types/Criteria').TestDataShapeFactory} TestDataShapeFactory
+ * @typedef {import('../types/TestDataShape').TestDataShape} TestDataShape
+ * @typedef {import('../types/TestDataShape').TestDataNodeConstraint} TestDataNodeConstraint
+ * @typedef {import('../types/TestDataShape').DateRangeNodeConstraint} DateRangeNodeConstraint
+ * @typedef {import('../types/TestDataShape').NumericNodeConstraint} NumericNodeConstraint
  */
 
 /**
- * @template {TestDataFieldRequirement} TRequirement
- * @param {TRequirement['@type']} expectedType
- * @param {TestDataFieldRequirement} requirement
+ * @template {TestDataNodeConstraint} TNodeConstraint
+ * @param {TNodeConstraint['@type']} expectedType
+ * @param {TestDataNodeConstraint} requirement
  * @param {string} criteriaName
- * @returns {TRequirement}
+ * @returns {TNodeConstraint}
  */
-function assertFieldRequirementType(expectedType, requirement, criteriaName) {
+function assertNodeConstraintType(expectedType, requirement, criteriaName) {
   if (requirement['@type'] !== expectedType) {
     throw new Error(`Cannot merge requirements for criteria "${criteriaName}" as they have different types. "${requirement['@type']}" !== "${expectedType}`);
   }
@@ -31,18 +31,18 @@ function assertFieldRequirementType(expectedType, requirement, criteriaName) {
 }
 
 /**
- * @template {TestDataFieldRequirement} TRequirement
- * @template {keyof TRequirement} TFieldName
+ * @template {TestDataNodeConstraint} TNodeConstraint
+ * @template {keyof TNodeConstraint} TFieldName
  * @param {TFieldName} fieldName
- * @param {TRequirement} reqA
- * @param {TRequirement} reqB
- * @param {(reqAField: TRequirement[TFieldName], reqBField: TRequirement[TFieldName]) => TRequirement[TFieldName] | null} getValueIfBothExist
- * @returns {{} | Pick<TRequirement, TFieldName>} This format makes it easy to merge this data into an object literal.
- *   The result will look like e.g. `{ minValue: 3 }`.
+ * @param {TNodeConstraint} reqA
+ * @param {TNodeConstraint} reqB
+ * @param {(reqAField: TNodeConstraint[TFieldName], reqBField: TNodeConstraint[TFieldName]) => TNodeConstraint[TFieldName] | null} getValueIfBothExist
+ * @returns {{} | Pick<TNodeConstraint, TFieldName>} This format makes it easy to merge this data into an object literal.
+ *   The result will look like e.g. `{ mininclusive: 3 }`.
  *   It can also be an empty object to cater for instances in which neither of the requirements have the field
  *   and therefore this field should not be added to the merged requirement.
  */
-function mergeTestDataFieldRequirementField(fieldName, reqA, reqB, getValueIfBothExist) {
+function mergeTestDataNodeConstraintField(fieldName, reqA, reqB, getValueIfBothExist) {
   if (reqA[fieldName] == null && reqB[fieldName] == null) {
     return {};
   }
@@ -58,47 +58,47 @@ function mergeTestDataFieldRequirementField(fieldName, reqA, reqB, getValueIfBot
 }
 
 /**
- * @param {DateRange} reqA
- * @param {DateRange} reqB
- * @returns {DateRange}
+ * @param {DateRangeNodeConstraint} reqA
+ * @param {DateRangeNodeConstraint} reqB
+ * @returns {DateRangeNodeConstraint}
  */
-function mergeDateRanges(reqA, reqB) {
-  /** @type {DateRange} */
+function mergeDateRangeNodeConstraints(reqA, reqB) {
+  /** @type {DateRangeNodeConstraint} */
   return {
-    '@type': 'test:DateRange',
-    ...mergeTestDataFieldRequirementField('allowNull', reqA, reqB, (a, b) => (a && b ? true : null)),
-    ...mergeTestDataFieldRequirementField('minDate', reqA, reqB, (a, b) => (
+    '@type': 'test:DateRangeNodeConstraint',
+    ...mergeTestDataNodeConstraintField('allowNull', reqA, reqB, (a, b) => (a && b ? true : null)),
+    ...mergeTestDataNodeConstraintField('minDate', reqA, reqB, (a, b) => (
       moment.max(moment(a), moment(b)).utc().format())),
-    ...mergeTestDataFieldRequirementField('maxDate', reqA, reqB, (a, b) => (
+    ...mergeTestDataNodeConstraintField('maxDate', reqA, reqB, (a, b) => (
       moment.min(moment(a), moment(b)).utc().format())),
   };
 }
 
 /**
- * @param {QuantitativeValue} reqA
- * @param {QuantitativeValue} reqB
- * @returns {QuantitativeValue}
+ * @param {NumericNodeConstraint} reqA
+ * @param {NumericNodeConstraint} reqB
+ * @returns {NumericNodeConstraint}
  */
-function mergeQuantitativeValues(reqA, reqB) {
+function mergeNumericNodeConstraints(reqA, reqB) {
   return {
-    '@type': 'QuantitativeValue',
-    ...mergeTestDataFieldRequirementField('minValue', reqA, reqB, Math.max),
-    ...mergeTestDataFieldRequirementField('maxValue', reqA, reqB, Math.min),
+    '@type': 'NumericNodeConstraint',
+    ...mergeTestDataNodeConstraintField('mininclusive', reqA, reqB, Math.max),
+    ...mergeTestDataNodeConstraintField('maxinclusive', reqA, reqB, Math.min),
   };
 }
 
 /**
- * @param {TestDataFieldRequirement} reqA
- * @param {TestDataFieldRequirement} reqB
+ * @param {TestDataNodeConstraint} reqA
+ * @param {TestDataNodeConstraint} reqB
  * @param {string} criteriaName
- * @returns {TestDataFieldRequirement}
+ * @returns {TestDataNodeConstraint}
  */
 function mergeTestData(reqA, reqB, criteriaName) {
   switch (reqA['@type']) {
-    case 'test:DateRange':
-      return mergeDateRanges(reqA, assertFieldRequirementType('test:DateRange', reqB, criteriaName));
-    case 'QuantitativeValue':
-      return mergeQuantitativeValues(reqA, assertFieldRequirementType('QuantitativeValue', reqB, criteriaName));
+    case 'test:DateRangeNodeConstraint':
+      return mergeDateRangeNodeConstraints(reqA, assertNodeConstraintType('test:DateRangeNodeConstraint', reqB, criteriaName));
+    case 'NumericNodeConstraint':
+      return mergeNumericNodeConstraints(reqA, assertNodeConstraintType('NumericNodeConstraint', reqB, criteriaName));
     default:
       throw new Error(`Merging is not supported for requirements of type "${reqA['@type']}" (criteria "${criteriaName}").
 
@@ -111,7 +111,7 @@ Please consider implementing merging for this requirements if necessary.`);
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {Criteria['testDataRequirements']} args.testDataRequirements
+ * @param {Criteria['testDataShape']} args.testDataShape
  * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
@@ -120,13 +120,13 @@ function createCriteria({
   name,
   opportunityConstraints,
   offerConstraints,
-  testDataRequirements: testDataRequirementsFactory,
+  testDataShape: testDataShapeFactory,
   includeConstraintsFromCriteria = null,
 }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
-  /** @type {TestDataRequirementsFactory} */
-  const baseTestDataRequirementsFactory = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataRequirements : () => ({
+  /** @type {TestDataShapeFactory} */
+  const baseTestDataShapeFactory = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataShape : () => ({
   });
   return {
     name,
@@ -138,53 +138,53 @@ function createCriteria({
       ...baseOfferConstraints,
       ...offerConstraints,
     ],
-    testDataRequirements: (options) => {
-      if (!includeConstraintsFromCriteria) { return testDataRequirementsFactory(options); }
-      const baseTestDataRequirements = baseTestDataRequirementsFactory(options);
-      const thisTestDataRequirements = testDataRequirementsFactory(options);
+    testDataShape: (options) => {
+      if (!includeConstraintsFromCriteria) { return testDataShapeFactory(options); }
+      const baseTestDataShape = baseTestDataShapeFactory(options);
+      const thisTestDataShape = testDataShapeFactory(options);
       // Do any of the opportunity requirements overlap?
-      if (baseTestDataRequirements['test:testOpportunityDataRequirements'] && thisTestDataRequirements['test:testOpportunityDataRequirements']) {
-        for (const key of Object.keys(baseTestDataRequirements['test:testOpportunityDataRequirements'])) {
+      if (baseTestDataShape.opportunityConstraints && thisTestDataShape.opportunityConstraints) {
+        for (const key of Object.keys(baseTestDataShape.opportunityConstraints)) {
           if (key === '@type') { continue; } // this is not a requirement field
-          if (key in thisTestDataRequirements['test:testOpportunityDataRequirements']) {
-            const baseFieldRequirement = baseTestDataRequirements['test:testOpportunityDataRequirements'][key];
-            const thisFieldRequirement = thisTestDataRequirements['test:testOpportunityDataRequirements'][key];
-            thisTestDataRequirements['test:testOpportunityDataRequirements'][key] = mergeTestData(baseFieldRequirement, thisFieldRequirement, name);
+          if (key in thisTestDataShape.opportunityConstraints) {
+            const baseNodeConstraint = baseTestDataShape.opportunityConstraints[key];
+            const thisNodeConstraint = thisTestDataShape.opportunityConstraints[key];
+            thisTestDataShape.opportunityConstraints[key] = mergeTestData(baseNodeConstraint, thisNodeConstraint, name);
           }
         }
-      } else if (baseTestDataRequirements['test:testOpportunityDataRequirements']) {
-        thisTestDataRequirements['test:testOpportunityDataRequirements'] = baseTestDataRequirements['test:testOpportunityDataRequirements'];
+      } else if (baseTestDataShape.opportunityConstraints) {
+        thisTestDataShape.opportunityConstraints = baseTestDataShape.opportunityConstraints;
       }
       // Do any of the offer requirements overlap?
-      if (baseTestDataRequirements['test:testOfferDataRequirements'] && thisTestDataRequirements['test:testOfferDataRequirements']) {
-        for (const key of Object.keys(baseTestDataRequirements['test:testOfferDataRequirements'])) {
+      if (baseTestDataShape.offerConstraints && thisTestDataShape.offerConstraints) {
+        for (const key of Object.keys(baseTestDataShape.offerConstraints)) {
           if (key === '@type') { continue; } // this is not a requirement field
-          if (key in thisTestDataRequirements['test:testOfferDataRequirements']) {
-            const baseFieldRequirement = baseTestDataRequirements['test:testOfferDataRequirements'][key];
-            const thisFieldRequirement = thisTestDataRequirements['test:testOfferDataRequirements'][key];
-            thisTestDataRequirements['test:testOfferDataRequirements'][key] = mergeTestData(baseFieldRequirement, thisFieldRequirement, name);
+          if (key in thisTestDataShape.offerConstraints) {
+            const baseNodeConstraint = baseTestDataShape.offerConstraints[key];
+            const thisNodeConstraint = thisTestDataShape.offerConstraints[key];
+            thisTestDataShape.offerConstraints[key] = mergeTestData(baseNodeConstraint, thisNodeConstraint, name);
           }
         }
-      } else if (baseTestDataRequirements['test:testOfferDataRequirements']) {
-        thisTestDataRequirements['test:testOfferDataRequirements'] = baseTestDataRequirements['test:testOfferDataRequirements'];
+      } else if (baseTestDataShape.offerConstraints) {
+        thisTestDataShape.offerConstraints = baseTestDataShape.offerConstraints;
       }
-      return thisTestDataRequirements;
+      return thisTestDataShape;
       // /**
       //  * Combine the test data requirements from the base criteria with the new criteria by
       //  * choosing, for each field, the narrower requirement (e.g. if durationMin is 60 or
       //  * 90, choose 90).
       //  *
-      //  * @template {keyof TestDataRequirements} TRequirementField
-      //  * @param {TRequirementField} requirementField
+      //  * @template {keyof TestDataShape} TNodeConstraintField
+      //  * @param {TNodeConstraintField} requirementField
       //  * @param {(
-      //  *   thisTestDataRequirementValue: TestDataRequirements[TRequirementField],
-      //  *   thatTestDataRequirementValue: TestDataRequirements[TRequirementField],
+      //  *   thisTestDataRequirementValue: TestDataShape[TNodeConstraintField],
+      //  *   thatTestDataRequirementValue: TestDataShape[TNodeConstraintField],
       //  * ) => boolean} chooseThisRequirementOverThatRequirement
-      //  * @returns {TestDataRequirements[TRequirementField]}
+      //  * @returns {TestDataShape[TNodeConstraintField]}
       //  */
       // const chooseNarrowerRequirement = (requirementField, chooseThisRequirementOverThatRequirement) => {
-      //   const thisTestDataRequirementValue = thisTestDataRequirements[requirementField] ?? null;
-      //   const baseTestDataRequirementValue = baseTestDataRequirements[requirementField] ?? null;
+      //   const thisTestDataRequirementValue = thisTestDataShape[requirementField] ?? null;
+      //   const baseTestDataRequirementValue = baseTestDataShape[requirementField] ?? null;
       //   if (thisTestDataRequirementValue === null || baseTestDataRequirementValue === null) {
       //     return thisTestDataRequirementValue ?? baseTestDataRequirementValue;
       //   }
@@ -193,8 +193,8 @@ function createCriteria({
       //     : baseTestDataRequirementValue;
       // };
       // return {
-      //   ...baseTestDataRequirements,
-      //   ...testDataRequirementsFactory,
+      //   ...baseTestDataShape,
+      //   ...testDataShapeFactory,
       //   startDateMin: chooseNarrowerRequirement('startDateMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),
       //   startDateMax: chooseNarrowerRequirement('startDateMax', (thisValue, thatValue) => moment(thisValue).isAfter(thatValue)),
       //   validFromMin: chooseNarrowerRequirement('validFromMin', (thisValue, thatValue) => moment(thisValue).isBefore(thatValue)),

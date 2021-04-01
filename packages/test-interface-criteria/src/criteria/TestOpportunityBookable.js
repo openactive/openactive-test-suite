@@ -1,5 +1,5 @@
 const { complement } = require('ramda');
-const { testOfferDataRequirements, openBookingFlowRequirementArrayRequirements } = require('../testDataRequirements');
+const { openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const { createCriteria } = require('./criteriaUtils');
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
 const { supportsMinimalProposalFlow } = require('./sharedConstraints');
@@ -22,12 +22,12 @@ const TestOpportunityBookable = createCriteria({
       doesNotSupportMinimalProposalFlow,
     ],
   ],
-  testDataRequirements: () => ({
-    'test:testOfferDataRequirements': testOfferDataRequirements({
-      'test:openBookingFlowRequirement': openBookingFlowRequirementArrayRequirements({
+  testDataShape: () => ({
+    offerConstraints: {
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
         excludesAll: ['https://openactive.io/OpenBookingApproval'],
       }),
-    }),
+    },
   }),
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,
 });

@@ -40,6 +40,13 @@
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/"
         },
         {
+            "name": "test-data-generator",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/packages/openactive-integration-tests/test-data-generator/test-data-generator.js",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests/"
+        },
+        {
             "name": "combined",
             "type": "node",
             "request": "launch",

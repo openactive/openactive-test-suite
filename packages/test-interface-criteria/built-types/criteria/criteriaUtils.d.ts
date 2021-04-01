@@ -15,28 +15,28 @@ export type Criteria = {
     name: string;
     opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
     offerConstraints: [string, import("../types/Criteria").OfferConstraint][];
-    testDataRequirements: import("../types/Criteria").TestDataRequirementsFactory;
+    testDataShape: import("../types/Criteria").TestDataShapeFactory;
 };
-export type TestDataRequirementsFactory = (options: import("../types/Options").Options) => import("../types/TestDataRequirements").TestDataRequirements;
-export type TestDataRequirements = import("../types/TestDataRequirements").TestDataRequirements;
-export type TestDataFieldRequirement = import("../types/TestDataRequirements").DateRange | import("../types/TestDataRequirements").QuantitativeValue | import("../types/TestDataRequirements").BlockedField | import("../types/TestDataRequirements").OptionRequirements<any, any> | import("../types/TestDataRequirements").ArrayRequirements<any, any>;
-export type DateRange = import("../types/TestDataRequirements").DateRange;
-export type QuantitativeValue = import("../types/TestDataRequirements").QuantitativeValue;
+export type TestDataShapeFactory = (options: import("../types/Options").Options) => import("../types/TestDataShape").TestDataShape;
+export type TestDataShape = import("../types/TestDataShape").TestDataShape;
+export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
+export type DateRangeNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint;
+export type NumericNodeConstraint = import("../types/TestDataShape").NumericNodeConstraint;
 /**
  * @param {object} args
  * @param {string} args.name
  * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
  * @param {Criteria['offerConstraints']} args.offerConstraints
- * @param {Criteria['testDataRequirements']} args.testDataRequirements
+ * @param {Criteria['testDataShape']} args.testDataShape
  * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
  *   opportunity and offer constraints will be included from this criteria.
  * @returns {Criteria}
  */
-export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataRequirements: testDataRequirementsFactory, includeConstraintsFromCriteria, }: {
+export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataShape: testDataShapeFactory, includeConstraintsFromCriteria, }: {
     name: string;
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
-    testDataRequirements: Criteria['testDataRequirements'];
+    testDataShape: Criteria['testDataShape'];
     includeConstraintsFromCriteria: Criteria | null;
 }): Criteria;
 /**
