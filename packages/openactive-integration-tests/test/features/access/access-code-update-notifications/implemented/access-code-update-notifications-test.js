@@ -11,7 +11,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Access code updated after B request.',
   testDescription: 'Access code updated after B request is reflected in Orders feed.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookable',
+  testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:AccessCodeUpdateSimulateAction' },
