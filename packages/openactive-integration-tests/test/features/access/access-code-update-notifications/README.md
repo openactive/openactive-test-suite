@@ -11,7 +11,7 @@ Coverage Status: **none**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4
+[TestOpportunityOfflineBookable](https://openactive.io/test-interface#TestOpportunityOfflineBookable) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
 
 *Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
 
@@ -30,6 +30,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [access-code-update-notifications](./implemented/access-code-update-notifications-test.js) | Access code updated after B request. | Access code updated after B request is reflected in Orders feed. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [access-code-update-notifications](./implemented/access-code-update-notifications-test.js) | Access code updated after B request. | Access code updated after B request is reflected in Orders feed. | [TestOpportunityOfflineBookable](https://openactive.io/test-interface#TestOpportunityOfflineBookable) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 
