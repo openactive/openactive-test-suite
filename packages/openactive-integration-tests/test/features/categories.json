@@ -45,8 +45,7 @@
     },
     "details-capture": {
       "additional-details-capture": true,
-      "attendee-details-capture-with-payment": true,
-      "attendee-details-capture-without-payment": true,
+      "attendee-details-capture": true,
       "customer-details-capture-identifier": true,
       "customer-details-capture-non-essential": true
     },

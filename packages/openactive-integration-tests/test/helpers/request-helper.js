@@ -276,11 +276,13 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {{ sellerId: string }} params
+   * @param {import('../templates/u-req.js').UReqTemplateData} params
+   * @param {import('../templates/u-req').UReqTemplateRef | null} [maybeUReqTemplateRef]
    */
-  async cancelOrder(uuid, params, uReqTemplateRef = 'standard') {
+  async cancelOrder(uuid, params, maybeUReqTemplateRef) {
+    const uReqTemplateRef = maybeUReqTemplateRef || 'standard';
     const templateFn = uReqTemplates[uReqTemplateRef];
-    const payload = templateFn(params, uuid);
+    const payload = templateFn(params);
 
     const uResponse = await this.patch(
       'U',
