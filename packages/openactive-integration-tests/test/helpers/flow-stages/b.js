@@ -13,11 +13,12 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../sellers').SellerConfig} SellerConfig
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./flow-stage').Prepayment} Prepayment
+ * @typedef {import('./flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems' | 'totalPaymentDue' | 'prepayment'>>
- *   & Partial<Pick<FlowStageOutput, 'orderProposalVersion'>>} Input
+ *   & Partial<Pick<FlowStageOutput, 'orderProposalVersion' | 'positionOrderIntakeFormMap'>>} Input
  * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId'>>} Output
  */
 
@@ -33,9 +34,10 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string} [args.orderProposalVersion]
  * @param {RequestHelperType} args.requestHelper
  * @param {string | null} args.brokerRole
+ * @param {{[k:string]: OrderItemIntakeForm}} args.positionOrderIntakeFormMap
  * @returns {Promise<Output>}
  */
-async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper }) {
+async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper, positionOrderIntakeFormMap }) {
   const params = {
     sellerId: sellerConfig['@id'],
     orderItems,
@@ -44,6 +46,7 @@ async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, o
     orderProposalVersion,
     accessPass,
     brokerRole,
+    positionOrderIntakeFormMap,
   };
   const response = await requestHelper.putOrder(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -79,7 +82,7 @@ class BFlowStage extends FlowStage {
       getInput,
       testName: 'B',
       async runFn(input) {
-        const { orderItems, totalPaymentDue, prepayment, orderProposalVersion } = input;
+        const { orderItems, totalPaymentDue, prepayment, orderProposalVersion, positionOrderIntakeFormMap } = input;
         return await runB({
           templateRef,
           accessPass,
@@ -91,6 +94,7 @@ class BFlowStage extends FlowStage {
           prepayment,
           orderProposalVersion,
           requestHelper,
+          positionOrderIntakeFormMap,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),

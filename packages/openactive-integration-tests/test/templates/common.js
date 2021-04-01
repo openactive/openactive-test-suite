@@ -1,7 +1,10 @@
 const config = require('config');
+const { isNil } = require('lodash');
 
 /**
+ * @typedef {import('../helpers/flow-stages/fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
+ * @typedef {import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 const PAYMENT_RECONCILIATION_DETAILS = config.get('sellers').primary.paymentReconciliationDetails;
@@ -64,202 +67,91 @@ function isPaymentAvailable(data) {
   return isPaidOpportunity(data) && data.prepayment !== 'https://openactive.io/Unavailable';
 }
 
-//  * @template {{
-//  *   orderedItem: {}[],
-//  * }} TReq
 /**
- * Additional details required, but not supplied
  *
- * @template {{}} TOrderedItem
+ * @param {OrderItemIntakeForm} orderIntakeForm
+ * @param {boolean} isResponseValid If false, invalid responses will be created (eg string responses to BooleanForms)
+ */
+function createOrderIntakeFormResponse(orderIntakeForm, isResponseValid) {
+  if (isNil(orderIntakeForm)) {
+    return null;
+  }
+  return orderIntakeForm.map((form) => {
+    /** @type {import('../helpers/flow-stages/flow-stage').PropertyValue} */
+    const propertyValue = {
+      '@type': 'PropertyValue',
+      propertyID: form['@id'],
+      value: '',
+    };
+    switch (form['@type']) {
+      case 'BooleanFormFieldSpecification': {
+        if (!isResponseValid) {
+          return {
+            ...propertyValue,
+            value: 'This is not a boolean!',
+          };
+        }
+        return {
+          ...propertyValue,
+          value: Math.random() < 0.5,
+        };
+      }
+      case 'DropdownFormFieldSpecification': {
+        if (!isResponseValid) {
+          return {
+            ...propertyValue,
+            value: 'This is not one of the ValueOptions!',
+          };
+        }
+        return {
+          ...propertyValue,
+          value: form.valueOption[Math.floor(Math.random() * form.valueOption.length)],
+        };
+      }
+      case 'ParagraphFormFieldSpecification':
+      case 'ShortAnswerFormFieldSpecification': {
+        if (!isResponseValid) {
+          return {
+            ...propertyValue,
+            value: true, // value not being a string is the invalid response for these types
+          };
+        }
+        return {
+          ...propertyValue,
+          value: 'An appropriate answer to the question asked.',
+        };
+      }
+      default: return propertyValue;
+    }
+  });
+}
+
+/**
+ * Adds either valid or invalid OrderItemIntakeResponse to the provided request
+ *
+ * @template {{position: number, orderItemIntakeFormResponse: { value: boolean|string; '@type': "PropertyValue"; propertyID: string; }[]}} TOrderedItem
  * @template {{
  *   orderedItem: TOrderedItem[],
  * }} TReq
  * @param {TReq} req
+ * @param {{[k:string]: OrderItemIntakeForm}} positionOrderIntakeFormMap
+ * @param {boolean} isOrderItemIntakeResponseValid
  */
-function additionalDetailsRequiredNotSupplied(req) {
-  return {
+function addOrderItemIntakeFormResponse(req, positionOrderIntakeFormMap, isOrderItemIntakeResponseValid = true) {
+  const newReq = {
     ...req,
-    orderedItem: req.orderedItem.map(orderItem => ({
-      ...orderItem,
-      orderItemIntakeForm: [
-        {
-          '@type': 'ShortAnswerFormSpecification',
-          '@id': 'https://example.com/experience',
-          name: 'Level of experience',
-          description: 'Have you played before? Are you a complete beginner or seasoned pro?',
-          valueRequired: true,
-        },
-        {
-          '@type': 'DropdownFormFieldSpecification',
-          '@id': 'https://example.com/age',
-          name: 'Age',
-          description: 'Your age is useful for us to place you in the correct group on the day',
-          valueOption: ['0-18', '18-30', '30+'],
-          valueRequired: true,
-        },
-        {
-          '@type': 'DropdownFormFieldSpecification',
-          '@id': 'https://example.com/gender',
-          name: 'Gender',
-          description: 'We use this information for equality and diversity monitoring',
-          valueOption: ['male', 'female', 'non-binary', 'other'],
-          valueRequired: false,
-        },
-        {
-          '@type': 'BooleanFormFieldSpecification',
-          '@id': 'https://example.com/photoconsent',
-          name: 'Photo Consent',
-          description: 'Are you happy for us to include photos of you in our marketing materials?',
-        },
-      ],
-    })),
   };
-  // for (const orderItem of req.orderedItem) {
-  //   orderItem.orderItemIntakeForm = [
-  //     {
-  //       '@type': 'ShortAnswerFormSpecification',
-  //       '@id': 'https://example.com/experience',
-  //       name: 'Level of experience',
-  //       description: 'Have you played before? Are you a complete beginner or seasoned pro?',
-  //       valueRequired: true,
-  //     },
-  //     {
-  //       '@type': 'DropdownFormFieldSpecification',
-  //       '@id': 'https://example.com/age',
-  //       name: 'Age',
-  //       description: 'Your age is useful for us to place you in the correct group on the day',
-  //       valueOption: ['0-18', '18-30', '30+'],
-  //       valueRequired: true,
-  //     },
-  //     {
-  //       '@type': 'DropdownFormFieldSpecification',
-  //       '@id': 'https://example.com/gender',
-  //       name: 'Gender',
-  //       description: 'We use this information for equality and diversity monitoring',
-  //       valueOption: ['male', 'female', 'non-binary', 'other'],
-  //       valueRequired: false,
-  //     },
-  //     {
-  //       '@type': 'BooleanFormFieldSpecification',
-  //       '@id': 'https://example.com/photoconsent',
-  //       name: 'Photo Consent',
-  //       description: 'Are you happy for us to include photos of you in our marketing materials?',
-  //     },
-  //   ];
-  // }
-  // return req;
-}
-
-/**
- * Additional details required and supplied
- *
- * @template {{}} TOrderedItem
- * @template {{
- *   orderedItem: TOrderedItem[],
- * }} TReq
- * @param {TReq} req
- */
-function additionalDetailsRequiredAndSupplied(req) {
-  const withOrderItemIntakeForm = additionalDetailsRequiredNotSupplied(req);
-  return {
-    ...withOrderItemIntakeForm,
-    orderedItem: withOrderItemIntakeForm.orderedItem.map(orderItem => ({
-      ...orderItem,
-      orderItemIntakeFormResponse: [
-        {
-          '@type': 'PropertyValue',
-          propertyID: 'https://example.com/experience',
-          value: 'I\'ve played twice before, but I\'m a quick learner so I hope to keep up!',
-        },
-        {
-          '@type': 'PropertyValue',
-          propertyID: 'https://example.com/age',
-          value: '0-18',
-        },
-        {
-          '@type': 'PropertyValue',
-          propertyID: 'https://example.com/photoconsent',
-          value: 'true',
-        },
-      ],
-    })),
-  };
-}
-
-/**
- * Additional details required, invalid boolean supplied
- *
- * @template {{
- *   propertyID: string,
- *   value: string,
- * }} TOrderItemIntakeFormResponse
- * @template {{
- *   orderItemIntakeFormResponse: TOrderItemIntakeFormResponse[],
- * }} TOrderedItem
- * @template {{
- *   orderedItem: TOrderedItem[],
- * }} TReq
- * @param {TReq} req
- */
-function additionalDetailsRequiredInvalidBooleanSupplied(req) {
-  const withAdditionalDetails = additionalDetailsRequiredAndSupplied(req);
-  return {
-    ...withAdditionalDetails,
-    orderedItem: withAdditionalDetails.orderedItem.map(orderItem => ({
-      ...orderItem,
-      orderItemIntakeFormResponse: orderItem.orderItemIntakeFormResponse.map((responseItem) => {
-        if (responseItem.propertyID === 'https://example.com/photoconsent') {
-          return {
-            ...responseItem,
-            value: 'yes',
-          };
-        }
-        return responseItem;
-      }),
-    })),
-  };
-}
-
-/**
- * Additional details required, invalid dropdown supplied
- *
- * @template {{
- *   propertyID: string,
- *   value: string,
- * }} TOrderItemIntakeFormResponse
- * @template {{
- *   orderItemIntakeFormResponse: TOrderItemIntakeFormResponse[],
- * }} TOrderedItem
- * @template {{
- *   orderedItem: TOrderedItem[],
- * }} TReq
- * @param {TReq} req
- */
-function additionalDetailsRequiredInvalidDropdownSupplied(req) {
-  const withAdditionalDetails = additionalDetailsRequiredAndSupplied(req);
-  return {
-    ...withAdditionalDetails,
-    orderedItem: withAdditionalDetails.orderedItem.map(orderItem => ({
-      ...orderItem,
-      orderItemIntakeFormResponse: orderItem.orderItemIntakeFormResponse.map((responseItem) => {
-        if (responseItem.propertyID === 'https://example.com/age') {
-          return {
-            ...responseItem,
-            value: '65+',
-          };
-        }
-        return responseItem;
-      }),
-    })),
-  };
+  for (const orderItem of newReq.orderedItem) {
+    if (positionOrderIntakeFormMap[orderItem.position]) {
+      orderItem.orderItemIntakeFormResponse = createOrderIntakeFormResponse(positionOrderIntakeFormMap[orderItem.position], isOrderItemIntakeResponseValid);
+    }
+  }
+  return newReq;
 }
 
 module.exports = {
   createPaymentPart,
   isPaidOpportunity,
   isPaymentAvailable,
-  additionalDetailsRequiredNotSupplied,
-  additionalDetailsRequiredAndSupplied,
-  additionalDetailsRequiredInvalidBooleanSupplied,
-  additionalDetailsRequiredInvalidDropdownSupplied,
+  addOrderItemIntakeFormResponse,
 };

@@ -100,15 +100,15 @@ function mustNotRequireAttendeeDetails(offer) {
 }
 
 /**
-* @type {OfferConstraint}
-*/
+ * @type {OfferConstraint}
+ */
 function mustRequireAdditionalDetails(offer) {
   return Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingIntakeForm');
 }
 
 /**
-* @type {OfferConstraint}
-*/
+ * @type {OfferConstraint}
+ */
 function mustNotRequireAdditionalDetails(offer) {
   return !mustRequireAdditionalDetails(offer);
 }
