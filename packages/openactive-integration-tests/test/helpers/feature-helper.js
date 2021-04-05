@@ -15,6 +15,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  *
  * @typedef {(opportunityType: string) => OpportunityCriteria[]} CreateSingleOportunityCriteriaTemplateFn
  * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string) => boolean} RunOnlyIfTemplateFn
  *
  * @typedef {object} DescribeFeatureConfiguration Configuration for the describeFeature function
  * @property {string} testCategory
@@ -46,6 +47,8 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  *   Used to generate the docs for each test.
  *
  *   Defaults to 1.
+ * @property {string[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
+ *   certain types of opportunity (in the example provided, access-channel tests should not be run for facility slots)
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,
@@ -149,6 +152,7 @@ class FeatureHelper {
 
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
+    const skipOpportunityTypes = _.defaultTo(configuration.skipOpportunityTypes, []);
 
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
@@ -177,21 +181,23 @@ class FeatureHelper {
           } else {
             // Create a new test for each opportunityType in scope
             opportunityTypesInScope.forEach((opportunityType) => {
-              describe(opportunityType, function () {
-                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
-                  config: configuration,
-                  description: configuration.testDescription,
-                  implemented,
-                  opportunityType,
+              if (!skipOpportunityTypes.includes(opportunityType)) {
+                describe(opportunityType, function () {
+                  const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
+                    config: configuration,
+                    description: configuration.testDescription,
+                    implemented,
+                    opportunityType,
+                  });
+
+                  const state = new RequestState(logger);
+                  const flow = new FlowHelper(state);
+
+                  const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
+
+                  tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
                 });
-
-                const state = new RequestState(logger);
-                const flow = new FlowHelper(state);
-
-                const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
-
-                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
-              });
+              }
             });
 
             if (!configuration.skipMultiple) {
@@ -211,7 +217,9 @@ class FeatureHelper {
                 // Create multiple orderItems covering all opportunityTypes in scope
                 if (multipleOpportunityCriteriaTemplate !== null) {
                   opportunityTypesInScope.forEach((opportunityType, i) => {
-                    orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                    if (!skipOpportunityTypes.includes(opportunityType)) {
+                      orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                    }
                   });
                 }
 

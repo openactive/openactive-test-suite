@@ -59,6 +59,7 @@ const FlowStageRecipes = {
       prerequisite: c1,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
+        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
       }),
     });
     const b = new BFlowStage({
@@ -70,15 +71,18 @@ const FlowStageRecipes = {
         orderItems: fetchOpportunities.getOutput().orderItems,
         totalPaymentDue: c2.getOutput().totalPaymentDue,
         prepayment: c2.getOutput().prepayment,
+        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
       }),
     });
 
     return {
-      defaultFlowStageParams,
       fetchOpportunities,
       c1,
       c2,
       b,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
     };
   },
 };

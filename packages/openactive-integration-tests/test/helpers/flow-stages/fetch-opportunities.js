@@ -14,6 +14,7 @@ const { getConfigVarOrThrow } = require('../config-utils');
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('../sellers').SellerConfig} SellerConfig
+ * @typedef {import('./flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 /**
@@ -28,6 +29,8 @@ const { getConfigVarOrThrow } = require('../config-utils');
  *     '@id': string,
  *     [k: string]: any,
  *   };
+ *   orderItemIntakeForm?: OrderItemIntakeForm
+ *   orderItemIntakeFormResponse?: import('./flow-stage').PropertyValue[]
  *   'test:primary': boolean;
  *   'test:control': boolean;
  * }} OrderItem

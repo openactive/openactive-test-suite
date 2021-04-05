@@ -9,7 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
-const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./common');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
@@ -39,6 +39,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable } = require('./
  *   orderProposalVersion: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} BReqTemplateData
  */
 
@@ -126,6 +127,9 @@ function createNonPaymentRelatedCoreBReq(data) {
           '@type': `${orderItem.orderedItem['@type']}`,
           '@id': `${orderItem.orderedItem['@id']}`,
         },
+        attendee: undefined,
+        orderItemIntakeForm: undefined,
+        orderItemIntakeFormResponse: undefined,
       };
       if (data.accessPass) {
         result.accessPass = data.accessPass;
@@ -174,6 +178,13 @@ function createNonPaymentRelatedCoreBReq(data) {
   *       '@type': string,
   *       '@id': string,
   *     },
+ *      attendee?: {
+ *        '@type': 'Person'
+ *        telephone: string,
+ *        givenName: string,
+ *        familyName: string,
+ *        email: string,
+ *      },
   *   }[],
   * }} BReq
   */
@@ -421,6 +432,90 @@ function createIncorrectReconciliationDetails(data) {
 }
 
 /**
+ * Flexible B request - but with missing OrderItem.OrderedItem
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutOrderedItem(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        const ret = orderedItem;
+        ret.orderedItem = null;
+      });
+    }
+    return req;
+  }
+
+  return null;
+}
+
+/**
+ * B request with attendee details
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAttendeeDetails(data) {
+  const req = createStandardPaidBReq(data);
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  }
+  return req;
+}
+
+/**
+ * Flexible B request - but with missing OrderItem.AcceptedOffer.
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutAcceptedOffer(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        const ret = orderedItem;
+        ret.acceptedOffer = null;
+      });
+    }
+    return req;
+  }
+
+  return null;
+}
+
+/**
+ * B request with additional details supplied
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsSuppliedBReq(data) {
+  const req = createStandardPaidBReq(data);
+  const isOrderIntakeResponseValid = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
+}
+
+/**
+ * B request with additional details required but invalidly supplied.
+ * The invalid details supplied are dynamically created depending on the type of additional
+ * details required (ShortAnswer, Paragraph, Dropdown, or Boolean)
+ *
+ * @param {BReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidSuppliedBReq(data) {
+  const req = createStandardPaidBReq(data);
+  const isOrderIntakeResponseValid = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
+}
+
+
+/**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`
  */
@@ -441,6 +536,11 @@ const bReqTemplates = {
   businessCustomer: createBReqWithBusinessCustomer,
   missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetailsBReq,
   incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  noOrderedItem: createStandardBWithoutOrderedItem,
+  noAcceptedOffer: createStandardBWithoutAcceptedOffer,
+  attendeeDetails: createAttendeeDetails,
+  additionalDetailsSupplied: createAdditionalDetailsSuppliedBReq,
+  additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedBReq,
 };
 
 /**

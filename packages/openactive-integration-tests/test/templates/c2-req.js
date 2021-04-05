@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart } = require('./common');
+const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
  * @typedef {{
@@ -15,6 +15,7 @@ const { createPaymentPart } = require('./common');
  *     },
  *   }[],
  *   brokerRole: string | null,
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} C2ReqTemplateData
  */
 
@@ -56,6 +57,13 @@ const { createPaymentPart } = require('./common');
  *     orderedItem: {
  *       '@type': string,
  *       '@id': string,
+ *     },
+ *     attendee?: {
+ *       '@type': 'Person'
+ *       telephone: string,
+ *       givenName: string,
+ *       familyName: string,
+ *       email: string,
  *     },
  *   }[],
  *   payment: {
@@ -114,6 +122,9 @@ function createStandardC2Req(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
+      orderItemIntakeForm: undefined,
+      orderItemIntakeFormResponse: undefined,
     })),
     payment: createPaymentPart(false),
   };
@@ -139,6 +150,81 @@ function createNoBrokerNameC2Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C2 request with missing OrderItem.OrderedItem
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createStandardC2WithoutOrderedItem(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+
+  return req;
+}
+
+/**
+ * C2 request with attendee details
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAttendeeDetailsC2Req(data) {
+  const req = createStandardC2Req(data);
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  }
+  return req;
+}
+
+/**
+ * C2 request missing OrderItem.AcceptedOffer
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createStandardC2WithoutAcceptedOffer(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.acceptedOffer = null;
+  });
+  return req;
+}
+
+/**
+ * C2 request with additional details supplied
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsSuppliedC2Req(data) {
+  const req = createStandardC2Req(data);
+  const isOrderIntakeResponseValid = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
+}
+
+/**
+ * C2 request with additional details required but invalidly supplied.
+ * The invalid details supplied are dynamically created depending on the type of additional
+ * details required (ShortAnswer, Paragraph, Dropdown, or Boolean)
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createAdditionalDetailsRequiredInvalidSuppliedC2Req(data) {
+  const req = createStandardC2Req(data);
+  const isOrderIntakeResponseValid = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
+}
+
+/**
+ * @param {C2ReqTemplateData} data
+ */
 function createBusinessCustomerC2Req(data) {
   const req = createStandardC2Req(data);
   req.customer = {
@@ -162,6 +248,7 @@ function createBusinessCustomerC2Req(data) {
   };
   return req;
 }
+
 /**
  * C2 request with missing broker
  *
@@ -182,6 +269,11 @@ const c2ReqTemplates = {
   standard: createStandardC2Req,
   noCustomerEmail: createNoCustomerEmailC2Req,
   noBrokerName: createNoBrokerNameC2Req,
+  noOrderedItem: createStandardC2WithoutOrderedItem,
+  noAcceptedOffer: createStandardC2WithoutAcceptedOffer,
+  attendeeDetails: createAttendeeDetailsC2Req,
+  additionalDetailsSupplied: createAdditionalDetailsSuppliedC2Req,
+  additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedC2Req,
   businessCustomer: createBusinessCustomerC2Req,
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,

@@ -1,5 +1,5 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
+const { createCriteria, mustAllowFullRefund } = require('./criteriaUtils');
 const { BLOCKED_FIELD } = require('../testDataShape');
 
 /**
@@ -25,6 +25,10 @@ const TestOpportunityBookableCancellable = createCriteria({
     [
       'Offers must not have cancellation window',
       offersMustNotHaveCancellationWindow,
+    ],
+    [
+      'Offer must be fully refundable on customer cancellation',
+      mustAllowFullRefund,
     ],
   ],
   testDataShape: () => ({

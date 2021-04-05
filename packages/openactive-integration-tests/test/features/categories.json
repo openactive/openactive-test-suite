@@ -16,6 +16,8 @@
       "test-interface": true
     },
     "access": {
+      "access-channel": true,
+      "access-channel-update-notifications": true,
       "access-code": true,
       "access-code-update-notifications": true,
       "access-pass-barcode-broker-provided": true,
@@ -45,8 +47,7 @@
     },
     "details-capture": {
       "additional-details-capture": true,
-      "attendee-details-capture-with-payment": true,
-      "attendee-details-capture-without-payment": true,
+      "attendee-details-capture": true,
       "customer-details-capture-identifier": true,
       "customer-details-capture-non-essential": true
     },

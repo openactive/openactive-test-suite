@@ -1,5 +1,6 @@
 {
   "broker": {
+    "outputPath": "./output/",
     "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
     "requestLogging": false,
     "waitForHarvestCompletion": true,
@@ -58,21 +59,20 @@
       "cancellation-window": true,
       "seller-requested-cancellation": true,
       "seller-requested-cancellation-message": true,
-      "seller-requested-replacement": null,
+      "seller-requested-replacement": true,
       "named-leasing": true,
       "anonymous-leasing": true,
       "customer-details-capture-non-essential": true,
       "customer-details-capture-identifier": true,
-      "attendee-details-capture-without-payment": null,
-      "attendee-details-capture-with-payment": null,
-      "additional-details-capture": null,
+      "attendee-details-capture": true,
+      "additional-details-capture": true,
       "access-code": true,
       "access-pass-image": true,
       "access-pass-barcode-seller-provided": true,
-      "access-pass-barcode-broker-provided": null,
-      "reseller-broker": null,
+      "access-pass-barcode-broker-provided": true,
+      "reseller-broker": true,
       "reseller-broker-tax-calculation": null,
-      "no-broker": null,
+      "no-broker": true,
       "business-to-consumer-tax-calculation-net": true,
       "business-to-consumer-tax-calculation-gross": true,
       "business-to-business-tax-calculation-net": true,
@@ -80,17 +80,19 @@
       "offer-overrides": null,
       "dynamic-payment": null,
       "booking-restrictions": null,
-      "customer-notice-notifications": null,
-      "change-of-logistics-notifications": null,
-      "opportunity-attendance-updates": null,
-      "access-code-update-notifications": null,
-      "access-pass-update-notifications": null,
-      "terms-of-service": null,
+      "customer-notice-notifications": true,
+      "change-of-logistics-notifications": true,
+      "access-code-update-notifications": true,
+      "access-pass-update-notifications": true,
+      "opportunity-attendance-updates": true,
+      "terms-of-service": true,
       "terms-of-service-with-consent": null,
       "terms-of-service-with-consent-with-date-modified": null,
       "booking-partner-authentication": true,
       "dynamic-client-registration": true,
-      "minimal-proposal": true
+      "minimal-proposal": true,
+      "access-channel": true,
+      "access-channel-update-notifications": true
     },
     "testDatasetIdentifier": "uat-ci",
     "bookingPartnersForSpecificTests": {
@@ -117,7 +119,7 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/1",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
       "authentication": {
         "loginCredentials": {
           "username": "test1",
@@ -133,7 +135,7 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://localhost:5001/api/identifiers/sellers/2",
+      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
       "authentication": {
         "loginCredentials": {
           "username": "test2",

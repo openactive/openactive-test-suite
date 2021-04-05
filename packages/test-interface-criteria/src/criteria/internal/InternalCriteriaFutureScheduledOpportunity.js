@@ -2,7 +2,6 @@ const moment = require('moment');
 const {
   // EVENT_STATUS_EVENT_CANCELLED,
   // EVENT_STATUS_EVENT_POSTPONED,
-  testOpportunityDataShapeExpression,
   dateRange,
   eventStatusOptionNodeConstraint,
 } = require('../../testDataShape');
@@ -12,21 +11,12 @@ const {
  * @typedef {import('../../types/Criteria').OpportunityConstraint} OpportunityConstraint
  */
 
-const { createCriteria } = require('../criteriaUtils');
-
-/**
- * @type {OpportunityConstraint}
- */
-function startDateMustBe2HrsInAdvance(opportunity, options) {
-  return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
-}
-
-/**
- * @type {OpportunityConstraint}
- */
-function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
-  return !(opportunity.eventStatus === 'https://schema.org/EventCancelled' || opportunity.eventStatus === 'https://schema.org/EventPostponed');
-}
+const {
+  createCriteria,
+  mustNotRequireAttendeeDetails,
+  startDateMustBe2HrsInAdvance,
+  eventStatusMustNotBeCancelledOrPostponed,
+} = require('../criteriaUtils');
 
 /**
  * Useful base filters for future opportunities
@@ -43,8 +33,13 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
       eventStatusMustNotBeCancelledOrPostponed,
     ],
   ],
-  offerConstraints: [],
-  testDataShape: (options) => ({
+  offerConstraints: [
+    [
+      'Must not require attendee details',
+      mustNotRequireAttendeeDetails,
+    ],
+  ],
+  testDataShape: options => ({
     opportunityConstraints: ({
       'schema:startDate': dateRange({
         minDate: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),

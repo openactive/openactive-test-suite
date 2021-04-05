@@ -9,6 +9,9 @@ const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookabl
 const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportunityNotBookableViaAvailableChannel');
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
+const { TestOpportunityBookableCancellableWithinWindow } = require('./TestOpportunityBookableCancellableWithinWindow');
+const { TestOpportunityBookableCancellableOutsideWindow } = require('./TestOpportunityBookableCancellableOutsideWindow');
+const { TestOpportunityBookableNotCancellable } = require('./TestOpportunityBookableNotCancellable');
 const { TestOpportunityBookableNonFreeTaxNet } = require('./TestOpportunityBookableNonFreeTaxNet');
 const { TestOpportunityBookableNonFreeTaxGross } = require('./TestOpportunityBookableNonFreeTaxGross');
 const { TestOpportunityBookableNonFreePrepaymentOptional } = require('./TestOpportunityBookableNonFreePrepaymentOptional');
@@ -16,7 +19,11 @@ const { TestOpportunityBookableNonFreePrepaymentUnavailable } = require('./TestO
 const { TestOpportunityBookableNonFreePrepaymentRequired } = require('./TestOpportunityBookableNonFreePrepaymentRequired');
 const { TestOpportunityBookableFreePrepaymentOptional } = require('./TestOpportunityBookableFreePrepaymentOptional');
 const { TestOpportunityBookableFreePrepaymentRequired } = require('./TestOpportunityBookableFreePrepaymentRequired');
+const { TestOpportunityBookableAttendeeDetails } = require('./TestOpportunityBookableAttendeeDetails');
+const { TestOpportunityBookableAdditionalDetails } = require('./TestOpportunityBookableAdditionalDetails');
 const { TestOpportunityBookableSellerTermsOfService } = require('./TestOpportunityBookableSellerTermsOfService');
+const { TestOpportunityOnlineBookable } = require('./TestOpportunityOnlineBookable');
+const { TestOpportunityOfflineBookable } = require('./TestOpportunityOfflineBookable');
 
 module.exports = {
   allCriteria: [
@@ -28,9 +35,12 @@ module.exports = {
     TestOpportunityBookableFiveSpaces,
     TestOpportunityBookableWithinValidFromBeforeStartDate,
     TestOpportunityBookableCancellable,
+    TestOpportunityBookableNotCancellable,
     TestOpportunityNotBookableViaAvailableChannel,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
+    TestOpportunityBookableCancellableWithinWindow,
+    TestOpportunityBookableCancellableOutsideWindow,
     TestOpportunityBookableNonFreeTaxNet,
     TestOpportunityBookableNonFreeTaxGross,
     TestOpportunityBookableNonFreePrepaymentOptional,
@@ -38,6 +48,10 @@ module.exports = {
     TestOpportunityBookableNonFreePrepaymentRequired,
     TestOpportunityBookableFreePrepaymentOptional,
     TestOpportunityBookableFreePrepaymentRequired,
+    TestOpportunityBookableAttendeeDetails,
+    TestOpportunityBookableAdditionalDetails,
     TestOpportunityBookableSellerTermsOfService,
+    TestOpportunityOnlineBookable,
+    TestOpportunityOfflineBookable,
   ],
 };

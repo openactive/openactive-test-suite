@@ -14,21 +14,12 @@
   },
   "integrationTests": {
     "generateConformanceCertificate": false,
-    // TODO remove this sellers
-    "sellers": {
-      "primary": {
-        "@type": "Organization",
-        "@id": "https://localhost:5001/api/identifiers/seller",
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/seller"
-        }
-      }
-    },
     "implementedFeatures": {
       "multiple-sellers": false,
       "booking-partner-authentication": false,
-      "dynamic-client-registration": false
+      "dynamic-client-registration": false,
+      "business-to-consumer-tax-calculation-net": false,
+      "business-to-business-tax-calculation-net": false
     }
   },
   "sellers": {
@@ -39,7 +30,7 @@
         "loginCredentials": null,
         "requestHeaders": {
           "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/seller"
         }
       }
     },

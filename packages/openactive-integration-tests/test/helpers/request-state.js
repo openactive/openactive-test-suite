@@ -46,8 +46,9 @@ class RequestState {
    *   Which template to use for U (cancellation) requests. Defaults to 'standard'
    * @param {string | null} [options.brokerRole]
    *    Broker role, if not provided will default to c1, c2, or b request default broker role.
+   * @param {{[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}} [options.positionOrderIntakeFormMap]
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole, positionOrderIntakeFormMap } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -57,6 +58,7 @@ class RequestState {
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
     this.brokerRole = brokerRole;
+    this.positionOrderIntakeFormMap = positionOrderIntakeFormMap;
   }
 
   get uuid() {
@@ -302,14 +304,14 @@ class RequestState {
     return this.pResponse.body.orderProposalVersion;
   }
 
-  get orderItemId() {
+  get orderItemIdArray() {
     if (!this.bResponse) { return null; }
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
-      return this.bResponse.body.orderedItem[0]['@id'];
+      return [this.bResponse.body.orderedItem[0]['@id']];
     }
 
-    return 'NONE';
+    return ['NONE'];
   }
 
   async deleteOrder() {

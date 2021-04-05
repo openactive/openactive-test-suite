@@ -141,7 +141,10 @@ function tallySellerCriteriaRequirements(criteriaRequirementsJson, featureIdenti
   const sellerCriteriaRequirementMaps = [];
   for (const featureIdentifier of featureIdentifiers) {
     const sellerCriteriaRequirementsObj = criteriaRequirementsJson.criteriaRequirements[featureIdentifier];
-    const sellerCriteriaRequirements = getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj);
+    if (!sellerCriteriaRequirementsObj) {
+      console.log(`WARNING: Missing Criteria Requirements for '${featureIdentifier}'. Try running \`npm run doc-gen\`.`);
+    }
+    const sellerCriteriaRequirements = getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj || {});
     sellerCriteriaRequirementMaps.push(sellerCriteriaRequirements);
   }
   return SellerCriteriaRequirements.combine(sellerCriteriaRequirementMaps);

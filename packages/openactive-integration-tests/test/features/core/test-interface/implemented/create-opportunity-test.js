@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   skipMultiple: true,
-  runOnlyIf: !USE_RANDOM_OPPORTUNITIES,
+  runOnlyIf: USE_RANDOM_OPPORTUNITIES,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   beforeAll(async function () {

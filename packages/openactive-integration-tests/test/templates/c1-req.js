@@ -59,6 +59,9 @@ function createStandardC1Req(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
+      orderItemIntakeForm: undefined,
+      orderItemIntakeFormResponse: undefined,
     })),
     payment: createPaymentPart(false),
   };
@@ -72,6 +75,54 @@ function createStandardC1Req(data) {
 function createNoBrokerNameC1Req(data) {
   const req = createStandardC1Req(data);
   return dissocPath(['broker', 'name'], req);
+}
+
+/**
+ * C1 request with missing OrderItem.OrderedItem
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutOrderedItem(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+
+  return req;
+}
+
+/**
+ * C1 request with attendee details
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createAttendeeDetailsC1Req(data) {
+  const req = createStandardC1Req(data);
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  }
+  return req;
+}
+
+/**
+ * C1 request with missing OrderItem.AcceptedOffer
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutAcceptedOffer(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+  return req;
 }
 
 /**
@@ -90,8 +141,11 @@ const createNoCustomerAndNoBrokerC1Req = pipe(createStandardC1Req, omit(['custom
 const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
+  attendeeDetails: createAttendeeDetailsC1Req,
   noBroker: createNoBrokerC1Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC1Req,
+  noOrderedItem: createStandardC1WithoutOrderedItem,
+  noAcceptedOffer: createStandardC1WithoutAcceptedOffer,
 };
 
 /**
