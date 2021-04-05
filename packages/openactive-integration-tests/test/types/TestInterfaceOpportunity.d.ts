@@ -1,4 +1,4 @@
-import { TestDataRequirements } from '@openactive/test-interface-criteria/built-types/types/TestDataRequirements';
+import { TestDataShape } from '@openactive/test-interface-criteria/built-types/types/TestDataShape';
 
 /**
  * Opportunity data for test interface requests. Just has ID and organizer/provider ID
@@ -20,8 +20,8 @@ export interface BaseTestInterfaceOpportunity {
     'https://openactive.io/test-interface',
   ];
   'test:testOpportunityCriteria': string;
-  'test:testOpportunityDataShapeExpression'?: TestDataRequirements['test:testOpportunityDataShapeExpression'];
-  'test:testOfferDataShapeExpression'?: TestDataRequirements['test:testOfferDataShapeExpression'];
+  'test:testOpportunityDataShapeExpression'?: TestDataShape['opportunityConstraints'];
+  'test:testOfferDataShapeExpression'?: TestDataShape['offerConstraints'];
 }
 
 export interface TestInterfaceScheduledSessionData extends BaseTestInterfaceOpportunity {
