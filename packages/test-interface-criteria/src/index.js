@@ -13,7 +13,7 @@ const { getOrganizerOrProvider } = require('./criteria/criteriaUtils');
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  */
 
-const criteriaMap = new Map(allCriteria.map((criteria) => [criteria.name, criteria]));
+const criteriaMap = new Map(allCriteria.map(criteria => [criteria.name, criteria]));
 
 /**
  * @param {string} criteriaName
@@ -42,7 +42,7 @@ function getOffers(opportunity) {
 function filterRelevantOffers(criteria, opportunity, options) {
   const offers = getOffers(opportunity);
   return criteria.offerConstraints
-    .reduce((relevantOffers, [, test]) => relevantOffers.filter((offer) => test(offer, opportunity, options)), offers);
+    .reduce((relevantOffers, [, test]) => relevantOffers.filter(offer => test(offer, opportunity, options)), offers);
 }
 
 /**
@@ -70,7 +70,7 @@ function testMatch(criteria, opportunity, options) {
   // Array of unmetOfferConstraints labels
   const offers = getOffers(opportunity);
   const unmetOfferConstraints = relevantOffers.length > 0 ? [] : criteria.offerConstraints
-    .filter(([, test]) => !offers.some((offer) => test(offer, opportunity, options)))
+    .filter(([, test]) => !offers.some(offer => test(offer, opportunity, options)))
     .map(([name]) => name);
 
   // Boolean: does this opportunity match the criteria?
@@ -103,8 +103,8 @@ function getRelevantOffers(criteriaName, opportunity, options) {
 function getTestDataShapeExpressions(criteriaName, remainingCapacityPredicate, options) {
   const criteria = getCriteriaAndAssertExists(criteriaName);
   const shape = criteria.testDataShape(options);
-  const contextualisePredicate = (predicate) => (predicate === 'placeholder:remainingCapacity' ? remainingCapacityPredicate : predicate);
-  const convertToShapeExpression = (constraints) => Object.entries(constraints || {}).map(([predicate, constraint]) => ({
+  const contextualisePredicate = predicate => (predicate === 'placeholder:remainingCapacity' ? remainingCapacityPredicate : predicate);
+  const convertToShapeExpression = constraints => Object.entries(constraints || {}).map(([predicate, constraint]) => ({
     '@type': 'test:TripleConstraint',
     predicate: contextualisePredicate(predicate).replace('oa:', 'https://openactive.io/').replace('schema:', 'https://schema.org/'),
     valueExpr: constraint,

@@ -514,7 +514,6 @@ function createAdditionalDetailsRequiredInvalidSuppliedBReq(data) {
   return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
-
 /**
  * Template functions are put into this object so that the function can be
  * referred to by its key e.g. `standardFree`

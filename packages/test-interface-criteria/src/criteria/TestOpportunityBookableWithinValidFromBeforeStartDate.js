@@ -33,7 +33,7 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,
-  testDataShape: (options) => ({
+  testDataShape: options => ({
     offerConstraints: {
       'oa:validFromBeforeStartDate': dateRange({
         maxDate: moment(options.harvestStartTime).toISOString(),
