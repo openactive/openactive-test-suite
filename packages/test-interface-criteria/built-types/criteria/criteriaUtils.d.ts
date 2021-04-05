@@ -6,33 +6,37 @@ export type Offer = {
     '@type': string;
     '@id': string;
 };
+export type Options = {
+    harvestStartTime: Date;
+};
 export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type Criteria = {
     name: string;
     opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
     offerConstraints: [string, import("../types/Criteria").OfferConstraint][];
+    testDataShape: import("../types/Criteria").TestDataShapeFactory;
 };
+export type TestDataShapeFactory = (options: import("../types/Options").Options) => import("../types/TestDataShape").TestDataShape;
+export type TestDataShape = import("../types/TestDataShape").TestDataShape;
+export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
+export type DateRangeNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint;
+export type NumericNodeConstraint = import("../types/TestDataShape").NumericNodeConstraint;
 /**
-* @typedef {import('../types/Opportunity').Opportunity} Opportunity
-* @typedef {import('../types/Offer').Offer} Offer
-* @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
-* @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
-* @typedef {import('../types/Criteria').Criteria} Criteria
-*/
-/**
-* @param {object} args
-* @param {string} args.name
-* @param {Criteria['opportunityConstraints']} args.opportunityConstraints
-* @param {Criteria['offerConstraints']} args.offerConstraints
-* @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
-*   opportunity and offer constraints will be included from this criteria.
-* @returns {Criteria}
-*/
-export function createCriteria({ name, opportunityConstraints, offerConstraints, includeConstraintsFromCriteria }: {
+ * @param {object} args
+ * @param {string} args.name
+ * @param {Criteria['opportunityConstraints']} args.opportunityConstraints
+ * @param {Criteria['offerConstraints']} args.offerConstraints
+ * @param {Criteria['testDataShape']} args.testDataShape
+ * @param {Criteria | null} [args.includeConstraintsFromCriteria] If provided,
+ *   opportunity and offer constraints will be included from this criteria.
+ * @returns {Criteria}
+ */
+export function createCriteria({ name, opportunityConstraints, offerConstraints, testDataShape: testDataShapeFactory, includeConstraintsFromCriteria, }: {
     name: string;
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
+    testDataShape: Criteria['testDataShape'];
     includeConstraintsFromCriteria: Criteria | null;
 }): Criteria;
 /**
@@ -56,7 +60,10 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
 * @type {OfferConstraint}
 */
 export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
-export function mustBeWithinCancellationWindow(offer: any, opportunity: any, options: any): boolean;
+/**
+* @type {OfferConstraint}
+*/
+export function mustBeWithinCancellationWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
 /**
 * @param {Opportunity} opportunity
 * @returns {boolean}

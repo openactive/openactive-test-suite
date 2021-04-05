@@ -21,12 +21,12 @@ FeatureHelper.describeFeature(module, {
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookable',
-      seller: 'primary',
+      sellerCriteria: 'primary',
     },
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookable',
-      seller: 'secondary',
+      sellerCriteria: 'secondary',
     },
   ],
   skipMultiple: true,

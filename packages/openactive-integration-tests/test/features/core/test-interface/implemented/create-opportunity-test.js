@@ -1,9 +1,9 @@
-const config = require('config');
 const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetMatch } = require('../../../../shared-behaviours');
+const { getConfigVarOrThrow } = require('../../../../helpers/config-utils');
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // Only run this test if the test interface is in use
 FeatureHelper.describeFeature(module, {

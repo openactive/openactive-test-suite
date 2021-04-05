@@ -1,8 +1,0 @@
-{
-  "generateConformanceCertificate": false,
-  "implementedFeatures": {
-    "booking-partner-authentication": false,
-    "dynamic-client-registration": false
-  }
-}
-

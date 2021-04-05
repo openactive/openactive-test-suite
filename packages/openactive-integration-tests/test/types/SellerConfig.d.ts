@@ -10,17 +10,18 @@ export interface SellerConfig {
       username: string;
       password: string;
     };
-    requestHeaders: {
+    requestHeaders?: {
       [header: string]: string;
     },
-    bookingPartnerTokenSets: {
+    bookingPartnerTokenSets?: {
       [bookingPartner in 'primary' | 'secondary']: {
         access_token: string;
       };
     };
   };
-  taxMode: 'https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet';
-  paymentReconciliationDetails: {
+  // taxMode: 'https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet';
+  taxMode: string;
+  paymentReconciliationDetails?: {
     name: string;
     accountId: string;
     paymentProviderId: string;

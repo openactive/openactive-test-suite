@@ -8,13 +8,45 @@ const fs = require('fs');
 const chai = require('chai');
 const path = require('path');
 const pkg = require('../package.json');
-const defaultConfig = require('../config/default.json');
+const defaultConfig = require('../../../config/default.json');
+const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
+const { DefaultMap } = require('../test/helpers/map-utils');
 
-const INDEX_FILE = './test/features/README.md';
-const FEATURES_ROOT = './test/features/';
+const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
+const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
+const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria-requirements.json');
+const INDEX_CATEGORIES_JSON_FILE = path.join(FEATURES_ROOT, 'categories.json');
 
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
+ * @typedef {import('../test/types/OpportunityCriteria').SellerCriteria} SellerCriteria
+ */
+
+/**
+ * @typedef {{
+ *   [criteriaIdentifier: string]: number,
+ * }} OpportunityCriteriaRequirementsObj
+ *
+ * @typedef {{
+ *   _createdByDocumentationGeneratorScript: true,
+ *   criteriaRequirements: {
+ *     [featureIdentifier: string]: {
+ *       [sellerCriteria in SellerCriteria]?: OpportunityCriteriaRequirementsObj;
+ *     },
+ *   },
+ * }} CriteriaRequirementsJson
+ *
+ * @typedef {{
+ *   _createdByDocumentationGeneratorScript: true,
+ *   categories: {
+ *     [categoryIdentifier: string]: {
+ *       [featureIdentifier: string]: true
+ *     },
+ *   },
+ * }} CategoriesJson Note that the featureIdentifiers are stored as an object rather
+ *   than an array. This is just a very simple way to express them as a "Set"-like
+ *   object (i.e. no duplicates) in JSON.
+ *   They can still easily be interpreted as an array with Object.keys().
  */
 
 /**
@@ -40,6 +72,7 @@ const FEATURES_ROOT = './test/features/';
 /**
  * @typedef {FeatureJson & {
  *   criteriaRequirement?: Map<string, number>,
+ *   sellerCriteriaRequirements?: Map<string, Map<string, number>>,
  * }} FeatureMetadataItem
  */
 
@@ -56,7 +89,7 @@ global.afterEach = () => {};
 global.documentationGenerationMode = true;
 
 // Load metadata from all tests
-const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
+const testMetadata = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   // ## Load the test
@@ -64,53 +97,65 @@ const tests = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (
   // ## Validate the test metadata
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
   chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
-  chai.expect(defaultConfig.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
+  chai.expect(defaultConfig.integrationTests.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "true"'`).to.have.property(data.testFeature).to.equal(true);
   return data;
 });
 
 // Load feature.json files
 /** @type {FeatureMetadataItem[]} */
-let featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
+const featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
 });
 
-featureMetadata = featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
+// Sort features so that required ones are first
+featureMetadata.sort((a, b) => (a.required ? 0 : 1) - (b.required ? 0 : 1));
 
 // Build summary of criteria required
+for (const featureMetadataItem of featureMetadata) {
+  const testMetadataThatAreWithinFeature = testMetadata.filter(t => t.testFeature === featureMetadataItem.identifier);
+  // For each test in the feature, add up how many opportunities are required for
+  // each opportunity criteria and each seller criteria.
+  const criteriaRequirement = OpportunityCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.criteriaRequirement));
+  const sellerCriteriaRequirements = SellerCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.sellerCriteriaRequirements));
+  featureMetadataItem.criteriaRequirement = criteriaRequirement;
+  featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;
+}
+
+// Save opportunity criteria requirements for each feature to a machine-readable (JSON)
+// file.
+// This file will be used by the test-data-generator script to help seed random
+// mode tests.
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_CRITERIA_REQUIREMENTS_JSON_FILE,
+  renderCriteraRequirementsJson(featureMetadata),
+);
+
+// Save categories information to a machine-readable (JSON) file.
+// This information includes which features are contained in which category.
+// This file will be used by the test-data-generator script to help seed random
+// mode tests when only testing for one category (e.g. core).
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_CATEGORIES_JSON_FILE,
+  renderCategoriesJson(featureMetadata),
+);
+
+// Save a README.md at test/features which has a human-readable summary of all the
+// features and the opportunity criteria required in order to run those features'
+// tests.
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_README_FILE,
+  renderFeatureIndex(featureMetadata),
+);
+
+// For each feature, save a summary README.md in its folder
 featureMetadata.forEach((f) => {
-  const criteriaRequirement = new Map();
-  tests.filter(t => t.testFeature === f.identifier).forEach((t) => {
-    t.criteriaRequirement.forEach((count, opportunityCriteria) => {
-      if (!criteriaRequirement.has(opportunityCriteria)) criteriaRequirement.set(opportunityCriteria, 0);
-      criteriaRequirement.set(opportunityCriteria, criteriaRequirement.get(opportunityCriteria) + count);
-    });
-  });
-  // eslint-disable-next-line no-param-reassign
-  f.criteriaRequirement = criteriaRequirement;
+  const filename = path.join(FEATURES_ROOT, f.category, f.identifier, 'README.md');
+  writeFileSetErrorExitCodeButDontThrowIfFails(filename, renderFeatureReadme(f));
 });
 
-fs.writeFile(INDEX_FILE, renderFeatureIndex(featureMetadata), function (err) {
-  if (err) {
-    process.exitCode = 1;
-    console.error(err);
-  } else {
-    console.log(`FILE SAVED: ${INDEX_FILE}`);
-  }
-});
-
-featureMetadata.forEach((f) => {
-  const filename = `${FEATURES_ROOT}${f.category}/${f.identifier}/README.md`;
-  fs.writeFile(filename, renderFeatureReadme(f), function (err) {
-    if (err) {
-      process.exitCode = 1;
-      console.error(err);
-    } else {
-      console.log(`FILE SAVED: ${filename}`);
-    }
-  });
-});
+// # README rendering functions
 
 /**
  * @param {FeatureMetadataItem[]} features
@@ -175,8 +220,8 @@ function renderFeatureIndexFeatureFragment(f) {
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureReadme(f) {
-  const implementedTests = tests.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented);
-  const notImplementedTests = tests.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented);
+  const implementedTests = testMetadata.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented);
+  const notImplementedTests = testMetadata.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented);
 
   return `[< Return to Overview](../../README.md)
 # ${f.name} (${f.identifier})
@@ -270,4 +315,61 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
   }
   const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
   return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
+}
+
+// # JSON rendering functions
+
+/**
+ * @param {FeatureMetadataItem[]} features
+ */
+function renderCriteraRequirementsJson(features) {
+  /** @type {CriteriaRequirementsJson} */
+  const obj = {
+    _createdByDocumentationGeneratorScript: true,
+    criteriaRequirements: Object.fromEntries(features.map(feature => ([
+      feature.identifier,
+      Object.fromEntries(Array.from(feature.sellerCriteriaRequirements).map(([sellerCriteria, tallyByCriteria]) => ([
+        sellerCriteria,
+        Object.fromEntries(tallyByCriteria),
+      ]))),
+    ]))),
+  };
+  return JSON.stringify(obj, null, 2);
+}
+
+/**
+ * @param {FeatureMetadataItem[]} features
+ */
+function renderCategoriesJson(features) {
+  // This is just a map so that we can use DefaultMap (i.e. programmer laziness)
+  const categoriesMap = new DefaultMap(() => /** @type {CategoriesJson['categories'][string]} */({}));
+  for (const feature of features) {
+    const categoryFeatures = categoriesMap.get(feature.category);
+    categoryFeatures[feature.identifier] = true;
+  }
+  /** @type {CategoriesJson} */
+  const obj = {
+    _createdByDocumentationGeneratorScript: true,
+    categories: Object.fromEntries(categoriesMap),
+  };
+  return JSON.stringify(obj, null, 2);
+}
+
+// # Utils
+
+/**
+ * @param {string} filePath
+ * @param {string} contents
+ */
+function writeFileSetErrorExitCodeButDontThrowIfFails(filePath, contents) {
+  fs.writeFile(filePath, contents, (err) => {
+    if (err) {
+      // The script is allowed to continue writing other files, but it will exit
+      // with an error code.
+      process.exitCode = 1;
+      console.error(`ERROR SAVING FILE (${filePath}):`, err);
+    } else {
+      console.info(`FILE SAVED: ${filePath}`);
+    }
+  });
 }

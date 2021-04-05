@@ -1,4 +1,3 @@
-// TODO fix eslint ignores in this file
 const chakram = require('chakram');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');
@@ -6,12 +5,14 @@ const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
 const { pReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
+const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
 
 /**
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
  */
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
@@ -129,100 +130,6 @@ class RequestHelper {
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
       ...this._getSellerRequestHeaders(),
     };
-  }
-
-  /**
-   * @param {string} opportunityType
-   * @param {string} testOpportunityCriteria
-   * @param {string | null} [sellerId]
-   * @param {string | null} [sellerType]
-   */
-  // eslint-disable-next-line class-methods-use-this
-  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
-    let template = null;
-    const seller = sellerId ? {
-      '@type': sellerType,
-      '@id': sellerId,
-    } : undefined;
-    switch (opportunityType) {
-      case 'ScheduledSession':
-        template = {
-          '@type': 'ScheduledSession',
-          superEvent: {
-            '@type': 'SessionSeries',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'FacilityUseSlot':
-        template = {
-          '@type': 'Slot',
-          facilityUse: {
-            '@type': 'FacilityUse',
-            provider: seller,
-          },
-        };
-        break;
-      case 'IndividualFacilityUseSlot':
-        template = {
-          '@type': 'Slot',
-          facilityUse: {
-            '@type': 'IndividualFacilityUse',
-            provider: seller,
-          },
-        };
-        break;
-      case 'CourseInstance':
-        template = {
-          '@type': 'CourseInstance',
-          organizer: seller,
-        };
-        break;
-      case 'CourseInstanceSubEvent':
-        template = {
-          '@type': 'Event',
-          superEvent: {
-            '@type': 'CourseInstance',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'HeadlineEvent':
-        template = {
-          '@type': 'HeadlineEvent',
-          organizer: seller,
-        };
-        break;
-      case 'HeadlineEventSubEvent':
-        template = {
-          '@type': 'Event',
-          superEvent: {
-            '@type': 'HeadlineEvent',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'Event':
-        template = {
-          '@type': 'Event',
-          organizer: seller,
-        };
-        break;
-      case 'OnDemandEvent':
-        template = {
-          '@type': 'OnDemandEvent',
-          organizer: seller,
-        };
-        break;
-      default:
-        throw new Error('Unrecognised opportunity type');
-    }
-    template['@context'] = [
-      'https://openactive.io/',
-      'https://openactive.io/test-interface',
-    ];
-    template['test:testOpportunityCriteria'] = `https://openactive.io/test-interface#${testOpportunityCriteria}`;
-    return template;
   }
 
   /**
@@ -394,7 +301,7 @@ class RequestHelper {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
+      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         headers: this.createHeaders(),
         timeout: 10000,
@@ -408,7 +315,7 @@ class RequestHelper {
     const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
+      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         timeout: 10000,
       },
@@ -455,7 +362,7 @@ class RequestHelper {
     const response = await this.post(
       `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
       `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
+      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria),
       {
         timeout: 10000,
       },
@@ -507,13 +414,6 @@ class RequestHelper {
       },
     );
     return respObj;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  delay(t, v) {
-    return new Promise(function (resolve) {
-      setTimeout(resolve.bind(null, v), t);
-    });
   }
 }
 

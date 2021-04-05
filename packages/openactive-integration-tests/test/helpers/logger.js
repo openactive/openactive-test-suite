@@ -1,13 +1,13 @@
 const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
-const config = require('config');
+const { getConfigVarOrThrow } = require('./config-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
-const OUTPUT_PATH = config.get('outputPath');
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
 
 // abstract class, implement shared methods
 class BaseLogger {

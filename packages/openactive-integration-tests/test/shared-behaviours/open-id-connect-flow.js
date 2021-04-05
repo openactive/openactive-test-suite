@@ -1,14 +1,16 @@
 const chai = require('chai');
-const config = require('config');
 const { OpenActiveOpenIdTestClient, recordWithIntercept } = require('@openactive/openactive-openid-test-client');
+const { getConfigVarOrDefault, getConfigVarOrThrow } = require('../helpers/config-utils');
 
 /**
  * @typedef {import('../helpers/logger').LoggerType} LoggerType
  */
 
 const { HEADLESS_AUTH, BOOKING_PARTNER_CONFIG, AUTHENTICATION_AUTHORITY } = global;
-const BOOKING_PARTNER_SPECIFIC_CONFIG = config.has('bookingPartnersForSpecificTests') ? config.get('bookingPartnersForSpecificTests') : {};
-const ENABLE_HEADER_LOGGING = config.get('requestHeaderLogging');
+// @ts-expect-error It does seem that this should throw if the value is not set, as any uses of `specificConfig` will get no config
+// though I'm leaving this as I found it for now
+const BOOKING_PARTNER_SPECIFIC_CONFIG = getConfigVarOrDefault('integrationTests', 'bookingPartnersForSpecificTests', {});
+const ENABLE_HEADER_LOGGING = getConfigVarOrThrow('integrationTests', 'requestHeaderLogging');
 
 const OPENACTIVE_CLAIMS = {
   sellerName: 'https://openactive.io/sellerName',

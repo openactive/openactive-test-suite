@@ -4,18 +4,18 @@ const mkdirp = require('mkdirp');
 const {promises: fs} = require("fs");
 const moment = require('moment');
 const rmfr = require('rmfr');
-const config = require('config');
 const axios = require("axios");
 
 const {ReporterLogger} = require('./helpers/logger');
 const {ReportGenerator, SummaryReportGenerator} = require('./report-generator');
 const {CertificationWriter} = require('./certification/certification-writer');
 const {validateCertificateHtml} = require('./certification/certification-validator');
+const { getConfigVarOrDefault, getConfigVarOrThrow } = require('./helpers/config-utils');
 
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
-const GENERATE_CONFORMANCE_CERTIFICATE = config.has('generateConformanceCertificate') && config.get('generateConformanceCertificate');
-const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? config.get('conformanceCertificateId') : null;
-const OUTPUT_PATH = config.get('outputPath');
+const GENERATE_CONFORMANCE_CERTIFICATE = getConfigVarOrDefault('integrationTests', 'generateConformanceCertificate', false);
+const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? getConfigVarOrThrow('integrationTests', 'conformanceCertificateId') : null;
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
 
 class Reporter {
   constructor(globalConfig, options) {

@@ -1,10 +1,16 @@
 {
-  "datasetSiteUrl": "https://localhost:5001/openactive",
+  "broker": {
+    "datasetSiteUrl": "https://localhost:5001/openactive"
+  },
+  "integrationTests": {
+  },
   "sellers": {
     "primary": {
+      "@type": "Organization",
       "@id": "https://localhost:5001/api/identifiers/sellers/1"
     },
     "secondary": {
+      "@type": "Organization",
       "@id": "https://localhost:5001/api/identifiers/sellers/2"
     }
   }

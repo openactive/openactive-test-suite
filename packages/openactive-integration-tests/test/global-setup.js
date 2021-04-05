@@ -1,10 +1,10 @@
 const assert = require("assert");
 const axios = require("axios");
-const config = require("config");
+const { getConfigVarOrThrow } = require('./helpers/config-utils');
 
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
-const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
-const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 

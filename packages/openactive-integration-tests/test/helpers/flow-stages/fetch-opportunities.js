@@ -1,11 +1,11 @@
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const _ = require('lodash');
-const config = require('config');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
 const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
+const { getConfigVarOrThrow } = require('../config-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -41,7 +41,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'testInterfaceOpportunities' | 'opportunityFeedExtractResponses' | 'orderItems'>>} Output
  */
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 const { HARVEST_START_TIME } = global;
 
 /**

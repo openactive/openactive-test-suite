@@ -1,4 +1,24 @@
 {
+  "broker": {
+    "bookingPartners": {
+      "primary": {
+        "authentication": {
+          "initialAccessToken": null,
+          "ordersFeedRequestHeaders": {
+            "X-OpenActive-Test-Client-Id": "test"
+          }
+        }
+      },
+      "secondary": null
+    }
+  },
+  "integrationTests": {
+    "generateConformanceCertificate": false,
+    "implementedFeatures": {
+      "booking-partner-authentication": false,
+      "dynamic-client-registration": false
+    }
+  },
   "sellers": {
     "primary": {
       "authentication": {
@@ -18,16 +38,6 @@
         }
       }
     }
-  },
-  "bookingPartners": {
-    "primary": {
-      "authentication": {
-        "initialAccessToken": null,
-        "ordersFeedRequestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test"
-        }
-      }
-    },
-    "secondary": null
   }
 }
+

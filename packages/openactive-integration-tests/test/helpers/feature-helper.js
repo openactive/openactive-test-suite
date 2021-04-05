@@ -5,11 +5,13 @@ const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
+const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('../types/OpportunityCriteria').SellerCriteria} SellerCriteria
  *
  * @typedef {(opportunityType: string) => OpportunityCriteria[]} CreateSingleOportunityCriteriaTemplateFn
  * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
@@ -59,11 +61,16 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
- *   criteriaRequirement: Map<string, number>,
+ *   criteriaRequirement: OpportunityCriteriaRequirements,
+ *   sellerCriteriaRequirements: SellerCriteriaRequirements,
  * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
  *   This is used by the documentation generator to get data about the tests.
+ *
  *   `criteriaRequirement` is a map of how many of each opportunity criteria (e.g. TestOpportunityBookable)
- *   is required.
+ *   is required. THIS FIELD IS OBSOLETE. PLEASE USE sellerCriteriaRequirements, which groups requirements
+ *   by seller.
+ *
+ *   `sellerCriteriaRequirements`: { [sellerCriteria] => { [opportunityCriteria] => [number] } }
  */
 
 class FeatureHelper {
@@ -116,25 +123,30 @@ class FeatureHelper {
 
     if (global.documentationGenerationMode) {
       const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
-      /** @type {Map<string, number>} */
-      const criteriaRequirement = new Map();
+      const criteriaRequirement = new OpportunityCriteriaRequirements();
+      const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
       if (!configuration.runOnce) {
         /** @type {OpportunityCriteria[]} */
-        const orderItemCriteria = [].concat(
+        const orderItemCriteriaList = [].concat(
           singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
           configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0),
         );
 
-        orderItemCriteria.forEach((x) => {
-          if (!criteriaRequirement.has(x.opportunityCriteria)) criteriaRequirement.set(x.opportunityCriteria, 0);
-          criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + numOpportunitiesUsedPerCriteria);
-        });
+        for (const orderItemCriteria of orderItemCriteriaList) {
+          const sellerCriteria = orderItemCriteria.sellerCriteria || 'primary';
+          sellerCriteriaRequirements.get(sellerCriteria).add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
+          criteriaRequirement.add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
+        }
       }
 
       // This function mutates its arg, documentationModule
       // eslint-disable-next-line no-param-reassign
-      documentationModule.exports = /** @type {TestModuleExports} */({ ...configuration, criteriaRequirement });
+      documentationModule.exports = /** @type {TestModuleExports} */({
+        ...configuration,
+        criteriaRequirement,
+        sellerCriteriaRequirements,
+      });
       return;
     }
 

@@ -30,6 +30,7 @@ module.exports = {
     'max-len': 'off',
     'no-await-in-loop': 'off',
     'no-console': 'off',
+    'no-continue': 'off',
     'no-restricted-syntax': 'off',
     'func-names': 'off',
     'no-return-await': 'off',
@@ -50,5 +51,9 @@ module.exports = {
       },
     ],
     'no-underscore-dangle': 'off',
+    'no-use-before-define': ['error', { functions: false, classes: false }],
+  },
+  parserOptions: {
+    ecmaVersion: 2020,
   },
 };

@@ -1,15 +1,14 @@
-
-const config = require('config');
 const mapping = require('../helpers/mapping');
 const mkdirp = require('mkdirp');
 const moment = require('moment');
 const Handlebars = require("handlebars");
 var JSZip = require("jszip");
 const {promises: fs} = require("fs");
+const { getConfigVarOrThrow } = require('../helpers/config-utils');
 
-const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('bookableOpportunityTypesInScope');
-const IMPLEMENTED_FEATURES = config.get('implementedFeatures');
-const OUTPUT_PATH = config.get('outputPath');
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
 
 class CertificationWriter {
 
