@@ -12,7 +12,7 @@ async function pause() {
 
 module.exports = async () => {
   try {
-    console.log('Pausing broker microservice...');
+    console.log('\nPausing broker microservice...');
     await pause();
   } catch (error) {
     throw new Error('The broker microservice is unreachable. This is a pre-requisite for the test suite. \n' + error);

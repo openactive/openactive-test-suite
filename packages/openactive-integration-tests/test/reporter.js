@@ -17,7 +17,7 @@ const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const GENERATE_CONFORMANCE_CERTIFICATE = getConfigVarOrDefault('integrationTests', 'generateConformanceCertificate', false);
 const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? getConfigVarOrThrow('integrationTests', 'conformanceCertificateId') : null;
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
-const CONSOLE_OUTPUT_LEVEL = getConfigVarOrThrow('integrationTests', 'consoleOutputLevel');
+const CONSOLE_OUTPUT_LEVEL = getConfigVarOrThrow(null, 'consoleOutputLevel');
 
 class Reporter {
   constructor(globalConfig, options) {

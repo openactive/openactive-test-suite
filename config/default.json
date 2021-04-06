@@ -1,4 +1,5 @@
 {
+  "consoleOutputLevel": "dot",
   "broker": {
     "outputPath": "./output/",
     "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
@@ -23,7 +24,6 @@
   },
   "integrationTests": {
     "outputPath": "./output/",
-    "consoleOutputLevel": "dot",
     "useRandomOpportunities": true,
     "generateConformanceCertificate": true,
     "conformanceCertificateId": "https://www.example.com/",

@@ -45,6 +45,7 @@ const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvestin
 const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
 const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
 const BUTTON_SELECTOR = config.has('broker.loginPageButtonSelector') ? config.get('broker.loginPageButtonSelector') : '.btn-primary';
+const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -64,6 +65,7 @@ setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
 const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
+const logCharacter = (x) => process.stdout.write(chalk.cyan(x));
 
 const pauseResume = new PauseResume();
 
@@ -728,7 +730,11 @@ app.get('/opportunity-cache/:id', function (req, res) {
     const cachedResponse = getOpportunityById(id);
 
     if (cachedResponse) {
-      log(`Used cache for "${id}"`);
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`Used cache for "${id}"`);
+      }
       res.json({
         data: cachedResponse,
       });
@@ -754,12 +760,20 @@ app.get('/opportunity/:id', function (req, res) {
     const cachedResponse = getOpportunityById(id);
 
     if (useCacheIfAvailable && cachedResponse) {
-      log(`used cached response for "${id}"`);
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`used cached response for "${id}"`);
+      }
       res.json({
         data: cachedResponse,
       });
     } else {
-      log(`listening for "${id}"`);
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`listening for "${id}"`);
+      }
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
       if (responses[id] && responses[id] !== null) responses[id].cancel();
@@ -866,7 +880,11 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
 
   const result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
   if (result && result.opportunity) {
-    log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    }
     res.json(result.opportunity);
   } else {
     logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
@@ -898,7 +916,11 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   const result = assertOpportunityCriteriaNotFound(opportunityType, criteriaName);
 
   if (result) {
-    log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    }
     res.status(204).send();
   } else {
     logError(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);

@@ -30,7 +30,7 @@ const config = require('config');
  * @returns {Config[TSubConfigPath][TKey]}
  */
 function getConfigVarOrThrow(subConfigPath, key) {
-  const dottedPath = `${subConfigPath}.${key}`;
+  const dottedPath = subConfigPath ? `${subConfigPath}.${key}` : `${key}`;
   return config.get(dottedPath);
 }
 
