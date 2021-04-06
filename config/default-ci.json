@@ -1,4 +1,5 @@
 {
+  "consoleOutputLevel": "detail",
   "broker": {
     "datasetSiteUrl": "https://localhost:5001/openactive"
   },
