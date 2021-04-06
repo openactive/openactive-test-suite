@@ -6,6 +6,13 @@
 const { fork } = require('child_process');
 const nodeCleanup = require('node-cleanup');
 const prompts = require('prompts');
+const config = require('config');
+
+const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
+
+if (IS_RUNNING_IN_CI) {
+  console.log('OpenActive Test Suite running in non-interactive mode, as `ci` is set to `true`\n');
+}
 
 // Override waitForHarvestCompletion in the environment
 const nodeConfig = process.env.NODE_CONFIG ? JSON.parse(process.env.NODE_CONFIG) : {};
@@ -33,7 +40,7 @@ microservice.on('close', (code) => {
 
 function launchIntegrationTests(args) {
   integrationTests = fork('./node_modules/jest/bin/jest.js', args, { cwd: './packages/openactive-integration-tests/'} );
-  if (nodeConfig.ci) {
+  if (IS_RUNNING_IN_CI) {
     // When integration tests exit, kill the microservice
     integrationTests.on('close', (code) => {
       if (microservice !== null) microservice.kill();
