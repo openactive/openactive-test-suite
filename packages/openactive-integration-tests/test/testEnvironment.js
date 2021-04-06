@@ -8,6 +8,11 @@ const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDat
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 
+// Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
+const { silentlyAllowInsecureConnections } = require('./helpers/suppress-unauthorized-warning');
+
+silentlyAllowInsecureConnections();
+
 class TestEnvironment extends NodeEnvironment {
   constructor(config) {
     super(config);

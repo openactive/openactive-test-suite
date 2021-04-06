@@ -23,7 +23,8 @@ process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
 const config = require('config');
 const AsyncValidatorWorker = require('./validator/async-validator');
-const { suppress } = require('./src/util/suppress-unauthorized-warning');
+const PauseResume = require('./src/util/pause-resume');
+const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 
 const markdown = new Remarkable();
 
@@ -53,8 +54,7 @@ const HEADLESS_AUTH = true;
 const VALIDATOR_TMP_DIR = './tmp';
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
-suppress();
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+silentlyAllowInsecureConnections();
 
 const app = express();
 app.use(express.json());
@@ -64,6 +64,8 @@ setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
 const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
+
+const pauseResume = new PauseResume();
 
 const globalAuthKeyManager = new OpenActiveTestAuthKeyManager(log, MICROSERVICE_BASE_URL, config.get('sellers'), config.get('broker.bookingPartners'));
 
@@ -262,6 +264,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   let url = baseUrl;
   // Harvest forever, until a 404 is encountered
   for (;;) {
+    // If harvesting is paused, block using the mutex
+    await pauseResume.waitIfPaused();
+
     try {
       const options = {
         headers: {
@@ -584,16 +589,23 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-app.get('/health-check', function (req, res) {
+app.get('/health-check', async function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
   // Allow blocking for up to 10 minutes to fully harvest the feed
+  pauseResume.resume();
   req.setTimeout(1000 * 60 * 10);
   if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
     healthCheckResponsesWaitingForHarvest.push(res);
   } else {
     res.send('openactive-broker');
   }
+});
+
+app.post('/pause', async function (req, res) {
+  await pauseResume.pause();
+  log('Harvesting paused');
+  res.send();
 });
 
 function getConfig() {
@@ -696,6 +708,7 @@ app.get('/status', function (req, res) {
   const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
+    harvestingStatus: pauseHarvesting ? 'paused' : 'harvesting',
     feeds: mapToObject(feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,

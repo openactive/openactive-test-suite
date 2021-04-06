@@ -78,6 +78,7 @@
       "<rootDir>test/setup.js"
     ],
     "globalSetup": "<rootDir>test/global-setup.js",
+    "globalTeardown": "<rootDir>test/global-teardown.js",
     "maxWorkers": 4,
     "testTimeout": 15000,
     "transform": {},

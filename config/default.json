@@ -23,6 +23,7 @@
   },
   "integrationTests": {
     "outputPath": "./output/",
+    "consoleOutputLevel": "dot",
     "useRandomOpportunities": true,
     "generateConformanceCertificate": true,
     "conformanceCertificateId": "https://www.example.com/",

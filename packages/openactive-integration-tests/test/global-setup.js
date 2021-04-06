@@ -6,7 +6,10 @@ const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+// Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
+const { silentlyAllowInsecureConnections } = require('./helpers/suppress-unauthorized-warning');
+
+silentlyAllowInsecureConnections();
 
 async function ping() {
   let response = await axios.get(MICROSERVICE_BASE + "/health-check", {

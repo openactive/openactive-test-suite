@@ -165,8 +165,8 @@ class BaseReportGenerator {
     await fs.writeFile(this.reportMarkdownPath, data);
   }
 
-  async report () {
-    await this.outputConsole();
+  async report(silentOnConsole) {
+    if (!silentOnConsole) await this.outputConsole();
     await this.writeMarkdown();
   }
 

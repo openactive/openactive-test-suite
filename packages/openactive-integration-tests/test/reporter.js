@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 const _ = require('lodash');
 const chalk = require('chalk');
 const mkdirp = require('mkdirp');
@@ -16,6 +17,7 @@ const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const GENERATE_CONFORMANCE_CERTIFICATE = getConfigVarOrDefault('integrationTests', 'generateConformanceCertificate', false);
 const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? getConfigVarOrThrow('integrationTests', 'conformanceCertificateId') : null;
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const CONSOLE_OUTPUT_LEVEL = getConfigVarOrThrow('integrationTests', 'consoleOutputLevel');
 
 class Reporter {
   constructor(globalConfig, options) {
@@ -34,6 +36,7 @@ class Reporter {
     // Used for validator remoteJsonCachePath
     await mkdirp('./tmp');
   }
+
   onTestStart(test) {
 
   }
@@ -43,16 +46,16 @@ class Reporter {
     if (Array.isArray(testResult.testResults) && testResult.testResults.length === 1 && testResult.testResults[0].fullName === '' && testResult.testResults[0].status === 'todo') return;
 
     try {
-      let testResults = testResult.testResults;
+      const { testResults } = testResult;
 
-      let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 3).join(" "));
+      const grouped = _.groupBy(testResults, spec => spec.ancestorTitles.slice(0, 3).join(' '));
 
-      for (let [testIdentifier, groupedTests] of Object.entries(grouped)) {
-        let logger = new ReporterLogger(testIdentifier);
+      for (const [testIdentifier, groupedTests] of Object.entries(grouped)) {
+        const logger = new ReporterLogger(testIdentifier);
         await logger.load();
 
-        for (let testResult of groupedTests) {
-          logger.recordTestResult(testResult.ancestorTitles[3], testResult);
+        for (const singleTestResult of groupedTests) {
+          logger.recordTestResult(singleTestResult.ancestorTitles[3], singleTestResult);
         }
 
         logger.testFilePath = test.testFilePath;
@@ -60,11 +63,22 @@ class Reporter {
 
         await logger.writeMeta();
 
-        let reportGenerator = new ReportGenerator(logger);
-        await reportGenerator.report();
+        const reportGenerator = new ReportGenerator(logger);
+        await reportGenerator.report(CONSOLE_OUTPUT_LEVEL === 'dot');
+
+        if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+          for (let i = 0; i < testResult.testResults.length; i += 1) {
+            if (testResult.testResults[i].status === 'passed') {
+              process.stdout.write(chalk.green('.'));
+            } else if (testResult.testResults[i].status === 'pending') {
+              process.stdout.write('*');
+            } else {
+              process.stdout.write(chalk.red('F'));
+            }
+          }
+        }
       }
-    }
-    catch(exception) {
+    } catch (exception) {
       console.log(testResult);
       console.error('logger error', exception);
     }
@@ -75,8 +89,11 @@ class Reporter {
     let datasetJson = await axios.get(MICROSERVICE_BASE + "/dataset-site");
     datasetJson = datasetJson && datasetJson.data;
 
-    let loggers = await SummaryReportGenerator.getLoggersFromFiles();
-    let generator = new SummaryReportGenerator(loggers, datasetJson, CONFORMANCE_CERTIFICATE_ID);
+    // Add a separator in case CONSOLE_OUTPUT_LEVEL === 'dot'
+    console.log('\n');
+
+    const loggers = await SummaryReportGenerator.getLoggersFromFiles();
+    const generator = new SummaryReportGenerator(loggers, datasetJson, CONFORMANCE_CERTIFICATE_ID);
     await generator.report();
     await generator.writeSummaryMeta();
 
@@ -130,7 +147,7 @@ class Reporter {
         });
       });
     }
-    
+
     if (GENERATE_CONFORMANCE_CERTIFICATE) {
       if (numFailedTests > 0 || numFailedTestSuites > 0 || numRuntimeErrorTestSuites > 0) {
         console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests passed."));

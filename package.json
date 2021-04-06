@@ -36,7 +36,8 @@
     "gen-and-git-add-everything": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run gen-openid-client-types && npm run git-add-newly-generated-openid-client-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs"
   },
   "dependencies": {
-    "node-cleanup": "^2.1.2"
+    "node-cleanup": "^2.1.2",
+    "prompts": "^2.4.1"
   },
   "engines": {
     "node": "14.15.0"
