@@ -20,8 +20,8 @@ export interface BaseTestInterfaceOpportunity {
     'https://openactive.io/test-interface',
   ];
   'test:testOpportunityCriteria': string;
-  'test:testOpportunityDataShapeExpression'?: TestDataShape['opportunityConstraints'];
-  'test:testOfferDataShapeExpression'?: TestDataShape['offerConstraints'];
+  'test:testOpportunityDataShapeExpression'?: any;
+  'test:testOfferDataShapeExpression'?: any;
 }
 
 export interface TestInterfaceScheduledSessionData extends BaseTestInterfaceOpportunity {
