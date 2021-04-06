@@ -3,9 +3,11 @@ const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
+const { getPrepaymentFromOrder } = require('./order-utils');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
 const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
@@ -30,7 +32,7 @@ function isResponse(response) {
 
 class RequestState {
   /**
-   * @param {InstanceType<import('./logger')['Logger']>} logger
+   * @param {BaseLoggerType} logger
    * @param {object} [options]
    * @param {string | null} [options.uuid] Order UUID. If not provided, a new
    *   one will be generated randomly
@@ -42,8 +44,11 @@ class RequestState {
    *   Which template to use for B requests. Defaults to 'standard'
    * @param {import('../templates/u-req').UReqTemplateRef} [options.uReqTemplateRef]
    *   Which template to use for U (cancellation) requests. Defaults to 'standard'
+   * @param {string | null} [options.brokerRole]
+   *    Broker role, if not provided will default to c1, c2, or b request default broker role.
+   * @param {{[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}} [options.positionOrderIntakeFormMap]
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole, positionOrderIntakeFormMap } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -52,6 +57,8 @@ class RequestState {
     this._c2ReqTemplateRef = c2ReqTemplateRef;
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
+    this.brokerRole = brokerRole;
+    this.positionOrderIntakeFormMap = positionOrderIntakeFormMap;
   }
 
   get uuid() {
@@ -232,6 +239,13 @@ class RequestState {
     return response.body.totalPaymentDue.price;
   }
 
+  /** @returns {import('./flow-stages/flow-stage').Prepayment | null | undefined} */
+  get prepayment() {
+    const response = this.c2Response || this.c1Response;
+    if (!response) return undefined;
+    return getPrepaymentFromOrder(response.body);
+  }
+
   async putOrderQuote() {
     const result = this._c2ReqTemplateRef
       ? await this.requestHelper.putOrderQuote(this.uuid, this, this._c2ReqTemplateRef)
@@ -291,14 +305,14 @@ class RequestState {
     return this.pResponse.body.orderProposalVersion;
   }
 
-  get orderItemId() {
+  get orderItemIdArray() {
     if (!this.bResponse) return;
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
-      return this.bResponse.body.orderedItem[0]['@id'];
+      return [this.bResponse.body.orderedItem[0]['@id']];
     }
 
-    return 'NONE';
+    return ['NONE'];
   }
 
   async deleteOrder() {

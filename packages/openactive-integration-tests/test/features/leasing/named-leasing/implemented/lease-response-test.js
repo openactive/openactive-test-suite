@@ -50,7 +50,6 @@ FeatureHelper.describeFeature(module, {
       state, flow, logger,
     }))
       .beforeSetup()
-      .successChecks()
       .validationTests();
   });
 

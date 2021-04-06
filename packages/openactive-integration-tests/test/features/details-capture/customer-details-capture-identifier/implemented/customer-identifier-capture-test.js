@@ -60,7 +60,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
       it('should return 200, with an Expected customer identifier', () => {
         chai.expect(state.c2Response.response.statusCode).to.equal(200);
-        chai.expect(state.c2Response.body.customer.identifier).to.equal('CustomerIdentifier');
+        chai.expect(state.c2Response.body.customer.identifier).to.equal('CustomerIdentifierC2');
       });
     });
 
@@ -74,7 +74,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, state,
 
       it('should return 200, with an Expected customer identifier', () => {
         chai.expect(state.bResponse.response.statusCode).to.equal(200);
-        chai.expect(state.bResponse.body.customer.identifier).to.equal('CustomerIdentifier');
+        chai.expect(state.bResponse.body.customer.identifier).to.equal('CustomerIdentifierB');
       });
     });
   });

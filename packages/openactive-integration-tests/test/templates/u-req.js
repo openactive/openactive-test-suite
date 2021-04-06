@@ -3,7 +3,7 @@ const { BOOKING_API_BASE } = global;
 /**
  * @typedef {{
  *    _uuid: string,
-  *   orderItemId: string
+  *   orderItemIdArray: string[]
   * }} UReqTemplateData
   */
 
@@ -12,17 +12,20 @@ const { BOOKING_API_BASE } = global;
  * @param {UReqTemplateData} data
  */
 function createStandardUReq(data) {
-  return {
+  const req = {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
-    orderedItem: [
-      {
-        '@type': 'OrderItem',
-        '@id': `${data.orderItemId}`,
-        orderItemStatus: 'https://openactive.io/CustomerCancelled',
-      },
-    ],
+    orderedItem: [],
   };
+  for (const orderItemId of data.orderItemIdArray) {
+    req.orderedItem.push({
+      '@type': 'OrderItem',
+      '@id': `${orderItemId}`,
+      orderItemStatus: 'https://openactive.io/CustomerCancelled',
+    });
+  }
+
+  return req;
 }
 
 /**
@@ -45,6 +48,23 @@ function createNonExistantOrderUReq(data) {
 /**
  * @param {UReqTemplateData} data
  */
+function createnonCustomerCancelledOrderItemStatus(data) {
+  return {
+    '@context': 'https://openactive.io/',
+    '@type': 'Order',
+    orderedItem: [
+      {
+        '@type': 'OrderItem',
+        '@id': `${BOOKING_API_BASE}/orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
+        orderItemStatus: 'https://openactive.io/OrderItemConfirmed',
+      },
+    ],
+  };
+}
+
+/**
+ * @param {UReqTemplateData} data
+ */
 function createUReqWithExcessiveProperties(data) {
   return {
     ...createStandardUReq(data),
@@ -55,6 +75,7 @@ function createUReqWithExcessiveProperties(data) {
 const uReqTemplates = {
   standard: createStandardUReq,
   nonExistantOrder: createNonExistantOrderUReq,
+  nonCustomerCancelledOrderItemStatus: createnonCustomerCancelledOrderItemStatus,
   excessiveProperties: createUReqWithExcessiveProperties,
 };
 

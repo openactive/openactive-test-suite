@@ -16,7 +16,7 @@ function mustNotHaveAvailableChannel(offer) {
  * Implements https://openactive.io/test-interface#TestOpportunityNotBookableViaAvailableChannel
  */
 const TestOpportunityNotBookableViaAvailableChannel = createCriteria({
-  name: 'TestOpportunityNotBookable',
+  name: 'TestOpportunityNotBookableViaAvailableChannel',
   opportunityConstraints: [],
   offerConstraints: [
     [

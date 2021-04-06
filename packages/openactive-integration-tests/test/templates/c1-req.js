@@ -1,4 +1,5 @@
-const { dissocPath } = require('ramda');
+const { dissocPath, dissoc, pipe, omit } = require('ramda');
+const { createPaymentPart } = require('./common');
 
 /**
  * @typedef {{
@@ -13,6 +14,7 @@ const { dissocPath } = require('ramda');
  *       '@id': string,
  *     },
  *   }[],
+ *   brokerRole: string | null,
  * }} C1ReqTemplateData
  */
 
@@ -23,7 +25,7 @@ function createStandardC1Req(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderQuote',
-    brokerRole: 'https://openactive.io/AgentBroker',
+    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
       name: 'MyFitnessApp',
@@ -57,7 +59,11 @@ function createStandardC1Req(data) {
         '@type': `${orderItem.orderedItem['@type']}`,
         '@id': `${orderItem.orderedItem['@id']}`,
       },
+      attendee: undefined,
+      orderItemIntakeForm: undefined,
+      orderItemIntakeFormResponse: undefined,
     })),
+    payment: createPaymentPart(false),
   };
 }
 
@@ -71,9 +77,75 @@ function createNoBrokerNameC1Req(data) {
   return dissocPath(['broker', 'name'], req);
 }
 
+/**
+ * C1 request with missing OrderItem.OrderedItem
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutOrderedItem(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+
+  return req;
+}
+
+/**
+ * C1 request with attendee details
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createAttendeeDetailsC1Req(data) {
+  const req = createStandardC1Req(data);
+  for (const orderItem of req.orderedItem) {
+    orderItem.attendee = {
+      '@type': 'Person',
+      telephone: '07712345678',
+      givenName: 'Fred',
+      familyName: 'Bloggs',
+      email: 'fred.bloggs@mailinator.com',
+    };
+  }
+  return req;
+}
+
+/**
+ * C1 request with missing OrderItem.AcceptedOffer
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutAcceptedOffer(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    const ret = orderedItem;
+    ret.orderedItem = null;
+  });
+  return req;
+}
+
+/**
+ * C1 request with missing broker
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createNoBrokerC1Req(data) {
+  const req = createStandardC1Req(data);
+  return dissoc('broker', req);
+}
+
+/** C1 request with missing customer and broker */
+const createNoCustomerAndNoBrokerC1Req = pipe(createStandardC1Req, omit(['customer', 'broker']));
+
 const c1ReqTemplates = {
   standard: createStandardC1Req,
   noBrokerName: createNoBrokerNameC1Req,
+  attendeeDetails: createAttendeeDetailsC1Req,
+  noBroker: createNoBrokerC1Req,
+  noCustomerAndNoBroker: createNoCustomerAndNoBrokerC1Req,
+  noOrderedItem: createStandardC1WithoutOrderedItem,
+  noAcceptedOffer: createStandardC1WithoutAcceptedOffer,
 };
 
 /**

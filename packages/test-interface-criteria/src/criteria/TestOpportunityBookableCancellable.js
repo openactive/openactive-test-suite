@@ -1,5 +1,5 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
+const { createCriteria, mustAllowFullRefund } = require('./criteriaUtils');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -22,6 +22,10 @@ const TestOpportunityBookableCancellable = createCriteria({
     [
       'Offers must not have cancellation window',
       offersMustNotHaveCancellationWindow,
+    ],
+    [
+      'Offer must be fully refundable on customer cancellation',
+      mustAllowFullRefund,
     ],
   ],
   includeConstraintsFromCriteria: TestOpportunityBookable,
