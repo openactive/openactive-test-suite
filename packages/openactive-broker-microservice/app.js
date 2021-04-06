@@ -710,7 +710,7 @@ app.get('/status', function (req, res) {
   const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
-    harvestingStatus: pauseHarvesting ? 'paused' : 'harvesting',
+    harvestingStatus: pauseResume.pauseHarvestingStatus,
     feeds: mapToObject(feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,

@@ -52,6 +52,9 @@ implementing the RPDE feed itself), please exit the test suite and rerun it,
 in order to harvest the latest data.
 `);
   
+      // Ensure that harvesting is paused even in the event of a fatal error within the test suite
+      microservice.send('pause');
+
       const response = await prompts({
         type: 'text',
         name: 'testArgs',

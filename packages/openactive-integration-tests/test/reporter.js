@@ -174,11 +174,15 @@ class Reporter {
       }
     }
 
-    function testDuration(startTime) {
-      const delta = moment.duration(moment() - new Date(startTime));
-      const seconds = delta.seconds();
-      const millis = delta.milliseconds();
-      return `${seconds}.${millis} s`;
+    function testDuration(startTimeString) {
+      const millis = (new Date()).getTime() - (new Date(startTimeString)).getTime();
+      return millisToMinutesAndSeconds(millis);
+    }
+
+    function millisToMinutesAndSeconds(millis) {
+      const minutes = Math.floor(millis / 60000);
+      const seconds = ((millis % 60000) / 1000);
+      return `${minutes > 0 ? `${minutes}m ` : ''}${seconds.toFixed(3)}s`;
     }
   }
 }

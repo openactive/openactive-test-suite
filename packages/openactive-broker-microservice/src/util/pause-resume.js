@@ -5,12 +5,25 @@ class PauseResume {
     this.pauseHarvesting = false;
     this.pauseHarvestingMutex = new Mutex();
     this.releasePauseSemaphore = null;
+    process.on('message', async (msg) => {
+      if (msg === 'pause') {
+        await this.pause();
+      } else if (msg === 'resume') {
+        await this.resume();
+      }
+    });
   }
 
   async pause() {
-    this.pauseHarvesting = true;
-    if (this.releasePauseSemaphore) this.releasePauseSemaphore();
-    this.releasePauseSemaphore = await this.pauseHarvestingMutex.acquire();
+    if (!this.pauseHarvesting) {
+      this.pauseHarvesting = true;
+      if (this.releasePauseSemaphore) this.releasePauseSemaphore();
+      this.releasePauseSemaphore = await this.pauseHarvestingMutex.acquire();
+    }
+  }
+
+  get pauseHarvestingStatus() {
+    return this.pauseHarvesting ? 'paused' : 'harvesting';
   }
 
   resume() {
