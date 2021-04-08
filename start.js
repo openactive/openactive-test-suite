@@ -55,7 +55,7 @@ function launchIntegrationTests(args, localBookableOpportunityTypesInScope) {
     process.env.NODE_CONFIG = JSON.stringify(nodeConfig);
   }
   integrationTests = fork('./node_modules/jest/bin/jest.js', args, { cwd: './packages/openactive-integration-tests/'} );
-  if (!IS_RUNNING_IN_CI) {
+  if (IS_RUNNING_IN_CI) {
     // When integration tests exit, kill the microservice
     integrationTests.on('close', (code) => {
       if (microservice !== null) microservice.kill();
