@@ -157,7 +157,7 @@ $RECYCLE.BIN/
 # All except default config
 **/config/*
 !**/config/default.json
-!**/config/default-ci.json
+!**/config/default-*.json
 !**/config/.example.*.json 
 
 # JetBrains IDE files
