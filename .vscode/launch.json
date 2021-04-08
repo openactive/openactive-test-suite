@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - this test file",
+            "name": "integration-tests (controlled) - this test file",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
@@ -21,17 +21,57 @@
             "type": "node",
             "runtimeVersion": "14.16.0",
             "env": {
-              "NODE_APP_INSTANCE": "dev"
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": false}}"
             },
         },
         {
-            "name": "integration-tests - all tests",
+            "name": "integration-tests (random) - this test file",
+            "request": "launch",
+            "runtimeArgs": [
+                "run-script",
+                "start-tests",
+                "--",
+                "--runInBand",
+                "${relativeFile}",
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "runtimeVersion": "14.16.0",
+            "env": {
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": true}}"
+            },
+        },
+        {
+            "name": "integration-tests (controlled) - all tests",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
             "runtimeVersion": "14.16.0",
             "runtimeArgs": ["run-script", "debug"],
+            "env": {
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": false}}"
+            },
+            "port": 9229,
+        },
+        {
+            "name": "integration-tests (random) - all tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "14.16.0",
+            "runtimeArgs": ["run-script", "debug"],
+            "env": {
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": true}}"
+            },
             "port": 9229,
         },
         {

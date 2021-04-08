@@ -44,7 +44,7 @@ async function deleteTestDataset(testInterfaceBaseUrl) {
 }
 
 module.exports = async () => {
-  console.log(`Running tests for opportunity types: ${Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).map(([k]) => `'${k}'`).join(', ')}`);
+  console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).map(([k]) => `'${k}'`).join(', ')}`);
   try {
     console.log('Waiting for broker microservice to be ready...');
     await ping();
