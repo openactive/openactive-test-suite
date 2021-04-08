@@ -1,12 +1,13 @@
-// Defaults for running the OpenActive Reference Implementation in CI
-// Use this via `export NODE_APP_INSTANCE=ci`
+// Defaults for running the OpenActive Reference Implementation locally for development
+// Use this via `export NODE_APP_INSTANCE=dev`
 {
-  "ci": true,
   "consoleOutputLevel": "detail",
   "broker": {
     "datasetSiteUrl": "https://localhost:5001/openactive"
   },
   "integrationTests": {
+    "generateConformanceCertificate": false,
+    "useRandomOpportunities": true
   },
   "sellers": {
     "primary": {
