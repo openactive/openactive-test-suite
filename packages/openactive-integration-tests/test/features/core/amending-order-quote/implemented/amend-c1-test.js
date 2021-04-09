@@ -82,7 +82,6 @@ FeatureHelper.describeFeature(module, {
       itFeedItemAndResponseItemShouldMatchIds(state, c1, () => state.c1Response);
     });
 
-
     return {
       state, flow,
     };

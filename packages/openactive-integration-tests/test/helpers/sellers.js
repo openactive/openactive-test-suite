@@ -1,14 +1,9 @@
-const config = require('config');
-
 /**
- * @typedef {{
- *   requestHeaders: {[headerName: string]: string},
- *   '@id': string,
- *   '@type': string,
- * }} SellerConfig
+ * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/OpportunityCriteria').SellerCriteria} SellerCriteria
  */
 
-const SELLER_CONFIG = config.get('sellers');
+const { SELLER_CONFIG } = global;
 
 /**
  * Get the seller config whose taxMode matches the specified one.
@@ -28,10 +23,28 @@ function getSellerConfigWithTaxMode(taxMode) {
   throw new Error(`No seller specified for tax mode: ${taxMode}`);
 }
 
-/** @type {SellerConfig} */
-const primarySeller = SELLER_CONFIG.primary;
+/**
+ * @param {SellerCriteria | null | undefined} sellerCriteria
+ * @param {typeof SELLER_CONFIG} sellerConfig Seller Config can be overridden here
+ */
+function getSellerConfigFromSellerCriteria(sellerCriteria, sellerConfig = SELLER_CONFIG) {
+  if (sellerCriteria == null) {
+    return sellerConfig.primary;
+  }
+  switch (sellerCriteria) {
+    case 'primary':
+    case 'secondary':
+      return sellerConfig[sellerCriteria];
+    case 'taxGross':
+      return getSellerConfigWithTaxMode('https://openactive.io/TaxGross');
+    case 'taxNet':
+      return getSellerConfigWithTaxMode('https://openactive.io/TaxNet');
+    default:
+      throw new Error(`Unrecognized sellerCriteria: ${sellerCriteria}`);
+  }
+}
 
 module.exports = {
   getSellerConfigWithTaxMode,
-  primarySeller,
+  getSellerConfigFromSellerCriteria,
 };

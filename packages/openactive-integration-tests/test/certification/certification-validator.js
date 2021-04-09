@@ -230,7 +230,7 @@ function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope) {
     beforeAll: () => {},
     testState: { on: () => {} },
     test: { todo: () => {} },
-    
+
     // Basic stub of `describe()` that only maintains ancestorTitles for getFullName()
     describe: function (label, fn) {
       if (this.ancestorTitles === undefined) this.ancestorTitles = [];
@@ -256,8 +256,9 @@ function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope) {
 
     // Temporary overrides for feature configuration
     BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: opportunityTypesInScope,
-    IMPLEMENTED_FEATURES: implementedFeatures
-  }
+    IMPLEMENTED_FEATURES: implementedFeatures,
+    SELLER_CONFIG: { primary: { '@id': 'mock' } },
+  };
 
   const globalSnapshot = {};
 

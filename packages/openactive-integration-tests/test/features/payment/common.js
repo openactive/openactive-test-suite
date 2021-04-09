@@ -11,7 +11,6 @@ const { itShouldReturnAnOpenBookingError } = require('../../shared-behaviours/er
  * @typedef {import('../../helpers/flow-stages/flow-stage').Prepayment} Prepayment
  */
 
-
 /**
  * @param {string | null} expected
  * @param {() => unknown} getOrder

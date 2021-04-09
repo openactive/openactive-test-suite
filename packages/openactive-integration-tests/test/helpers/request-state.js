@@ -1,18 +1,18 @@
 const _ = require('lodash');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
-const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
 const { getPrepaymentFromOrder } = require('./order-utils');
+const { getConfigVarOrThrow } = require('./config-utils');
+const { getSellerConfigFromSellerCriteria } = require('./sellers');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const SELLER_CONFIG = config.get('sellers');
-const { HARVEST_START_TIME } = global;
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
+const { HARVEST_START_TIME, SELLER_CONFIG } = global;
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -100,8 +100,7 @@ class RequestState {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
-      const sellerKey = orderItemCriteriaItem.seller || 'primary';
-      const seller = SELLER_CONFIG[sellerKey];
+      const seller = getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria);
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
         ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
@@ -306,7 +305,7 @@ class RequestState {
   }
 
   get orderItemIdArray() {
-    if (!this.bResponse) return;
+    if (!this.bResponse) { return null; }
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
       return [this.bResponse.body.orderedItem[0]['@id']];

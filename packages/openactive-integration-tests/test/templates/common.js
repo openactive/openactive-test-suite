@@ -1,4 +1,3 @@
-const config = require('config');
 const { isNil } = require('lodash');
 
 /**
@@ -6,8 +5,6 @@ const { isNil } = require('lodash');
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
  * @typedef {import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
-
-const PAYMENT_RECONCILIATION_DETAILS = config.get('sellers').primary.paymentReconciliationDetails;
 
 /**
  * @typedef {{
@@ -30,20 +27,22 @@ function createPaymentPart(includeIdentifier = true) {
     payment.identifier = '1234567890npduy2f';
   }
 
-  if (!PAYMENT_RECONCILIATION_DETAILS) {
+  const { paymentReconciliationDetails } = global.SELLER_CONFIG.primary;
+
+  if (!paymentReconciliationDetails) {
     return payment;
   }
 
-  if (PAYMENT_RECONCILIATION_DETAILS.name) {
-    payment.name = PAYMENT_RECONCILIATION_DETAILS.name;
+  if (paymentReconciliationDetails.name) {
+    payment.name = paymentReconciliationDetails.name;
   }
 
-  if (PAYMENT_RECONCILIATION_DETAILS.accountId) {
-    payment.accountId = PAYMENT_RECONCILIATION_DETAILS.accountId;
+  if (paymentReconciliationDetails.accountId) {
+    payment.accountId = paymentReconciliationDetails.accountId;
   }
 
-  if (PAYMENT_RECONCILIATION_DETAILS.paymentProviderId) {
-    payment.paymentProviderId = PAYMENT_RECONCILIATION_DETAILS.paymentProviderId;
+  if (paymentReconciliationDetails.paymentProviderId) {
+    payment.paymentProviderId = paymentReconciliationDetails.paymentProviderId;
   }
 
   return payment;

@@ -1,7 +1,8 @@
 {
   "extends": "airbnb-base",
   "env": {
-    "node": true
+    "node": true,
+    "jasmine": true
   },
   "globals": {
     "expectAsync": true
@@ -15,6 +16,7 @@
     }],
     "max-len": "off",
     "no-await-in-loop": 0,
+    "no-console": "off",
     "no-restricted-syntax": 0,
     "func-names": "off",
     "prefer-arrow-callback": "off",
@@ -24,6 +26,17 @@
         "exceptMethods": [
         ]
       }
+    ],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*-test.js"
+        ]
+      }
     ]
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020
   }
 }

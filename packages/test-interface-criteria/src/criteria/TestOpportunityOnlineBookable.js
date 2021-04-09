@@ -29,6 +29,7 @@ const TestOpportunityOnlineBookable = createCriteria({
     ],
   ],
   offerConstraints: [],
+  testDataShape: () => ({}), // TODO: Add data shape
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

@@ -2,9 +2,17 @@
 
 # {{{ title }}}
 
-Feature Implemented: {{{ implemented }}}
+**Feature:** {{{ categoryName }}} / {{{ featureName }}} ({{implementedDisplayLabel}}) 
+
+**Test:**  {{{ suiteName }}}
 
 {{{ description }}}
+
+### Running only this test
+
+```bash
+npm start -- --runInBand {{{ testFileName }}}
+```
 
 ---
 
@@ -15,10 +23,18 @@ Feature Implemented: {{{ implemented }}}
 {{#each activeSuites }}
 
 ## {{{ renderSuiteName . }}}
-    {{#logsFor . "request"}}
+    {{#logsFor . "information"}}
+
+### {{title}}
+
+{{{message}}}
+    {{/logsFor}}
+    {{#logsFor . "request,result"}}
+{{#ifEquals type "request"}}
 
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
+{{{ headers request.requestOptions }}}
     {{#if request.jsonBody}}
 ```json
 {{{ json request.jsonBody }}}
@@ -30,14 +46,35 @@ Feature Implemented: {{{ implemented }}}
         {{#if response.status}}
 
 ---
+{{#if response.body.screenshots}}
 
-Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Responded in {{{ response.responseTime}}}ms
+{{#each response.body.screenshots}}
+
+#### Screenshot: {{{ title }}}
+```json
+{{{ json url }}}
+```
+
+![Screenshot: {{{ title }}}](data:image/png;base64,{{{ image }}})
+
+{{/each}}
+
+{{#if response.body.callbackUrl}}
+#### Callback URL
+```json
+{{{ json response.body.callbackUrl }}}
+```
+{{/if}}
+
+{{else}}
+Response status code: {{{ response.status }}}{{#if response.statusMessage}} {{{ response.statusMessage}}}{{/if}}.{{#if response.responseTime}} Responded in {{{ response.responseTime}}}ms.{{/if}}
             {{#if response.body}}
 ```json
 {{{ json response.body }}}
 ```
             {{/if}}
          {{/if}}
+{{/if}}
          {{#if response.error}}
 
 ---
@@ -47,6 +84,19 @@ Response error:
 {{{ response.error }}}
 ```
         {{/if}}
+{{/ifEquals}}
+{{#ifEquals type "result"}}
+
+### {{stage}} Result
+
+{{{description}}}
+
+{{#if jsonResult}}
+```json
+{{{ json jsonResult }}}
+```
+{{/if}}
+{{/ifEquals}}
     {{/logsFor}}
     {{#logsFor . "spec"}}
 {{~#if @first}}

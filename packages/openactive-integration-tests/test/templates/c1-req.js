@@ -86,7 +86,7 @@ function createStandardC1WithoutOrderedItem(data) {
   const req = createStandardC1Req(data);
   req.orderedItem.forEach((orderedItem) => {
     const ret = orderedItem;
-    ret.orderedItem = null;
+    delete ret.orderedItem;
   });
 
   return req;
@@ -120,7 +120,7 @@ function createStandardC1WithoutAcceptedOffer(data) {
   const req = createStandardC1Req(data);
   req.orderedItem.forEach((orderedItem) => {
     const ret = orderedItem;
-    ret.orderedItem = null;
+    delete ret.acceptedOffer;
   });
   return req;
 }

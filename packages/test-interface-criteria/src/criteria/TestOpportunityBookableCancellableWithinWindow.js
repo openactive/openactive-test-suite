@@ -21,6 +21,7 @@ const TestOpportunityBookableCancellableWithinWindow = createCriteria({
       mustAllowFullRefund,
     ],
   ],
+  testDataShape: () => ({}), // TODO: Add data shape
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

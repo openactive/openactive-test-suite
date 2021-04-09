@@ -30,35 +30,51 @@ jobs:
         ref: ${{ steps.refs.outputs.mirror_ref }}
         path: server
 
-    - name: Setup .NET Core 2.1.808
+    - name: Setup .NET Core 2.1.808 for Booking Server Reference Implementation
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.1.808
-    - name: Setup Node.js 12.x
+    - name: Setup .NET Core 3.0.103 for Authentication Authority Reference Implementation
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.103
+
+    - name: Setup Node.js 14.x
       uses: actions/setup-node@v1
       with:
-        node-version: 12.x
+        node-version: 14.x
 
+    - name: Install OpenActive.Server.NET dependencies
+      run: dotnet restore ./server/
 
-    - name: Build OpenActive.Server.NET Reference Implementation with dependencies
-      run: dotnet build ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release
-      working-directory: server
-    - name: Start OpenActive.Server.NET Reference Implementation
+    - name: Build .NET Core Authentication Authority Reference Implementation
+      run: dotnet build ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-restore
+    - name: Start .NET Core Authentication Authority Reference Implementation
       run: |
-        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
-      working-directory: server
+        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-build &
+    - name: Build .NET Core Booking Server Reference Implementation
+      run: dotnet build ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
+    - name: Start .NET Core Booking Server Reference Implementation
+      run: |
+        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
+      env:
+        ASPNETCORE_ENVIRONMENT: all-features
 
+    - name: Attempt to ping IdentityServer to force it to initialise
+      continue-on-error: true
+      run: curl --insecure --show-error --silent --max-time 30 https://localhost:5003/.well-known/openid-configuration
 
     - name: Install OpenActive Test Suite
       run: | 
         npm install
       working-directory: tests
+
     - name: Run OpenActive Integration Tests in Random Mode
       run: npm start
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
+          {"broker": {"outputPath": "../../publish/example-output/random/"}, "integrationTests": {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }}
         NODE_ENV: 
         NODE_APP_INSTANCE: ci
       working-directory: tests
@@ -74,7 +90,7 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
+          {"broker": {"outputPath": "../../publish/example-output/controlled/"}, "integrationTests": {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }}
         NODE_ENV: 
         NODE_APP_INSTANCE: ci
       working-directory: tests

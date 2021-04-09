@@ -16,6 +16,7 @@ export type Criteria = {
     name: string;
     opportunityConstraints: [string, import("./types/Criteria").OpportunityConstraint][];
     offerConstraints: [string, import("./types/Criteria").OfferConstraint][];
+    testDataShape: import("./types/Criteria").TestDataShapeFactory;
 };
 export type Opportunity = {
     [k: string]: any;
@@ -28,12 +29,14 @@ export type Offer = {
 export type Options = {
     harvestStartTime: Date;
 };
+export type TestDataShape = import("./types/TestDataShape").TestDataShape;
 declare const allCriteria: import("./types/Criteria").Criteria[];
 /**
  * @typedef {import('./types/Criteria').Criteria} Criteria
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
+ * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  */
 export const criteriaMap: Map<string, import("./types/Criteria").Criteria>;
 /**
@@ -58,6 +61,12 @@ export function testMatch(criteria: Criteria, opportunity: Opportunity, options:
  * @param {Options} options
  */
 export function getRelevantOffers(criteriaName: string, opportunity: Opportunity, options: Options): import("./types/Offer").Offer[];
+/**
+ * @param {string} criteriaName
+ * @param {Options} options
+ * @returns {any}
+ */
+export function getTestDataShapeExpressions(criteriaName: string, remainingCapacityPredicate: any, options: Options): any;
 declare const getOrganizerOrProvider: (opportunity: import("./types/Opportunity").Opportunity) => any;
 export declare namespace utils {
     export { getOrganizerOrProvider };

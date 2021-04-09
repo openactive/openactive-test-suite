@@ -125,3 +125,11 @@ This property must be set to allow the openactive-broker-microservice to run for
 ```json
   "disableBrokerMicroserviceTimeout": true,
 ```
+
+### `logAuthConfig`
+
+While debugging authentication it can be useful to log the configuration that the broker microservice is supplying the integration tests to use for authentication.
+
+```json
+  "logAuthConfig": true,
+```

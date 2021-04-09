@@ -1,9 +1,8 @@
 const chakram = require('chakram');
-const config = require('config');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
-const { getSellerConfigWithTaxMode, primarySeller } = require('../sellers');
+const { getSellerConfigWithTaxMode } = require('../sellers');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -17,10 +16,10 @@ const { getSellerConfigWithTaxMode, primarySeller } = require('../sellers');
  *   unknown,
  *   Required<Pick<FlowStageOutput, 'httpResponse'>>,
  * >} FlowStageTypeWithHttpResponseOutput
- * @typedef {import('../sellers').SellerConfig} SellerConfig
+ * @typedef {import('../../types/SellerConfig').SellerConfig} SellerConfig
  */
 
-const SELLER_CONFIG = config.get('sellers');
+const { SELLER_CONFIG } = global;
 
 const FlowStageUtils = {
   // # Utilities for FlowStage factory
@@ -106,7 +105,7 @@ const FlowStageUtils = {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
-      sellerConfig: sellerConfig || /** @type {SellerConfig} */(SELLER_CONFIG.primary),
+      sellerConfig: sellerConfig || SELLER_CONFIG.primary,
     };
   },
 
@@ -120,7 +119,7 @@ const FlowStageUtils = {
    * @param {string | null} [args.taxMode]
    */
   createSimpleDefaultFlowStageParams({ logger, taxMode = null }) {
-    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : primarySeller;
+    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : SELLER_CONFIG.primary;
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
       requestHelper, logger, sellerConfig,

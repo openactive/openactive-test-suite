@@ -1,7 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
-
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'order-deletion',

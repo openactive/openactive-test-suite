@@ -442,7 +442,7 @@ function createStandardBWithoutOrderedItem(data) {
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
-        ret.orderedItem = null;
+        delete ret.orderedItem;
       });
     }
     return req;
@@ -481,7 +481,7 @@ function createStandardBWithoutAcceptedOffer(data) {
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
-        ret.acceptedOffer = null;
+        delete ret.acceptedOffer;
       });
     }
     return req;
@@ -513,7 +513,6 @@ function createAdditionalDetailsRequiredInvalidSuppliedBReq(data) {
   const isOrderIntakeResponseValid = false;
   return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
-
 
 /**
  * Template functions are put into this object so that the function can be

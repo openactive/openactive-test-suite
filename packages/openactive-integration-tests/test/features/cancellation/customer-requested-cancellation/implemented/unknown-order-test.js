@@ -2,7 +2,6 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 const { RequestState } = require('../../../../helpers/request-state');
 
-
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
   testFeature: 'customer-requested-cancellation',

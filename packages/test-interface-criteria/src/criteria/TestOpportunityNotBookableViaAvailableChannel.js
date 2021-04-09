@@ -1,5 +1,6 @@
 const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria } = require('./criteriaUtils');
+const { availableChannelArrayConstraint } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -24,6 +25,13 @@ const TestOpportunityNotBookableViaAvailableChannel = createCriteria({
       mustNotHaveAvailableChannel,
     ],
   ],
+  testDataShape: () => ({
+    offerConstraints: {
+      'schema:availableChannel': availableChannelArrayConstraint({
+        excludesAll: ['https://openactive.io/OpenBookingPrepayment'],
+      }),
+    },
+  }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 

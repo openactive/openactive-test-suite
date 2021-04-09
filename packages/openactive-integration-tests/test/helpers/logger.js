@@ -1,13 +1,13 @@
 const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
-const config = require('config');
+const { getConfigVarOrThrow } = require('./config-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
-const OUTPUT_PATH = config.get('outputPath');
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
 
 // abstract class, implement shared methods
 class BaseLogger {
@@ -29,10 +29,37 @@ class BaseLogger {
     };
   }
 
-  recordLogEntry (entry) {
-    let log = {
+  recordLogEntry(entry) {
+    const log = {
       ...(this.testMeta),
       ...entry,
+    };
+
+    this.logs.push(log);
+
+    return log;
+  }
+
+  recordLogResult(stage, description, json) {
+    const log = {
+      ...(this.testMeta),
+      type: 'result',
+      stage,
+      description,
+      jsonResult: json,
+    };
+
+    this.logs.push(log);
+
+    return log;
+  }
+
+  recordLogHeadlineMessage(title, message) {
+    const log = {
+      ...(this.testMeta),
+      type: 'information',
+      title,
+      message,
     };
 
     this.logs.push(log);
@@ -187,6 +214,10 @@ class BaseLogger {
       this.testCategory,
       this.testFeature
     ].join("|"));
+  }
+
+  get testFileName () {
+    return `test/features/${this.config.testCategory}/${this.config.testFeature}/${this.config.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${this.config.testIdentifier}-test.js`;
   }
 
   get implementedDisplayLabel() {
@@ -406,10 +437,11 @@ class ReporterLogger extends BaseLogger {
   }
 
   logsFor (suite, type) {
+    const types = type.split(',');
     let result = this.logs.filter((log) => {
-      if (!suite && log.type == type) return true;
+      if (!suite && types.includes(log.type)) return true;
 
-      return _.isEqual(log.ancestorTitles, suite) && log.type == type;
+      return _.isEqual(log.ancestorTitles, suite) && types.includes(log.type);
     });
 
     return result;
@@ -417,6 +449,7 @@ class ReporterLogger extends BaseLogger {
 }
 
 /**
+ * @typedef {InstanceType<typeof Logger>} LoggerType
  * @typedef {InstanceType<typeof BaseLogger>} BaseLoggerType
  */
 

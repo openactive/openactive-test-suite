@@ -3,67 +3,77 @@ const express = require('express');
 const http = require('http');
 const logger = require('morgan');
 const { default: axios } = require('axios');
-const config = require('config');
 const { criteria, testMatch } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
+const path = require('path');
 const { performance } = require('perf_hooks');
 const { Base64 } = require('js-base64');
 const sleep = require('util').promisify(setTimeout);
+const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 const Handlebars = require('handlebars');
 const fs = require('fs').promises;
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
+
+// Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
+process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
+
+const config = require('config');
 const AsyncValidatorWorker = require('./validator/async-validator');
-const { suppress } = require('./src/util/suppress-unauthorized-warning');
+const PauseResume = require('./src/util/pause-resume');
+const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 
 const markdown = new Remarkable();
 
-const DATASET_SITE_URL = config.get('datasetSiteUrl');
-const REQUEST_LOGGING_ENABLED = config.get('requestLogging');
-const WAIT_FOR_HARVEST = config.get('waitForHarvestCompletion');
-const ORDERS_FEED_REQUEST_HEADERS = config.get('ordersFeedRequestHeaders');
-const OUTPUT_PATH = config.get('outputPath');
-const VERBOSE = config.get('verbose');
+const DATASET_SITE_URL = config.get('broker.datasetSiteUrl');
+const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
+const WAIT_FOR_HARVEST = config.get('broker.waitForHarvestCompletion');
+const VERBOSE = config.get('broker.verbose');
+const OUTPUT_PATH = config.get('broker.outputPath');
+
 const HARVEST_START_TIME = new Date();
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
-const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('opportunityFeedRequestHeaders') ? config.get('opportunityFeedRequestHeaders') : {
+const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {
 };
-const DATASET_DISTRIBUTION_OVERRIDE = config.has('datasetDistributionOverride') ? config.get('datasetDistributionOverride') : [];
-const DO_NOT_FILL_BUCKETS = config.has('disableBucketAllocation') ? config.get('disableBucketAllocation') : false;
-const DO_NOT_HARVEST_ORDERS_FEED = config.has('disableOrdersFeedHarvesting') ? config.get('disableOrdersFeedHarvesting') : false;
-const DISABLE_BROKER_TIMEOUT = config.has('disableBrokerMicroserviceTimeout') ? config.get('disableBrokerMicroserviceTimeout') : false;
+const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
+const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
+const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
+const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
+const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
+const BUTTON_SELECTOR = config.has('broker.loginPageButtonSelector') ? config.get('broker.loginPageButtonSelector') : '.btn-primary';
+const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
+
+const PORT = normalizePort(process.env.PORT || '3000');
+const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
+const HEADLESS_AUTH = true;
 
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
-suppress();
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-const port = normalizePort(process.env.PORT || '3000');
-
-class FatalError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'FatalError';
-  }
-}
+silentlyAllowInsecureConnections();
 
 const app = express();
+app.use(express.json());
+setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
 
 // eslint-disable-next-line no-console
 const logError = (x) => console.error(chalk.cyanBright(x));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
+const logCharacter = (x) => process.stdout.write(chalk.cyan(x));
+
+const pauseResume = new PauseResume();
+
+const globalAuthKeyManager = new OpenActiveTestAuthKeyManager(log, MICROSERVICE_BASE_URL, config.get('sellers'), config.get('broker.bookingPartners'));
 
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
 }
-app.use(express.json());
 
 // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
 const parentOpportunityMap = new Map();
@@ -212,19 +222,20 @@ function getAllDatasets() {
 /**
  * @param {string} baseUrl
  * @param {string} feedIdentifier
- * @param {Object.<string, string>} headers
+ * @param {() => Promise<Object.<string, string>>} headers
  * @param {RpdePageProcessor} processPage
  * @param {import('cli-progress').MultiBar} [bar]
  * @param {number} [totalItems]
  * @param {boolean} [waitForValidation]
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, totalItems, waitForValidation) {
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotStallForThisFeed, bar, totalItems, waitForValidation) {
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
   const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
   const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, startTime, validatorTimeout);
   validatorThreadArray.push(validator);
 
   let initialHarvestComplete = false;
+  let numberOfRetries = 0;
 
   const context = {
     currentPage: baseUrl,
@@ -252,18 +263,22 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
   feedContextMap.set(feedIdentifier, context);
-  const options = {
-    headers: {
-      Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
-      'Cache-Control': 'max-age=0',
-      ...headers || {
-      },
-    },
-  };
   let url = baseUrl;
   // Harvest forever, until a 404 is encountered
   for (;;) {
+    // If harvesting is paused, block using the mutex
+    await pauseResume.waitIfPaused();
+
     try {
+      const options = {
+        headers: {
+          Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
+          'Cache-Control': 'max-age=0',
+          ...await headers() || {
+          },
+        },
+      };
+
       const timerStart = performance.now();
       const response = await axios.get(url, options);
       const timerEnd = performance.now();
@@ -343,23 +358,42 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, bar, t
         }
         url = json.next;
       }
+      numberOfRetries = 0;
     } catch (error) {
+      // Do not wait for the Orders feed if failing (as it might be an auth error)
+      if (WAIT_FOR_HARVEST && doNotStallForThisFeed) {
+        setFeedIsUpToDate(feedIdentifier);
+      }
       if (error instanceof FatalError) {
         // If a fatal error, just rethrow
         throw error;
       } else if (!error.response) {
-        log(`Error for RPDE feed "${url}": ${error.message}.\n${error.stack}`);
-        // Force retry, after a delay
-        await sleep(5000);
+        log(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
+        // Force retry, after a delay, up to 12 times
+        if (numberOfRetries < 12) {
+          numberOfRetries += 1;
+          await sleep(5000);
+        } else {
+          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          // just rethrow
+          throw error;
+        }
       } else if (error.response.status === 404) {
         if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
-        log(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
+        log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
       } else {
-        log(`Error ${error.response.status} for RPDE page "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
-        // Force retry, after a delay
-        await sleep(5000);
+        log(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        // Force retry, after a delay, up to 12 times
+        if (numberOfRetries < 12) {
+          numberOfRetries += 1;
+          await sleep(5000);
+        } else {
+          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          // just rethrow
+          throw error;
+        }
       }
     }
   }
@@ -503,7 +537,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          logError(`Visit http://localhost:${port}/orphans for more information\n`);
+          logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
           // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
           // User interaction is not required to exit, for compatibility with CI
           await sleep(60000);
@@ -511,26 +545,32 @@ async function setFeedIsUpToDate(feedIdentifier) {
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          logError(`Visit http://localhost:${port}/orphans for more information\n`);
+          logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
         }
 
         if (validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
-          logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${port}/validation-errors in your browser for more information\n`);
+          logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
           // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
           // User interaction is not required to exit, for compatibility with CI
           await sleep(60000);
           throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
-        healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
-        // Clear response array
-        healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
+        unlockHealthCheck();
       }
     }
   }
+}
+
+function unlockHealthCheck() {
+  healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
+  // Clear response array
+  healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
+  // Clear incompleteFeeds array
+  incompleteFeeds.splice(0, incompleteFeeds.length);
 }
 
 // Provide helpful homepage as binding for root to allow the service to run in a container
@@ -551,10 +591,12 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-app.get('/health-check', function (req, res) {
+app.get('/health-check', async function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
   // Allow blocking for up to 10 minutes to fully harvest the feed
+  const wasPaused = pauseResume.resume();
+  if (wasPaused) log('Harvesting resumed');
   req.setTimeout(1000 * 60 * 10);
   if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
     healthCheckResponsesWaitingForHarvest.push(res);
@@ -563,14 +605,41 @@ app.get('/health-check', function (req, res) {
   }
 });
 
-// Config endpoint used to get global variables within the integration tests
-app.get('/config', function (req, res) {
-  res.json({
+app.post('/pause', async function (req, res) {
+  await pauseResume.pause();
+  log('Harvesting paused');
+  res.send();
+});
+
+function getConfig() {
+  return {
     // Allow a consistent startDate to be used when calling test-interface-criteria
     harvestStartTime: HARVEST_START_TIME.toISOString(),
     // Base URL used by the integration tests
-    bookingApiBaseUrl: datasetSiteJson.accessService && datasetSiteJson.accessService.endpointURL,
-  });
+    bookingApiBaseUrl: datasetSiteJson.accessService?.endpointURL,
+    // Base URL used by the authentication tests
+    authenticationAuthority: datasetSiteJson.accessService?.authenticationAuthority,
+    ...globalAuthKeyManager.config,
+    headlessAuth: HEADLESS_AUTH,
+  };
+}
+
+async function getOrdersFeedHeader() {
+  await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
+  const accessToken = getConfig()?.bookingPartnersConfig?.primary?.authentication?.orderFeedTokenSet?.access_token;
+  const requestHeaders = getConfig()?.bookingPartnersConfig?.primary?.authentication?.ordersFeedRequestHeaders;
+  return {
+    ...(!accessToken ? undefined : {
+      Authorization: `Bearer ${accessToken}`,
+    }),
+    ...requestHeaders,
+  };
+}
+
+// Config endpoint used to get global variables within the integration tests
+app.get('/config', async function (req, res) {
+  await globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
+  res.json(getConfig());
 });
 
 app.get('/dataset-site', function (req, res) {
@@ -642,6 +711,7 @@ app.get('/status', function (req, res) {
   const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
+    harvestingStatus: pauseResume.pauseHarvestingStatus,
     feeds: mapToObject(feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
@@ -661,7 +731,11 @@ app.get('/opportunity-cache/:id', function (req, res) {
     const cachedResponse = getOpportunityById(id);
 
     if (cachedResponse) {
-      log(`Used cache for "${id}"`);
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`Used cache for "${id}"`);
+      }
       res.json({
         data: cachedResponse,
       });
@@ -677,6 +751,39 @@ app.get('/opportunity-cache/:id', function (req, res) {
   }
 });
 
+const listeners = new Map();
+app.post('/opportunity/listen/:id', function (req, res) {
+  const { id } = req.params;
+  if (listeners.has(id)) {
+    return res.status(409).send({
+      error: `The @id "${id}" already has a listener registered. The same @id must be used across multiple tests, or listened for twice within the same test.`,
+    });
+  }
+  listeners.set(id, {
+    opportunity: null, collectRes: null,
+  });
+  return res.status(204).send();
+});
+
+app.get('/opportunity/collect/:id', function (req, res) {
+  const { id } = req.params;
+  if (listeners.get(id)) {
+    const { opportunity } = listeners.get(id);
+    if (!opportunity) {
+      listeners.set(id, {
+        opportunity: null, collectRes: res,
+      });
+    } else {
+      res.json(opportunity);
+      listeners.delete(id);
+    }
+  } else {
+    res.status(404).json({
+      error: `Listener "${id}" not found`,
+    });
+  }
+});
+
 app.get('/opportunity/:id', function (req, res) {
   const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
 
@@ -687,12 +794,20 @@ app.get('/opportunity/:id', function (req, res) {
     const cachedResponse = getOpportunityById(id);
 
     if (useCacheIfAvailable && cachedResponse) {
-      log(`used cached response for "${id}"`);
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`used cached response for "${id}"`);
+      }
       res.json({
         data: cachedResponse,
       });
     } else {
-      log(`listening for "${id}"`);
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`listening for "${id}"`);
+      }
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
       if (responses[id] && responses[id] !== null) responses[id].cancel();
@@ -799,7 +914,11 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
 
   const result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
   if (result && result.opportunity) {
-    log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    }
     res.json(result.opportunity);
   } else {
     logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
@@ -831,7 +950,11 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   const result = assertOpportunityCriteriaNotFound(opportunityType, criteriaName);
 
   if (result) {
-    log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    }
     res.status(204).send();
   } else {
     logError(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
@@ -1088,6 +1211,22 @@ async function processOpportunityItem(item) {
 
       if (VERBOSE) log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
     } else if (VERBOSE) log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+
+    // If there is a listener for this ID, the listener map needs to be populated with either the opportunity or
+    // the collection request must be fulfilled
+    if (listeners.get(id)) {
+      const { collectRes } = listeners.get(id);
+      // If there's already a collection request, fulfill it
+      if (collectRes) {
+        collectRes.json(item);
+        listeners.delete(id);
+      } else {
+        // If not, set the opportunity so that it can returned when the collection call arrives
+        listeners.set(id, {
+          opportunity: item, collectRes: null,
+        });
+      }
+    }
   }
 }
 
@@ -1143,7 +1282,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
     return jsonld;
   } catch (error) {
     if (!error.response) {
-      logError(`Error while extracting JSON-LD from datasetSiteUrl "${url}"`);
+      logError(`\nError while extracting JSON-LD from datasetSiteUrl "${url}"\n`);
       throw error;
     } else {
       throw new Error(`Error ${error.response.status} for datasetSiteUrl "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
@@ -1165,6 +1304,43 @@ async function startPolling() {
   if (!dataset || !Array.isArray(dataset.distribution)) {
     throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
   }
+
+  if (dataset.accessService?.authenticationAuthority) {
+    try {
+      await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
+    } catch (error) {
+      if (error instanceof FatalError) {
+        // If a fatal error, just rethrow
+        throw error;
+      }
+      logError(`
+OpenID Connect Authentication Error: ${error.stack}
+
+
+
+
+***************************************************************************
+|                   OpenID Connect Authentication Error!                  |
+|                                                                         |
+| NOTE: Due to OpenID Connect Authentication failure, tests unrelated to  |
+| authentication will not run and open data harvesting will be skipped.   |
+| Please use the 'authentication' tests to debug authentication,          |
+| in order to allow other tests to run.                                   |
+|                                                                         |
+***************************************************************************
+
+
+
+`);
+      // Skip harvesting
+      unlockHealthCheck();
+      return;
+    }
+  } else {
+    log('\nWarning: Open ID Connect Identity Server (accessService.authenticationAuthority) not found in dataset site');
+  }
+
+  if (LOG_AUTH_CONFIG) log(`\nAugmented config supplied to Integration Tests: ${JSON.stringify(getConfig(), null, 2)}\n`);
 
   const harvesters = [];
 
@@ -1195,11 +1371,11 @@ async function startPolling() {
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage, multibar, dataDownload.totalItems, true));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage, false, multibar, dataDownload.totalItems, true));
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage, multibar, dataDownload.totalItems, false));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage, false, multibar, dataDownload.totalItems, false));
     } else {
       logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
       logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
@@ -1212,7 +1388,7 @@ async function startPolling() {
     const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
     addFeed(feedIdentifier);
-    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, ORDERS_FEED_REQUEST_HEADERS, monitorOrdersPage));
+    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, getOrdersFeedHeader, monitorOrdersPage, true));
   }
 
   // Finished processing dataset site
@@ -1229,8 +1405,8 @@ addFeed('DatasetSite');
 // Ensure bucket allocation does not become stale
 setTimeout(() => {
   logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
-  if (!DISABLE_BROKER_TIMEOUT) {
-    const message = 'The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
+    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
     logError(`${message}\n`);
     throw new Error(message);
   }
@@ -1239,10 +1415,10 @@ setTimeout(() => {
 const server = http.createServer(app);
 server.on('error', onError);
 
-app.listen(port, () => {
-  log(`Broker Microservice running on port ${port}
+app.listen(PORT, () => {
+  log(`Broker Microservice running on port ${PORT}
 
-Check http://localhost:${port}/status for current harvesting status
+Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
 `);
   // Start polling after HTTP server starts listening
   (async () => {
@@ -1284,9 +1460,9 @@ function onError(error) {
     throw error;
   }
 
-  const bind = typeof port === 'string'
-    ? `Pipe ${port}`
-    : `Port ${port}`;
+  const bind = typeof PORT === 'string'
+    ? `Pipe ${PORT}`
+    : `Port ${PORT}`;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {

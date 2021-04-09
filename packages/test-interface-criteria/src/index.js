@@ -10,9 +10,21 @@ const { getOrganizerOrProvider } = require('./criteria/criteriaUtils');
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
+ * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  */
 
 const criteriaMap = new Map(allCriteria.map(criteria => [criteria.name, criteria]));
+
+/**
+ * @param {string} criteriaName
+ */
+function getCriteriaAndAssertExists(criteriaName) {
+  const criteria = criteriaMap.get(criteriaName);
+  if (criteria == null) {
+    throw new Error(`Unrecognised criteriaName: ${criteriaName}`);
+  }
+  return criteria;
+}
 
 /**
  * @param {Opportunity} opportunity
@@ -79,8 +91,29 @@ function testMatch(criteria, opportunity, options) {
  * @param {Options} options
  */
 function getRelevantOffers(criteriaName, opportunity, options) {
-  if (!criteriaMap.has(criteriaName)) throw new Error('Invalid criteria name');
-  return filterRelevantOffers(criteriaMap.get(criteriaName), opportunity, options);
+  const criteria = getCriteriaAndAssertExists(criteriaName);
+  return filterRelevantOffers(criteria, opportunity, options);
+}
+
+/**
+ * @param {string} criteriaName
+ * @param {Options} options
+ * @returns {any}
+ */
+function getTestDataShapeExpressions(criteriaName, remainingCapacityPredicate, options) {
+  const criteria = getCriteriaAndAssertExists(criteriaName);
+  const shape = criteria.testDataShape(options);
+  const contextualisePredicate = predicate => (predicate === 'placeholder:remainingCapacity' ? remainingCapacityPredicate : predicate);
+  const convertToShapeExpression = constraints => Object.entries(constraints || {}).map(([predicate, constraint]) => ({
+    '@type': 'test:TripleConstraint',
+    predicate: contextualisePredicate(predicate).replace('oa:', 'https://openactive.io/').replace('schema:', 'https://schema.org/'),
+    valueExpr: constraint,
+  }));
+  // TODO: Transform into shape expression
+  return {
+    'test:testOpportunityDataShapeExpression': convertToShapeExpression(shape.opportunityConstraints),
+    'test:testOfferDataShapeExpression': convertToShapeExpression(shape.offerConstraints),
+  };
 }
 
 module.exports = {
@@ -89,6 +122,7 @@ module.exports = {
   criteriaMap,
   testMatch,
   getRelevantOffers,
+  getTestDataShapeExpressions,
   // Utils
   utils: {
     getOrganizerOrProvider,

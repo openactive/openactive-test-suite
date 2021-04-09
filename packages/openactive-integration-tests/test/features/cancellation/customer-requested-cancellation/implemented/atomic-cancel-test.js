@@ -59,7 +59,6 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     },
   });
 
-
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);

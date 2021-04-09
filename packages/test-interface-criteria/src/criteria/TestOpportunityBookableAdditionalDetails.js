@@ -38,6 +38,7 @@ const TestOpportunityBookableAdditionalDetails = createCriteria({
       mustNotRequireAttendeeDetails,
     ],
   ],
+  testDataShape: () => ({}), // TODO: Add data shape
 });
 
 module.exports = {

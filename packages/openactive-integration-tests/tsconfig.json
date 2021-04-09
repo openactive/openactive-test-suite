@@ -17,6 +17,8 @@
     "test/shared-behaviours/index.js",
     "test/shared-behaviours/errors.js",
     "test/templates/**/*.js",
-    "test/test-framework/**/*.js"
+    "test/test-framework/**/*.js",
+    "test-data-generator/**.js",
+    "test-data-generator/**.d.ts"
   ]
 }
