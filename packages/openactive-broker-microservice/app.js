@@ -754,11 +754,15 @@ app.get('/opportunity-cache/:id', function (req, res) {
 const listeners = new Map();
 app.post('/opportunity/listen/:id', function (req, res) {
   const { id } = req.params;
+  if (listeners.has(id)) {
+    return res.status(409).send({
+      error: `The @id "${id}" already has a listener registered. The same @id must be used across multiple tests, or listened for twice within the same test.`,
+    });
+  }
   listeners.set(id, {
     opportunity: null, collectRes: null,
   });
-  return res.status(204).send({
-  });
+  return res.status(204).send();
 });
 
 app.get('/opportunity/collect/:id', function (req, res) {
@@ -771,10 +775,11 @@ app.get('/opportunity/collect/:id', function (req, res) {
       });
     } else {
       res.json(opportunity);
+      listeners.delete(id);
     }
   } else {
     res.status(404).json({
-      error: `Listener ${id} not found`,
+      error: `Listener "${id}" not found`,
     });
   }
 });
@@ -1214,9 +1219,7 @@ async function processOpportunityItem(item) {
       // If there's already a collection request, fulfill it
       if (collectRes) {
         collectRes.json(item);
-        listeners.set(id, {
-          opportunity: item, collectRes: null,
-        });
+        listeners.delete(id);
       } else {
         // If not, set the opportunity so that it can returned when the collection call arrives
         listeners.set(id, {
