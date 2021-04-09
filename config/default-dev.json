@@ -1,7 +1,6 @@
 // Defaults for running the OpenActive Reference Implementation locally for development
 // Use this via `export NODE_APP_INSTANCE=dev`
 {
-  "consoleOutputLevel": "detail",
   "broker": {
     "datasetSiteUrl": "https://localhost:5001/openactive"
   },
