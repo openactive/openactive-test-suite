@@ -134,6 +134,20 @@ class Reporter {
       });
     }
 
+    // Catch any tests marked as pending, if all other tests have succeeded
+    if (numPendingTests > 0 && generator.summaryMeta.features.every(x => x.overallStatus === 'passed')) {
+      console.log(chalk.yellow('\n\nPending tests:'));
+      testResults.filter(x => x.numPendingTests > 0).forEach((testFile) => {
+        console.log(chalk.yellow(`- ${testFile.testFilePath}`));
+        testFile.testResults.filter(x => x.status === 'pending').forEach((testResult) => {
+          console.log(chalk.yellow(`  - ${testResult.fullName}: ${testResult.status}`));
+          testResult.failureMessages.forEach((failureMessage) => {
+            console.log(chalk.yellow(`    - ${failureMessage}`));
+          });
+        });
+      });
+    }
+
     // Catch straggling failures that are not featured in the summary
     if (numFailedTests > 0 && generator.summaryMeta.features.every(x => x.overallStatus === 'passed')) {
       console.log(chalk.red('\n\nHidden test failures:'));
