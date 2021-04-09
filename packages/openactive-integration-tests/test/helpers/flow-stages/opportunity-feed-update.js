@@ -21,8 +21,6 @@
  * up a listener and collector each time.
  */
 const chakram = require('chakram');
-const _ = require('lodash');
-const { o } = require('ramda');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
@@ -92,20 +90,20 @@ async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities
 
 /**
  * @param {object} args
- * @param {ChakramResponse[]} args.testInterfaceOpportunities 
+ * @param {ChakramResponse[]} args.testInterfaceOpportunities
  * @param {RequestHelperType} args.requestHelper
  */
-async function runOpportunityFeedUpdateCollector({testInterfaceOpportunities, requestHelper}) {
+async function runOpportunityFeedUpdateCollector({ testInterfaceOpportunities, requestHelper }) {
   const opportunityFeedExtractResponses = await Promise.all(testInterfaceOpportunities.map(async (testInterfaceOpportunity, i) => {
     // Only attempt getMatch if test interface response was successful
     if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
       return await requestHelper.getFeedChangeCollection(testInterfaceOpportunity.body['@id'], i);
     }
-  }))
+    return null;
+  }));
 
-  return {opportunityFeedExtractResponses};
+  return { opportunityFeedExtractResponses };
 }
-
 
 /**
  * @param {object} args
@@ -130,11 +128,11 @@ function itSuccessChecksOpportunityFeedUpdateCollector({ orderItemCriteriaList, 
 
 /**
  * @param {object} args
- * @param {ChakramResponse[]} args.testInterfaceOpportunities 
+ * @param {ChakramResponse[]} args.testInterfaceOpportunities
  * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<{areFeedChangeListenerSetup:boolean}>}
  */
-async function setupListenersForOpportunities({testInterfaceOpportunities, requestHelper}) {
+async function setupListenersForOpportunities({ testInterfaceOpportunities, requestHelper }) {
   for (const [i, testInterfaceOpportunity] of testInterfaceOpportunities.entries()) {
     // Only attempt getMatch if test interface response was successful
     if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
@@ -194,18 +192,8 @@ class OpportunityFeedUpdateListenerFlowStage extends FlowStage {
       shouldDescribeFlowStage: false,
       async runFn(input) {
         const { testInterfaceOpportunities } = input;
-        await setupListenersForOpportunities({testInterfaceOpportunities, requestHelper});
+        await setupListenersForOpportunities({ testInterfaceOpportunities, requestHelper });
         return { testInterfaceOpportunities };
-        // // Note that we don't await this. The Collector resolves this Promise.
-        // const getOpportunitiesFromOpportunityFeedPromise = fetchOpportunityFeedExtractResponses({
-        //   testInterfaceOpportunities,
-        //   requestHelper,
-        //   // because we're waiting for an update to appear at the end of the feed, we don't use the cache.
-        //   useCacheIfAvailable: false,
-        // });
-        // return {
-        //   getOpportunitiesFromOpportunityFeedPromise,
-        // };
       },
       itSuccessChecksFn() { /* there are no success checks - these happen at the OpportunityFeedUpdateCollectorFlowStage */ },
       itValidationTestsFn() { /* there are no validation tests - validation happens at the OpportunityFeedUpdateCollectorFlowStage */ },
@@ -239,7 +227,7 @@ class OpportunityFeedUpdateCollectorFlowStage extends FlowStage {
       testName,
       async runFn(input) {
         const { testInterfaceOpportunities } = input;
-        return await runOpportunityFeedUpdateCollector({testInterfaceOpportunities, requestHelper});
+        return await runOpportunityFeedUpdateCollector({ testInterfaceOpportunities, requestHelper });
       },
       itSuccessChecksFn: (flowStage) => {
         itSuccessChecksOpportunityFeedUpdateCollector({
