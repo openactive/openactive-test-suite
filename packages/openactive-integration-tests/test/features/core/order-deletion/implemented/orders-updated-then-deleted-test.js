@@ -69,12 +69,10 @@ FeatureHelper.describeFeature(module, {
       }
     });
   });
-  describe.skip('un-skip this once https://github.com/openactive/OpenActive.Server.NET/issues/87 is completed', () => {
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteOrder);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfterDelete, () => {
-      it('should have state: deleted', () => {
-        expect(orderFeedUpdateAfterDelete.getOutput().httpResponse.body.state).to.equal('deleted');
-      });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteOrder);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfterDelete, () => {
+    it('should have state: deleted', () => {
+      expect(orderFeedUpdateAfterDelete.getOutput().httpResponse.body.state).to.equal('deleted');
     });
   });
 });
