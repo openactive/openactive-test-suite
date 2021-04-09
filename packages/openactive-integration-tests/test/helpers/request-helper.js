@@ -168,6 +168,39 @@ class RequestHelper {
     return respObj;
   }
 
+  /**
+   * @param {string} eventId
+   * @param {number} orderItemPosition
+   */
+  async postFeedChangeListener(eventId, orderItemPosition) {
+    const respObj = await this.post(
+      `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/opportunity/listen/${encodeURIComponent(eventId)}`,
+      null,
+      {
+        timeout: 60000,
+      },
+    );
+
+    return respObj;
+  }
+
+  /**
+   * @param {string} eventId
+   * @param {number} orderItemPosition
+   */
+  async getFeedChangeCollection(eventId, orderItemPosition) {
+    const respObj = await this.get(
+      `Opportunity Feed collect OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/opportunity/collect/${encodeURIComponent(eventId)}`,
+      {
+        timeout: 60000,
+      },
+    );
+
+    return respObj;
+  }
+
   async getDatasetSite() {
     const respObj = await this.get(
       'Dataset Site Cached Proxy',
