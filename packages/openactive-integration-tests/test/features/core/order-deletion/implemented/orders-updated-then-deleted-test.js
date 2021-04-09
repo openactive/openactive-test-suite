@@ -70,7 +70,7 @@ FeatureHelper.describeFeature(module, {
     });
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(deleteOrder);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfterDelete, () => {
+  FlowStageUtils.describeRunAndRunChecks({ doCheckSuccess: true, doCheckIsValid: false }, orderFeedUpdateAfterDelete, () => {
     it('should have state: deleted', () => {
       expect(orderFeedUpdateAfterDelete.getOutput().httpResponse.body.state).to.equal('deleted');
     });
