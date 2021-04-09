@@ -159,7 +159,7 @@ function createStandardC2WithoutOrderedItem(data) {
   const req = createStandardC2Req(data);
   req.orderedItem.forEach((orderedItem) => {
     const ret = orderedItem;
-    ret.orderedItem = null;
+    delete ret.orderedItem;
   });
 
   return req;
@@ -193,7 +193,7 @@ function createStandardC2WithoutAcceptedOffer(data) {
   const req = createStandardC2Req(data);
   req.orderedItem.forEach((orderedItem) => {
     const ret = orderedItem;
-    ret.acceptedOffer = null;
+    delete ret.acceptedOffer;
   });
   return req;
 }

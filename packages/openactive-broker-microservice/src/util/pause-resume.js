@@ -27,9 +27,11 @@ class PauseResume {
   }
 
   resume() {
+    const wasPaused = this.pauseHarvesting;
     this.pauseHarvesting = false;
     if (this.releasePauseSemaphore) this.releasePauseSemaphore();
     this.releasePauseSemaphore = null;
+    return wasPaused;
   }
 
   async waitIfPaused() {

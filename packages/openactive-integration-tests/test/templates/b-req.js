@@ -442,7 +442,7 @@ function createStandardBWithoutOrderedItem(data) {
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
-        ret.orderedItem = null;
+        delete ret.orderedItem;
       });
     }
     return req;
@@ -481,7 +481,7 @@ function createStandardBWithoutAcceptedOffer(data) {
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
-        ret.acceptedOffer = null;
+        delete ret.acceptedOffer;
       });
     }
     return req;
