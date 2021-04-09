@@ -750,6 +750,34 @@ app.get('/opportunity-cache/:id', function (req, res) {
   }
 });
 
+const listeners = new Map();
+app.post('/opportunity/listen/:id', function (req, res) {
+  const { id } = req.params;
+  listeners.set(id, {
+    opportunity: null, collectRes: null,
+  });
+  return res.status(204).send({
+  });
+});
+
+app.get('/opportunity/collect/:id', function (req, res) {
+  const { id } = req.params;
+  if (listeners.get(id)) {
+    const { opportunity } = listeners.get(id);
+    if (!opportunity) {
+      listeners.set(id, {
+        opportunity: null, collectRes: res,
+      });
+    } else {
+      res.json(opportunity);
+    }
+  } else {
+    res.status(404).json({
+      error: `Listener ${id} not found`,
+    });
+  }
+});
+
 app.get('/opportunity/:id', function (req, res) {
   const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
 
@@ -1177,6 +1205,24 @@ async function processOpportunityItem(item) {
 
       if (VERBOSE) log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
     } else if (VERBOSE) log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+
+    // If there is a listener for this ID, the listener map needs to be populated with either the opportunity or
+    // the collection request must be fulfilled
+    if (listeners.get(id)) {
+      const { collectRes } = listeners.get(id);
+      // If there's already a collection request, fulfill it
+      if (collectRes) {
+        collectRes.json(item);
+        listeners.set(id, {
+          opportunity: item, collectRes: null,
+        });
+      } else {
+        // If not, set the opportunity so that it can returned when the collection call arrives
+        listeners.set(id, {
+          opportunity: item, collectRes: null,
+        });
+      }
+    }
   }
 }
 

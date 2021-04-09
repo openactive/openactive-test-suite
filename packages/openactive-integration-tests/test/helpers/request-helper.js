@@ -158,8 +158,41 @@ class RequestHelper {
   async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
     const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
     const respObj = await this.get(
-      `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
+      `Opportunity Feed extract for OrderItem 3hf3e ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
+      {
+        timeout: 60000,
+      },
+    );
+
+    return respObj;
+  }
+
+  /**
+   * @param {string} eventId
+   * @param {number} orderItemPosition
+   */
+  async postFeedChangeListener(eventId, orderItemPosition) {
+    const respObj = await this.post(
+      `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/opportunity/listen/${encodeURIComponent(eventId)}`,
+      null,
+      {
+        timeout: 60000,
+      },
+    );
+
+    return respObj;
+  }
+
+  /**
+   * @param {string} eventId
+   * @param {number} orderItemPosition
+   */
+  async getFeedChangeCollection(eventId, orderItemPosition) {
+    const respObj = await this.get(
+      `Opportunity Feed collect OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/opportunity/collect/${encodeURIComponent(eventId)}`,
       {
         timeout: 60000,
       },

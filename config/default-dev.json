@@ -7,7 +7,9 @@
   },
   "integrationTests": {
     "generateConformanceCertificate": false,
-    "useRandomOpportunities": true
+    "useRandomOpportunities": true,
+    "change-of-logistics-notifications": true,
+    "common-error-conditions": true
   },
   "sellers": {
     "primary": {
