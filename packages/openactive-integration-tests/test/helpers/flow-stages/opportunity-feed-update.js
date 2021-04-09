@@ -247,7 +247,7 @@ class OpportunityFeedUpdateCollectorFlowStage extends FlowStage {
           orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
             sharedValidationTests.shouldBeValidResponse(
               () => flowStage.getOutput().opportunityFeedExtractResponses[i],
-              `Opportunity Feed extract for OrderItem bl;aj ${i}`,
+              `Opportunity Feed extract for OrderItem ${i}`,
               logger,
               { validationMode: 'BookableRPDEFeed' },
             );
