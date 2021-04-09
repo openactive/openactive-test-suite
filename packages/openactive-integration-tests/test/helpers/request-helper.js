@@ -158,7 +158,7 @@ class RequestHelper {
   async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
     const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
     const respObj = await this.get(
-      `Opportunity Feed extract for OrderItem 3hf3e ${orderItemPosition}`,
+      `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
       {
         timeout: 60000,
