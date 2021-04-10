@@ -131,7 +131,7 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
   assert.strictEqual(certificateJson.awardedTo.name, bookingServiceName(indexJson.dataset));
 
   const implementedFeatures = getFeatureConfig(certificateJson);
-  
+
   // Check list of implemented features match index.json
   assert.deepStrictEqual(indexJson.features.reduce(function (result, feature) {
     assert.ok(feature.identifier);
@@ -257,6 +257,7 @@ function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope) {
     // Temporary overrides for feature configuration
     BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: opportunityTypesInScope,
     IMPLEMENTED_FEATURES: implementedFeatures,
+    USE_RANDOM_OPPORTUNITIES: true,
     SELLER_CONFIG: { primary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxGross' }, secondary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxNet' } },
   };
 
