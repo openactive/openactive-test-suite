@@ -51,12 +51,13 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
+   * @param {string} [args.testName]
    */
-  constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid }) {
+  constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid, testName }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
-      testName: 'Cancel Order',
+      testName: testName ?? 'Cancel Order',
       async runFn() {
         const orderItemIdArray = getOrderItemIdArray();
         return await runCancelOrder({
@@ -103,6 +104,12 @@ class CancelOrderFlowStage extends FlowStage {
       const orderItems = order.orderedItem;
       const orderItemIds = orderItemPositions.map((position) => {
         const orderItem = orderItems.find(o => o.position === position);
+        if (!orderItem) {
+          throw new Error(`An OrderItem with "position" value ${position} was not found`);
+        }
+        if (!orderItem['@id']) {
+          throw new Error(`The OrderItem with "position" value ${position} did not have an "@id" property`);
+        }
         return orderItem['@id'];
       });
 

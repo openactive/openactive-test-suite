@@ -53,24 +53,6 @@ const pMemoize = require('p-memoize');
  *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
- * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
- *   Order Feed updates.
- *
- *   Because an Order Feed update check must be initiated before another stage and then
- *   collected after that stage has completed (e.g. initiate before a cancellation stage
- *   and then collect the result after), this promise is persisted, so that the
- *   result can be collected by resolving it.
- *
- *   The response will be for an RPDE item with `{ kind, id, state, data, ...etc }`.
- * @property {Promise<ChakramResponse[]>} [getOpportunitiesFromOpportunityFeedPromise]
- *   Used for Opportunity Feed updates.
- *
- *   Because an Opportunity Feed update check must be initiated before another stage
- *   and then collected after that stage has completed (e.g. initiate before a Change
- *   of Logistics (TestInterface action) stage and then collect the result after),
- *   this promise is persisted, so that the result can be collected by resolving it.
- *
- *   The response will be for an array of RPDE items with `{ kind, id, state, data, ...etc }`.
  *  @property {{ [k:number]: OrderItemIntakeForm }} [positionOrderIntakeFormMap]
  *   A map with OrderItem position and it's OrderItemIntakeForm.
  *   If the OrderItem does not need additional details, this map will just be null.
