@@ -257,7 +257,7 @@ function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope) {
     // Temporary overrides for feature configuration
     BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: opportunityTypesInScope,
     IMPLEMENTED_FEATURES: implementedFeatures,
-    SELLER_CONFIG: { primary: { '@id': 'mock' } },
+    SELLER_CONFIG: { primary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxGross' }, secondary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxNet' } },
   };
 
   const globalSnapshot = {};

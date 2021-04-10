@@ -12,11 +12,11 @@ const { SELLER_CONFIG } = global;
  * @returns {SellerConfig}
  */
 function getSellerConfigWithTaxMode(taxMode) {
-  if (SELLER_CONFIG.primary.taxMode === taxMode) {
+  if (SELLER_CONFIG.primary?.taxMode === taxMode) {
     return SELLER_CONFIG.primary;
   }
 
-  if (SELLER_CONFIG.secondary.taxMode === taxMode) {
+  if (SELLER_CONFIG.secondary?.taxMode === taxMode) {
     return SELLER_CONFIG.secondary;
   }
 
