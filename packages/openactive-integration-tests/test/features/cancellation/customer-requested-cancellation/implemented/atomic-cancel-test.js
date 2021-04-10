@@ -64,7 +64,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter2ndCancel, () => {
-    const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [0])()[0];
+    const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdForPosition0FromB(b)()[0];
     const orderItemsAccessor = () => orderFeedUpdateAfter2ndCancel.getOutput().httpResponse.body.data.orderedItem;
     it('should include all OrderItems', () => {
       expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
