@@ -198,11 +198,12 @@ class ReportGenerator extends BaseReportGenerator {
 }
 
 class SummaryReportGenerator extends BaseReportGenerator {
-  constructor (loggers, datasetJson, conformanceCertificateId) {
+  constructor (loggers, datasetJson, results, conformanceCertificateId) {
     super();
     this.loggers = new LoggerGroup(this, loggers);
     this.datasetJson = datasetJson;
     this.conformanceCertificateId = conformanceCertificateId;
+    this.results = results;
   }
 
   static async getLoggersFromFiles () {
@@ -256,6 +257,10 @@ class SummaryReportGenerator extends BaseReportGenerator {
 
   get templateData () {
     return this;
+  }
+
+  get testResultSummary () {
+    return this.results;
   }
 
   get summaryMetaPath () {
