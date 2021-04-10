@@ -14,7 +14,7 @@ class CertificationWriter {
 
   constructor (loggers, generator, datasetJson, conformanceCertificateId) {
     this.opportunityTypesInScope = BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
-    this.implementedFeatures = { ...IMPLEMENTED_FEATURES, 'test-interface': undefined };
+    this.implementedFeatures = IMPLEMENTED_FEATURES;
     this.loggers = loggers;
     this.generator = generator;
     this.datasetJson = datasetJson;

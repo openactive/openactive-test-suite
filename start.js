@@ -45,7 +45,11 @@ microservice.on('close', (code) => {
   microservice = null;
   if (integrationTests !== null) integrationTests.kill();
   // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
-  if (code !== 0 && code !== null) process.exitCode = code;
+  if (code !== 0 && code !== null) {
+    process.exit(code);
+  } else {
+    process.exit(0)
+  }
 });
 
 function launchIntegrationTests(args, localBookableOpportunityTypesInScope) {

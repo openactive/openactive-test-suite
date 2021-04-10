@@ -131,9 +131,12 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
   assert.strictEqual(certificateJson.awardedTo.name, bookingServiceName(indexJson.dataset));
 
   const implementedFeatures = getFeatureConfig(certificateJson);
+  delete implementedFeatures['test-interface'];
 
   // Check list of implemented features match index.json
   assert.deepStrictEqual(indexJson.features.reduce(function (result, feature) {
+    // Ignore test-interface feature
+    if (feature.identifier === 'test-interface') return result;
     assert.ok(feature.identifier);
     if (result[feature.identifier] === undefined) {
       result[feature.identifier] = feature.implemented;
@@ -147,6 +150,8 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
   assert.deepStrictEqual(Array.from(evidenceJsonFiles.entries()).reduce(function (result, [filename, contents]) {
     if (filename !== 'index.json') {
       assert.ok(contents.config, filename);
+      // Ignore test-interface feature
+      if (contents.config.testFeature === 'test-interface') return result;
       if (result[contents.config.testFeature] === undefined) {
         result[contents.config.testFeature] = contents.config.testFeatureImplemented;
       } else {
@@ -167,18 +172,17 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
     feature => feature.overallStatus === "passed" 
     || feature.tests.every(test => ["passed", "warning"].includes(test.overallStatus))
   ));
-  
-  // Check every referenced file in index, 
-  var files = indexJson.features.flatMap(feature => feature.tests.flatMap(test => test.metaLocalPath));
-  
+
+  // Check every referenced file in index (except for 'test-interface')
+  var files = indexJson.features.filter(feature => feature.identifier !== 'test-interface').flatMap(feature => feature.tests.flatMap(test => test.metaLocalPath));
+
   // Check all files present are as expected in index.json
   assert.deepStrictEqual(new Set(files), new Set(scaffoldedSuites.keys()));
 
   // Check all files present are as expected in the Zip contents
-  const evidenceFileList = new Set(evidenceJsonFiles.keys());
-  evidenceFileList.delete('index.json');
+  const evidenceFileList = new Set([...evidenceJsonFiles.keys()].filter(x => x.indexOf('test-interface') === -1 && x !== 'index.json'));
   assert.deepStrictEqual(new Set(files), evidenceFileList);
-  
+
   files.forEach(file => {
     const evidenceJson = evidenceJsonFiles.get(file);
     const scaffoldedJson = scaffoldedSuites.get(file);
@@ -257,7 +261,7 @@ function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope) {
     // Temporary overrides for feature configuration
     BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: opportunityTypesInScope,
     IMPLEMENTED_FEATURES: implementedFeatures,
-    USE_RANDOM_OPPORTUNITIES: true,
+    USE_RANDOM_OPPORTUNITIES: true, // Do not generate 'test-interface' tests
     SELLER_CONFIG: { primary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxGross' }, secondary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxNet' } },
   };
 
