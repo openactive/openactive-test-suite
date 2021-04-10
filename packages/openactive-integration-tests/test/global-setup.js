@@ -44,6 +44,9 @@ async function deleteTestDataset(testInterfaceBaseUrl) {
 }
 
 module.exports = async () => {
+  if (Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).length === 0) {
+    throw new Error('There are no opportunity types selected for testing. Please ensure `bookableOpportunityTypesInScope` contains at least one value set to `true`.');
+  }
   console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).map(([k]) => `'${k}'`).join(', ')}`);
   try {
     console.log('Waiting for broker microservice to be ready...');

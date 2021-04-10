@@ -32,17 +32,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
 
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
-  const [cancelNotCancellableOrderItems] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
-      ...defaultFlowStageParams,
-      prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [1, 2]),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: b,
-      testName: 'Orders Feed (after attempted OrderCancellation)',
-    },
+  const cancelNotCancellableOrderItems = new CancelOrderFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: b,
+    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [1, 2]),
+    testName: 'Cancel Order for non-cancellable items',
   });
 
   // ### Cancel 1st Order Item which is cancellable
@@ -51,10 +45,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       ...defaultFlowStageParams,
       prerequisite,
       getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [0]),
+      testName: 'Cancel Order for cancellable item',
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: b,
+      prerequisite: cancelNotCancellableOrderItems,
       testName: 'Orders Feed (after successful OrderCancellation)',
     },
   });
@@ -69,12 +64,25 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter2ndCancel, () => {
-    it('should have orderItemStatus: CustomerCancelled', () => {
-      const orderItems = orderFeedUpdateAfter2ndCancel.getOutput().httpResponse.body.data.orderedItem;
-      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteria.length);
-      expect(orderItems[0]).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
-      for (const orderItem of orderItems.slice(1)) {
-        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/OrderItemConfirmed');
+    const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdForPosition0FromB(b)()[0];
+    const orderItemsAccessor = () => orderFeedUpdateAfter2ndCancel.getOutput().httpResponse.body.data.orderedItem;
+    it('should include all OrderItems', () => {
+      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
+    });
+    it('should have orderItemStatus CustomerCancelled for cancelled item', () => {
+      const cancelledOrderItemId = cancelledOrderItemIdAccessor();
+      for (const orderItem of orderItemsAccessor()) {
+        if (orderItem['@id'] === cancelledOrderItemId) {
+          expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
+        }
+      }
+    });
+    it('should have orderItemStatus OrderItemConfirmed for other items', () => {
+      const cancelledOrderItemId = cancelledOrderItemIdAccessor();
+      for (const orderItem of orderItemsAccessor()) {
+        if (orderItem['@id'] !== cancelledOrderItemId) {
+          expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/OrderItemConfirmed');
+        }
       }
     });
   });

@@ -5,7 +5,6 @@ const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
 const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
-const { getConfigVarOrThrow } = require('../config-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -41,8 +40,7 @@ const { getConfigVarOrThrow } = require('../config-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'testInterfaceOpportunities' | 'opportunityFeedExtractResponses' | 'orderItems'>>} Output
  */
 
-const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, USE_RANDOM_OPPORTUNITIES } = global;
 
 /**
  * @param {unknown} opportunity

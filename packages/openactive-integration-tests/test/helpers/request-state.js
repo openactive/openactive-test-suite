@@ -3,7 +3,6 @@ const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
 const { getPrepaymentFromOrder } = require('./order-utils');
-const { getConfigVarOrThrow } = require('./config-utils');
 const { getSellerConfigFromSellerCriteria } = require('./sellers');
 
 /**
@@ -11,8 +10,7 @@ const { getSellerConfigFromSellerCriteria } = require('./sellers');
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
-const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
-const { HARVEST_START_TIME, SELLER_CONFIG } = global;
+const { HARVEST_START_TIME, SELLER_CONFIG, USE_RANDOM_OPPORTUNITIES } = global;
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;

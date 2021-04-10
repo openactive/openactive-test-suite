@@ -35,6 +35,7 @@ const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
 
 const HARVEST_START_TIME = new Date();
+const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {
@@ -220,6 +221,32 @@ function getAllDatasets() {
 }
 
 /**
+ * @param {() => Promise<Object.<string, string>>} getHeadersFn
+ * @returns {() => Promise<Object.<string, string>>}
+ */
+function withOpportunityRpdeHeaders(getHeadersFn) {
+  return async () => ({
+    Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
+    'Cache-Control': 'max-age=0',
+    ...await getHeadersFn() || {
+    },
+  });
+}
+
+/**
+ * @param {() => Promise<Object.<string, string>>} getHeadersFn
+ * @returns {() => Promise<Object.<string, string>>}
+ */
+function withOrdersRpdeHeaders(getHeadersFn) {
+  return async () => ({
+    Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
+    'Cache-Control': 'max-age=0',
+    ...await getHeadersFn() || {
+    },
+  });
+}
+
+/**
  * @param {string} baseUrl
  * @param {string} feedIdentifier
  * @param {() => Promise<Object.<string, string>>} headers
@@ -271,12 +298,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
     try {
       const options = {
-        headers: {
-          Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
-          'Cache-Control': 'max-age=0',
-          ...await headers() || {
-          },
-        },
+        headers: await headers(),
       };
 
       const timerStart = performance.now();
@@ -752,34 +774,90 @@ app.get('/opportunity-cache/:id', function (req, res) {
 });
 
 const listeners = new Map();
-app.post('/opportunity/listen/:id', function (req, res) {
-  const { id } = req.params;
-  if (listeners.has(id)) {
-    return res.status(409).send({
-      error: `The @id "${id}" already has a listener registered. The same @id must be used across multiple tests, or listened for twice within the same test.`,
+
+function getListenerInfo(type, id) {
+  return {
+    listenerId: `${type}::${id}`,
+    isForOrdersFeed: type === 'orders',
+    idName: type === 'orders' ? 'UUID' : '@id',
+  };
+}
+
+/**
+ * @param {'opportunities'|'orders'} type
+ * @param {string} id
+ * @param {any} item
+ */
+function handleListeners(type, id, item) {
+  // If there is a listener for this ID, the listener map needs to be populated with either the item or
+  // the collection request must be fulfilled
+  const { listenerId } = getListenerInfo(type, id);
+  if (listeners.get(listenerId)) {
+    const { collectRes } = listeners.get(listenerId);
+    // If there's already a collection request, fulfill it
+    if (collectRes) {
+      collectRes.json(item);
+      listeners.delete(listenerId);
+    } else {
+      // If not, set the opportunity so that it can returned when the collection call arrives
+      listeners.set(listenerId, {
+        item, collectRes: null,
+      });
+    }
+  }
+}
+
+app.post('/listeners/:type/:id', async function (req, res) {
+  const { type, id } = req.params;
+  const { listenerId, isForOrdersFeed, idName } = getListenerInfo(type, id);
+  if (!id) {
+    return res.status(400).json({
+      error: 'id is required',
     });
   }
-  listeners.set(id, {
-    opportunity: null, collectRes: null,
+  if (DO_NOT_HARVEST_ORDERS_FEED && isForOrdersFeed) {
+    return res.status(403).json({
+      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in the test suite configuration.',
+    });
+  }
+  if (listeners.has(listenerId)) {
+    return res.status(409).send({
+      error: `The ${idName} "${id}" already has a listener registered. The same ${idName} must not be used across multiple tests, or listened for multiple times concurrently within the same test.`,
+    });
+  }
+  listeners.set(listenerId, {
+    item: null, collectRes: null,
   });
+  if (isForOrdersFeed) {
+    return res.status(200).send({
+      headers: await withOrdersRpdeHeaders(getOrdersFeedHeader)(),
+      startingFeedPage: feedContextMap.get(ORDERS_FEED_IDENTIFIER)?.currentPage,
+      message: `Listening for '${id}' in Orders feed from startingFeedPage using headers`,
+    });
+  }
   return res.status(204).send();
 });
 
-app.get('/opportunity/collect/:id', function (req, res) {
-  const { id } = req.params;
-  if (listeners.get(id)) {
-    const { opportunity } = listeners.get(id);
-    if (!opportunity) {
-      listeners.set(id, {
-        opportunity: null, collectRes: res,
+app.get('/listeners/:type/:id', function (req, res) {
+  const { type, id } = req.params;
+  const { listenerId, idName } = getListenerInfo(type, id);
+  if (!id) {
+    res.status(400).json({
+      error: 'id is required',
+    });
+  } else if (listeners.get(listenerId)) {
+    const { item } = listeners.get(listenerId);
+    if (!item) {
+      listeners.set(listenerId, {
+        item: null, collectRes: res,
       });
     } else {
-      res.json(opportunity);
-      listeners.delete(id);
+      res.json(item);
+      listeners.delete(listenerId);
     }
   } else {
     res.status(404).json({
-      error: `Listener "${id}" not found`,
+      error: `Listener for ${idName} "${id}" not found`,
     });
   }
 });
@@ -1210,29 +1288,20 @@ async function processOpportunityItem(item) {
       responses[id].send(item);
 
       if (VERBOSE) log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
-    } else if (VERBOSE) log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
-
-    // If there is a listener for this ID, the listener map needs to be populated with either the opportunity or
-    // the collection request must be fulfilled
-    if (listeners.get(id)) {
-      const { collectRes } = listeners.get(id);
-      // If there's already a collection request, fulfill it
-      if (collectRes) {
-        collectRes.json(item);
-        listeners.delete(id);
-      } else {
-        // If not, set the opportunity so that it can returned when the collection call arrives
-        listeners.set(id, {
-          opportunity: item, collectRes: null,
-        });
-      }
+    } else if (VERBOSE) {
+      log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
     }
+
+    handleListeners('opportunities', id, item);
   }
 }
 
 /** @type {RpdePageProcessor} */
 async function monitorOrdersPage(rpde) {
   rpde.items.forEach((item) => {
+    if (item.id) {
+      handleListeners('orders', item.id, item);
+    }
     if (item.id && orderResponses[item.id]) {
       orderResponses[item.id].send(item);
     }
@@ -1371,11 +1440,11 @@ OpenID Connect Authentication Error: ${error.stack}
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestParentOpportunityPage, false, multibar, dataDownload.totalItems, true));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestParentOpportunityPage, false, multibar, dataDownload.totalItems, true));
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, async () => OPPORTUNITY_FEED_REQUEST_HEADERS, ingestOpportunityPage, false, multibar, dataDownload.totalItems, false));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestOpportunityPage, false, multibar, dataDownload.totalItems, false));
     } else {
       logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
       logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
@@ -1384,11 +1453,10 @@ OpenID Connect Authentication Error: ${error.stack}
 
   // Only poll orders feed if included in the dataset site
   if (!DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
-    const feedIdentifier = 'OrdersFeed';
     const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
-    addFeed(feedIdentifier);
-    harvesters.push(harvestRPDE(ordersFeedUrl, feedIdentifier, getOrdersFeedHeader, monitorOrdersPage, true));
+    addFeed(ORDERS_FEED_IDENTIFIER);
+    harvesters.push(harvestRPDE(ordersFeedUrl, ORDERS_FEED_IDENTIFIER, withOrdersRpdeHeaders(getOrdersFeedHeader), monitorOrdersPage, true));
   }
 
   // Finished processing dataset site

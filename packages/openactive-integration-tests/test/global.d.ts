@@ -20,6 +20,7 @@ declare global {
       TEST_DATASET_IDENTIFIER: string;
       BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: { [opportunityType: string]: boolean };
       IMPLEMENTED_FEATURES: { [featureIdentifier: string]: boolean | null };
+      USE_RANDOM_OPPORTUNITIES: boolean;
       // Created in packages/openactive-integration-tests/documentation/generator.js
       documentationGenerationMode?: boolean;
       // Created in packages/openactive-integration-tests/test/setup.js

@@ -169,13 +169,16 @@ class RequestHelper {
   }
 
   /**
-   * @param {string} eventId
-   * @param {number} orderItemPosition
+   * @param {'opportunities'|'orders'} type
+   * @param {string} id
+   * @param {number} [orderItemPosition]
    */
-  async postFeedChangeListener(eventId, orderItemPosition) {
+  async postFeedChangeListener(type, id, orderItemPosition) {
     const respObj = await this.post(
-      `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
-      `${MICROSERVICE_BASE}/opportunity/listen/${encodeURIComponent(eventId)}`,
+      type === 'orders'
+        ? `Orders Feed listen for '${id}' change`
+        : `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
       null,
       {
         timeout: 60000,
@@ -186,13 +189,17 @@ class RequestHelper {
   }
 
   /**
-   * @param {string} eventId
-   * @param {number} orderItemPosition
+   * @param {'opportunities'|'orders'} type
+   * @param {string} id
+   * @param {number} [orderItemPosition]
+
    */
-  async getFeedChangeCollection(eventId, orderItemPosition) {
+  async getFeedChangeCollection(type, id, orderItemPosition) {
     const respObj = await this.get(
-      `Opportunity Feed collect OrderItem ${orderItemPosition} change`,
-      `${MICROSERVICE_BASE}/opportunity/collect/${encodeURIComponent(eventId)}`,
+      type === 'orders'
+        ? `Orders Feed collect for '${id}' change`
+        : `Opportunity Feed collect for OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
       {
         timeout: 60000,
       },

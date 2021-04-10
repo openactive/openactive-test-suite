@@ -33,7 +33,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {{}} ListenerInput
- * @typedef {Required<Pick<FlowStageOutput, 'getOrderFromOrderFeedPromise'>>} ListenerOutput
+ * @typedef {{}} ListenerOutput
  *
  * @typedef {ListenerOutput} CollectorInput
  * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderProposalVersion' | 'orderId'>>} CollectorOutput
@@ -43,25 +43,21 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
- * @returns {ListenerOutput}
+ * @returns {Promise<ListenerOutput>}
  */
-function runOrderFeedListener({ uuid, requestHelper }) {
-  // Note that the promise isn't awaited.
-  // This won't resolve until a stage is run that will instruct the Booking System
-  // to put the order into their feed.
-  const getOrderPromise = requestHelper.getOrder(uuid);
-  return {
-    getOrderFromOrderFeedPromise: getOrderPromise,
-  };
+async function runOrderFeedListener({ uuid, requestHelper }) {
+  await requestHelper.postFeedChangeListener('orders', uuid);
+  return {};
 }
 
 /**
  * @param {object} args
- * @param {Promise<ChakramResponse>} args.getOrderFromOrderFeedPromise
+ * @param {string} args.uuid
+ * @param {RequestHelperType} args.requestHelper
  * @returns {Promise<CollectorOutput>}
  */
-async function runOrderFeedCollector({ getOrderFromOrderFeedPromise }) {
-  const response = await getOrderFromOrderFeedPromise;
+async function runOrderFeedCollector({ uuid, requestHelper }) {
+  const response = await requestHelper.getFeedChangeCollection('orders', uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {
@@ -85,14 +81,14 @@ class OrderFeedUpdateListener extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    */
-  constructor({ prerequisite, requestHelper, uuid }) {
+  constructor({ prerequisite, uuid, requestHelper }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
       testName: '_Order Feed Update Listener',
       shouldDescribeFlowStage: false,
       async runFn() {
-        return runOrderFeedListener({ uuid, requestHelper });
+        return await runOrderFeedListener({ uuid, requestHelper });
       },
       itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdateCollector stage */ },
       itValidationTestsFn() { /* there are no validation tests - validation happens at the OrderFeedUpdateCollector stage */ },
@@ -113,17 +109,17 @@ class OrderFeedUpdateCollector extends FlowStage {
    * @param {object} args
    * @param {string} args.testName
    * @param {FlowStage<unknown>} args.prerequisite
-   * @param {() => CollectorInput} args.getInput
    * @param {BaseLoggerType} args.logger
+   * @param {RequestHelperType} args.requestHelper
+   * @param {string} args.uuid
    */
-  constructor({ testName, prerequisite, getInput, logger }) {
+  constructor({ testName, prerequisite, logger, uuid, requestHelper }) {
     super({
       prerequisite,
-      getInput,
+      getInput: FlowStageUtils.emptyGetInput,
       testName,
-      async runFn(input) {
-        const { getOrderFromOrderFeedPromise } = input;
-        return await runOrderFeedCollector({ getOrderFromOrderFeedPromise });
+      async runFn() {
+        return await runOrderFeedCollector({ uuid, requestHelper });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
@@ -186,9 +182,8 @@ const OrderFeedUpdateFlowStageUtils = {
     const collectOrderFeedUpdate = new OrderFeedUpdateCollector({
       testName: orderFeedUpdateParams.testName,
       prerequisite: wrappedStage,
-      getInput: () => ({
-        getOrderFromOrderFeedPromise: listenForOrderFeedUpdate.getOutput().getOrderFromOrderFeedPromise,
-      }),
+      requestHelper: orderFeedUpdateParams.requestHelper,
+      uuid: orderFeedUpdateParams.uuid,
       logger: orderFeedUpdateParams.logger,
     });
     return [wrappedStage, collectOrderFeedUpdate];

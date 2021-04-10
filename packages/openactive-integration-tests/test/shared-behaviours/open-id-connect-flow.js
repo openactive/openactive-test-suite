@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const chai = require('chai');
 const { OpenActiveOpenIdTestClient, recordWithIntercept } = require('@openactive/openactive-openid-test-client');
 const { getConfigVarOrDefault, getConfigVarOrThrow } = require('../helpers/config-utils');
@@ -66,7 +67,7 @@ class OpenIDConnectFlow {
       throwIfNoAuthenticationAuthority();
       // Discovery
       const issuer = await this.logWithIntercept('Discovery', () => this.client.discover(AUTHENTICATION_AUTHORITY));
-      console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
+      // console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
     });
     return this;
   }
@@ -90,7 +91,7 @@ ${initialAccessToken ? 'Hence the `client_id` and `client_secret` can be found w
       const { registration, clientId, clientSecret } = await this.logWithIntercept('Dynamic Client Registration', () => this.client.register(initialAccessToken));
       this.keys.clientId = clientId;
       this.keys.clientSecret = clientSecret;
-      console.log('Dynamic Client Registration: %O\n\n', registration);
+      // console.log('Dynamic Client Registration: %O\n\n', registration);
     });
     return this;
   }
@@ -141,10 +142,10 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
       flowState.tokenSet = tokenSet;
       this.logger.recordLogResult(`${stage} - Claims`, '`id_token` claims:', tokenSet.claims());
       if (tokenSet.refresh_token) this.keys.refreshToken = tokenSet.refresh_token;
-      console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
-      console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
-      console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
-      console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);
+      // console.log('Authorization Code Flow: Authorization URL: %s', authorizationUrl);
+      // console.log('Authorization Code Flow: received and validated tokens %j', tokenSet);
+      // console.log('Authorization Code Flow: validated ID Token claims %j', tokenSet.claims());
+      // console.log('Authorization Code Flow: received refresh token %s\n\n', tokenSet.refresh_token);
     });
     if (assertSellerIdClaim !== null) {
       it(`should include expected \`${OPENACTIVE_CLAIMS.sellerId}\` claim in \`id_token\``, async () => {
@@ -178,7 +179,7 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
       chai.expect(this.keys).to.have.property('clientSecret');
       // Client Credentials Flow
       const { tokenSet: clientCredentialsTokenSet } = await this.logWithIntercept('Client Credentials Flow', () => this.client.authorizeClientCredentialsFlow(this.keys.clientId, this.keys.clientSecret));
-      console.log('Client Credentials Flow: received and validated tokens %j\n\n', clientCredentialsTokenSet);
+      // console.log('Client Credentials Flow: received and validated tokens %j\n\n', clientCredentialsTokenSet);
     });
     return this;
   }
@@ -191,8 +192,8 @@ Please ensure \`${configSourceName}.${clientCredentialsKey}.authentication.clien
       chai.expect(this.keys).to.have.property('refreshToken');
       // Refresh Token
       const refreshedTokenSet = await this.logWithIntercept('Refresh Token', () => this.client.refresh(this.keys.refreshToken, this.keys.clientId, this.keys.clientSecret));
-      console.log('refreshed and validated tokens %j', refreshedTokenSet);
-      console.log('refreshed ID Token claims %j\n\n', refreshedTokenSet.claims());
+      // console.log('refreshed and validated tokens %j', refreshedTokenSet);
+      // console.log('refreshed ID Token claims %j\n\n', refreshedTokenSet.claims());
     });
     return this;
   }

@@ -108,9 +108,8 @@
     },
     "customer-requested-cancellation": {
       "primary": {
-        "TestOpportunityBookableCancellable": 7,
-        "TestOpportunityBookableNotCancellable": 1,
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookableCancellable": 8,
+        "TestOpportunityBookableNotCancellable": 1
       }
     },
     "seller-requested-cancellation": {
@@ -195,7 +194,12 @@
         "TestOpportunityBookableFree": 6
       }
     },
-    "non-free-opportunities": {},
+    "non-free-opportunities": {
+      "primary": {
+        "TestOpportunityBookableNonFree": 3,
+        "TestOpportunityBookable": 1
+      }
+    },
     "payment-reconciliation-detail-validation": {
       "primary": {
         "TestOpportunityBookableUsingPayment": 15,

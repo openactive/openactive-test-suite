@@ -8,42 +8,40 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'book-and-cancel',
   testName: 'Successful booking and cancellation.',
-  testDescription: 'A successful end to end booking including cancellation, including checking the Orders Feed.',
+  testDescription: 'A successful end to end booking including full Order cancellation, including checking the Orders Feed. Two cancellation requests are made to ensure that cancellation is atomic.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunityBookable',
+  controlOpportunityCriteria: 'TestOpportunityBookableCancellable',
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger);
 
-  // ### Cancel 1st Order Item
+  // Get all OrderItem IDs
+  const getArrayOfAllOrderItemIds = CancelOrderFlowStage.getOrderItemIdsByPositionFromB(b, [...Array(orderItemCriteria.length).keys()]);
+
+  // ### Cancel all order items
   const [cancelOrderItem, orderFeedUpdateAfter1stCancel] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
+      getOrderItemIdArray: getArrayOfAllOrderItemIds,
+      testName: 'Cancel Order',
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
       prerequisite: b,
-      testName: 'Orders Feed (after OrderCancellation)',
+      testName: 'Orders Feed (after Order Cancellation)',
     },
   });
 
-  // ### Cancel 1st Order Item again test idempotency
-  const [cancelOrderItemAgain] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
-      ...defaultFlowStageParams,
-      prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemIdFromB(b),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: cancelOrderItem,
-      testName: 'Orders Feed (after OrderCancellation)',
-    },
+  // ### Cancel order items again to test for idempotency
+  const cancelOrderItemAgain = new CancelOrderFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: cancelOrderItem,
+    getOrderItemIdArray: getArrayOfAllOrderItemIds,
+    testName: 'Cancel Order again (to test for idempotency)',
   });
 
   // ## Set up tests
@@ -53,12 +51,15 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItem);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter1stCancel, () => {
-    it('should have orderItemStatus: CustomerCancelled', () => {
-      const orderItems = orderFeedUpdateAfter1stCancel.getOutput().httpResponse.body.data.orderedItem;
-      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteria.length);
-      expect(orderItems[0]).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
-      for (const orderItem of orderItems.slice(1)) {
-        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/OrderItemConfirmed');
+    const orderItemsAccessor = () => orderFeedUpdateAfter1stCancel.getOutput().httpResponse.body.data.orderedItem;
+    it('should include all OrderItems', () => {
+      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
+    });
+    it('should have orderItemStatus CustomerCancelled for each cancelled item', () => {
+      const cancelledOrderItemIds = getArrayOfAllOrderItemIds();
+      for (const orderItem of orderItemsAccessor()) {
+        expect(orderItem['@id']).to.be.oneOf(cancelledOrderItemIds);
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
       }
     });
   });

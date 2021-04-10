@@ -7,6 +7,7 @@ const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDat
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 const { silentlyAllowInsecureConnections } = require('./helpers/suppress-unauthorized-warning');
@@ -42,6 +43,7 @@ class TestEnvironment extends NodeEnvironment {
     // Note these are defined in the test environment to allow the certificate validator to override them
     this.global.BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
     this.global.IMPLEMENTED_FEATURES = IMPLEMENTED_FEATURES;
+    this.global.USE_RANDOM_OPPORTUNITIES = USE_RANDOM_OPPORTUNITIES;
   }
 
   async teardown() {
