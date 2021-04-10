@@ -12,7 +12,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunityBookable',
+  controlOpportunityCriteria: 'TestOpportunityBookableCancellable',
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ## Initiate Flow Stages
