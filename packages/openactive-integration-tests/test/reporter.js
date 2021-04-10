@@ -173,7 +173,7 @@ class Reporter {
         const validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
         if (!validationResult || !validationResult.valid) {
           console.error(`\n${chalk.red(
-            'A valid conformance certificate could not be generated.\n\nIf you have not already done so, try simply running `npm start`, without specifying a specific test directory, to ensure that all tests are run for this feature configuration.',
+            'A valid conformance certificate could not be generated.\n\nIf you have not already done so, try simply running `npm start`, without specifying a specific test subset, to ensure that all tests are run for this feature configuration.',
           )}`);
           // Ensure that CI fails on validation error, without a stack trace
           process.exitCode = 1;
