@@ -2,7 +2,7 @@
   "consoleOutputLevel": "dot",
   "broker": {
     "outputPath": "./output/",
-    "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
+    "datasetSiteUrl": "https://reference-implementation.openactive.io/openactive",
     "requestLogging": false,
     "waitForHarvestCompletion": true,
     "verbose": false,
@@ -27,6 +27,7 @@
     "useRandomOpportunities": true,
     "generateConformanceCertificate": true,
     "conformanceCertificateId": "https://www.example.com/",
+    "conformanceCertificatePath": "./conformance/",
     "requestHeaderLogging": true,
     "bookableOpportunityTypesInScope": {
       "ScheduledSession": true,
@@ -120,7 +121,7 @@
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1",
       "authentication": {
         "loginCredentials": {
           "username": "test1",
@@ -136,7 +137,7 @@
     },
     "secondary": {
       "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/2",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/2",
       "authentication": {
         "loginCredentials": {
           "username": "test2",

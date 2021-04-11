@@ -1,0 +1,221 @@
+{
+  "_createdByDocumentationGeneratorScript": true,
+  "features": {
+    "minimal-proposal": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
+    },
+    "agent-broker": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 1
+    },
+    "amending-order-quote": {
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
+    },
+    "availability-check": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 1
+    },
+    "common-error-conditions": {
+      "implementedTestFiles": 5,
+      "notImplementedTestFiles": 1
+    },
+    "dataset-site": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
+    },
+    "opportunity-feed": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "order-deletion": {
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 0
+    },
+    "access-channel": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-channel-update-notifications": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-code": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-code-update-notifications": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-pass-barcode-broker-provided": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-pass-barcode-seller-provided": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-pass-image": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "access-pass-update-notifications": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "dynamic-payment": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "offer-overrides": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "booking-partner-authentication": {
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 0
+    },
+    "dynamic-client-registration": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "no-broker": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
+    },
+    "reseller-broker": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
+    },
+    "reseller-broker-tax-calculation": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "cancellation-window": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 1
+    },
+    "customer-requested-cancellation": {
+      "implementedTestFiles": 5,
+      "notImplementedTestFiles": 0
+    },
+    "seller-requested-cancellation": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "seller-requested-cancellation-message": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "seller-requested-replacement": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "multiple-sellers": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "test-interface": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "additional-details-capture": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
+    },
+    "attendee-details-capture": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "customer-details-capture-identifier": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "customer-details-capture-non-essential": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "anonymous-leasing": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "named-leasing": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "change-of-logistics-notifications": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "customer-notice-notifications": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "opportunity-attendance-updates": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "free-opportunities": {
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
+    },
+    "non-free-opportunities": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
+    },
+    "payment-reconciliation-detail-validation": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 2
+    },
+    "prepayment-optional": {
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
+    },
+    "prepayment-required": {
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
+    },
+    "prepayment-unavailable": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 1
+    },
+    "booking-restrictions": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "booking-window": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "business-to-business-tax-calculation-gross": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "business-to-business-tax-calculation-net": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "business-to-consumer-tax-calculation-gross": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "business-to-consumer-tax-calculation-net": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "terms-of-service": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "terms-of-service-with-consent": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "terms-of-service-with-consent-with-date-modified": {
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    }
+  }
+}

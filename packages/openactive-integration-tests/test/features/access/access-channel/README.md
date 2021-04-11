@@ -1,5 +1,5 @@
 [< Return to Overview](../../README.md)
-# accessChannel is returned for online opportunities (access-channel)
+# accessChannel - Seller provided remote access (access-channel)
 
 For online opportunities, an accessChannel (or a customerNotice indicating that an accessChannel will be sent soon) is provided upon booking with B
 

@@ -1,5 +1,5 @@
 [< Return to Overview](../../README.md)
-# See changes to accessChannel (access-channel-update-notifications)
+# accessChannel update notifications (access-channel-update-notifications)
 
 When accessChannel changes, make sure this change is supplied back to the Broker via the Orders feed
 

@@ -15,7 +15,7 @@ The `./config/default.json` file configures access to the Open Booking API.
 The URL of the dataset site of the booking system under test. This dataset site is used to configure the test suite.
 
 ```json
-  "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
+  "datasetSiteUrl": "https://reference-implementation.openactive.io/openactive",
 ```
 
 Please note the JSON within the dataset site must include the dataset site [Open Booking API extension](https://github.com/openactive/dataset-api-discovery/issues/2), as follows:

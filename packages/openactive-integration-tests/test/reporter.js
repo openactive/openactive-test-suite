@@ -178,10 +178,11 @@ class Reporter {
           // Ensure that CI fails on validation error, without a stack trace
           process.exitCode = 1;
         } else {
-          await mkdirp(`${OUTPUT_PATH}certification`);
-          await fs.writeFile(certificationWriter.certificationOutputPath, html);
+          const filename = 'index.html';
+          await mkdirp(certificationWriter.certificationOutputPath);
+          await fs.writeFile(certificationWriter.certificationOutputPath + filename, html);
           console.log(`\n${chalk.green(
-            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
+            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath + filename} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
           )}`);
         }
       }

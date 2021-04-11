@@ -16,6 +16,7 @@ const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
 const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria-requirements.json');
 const INDEX_CATEGORIES_JSON_FILE = path.join(FEATURES_ROOT, 'categories.json');
+const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implemented.json');
 
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
@@ -122,6 +123,15 @@ for (const featureMetadataItem of featureMetadata) {
   featureMetadataItem.criteriaRequirement = criteriaRequirement;
   featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;
 }
+
+// Save implemented/not-implemented information to a machine-readable (JSON) file.
+// This information includes which features have tests for which mode
+// This file is used by certificate validator to know which features it expects to
+// have tests available for
+writeFileSetErrorExitCodeButDontThrowIfFails(
+  INDEX_TESTS_IMPLEMENTED_JSON_FILE,
+  renderTestsImplementedJson(testMetadata, featureMetadata),
+);
 
 // Save opportunity criteria requirements for each feature to a machine-readable (JSON)
 // file.
@@ -351,6 +361,21 @@ function renderCategoriesJson(features) {
   const obj = {
     _createdByDocumentationGeneratorScript: true,
     categories: Object.fromEntries(categoriesMap),
+  };
+  return JSON.stringify(obj, null, 2);
+}
+
+function renderTestsImplementedJson(tests, features) {
+  const featureMap = {};
+  for (const f of features) {
+    featureMap[f.identifier] = {
+      implementedTestFiles: tests.filter(t => (t.testFeature === f.identifier) && t.testFeatureImplemented).length,
+      notImplementedTestFiles: tests.filter(t => (t.testFeature === f.identifier) && !t.testFeatureImplemented).length,
+    };
+  }
+  const obj = {
+    _createdByDocumentationGeneratorScript: true,
+    features: featureMap,
   };
   return JSON.stringify(obj, null, 2);
 }
