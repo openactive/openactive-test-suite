@@ -13,7 +13,6 @@
     }
   },
   "integrationTests": {
-    "generateConformanceCertificate": false,
     "implementedFeatures": {
       "multiple-sellers": false,
       "booking-partner-authentication": false,
