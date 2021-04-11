@@ -6,16 +6,18 @@ const pkg = require('../../package.json');
 
 const rootDirectory = path.join(__dirname, '../../');
 
+/**
+ * This worker mocks all test suite tests, to determine which would run in a given configuration
+ *
+ * Note this worker is NOT async as it temporarily manipulates the global object,
+ * and is designed to terminate cleanly on completion
+ */
+
 if (isMainThread) {
   throw new Error('The worker must not be run in the main thread, as it severely mutates global variables.');
 }
 
 const { implementedFeatures, opportunityTypesInScope } = workerData;
-
-// This worker mocks all test suite tests, to determine which would run in a given configuration
-
-// Note this worker is NOT async as it temporarily manipulates the global object,
-// and is designed to terminate cleanly on completion
 
 const suiteRegistry = new Map();
 
@@ -58,36 +60,21 @@ const globalMocks = {
   SELLER_CONFIG: { primary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxGross' }, secondary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxNet' } },
 };
 
-const globalSnapshot = {};
+// Set up global mocks
+Object.entries(globalMocks).forEach(([key, value]) => {
+  global[key] = value;
+});
 
-const setupMocks = () => {
-  Object.entries(globalMocks).forEach(([key, value]) => {
-    globalSnapshot[key] = global[key];
-    global[key] = value;
-  });
-};
+// Load all test suites using the mocks defined above, to populate the suiteRegistry
+fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).forEach(function (file) {
+  importFresh(`${rootDirectory}${file}`);
+});
 
-const teardownMocks = () => {
-  Object.entries(globalMocks).forEach(([key, value]) => {
-    global[key] = globalSnapshot[key];
-  });
-};
+// Convert maps to objects for easy comparison
+suiteRegistry.forEach((v, k) => suiteRegistry.set(k, Object.fromEntries(v)));
 
-setupMocks();
-try {
-  // Load all test suites using the mocks defined above, to populate the suiteRegistry
-  fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).forEach(function (file) {
-    importFresh(`${rootDirectory}${file}`);
-  });
-
-  // Convert maps to objects for easy comparison
-  suiteRegistry.forEach((v, k) => suiteRegistry.set(k, Object.fromEntries(v)));
-} finally {
-  teardownMocks();
-}
-
-// Return suiteRegistry
+// Return suiteRegistry to the main thread
 parentPort.postMessage(suiteRegistry);
 
 // Thread terminates after processing is complete, and is not reused.
-// Note that teardownMocks is not 100% effective, so this worker should not be reused
+// As the global state is left mutated, this worker should never be reused.
