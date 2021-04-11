@@ -9,10 +9,10 @@ const { validateCertificateHtml, validateCertificate } = require('./certificatio
 
 /**
  * This mutex is used to protect the microservice from running out of memory due to too many simultaneous requests
- * It queues requests, and times them out after 20 seconds
+ * It queues requests, and times them out after 25 seconds (Heroku will timeout the request after 30 seconds anyway)
  * Note the CDN buffers uploads, so the request is only made once upload from the certificate webpage is complete.
  */
-const mutex = withTimeout(new Mutex(), 20000);
+const mutex = withTimeout(new Mutex(), 25000);
 
 const app = express();
 app.use(cors());
