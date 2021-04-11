@@ -134,17 +134,20 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
   delete implementedFeatures['test-interface'];
 
   for (const [featureIdentifier, meta] of Object.entries(TESTS_IMPLEMENTED_METADATA)) {
+    // Ignore the test interface from the comparison
+    if (featureIdentifier === 'test-interface') continue;
+
     // Ensure that all features that have tests present are included in either a true or false state
     if (
-      (meta.implementedTests > 0 || meta.notImplementedTests > 0)
+      (meta.implementedTestFiles > 0 || meta.notImplementedTestFiles > 0)
       && !(implementedFeatures[featureIdentifier] === true || implementedFeatures[featureIdentifier] === false)
     ) {
       throw new Error(`The feature '${featureIdentifier}' is missing from the test suite configuration. All features must be included with either a true or false value to generate a valid conformance certificate.`);
     }
     // Remove all features that have no tests implemented from the comparison
     if (
-      (implementedFeatures[featureIdentifier] === true && meta.implementedTests === 0)
-      || (implementedFeatures[featureIdentifier] === false && meta.notImplementedTests === 0)
+      (implementedFeatures[featureIdentifier] === true && meta.implementedTestFiles === 0)
+      || (implementedFeatures[featureIdentifier] === false && meta.notImplementedTestFiles === 0)
     ) {
       delete implementedFeatures[featureIdentifier];
     }

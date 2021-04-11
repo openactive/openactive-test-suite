@@ -65,6 +65,7 @@ class CertificationWriter {
   }
 
   get certificateJsonLd() {
+    const features = Object.keys(this.implementedFeatures).filter(x => x !== 'test-interface');
     return {
       '@context': 'https://openactive.io/',
       '@type': 'ConformanceCertificate',
@@ -73,7 +74,7 @@ class CertificationWriter {
       description: 'This conformance certificate has been produced automatically from the OpenActive Test Suite.',
       dateCreated: (new Date()).toISOString(),
       validFor: 'P3M',
-      featureImplemented: Object.keys(this.implementedFeatures).filter(x => this.implementedFeatures[x] === true).map(feature => (
+      featureImplemented: features.filter(x => this.implementedFeatures[x] === true).map(feature => (
         {
           '@type': 'Concept',
           '@id': `https://openactive.io/specification-features#${feature}`,
@@ -81,7 +82,7 @@ class CertificationWriter {
           inScheme: 'https://openactive.io/specification-features',
         }
       )),
-      featureNotImplemented: Object.keys(this.implementedFeatures).filter(x => this.implementedFeatures[x] === false).map(feature => (
+      featureNotImplemented: features.filter(x => this.implementedFeatures[x] === false).map(feature => (
         {
           '@type': 'Concept',
           '@id': `https://openactive.io/specification-features#${feature}`,

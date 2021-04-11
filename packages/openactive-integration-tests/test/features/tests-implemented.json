@@ -2,220 +2,220 @@
   "_createdByDocumentationGeneratorScript": true,
   "features": {
     "minimal-proposal": {
-      "implementedTests": 3,
-      "notImplementedTests": 0
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
     },
     "agent-broker": {
-      "implementedTests": 2,
-      "notImplementedTests": 1
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 1
     },
     "amending-order-quote": {
-      "implementedTests": 4,
-      "notImplementedTests": 1
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
     },
     "availability-check": {
-      "implementedTests": 2,
-      "notImplementedTests": 1
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 1
     },
     "common-error-conditions": {
-      "implementedTests": 5,
-      "notImplementedTests": 1
+      "implementedTestFiles": 5,
+      "notImplementedTestFiles": 1
     },
     "dataset-site": {
-      "implementedTests": 1,
-      "notImplementedTests": 1
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "opportunity-feed": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     },
     "order-deletion": {
-      "implementedTests": 4,
-      "notImplementedTests": 0
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 0
     },
     "access-channel": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-channel-update-notifications": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-code": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-code-update-notifications": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-pass-barcode-broker-provided": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-pass-barcode-seller-provided": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-pass-image": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "access-pass-update-notifications": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "dynamic-payment": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     },
     "offer-overrides": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     },
     "booking-partner-authentication": {
-      "implementedTests": 4,
-      "notImplementedTests": 0
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 0
     },
     "dynamic-client-registration": {
-      "implementedTests": 2,
-      "notImplementedTests": 0
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
     },
     "no-broker": {
-      "implementedTests": 3,
-      "notImplementedTests": 0
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
     },
     "reseller-broker": {
-      "implementedTests": 3,
-      "notImplementedTests": 0
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
     },
     "reseller-broker-tax-calculation": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     },
     "cancellation-window": {
-      "implementedTests": 2,
-      "notImplementedTests": 1
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 1
     },
     "customer-requested-cancellation": {
-      "implementedTests": 5,
-      "notImplementedTests": 0
+      "implementedTestFiles": 5,
+      "notImplementedTestFiles": 0
     },
     "seller-requested-cancellation": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "seller-requested-cancellation-message": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "seller-requested-replacement": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "multiple-sellers": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "test-interface": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "additional-details-capture": {
-      "implementedTests": 3,
-      "notImplementedTests": 0
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
     },
     "attendee-details-capture": {
-      "implementedTests": 2,
-      "notImplementedTests": 0
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
     },
     "customer-details-capture-identifier": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "customer-details-capture-non-essential": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "anonymous-leasing": {
-      "implementedTests": 2,
-      "notImplementedTests": 0
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
     },
     "named-leasing": {
-      "implementedTests": 2,
-      "notImplementedTests": 0
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
     },
     "change-of-logistics-notifications": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "customer-notice-notifications": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "opportunity-attendance-updates": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTests": 4,
-      "notImplementedTests": 1
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTests": 1,
-      "notImplementedTests": 1
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {
-      "implementedTests": 3,
-      "notImplementedTests": 2
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 2
     },
     "prepayment-optional": {
-      "implementedTests": 4,
-      "notImplementedTests": 1
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
     },
     "prepayment-required": {
-      "implementedTests": 4,
-      "notImplementedTests": 1
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
     },
     "prepayment-unavailable": {
-      "implementedTests": 3,
-      "notImplementedTests": 1
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 1
     },
     "booking-restrictions": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     },
     "booking-window": {
-      "implementedTests": 2,
-      "notImplementedTests": 0
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
     },
     "business-to-business-tax-calculation-gross": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "business-to-business-tax-calculation-net": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-gross": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-net": {
-      "implementedTests": 1,
-      "notImplementedTests": 0
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
     },
     "terms-of-service": {
-      "implementedTests": 2,
-      "notImplementedTests": 0
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
     },
     "terms-of-service-with-consent": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     },
     "terms-of-service-with-consent-with-date-modified": {
-      "implementedTests": 0,
-      "notImplementedTests": 0
+      "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
     }
   }
 }
