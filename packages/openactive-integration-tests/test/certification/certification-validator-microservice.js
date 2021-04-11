@@ -3,8 +3,11 @@ const cors = require('cors');
 const asyncHandler = require('express-async-handler');
 const axios = require('axios');
 const http = require('http');
+const Mutex = require('async-mutex').Mutex;
 
 const { validateCertificateHtml, validateCertificate } = require('./certification-validator');
+
+const mutex = new Mutex();
 
 const app = express();
 app.use(cors());
@@ -34,7 +37,8 @@ app.get('/validate', asyncHandler(async (req, res) => {
   }
 }));
 
-app.post('/validate-json', asyncHandler(async (req, res) => {
+app.post('/validate-json', asyncHandler(async (req, res) => await mutex.runExclusive(async () => {
+  // Ensure this endpoint is not run in parallel, to protect memory usage
   if (req.body.certificateJson && typeof req.body.url === 'string') {
     // Attempt both types of validation in parallel
     let urlResult = req.body.url.indexOf('//localhost') !== -1 || req.body.url.indexOf('file://') !== -1
@@ -54,7 +58,8 @@ app.post('/validate-json', asyncHandler(async (req, res) => {
   } else {
     res.status(400).json({ error: 'Invalid body or url specified' });
   }
-}));
+})));
+
 const server = http.createServer(app);
 server.on('error', onError);
 
