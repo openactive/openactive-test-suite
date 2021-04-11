@@ -27,6 +27,7 @@
     "useRandomOpportunities": true,
     "generateConformanceCertificate": true,
     "conformanceCertificateId": "https://www.example.com/",
+    "conformanceCertificatePath": "./conformance/",
     "requestHeaderLogging": true,
     "bookableOpportunityTypesInScope": {
       "ScheduledSession": true,
