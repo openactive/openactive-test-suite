@@ -25,7 +25,7 @@
   "integrationTests": {
     "outputPath": "./output/",
     "useRandomOpportunities": true,
-    "generateConformanceCertificate": true,
+    "generateConformanceCertificate": false,
     "conformanceCertificateId": "https://www.example.com/",
     "conformanceCertificatePath": "./conformance/",
     "requestHeaderLogging": true,

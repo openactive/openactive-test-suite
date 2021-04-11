@@ -5,7 +5,6 @@
     "datasetSiteUrl": "https://localhost:5001/openactive"
   },
   "integrationTests": {
-    "generateConformanceCertificate": false,
     "useRandomOpportunities": true
   },
   "sellers": {
