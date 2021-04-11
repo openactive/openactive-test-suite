@@ -103,15 +103,15 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
   "sellers": {
     "primary": {
       "@type": "Organization",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/0",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
       "requestHeaders": {
         "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/0"
+        "X-OpenActive-Test-Seller-Id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0"
       }
     },
     "secondary": {
       "@type": "Person",
-      "@id": "https://openactive-reference-implementation.azurewebsites.net/api/identifiers/sellers/1"
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1"
     }
   }
 ```
