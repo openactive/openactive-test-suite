@@ -74,7 +74,7 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"broker": {"outputPath": "../../publish/example-output/random/"}, "integrationTests": {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }}
+          {"broker": {"outputPath": "../../publish/example-output/random/"}, "integrationTests": {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true }}
         NODE_ENV: 
         NODE_APP_INSTANCE: ci
       working-directory: tests
@@ -90,7 +90,7 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"broker": {"outputPath": "../../publish/example-output/controlled/"}, "integrationTests": {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }}
+          {"broker": {"outputPath": "../../publish/example-output/controlled/"}, "integrationTests": {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false }}
         NODE_ENV: 
         NODE_APP_INSTANCE: ci
       working-directory: tests

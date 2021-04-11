@@ -8,7 +8,7 @@ const { getConfigVarOrThrow } = require('../helpers/config-utils');
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
-const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const CONFORMANCE_CERTIFICATE_PATH = getConfigVarOrThrow('integrationTests', 'conformanceCertificatePath');
 
 class CertificationWriter {
 
@@ -109,7 +109,7 @@ class CertificationWriter {
   }
 
   get certificationOutputPath () {
-    return `${OUTPUT_PATH}certification/index.html`;
+    return CONFORMANCE_CERTIFICATE_PATH;
   }
 
   async generateCertificate() {
