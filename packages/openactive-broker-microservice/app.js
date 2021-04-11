@@ -1035,7 +1035,11 @@ app.post('/assert-unmatched-criteria', function (req, res) {
     }
     res.status(204).send();
   } else {
-    logError(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
+    }
     res.status(404).json({
       error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
     });
