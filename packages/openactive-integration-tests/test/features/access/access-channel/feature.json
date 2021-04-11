@@ -1,7 +1,7 @@
 {
   "category": "access",
   "identifier": "access-channel",
-  "name": "accessChannel is returned for online opportunities",
+  "name": "accessChannel - Seller provided remote access",
   "description": "For online opportunities, an accessChannel (or a customerNotice indicating that an accessChannel will be sent soon) is provided upon booking with B",
   "explainer": "",
   "specificationReference": "https://github.com/openactive/open-booking-api/issues/176",
