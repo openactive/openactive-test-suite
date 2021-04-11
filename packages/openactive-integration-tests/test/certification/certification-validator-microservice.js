@@ -3,11 +3,16 @@ const cors = require('cors');
 const asyncHandler = require('express-async-handler');
 const axios = require('axios');
 const http = require('http');
-const Mutex = require('async-mutex').Mutex;
+const { withTimeout, Mutex } = require('async-mutex');
 
 const { validateCertificateHtml, validateCertificate } = require('./certification-validator');
 
-const mutex = new Mutex();
+/**
+ * This mutex is used to protect the microservice from running out of memory due to too many simultaneous requests
+ * It queues requests, and times them out after 20 seconds
+ * Note the CDN buffers uploads, so the request is only made once upload from the certificate webpage is complete.
+ */
+const mutex = withTimeout(new Mutex(), 20000);
 
 const app = express();
 app.use(cors());
@@ -28,14 +33,14 @@ async function validateUrl(url, holder) {
   return { error: 'Invalid url specified' };
 }
 
-app.get('/validate', asyncHandler(async (req, res) => {
+app.get('/validate', asyncHandler(async (req, res) => await mutex.runExclusive(async () => {
   const result = await validateUrl(req.query.url, req.query.holder);
   if (!result.error) {
     res.json(result);
   } else {
     res.status(400).json(result);
   }
-}));
+})));
 
 app.post('/validate-json', asyncHandler(async (req, res) => await mutex.runExclusive(async () => {
   // Ensure this endpoint is not run in parallel, to protect memory usage
