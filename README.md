@@ -9,8 +9,6 @@ This repository hosts three different projects:
 * [Broker Microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
 * [Integration Tests](./packages/openactive-integration-tests): this performs automated tests against the API.
 
-[The Roadmap](./ROADMAP.md) provides an overview of upcoming development milestones, and contributions are welcome.
-
 # Usage
 
 Briefly, you'll need to run the OpenID Test Client, Broker Microservice and the Integration Tests in order to test your Booking API.
