@@ -6,9 +6,9 @@ This Node.js microservice provides a service to harvest data and proxy calls to 
 1. `npm install`
 2. `npm start`
 
-## Configuration
+## Configuration for "broker"
 
-The `./config/default.json` file configures access to the Open Booking API.
+The `"broker"` object within `./config/{NODE_ENV}.json` file of the repository configures access to the Open Booking API. This object includes the properties listed below.
 
 ### `datasetSiteUrl`
 
