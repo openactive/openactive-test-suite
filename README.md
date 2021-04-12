@@ -27,7 +27,7 @@ Before running, configure the test suite by creating `config/dev.json`, includin
 
 ### Local configuration
 
-A `local.json` file can be placed alongside each `default.json`, and the subset of properties defined within it will override those in `default.json`. It is recommended that for development and deployment a `local.json` file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
+A `dev.json` file can be placed alongside the `default.json`, and the subset of properties defined within it will override those in `default.json`. It is recommended that for development and deployment a `dev.json` file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
 ### Environment specific configuration
 
@@ -51,6 +51,7 @@ For developers that are customising the installation, for use in e.g. Docker, th
 ## Running
 
 ```bash
+export NODE_ENV=dev
 npm start
 ```
 
@@ -63,17 +64,20 @@ Alternatively the [Broker microservice](./packages/openactive-broker-microservic
 Any extra command line arguments will be passed to `jest` in [`openactive-integration-tests`](./packages/openactive-integration-tests). For example: 
 
 ```bash
+export NODE_ENV=dev
 npm start -- --runInBand test/features/core/availability-check/
 ```
 
 It is also possible to use a [category identifier or feature identifier](./packages/openactive-integration-tests/test/features/README.md) as short-hand:
 
 ```bash
-npm start core
+export NODE_ENV=dev
+npm start -- core
 ```
 
 ```bash
-npm start availability-check
+export NODE_ENV=dev
+npm start -- availability-check
 ```
 
 Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).
@@ -83,7 +87,7 @@ Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/d
 
 #### `NODE_CONFIG`
 
-The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `packages\openactive-broker-microservice\config\default.json` and `packages\openactive-integration-tests\config\default.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
+The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `config/default.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
 
   ```bash
   NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
