@@ -6,7 +6,7 @@ Test Minimal Proposal Implementation approval flows. OrderProposal Amendments ar
 
 https://openactive.io/open-booking-api/EditorsDraft/#minimal-proposal-implementation
 
-Coverage Status: **partial**
+Coverage Status: **complete**
 
 See also: 
 ### Test prerequisites
