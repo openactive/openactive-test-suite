@@ -3,6 +3,9 @@
 This Node.js microservice provides a service to harvest data and proxy calls to an Open Booking API
 
 ## Usage
+
+From repository root:
+
 1. `npm install`
 2. `export NODE_ENV=dev`
 3. `npm run start-broker`
