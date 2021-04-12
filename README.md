@@ -28,8 +28,8 @@ Note that the above command only runs the "core" tests within the test suite, wh
 
 ## Configuration
 In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV` environment variable), including the following properties:
-   - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration)
-   - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration)
+   - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration-for-broker-within-confignode_envjson)
+   - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration-for-integrationtests-within-confignode_envjson)
 
 The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
