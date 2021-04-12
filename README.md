@@ -15,7 +15,7 @@ Briefly, running `npm start` will orchestrate running the [OpenID Test Client](.
 
 ## Quick start
 
-You can check that the test suite works in your local environment by running it against the hosted OpenActive Reference Implementation, simply by using the default configuration:
+You can check that the test suite works in your local environment by running it against the hosted [OpenActive Reference Implementation](https://reference-implementation.openactive.io/), simply by using the default configuration:
 
 ``` bash
 git clone git@github.com:openactive/openactive-test-suite.git
