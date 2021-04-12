@@ -9,50 +9,47 @@ This repository hosts three different projects:
 * [Broker Microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
 * [Integration Tests](./packages/openactive-integration-tests): this performs automated tests against the API.
 
-[The Roadmap](./ROADMAP.md) provides an overview of upcoming development milestones, and contributions are welcome.
-
 # Usage
 
-Briefly, you'll need to run the OpenID Test Client, Broker Microservice and the Integration Tests in order to test your Booking API.
+Briefly, running `npm start` will orchestrate running the [OpenID Test Client](./packages/openactive-openid-test-client/), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Booking API.
 
-For more info, read the individual README.md within the package directories:
-* [OpenID Test Client](./packages/openactive-openid-test-client/)
-* [Broker microservice](./packages/openactive-broker-microservice/)
-* [Integration tests](./packages/openactive-integration-tests/)
+## Quick start
+
+You can check that the test suite works in your local environment by running it against the hosted [OpenActive Reference Implementation](https://reference-implementation.openactive.io/), simply by using the default configuration:
+
+``` bash
+git clone git@github.com:openactive/openactive-test-suite.git
+cd openactive-test-suite
+npm install
+npm start -- core
+```
+
+Note that the above command only runs the "core" tests within the test suite, which should take around 60 seconds to complete.
 
 ## Configuration
-Before running, configure the test suite:
- - `packages/openactive-broker-microservice/config/default.json`
-   - [More information](./packages/openactive-broker-microservice/#configuration)
- - `packages/openactive-integration-tests/config/default.json`
-   - [More information](./packages/openactive-integration-tests/#configuration)
+In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV` environment variable), including the following properties:
+   - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration-for-broker-within-confignode_envjson)
+   - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration-for-integrationtests-within-confignode_envjson)
 
-### Local configuration
+The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
-A `local.json` file can be placed alongside each `default.json`, and the subset of properties defined within it will override those in `default.json`. It is recommended that for development and deployment a `local.json` file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
-
-### Environment specific configuration
-
-A file named `{NODE_ENV}.json` can also be placed alongside the `default.json`, which is useful when maintaining multiple configurations.
-
-For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
-
-## Test Data Requirements
-
-In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
+For more information see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
 
 ## Installation
 ```bash
 npm install
 ```
  
-This will install the dependencies needed for both packages.
+This will install the dependencies needed for all packages in the test suite.
 
 For developers that are customising the installation, for use in e.g. Docker, the directory `./packages/test-interface-criteria` is a dependency, and so must be present during `npm install`.
 
 ## Running
 
+Where `dev.json` is the name of your `{NODE_ENV}.json` configuration file:
+
 ```bash
+export NODE_ENV=dev
 npm start
 ```
 
@@ -65,17 +62,20 @@ Alternatively the [Broker microservice](./packages/openactive-broker-microservic
 Any extra command line arguments will be passed to `jest` in [`openactive-integration-tests`](./packages/openactive-integration-tests). For example: 
 
 ```bash
+export NODE_ENV=dev
 npm start -- --runInBand test/features/core/availability-check/
 ```
 
 It is also possible to use a [category identifier or feature identifier](./packages/openactive-integration-tests/test/features/README.md) as short-hand:
 
 ```bash
-npm start core
+export NODE_ENV=dev
+npm start -- core
 ```
 
 ```bash
-npm start availability-check
+export NODE_ENV=dev
+npm start -- availability-check
 ```
 
 Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).
@@ -85,7 +85,7 @@ Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/d
 
 #### `NODE_CONFIG`
 
-The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `packages\openactive-broker-microservice\config\default.json` and `packages\openactive-integration-tests\config\default.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
+The configuration of the test suite can be overridden with the environment variable `NODE_CONFIG`, where any specified configuration will override values in both `config/default.json`. More detail can be found in the [node-config docs](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_config). For example:
 
   ```bash
   NODE_CONFIG='{ "waitForHarvestCompletion": true, "datasetSiteUrl": "https://localhost:5001/openactive", "sellers": { "primary": { "@type": "Organization", "@id": "https://localhost:5001/api/identifiers/sellers/0", "requestHeaders": { "X-OpenActive-Test-Client-Id": "test", "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/0" } }, "secondary": { "@type": "Person", "@id": "https://localhost:5001/api/identifiers/sellers/1" } }, "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }' npm start
@@ -123,6 +123,10 @@ npm start
 ```
 
 Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
+
+## Test Data Requirements
+
+In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
 
 # Contributing
 

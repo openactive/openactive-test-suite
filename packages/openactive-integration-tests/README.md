@@ -23,21 +23,24 @@ The results of this test suite when run against the reference implementation can
 - [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/example-output/controlled/summary)
 
 ## Usage
+
+From repository root:
+
 1. `npm install`
-2. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running
-3. `npm start`
+2. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running, with  `export NODE_ENV=dev` set
+3. `npm run start-tests`
 
 ### Running specific tests
 
-`npm start -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
+`npm start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
 
 ### Running core tests in a single process
 
-`npm start -- --runInBand test/features/core/`
+`npm start-tests -- --runInBand test/features/core/`
 
-## Configuration
+## Configuration for `integrationTests` within `./config/{NODE_ENV}.json`
 
-The `./config/default.json` file configures which tests are run. This should be configured to match the features of the booking system under test.
+The `integrationTests` object within the `./config/{NODE_ENV}.json` file of the repository configures which tests are run. This object includes the properties listed below, and should be configured to match the features of the booking system under test.
 
 ### `useRandomOpportunities`
 
@@ -93,7 +96,12 @@ This value is passed into the test interface of either the broker microservice (
 
 The value can be any string, such as `uat-ci`, or `alex-dev`.
 
-### `sellers`
+### `outputPath`
+
+Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
+
+
+## Configuration for `sellers` within `./config/{NODE_ENV}.json`
 
 The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
 
@@ -104,10 +112,12 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
     "primary": {
       "@type": "Organization",
       "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
-      "requestHeaders": {
-        "X-OpenActive-Test-Client-Id": "test",
-        "X-OpenActive-Test-Seller-Id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0"
-      }
+      "authentication": {
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
+        }
+      },
     },
     "secondary": {
       "@type": "Person",
@@ -115,10 +125,6 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
     }
   }
 ```
-
-### `outputPath`
-
-Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
 
 ## Reading test results
 
