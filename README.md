@@ -22,7 +22,7 @@ For more info, read the individual README.md within the package directories:
 
 ## Configuration
 Before running, configure the test suite by creating a copy of [`config/default.json`](./config/default.json), including the following:
-   - [`broker` configuration](./packages/openactive-broker-microservice/#configuration)
+   - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration)
    - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration)
 
 ### Local configuration
