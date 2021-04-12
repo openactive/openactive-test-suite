@@ -11,30 +11,38 @@ This repository hosts three different projects:
 
 # Usage
 
-Briefly, you'll need to run the OpenID Test Client, Broker Microservice and the Integration Tests in order to test your Booking API.
+Briefly, running `npm start` will orchestrate running the [OpenID Test Client](./packages/openactive-openid-test-client/), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Booking API.
 
-For more info, read the individual README.md within the package directories:
-* [OpenID Test Client](./packages/openactive-openid-test-client/)
-* [Broker microservice](./packages/openactive-broker-microservice/)
-* [Integration tests](./packages/openactive-integration-tests/)
+## Quick start
+
+You can check that the test suite works in your local environment by running it against the hosted OpenActive Reference Implementation, simply by using the default configuration:
+
+``` bash
+git clone git@github.com:openactive/openactive-test-suite.git
+cd openactive-test-suite
+npm install
+npm start -- core
+```
+
+Note that the above command only runs the "core" tests within the test suite, which should take around 60 seconds to complete.
 
 ## Configuration
-Before running, configure the test suite by creating a copy of [`config/default.json`](./config/default.json), including the following:
+In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json), including the following properties:
    - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration)
    - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration)
 
 ### Local configuration
 
-A copy of the file `default.json` can be created in the same directory, with a name such as `dev.json`. The subset of properties defined within the new file will override those in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
+The test suite uses the file `config/{NODE_ENV}.json` (where `NODE_ENV` is an environment variable to override the settings in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
-Use the `NODE_ENV` environment variable to select the name of the configuration file to be used (`{NODE_ENV}.json`). For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
 
 ## Installation
 ```bash
 npm install
 ```
  
-This will install the dependencies needed for both packages.
+This will install the dependencies needed for all packages in the test suite.
 
 For developers that are customising the installation, for use in e.g. Docker, the directory `./packages/test-interface-criteria` is a dependency, and so must be present during `npm install`.
 
