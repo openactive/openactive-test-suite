@@ -21,10 +21,8 @@ For more info, read the individual README.md within the package directories:
 * [Integration tests](./packages/openactive-integration-tests/)
 
 ## Configuration
-Before running, configure the test suite:
- - `packages/openactive-broker-microservice/config/default.json`
+Before running, configure the test suite by creating `config/dev.json`, including the following:
    - [More information](./packages/openactive-broker-microservice/#configuration)
- - `packages/openactive-integration-tests/config/default.json`
    - [More information](./packages/openactive-integration-tests/#configuration)
 
 ### Local configuration
