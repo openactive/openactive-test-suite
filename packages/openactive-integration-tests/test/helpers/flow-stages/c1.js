@@ -1,4 +1,4 @@
-const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder } = require('../order-utils');
+const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder, createPositionOrderIntakeFormMap } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -14,7 +14,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {Required<Pick<FlowStageOutput, 'orderItems'>>} Input
- * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId'>>} Output
+ * @typedef {Required<Pick<FlowStageOutput, 'httpResponse' | 'totalPaymentDue' | 'prepayment' | 'orderId' | 'positionOrderIntakeFormMap'>>} Output
  */
 
 /**
@@ -41,6 +41,7 @@ async function runC1({ templateRef, uuid, brokerRole, sellerConfig, orderItems, 
     totalPaymentDue: getTotalPaymentDueFromOrder(bookingSystemOrder),
     prepayment: getPrepaymentFromOrder(bookingSystemOrder),
     orderId: getOrderId(bookingSystemOrder),
+    positionOrderIntakeFormMap: createPositionOrderIntakeFormMap(bookingSystemOrder),
   };
 }
 

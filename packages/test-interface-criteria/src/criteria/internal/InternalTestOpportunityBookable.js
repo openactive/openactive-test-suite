@@ -1,10 +1,18 @@
+const moment = require('moment');
+
 const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/InternalCriteriaFutureScheduledOpportunity');
 const {
   createCriteria,
   mustNotRequireAttendeeDetails,
+  mustNotRequireAdditionalDetails,
   remainingCapacityMustBeAtLeastTwo,
   mustHaveBookableOffer,
 } = require('../criteriaUtils');
+const { quantitativeValue, availableChannelArrayConstraint, dateRange, advanceBookingOptionNodeConstraint } = require('../../testDataShape');
+
+/**
+ * @typedef {import('../../types/Criteria').OfferConstraint} OfferConstraint
+ */
 
 /**
  * Internal criteria which almost implements https://openactive.io/test-interface#TestOpportunityBookable
@@ -29,7 +37,30 @@ const InternalTestOpportunityBookable = createCriteria({
       'Must not require attendee details',
       mustNotRequireAttendeeDetails,
     ],
+    [
+      'Must not require additional details',
+      mustNotRequireAdditionalDetails,
+    ],
   ],
+  testDataShape: options => ({
+    opportunityConstraints: ({
+      'placeholder:remainingCapacity': quantitativeValue({
+        mininclusive: 2,
+      }),
+    }),
+    offerConstraints: ({
+      'schema:availableChannel': availableChannelArrayConstraint({
+        includesAll: ['https://openactive.io/OpenBookingPrepayment'],
+      }),
+      'oa:validFromBeforeStartDate': dateRange({
+        minDate: moment(options.harvestStartTime).toISOString(),
+        allowNull: true,
+      }),
+      'oa:advanceBooking': advanceBookingOptionNodeConstraint({
+        blocklist: ['https://openactive.io/Unavailable'],
+      }),
+    }),
+  }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 

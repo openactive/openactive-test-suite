@@ -1,26 +1,10 @@
 const { expect } = require('chai');
-const config = require('config');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-
-const { paymentReconciliationDetails } = config.get('sellers').primary;
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
-
-/**
- * @param {() => ChakramResponse} responseAccessor This is wrapped in a
- *   function because the actual response won't be available until the
- *   asynchronous before() block has completed.
- */
-function itShouldReturnCorrectReconciliationDetails(responseAccessor) {
-  it('should return correct reconciliation details', () => {
-    const { payment } = responseAccessor().body;
-    // the payment will have other details like `identifier` - hence, `.include()`
-    expect(payment).to.include(paymentReconciliationDetails);
-  });
-}
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
@@ -33,6 +17,21 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const { paymentReconciliationDetails } = global.SELLER_CONFIG.primary;
+
+  /**
+   * @param {() => ChakramResponse} responseAccessor This is wrapped in a
+   *   function because the actual response won't be available until the
+   *   asynchronous before() block has completed.
+   */
+  function itShouldReturnCorrectReconciliationDetails(responseAccessor) {
+    it('should return correct reconciliation details', () => {
+      const { payment } = responseAccessor().body;
+      // the payment will have other details like `identifier` - hence, `.include()`
+      expect(payment).to.include(paymentReconciliationDetails);
+    });
+  }
+
   // The latter tests are rendered slightly pointless if the test config does not include paymentReconciliationDetails
   describe('the test config primary seller', () => {
     // https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation

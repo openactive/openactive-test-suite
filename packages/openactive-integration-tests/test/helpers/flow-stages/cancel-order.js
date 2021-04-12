@@ -1,4 +1,3 @@
-const { get } = require('lodash');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
@@ -47,16 +46,17 @@ class CancelOrderFlowStage extends FlowStage {
    *     getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
    *   ```
    *
-   *  or, for a preceding B stage, just use `CancelOrderFlowStage.getFirstOrderItemIdFromB(b)`
+   *  or, for a preceding B stage, just use `CancelOrderFlowStage.getOrderItemIdForPosition0FromB(b)`
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
+   * @param {string} [args.testName]
    */
-  constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid }) {
+  constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid, testName }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
-      testName: 'Cancel Order',
+      testName: testName ?? 'Cancel Order',
       async runFn() {
         const orderItemIdArray = getOrderItemIdArray();
         return await runCancelOrder({
@@ -73,24 +73,13 @@ class CancelOrderFlowStage extends FlowStage {
   }
 
   /**
-   * @param {() => unknown} getOrder e.g. `() => b.getOutput().httpResponse.body`.
-   *   Function which returns an Order with OrderItems.
-   */
-  static getFirstOrderItemId(getOrder) {
-    return () => {
-      const order = getOrder();
-      return [get(order, ['orderedItem', 0, '@id'])];
-    };
-  }
-
-  /**
-   * Create a `getOrderItemId` function which gets the 1st OrderItem's ID from
-   * a B FlowStage's output.
+   * Create a `getOrderItemIdForPosition0FromB` function which gets the "@id" of the
+   * OrderItem with position 0 of the FlowStage's output.
    *
    * @param {BFlowStageType} bFlowStage
    */
-  static getFirstOrderItemIdFromB(bFlowStage) {
-    return CancelOrderFlowStage.getFirstOrderItemId(() => bFlowStage.getOutput().httpResponse.body);
+  static getOrderItemIdForPosition0FromB(bFlowStage) {
+    return () => CancelOrderFlowStage.getOrderItemIdsByPositionFromB(bFlowStage, [0])();
   }
 
   /**
@@ -103,6 +92,12 @@ class CancelOrderFlowStage extends FlowStage {
       const orderItems = order.orderedItem;
       const orderItemIds = orderItemPositions.map((position) => {
         const orderItem = orderItems.find(o => o.position === position);
+        if (!orderItem) {
+          throw new Error(`An OrderItem with "position" value ${position} was not found`);
+        }
+        if (!orderItem['@id']) {
+          throw new Error(`The OrderItem with "position" value ${position} did not have an "@id" property`);
+        }
         return orderItem['@id'];
       });
 

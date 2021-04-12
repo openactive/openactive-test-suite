@@ -1,5 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
-const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
  * @typedef {{
@@ -15,6 +15,7 @@ const { createPaymentPart, additionalDetailsRequiredNotSupplied, additionalDetai
  *     },
  *   }[],
  *   brokerRole: string | null,
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} C2ReqTemplateData
  */
 
@@ -158,7 +159,7 @@ function createStandardC2WithoutOrderedItem(data) {
   const req = createStandardC2Req(data);
   req.orderedItem.forEach((orderedItem) => {
     const ret = orderedItem;
-    ret.orderedItem = null;
+    delete ret.orderedItem;
   });
 
   return req;
@@ -192,48 +193,33 @@ function createStandardC2WithoutAcceptedOffer(data) {
   const req = createStandardC2Req(data);
   req.orderedItem.forEach((orderedItem) => {
     const ret = orderedItem;
-    ret.acceptedOffer = null;
+    delete ret.acceptedOffer;
   });
   return req;
 }
+
 /**
- * C2 request with additional details required, but not supplied
+ * C2 request with additional details supplied
  *
  * @param {C2ReqTemplateData} data
  */
-function createAdditionalDetailsRequiredNotSuppliedC2Req(data) {
+function createAdditionalDetailsSuppliedC2Req(data) {
   const req = createStandardC2Req(data);
-  return additionalDetailsRequiredNotSupplied(req);
+  const isOrderIntakeResponseValid = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**
- * C2 request with additional details required and supplied
+ * C2 request with additional details required but invalidly supplied.
+ * The invalid details supplied are dynamically created depending on the type of additional
+ * details required (ShortAnswer, Paragraph, Dropdown, or Boolean)
  *
  * @param {C2ReqTemplateData} data
  */
-function createAdditionalDetailsRequiredAndSuppliedC2Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
-  return additionalDetailsRequiredAndSupplied(req);
-}
-
-/**
- * C2 request with additional details required, but invalid boolean value supplied
- *
- * @param {C2ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
-  return additionalDetailsRequiredInvalidBooleanSupplied(req);
-}
-
-/**
- * C2 request with additional details required, but invalid dropdown value supplied
- *
- * @param {C2ReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedC2Req(data);
-  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+function createAdditionalDetailsRequiredInvalidSuppliedC2Req(data) {
+  const req = createStandardC2Req(data);
+  const isOrderIntakeResponseValid = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**
@@ -286,10 +272,8 @@ const c2ReqTemplates = {
   noOrderedItem: createStandardC2WithoutOrderedItem,
   noAcceptedOffer: createStandardC2WithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetailsC2Req,
-  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedC2Req,
-  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedC2Req,
-  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedC2Req,
-  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedC2Req,
+  additionalDetailsSupplied: createAdditionalDetailsSuppliedC2Req,
+  additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedC2Req,
   businessCustomer: createBusinessCustomerC2Req,
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,

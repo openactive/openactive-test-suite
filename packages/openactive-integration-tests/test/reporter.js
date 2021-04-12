@@ -1,21 +1,22 @@
+/* eslint-disable class-methods-use-this */
 const _ = require('lodash');
 const chalk = require('chalk');
 const mkdirp = require('mkdirp');
-const {promises: fs} = require("fs");
-const moment = require('moment');
+const { promises: fs } = require('fs');
 const rmfr = require('rmfr');
-const config = require('config');
-const axios = require("axios");
+const axios = require('axios');
 
-const {ReporterLogger} = require('./helpers/logger');
-const {ReportGenerator, SummaryReportGenerator} = require('./report-generator');
-const {CertificationWriter} = require('./certification/certification-writer');
-const {validateCertificateHtml} = require('./certification/certification-validator');
+const { ReporterLogger } = require('./helpers/logger');
+const { ReportGenerator, SummaryReportGenerator } = require('./report-generator');
+const { CertificationWriter } = require('./certification/certification-writer');
+const { validateCertificateHtml } = require('./certification/certification-validator');
+const { getConfigVarOrDefault, getConfigVarOrThrow } = require('./helpers/config-utils');
 
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
-const GENERATE_CONFORMANCE_CERTIFICATE = config.has('generateConformanceCertificate') && config.get('generateConformanceCertificate');
-const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? config.get('conformanceCertificateId') : null;
-const OUTPUT_PATH = config.get('outputPath');
+const GENERATE_CONFORMANCE_CERTIFICATE = getConfigVarOrDefault('integrationTests', 'generateConformanceCertificate', false);
+const CONFORMANCE_CERTIFICATE_ID = GENERATE_CONFORMANCE_CERTIFICATE ? getConfigVarOrThrow('integrationTests', 'conformanceCertificateId') : null;
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const CONSOLE_OUTPUT_LEVEL = getConfigVarOrThrow(null, 'consoleOutputLevel');
 
 class Reporter {
   constructor(globalConfig, options) {
@@ -28,12 +29,13 @@ class Reporter {
     // TODO: Replace the line below to remove any files that have not been created by this test run
     // To allow Markdown auto-reload features to work (as file must be updated, not deleted, between test runs)
     // await rmfr(`${OUTPUT_PATH}*.md`, {glob: true});
-    await rmfr(`${OUTPUT_PATH}json/*.json`, {glob: true});
-    await rmfr(`${OUTPUT_PATH}certification/*.html`, {glob: true});
+    await rmfr(`${OUTPUT_PATH}json/*.json`, { glob: true });
+    await rmfr(`${OUTPUT_PATH}certification/*.html`, { glob: true });
 
     // Used for validator remoteJsonCachePath
     await mkdirp('./tmp');
   }
+
   onTestStart(test) {
 
   }
@@ -43,16 +45,16 @@ class Reporter {
     if (Array.isArray(testResult.testResults) && testResult.testResults.length === 1 && testResult.testResults[0].fullName === '' && testResult.testResults[0].status === 'todo') return;
 
     try {
-      let testResults = testResult.testResults;
+      const { testResults } = testResult;
 
-      let grouped = _.groupBy(testResults, (spec) => spec.ancestorTitles.slice(0, 3).join(" "));
+      const grouped = _.groupBy(testResults, spec => spec.ancestorTitles.slice(0, 3).join(' '));
 
-      for (let [testIdentifier, groupedTests] of Object.entries(grouped)) {
-        let logger = new ReporterLogger(testIdentifier);
+      for (const [testIdentifier, groupedTests] of Object.entries(grouped)) {
+        const logger = new ReporterLogger(testIdentifier);
         await logger.load();
 
-        for (let testResult of groupedTests) {
-          logger.recordTestResult(testResult.ancestorTitles[3], testResult);
+        for (const singleTestResult of groupedTests) {
+          logger.recordTestResult(singleTestResult.ancestorTitles[3], singleTestResult);
         }
 
         logger.testFilePath = test.testFilePath;
@@ -60,11 +62,22 @@ class Reporter {
 
         await logger.writeMeta();
 
-        let reportGenerator = new ReportGenerator(logger);
-        await reportGenerator.report();
+        const reportGenerator = new ReportGenerator(logger);
+        await reportGenerator.report(CONSOLE_OUTPUT_LEVEL === 'dot');
+
+        if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+          for (let i = 0; i < testResult.testResults.length; i += 1) {
+            if (testResult.testResults[i].status === 'passed') {
+              process.stdout.write(chalk.green('.'));
+            } else if (testResult.testResults[i].status === 'pending') {
+              process.stdout.write('*');
+            } else {
+              process.stdout.write(chalk.red('F'));
+            }
+          }
+        }
       }
-    }
-    catch(exception) {
+    } catch (exception) {
       console.log(testResult);
       console.error('logger error', exception);
     }
@@ -72,11 +85,14 @@ class Reporter {
 
   // based on https://github.com/pierreroth64/jest-spec-reporter/blob/master/lib/jest-spec-reporter.js
   async onRunComplete(test, results) {
-    let datasetJson = await axios.get(MICROSERVICE_BASE + "/dataset-site");
+    let datasetJson = await axios.get(`${MICROSERVICE_BASE}/dataset-site`);
     datasetJson = datasetJson && datasetJson.data;
 
-    let loggers = await SummaryReportGenerator.getLoggersFromFiles();
-    let generator = new SummaryReportGenerator(loggers, datasetJson, CONFORMANCE_CERTIFICATE_ID);
+    // Add a separator in case CONSOLE_OUTPUT_LEVEL === 'dot'
+    console.log('\n');
+
+    const loggers = await SummaryReportGenerator.getLoggersFromFiles();
+    const generator = new SummaryReportGenerator(loggers, datasetJson, results, CONFORMANCE_CERTIFICATE_ID);
     await generator.report();
     await generator.writeSummaryMeta();
 
@@ -89,22 +105,22 @@ class Reporter {
       testResults,
       numTotalTests,
       numTodoTests,
-      startTime
+      startTime,
     } = results;
     console.log(chalk.white(`Ran ${numTotalTests - numTodoTests} tests in ${testDuration(startTime)}`));
     if (numPassedTests) {
       console.log(chalk.green(
-        `✅ ${numPassedTests} passing`
+        `✅ ${numPassedTests} passing`,
       ));
     }
     if (numFailedTests) {
       console.log(chalk.red(
-        `❌ ${numFailedTests} failing`
+        `❌ ${numFailedTests} failing`,
       ));
     }
     if (numPendingTests) {
       console.log(chalk.yellow(
-        `– ${numPendingTests} pending`
+        `– ${numPendingTests} pending`,
       ));
     }
 
@@ -114,6 +130,20 @@ class Reporter {
       testResults.filter(x => x.failureMessage !== null && x.testResults.length === 0).forEach((testFile) => {
         console.log(chalk.red(`- ${testFile.testFilePath}`));
         console.log(chalk.red(`  ${testFile.failureMessage}`));
+      });
+    }
+
+    // Catch any tests marked as pending, if all other tests have succeeded
+    if (numPendingTests > 0 && generator.summaryMeta.features.every(x => x.overallStatus === 'passed')) {
+      console.log(chalk.yellow('\n\nPending tests:'));
+      testResults.filter(x => x.numPendingTests > 0).forEach((testFile) => {
+        console.log(chalk.yellow(`- ${testFile.testFilePath}`));
+        testFile.testResults.filter(x => x.status === 'pending').forEach((testResult) => {
+          console.log(chalk.yellow(`  - ${testResult.fullName}: ${testResult.status}`));
+          testResult.failureMessages.forEach((failureMessage) => {
+            console.log(chalk.yellow(`    - ${failureMessage}`));
+          });
+        });
       });
     }
 
@@ -130,38 +160,43 @@ class Reporter {
         });
       });
     }
-    
+
     if (GENERATE_CONFORMANCE_CERTIFICATE) {
       if (numFailedTests > 0 || numFailedTestSuites > 0 || numRuntimeErrorTestSuites > 0) {
-        console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests passed."));
+        console.log(`\n${chalk.yellow('Conformance certificate could not be generated as not all tests passed.')}`);
       } else if (numPendingTests > 0) {
-          console.log('\n' + chalk.yellow("Conformance certificate could not be generated as not all tests were completed."));
-      } else { 
-        let certificationWriter = new CertificationWriter(loggers, generator, datasetJson, CONFORMANCE_CERTIFICATE_ID);
-        let html = await certificationWriter.generateCertificate();
+        console.log(`\n${chalk.yellow('Conformance certificate could not be generated as not all tests were completed.')}`);
+      } else {
+        const certificationWriter = new CertificationWriter(loggers, generator, datasetJson, CONFORMANCE_CERTIFICATE_ID);
+        const html = await certificationWriter.generateCertificate();
 
-        let validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
+        const validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
         if (!validationResult || !validationResult.valid) {
-          console.error('\n' + chalk.red(
-            "A valid conformance certificate could not be generated.\n\nIf you have not already done so, try simply running `npm start`, without specifying a specific test directory, to ensure that all tests are run for this feature configuration."
-          ));
+          console.error(`\n${chalk.red(
+            'A valid conformance certificate could not be generated.\n\nIf you have not already done so, try simply running `npm start`, without specifying a specific test subset, to ensure that all tests are run for this feature configuration.',
+          )}`);
           // Ensure that CI fails on validation error, without a stack trace
           process.exitCode = 1;
         } else {
-          await mkdirp(`${OUTPUT_PATH}certification`);
-          await fs.writeFile(certificationWriter.certificationOutputPath, html);
-          console.log('\n' + chalk.green(
-            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`
-          ));
+          const filename = 'index.html';
+          await mkdirp(certificationWriter.certificationOutputPath);
+          await fs.writeFile(certificationWriter.certificationOutputPath + filename, html);
+          console.log(`\n${chalk.green(
+            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath + filename} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
+          )}`);
         }
       }
     }
 
-    function testDuration(startTime) {
-      const delta = moment.duration(moment() - new Date(startTime));
-      const seconds = delta.seconds();
-      const millis = delta.milliseconds();
-      return `${seconds}.${millis} s`;
+    function testDuration(startTimeString) {
+      const millis = (new Date()).getTime() - (new Date(startTimeString)).getTime();
+      return millisToMinutesAndSeconds(millis);
+    }
+
+    function millisToMinutesAndSeconds(millis) {
+      const minutes = Math.floor(millis / 60000);
+      const seconds = ((millis % 60000) / 1000);
+      return `${minutes > 0 ? `${minutes}m ` : ''}${seconds.toFixed(3)}s`;
     }
   }
 }

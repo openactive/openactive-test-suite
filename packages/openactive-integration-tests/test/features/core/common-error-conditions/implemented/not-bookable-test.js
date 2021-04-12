@@ -38,7 +38,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'not-bookable',
   testName: 'Expect an OpportunityOfferPairNotBookableError when booking not bookable opportunity',
-  testDescription: 'Runs C1, C2 and B for an opportunity that is not bookable, expecting an OpportunityOfferPairNotBookableError to be returned',
+  testDescription: 'Runs C1, C2 and B for an opportunity that is not bookable, expecting an OpportunityOfferPairNotBookableError to be returned at C1 and C2, and an UnableToProcessOrderItemError to be returned at B',
   // The primary opportunity criteria to use for the primary OrderItem under test
   // TODO Note:Should use opportunity criteria: TestOpportunityNotBookableViaAvailableChannel? but it didn't find anything there so I replicated similar to test: opportunity-outside-range-c1-c2 because they produce same error?
   testOpportunityCriteria: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
@@ -86,6 +86,6 @@ FeatureHelper.describeFeature(module, {
       .beforeSetup()
       .validationTests();
 
-    itShouldReturnAnOpenBookingError('OpportunityOfferPairNotBookableError', 409, () => state.bResponse);
+    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => state.bResponse);
   });
 });

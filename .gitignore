@@ -1,5 +1,6 @@
 # OA output
 output
+conformance
 tmp
 
 # Created by .ignore support plugin (hsz.mobi)
@@ -158,6 +159,7 @@ $RECYCLE.BIN/
 **/config/*
 !**/config/default.json
 !**/config/default-ci.json
+!**/config/default-dev.json
 !**/config/.example.*.json 
 
 # JetBrains IDE files

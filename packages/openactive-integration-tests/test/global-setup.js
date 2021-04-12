@@ -1,39 +1,42 @@
-const assert = require("assert");
-const axios = require("axios");
-const config = require("config");
+const assert = require('assert');
+const axios = require('axios');
+const { getConfigVarOrThrow } = require('./helpers/config-utils');
 
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
-const TEST_DATASET_IDENTIFIER = config.get("testDatasetIdentifier");
-const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
+const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
+const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+// Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
+const { silentlyAllowInsecureConnections } = require('./helpers/suppress-unauthorized-warning');
+
+silentlyAllowInsecureConnections();
 
 async function ping() {
-  let response = await axios.get(MICROSERVICE_BASE + "/health-check", {
+  const response = await axios.get(`${MICROSERVICE_BASE}/health-check`, {
     timeout: 1000 * 60 * 30,
   });
 
-  assert.strictEqual(response.data, "openactive-broker");
+  assert.strictEqual(response.data, 'openactive-broker');
 
   return true;
 }
 
 async function getEndpointUrl() {
-  const response = await axios.get(MICROSERVICE_BASE + "/config");
+  const response = await axios.get(`${MICROSERVICE_BASE}/config`);
 
   if (!(response && response.data && response.data.bookingApiBaseUrl)) {
-    throw new Error("Dataset Site JSON-LD does not contain an accessService.endpointURL");
+    throw new Error('Dataset Site JSON-LD does not contain an accessService.endpointURL');
   }
 
   return response.data.bookingApiBaseUrl;
 }
 
 async function deleteTestDataset(testInterfaceBaseUrl) {
-  let response = await axios.delete(`${testInterfaceBaseUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
+  const response = await axios.delete(`${testInterfaceBaseUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
     {
-      timeout: 10000
-    }
-  );
+      timeout: 10000,
+    });
 
   assert.strictEqual(response.status, 204);
 
@@ -41,20 +44,24 @@ async function deleteTestDataset(testInterfaceBaseUrl) {
 }
 
 module.exports = async () => {
+  if (Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).length === 0) {
+    throw new Error('There are no opportunity types selected for testing. Please ensure `bookableOpportunityTypesInScope` contains at least one value set to `true`.');
+  }
+  console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).map(([k]) => `'${k}'`).join(', ')}`);
   try {
-    console.log("Waiting for broker microservice to be ready...")
+    console.log('Waiting for broker microservice to be ready...');
     await ping();
   } catch (error) {
-    throw new Error("The broker microservice is unreachable. This is a pre-requisite for the test suite. \n" + error);
+    throw new Error(`The broker microservice is unreachable. This is a pre-requisite for the test suite. \n${error}`);
   }
 
-  let endpointUrl = await getEndpointUrl();
-  let testInterfaceBaseUrl = USE_RANDOM_OPPORTUNITIES ? MICROSERVICE_BASE : endpointUrl;
+  const endpointUrl = await getEndpointUrl();
+  const testInterfaceBaseUrl = USE_RANDOM_OPPORTUNITIES ? MICROSERVICE_BASE : endpointUrl;
 
   try {
-    console.log(`Deleting test dataset '${TEST_DATASET_IDENTIFIER}' within ${USE_RANDOM_OPPORTUNITIES ? 'local broker microservice' : 'booking system'}...`)
+    console.log(`Deleting test dataset '${TEST_DATASET_IDENTIFIER}' within ${USE_RANDOM_OPPORTUNITIES ? 'local broker microservice' : 'booking system'}...`);
     await deleteTestDataset(testInterfaceBaseUrl);
   } catch (error) {
-    throw new Error("The test interface is unreachable. This is a pre-requisite for the test suite. \n" + error);
+    throw new Error(`The test interface is unreachable. This is a pre-requisite for the test suite. \n${error}`);
   }
 };

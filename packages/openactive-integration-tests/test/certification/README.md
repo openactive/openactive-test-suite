@@ -5,7 +5,7 @@ An OpenActive Conformance Certificate offers a mechanism by which implementing s
 ## Example certificate
 
 An example conformance certificate can be found here:
-https://openactive.io/openactive-test-suite/example-output/controlled/certification/
+https://certificates.reference-implementation.openactive.io/examples/all-features/random/
 
 Note that this example is frequently generated for the OpenActive .NET Reference Implementation as part of the CI of the OpenActive Test Suite itself.
 
@@ -19,7 +19,7 @@ A Conformance Certificate is issued to cover a subset of the features of the spe
 
 Certificates are designed to be published frequently, to demonstrate continued conformance, especially as the test suite is improved to test for additional edge cases within the features selected.
 
-To obtain a certificate, simply update `default.json` within `packages/openactive-integration-tests/config/` with the following:
+To obtain a certificate, simply update your `config/dev.json` with the following:
 
 ```json
   "generateConformanceCertificate": true,

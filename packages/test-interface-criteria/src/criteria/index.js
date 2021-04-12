@@ -20,7 +20,10 @@ const { TestOpportunityBookableNonFreePrepaymentRequired } = require('./TestOppo
 const { TestOpportunityBookableFreePrepaymentOptional } = require('./TestOpportunityBookableFreePrepaymentOptional');
 const { TestOpportunityBookableFreePrepaymentRequired } = require('./TestOpportunityBookableFreePrepaymentRequired');
 const { TestOpportunityBookableAttendeeDetails } = require('./TestOpportunityBookableAttendeeDetails');
+const { TestOpportunityBookableAdditionalDetails } = require('./TestOpportunityBookableAdditionalDetails');
 const { TestOpportunityBookableSellerTermsOfService } = require('./TestOpportunityBookableSellerTermsOfService');
+const { TestOpportunityOnlineBookable } = require('./TestOpportunityOnlineBookable');
+const { TestOpportunityOfflineBookable } = require('./TestOpportunityOfflineBookable');
 
 module.exports = {
   allCriteria: [
@@ -46,6 +49,9 @@ module.exports = {
     TestOpportunityBookableFreePrepaymentOptional,
     TestOpportunityBookableFreePrepaymentRequired,
     TestOpportunityBookableAttendeeDetails,
+    TestOpportunityBookableAdditionalDetails,
     TestOpportunityBookableSellerTermsOfService,
+    TestOpportunityOnlineBookable,
+    TestOpportunityOfflineBookable,
   ],
 };

@@ -13,6 +13,21 @@ const pMemoize = require('p-memoize');
  */
 
 /**
+ * @typedef {{
+ *  '@type': 'ShortAnswerFormFieldSpecification'|'DropdownFormFieldSpecification'| 'ParagraphFormFieldSpecification' | 'BooleanFormFieldSpecification',
+ *  '@id': string,
+ *  valueOption? : string[],
+ *  [k:string]: any
+ * }} PropertyValueSpecification
+ * @typedef {PropertyValueSpecification[]} OrderItemIntakeForm
+ * @typedef {{
+ *  '@type': 'PropertyValue',
+ *  propertyID: string,
+ *  value: string | boolean
+ * }} PropertyValue
+ */
+
+/**
  * @typedef {object} FlowStageOutput State which may be outputted by a FlowStage
  * @property {ChakramResponse} [httpResponse] HTTP response, produced by some stages.
  *   e.g. C2 would return an httpResponse with the response from calling C2.
@@ -38,24 +53,13 @@ const pMemoize = require('p-memoize');
  *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
- * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
- *   Order Feed updates.
+ *  @property {{ [k:number]: OrderItemIntakeForm }} [positionOrderIntakeFormMap]
+ *   A map with OrderItem position and it's OrderItemIntakeForm.
+ *   If the OrderItem does not need additional details, this map will just be null.
+ *   If present, this will only be on the C1FlowStage output as that is the only
+ *   time the `orderItemIntakeForm` is defined.
+ *   Optional because OrderItems do not need to have an `orderItemIntakeForm`
  *
- *   Because an Order Feed update check must be initiated before another stage and then
- *   collected after that stage has completed (e.g. initiate before a cancellation stage
- *   and then collect the result after), this promise is persisted, so that the
- *   result can be collected by resolving it.
- *
- *   The response will be for an RPDE item with `{ kind, id, state, data, ...etc }`.
- * @property {Promise<ChakramResponse[]>} [getOpportunitiesFromOpportunityFeedPromise]
- *   Used for Opportunity Feed updates.
- *
- *   Because an Opportunity Feed update check must be initiated before another stage
- *   and then collected after that stage has completed (e.g. initiate before a Change
- *   of Logistics (TestInterface action) stage and then collect the result after),
- *   this promise is persisted, so that the result can be collected by resolving it.
- *
- *   The response will be for an array of RPDE items with `{ kind, id, state, data, ...etc }`.
  */
 /**
  * @template {FlowStageOutput} TOutput

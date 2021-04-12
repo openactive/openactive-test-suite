@@ -1,18 +1,16 @@
 const _ = require('lodash');
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
-const config = require('config');
 const RequestHelper = require('./request-helper');
 const { generateUuid } = require('./generate-uuid');
 const { getPrepaymentFromOrder } = require('./order-utils');
+const { getSellerConfigFromSellerCriteria } = require('./sellers');
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  */
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const SELLER_CONFIG = config.get('sellers');
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, SELLER_CONFIG, USE_RANDOM_OPPORTUNITIES } = global;
 
 function isResponse20x(response) {
   if (!response || !response.response) return false;
@@ -46,8 +44,9 @@ class RequestState {
    *   Which template to use for U (cancellation) requests. Defaults to 'standard'
    * @param {string | null} [options.brokerRole]
    *    Broker role, if not provided will default to c1, c2, or b request default broker role.
+   * @param {{[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}} [options.positionOrderIntakeFormMap]
    */
-  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole } = {}) {
+  constructor(logger, { uuid, c1ReqTemplateRef, c2ReqTemplateRef, bReqTemplateRef, uReqTemplateRef, brokerRole, positionOrderIntakeFormMap } = {}) {
     this.requestHelper = new RequestHelper(logger);
     if (uuid) {
       this._uuid = uuid;
@@ -57,6 +56,7 @@ class RequestState {
     this._bReqTemplateRef = bReqTemplateRef;
     this._uReqTemplateRef = uReqTemplateRef;
     this.brokerRole = brokerRole;
+    this.positionOrderIntakeFormMap = positionOrderIntakeFormMap;
   }
 
   get uuid() {
@@ -98,8 +98,7 @@ class RequestState {
         return await reusableOpportunityPromises.get(orderItemCriteriaItem.opportunityReuseKey);
       }
 
-      const sellerKey = orderItemCriteriaItem.seller || 'primary';
-      const seller = SELLER_CONFIG[sellerKey];
+      const seller = getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria);
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
         ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
         : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
@@ -304,7 +303,7 @@ class RequestState {
   }
 
   get orderItemIdArray() {
-    if (!this.bResponse) return;
+    if (!this.bResponse) { return null; }
 
     if (this.bResponse.body && this.bResponse.body.orderedItem) {
       return [this.bResponse.body.orderedItem[0]['@id']];

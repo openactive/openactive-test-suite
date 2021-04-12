@@ -16,11 +16,6 @@ See `{{{ markdownPath }}}` for more detailed info.
       {{{extractMessage . }}}
         {{/each}}
     {{/logsFor}}
-    {{#logsFor . "validations"}}
-        {{#each validations }}
-  {{ consoleValidationIcon severity }} {{{ path }}}: {{{firstLine message}}}
-        {{/each}}
-    {{/logsFor}}
 {{/each}}
 
 {{#logsFor null "request"}}

@@ -1,25 +1,21 @@
 const chakram = require('chakram');
-const config = require('config');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
 const { pReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
+const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
 
 /**
- * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
- * @typedef {import('./sellers').SellerConfig} SellerConfig
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
  */
 
-
-/** @type {SellerConfig['requestHeaders']} */
-const DEFAULT_REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
-
-const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
-
+const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
 class RequestHelper {
   /**
@@ -28,7 +24,7 @@ class RequestHelper {
    */
   constructor(logger, sellerConfig) {
     this.logger = logger;
-    this._sellerConfig = sellerConfig;
+    this._sellerConfig = sellerConfig ?? SELLER_CONFIG.primary;
   }
 
   /**
@@ -113,10 +109,20 @@ class RequestHelper {
   }
 
   _getSellerRequestHeaders() {
-    if (this._sellerConfig) {
-      return this._sellerConfig.requestHeaders;
-    }
-    return DEFAULT_REQUEST_HEADERS;
+    // If broker microservice authentication fails, no accessToken will be supplied
+    const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.primary?.access_token;
+    const requestHeaders = this._sellerConfig?.authentication?.requestHeaders;
+    return {
+      ...(!accessToken ? undefined : {
+        Authorization: `Bearer ${accessToken}`,
+      }),
+      ...requestHeaders,
+    };
+    // if (this._sellerConfig) {
+    //   return this._sellerConfig.authentication.requestHeaders;
+    //   // return this._sellerConfig.requestHeaders;
+    // }
+    // return DEFAULT_REQUEST_HEADERS;
   }
 
   createHeaders() {
@@ -124,99 +130,6 @@ class RequestHelper {
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
       ...this._getSellerRequestHeaders(),
     };
-  }
-
-  /**
-   * @param {string} opportunityType
-   * @param {string} testOpportunityCriteria
-   * @param {string | null} [sellerId]
-   * @param {string | null} [sellerType]
-   */
-  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
-    let template = null;
-    const seller = sellerId ? {
-      '@type': sellerType,
-      '@id': sellerId,
-    } : undefined;
-    switch (opportunityType) {
-      case 'ScheduledSession':
-        template = {
-          '@type': 'ScheduledSession',
-          superEvent: {
-            '@type': 'SessionSeries',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'FacilityUseSlot':
-        template = {
-          '@type': 'Slot',
-          facilityUse: {
-            '@type': 'FacilityUse',
-            provider: seller,
-          },
-        };
-        break;
-      case 'IndividualFacilityUseSlot':
-        template = {
-          '@type': 'Slot',
-          facilityUse: {
-            '@type': 'IndividualFacilityUse',
-            provider: seller,
-          },
-        };
-        break;
-      case 'CourseInstance':
-        template = {
-          '@type': 'CourseInstance',
-          organizer: seller,
-        };
-        break;
-      case 'CourseInstanceSubEvent':
-        template = {
-          '@type': 'Event',
-          superEvent: {
-            '@type': 'CourseInstance',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'HeadlineEvent':
-        template = {
-          '@type': 'HeadlineEvent',
-          organizer: seller,
-        };
-        break;
-      case 'HeadlineEventSubEvent':
-        template = {
-          '@type': 'Event',
-          superEvent: {
-            '@type': 'HeadlineEvent',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'Event':
-        template = {
-          '@type': 'Event',
-          organizer: seller,
-        };
-        break;
-      case 'OnDemandEvent':
-        template = {
-          '@type': 'OnDemandEvent',
-          organizer: seller,
-        };
-        break;
-      default:
-        throw new Error('Unrecognised opportunity type');
-    }
-    template['@context'] = [
-      'https://openactive.io/',
-      'https://openactive.io/test-interface',
-    ];
-    template['test:testOpportunityCriteria'] = `https://openactive.io/test-interface#${testOpportunityCriteria}`;
-    return template;
   }
 
   /**
@@ -247,6 +160,46 @@ class RequestHelper {
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
+      {
+        timeout: 60000,
+      },
+    );
+
+    return respObj;
+  }
+
+  /**
+   * @param {'opportunities'|'orders'} type
+   * @param {string} id
+   * @param {number} [orderItemPosition]
+   */
+  async postFeedChangeListener(type, id, orderItemPosition) {
+    const respObj = await this.post(
+      type === 'orders'
+        ? `Orders Feed listen for '${id}' change`
+        : `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
+      null,
+      {
+        timeout: 60000,
+      },
+    );
+
+    return respObj;
+  }
+
+  /**
+   * @param {'opportunities'|'orders'} type
+   * @param {string} id
+   * @param {number} [orderItemPosition]
+
+   */
+  async getFeedChangeCollection(type, id, orderItemPosition) {
+    const respObj = await this.get(
+      type === 'orders'
+        ? `Orders Feed collect for '${id}' change`
+        : `Opportunity Feed collect for OrderItem ${orderItemPosition} change`,
+      `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
       {
         timeout: 60000,
       },
@@ -388,7 +341,7 @@ class RequestHelper {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
+      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         headers: this.createHeaders(),
         timeout: 10000,
@@ -402,7 +355,7 @@ class RequestHelper {
     const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
+      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
       {
         timeout: 10000,
       },
@@ -449,7 +402,7 @@ class RequestHelper {
     const response = await this.post(
       `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
       `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
+      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria),
       {
         timeout: 10000,
       },
@@ -461,7 +414,7 @@ class RequestHelper {
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */
-  async deleteOrder(uuid, params) {
+  async deleteOrder(uuid, params) { // eslint-disable-line no-unused-vars
     const respObj = await this.delete(
       'delete-order',
       `${BOOKING_API_BASE}/orders/${uuid}`,
@@ -501,12 +454,6 @@ class RequestHelper {
       },
     );
     return respObj;
-  }  
-
-  delay(t, v) {
-    return new Promise(function (resolve) {
-      setTimeout(resolve.bind(null, v), t);
-    });
   }
 }
 

@@ -5,15 +5,17 @@ const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
+const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
-const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
-
+const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
 /**
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('../types/OpportunityCriteria').SellerCriteria} SellerCriteria
  *
  * @typedef {(opportunityType: string) => OpportunityCriteria[]} CreateSingleOportunityCriteriaTemplateFn
  * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string) => boolean} RunOnlyIfTemplateFn
  *
  * @typedef {object} DescribeFeatureConfiguration Configuration for the describeFeature function
  * @property {string} testCategory
@@ -36,6 +38,8 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  * @property {boolean} [runOnce]
  * @property {boolean} [skipMultiple]
  * @property {boolean} [runOnlyIf]
+ * @property {boolean} [surviveAuthenticationFailure]
+ * @property {boolean} [surviveDynamicRegistrationFailure]
  * @property {number} [numOpportunitiesUsedPerCriteria] How many opportunities
  *   are used by the test per criteria. e.g. if each test iteration needs to
  *   fetch 2 opportunities, this number should be 2.
@@ -43,6 +47,8 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  *   Used to generate the docs for each test.
  *
  *   Defaults to 1.
+ * @property {string[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
+ *   certain types of opportunity (in the example provided, access-channel tests should not be run for facility slots)
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,
@@ -55,11 +61,16 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES } = global;
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
- *   criteriaRequirement: Map<string, number>,
+ *   criteriaRequirement: OpportunityCriteriaRequirements,
+ *   sellerCriteriaRequirements: SellerCriteriaRequirements,
  * }} TestModuleExports The CommonJS exports object that is assigned to each test's Node Module.
  *   This is used by the documentation generator to get data about the tests.
+ *
  *   `criteriaRequirement` is a map of how many of each opportunity criteria (e.g. TestOpportunityBookable)
- *   is required.
+ *   is required. THIS FIELD IS OBSOLETE. PLEASE USE sellerCriteriaRequirements, which groups requirements
+ *   by seller.
+ *
+ *   `sellerCriteriaRequirements`: { [sellerCriteria] => { [opportunityCriteria] => [number] } }
  */
 
 class FeatureHelper {
@@ -112,37 +123,45 @@ class FeatureHelper {
 
     if (global.documentationGenerationMode) {
       const numOpportunitiesUsedPerCriteria = _.defaultTo(configuration.numOpportunitiesUsedPerCriteria, 1);
-      /** @type {Map<string, number>} */
-      const criteriaRequirement = new Map();
+      const criteriaRequirement = new OpportunityCriteriaRequirements();
+      const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
       if (!configuration.runOnce) {
         /** @type {OpportunityCriteria[]} */
-        const orderItemCriteria = [].concat(
+        const orderItemCriteriaList = [].concat(
           singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
           configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0),
         );
 
-        orderItemCriteria.forEach((x) => {
-          if (!criteriaRequirement.has(x.opportunityCriteria)) criteriaRequirement.set(x.opportunityCriteria, 0);
-          criteriaRequirement.set(x.opportunityCriteria, criteriaRequirement.get(x.opportunityCriteria) + numOpportunitiesUsedPerCriteria);
-        });
+        for (const orderItemCriteria of orderItemCriteriaList) {
+          const sellerCriteria = orderItemCriteria.sellerCriteria || 'primary';
+          sellerCriteriaRequirements.get(sellerCriteria).add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
+          criteriaRequirement.add(orderItemCriteria.opportunityCriteria, numOpportunitiesUsedPerCriteria);
+        }
       }
-
 
       // This function mutates its arg, documentationModule
       // eslint-disable-next-line no-param-reassign
-      documentationModule.exports = /** @type {TestModuleExports} */(Object.assign({}, configuration, {
+      documentationModule.exports = /** @type {TestModuleExports} */({
+        ...configuration,
         criteriaRequirement,
-      }));
+        sellerCriteriaRequirements,
+      });
       return;
     }
 
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
+    const skipOpportunityTypes = _.defaultTo(configuration.skipOpportunityTypes, []);
 
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
-    if (!(configuration.runOnlyIf !== undefined && !configuration.runOnlyIf) && implemented === configuration.testFeatureImplemented) {
+    if (
+      !(configuration.runOnlyIf !== undefined && !configuration.runOnlyIf)
+      && implemented === configuration.testFeatureImplemented
+      && !(AUTHENTICATION_FAILURE && !configuration.surviveAuthenticationFailure)
+      && !(DYNAMIC_REGISTRATION_FAILURE && !configuration.surviveDynamicRegistrationFailure)
+    ) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {
           if (configuration.runOnce) {
@@ -162,21 +181,23 @@ class FeatureHelper {
           } else {
             // Create a new test for each opportunityType in scope
             opportunityTypesInScope.forEach((opportunityType) => {
-              describe(opportunityType, function () {
-                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
-                  config: configuration,
-                  description: configuration.testDescription,
-                  implemented,
-                  opportunityType,
+              if (!skipOpportunityTypes.includes(opportunityType)) {
+                describe(opportunityType, function () {
+                  const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
+                    config: configuration,
+                    description: configuration.testDescription,
+                    implemented,
+                    opportunityType,
+                  });
+
+                  const state = new RequestState(logger);
+                  const flow = new FlowHelper(state);
+
+                  const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
+
+                  tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
                 });
-
-                const state = new RequestState(logger);
-                const flow = new FlowHelper(state);
-
-                const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
-
-                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
-              });
+              }
             });
 
             if (!configuration.skipMultiple) {
@@ -196,7 +217,9 @@ class FeatureHelper {
                 // Create multiple orderItems covering all opportunityTypes in scope
                 if (multipleOpportunityCriteriaTemplate !== null) {
                   opportunityTypesInScope.forEach((opportunityType, i) => {
-                    orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                    if (!skipOpportunityTypes.includes(opportunityType)) {
+                      orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                    }
                   });
                 }
 
@@ -217,18 +240,16 @@ class FeatureHelper {
    * @param {DescribeFeatureConfiguration} configuration
    */
   static describeRequiredFeature(documentationModule, configuration) {
-    this.describeFeature(documentationModule, Object.assign({
-      testDescription: 'This feature is required by the specification and must be implemented.',
-    }, configuration),
+    this.describeFeature(documentationModule, { testDescription: 'This feature is required by the specification and must be implemented.', ...configuration },
     // eslint-disable-next-line no-unused-vars
-    function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
-      describe('Feature', function () {
-        it('must be implemented', () => {
+      function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
+        describe('Feature', function () {
+          it('must be implemented', () => {
           // eslint-disable-next-line no-unused-expressions
-          throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
+            throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
+          });
         });
       });
-    });
   }
 
   /**
@@ -238,11 +259,12 @@ class FeatureHelper {
    * }} configuration
    */
   static describeUnmatchedCriteriaFeature(documentationModule, configuration) {
-    this.describeFeature(documentationModule, Object.assign({
+    this.describeFeature(documentationModule, {
       testDescription: `Assert that no opportunities that match criteria ${configuration.unmatchedOpportunityCriteria.map(x => `'${x}'`).join(' or ')} are available in the opportunity feeds.`,
       skipMultiple: true,
-      runOne: false,
-    }, configuration),
+      runOnce: false,
+      ...configuration,
+    },
     function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType) {
       if (opportunityType != null) {
         configuration.unmatchedOpportunityCriteria.forEach((criteria) => {

@@ -9,7 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
-const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, additionalDetailsRequiredNotSupplied, additionalDetailsRequiredAndSupplied, additionalDetailsRequiredInvalidBooleanSupplied, additionalDetailsRequiredInvalidDropdownSupplied } = require('./common');
+const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
  * @typedef {import('../helpers/flow-stages/flow-stage').Prepayment} Prepayment
@@ -39,6 +39,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, additionalDeta
  *   orderProposalVersion: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} BReqTemplateData
  */
 
@@ -441,7 +442,7 @@ function createStandardBWithoutOrderedItem(data) {
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
-        ret.orderedItem = null;
+        delete ret.orderedItem;
       });
     }
     return req;
@@ -480,7 +481,7 @@ function createStandardBWithoutAcceptedOffer(data) {
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
         const ret = orderedItem;
-        ret.acceptedOffer = null;
+        delete ret.acceptedOffer;
       });
     }
     return req;
@@ -490,43 +491,27 @@ function createStandardBWithoutAcceptedOffer(data) {
 }
 
 /**
- * B request with additional details required, but not supplied
+ * B request with additional details supplied
  *
  * @param {BReqTemplateData} data
  */
-function createAdditionalDetailsRequiredNotSuppliedBReq(data) {
+function createAdditionalDetailsSuppliedBReq(data) {
   const req = createStandardPaidBReq(data);
-  return additionalDetailsRequiredNotSupplied(req);
+  const isOrderIntakeResponseValid = true;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**
- * B request with additional details required and supplied
+ * B request with additional details required but invalidly supplied.
+ * The invalid details supplied are dynamically created depending on the type of additional
+ * details required (ShortAnswer, Paragraph, Dropdown, or Boolean)
  *
  * @param {BReqTemplateData} data
  */
-function createAdditionalDetailsRequiredAndSuppliedBReq(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
-  return additionalDetailsRequiredAndSupplied(req);
-}
-
-/**
- * B request with additional details required, but invalid boolean value supplied
- *
- * @param {BReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
-  return additionalDetailsRequiredInvalidBooleanSupplied(req);
-}
-
-/**
- * B request with additional details required, but invalid dropdown value supplied
- *
- * @param {BReqTemplateData} data
- */
-function createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq(data) {
-  const req = createAdditionalDetailsRequiredNotSuppliedBReq(data);
-  return additionalDetailsRequiredInvalidDropdownSupplied(req);
+function createAdditionalDetailsRequiredInvalidSuppliedBReq(data) {
+  const req = createStandardPaidBReq(data);
+  const isOrderIntakeResponseValid = false;
+  return addOrderItemIntakeFormResponse(req, data.positionOrderIntakeFormMap, isOrderIntakeResponseValid);
 }
 
 /**
@@ -553,10 +538,8 @@ const bReqTemplates = {
   noOrderedItem: createStandardBWithoutOrderedItem,
   noAcceptedOffer: createStandardBWithoutAcceptedOffer,
   attendeeDetails: createAttendeeDetails,
-  additionalDetailsRequiredNotSupplied: createAdditionalDetailsRequiredNotSuppliedBReq,
-  additionalDetailsRequiredAndSupplied: createAdditionalDetailsRequiredAndSuppliedBReq,
-  additionalDetailsRequiredInvalidBooleanSupplied: createAdditionalDetailsRequiredInvalidBooleanSuppliedBReq,
-  additionalDetailsRequiredInvalidDropdownSupplied: createAdditionalDetailsRequiredInvalidDropdownSuppliedBReq,
+  additionalDetailsSupplied: createAdditionalDetailsSuppliedBReq,
+  additionalDetailsRequiredInvalidSupplied: createAdditionalDetailsRequiredInvalidSuppliedBReq,
 };
 
 /**

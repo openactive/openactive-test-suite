@@ -4,15 +4,19 @@ To join the conversation, we're on the [OpenActive Slack](https://slack.openacti
 
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
-This repository hosts two different projects:
-* [Broker microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
-* [Integration tests](./packages/openactive-integration-tests): this performs automated tests against the API.
+This repository hosts three different projects:
+* [OpenID Test Client](./packages/openactive-openid-test-client): this connects to the target Open Booking API's OpenID Provider. This allows the Broker and Integration tests to authorize with the implementation
+* [Broker Microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
+* [Integration Tests](./packages/openactive-integration-tests): this performs automated tests against the API.
 
 [The Roadmap](./ROADMAP.md) provides an overview of upcoming development milestones, and contributions are welcome.
 
 # Usage
 
+Briefly, you'll need to run the OpenID Test Client, Broker Microservice and the Integration Tests in order to test your Booking API.
+
 For more info, read the individual README.md within the package directories:
+* [OpenID Test Client](./packages/openactive-openid-test-client/)
 * [Broker microservice](./packages/openactive-broker-microservice/)
 * [Integration tests](./packages/openactive-integration-tests/)
 
@@ -32,6 +36,10 @@ A `local.json` file can be placed alongside each `default.json`, and the subset 
 A file named `{NODE_ENV}.json` can also be placed alongside the `default.json`, which is useful when maintaining multiple configurations.
 
 For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+
+## Test Data Requirements
+
+In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
 
 ## Installation
 ```bash

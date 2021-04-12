@@ -24,6 +24,7 @@ const TestOpportunityBookableCancellableOutsideWindow = createCriteria({
       mustBeOutsideCancellationWindow,
     ],
   ],
+  testDataShape: () => ({}), // TODO: Add data shape
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

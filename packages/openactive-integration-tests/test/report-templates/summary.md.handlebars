@@ -2,6 +2,11 @@
 
 Mode: **{{ useRandomOpportunitiesMode }}**
 
+{{#if testResultSummary.numPassedTests}}✅ {{ testResultSummary.numPassedTests }} passing
+{{/if}}{{#if testResultSummary.numFailedTests}}❌ {{ testResultSummary.numFailedTests }} failing
+{{/if}}{{#if testResultSummary.numPendingTests}}– {{ testResultSummary.numPendingTests }} pending
+{{/if}}
+
 {{#each opportunityTypeGroups }}
 {{ opportunityTypeName }}
 ---

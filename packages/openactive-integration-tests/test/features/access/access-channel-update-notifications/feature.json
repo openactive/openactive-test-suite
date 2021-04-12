@@ -1,0 +1,11 @@
+{
+  "category": "access",
+  "identifier": "access-channel-update-notifications",
+  "name": "accessChannel update notifications",
+  "description": "When accessChannel changes, make sure this change is supplied back to the Broker via the Orders feed",
+  "explainer": "",
+  "specificationReference": "https://github.com/openactive/open-booking-api/issues/176",
+  "required": false,
+  "coverageStatus": "complete",
+  "requiredCondition": "Required if an online opportunity's accessChannel can change"
+}

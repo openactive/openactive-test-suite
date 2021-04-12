@@ -4,9 +4,11 @@ const fs = require("fs").promises;
 const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
-const config = require("config");
-const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
-const OUTPUT_PATH = config.get('outputPath');
+const { getConfigVarOrThrow } = require('./helpers/config-utils');
+
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const ENABLE_HEADER_LOGGING = getConfigVarOrThrow('integrationTests', 'requestHeaderLogging');
 
 class BaseReportGenerator {
   get templateName () {
@@ -88,11 +90,17 @@ class BaseReportGenerator {
         const messageLineIndex = lines.indexOf('Message:') + 1;
         return messageLineIndex !== 0 ? lines[messageLineIndex] : lines[0];
       },
+      "ifEquals": function(arg1, arg2, options) {
+        return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+      },
       "pluralise": function(str, number) {
         return str + (number == 1 ? '' : 's');
       },
       "json": function(data, options) {
         return JSON.stringify(data, null, 2);
+      },
+      "headers": function(data, options) {
+        return ENABLE_HEADER_LOGGING && data && _.isObject(data.headers) ? `\n${Object.entries(data.headers).map(([k, v], i) => `* **${k}:** \`${JSON.stringify(v)}\`\n`).join('')}` : '';
       },
       "logsFor": (suite, type, options) => {
         let first = true;
@@ -157,8 +165,8 @@ class BaseReportGenerator {
     await fs.writeFile(this.reportMarkdownPath, data);
   }
 
-  async report () {
-    await this.outputConsole();
+  async report(silentOnConsole) {
+    if (!silentOnConsole) await this.outputConsole();
     await this.writeMarkdown();
   }
 
@@ -190,11 +198,12 @@ class ReportGenerator extends BaseReportGenerator {
 }
 
 class SummaryReportGenerator extends BaseReportGenerator {
-  constructor (loggers, datasetJson, conformanceCertificateId) {
+  constructor (loggers, datasetJson, results, conformanceCertificateId) {
     super();
     this.loggers = new LoggerGroup(this, loggers);
     this.datasetJson = datasetJson;
     this.conformanceCertificateId = conformanceCertificateId;
+    this.results = results;
   }
 
   static async getLoggersFromFiles () {
@@ -248,6 +257,10 @@ class SummaryReportGenerator extends BaseReportGenerator {
 
   get templateData () {
     return this;
+  }
+
+  get testResultSummary () {
+    return this.results;
   }
 
   get summaryMetaPath () {

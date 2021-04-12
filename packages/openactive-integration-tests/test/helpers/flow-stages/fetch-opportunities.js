@@ -1,6 +1,5 @@
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const _ = require('lodash');
-const config = require('config');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
@@ -14,6 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('../sellers').SellerConfig} SellerConfig
+ * @typedef {import('./flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 /**
@@ -28,6 +28,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *     '@id': string,
  *     [k: string]: any,
  *   };
+ *   orderItemIntakeForm?: OrderItemIntakeForm
+ *   orderItemIntakeFormResponse?: import('./flow-stage').PropertyValue[]
  *   'test:primary': boolean;
  *   'test:control': boolean;
  * }} OrderItem
@@ -38,8 +40,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {Required<Pick<FlowStageOutput, 'testInterfaceOpportunities' | 'opportunityFeedExtractResponses' | 'orderItems'>>} Output
  */
 
-const USE_RANDOM_OPPORTUNITIES = config.get('useRandomOpportunities');
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, USE_RANDOM_OPPORTUNITIES } = global;
 
 /**
  * @param {unknown} opportunity
