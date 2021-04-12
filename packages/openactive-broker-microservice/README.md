@@ -5,7 +5,7 @@ This Node.js microservice provides a service to harvest data and proxy calls to 
 ## Usage
 1. `npm install`
 2. `export NODE_ENV=dev`
-3. `npm start`
+3. `npm run start-broker`
 
 ## Configuration for `broker` within `./config/{NODE_ENV}.json`
 
