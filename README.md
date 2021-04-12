@@ -33,7 +33,7 @@ In order to run the test suite against your own implementation, configure the te
 
 The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
-For more information see the [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+For more information see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
 
 ## Installation
 ```bash
