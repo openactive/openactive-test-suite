@@ -27,7 +27,7 @@ npm start -- core
 Note that the above command only runs the "core" tests within the test suite, which should take around 60 seconds to complete.
 
 ## Configuration
-In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV`) environment variable), including the following properties:
+In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV` environment variable), including the following properties:
    - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration)
    - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration)
 
