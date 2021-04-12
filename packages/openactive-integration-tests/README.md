@@ -15,7 +15,7 @@ The results of this test suite when run against the reference implementation can
 
 To run `openactive-integration-tests` in separate terminal window to `openactive-broker-microservice`, from repository root:
 
-1. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running
+1. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running in another terminal window
 2. `export NODE_ENV=dev`
 3. `npm run start-tests`
 
