@@ -11,12 +11,12 @@ The results of this test suite when run against the reference implementation can
 - [Output when `"useRandomOpportunities": true`](https://openactive.io/openactive-test-suite/example-output/random/summary)
 - [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/example-output/controlled/summary)
 
-## Usage
+## Usage in separate terminal windows
 
-From repository root:
+To run `openactive-integration-tests` in separate terminal window to `openactive-broker-microservice`, from repository root:
 
-1. `npm install`
-2. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running, with  `export NODE_ENV=dev` set
+1. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running in another terminal window
+2. `export NODE_ENV=dev`
 3. `npm run start-tests`
 
 ### Running specific tests

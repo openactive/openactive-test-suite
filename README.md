@@ -4,14 +4,14 @@ To join the conversation, we're on the [OpenActive Slack](https://slack.openacti
 
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
-This repository hosts three different projects:
+Running `npm start` in the root will run the OpenActive Test Suite, which is actually comprised of three packages:
 * [OpenID Test Client](./packages/openactive-openid-test-client): this connects to the target Open Booking API's OpenID Provider. This allows the Broker and Integration tests to authorize with the implementation
 * [Broker Microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
 * [Integration Tests](./packages/openactive-integration-tests): this performs automated tests against the API.
 
 # Usage
 
-Briefly, running `npm start` will orchestrate running the [OpenID Test Client](./packages/openactive-openid-test-client/), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Booking API.
+Running `npm start` will orchestrate running the [OpenID Test Client](./packages/openactive-openid-test-client/), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Open Booking API implementation.
 
 ## Quick start
 
@@ -25,6 +25,8 @@ npm start -- core
 ```
 
 Note that the above command only runs the "core" tests within the test suite, which should take around 60 seconds to complete.
+
+The hosted OpenActive Reference Implementation is running on a basic developer tier Azure instance with a burst quota, so it will not handle the load of a test suite run for all tests (hence `npm start -- core`); if the hosted application shuts down, simply wait 5 minutes and try again.
 
 ## Configuration
 In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV` environment variable), including the following properties:
