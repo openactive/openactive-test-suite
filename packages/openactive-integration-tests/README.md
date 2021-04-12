@@ -11,7 +11,7 @@ The results of this test suite when run against the reference implementation can
 - [Output when `"useRandomOpportunities": true`](https://openactive.io/openactive-test-suite/example-output/random/summary)
 - [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/example-output/controlled/summary)
 
-## Usage
+## Usage in separate terminal windows
 
 To run `openactive-integration-tests` in separate terminal window to `openactive-broker-microservice`, from repository root:
 
