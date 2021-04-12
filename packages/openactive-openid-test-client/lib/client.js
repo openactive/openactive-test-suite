@@ -1,6 +1,10 @@
-const { Issuer, generators } = require('openid-client');
+const { Issuer, generators, custom } = require('openid-client');
 const { default: axios } = require('axios');
 const sleep = require('util').promisify(setTimeout);
+
+custom.setHttpOptionsDefaults({
+  timeout: 20000,
+});
 
 function throwIfNoIssuer(issuer) {
   if (!issuer) throw new Error('Please run `discover()` before using this client, or pass an explicit issuer');
