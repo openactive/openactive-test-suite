@@ -6,13 +6,19 @@ Booking with valid, invalid, and missing Payment details
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#payment-reconciliation-detail-validation
 
-Coverage Status: **none**
+Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
 [TestOpportunityBookableUsingPayment](https://openactive.io/test-interface#TestOpportunityBookableUsingPayment) x15, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x5
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/payment/payment-reconciliation-detail-validation/
+```
+
 
 
 ## 'Implemented' tests

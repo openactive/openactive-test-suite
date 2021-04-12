@@ -6,6 +6,6 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#other-notifications",
   "required": false,
-  "coverageStatus": "none",
+  "coverageStatus": "complete",
   "requiredCondition": "Required if accessCode can change"
 }

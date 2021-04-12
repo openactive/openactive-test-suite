@@ -6,6 +6,6 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#business-to-consumer-tax-calculation-by-booking-system-is-mandatory",
   "required": false,
-  "coverageStatus": "none",
+  "coverageStatus": "complete",
   "requiredCondition": "Required if system provides consumer VAT receipts, for the relevant tax mode"
 }

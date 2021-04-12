@@ -6,10 +6,16 @@ For multi-database booking systems where the customer manages Open Booking API c
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems
 
-Coverage Status: **none**
+Coverage Status: **complete**
 
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/authentication/dynamic-client-registration/
+```
+
 
 
 ## 'Implemented' tests

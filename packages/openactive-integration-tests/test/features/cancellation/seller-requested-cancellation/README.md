@@ -6,7 +6,7 @@ Cancellation triggered by the Seller through the Booking System
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#seller-requested-cancellation
 
-Coverage Status: **none**
+Coverage Status: **complete**
 
 See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-6-orders-feed)
 ### Test prerequisites
@@ -14,7 +14,13 @@ Opportunities that match the following criteria must exist in the booking system
 
 [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/cancellation/seller-requested-cancellation/
+```
+
 
 
 ## 'Implemented' tests

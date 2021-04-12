@@ -6,6 +6,6 @@
   "explainer": "",
   "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#minimal-proposal-implementation",
   "required": true,
-  "coverageStatus": "partial",
+  "coverageStatus": "complete",
   "links": []
 }

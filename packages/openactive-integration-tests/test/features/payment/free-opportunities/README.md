@@ -6,7 +6,7 @@ The most simple form of booking, for free opportunities. Does not check for leas
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#free-opportunities
 
-Coverage Status: **partial**
+Coverage Status: **complete**
 
 See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-5-b-and-delete-order)
 ### Test prerequisites

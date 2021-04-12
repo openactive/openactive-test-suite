@@ -6,7 +6,7 @@ Tests C1, C2 and B for common error conditions applicable to all implementations
 
 https://openactive.io/open-booking-api/EditorsDraft/#error-model
 
-Coverage Status: **partial**
+Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 

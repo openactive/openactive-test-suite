@@ -6,10 +6,16 @@ OAuth based authentication for Sellers
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems
 
-Coverage Status: **none**
+Coverage Status: **complete**
 
 
-*Note the test coverage for this feature is currently nonexistent. The test suite does not yet include non-stubbed tests for this feature.*
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/authentication/booking-partner-authentication/
+```
+
 
 
 ## 'Implemented' tests

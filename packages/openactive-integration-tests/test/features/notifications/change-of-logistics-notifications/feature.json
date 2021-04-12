@@ -6,6 +6,6 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#change-of-logistics-notifications",
   "required": false,
-  "coverageStatus": "none",
+  "coverageStatus": "complete",
   "requiredCondition": "Required if logistics of event can change"
 }
