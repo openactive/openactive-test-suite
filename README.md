@@ -38,6 +38,9 @@ The test suite uses the file `config/{NODE_ENV}.json` to override the settings i
 For more information see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
 
 ## Installation
+
+Node.js version 14 or above is required.
+
 ```bash
 npm install
 ```
