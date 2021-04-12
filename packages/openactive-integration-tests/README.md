@@ -100,6 +100,32 @@ The value can be any string, such as `uat-ci`, or `alex-dev`.
 
 Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
 
+
+## Configuration for `sellers` within `./config/{NODE_ENV}.json`
+
+The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
+
+The `primary` Seller `requestHeaders` are used for calls to the booking system for all tests, and can be used to configure authentication specific to that Seller.
+
+```json
+  "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
+      "authentication": {
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
+        }
+      },
+    },
+    "secondary": {
+      "@type": "Person",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1"
+    }
+  }
+```
+
 ## Reading test results
 
 To read the markdown files that are written to the directory specified by `outputPath`, the [Markdown Viewer Chrome Extension](https://chrome.google.com/webstore/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk) is recommended, with the following settings:
