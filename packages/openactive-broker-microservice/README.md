@@ -2,9 +2,9 @@
 
 This Node.js microservice provides a service to harvest data and proxy calls to an Open Booking API
 
-## Usage
+## Usage in separate terminal windows
 
-From repository root:
+To run `openactive-broker-microservice` in separate terminal window to `openactive-integration-tests`, from repository root:
 
 1. `npm install`
 2. `export NODE_ENV=dev`
