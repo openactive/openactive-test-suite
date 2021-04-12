@@ -6,17 +6,6 @@ This Node.js script runs tests against the specified openactive-broker-microserv
 
 See [Feature Test Coverage](./test/features/README.md) for full details.
 
-### What this test suite does
-
-* Runs a complete happy-path test for the most basic version of the Simple Booking Flow, including cancellation ([customer-requested-cancellation](./test/features/cancellation/customer-requested-cancellation/README.md))
-* Includes smaller subsets of the flow ([availability-check](./test/features/core/availability-check/README.md), [simple-book-free-opportunities](./test/features/core/simple-book-free-opportunities/README.md), [simple-book-with-payment](./test/features/payment/simple-book-with-payment/README.md)), to allow for the happy-path to be built up incrementally, in line with the [.NET tutorial](https://tutorials.openactive.io/open-booking-sdk/quick-start-guide/storebookingengine/day-1-fake-implementation)
-* Runs additional tests that cover the dataset site ([dataset-site](./test/features/core/dataset-site/README.md)) and test interface ([test-interface](./test/features/core/test-interface/README.md))
-
-### What this test suite doesn’t do (yet)
-
-* Un-happy path tests that cover error conditions and edge cases (all flows [do not have full coverage](./test/features/README.md#partial-test-coverage)).
-* Coverage for any feature outside of the most basic version of Simple Booking Flow (most features have [no test coverage](./test/features/README.md#no-test-coverage)).
-
 ## Model results
 The results of this test suite when run against the reference implementation can be found:
 - [Output when `"useRandomOpportunities": true`](https://openactive.io/openactive-test-suite/example-output/random/summary)
