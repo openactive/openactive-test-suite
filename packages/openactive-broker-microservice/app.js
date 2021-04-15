@@ -17,6 +17,7 @@ const fs = require('fs').promises;
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
+const { validate } = require('@openactive/data-model-validator');
 
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
@@ -28,9 +29,11 @@ const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauth
 
 const markdown = new Remarkable();
 
-const DATASET_SITE_URL = config.get('broker.datasetSiteUrl');
+const VALIDATE_ONLY = process.argv.includes('--validate-only');
+
+const DATASET_SITE_URL = VALIDATE_ONLY ? process.argv[3] : config.get('broker.datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
-const WAIT_FOR_HARVEST = config.get('broker.waitForHarvestCompletion');
+const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarvestCompletion');
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
 
@@ -328,7 +331,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
           progressbar.setTotal(context.totalItemsQueuedForValidation);
           initialHarvestComplete = true;
         }
-        if (WAIT_FOR_HARVEST) {
+        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
           await setFeedIsUpToDate(feedIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
@@ -383,7 +386,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       numberOfRetries = 0;
     } catch (error) {
       // Do not wait for the Orders feed if failing (as it might be an auth error)
-      if (WAIT_FOR_HARVEST && doNotStallForThisFeed) {
+      if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && doNotStallForThisFeed) {
         setFeedIsUpToDate(feedIdentifier);
       }
       if (error instanceof FatalError) {
@@ -401,7 +404,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
           throw error;
         }
       } else if (error.response.status === 404) {
-        if (WAIT_FOR_HARVEST) await setFeedIsUpToDate(feedIdentifier);
+        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
         log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
         // Stop polling feed
         return;
@@ -579,6 +582,11 @@ async function setFeedIsUpToDate(feedIdentifier) {
           // User interaction is not required to exit, for compatibility with CI
           await sleep(60000);
           throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
+        }
+
+        if (VALIDATE_ONLY) {
+          log(chalk.bold.green('\nFeed validation passed'));
+          process.exit(0);
         }
 
         unlockHealthCheck();
@@ -1371,49 +1379,81 @@ async function startPolling() {
 
   log(`Dataset Site JSON-LD: ${JSON.stringify(dataset, null, 2)}`);
 
+  if (!dataset) {
+    logError(`
+Error: Unable to read valid JSON-LD from Dataset Site. Please try loading the
+Dataset Site URL in validator.openactive.io to confirm that the contents of
+<script type="application/ld+json"> ... </script> within the HTML is valid.
+`);
+
+    throw new Error('Unable to read valid JSON-LD from Dataset Site.');
+  }
+
+  // Validate dataset site JSON-LD
+  const datasetSiteErrors = (await validate(dataset, {
+    loadRemoteJson: true,
+    remoteJsonCachePath: VALIDATOR_TMP_DIR,
+    remoteJsonCacheTimeToLive: 3600,
+    validationMode: 'DatasetSite',
+  }))
+    .filter((result) => result.severity === 'failure')
+    .map((error) => `${error.path}: ${error.message.split('\n')[0]}`);
+
+  if (datasetSiteErrors.length > 0) {
+    logError(`
+Error: Dataset Site JSON-LD contained validation errors. Please try loading the
+Dataset Site URL in validator.openactive.io to confirm that the contents of
+<script type="application/ld+json"> ... </script> within the HTML is valid.
+
+Validation errors found in Dataset Site JSON-LD:
+- ${datasetSiteErrors.join('\n- ')}
+
+`);
+
+    throw new Error('Unable to read valid JSON-LD from Dataset Site.');
+  }
+
   // Set global based on data result
   datasetSiteJson = dataset;
 
-  if (!dataset || !Array.isArray(dataset.distribution)) {
-    throw new Error('Unable to read valid JSON-LD from Dataset Site. Please try loading the Dataset Site URL in validator.openactive.io to confirm it is valid.');
-  }
+  if (!VALIDATE_ONLY) {
+    if (dataset.accessService?.authenticationAuthority) {
+      try {
+        await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
+      } catch (error) {
+        if (error instanceof FatalError) {
+          // If a fatal error, just rethrow
+          throw error;
+        }
+        logError(`
+  OpenID Connect Authentication Error: ${error.stack}
 
-  if (dataset.accessService?.authenticationAuthority) {
-    try {
-      await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
-    } catch (error) {
-      if (error instanceof FatalError) {
-        // If a fatal error, just rethrow
-        throw error;
+
+
+
+  ***************************************************************************
+  |                   OpenID Connect Authentication Error!                  |
+  |                                                                         |
+  | NOTE: Due to OpenID Connect Authentication failure, tests unrelated to  |
+  | authentication will not run and open data harvesting will be skipped.   |
+  | Please use the 'authentication' tests to debug authentication,          |
+  | in order to allow other tests to run.                                   |
+  |                                                                         |
+  ***************************************************************************
+
+
+
+  `);
+        // Skip harvesting
+        unlockHealthCheck();
+        return;
       }
-      logError(`
-OpenID Connect Authentication Error: ${error.stack}
-
-
-
-
-***************************************************************************
-|                   OpenID Connect Authentication Error!                  |
-|                                                                         |
-| NOTE: Due to OpenID Connect Authentication failure, tests unrelated to  |
-| authentication will not run and open data harvesting will be skipped.   |
-| Please use the 'authentication' tests to debug authentication,          |
-| in order to allow other tests to run.                                   |
-|                                                                         |
-***************************************************************************
-
-
-
-`);
-      // Skip harvesting
-      unlockHealthCheck();
-      return;
+    } else {
+      log('\nWarning: Open ID Connect Identity Server (accessService.authenticationAuthority) not found in dataset site');
     }
-  } else {
-    log('\nWarning: Open ID Connect Identity Server (accessService.authenticationAuthority) not found in dataset site');
-  }
 
-  if (LOG_AUTH_CONFIG) log(`\nAugmented config supplied to Integration Tests: ${JSON.stringify(getConfig(), null, 2)}\n`);
+    if (LOG_AUTH_CONFIG) log(`\nAugmented config supplied to Integration Tests: ${JSON.stringify(getConfig(), null, 2)}\n`);
+  }
 
   const harvesters = [];
 
@@ -1456,7 +1496,7 @@ OpenID Connect Authentication Error: ${error.stack}
   });
 
   // Only poll orders feed if included in the dataset site
-  if (!DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
+  if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
     const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
     log(`Found orders feed: ${ordersFeedUrl}`);
     addFeed(ORDERS_FEED_IDENTIFIER);

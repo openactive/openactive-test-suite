@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "validate-feeds": "node app.js --validate-only",
     "test": "npm run lint && tsc",
     "debug": "node --inspect app.js",
     "lint": "eslint \"*.js\"",
