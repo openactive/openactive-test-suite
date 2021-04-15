@@ -86,6 +86,21 @@
             },
         },
         {
+            "name": "validate-feeds",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "14.16.0",
+            "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
+            "args": [
+                "--validate-only",
+                "https://reference-implementation.openactive.io/OpenActive"
+            ],
+            "env": {
+              "NODE_APP_INSTANCE": "dev"
+            },
+        },
+        {
             "name": "test-data-generator",
             "type": "node",
             "request": "launch",

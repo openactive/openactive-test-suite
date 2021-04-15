@@ -27,14 +27,17 @@ class AsyncValidatorWorker {
     }
   }
 
-  async validateItem(body) {
+  async validateItem(body, validationMode) {
     try {
       this.queueLength += 1;
-      const result = await this.pool.queue((validator) => validator.validateItem(body));
+      const result = await this.pool.queue((validator) => validator.validateItem(body, validationMode));
       this.queueLength -= 1;
       return result;
     } catch (error) {
-      return null;
+      return [{
+        message: error.message,
+        path: 'Validation Library Error',
+      }];
     }
   }
 }
