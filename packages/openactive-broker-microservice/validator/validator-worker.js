@@ -10,7 +10,7 @@ const VALIDATOR_TMP_DIR = './tmp';
  *
  * @param {any} body the data item
  */
-async function validateItem(body) {
+async function validateItem(body, validationMode) {
   /**
    * @type {{
    *   loadRemoteJson: boolean,
@@ -23,7 +23,7 @@ async function validateItem(body) {
     loadRemoteJson: true,
     remoteJsonCachePath: VALIDATOR_TMP_DIR,
     remoteJsonCacheTimeToLive: 3600,
-    validationMode: 'BookableRPDEFeed',
+    validationMode,
   };
 
   const errors = (await validate(body, optionsWithRemoteJson))

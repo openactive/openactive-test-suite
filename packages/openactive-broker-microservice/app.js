@@ -30,6 +30,7 @@ const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauth
 const markdown = new Remarkable();
 
 const VALIDATE_ONLY = process.argv.includes('--validate-only');
+const ITEM_VALIDATION_MODE = VALIDATE_ONLY ? 'RPDEFeed' : 'BookableRPDEFeed';
 
 const DATASET_SITE_URL = VALIDATE_ONLY ? process.argv[3] : config.get('broker.datasetSiteUrl');
 const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
@@ -105,7 +106,7 @@ const validationResults = new Map();
  */
 async function validateAndStoreValidationResults(data, validator) {
   const id = data['@id'] || data.id;
-  const errors = await validator.validateItem(data);
+  const errors = await validator.validateItem(data, ITEM_VALIDATION_MODE);
   if (!errors) return;
   for (const error of errors) {
     // Use the first line of the error message to uniquely identify it
@@ -114,7 +115,7 @@ async function validateAndStoreValidationResults(data, validator) {
 
     // Ignore the error that a SessionSeries must have children as they haven't been combined yet.
     // This is being done because I don't know if there is a validator.validationMode for this, and without ignoring the broker does not run
-    if (!(data['@type'] === 'SessionSeries' && errorShortMessage === 'A SessionSeries must have an eventSchedule or at least one subEvent.')) {
+    if (data['@type'] === 'SessionSeries' && errorShortMessage === 'A SessionSeries must have an eventSchedule or at least one subEvent.') {
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -161,7 +162,7 @@ function renderOpenValidatorHref(id) {
   const cachedResponse = opportunityMap.get(id) || parentOpportunityMap.get(id);
   if (cachedResponse) {
     const jsonString = JSON.stringify(cachedResponse, null, 2);
-    return `https://validator.openactive.io/?validationMode=BookableRPDEFeed#/json/${Base64.encodeURI(jsonString)}`;
+    return `https://validator.openactive.io/?validationMode=${ITEM_VALIDATION_MODE}#/json/${Base64.encodeURI(jsonString)}`;
   }
   return '';
 }
@@ -562,10 +563,10 @@ async function setFeedIsUpToDate(feedIdentifier) {
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
+          if (!VALIDATE_ONLY) logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
           // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
           // User interaction is not required to exit, for compatibility with CI
-          await sleep(60000);
+          if (!VALIDATE_ONLY) await sleep(60000);
           throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
         } else if (childOrphans > 0) {
           logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
@@ -577,10 +578,14 @@ async function setFeedIsUpToDate(feedIdentifier) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
-          logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
+          if (VALIDATE_ONLY) {
+            logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
+          } else {
+            logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
+          }
           // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
           // User interaction is not required to exit, for compatibility with CI
-          await sleep(60000);
+          if (!VALIDATE_ONLY) await sleep(60000);
           throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
