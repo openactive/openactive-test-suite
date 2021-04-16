@@ -101,7 +101,7 @@ class FlowStage {
    *   This input goes into `getInput`. It's a function as it will be called when
    *   the FlowStage is run (rather than when the FlowStage is set up). Therefore,
    *   it will have acccess to the output of any prerequisite stages.
-   * @param {string} args.testName
+   * @param {string} args.testName Labels the jest `describe(..)` block
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itValidationTestsFn
