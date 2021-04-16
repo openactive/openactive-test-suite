@@ -1387,7 +1387,7 @@ async function startPolling() {
   if (!dataset) {
     logError(`
 Error: Unable to read valid JSON-LD from Dataset Site. Please try loading the
-Dataset Site URL in validator.openactive.io to confirm that the contents of
+Dataset Site URL in validator.openactive.io to confirm that the content of
 <script type="application/ld+json"> ... </script> within the HTML is valid.
 `);
 
@@ -1407,7 +1407,7 @@ Dataset Site URL in validator.openactive.io to confirm that the contents of
   if (datasetSiteErrors.length > 0) {
     logError(`
 Error: Dataset Site JSON-LD contained validation errors. Please try loading the
-Dataset Site URL in validator.openactive.io to confirm that the contents of
+Dataset Site URL in validator.openactive.io to confirm that the content of
 <script type="application/ld+json"> ... </script> within the HTML is valid.
 
 Validation errors found in Dataset Site JSON-LD:
