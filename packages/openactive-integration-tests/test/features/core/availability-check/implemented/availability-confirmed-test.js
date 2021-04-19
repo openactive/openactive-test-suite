@@ -36,8 +36,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       orderItemCriteriaList,
       getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
       getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
-      testName: 'availability should match open data feed',
-    }, (feedOrderItem, apiResponseOrderItem) => {
+    },
+    'availability should match open data feed',
+    (feedOrderItem, apiResponseOrderItem) => {
       if (feedOrderItem.orderedItem['@type'] === 'Slot') {
         expect(apiResponseOrderItem).to.nested.include({
           'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,

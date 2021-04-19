@@ -23,8 +23,9 @@ function itEachOrderItemIdShouldMatchThoseFromFeed({
     orderItemCriteriaList,
     getFeedOrderItems: () => fetchOpportunitiesFlowStage.getOutput().orderItems,
     getOrdersApiResponse: () => apiFlowStage.getOutput().httpResponse,
-    testName: 'ID should match the one specified in the open data feed',
-  }, (feedOrderItem, apiResponseOrderItem) => {
+  },
+  'ID should match the one specified in the open data feed',
+  (feedOrderItem, apiResponseOrderItem) => {
     expect(apiResponseOrderItem).to.nested.include({
       'orderedItem.@id': feedOrderItem.orderedItem['@id'],
     });
