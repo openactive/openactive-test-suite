@@ -180,14 +180,16 @@ class FetchOpportunitiesFlowStage extends FlowStage {
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid] UUID to use for Order. If excluded, this will
    *   be generated.
+   * @param {FlowStage<unknown, unknown>} [args.prerequisite]
    * @param {SellerConfig} args.sellerConfig
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
-  constructor({ orderItemCriteriaList, sellerConfig, requestHelper, logger }) {
+  constructor({ orderItemCriteriaList, prerequisite, sellerConfig, requestHelper, logger }) {
     super({
       testName: 'Fetch Opportunities',
       getInput: FlowStageUtils.emptyGetInput,
+      prerequisite,
       runFn: async () => await runFetchOpportunities({
         orderItemCriteriaList, requestHelper, sellerConfig,
       }),
