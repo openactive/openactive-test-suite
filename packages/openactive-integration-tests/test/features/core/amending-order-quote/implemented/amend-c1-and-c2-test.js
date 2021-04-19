@@ -1,4 +1,3 @@
-const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageRecipes,
@@ -8,7 +7,7 @@ const {
   C2FlowStage,
   BFlowStage,
 } = require('../../../../helpers/flow-stages');
-const { Common } = require('../../../../shared-behaviours');
+const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -82,15 +81,10 @@ FeatureHelper.describeFeature(module, {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptC1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptC2);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptB, () => {
-      Common.itForEachOrderItem({
+      itEachOrderItemIdShouldMatchThoseFromFeed({
         orderItemCriteriaList,
-        getFeedOrderItems: () => secondAttemptFetchOpportunities.getOutput().orderItems,
-        getOrdersApiResponse: () => secondAttemptB.getOutput().httpResponse,
-        testName: 'IDs should match the ones specified in the open data feed',
-      }, (feedOrderItem, apiResponseOrderItem) => {
-        expect(apiResponseOrderItem).to.nested.include({
-          'orderedItem.@id': feedOrderItem.orderedItem['@id'],
-        });
+        fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
+        apiFlowStage: secondAttemptB,
       });
     });
   });
