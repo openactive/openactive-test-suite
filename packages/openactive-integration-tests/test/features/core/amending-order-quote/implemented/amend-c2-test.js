@@ -59,7 +59,7 @@ FeatureHelper.describeFeature(module, {
 
   // # Set up Tests
   // N.B.: The following two tests must be performed sequentially - with Second Attempt occurring after First Attempt.
-  describe('First Attempt - C1', () => {
+  describe('First Attempt - C1 -> C2', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(firstAttemptFetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(firstAttemptC1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(firstAttemptC2);
