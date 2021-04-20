@@ -44,7 +44,7 @@ FeatureHelper.describeFeature(module, {
    *   idempotent and therefore no new places will be taken up.
    * @param {(c2: C2FlowStageType) => void} [itAdditionalTests]
    */
-  const describeNewBatchOfLeases = ({
+  const describeNewLease = ({
     prerequisiteFlowStage,
     numberOfItems,
     expectedCapacityFromPreviousSuccessfulLeases,
@@ -108,7 +108,7 @@ FeatureHelper.describeFeature(module, {
   };
 
   // # Check that repeated batch named leases update the capacity
-  const { c2: batchOneC2 } = describeNewBatchOfLeases({
+  const { c2: batchOneC2 } = describeNewLease({
     prerequisiteFlowStage: fetchOpportunities,
     numberOfItems: 3,
     shouldSucceed: true,
@@ -116,7 +116,7 @@ FeatureHelper.describeFeature(module, {
     expectedCapacityFromPreviousSuccessfulLeases: 5,
     doIdempotencyCheck: true,
   });
-  const { c2: batchTwoC2 } = describeNewBatchOfLeases({
+  const { c2: batchTwoC2 } = describeNewLease({
     prerequisiteFlowStage: batchOneC2,
     numberOfItems: 10,
     shouldSucceed: false,
@@ -131,13 +131,13 @@ FeatureHelper.describeFeature(module, {
       numHasInsufficientCapacityError: 5,
     });
   });
-  const { c2: batchThreeC2 } = describeNewBatchOfLeases({
+  const { c2: batchThreeC2 } = describeNewLease({
     prerequisiteFlowStage: batchTwoC2,
     numberOfItems: 2,
     shouldSucceed: true,
     expectedCapacityFromPreviousSuccessfulLeases: 2,
   });
-  describeNewBatchOfLeases({
+  describeNewLease({
     prerequisiteFlowStage: batchThreeC2,
     numberOfItems: 1,
     shouldSucceed: false,

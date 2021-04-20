@@ -1,4 +1,3 @@
-// const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage } = require('../../../../helpers/flow-stages');
@@ -44,7 +43,7 @@ FeatureHelper.describeFeature(module, {
    * @param {boolean} args.shouldSucceed Should this batch of leases succeed?
    * @param {(c1: C1FlowStageType) => void} [itAdditionalTests]
    */
-  const describeNewBatchOfLeases = ({
+  const describeNewLease = ({
     prerequisiteFlowStage,
     numberOfItems,
     expectedCapacityFromPreviousSuccessfulLeases,
@@ -81,14 +80,14 @@ FeatureHelper.describeFeature(module, {
   };
 
   // # Check that repeated batch anonymous leases update the capacity
-  const { c1: batchOneC1 } = describeNewBatchOfLeases({
+  const { c1: batchOneC1 } = describeNewLease({
     prerequisiteFlowStage: fetchOpportunities,
     numberOfItems: 3,
     shouldSucceed: true,
     // it should not take into account leased opportunities on this order
     expectedCapacityFromPreviousSuccessfulLeases: 5,
   });
-  const { c1: batchTwoC1 } = describeNewBatchOfLeases({
+  const { c1: batchTwoC1 } = describeNewLease({
     prerequisiteFlowStage: batchOneC1,
     numberOfItems: 10,
     shouldSucceed: false,
@@ -102,13 +101,13 @@ FeatureHelper.describeFeature(module, {
       numHasInsufficientCapacityError: 5,
     });
   });
-  const { c1: batchThreeC1 } = describeNewBatchOfLeases({
+  const { c1: batchThreeC1 } = describeNewLease({
     prerequisiteFlowStage: batchTwoC1,
     numberOfItems: 2,
     shouldSucceed: true,
     expectedCapacityFromPreviousSuccessfulLeases: 2,
   });
-  describeNewBatchOfLeases({
+  describeNewLease({
     prerequisiteFlowStage: batchThreeC1,
     numberOfItems: 1,
     shouldSucceed: false,
