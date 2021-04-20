@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { Common } = require('../../../../shared-behaviours');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { itShouldReturnAnOpenBookingError, itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
@@ -31,9 +31,7 @@ FeatureHelper.describeFeature(module, {
    * @param {C1FlowStageType | C2FlowStageType} flowStage
    */
   function itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(flowStage) {
-    it('should return 409', () => {
-      expect(flowStage.getOutput().httpResponse.response.statusCode).to.equal(409);
-    });
+    itShouldReturnHttpStatus(409, () => flowStage.getOutput().httpResponse);
 
     Common.itForEachOrderItemByControl({
       orderItemCriteriaList,

@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { Common } = require('../../../../shared-behaviours');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
@@ -32,9 +33,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
    * @param {C1FlowStageType | C2FlowStageType} flowStage
    */
   function itShouldReturnOpportunityIsFullError(flowStage) {
-    it('should return 409', () => {
-      expect(flowStage.getOutput().httpResponse.response.statusCode).to.equal(409);
-    });
+    itShouldReturnHttpStatus(409, () => flowStage.getOutput().httpResponse);
 
     Common.itForEachOrderItemByControl({
       orderItemCriteriaList,
