@@ -5,6 +5,7 @@ const { isResponse20x } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
 const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
+const { getSellerConfigFromSellerCriteria } = require('../sellers');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -88,19 +89,23 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, se
       return await reusableOpportunityResponsePromises.get(orderItemCriteriaItem.opportunityReuseKey);
     }
 
+    const thisOpportunitySellerConfig = orderItemCriteriaItem.sellerCriteria
+      ? getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria)
+      : sellerConfig;
+
     const opportunityResponsePromise = USE_RANDOM_OPPORTUNITIES
       ? requestHelper.getRandomOpportunity(
         orderItemCriteriaItem.opportunityType,
         orderItemCriteriaItem.opportunityCriteria,
         i,
-        sellerConfig['@id'],
-        sellerConfig['@type'],
+        thisOpportunitySellerConfig['@id'],
+        thisOpportunitySellerConfig['@type'],
       ) : requestHelper.createOpportunity(
         orderItemCriteriaItem.opportunityType,
         orderItemCriteriaItem.opportunityCriteria,
         i,
-        sellerConfig['@id'],
-        sellerConfig['@type'],
+        thisOpportunitySellerConfig['@id'],
+        thisOpportunitySellerConfig['@type'],
       );
 
     // If this opportunity can be reused, store it
@@ -181,7 +186,13 @@ class FetchOpportunitiesFlowStage extends FlowStage {
    * @param {string} [args.uuid] UUID to use for Order. If excluded, this will
    *   be generated.
    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
-   * @param {SellerConfig} args.sellerConfig
+   * @param {SellerConfig} args.sellerConfig Opportunities will be fetched that belong to this Seller.
+   *
+   *   If an Order Item Criteria include their own `sellerCriteria`, these will overwrite the `sellerConfig` for
+   *   the Opportunity fetched to match that criteria.
+   *   As an Order MUST only contain OrderItems belonging to a Seller, note that this ability to select different
+   *   Sellers for different OrderItems will only be used to test that this generates an error in the Booking System
+   *   under test.
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    */
