@@ -1,12 +1,12 @@
-const { expect } = require('chai');
-const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, Common } = require('../../../../shared-behaviours');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
+const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
+const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage, C2FlowStage } = require('../../../../helpers/flow-stages');
+const { itShouldHaveCapacityForBatchedItems, itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError, multiplyFetchedOrderItemsIntoBatches } = require('../../common');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/flow-stage').FlowStage} FlowStage
  */
 
 FeatureHelper.describeFeature(module, {
@@ -25,223 +25,122 @@ FeatureHelper.describeFeature(module, {
     control: false,
   }],
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, parentState, parentFlow) => {
-  /**
-   * @param {number} expected
-   * @param {C1|C2} stage
-   * @param {() => ChakramResponse} responseAccessor
-   */
-  function itShouldHaveCapacity(expected, stage, responseAccessor) {
-    Common.itForOrderItem(orderItemCriteria, parentState, stage, () => responseAccessor().body,
-      'should decrement remaining slots',
-      (feedOrderItem, responseOrderItem) => {
-        if (responseOrderItem && responseOrderItem.orderedItem['@type'] === 'Slot') {
-          expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingUses': expected,
-          });
-        } else {
-          expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingAttendeeCapacity': expected,
-          });
-        }
-      });
-  }
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  // # First, get the Opportunity Feed Items which will be used in subsequent tests
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger }),
+    orderItemCriteriaList,
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
   /**
-   * @param {C1|C2} stage
-   * @param {() => ChakramResponse} responseAccessor This is wrapped in a
-   *   function because the actual response won't be available until the
-   *   asynchronous before() block has completed.
+   * @param {object} args
+   * @param {FlowStage} args.prerequisiteFlowStage
+   * @param {number} args.numberOfItems How many of each OrderItem are we going to include in our lease?
+   * @param {number} args.expectedCapacityFromPreviousSuccessfulLeases What do we expect the Booking System to report
+   *   as the capacity in its response?
+   * @param {boolean} args.shouldSucceed Should this batch of leases succeed?
+   * @param {boolean} [args.doIdempotencyCheck] If true, will run C2 again in order to check that named leases are
+   *   idempotent and therefore no new places will be taken up.
+   * @param {(c2: C2FlowStageType) => void} [itAdditionalTests]
    */
-  function itShouldReturn409Conflict(stage, responseAccessor) {
-    it('should return 409', () => {
-      stage.expectResponseReceived();
-      chakram.expect(responseAccessor()).to.have.status(409);
+  const describeNewBatchOfLeases = ({
+    prerequisiteFlowStage,
+    numberOfItems,
+    expectedCapacityFromPreviousSuccessfulLeases,
+    shouldSucceed,
+    doIdempotencyCheck,
+  }, itAdditionalTests) => {
+    /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
+    rather than an amendment of the previous one */
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+    const newBatchC1 = new C1FlowStage({
+      ...defaultFlowStageParams,
+      prerequisite: prerequisiteFlowStage,
+      getInput: () => ({
+        orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
+      }),
     });
-  }
+    const newBatchC2ConstructionArgs = {
+      ...defaultFlowStageParams,
+      prerequisite: newBatchC1,
+      getInput: () => ({
+        orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
+        positionOrderIntakeFormMap: newBatchC1.getOutput().positionOrderIntakeFormMap,
+      }),
+    };
+    const newBatchC2 = new C2FlowStage(newBatchC2ConstructionArgs);
 
-  /**
-   * @param {RequestState} state
-   * @param {number} count
-   */
-  function setOrderItemsOnState(state, count) {
-    const orderItems = parentState.orderItems.filter(oi => !oi['test:control']);
+    describe(`Lease ${numberOfItems} item(s) (${shouldSucceed ? 'success' : 'fail'})`, () => {
+      FlowStageUtils.describeRunAndRunChecks({ doCheckSuccess: shouldSucceed, doCheckIsValid: true }, newBatchC1);
 
-    /* eslint-disable no-param-reassign */
-    state.orderItems = [];
-    let i = 0;
-
-    for (const referenceOrderItem of orderItems) {
-      for (let _ = 0; _ < count; _ += 1) {
-        const orderItem = { ...referenceOrderItem };
-        orderItem.position = i;
-        state.orderItems.push(orderItem);
-
-        i += 1;
+      /**
+       * @param {C2FlowStageType} c2
+       */
+      const doC2Checks = (c2) => {
+        FlowStageUtils.describeRunAndRunChecks({ doCheckSuccess: shouldSucceed, doCheckIsValid: true }, c2, () => {
+          itShouldHaveCapacityForBatchedItems({
+            orderItemCriteriaList,
+            flowStage: c2,
+            batchMultiplier: numberOfItems,
+            expectedCapacity: expectedCapacityFromPreviousSuccessfulLeases,
+          });
+          if (!shouldSucceed) {
+            itShouldReturnHttpStatus(409, () => c2.getOutput().httpResponse);
+          }
+          if (itAdditionalTests) {
+            itAdditionalTests(c2);
+          }
+        });
+      };
+      doC2Checks(newBatchC2);
+      if (doIdempotencyCheck) {
+        describe('Same C2 Again (test idempotency)', () => {
+          const newBatchC2Idempotent = new C2FlowStage({ ...newBatchC2ConstructionArgs, prerequisite: newBatchC2 });
+          doC2Checks(newBatchC2Idempotent);
+        });
       }
-    }
-  }
+    });
 
-  beforeAll(async () => {
-    await parentState.fetchOpportunities(orderItemCriteria);
-    return chakram.wait();
+    return {
+      c2: newBatchC2,
+    };
+  };
+
+  // # Check that repeated batch named leases update the capacity
+  const { c2: batchOneC2 } = describeNewBatchOfLeases({
+    prerequisiteFlowStage: fetchOpportunities,
+    numberOfItems: 3,
+    shouldSucceed: true,
+    // it should not take into account leased opportunities on this order
+    expectedCapacityFromPreviousSuccessfulLeases: 5,
+    doIdempotencyCheck: true,
   });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state: parentState, flow: parentFlow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('Lease three items (succeed)', () => {
-    const state = new RequestState(logger);
-    const flow = new FlowHelper(state, {
-      stagesToSkip: new Set(['getMatch']),
-    });
-
-    beforeAll(() => {
-      setOrderItemsOnState(state, 3);
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      // it should not take into account leased opportunities on this order
-      itShouldHaveCapacity(5, c2, () => state.c2Response);
-    });
-
-    // Note: this test currently doesn't do anything, as the response is cached; once changes by @lukehesluke are merged, this test will be relevant
-    describe('C2 (test idempotency)', () => {
-      const c2 = (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      // it should be idempotent
-      itShouldHaveCapacity(5, c2, () => state.c2Response);
+  const { c2: batchTwoC2 } = describeNewBatchOfLeases({
+    prerequisiteFlowStage: batchOneC2,
+    numberOfItems: 10,
+    shouldSucceed: false,
+    // it should not take into account leased opportunities on this order
+    expectedCapacityFromPreviousSuccessfulLeases: 2,
+  }, (c2) => {
+    itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError({
+      flowStage: c2,
+      batchMultiplier: 10,
+      numSuccessful: 2,
+      numIsReservedByLeaseError: 3,
+      numHasInsufficientCapacityError: 5,
     });
   });
-
-  describe('Lease ten items (fail)', () => {
-    const state = new RequestState(logger);
-    const flow = new FlowHelper(state, {
-      stagesToSkip: new Set(['getMatch']),
-    });
-
-    beforeAll(() => {
-      setOrderItemsOnState(state, 10);
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldHaveCapacity(2, c2, () => state.c2Response);
-      itShouldReturn409Conflict(c2, () => state.c2Response);
-
-      it('should return correct numbers of OpportunityCapacityIsReservedByLeaseError and OpportunityHasInsufficientCapacityError', () => {
-        c2.expectResponseReceived();
-
-        const errors = state.c2Response.body.orderedItem.map(oi => oi.error && oi.error[0] && oi.error[0]['@type']);
-        // First, check the basic premise which will be used to test the numbers of errors - 10 errors for each
-        const factor = orderItemCriteria.length;
-        expect(factor).to.equal(errors.length / 10, 'Number of OrderItems returned is inconsistent');
-
-        const countMatching = (array, value) => array.filter(x => x === value).length;
-        expect(countMatching(errors, undefined)).to.equal(factor * 2, '`factor * 2` OrderItems should have no error');
-        expect(countMatching(errors, 'OpportunityCapacityIsReservedByLeaseError')).to.equal(factor * 3, '`factor * 3` OrderItems should have OpportunityCapacityIsReservedByLeaseError');
-        expect(countMatching(errors, 'OpportunityHasInsufficientCapacityError')).to.equal(factor * 5, '`factor * 5` OrderItems should have OpportunityHasInsufficientCapacityError');
-      });
-    });
+  const { c2: batchThreeC2 } = describeNewBatchOfLeases({
+    prerequisiteFlowStage: batchTwoC2,
+    numberOfItems: 2,
+    shouldSucceed: true,
+    expectedCapacityFromPreviousSuccessfulLeases: 2,
   });
-
-  describe('Lease two items (succeed)', () => {
-    const state = new RequestState(logger);
-    const flow = new FlowHelper(state, {
-      stagesToSkip: new Set(['getMatch']),
-    });
-
-    beforeAll(() => {
-      setOrderItemsOnState(state, 2);
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      // it should only take into account leases on other orders
-      itShouldHaveCapacity(2, c2, () => state.c2Response);
-    });
-  });
-
-  describe('Lease one item (fail)', () => {
-    const state = new RequestState(logger);
-    const flow = new FlowHelper(state, {
-      stagesToSkip: new Set(['getMatch']),
-    });
-
-    beforeAll(() => {
-      state.orderItems = parentState.orderItems;
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-    });
-
-    describe('C2', () => {
-      const c2 = (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldHaveCapacity(0, c2, () => state.c2Response);
-      itShouldReturn409Conflict(c2, () => state.c2Response);
-    });
+  describeNewBatchOfLeases({
+    prerequisiteFlowStage: batchThreeC2,
+    numberOfItems: 1,
+    shouldSucceed: false,
+    expectedCapacityFromPreviousSuccessfulLeases: 0,
   });
 });
