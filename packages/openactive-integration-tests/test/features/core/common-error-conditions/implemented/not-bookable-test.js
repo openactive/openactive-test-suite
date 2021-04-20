@@ -1,36 +1,13 @@
-const chai = require('chai');
-const chakram = require('chakram');
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-const { Common } = require('../../../../shared-behaviours/common');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { Common } = require('../../../../shared-behaviours');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
  */
-
-/**
- * @param {C1|C2} stage
- * @param {() => ChakramResponse} responseAccessor This is wrapped in a
- *   function because the actual response won't be available until the
- *   asynchronous before() block has completed.
- */
-function itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(orderItemCriteria, state, stage, responseAccessor) {
-  it('should return 409', () => {
-    stage.expectResponseReceived();
-    chakram.expect(responseAccessor()).to.have.status(409);
-  });
-
-  Common.itForOrderItemByControl(orderItemCriteria, state, stage, () => responseAccessor().body,
-    'should include an OpportunityOfferPairNotBookableError',
-    (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
-      chai.expect(responseOrderItemErrorTypes).to.include('OpportunityOfferPairNotBookableError');
-    },
-    'should not include an OpportunityOfferPairNotBookableError',
-    (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
-      chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityOfferPairNotBookableError');
-    });
-}
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -45,47 +22,42 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  // # Initialise Flow Stages
+  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+
+  // # Set up Tests
+  /**
+   * @param {C1FlowStageType | C2FlowStageType} flowStage
+   */
+  function itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(flowStage) {
+    it('should return 409', () => {
+      expect(flowStage.getOutput().httpResponse.response.statusCode).to.equal(409);
+    });
+
+    Common.itForEachOrderItemByControl({
+      orderItemCriteriaList,
+      getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
+      getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
+    },
+    'should include an OpportunityOfferPairNotBookableError',
+    (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+      expect(responseOrderItemErrorTypes).to.include('OpportunityOfferPairNotBookableError');
+    },
+    'should not include an OpportunityOfferPairNotBookableError',
+    (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
+      expect(responseOrderItemErrorTypes).not.to.include('OpportunityOfferPairNotBookableError');
+    });
+  }
+
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c1);
   });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2);
   });
-
-  describe('C1', () => {
-    const c1 = (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(orderItemCriteria, state, c1, () => state.c1Response);
-  });
-
-  describe('C2', () => {
-    const c2 = (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(orderItemCriteria, state, c2, () => state.c2Response);
-  });
-
-  describe('B', () => {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => state.bResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
+    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => b.getOutput().httpResponse);
   });
 });
