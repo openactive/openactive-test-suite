@@ -5,7 +5,7 @@ const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage } = require('..
 const { itShouldHaveCapacityForBatchedItems, multiplyFetchedOrderItemsIntoBatches, itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError } = require('../../common');
 
 /**
- * @typedef {import('../../../../helpers/flow-stages/flow-stage').FlowStage} FlowStage
+ * @typedef {import('../../../../helpers/flow-stages/flow-stage').UnknownFlowStageType} UnknownFlowStageType
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
  * @typedef {import('../../../../helpers/flow-stages/fetch-opportunities').FetchOpportunitiesFlowStageType} FetchOpportunitiesFlowStageType
  * @typedef {import('../../../../helpers/flow-stages/flow-stage').OrderItem} OrderItem
@@ -37,7 +37,7 @@ FeatureHelper.describeFeature(module, {
 
   /**
    * @param {object} args
-   * @param {FlowStage} args.prerequisiteFlowStage
+   * @param {UnknownFlowStageType} args.prerequisiteFlowStage
    * @param {number} args.numberOfItems How many of each OrderItem are we going to include in our lease?
    * @param {number} args.expectedCapacityFromPreviousSuccessfulLeases What do we expect the Booking System to report
    *   as the capacity in its response?

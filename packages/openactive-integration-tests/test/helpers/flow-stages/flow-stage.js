@@ -248,6 +248,9 @@ class FlowStage {
  * @template {FlowStageOutput} TOutput
  * @typedef {FlowStage<TInput, TOutput>} FlowStageType
  */
+/**
+ * @typedef {FlowStage<unknown, unknown>} UnknownFlowStageType
+ */
 
 module.exports = {
   FlowStage,
