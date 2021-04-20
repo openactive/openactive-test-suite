@@ -11,7 +11,7 @@ const { expect } = require('chai');
  */
 
 class Common {
-  // TODO TODO TODO remove these top 2 functions
+  // TODO remove these top 2 functions now that all tests uses FlowStages
   /**
    * Note: This generates an it() block. Therefore, this must be run within a describe() block.
    *
