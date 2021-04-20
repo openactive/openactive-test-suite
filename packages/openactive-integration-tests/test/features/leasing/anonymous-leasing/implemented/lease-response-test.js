@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const moment = require('moment');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1 } = require('../../../../shared-behaviours');
+const { FlowStageUtils, FetchOpportunitiesFlowStage, C1FlowStage } = require('../../../../helpers/flow-stages');
 
 const { IMPLEMENTED_FEATURES } = global;
 
@@ -33,33 +33,26 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
+  });
+  const c1 = new C1FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: fetchOpportunities,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
   });
 
   it('should implement named leasing as well', () => {
     // eslint-disable-next-line no-unused-expressions
     expect(IMPLEMENTED_FEATURES['named-leasing']).to.be.true;
   });
-
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnLeaseWithFutureExpiryDate(() => state.c1Response);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldReturnLeaseWithFutureExpiryDate(() => c1.getOutput().httpResponse);
   });
 });
