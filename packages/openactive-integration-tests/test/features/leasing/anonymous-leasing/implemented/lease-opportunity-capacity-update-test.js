@@ -43,7 +43,7 @@ FeatureHelper.describeFeature(module, {
    * @param {boolean} args.shouldSucceed Should this batch of leases succeed?
    * @param {(c1: C1FlowStageType) => void} [itAdditionalTests]
    */
-  const describeNewLease = ({
+  const describeNewLeaseOfXItems = ({
     prerequisiteFlowStage,
     numberOfItems,
     expectedCapacityFromPreviousSuccessfulLeases,
@@ -80,14 +80,14 @@ FeatureHelper.describeFeature(module, {
   };
 
   // # Check that repeated batch anonymous leases update the capacity
-  const { c1: batchOneC1 } = describeNewLease({
+  const { c1: batchOneC1 } = describeNewLeaseOfXItems({
     prerequisiteFlowStage: fetchOpportunities,
     numberOfItems: 3,
     shouldSucceed: true,
     // it should not take into account leased opportunities on this order
     expectedCapacityFromPreviousSuccessfulLeases: 5,
   });
-  const { c1: batchTwoC1 } = describeNewLease({
+  const { c1: batchTwoC1 } = describeNewLeaseOfXItems({
     prerequisiteFlowStage: batchOneC1,
     numberOfItems: 10,
     shouldSucceed: false,
@@ -101,13 +101,13 @@ FeatureHelper.describeFeature(module, {
       numHasInsufficientCapacityError: 5,
     });
   });
-  const { c1: batchThreeC1 } = describeNewLease({
+  const { c1: batchThreeC1 } = describeNewLeaseOfXItems({
     prerequisiteFlowStage: batchTwoC1,
     numberOfItems: 2,
     shouldSucceed: true,
     expectedCapacityFromPreviousSuccessfulLeases: 2,
   });
-  describeNewLease({
+  describeNewLeaseOfXItems({
     prerequisiteFlowStage: batchThreeC1,
     numberOfItems: 1,
     shouldSucceed: false,
