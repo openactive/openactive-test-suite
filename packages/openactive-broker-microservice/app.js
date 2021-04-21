@@ -315,20 +315,20 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       // Validate RPDE page
       // TODO: Use RPDE validator for this
       if (!json.next) {
-        throw new Error("RPDE does not have 'next' property");
+        throw new FatalError("RPDE does not have 'next' property");
       }
       if (
         typeof json !== 'object'
         || typeof json.items !== 'object'
         || !(json.items instanceof Array)
       ) {
-        throw new Error('(All RPDE pages must have a valid items array)');
+        throw new FatalError('(All RPDE pages must have a valid items array)');
       }
       if (getBaseUrl(json.next) !== getBaseUrl(url)) {
-        throw new Error(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
+        throw new FatalError(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
       }
       if (json.next === url && json.items.length !== 0) {
-        throw new Error(`(The \`next\` property \`"${json.next}"\` must not be equal to the current page URL \`"${url}"\` when there are more than zero \`items\` in the page. The last item in each page must be used to generate the \`next\` URL.)`);
+        throw new FatalError(`(The \`next\` property \`"${json.next}"\` must not be equal to the current page URL \`"${url}"\` when there are more than zero \`items\` in the page. The last item in each page must be used to generate the \`next\` URL.)`);
       }
 
       context.currentPage = url;
