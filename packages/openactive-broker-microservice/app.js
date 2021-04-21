@@ -312,12 +312,23 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
       const json = response.data;
 
-      // Validate RPDE base URL
+      // Validate RPDE page
+      // TODO: Use RPDE validator for this
       if (!json.next) {
         throw new Error("RPDE does not have 'next' property");
       }
+      if (
+        typeof json !== 'object'
+        || typeof json.items !== 'object'
+        || !(json.items instanceof Array)
+      ) {
+        throw new Error('(All RPDE pages must have a valid items array)');
+      }
       if (getBaseUrl(json.next) !== getBaseUrl(url)) {
         throw new Error(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
+      }
+      if (json.next === url && json.items.length !== 0) {
+        throw new Error(`(The \`next\` property \`"${json.next}"\` must not be equal to the current page URL \`"${url}"\` when there are more than zero \`items\` in the page. The last item in each page must be used to generate the \`next\` URL.)`);
       }
 
       context.currentPage = url;
