@@ -32,6 +32,25 @@ The CI checks that the Test Suite passes for the reference implementation. There
 
 Any new feature that affects test coverage must be developed in a `coverage/*` branch in both reposities, in order for the CI to automatically run both feature branches against each other.
 
+### Locally running the Reference Implementation
+
+When you're working on both the Reference Implementation and the Test Suite, you'll want to run the Reference Implementation locally so you can check that the new tests and the new implementations work together.
+
+Additionally, when running the Reference Implementation locally, there is no limit on the number of tests you can run. The live version has a quota.
+
+How to run them both locally:
+
+* Reference Implementation: To run this locally, follow the guidelines in its [project](https://github.com/openactive/OpenActive.Server.NET)'s documentation
+* Test Suite: With Reference Implementation running locally, use the `dev` config by setting env var `NODE_APP_INSTANCE=dev`.
+    e.g., to run broker and a specific test separately:
+    ```sh
+    NODE_APP_INSTANCE=dev npm run start-broker # to start the broker
+    # in another terminal:
+    NODE_APP_INSTANCE=dev npm run start-tests  -- packages/openactive-integration-tests/test/features/core/common-error-conditions/implemented/not-bookable-test.js
+    ```
+
+**N.B.:** When running Reference Implementation locally, the `unknown-endpoint` test in `core/common-error-conditions` will fail as the dev version of Reference Implementation shows a developer error page instead of the regular 404 response.
+
 ## Pull Request Process
 
 Changes should be made by starting a new branch (from `master`), writing the changes in that branch and then submitting a Pull Request to rebase that branch into `master`.
