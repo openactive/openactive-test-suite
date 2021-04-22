@@ -119,7 +119,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       const result = {
         '@type': 'OrderItem',
         position: orderItem.position,
-        acceptedOffer:  `${orderItem.acceptedOffer['@id']}`,
+        acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
         orderedItem: `${orderItem.orderedItem['@id']}`,
         attendee: undefined,
         orderItemIntakeForm: undefined,

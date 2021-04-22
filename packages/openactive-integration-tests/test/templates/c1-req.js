@@ -52,7 +52,7 @@ function createStandardC1Req(data) {
       '@type': 'OrderItem',
       position: orderItem.position,
       acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
-      orderedItem:`${orderItem.orderedItem['@id']}`,
+      orderedItem: `${orderItem.orderedItem['@id']}`,
       attendee: undefined,
       orderItemIntakeForm: undefined,
       orderItemIntakeFormResponse: undefined,
