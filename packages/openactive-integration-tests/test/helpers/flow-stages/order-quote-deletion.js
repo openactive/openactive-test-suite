@@ -3,7 +3,6 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
- * @typedef {import('../sellers').SellerConfig} SellerConfig
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 

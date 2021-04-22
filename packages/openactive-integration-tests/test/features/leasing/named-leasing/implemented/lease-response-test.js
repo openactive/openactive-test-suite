@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const moment = require('moment');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2 } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -31,36 +31,12 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
-  });
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
 
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-  });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnLeaseWithFutureExpiryDate(() => state.c2Response);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldReturnLeaseWithFutureExpiryDate(() => c2.getOutput().httpResponse);
   });
 });

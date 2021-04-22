@@ -53,7 +53,8 @@ async function runTestInterfaceAction({ action, requestHelper }) {
 class TestInterfaceActionFlowStage extends FlowStage {
   /**
    * @param {object} args
-   * @param {string} args.testName
+   * @param {string} args.testName Labels the jest `describe(..)` block
+   *   e.g.: "Test Interface Action (test:SellerRejectOrderProposalSimulateAction)"
    * @param {() => ActionSpec} args.createActionFn This will be called when this
    *   FlowStage is run, so it has access to the output of any prerequisite stages.
    * @param {FlowStage<unknown>} args.prerequisite
