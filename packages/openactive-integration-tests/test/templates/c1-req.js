@@ -51,14 +51,8 @@ function createStandardC1Req(data) {
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
       position: orderItem.position,
-      acceptedOffer: {
-        '@type': 'Offer',
-        '@id': `${orderItem.acceptedOffer['@id']}`,
-      },
-      orderedItem: {
-        '@type': `${orderItem.orderedItem['@type']}`,
-        '@id': `${orderItem.orderedItem['@id']}`,
-      },
+      acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
+      orderedItem:`${orderItem.orderedItem['@id']}`,
       attendee: undefined,
       orderItemIntakeForm: undefined,
       orderItemIntakeFormResponse: undefined,
