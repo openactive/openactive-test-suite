@@ -138,7 +138,7 @@ class FeatureHelper {
           singleOpportunityCriteriaTemplate === null
             ? []
             : singleOpportunityCriteriaTemplate(null, null),
-          configuration.skipMultiple || (multipleOpportunityCriteriaTemplate === null
+          ((configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null)
             ? []
             : multipleOpportunityCriteriaTemplate(null, null, 0)),
         );

@@ -107,7 +107,9 @@ const testMetadata = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(fun
 const featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
-  return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
+  const feature = /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
+  chai.expect(feature).to.have.property('identifier').that.is.a('string');
+  return feature;
 });
 
 // Sort features so that required ones are first
@@ -324,7 +326,13 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
     return '';
   }
   const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
-  return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
+  return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => {
+    if (key === 'undefined' || key == null) {
+      console.log('D: D: D:');
+    }
+    const res = `[${key}](https://openactive.io/test-interface#${key}) x${value}`;
+    return res;
+  }).join(', ')}`;
 }
 
 // # JSON rendering functions

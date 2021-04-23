@@ -10,7 +10,7 @@ Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookableNonFreePrepaymentUnavailable](https://openactive.io/test-interface#TestOpportunityBookableNonFreePrepaymentUnavailable) x9, [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3, [undefined](https://openactive.io/test-interface#undefined) x1
+[TestOpportunityBookableNonFreePrepaymentUnavailable](https://openactive.io/test-interface#TestOpportunityBookableNonFreePrepaymentUnavailable) x9, [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x3
 
 
 ### Running tests for only this feature
@@ -56,4 +56,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [prepayment-unavailable-not-in-use](./not-implemented/prepayment-unavailable-not-in-use-test.js) | The `prepayment` property must not contain the value https://openactive.io/Unavailable | Assert that no opportunities that match criteria 'TestOpportunityBookableNonFreePrepaymentUnavailable' are available in the opportunity feeds. | [undefined](https://openactive.io/test-interface#undefined) x1 |
+| [prepayment-unavailable-not-in-use](./not-implemented/prepayment-unavailable-not-in-use-test.js) | The `prepayment` property must not contain the value https://openactive.io/Unavailable | Assert that no opportunities that match criteria 'TestOpportunityBookableNonFreePrepaymentUnavailable' are available in the opportunity feeds. |  |
