@@ -26,6 +26,7 @@ const config = require('config');
 const AsyncValidatorWorker = require('./validator/async-validator');
 const PauseResume = require('./src/util/pause-resume');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
+const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');
 
 const markdown = new Remarkable();
 
@@ -191,24 +192,7 @@ async function renderTemplate(templateName, data) {
   });
 }
 
-// Buckets for criteria matches
-/** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
-const matchingCriteriaOpportunityIds = new Map();
-criteria.map((c) => c.name).forEach((criteriaName) => {
-  const typeBucket = new Map();
-  [
-    'ScheduledSession',
-    'FacilityUseSlot',
-    'IndividualFacilityUseSlot',
-    'CourseInstance',
-    'HeadlineEvent',
-    'Event',
-    'HeadlineEventSubEvent',
-    'CourseInstanceSubEvent',
-    'OnDemandEvent',
-  ].forEach((x) => typeBucket.set(x, new Map()));
-  matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
-});
+const opportunityIdCache = OpportunityIdCache.create();
 
 const feedContextMap = new Map();
 
@@ -433,14 +417,11 @@ function getBaseUrl(url) {
 }
 
 function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier) {
-  const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
-  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
-  const bucket = criteriaBucket.get(opportunityType);
-  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
-  const sellerCompartment = bucket.get(sellerId);
+  const typeBucket = OpportunityIdCache.getTypeBucket(criteriaName, opportunityType, opportunityIdCache);
+  const sellerCompartment = typeBucket.get(sellerId);
   if (!sellerCompartment) {
     return {
-      sellers: Array.from(bucket.keys()),
+      sellers: Array.from(typeBucket.keys()),
     };
   } // Seller has no items
 
@@ -468,13 +449,10 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
  * @param {string} criteriaName
  */
 function assertOpportunityCriteriaNotFound(opportunityType, criteriaName) {
-  const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
-  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
-  const bucket = criteriaBucket.get(opportunityType);
-  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+  const typeBucket = OpportunityIdCache.getTypeBucket(criteriaName, opportunityType, opportunityIdCache);
 
   // Check that all sellerCompartments are empty
-  return Array.from(bucket).every(([, items]) => (items.size === 0));
+  return Array.from(typeBucket).every(([, items]) => (items.size === 0));
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
@@ -751,7 +729,7 @@ app.get('/status', function (req, res) {
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(matchingCriteriaOpportunityIds),
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(opportunityIdCache),
   });
 });
 
@@ -1285,9 +1263,9 @@ async function processOpportunityItem(item) {
           harvestStartTime: HARVEST_START_TIME,
         }),
       })).forEach((result) => {
-        const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
-        if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
-        const sellerCompartment = bucket.get(sellerId);
+        const typeBucket = OpportunityIdCache.getTypeBucket(result.criteriaName, opportunityType, opportunityIdCache);
+        if (!typeBucket.has(sellerId)) typeBucket.set(sellerId, new Set());
+        const sellerCompartment = typeBucket.get(sellerId);
         if (result.criteriaResult.matchesCriteria) {
           sellerCompartment.add(id);
           matchingCriteria.push(result.criteriaName);

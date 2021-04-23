@@ -8,8 +8,8 @@
     "validate-feeds": "node app.js --validate-only",
     "test": "npm run lint && tsc",
     "debug": "node --inspect app.js",
-    "lint": "eslint \"*.js\"",
-    "lint-fix": "eslint \"*.js\" --fix"
+    "lint": "eslint \"*.js\" \"src/**/*.js\"",
+    "lint-fix": "npm run lint -- --fix"
   },
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
