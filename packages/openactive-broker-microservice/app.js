@@ -1020,7 +1020,8 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
   const opportunityType = detectOpportunityType(opportunity);
   const sellerId = detectSellerId(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  const bookingFlow = opportunity['test:testOpenBookingFlow'];
+  // converts e.g. https://openactive.io/OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/', '');
 
   const result = getRandomBookableOpportunity({
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
