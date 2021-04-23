@@ -23,6 +23,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  * }} AccessPassItem
  *
  * @typedef {{
+ *   orderType: 'Order' | 'OrderProposal',
  *   sellerId: string,
  *   orderItems: {
  *     position: number,
@@ -68,7 +69,7 @@ function assertPaymentIsAvailable(templateName, data) {
 function createAfterPBReq(data) {
   const result = {
     '@context': 'https://openactive.io/',
-    '@type': 'Order',
+    '@type': 'Order', // This can never be an OrderProposal
     orderProposalVersion: data.orderProposalVersion,
   };
   if (isPaymentAvailable(data)) {
@@ -86,7 +87,7 @@ function createAfterPBReq(data) {
 function createNonPaymentRelatedCoreBReq(data) {
   return {
     '@context': 'https://openactive.io/',
-    '@type': 'Order',
+    '@type': data.orderType,
     brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',

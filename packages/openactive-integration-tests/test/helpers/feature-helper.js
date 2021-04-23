@@ -49,6 +49,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  *   Defaults to 1.
  * @property {string[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
  *   certain types of opportunity (in the example provided, access-channel tests should not be run for facility slots)
+ * @property {BookingFlow[]} [skipBookingFlows] This test will not be run for any of these Booking Flows
  *
  * @typedef {(
  *   configuration: DescribeFeatureConfiguration,
@@ -160,14 +161,17 @@ class FeatureHelper {
       });
       return;
     }
+    const skipOpportunityTypes = new Set(_.defaultTo(configuration.skipOpportunityTypes, []));
+    const skipBookingFlows = new Set(_.defaultTo(configuration.skipBookingFlows, []));
 
-    const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
+    const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE)
+      .filter(([key, value]) => value === true && !skipOpportunityTypes.has(key))
+      .map(([key]) => key);
     // TODO this should come from config var
-    /** @type {BookingFlow[]} */
-    const bookingFlowsInScope = ['OpenBookingSimpleFlow'];
-    // const bookingFlowsInScope = ['OpenBookingApprovalFlow'];
+    // const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
+    const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow'])
+      .filter(bookingFlow => !skipBookingFlows.has(bookingFlow));
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
-    const skipOpportunityTypes = _.defaultTo(configuration.skipOpportunityTypes, []);
 
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
@@ -199,8 +203,6 @@ class FeatureHelper {
               describe(bookingFlow, () => {
                 // And create a new test for each opportunityType in scope
                 for (const opportunityType of opportunityTypesInScope) {
-                  if (skipOpportunityTypes.includes(opportunityType)) { continue; }
-
                   describe(opportunityType, function () {
                     const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
                       config: configuration,
@@ -237,9 +239,7 @@ class FeatureHelper {
                     // Create multiple orderItems covering all opportunityTypes in scope
                     if (multipleOpportunityCriteriaTemplate !== null) {
                       opportunityTypesInScope.forEach((opportunityType, i) => {
-                        if (!skipOpportunityTypes.includes(opportunityType)) {
-                          orderItemCriteria.push(...multipleOpportunityCriteriaTemplate(opportunityType, bookingFlow, i));
-                        }
+                        orderItemCriteria.push(...multipleOpportunityCriteriaTemplate(opportunityType, bookingFlow, i));
                       });
                     }
 

@@ -13,6 +13,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipBookingFlows: ['OpenBookingApprovalFlow'],
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   /** @type {import('../../../../templates/b-req').AccessPassItem[]} */

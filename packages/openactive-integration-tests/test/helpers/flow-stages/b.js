@@ -38,7 +38,9 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @returns {Promise<Output>}
  */
 async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper, positionOrderIntakeFormMap }) {
+  /** @type {BReqTemplateData} */
   const params = {
+    orderType: 'Order',
     sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,

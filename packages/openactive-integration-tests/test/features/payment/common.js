@@ -3,7 +3,7 @@ const { FlowStageRecipes, FlowStageUtils } = require('../../helpers/flow-stages'
 const { itShouldReturnAnOpenBookingError } = require('../../shared-behaviours/errors');
 
 /**
- * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ * @typedef {import('../../templates/b-req').PReqTemplateRef} PReqTemplateRef
  * @typedef {import('../../helpers/feature-helper').RunTestsFn} RunTestsFn
  * @typedef {import('../../helpers/flow-stages/fetch-opportunities').FetchOpportunitiesFlowStageType} FetchOpportunitiesFlowStageType
  * @typedef {import('../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
@@ -60,18 +60,21 @@ function commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOppor
 
 /**
  * @param {Prepayment | null} expectedPrepayment
- * @param {BReqTemplateRef} bReqTemplateRef
+ * @param {PReqTemplateRef} bookReqTemplateRef
  */
-function successTests(expectedPrepayment, bReqTemplateRef) {
+function successTests(expectedPrepayment, bookReqTemplateRef) {
   /** @type {RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef });
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef });
 
     // ## Set up tests
     commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
-      itShouldHavePrepayment(expectedPrepayment, () => b.getOutput().httpResponse.body);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
+      if (bookRecipe.p) {
+        itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.p.getOutput().httpResponse.body);
+      }
+      itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.b.getOutput().httpResponse.body);
     });
   };
   return runTestsFn;
@@ -80,7 +83,7 @@ function successTests(expectedPrepayment, bReqTemplateRef) {
 /**
  * @param {Prepayment | null} expectedPrepayment
  * @param {'MissingPaymentDetailsError' | 'UnnecessaryPaymentDetailsError' | 'IncompletePaymentDetailsError' | 'TotalPaymentDueMismatchError'} expectedError
- * @param {BReqTemplateRef} bReqTemplateRef
+ * @param {PReqTemplateRef} bReqTemplateRef
  */
 function errorTests(expectedPrepayment, expectedError, bReqTemplateRef) {
   const missingOrUnnecessary = expectedError === 'MissingPaymentDetailsError'

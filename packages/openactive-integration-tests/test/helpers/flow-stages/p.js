@@ -48,7 +48,9 @@ async function runP({
   brokerRole,
   requestHelper,
 }) {
+  /** @type {import('../../templates/b-req').BReqTemplateData} */
   const params = {
+    orderType: 'OrderProposal',
     sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
