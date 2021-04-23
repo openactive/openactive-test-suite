@@ -176,7 +176,6 @@ class FeatureHelper {
       .map(([key]) => key);
     // TODO this should come from config var
     const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
-    // const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow'])
       .filter(bookingFlow => !skipBookingFlows.has(bookingFlow));
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
