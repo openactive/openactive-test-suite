@@ -11,7 +11,7 @@ const { FALSE_BOOLEAN_CONSTRAINT } = require('../testDataShape');
  */
 function mustNotAllowOpenBooking(opportunity) {
   const organization = getOrganizerOrProvider(opportunity);
-  return organization && organization.allowsOpenBooking === true;
+  return organization && organization.isOpenBookingAllowed === true;
 }
 
 /**
@@ -28,7 +28,7 @@ const TestOpportunitySellerOpenBookingNotAllowed = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     opportunityConstraints: {
-      'oa:allowsOpenBooking': FALSE_BOOLEAN_CONSTRAINT,
+      'oa:isOpenBookingAllowed': FALSE_BOOLEAN_CONSTRAINT,
     },
   }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,

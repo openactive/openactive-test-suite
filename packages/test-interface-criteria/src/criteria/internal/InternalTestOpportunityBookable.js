@@ -52,7 +52,7 @@ const InternalTestOpportunityBookable = createCriteria({
       'placeholder:remainingCapacity': quantitativeValue({
         mininclusive: 2,
       }),
-      'oa:allowsOpenBooking': TRUE_BOOLEAN_CONSTRAINT,
+      'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
     }),
     offerConstraints: ({
       'oa:validFromBeforeStartDate': dateRange({

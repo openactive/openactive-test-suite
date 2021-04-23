@@ -108,7 +108,7 @@ export interface TestDataShape {
     'placeholder:remainingCapacity'?: NumericNodeConstraint;
     'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
     'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
-    'oa:allowsOpenBooking'?: BooleanNodeConstraint;
+    'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
   };
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
