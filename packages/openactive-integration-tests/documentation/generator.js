@@ -107,9 +107,7 @@ const testMetadata = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(fun
 const featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
-  const feature = /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
-  chai.expect(feature).to.have.property('identifier').that.is.a('string');
-  return feature;
+  return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
 });
 
 // Sort features so that required ones are first
