@@ -404,10 +404,6 @@ class RequestHelper {
       }), {
         timeout: 10000,
       },
-      // createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      // {
-      //   timeout: 10000,
-      // },
     );
 
     return respObj;
