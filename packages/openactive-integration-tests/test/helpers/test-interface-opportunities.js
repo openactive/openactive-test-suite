@@ -22,7 +22,12 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
   const remainingCapacityPredicate = (opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot')
     ? 'oa:remainingUses'
     : 'schema:remainingAttendeeCapacity';
-  const testDataShapeExpressions = getTestDataShapeExpressions(testOpportunityCriteria, remainingCapacityPredicate, { harvestStartTime: HARVEST_START_TIME });
+  const testDataShapeExpressions = getTestDataShapeExpressions(
+    testOpportunityCriteria,
+    bookingFlow,
+    remainingCapacityPredicate,
+    { harvestStartTime: HARVEST_START_TIME },
+  );
   /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpenBookingFlow' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
   const testInterfaceOpportunityFields = {
     '@context': [

@@ -3,8 +3,7 @@
   "criteriaRequirements": {
     "minimal-proposal": {
       "primary": {
-        "TestOpportunityBookableFlowRequirementOnlyApproval": 9,
-        "TestOpportunityBookable": 3
+        "TestOpportunityBookable": 12
       }
     },
     "agent-broker": {

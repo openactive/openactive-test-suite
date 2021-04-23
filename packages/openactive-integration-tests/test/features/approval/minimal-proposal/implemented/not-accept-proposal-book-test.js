@@ -27,7 +27,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'OrderProposal not yet accepted by the Seller',
   testDescription: 'An OrderProposal that is not yet accepted by the Seller, and the call to B subsequently fails',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
+  testOpportunityCriteria: 'TestOpportunityBookable',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],

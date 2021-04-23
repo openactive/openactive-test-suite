@@ -63,10 +63,23 @@ export function testMatch(criteria: Criteria, opportunity: Opportunity, options:
 export function getRelevantOffers(criteriaName: string, opportunity: Opportunity, options: Options): import("./types/Offer").Offer[];
 /**
  * @param {string} criteriaName
+ * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
+ * @param {string} remainingCapacityPredicate The ShEx predicate to use for "remaining capacity". This should be
+ *   remainingUses for Slots and remainingAttendeeCapacity for Events.
  * @param {Options} options
- * @returns {any}
  */
-export function getTestDataShapeExpressions(criteriaName: string, remainingCapacityPredicate: any, options: Options): any;
+export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', remainingCapacityPredicate: string, options: Options): {
+    'test:testOpportunityDataShapeExpression': {
+        '@type': string;
+        predicate: any;
+        valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
+    }[];
+    'test:testOfferDataShapeExpression': {
+        '@type': string;
+        predicate: any;
+        valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
+    }[];
+};
 declare const getOrganizerOrProvider: (opportunity: import("./types/Opportunity").Opportunity) => any;
 export declare namespace utils {
     export { getOrganizerOrProvider };

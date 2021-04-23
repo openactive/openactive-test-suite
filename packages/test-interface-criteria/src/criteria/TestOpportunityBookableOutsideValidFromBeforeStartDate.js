@@ -42,7 +42,7 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
-  testDataShape: options => ({
+  testDataShape: (options) => ({
     opportunityConstraints: {
       'placeholder:remainingCapacity': quantitativeValue({
         mininclusive: 2,
