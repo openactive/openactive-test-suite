@@ -3,7 +3,6 @@ const chakram = require('chakram');
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
-// const { pReqTemplates: bReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
 const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
 

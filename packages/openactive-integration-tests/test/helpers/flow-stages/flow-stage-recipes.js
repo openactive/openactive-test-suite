@@ -14,7 +14,7 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  * @typedef {import('../../templates/c2-req').C2ReqTemplateRef} C2ReqTemplateRef
  * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
  * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
- * @typedef {import('../../templates/p-req').PReqTemplateRef} PReqTemplateRef
+ * @typedef {import('../../templates/b-req').PReqTemplateRef} PReqTemplateRef
  * @typedef {import('./b').BFlowStageType} BFlowStageType
  * @typedef {import('./p').PFlowStageType} PFlowStageType
  * @typedef {import('./order-feed-update').OrderFeedUpdateCollectorType} OrderFeedUpdateCollectorType
@@ -44,18 +44,6 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   accessPass?: AccessPassItem[] | null,
  * }} InitialiseSimpleC1C2BookFlowOptions
  */
-
-// /**
-//  * @typedef {{
-//  *   b: BFlowStageType,
-//  *   p?: PFlowStageType,
-//  *   simulateSellerApproval?: TestInterfaceActionFlowStageType,
-//  *   orderFeedUpdateCollector?: OrderFeedUpdateCollectorType,
-//  *   firstStage: BFlowStage | PFlowStageType,
-//  * }} BookRecipe The Flow Stages required to complete booking in either Simple or Approval flow.
-//  *   `firstStage` is a special field that represents the first stage that is needed in either flow. Some tests expect
-//  *   that, regardless of which of P or B was called first, it should fail.
-//  */
 
 const FlowStageRecipes = {
   /**

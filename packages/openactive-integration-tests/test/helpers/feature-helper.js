@@ -161,7 +161,7 @@ class FeatureHelper {
     }
 
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
-    // TODO TODO TODO this should come from config var
+    // TODO this should come from config var
     /** @type {BookingFlow[]} */
     const bookingFlowsInScope = ['https://openactive.io/OpenBookingSimpleFlow'];
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
@@ -217,7 +217,6 @@ class FeatureHelper {
                 });
               }
             }
-            // });
 
             if (!configuration.skipMultiple) {
               describe('Multiple', function () {
@@ -240,7 +239,6 @@ class FeatureHelper {
                     opportunityTypesInScope.forEach((opportunityType, i) => {
                       if (!skipOpportunityTypes.includes(opportunityType)) {
                         orderItemCriteria.push(...multipleOpportunityCriteriaTemplate(opportunityType, bookingFlow, i));
-                        // orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
                       }
                     });
                   }

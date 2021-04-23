@@ -2,7 +2,6 @@ const { getTotalPaymentDueFromOrder, getOrderProposalVersion, getOrderId, getPre
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
-//  * @typedef {import('../../templates/p-req').PReqTemplateRef} PReqTemplateRef
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
