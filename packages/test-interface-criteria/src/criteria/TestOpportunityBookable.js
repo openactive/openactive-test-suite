@@ -1,7 +1,8 @@
 const { createCriteria } = require('./criteriaUtils');
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
 
-// TODO this is now redundant
+// TODO this criteria is now redundant - probably InternalTestOpportunityBookable can be removed now that we have the
+// testOpenBookingFlow constraint.
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
