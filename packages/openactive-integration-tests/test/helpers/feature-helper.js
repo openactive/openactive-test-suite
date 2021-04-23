@@ -304,7 +304,6 @@ class FeatureHelper {
                 testOpportunityCriteria: criteria,
                 bookingFlow,
               });
-                // opportunityType, criteria);
               chakram.expect(response).to.have.status(204);
             });
           });
