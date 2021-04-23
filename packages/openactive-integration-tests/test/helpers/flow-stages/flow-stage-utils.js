@@ -149,6 +149,8 @@ const FlowStageUtils = {
     if (flowStageOrBookRecipe instanceof BookRecipe) {
       if (flowStageOrBookRecipe.p) {
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
+        /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
+        approved items appearing in the feed - which means that the tests will time out */
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
