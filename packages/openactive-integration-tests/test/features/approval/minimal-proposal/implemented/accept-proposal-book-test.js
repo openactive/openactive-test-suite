@@ -39,6 +39,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const requestHelper = new RequestHelper(logger);

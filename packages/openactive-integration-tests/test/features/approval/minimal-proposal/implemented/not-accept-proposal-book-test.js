@@ -30,6 +30,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);

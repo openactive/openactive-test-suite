@@ -49,6 +49,8 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  *   Defaults to 1.
  * @property {string[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
  *   certain types of opportunity (in the example provided, access-channel tests should not be run for facility slots)
+ * @property {boolean} [supportsApproval] TEMPORARY field until approval works for all tests. Approval will only be
+ *   attempted for a test that has this field set to true (unless skipBookingFlows is set).
  * @property {BookingFlow[]} [skipBookingFlows] This test will not be run for any of these Booking Flows
  *
  * @typedef {(
@@ -162,14 +164,19 @@ class FeatureHelper {
       return;
     }
     const skipOpportunityTypes = new Set(_.defaultTo(configuration.skipOpportunityTypes, []));
-    const skipBookingFlows = new Set(_.defaultTo(configuration.skipBookingFlows, []));
+    const skipBookingFlows = new Set(_.defaultTo(
+      configuration.skipBookingFlows,
+      configuration.supportsApproval
+        ? []
+        : ['OpenBookingApprovalFlow'], // the default value if neither skipBookingFlows nor supportsApproval are set.
+    ));
 
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE)
       .filter(([key, value]) => value === true && !skipOpportunityTypes.has(key))
       .map(([key]) => key);
     // TODO this should come from config var
-    // const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
-    const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow'])
+    const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
+    // const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow'])
       .filter(bookingFlow => !skipBookingFlows.has(bookingFlow));
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
