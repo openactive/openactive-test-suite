@@ -416,8 +416,18 @@ function getBaseUrl(url) {
   throw new Error("RPDE 'next' property MUST be an absolute URL");
 }
 
-function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier) {
-  const typeBucket = OpportunityIdCache.getTypeBucket(criteriaName, opportunityType, opportunityIdCache);
+/**
+ * @param {object} args
+ * @param {string} args.sellerId
+ * @param {string} args.bookingFlow
+ * @param {string} args.opportunityType
+ * @param {string} args.criteriaName
+ * @param {string} args.testDatasetIdentifier
+ */
+function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
+  const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+    criteriaName, bookingFlow, opportunityType,
+  });
   const sellerCompartment = typeBucket.get(sellerId);
   if (!sellerCompartment) {
     return {
@@ -445,11 +455,15 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
 }
 
 /**
- * @param {string} opportunityType
- * @param {string} criteriaName
+ * @param {object} args
+ * @param {string} args.opportunityType
+ * @param {string} args.criteriaName
+ * @param {string} args.bookingFlow
  */
-function assertOpportunityCriteriaNotFound(opportunityType, criteriaName) {
-  const typeBucket = OpportunityIdCache.getTypeBucket(criteriaName, opportunityType, opportunityIdCache);
+function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, bookingFlow }) {
+  const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+    criteriaName, opportunityType, bookingFlow,
+  });
 
   // Check that all sellerCompartments are empty
   return Array.from(typeBucket).every(([, items]) => (items.size === 0));
@@ -659,12 +673,16 @@ app.get('/dataset-site', function (req, res) {
   res.json(datasetSiteJson);
 });
 
-function mapToObject(map) {
+/**
+ * @param {Map | Set} map
+ * @returns {{[k: string]: any} | number}
+ */
+function mapToObjectSummary(map) {
   if (map instanceof Map) {
     // Return a object representation of a Map
     return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0 ? {
     } : {
-      [v[0]]: mapToObject(v[1]),
+      [v[0]]: mapToObjectSummary(v[1]),
     })));
   } if (map instanceof Set) {
     // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
@@ -725,11 +743,11 @@ app.get('/status', function (req, res) {
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     harvestingStatus: pauseResume.pauseHarvestingStatus,
-    feeds: mapToObject(feedContextMap),
+    feeds: mapToObjectSummary(feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(opportunityIdCache),
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(opportunityIdCache),
   });
 });
 
@@ -965,6 +983,28 @@ function detectOpportunityType(opportunity) {
   }
 }
 
+/**
+ * @param {{[k: string]: any}} opportunity
+ * @returns {string[]} An opportunity can support multiple Booking Flows as these are in the Offers. An Opportunity
+ *   can have an Offer requiring approval and one that does not.
+ */
+function detectOpportunityBookingFlows(opportunity) {
+  const offers = opportunity.offers || (opportunity.superEvent || opportunity.facilityUse)?.offers;
+  if (!offers) {
+    throw new Error(`Opportunity (ID: ${opportunity['@id']}) has no offers in superEvent/facilityUse`);
+  }
+  /** @type {Set<string>} */
+  const bookingFlows = new Set();
+  for (const offer of offers) {
+    if (offer.openBookingFlowRequirement && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingApproval')) {
+      bookingFlows.add('OpenBookingApprovalFlow');
+    } else {
+      bookingFlows.add('OpenBookingSimpleFlow');
+    }
+  }
+  return [...bookingFlows];
+}
+
 app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', function (req, res) {
   if (DO_NOT_FILL_BUCKETS) {
     res.status(403).json({
@@ -980,8 +1020,11 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
   const opportunityType = detectOpportunityType(opportunity);
   const sellerId = detectSellerId(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  const bookingFlow = opportunity['test:testOpenBookingFlow'];
 
-  const result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
+  const result = getRandomBookableOpportunity({
+    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
+  });
   if (result && result.opportunity) {
     if (CONSOLE_OUTPUT_LEVEL === 'dot') {
       logCharacter('.');
@@ -1015,8 +1058,11 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   const opportunity = req.body;
   const opportunityType = detectOpportunityType(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  const bookingFlow = opportunity['test:testOpenBookingFlow'];
 
-  const result = assertOpportunityCriteriaNotFound(opportunityType, criteriaName);
+  const result = assertOpportunityCriteriaNotFound({
+    opportunityType, criteriaName, bookingFlow,
+  });
 
   if (result) {
     if (CONSOLE_OUTPUT_LEVEL === 'dot') {
@@ -1255,25 +1301,30 @@ async function processOpportunityItem(item) {
 
     if (!DO_NOT_FILL_BUCKETS) {
       const opportunityType = detectOpportunityType(item.data);
+      const bookingFlows = detectOpportunityBookingFlows(item.data);
       const sellerId = detectSellerId(item.data);
 
-      criteria.map((c) => ({
+      for (const { criteriaName, criteriaResult } of criteria.map((c) => ({
         criteriaName: c.name,
         criteriaResult: testMatch(c, item.data, {
           harvestStartTime: HARVEST_START_TIME,
         }),
-      })).forEach((result) => {
-        const typeBucket = OpportunityIdCache.getTypeBucket(result.criteriaName, opportunityType, opportunityIdCache);
-        if (!typeBucket.has(sellerId)) typeBucket.set(sellerId, new Set());
-        const sellerCompartment = typeBucket.get(sellerId);
-        if (result.criteriaResult.matchesCriteria) {
-          sellerCompartment.add(id);
-          matchingCriteria.push(result.criteriaName);
-        } else {
-          sellerCompartment.delete(id);
-          unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
+      }))) {
+        for (const bookingFlow of bookingFlows) {
+          const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+            criteriaName, opportunityType, bookingFlow,
+          });
+          if (!typeBucket.has(sellerId)) typeBucket.set(sellerId, new Set());
+          const sellerCompartment = typeBucket.get(sellerId);
+          if (criteriaResult.matchesCriteria) {
+            sellerCompartment.add(id);
+            matchingCriteria.push(criteriaName);
+          } else {
+            sellerCompartment.delete(id);
+            unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
+          }
         }
-      });
+      }
     }
 
     const bookableIssueList = unmetCriteriaDetails.length > 0
