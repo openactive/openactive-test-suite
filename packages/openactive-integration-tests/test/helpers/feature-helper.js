@@ -163,7 +163,8 @@ class FeatureHelper {
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
     // TODO this should come from config var
     /** @type {BookingFlow[]} */
-    const bookingFlowsInScope = ['https://openactive.io/OpenBookingSimpleFlow'];
+    const bookingFlowsInScope = ['OpenBookingSimpleFlow'];
+    // const bookingFlowsInScope = ['OpenBookingApprovalFlow'];
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
     const skipOpportunityTypes = _.defaultTo(configuration.skipOpportunityTypes, []);
 
@@ -194,57 +195,56 @@ class FeatureHelper {
           } else {
             // Create a new test for each bookingFlow in scope
             for (const bookingFlow of bookingFlowsInScope) {
-              // And create a new test for each opportunityType in scope
-              for (const opportunityType of opportunityTypesInScope) {
-                if (skipOpportunityTypes.includes(opportunityType)) { continue; }
+              describe(bookingFlow, () => {
+                // And create a new test for each opportunityType in scope
+                for (const opportunityType of opportunityTypesInScope) {
+                  if (skipOpportunityTypes.includes(opportunityType)) { continue; }
 
-                describe(opportunityType, function () {
-                  const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
-                    config: configuration,
-                    description: configuration.testDescription,
-                    implemented,
-                    opportunityType,
-                  });
-
-                  const state = new RequestState(logger);
-                  const flow = new FlowHelper(state);
-
-                  const orderItemCriteria = singleOpportunityCriteriaTemplate === null
-                    ? null
-                    : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
-
-                  tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
-                });
-              }
-            }
-
-            if (!configuration.skipMultiple) {
-              describe('Multiple', function () {
-                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
-                  config: configuration,
-                  description: configuration.testDescription,
-                  implemented,
-                  opportunityType: 'Multiple',
-                });
-
-                const state = new RequestState(logger);
-                const flow = new FlowHelper(state);
-
-                const orderItemCriteria = [];
-
-                // Create multiple orderItems covering all opportunityTypes in scope
-                if (multipleOpportunityCriteriaTemplate !== null) {
-                  // Create a new test for each bookingFlow in scope
-                  for (const bookingFlow of bookingFlowsInScope) {
-                    opportunityTypesInScope.forEach((opportunityType, i) => {
-                      if (!skipOpportunityTypes.includes(opportunityType)) {
-                        orderItemCriteria.push(...multipleOpportunityCriteriaTemplate(opportunityType, bookingFlow, i));
-                      }
+                  describe(opportunityType, function () {
+                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
+                      config: configuration,
+                      description: configuration.testDescription,
+                      implemented,
+                      opportunityType,
                     });
-                  }
+
+                    const state = new RequestState(logger);
+                    const flow = new FlowHelper(state);
+
+                    const orderItemCriteria = singleOpportunityCriteriaTemplate === null
+                      ? null
+                      : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
+
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
+                  });
                 }
 
-                tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null);
+                if (!configuration.skipMultiple) {
+                  describe('Multiple', function () {
+                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
+                      config: configuration,
+                      description: configuration.testDescription,
+                      implemented,
+                      opportunityType: 'Multiple',
+                    });
+
+                    const state = new RequestState(logger);
+                    const flow = new FlowHelper(state);
+
+                    const orderItemCriteria = [];
+
+                    // Create multiple orderItems covering all opportunityTypes in scope
+                    if (multipleOpportunityCriteriaTemplate !== null) {
+                      opportunityTypesInScope.forEach((opportunityType, i) => {
+                        if (!skipOpportunityTypes.includes(opportunityType)) {
+                          orderItemCriteria.push(...multipleOpportunityCriteriaTemplate(opportunityType, bookingFlow, i));
+                        }
+                      });
+                    }
+
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null);
+                  });
+                }
               });
             }
           }

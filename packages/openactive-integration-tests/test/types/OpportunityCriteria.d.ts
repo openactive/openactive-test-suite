@@ -20,8 +20,8 @@ export type SellerCriteria =
  * openactive-integration-tests README.md
  */
 export type BookingFlow =
-  | 'https://openactive.io/OpenBookingSimpleFlow'
-  | 'https://openactive.io/OpenBookingApprovalFlow';
+  | 'OpenBookingSimpleFlow'
+  | 'OpenBookingApprovalFlow';
 
 export interface OpportunityCriteria {
   opportunityType: string | null;
