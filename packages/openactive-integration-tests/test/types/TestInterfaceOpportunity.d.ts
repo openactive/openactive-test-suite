@@ -1,6 +1,3 @@
-// import { TestDataShape } from '@openactive/test-interface-criteria/built-types/types/TestDataShape';
-// import { BookingFlow } from './OpportunityCriteria';
-
 /**
  * Opportunity data for test interface requests. Just has ID and organizer/provider ID
  */
