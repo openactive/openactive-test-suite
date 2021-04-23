@@ -271,9 +271,11 @@ class RequestState {
   }
 
   async putOrder() {
+    /** @type {import('../templates/b-req').BReqTemplateData} */
+    const params = { ...this, orderType: 'Order' };
     const result = this._bReqTemplateRef
-      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
-      : await this.requestHelper.putOrder(this.uuid, this);
+      ? await this.requestHelper.putOrder(this.uuid, params, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, params);
 
     this.bResponse = result;
 
@@ -289,7 +291,7 @@ class RequestState {
   }
 
   async putOrderProposal() {
-    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
+    const result = await this.requestHelper.putOrderProposal(this.uuid, { ...this, orderType: 'OrderProposal' });
     this.pResponse = result;
 
     return this;
