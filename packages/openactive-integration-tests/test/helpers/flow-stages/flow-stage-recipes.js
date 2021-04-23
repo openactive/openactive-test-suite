@@ -230,6 +230,9 @@ const FlowStageRecipes = {
    * @param {AccessPassItem[] | null} [args.accessPass]
    * @param {PReqTemplateRef | null} [args.firstStageReqTemplateRef] Reference for the template which will be used
    *   for the first stage - B or P.
+   *   Note that the template ref is a `PReqTemplateRef`. That's because the only difference between `PReqTemplateRef`
+   *   and `BReqTemplateRef` is that the latter includes the `afterP` template which is exclusively used for the B at
+   *   the end of approval flow. Therefore, regardless of flow, the first stage will never use `afterP`.
    * @param {() => import('./p').Input} args.getFirstStageInput Input for the first flow stage - B or P.
    * @returns {BookRecipe}
    */
