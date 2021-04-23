@@ -215,8 +215,8 @@ const FlowStageUtils = {
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndCheckIsValid(flowStage, itAdditionalTests) {
-    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: false }, flowStage, itAdditionalTests);
+  describeRunAndCheckIsValid(flowStageOrBookRecipe, itAdditionalTests) {
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: false }, flowStageOrBookRecipe, itAdditionalTests);
   },
 };
 
