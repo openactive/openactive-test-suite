@@ -60,7 +60,9 @@ class Reporter {
         await logger.load();
 
         for (const singleTestResult of groupedTests) {
-          logger.recordTestResult(singleTestResult.ancestorTitles[3], singleTestResult);
+          /* ancestorTitles[4] is the first `describe(..)` label within the test itself.
+          It will generally be the name of a stage e.g. C1 */
+          logger.recordTestResult(singleTestResult.ancestorTitles[4], singleTestResult);
         }
 
         logger.testFilePath = test.testFilePath;
