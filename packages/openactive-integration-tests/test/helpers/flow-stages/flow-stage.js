@@ -53,7 +53,7 @@ const pMemoize = require('p-memoize');
  *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
- *  @property {{ [k:number]: OrderItemIntakeForm }} [positionOrderIntakeFormMap]
+ * @property {{ [k:number]: OrderItemIntakeForm }} [positionOrderIntakeFormMap]
  *   A map with OrderItem position and it's OrderItemIntakeForm.
  *   If the OrderItem does not need additional details, this map will just be null.
  *   If present, this will only be on the C1FlowStage output as that is the only
@@ -101,7 +101,7 @@ class FlowStage {
    *   This input goes into `getInput`. It's a function as it will be called when
    *   the FlowStage is run (rather than when the FlowStage is set up). Therefore,
    *   it will have acccess to the output of any prerequisite stages.
-   * @param {string} args.testName
+   * @param {string} args.testName Labels the jest `describe(..)` block
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itValidationTestsFn
@@ -247,6 +247,9 @@ class FlowStage {
  * @template {FlowStageOutput} TInput
  * @template {FlowStageOutput} TOutput
  * @typedef {FlowStage<TInput, TOutput>} FlowStageType
+ */
+/**
+ * @typedef {FlowStage<unknown, unknown>} UnknownFlowStageType
  */
 
 module.exports = {

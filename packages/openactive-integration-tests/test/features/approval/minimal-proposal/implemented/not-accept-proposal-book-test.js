@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, P, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils, PFlowStage, BFlowStage } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -31,68 +31,46 @@ FeatureHelper.describeFeature(module, {
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) => {
-  beforeAll(async () => {
-    await state.fetchOpportunities(orderItemCriteria);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const p = new PFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c2,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
+    }),
+  });
+  const b = new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: p,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
+      orderProposalVersion: p.getOutput().orderProposalVersion,
+      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
+    }),
   });
 
-  describe('Get Opportunity Feed Items', () => {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
   });
-
-  describe('C1', () => {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnOrderRequiresApprovalTrue(() => state.c1Response);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
   });
-
-  describe('C2', () => {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    itShouldReturnOrderRequiresApprovalTrue(() => state.c2Response);
-  });
-
-  describe('P', () => {
-    (new P({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
     // TODO does validator check that orderProposalVersion is of form {orderId}/versions/{versionUuid}
     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
-      expect(state.pResponse.body).to.have.property('orderProposalVersion')
-        .which.matches(RegExp(`${state.uuid}/versions/.+`));
+      expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
+        .which.matches(RegExp(`${defaultFlowStageParams.uuid}/versions/.+`));
     });
     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed
     // TODO does validator check that full Seller details are included in the seller response?
   });
-
-  describe('B', () => {
-    (new B({
-      state,
-      flow,
-      logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    itShouldReturnAnOpenBookingError('OrderCreationFailedError', 500, () => state.bResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
+    itShouldReturnAnOpenBookingError('OrderCreationFailedError', 500, () => b.getOutput().httpResponse);
   });
 });

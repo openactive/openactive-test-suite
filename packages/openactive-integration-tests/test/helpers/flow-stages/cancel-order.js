@@ -50,7 +50,7 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {string} [args.testName]
+   * @param {string} [args.testName] Defaults to "Cancel Order"
    */
   constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid, testName }) {
     super({

@@ -11,6 +11,19 @@ const { FlowStageUtils } = require('../helpers/flow-stages');
  */
 
 /**
+ * @param {number} statusCode Expected HTTP status
+ * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
+ *   function because the actual response won't be available until the
+ *   asynchronous before() block has completed.
+ */
+function itShouldReturnHttpStatus(statusCode, getChakramResponse) {
+  it(`should return HTTP ${statusCode}`, () => {
+    const chakramResponse = getChakramResponse();
+    expect(chakramResponse.response).to.have.property('statusCode', statusCode);
+  });
+}
+
+/**
  * @param {string} errorType e.g. IncompleteBrokerDetailsError
  * @param {number} statusCode Expected HTTP status
  * @param {() => ChakramResponse} getChakramResponse This is wrapped in a
@@ -48,6 +61,7 @@ const runFlowStageAndExpectIncompleteBrokerDetailsError = createRunFlowStageAndE
 const runFlowStageAndExpectIncompleteCustomerDetailsError = createRunFlowStageAndExpectOpenBookingErrorFn('IncompleteCustomerDetailsError', 400);
 
 module.exports = {
+  itShouldReturnHttpStatus,
   itShouldReturnAnOpenBookingError,
   runFlowStageAndExpectIncompleteBrokerDetailsError,
   runFlowStageAndExpectIncompleteCustomerDetailsError,

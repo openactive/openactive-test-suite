@@ -108,8 +108,9 @@
     },
     "customer-requested-cancellation": {
       "primary": {
-        "TestOpportunityBookableCancellable": 8,
-        "TestOpportunityBookableNotCancellable": 1
+        "TestOpportunityBookableCancellable": 12,
+        "TestOpportunityBookableNotCancellable": 1,
+        "TestOpportunityBookable": 2
       }
     },
     "seller-requested-cancellation": {

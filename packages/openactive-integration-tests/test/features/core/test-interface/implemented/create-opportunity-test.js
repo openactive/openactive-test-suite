@@ -1,6 +1,8 @@
-const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch } = require('../../../../shared-behaviours');
+const {
+  FetchOpportunitiesFlowStage,
+  FlowStageUtils,
+} = require('../../../../helpers/flow-stages');
 
 const { USE_RANDOM_OPPORTUNITIES } = global;
 
@@ -17,19 +19,14 @@ FeatureHelper.describeFeature(module, {
   skipMultiple: true,
   runOnlyIf: !USE_RANDOM_OPPORTUNITIES,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria, false);
-
-    return chakram.wait();
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+  // # Initialise Flow Stages
+  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
   });
 
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
+  // # Set up Tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 });
