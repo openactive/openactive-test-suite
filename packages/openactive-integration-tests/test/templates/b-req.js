@@ -548,7 +548,7 @@ const bReqTemplates = {
 
 /**
  * @typedef {keyof typeof bReqTemplates} BReqTemplateRef Reference to a particular B Request template
- * @typedef {Omit<BReqTemplateRef, 'afterP'>} PReqTemplateRef P accepts the same sort of requests as B.
+ * @typedef {keyof Omit<typeof bReqTemplates, 'afterP'>} PReqTemplateRef P accepts the same sort of requests as B.
  *   Except for the "B after P" request.
  */
 
