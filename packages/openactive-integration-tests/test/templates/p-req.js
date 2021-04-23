@@ -1,3 +1,4 @@
+// TODO TODO TODO delete this file
 const { createPaymentPart, isPaymentAvailable } = require('./common');
 
 /**

@@ -60,6 +60,37 @@ Tests will be repeated for each opportunity type that is set to `true`. Multiple
   },
 ```
 
+### `bookingFlowsInScope`
+
+Like `bookableOpportunityTypesInScope`, tests will be repeated for each of the Booking Flows that are set to `true`.
+
+```json
+  "bookingFlowsInScope": {
+    "https://openactive.io/OpenBookingSimple": true,
+    "https://openactive.io/OpenBookingApproval": false
+  }
+```
+
+The different Booking Flows represent the order of API endpoints (and actions) that must be invoked in order to complete a booking. They are:
+
+* https://openactive.io/OpenBookingSimple: [Simple Booking Flow](https://openactive.io/open-booking-api/EditorsDraft/#simple-booking-flow)
+* https://openactive.io/OpenBookingApproval: [Booking Flow with Approval](https://openactive.io/open-booking-api/EditorsDraft/#booking-flow-with-approval)
+
+This combination of Booking Flows also stacks up with the combination of Opportunity Types, so with the following config:
+
+```json
+  "bookableOpportunityTypesInScope": {
+    "ScheduledSession": true,
+    "FacilityUseSlot": true
+  },
+  "bookingFlowsInScope": {
+    "https://openactive.io/OpenBookingSimpleFlow": true,
+    "https://openactive.io/OpenBookingApprovalFlow": true
+  }
+```
+
+All of the implemented features would be tested 4 times. Once for ScheduledSessions with the Simple Booking Flow, once for ScheduledSessions with the Approval Flow, etc.
+
 ### `implementedFeatures`
 
 The value of each [feature](./test/features/README.md) in the map determines the tests that will be run:

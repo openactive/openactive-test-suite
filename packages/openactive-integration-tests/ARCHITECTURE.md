@@ -59,38 +59,10 @@ These consist of:
 
 - [Chakram](http://dareid.github.io/chakram/): This is a HTTP test framework designed for Mocha (however it works fine on Jest)
 - [Request helper](test/helpers/request-helper.js): This makes requests, and records the request + response against the logger. There are methods to directly make requests, along with methods for each API endpoint.
-- [State tracker](test/helpers/request-state.js): This wraps the API endpoint methods, stores the results and automatically uses these in successive requests, i.e. if you make an order, it keeps the order ID to be auto-used in the next request.
-- [Flow](test/helpers/flow-helper.js): This is another wrapper around state and implements methods for each stage of the booking process. This keeps track of whether a pre-requisite has ran or not, and if not runs it. This has additional validation.
+- [Flow Stages](test/helpers/flow-stages/flow-stage.js): A part of the booking flow (e.g. the C1 request). Use it to call the relevant API endpoint. When calleed, it stores the results, which can then be applied to successive Flow Stages (e.g. C1 output can be used for the C2 request).
 # Test flow
 
-- Flow shared behaviours: This is a wrapper around the flows, this implements common test behaviour patterns around each of the flows. This is typically to make the request, common expectations for a successful test, along with validation handling.
 - [Feature helper](test/helpers/feature-helper.js): This wraps up the initialisation of the test, implementing the describe blocks and initialising the logger.
-
-## Flow shared behaviours
-
-These are helpers that implement the common/repeated parts of the test flows. This wraps up the actual making of the request, common expectations for a successful test, along with validation handling.
-
-The common pattern is generally to import the helper.
-
-i.e.
-
-```jsx
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-
-```
-
-Then use it within the describe blocks as so:
-
-```jsx
-(new GetMatch({
-  state, flow, logger,
-}))
-  .beforeSetup()
-  .successChecks()
-  .validationTests();
-```
-
-The methods self return, so as to be chainable.
 
 ## Feature Helper
 

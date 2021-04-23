@@ -3,7 +3,7 @@ const chakram = require('chakram');
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
-const { pReqTemplates } = require('../templates/p-req.js');
+// const { pReqTemplates: bReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
 const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
 
@@ -13,6 +13,10 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
  * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
+ * @typedef {import('../templates/b-req').BReqTemplateData} BReqTemplateData
+ * @typedef {import('../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ * @typedef {import('../templates/b-req').PReqTemplateData} PReqTemplateData
+ * @typedef {import('../templates/b-req').PReqTemplateRef} PReqTemplateRef
  */
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
@@ -268,8 +272,8 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
+   * @param {BReqTemplateData} params
+   * @param {BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
   async putOrder(uuid, params, maybeBReqTemplateRef) {
     const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
@@ -291,12 +295,12 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef | null} [maybePReqTemplateRef]
+   * @param {PReqTemplateData} params
+   * @param {PReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrderProposal(uuid, params, maybePReqTemplateRef) {
-    const pReqTemplateRef = maybePReqTemplateRef || 'standard';
-    const templateFn = pReqTemplates[pReqTemplateRef];
+  async putOrderProposal(uuid, params, maybeBReqTemplateRef) {
+    const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
+    const templateFn = bReqTemplates[bReqTemplateRef];
     const requestBody = templateFn(params);
 
     const pResponse = await this.put(

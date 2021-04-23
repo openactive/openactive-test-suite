@@ -36,11 +36,14 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   }[],
  *   totalPaymentDue: number,
  *   prepayment?: Prepayment | null | undefined,
- *   orderProposalVersion: string | null,
+ *   orderProposalVersion?: string | null,
  *   accessPass?: AccessPassItem[],
- *   brokerRole: string | null,
+ *   brokerRole?: string | null,
  *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} BReqTemplateData
+ *
+ * @typedef {Omit<BReqTemplateData, 'orderProposalVersion'>} PReqTemplateData P accepts the same sort of requests as B.
+ *   Except for `orderProposalVersion` which is only for a "B after P" request.
  */
 
 /**
@@ -523,6 +526,7 @@ const bReqTemplates = {
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
   paidWithPayment: createPaidWithPaymentBReq,
+  afterP: createAfterPBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   noBroker: createNoBrokerBReq,
@@ -544,6 +548,8 @@ const bReqTemplates = {
 
 /**
  * @typedef {keyof typeof bReqTemplates} BReqTemplateRef Reference to a particular B Request template
+ * @typedef {Omit<BReqTemplateRef, 'afterP'>} PReqTemplateRef P accepts the same sort of requests as B.
+ *   Except for the "B after P" request.
  */
 
 module.exports = {

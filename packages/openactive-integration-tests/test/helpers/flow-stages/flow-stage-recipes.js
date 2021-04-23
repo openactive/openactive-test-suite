@@ -3,13 +3,24 @@ const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
 const { FlowStageUtils } = require('./flow-stage-utils');
+const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
+const { PFlowStage } = require('./p');
+const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 
 /**
- * @typedef {import('../request-state').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
  * @typedef {import('../../templates/c2-req').C2ReqTemplateRef} C2ReqTemplateRef
+ * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
  * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ * @typedef {import('../../templates/p-req').PReqTemplateRef} PReqTemplateRef
+ * @typedef {import('./b').BFlowStageType} BFlowStageType
+ * @typedef {import('./p').PFlowStageType} PFlowStageType
+ * @typedef {import('./order-feed-update').OrderFeedUpdateCollectorType} OrderFeedUpdateCollectorType
+ * @typedef {import('./test-interface-action').TestInterfaceActionFlowStageType} TestInterfaceActionFlowStageType
+ * @typedef {import('./order-feed-update').OrderFeedUpdateListenerType} OrderFeedUpdateListenerType
+ * @typedef {import('./flow-stage').UnknownFlowStageType} UnknownFlowStageType
+ * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  */
 
 /**
@@ -20,6 +31,18 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   brokerRole?: string | null,
  *   taxMode?: string | null,
  * }} InitialiseSimpleC1C2BFlowOptions
+ */
+
+/**
+ * @typedef {{
+ *   b: BFlowStageType,
+ *   p?: PFlowStageType,
+ *   simulateSellerApproval?: TestInterfaceActionFlowStageType,
+ *   orderFeedUpdateCollector?: OrderFeedUpdateCollectorType,
+ *   firstStage: BFlowStage | PFlowStageType,
+ * }} BookRecipe The Flow Stages required to complete booking in either Simple or Approval flow.
+ *   `firstStage` is a special field that represents the first stage that is needed in either flow. Some tests expect
+ *   that, regardless of which of P or B was called first, it should fail.
  */
 
 const FlowStageRecipes = {
@@ -116,6 +139,104 @@ const FlowStageRecipes = {
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,
+    };
+  },
+  /**
+   * A Recipe to either run B or P -> OrderFeedUpdate[SellerAcceptOrderProposalSimulateAction] -> B depending on the flow.
+   *
+   * - If in Simple Booking Flow, the recipe will just return B
+   * - If in Approval Flow, the recipe will return P -> OrderFeedUpdate[SellerAcceptOrderProposalSimulateAction] -> B
+   *
+   * This therefore represents the Book step of either flow.
+   *
+   * It is HIGHLY recommended that you use this function rather than manually creating B or P Flow Stages unless you
+   * are explicitly writing a test that uses one flow instead of another.
+   *
+   * The selected flow will be found in the `orderItemCriteriaList`, which will in almost all cases be based on the
+   * Booking Flow that is currently being tested. See (TODO) for more info about how Test Suite tests both Booking
+   * Flows.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {object} args
+   * @param {UnknownFlowStageType} args.prerequisite
+   * @param {string | null} [args.brokerRole]
+   * @param {AccessPassItem[] | null} [args.accessPass]
+   * @param {PReqTemplateRef | null} [args.firstStageReqTemplateRef] Reference for the template which will be used
+   *   for the first stage - B or P.
+   * @param {() => import('./p').Input} args.getFirstStageInput Input for the first flow stage - B or P.
+   * @returns {BookRecipe}
+   */
+  book(orderItemCriteriaList, defaultFlowStageParams, {
+    prerequisite,
+    brokerRole = null,
+    accessPass = null,
+    firstStageReqTemplateRef = null,
+    getFirstStageInput,
+  }) {
+    const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
+      orderItemCriteria.bookingFlow === 'https://openactive.io/OpenBookingApprovalFlow'));
+    if (doUseApprovalFlow) {
+      const p = new PFlowStage({
+        ...defaultFlowStageParams,
+        prerequisite,
+        templateRef: firstStageReqTemplateRef,
+        brokerRole,
+        accessPass,
+        getInput: getFirstStageInput,
+      });
+      const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
+        wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
+          ...defaultFlowStageParams,
+          testName: 'Simulate Seller Approval (Test Interface Action)',
+          prerequisite: orderFeedUpdateListener,
+          createActionFn: () => ({
+            type: 'test:SellerAcceptOrderProposalSimulateAction',
+            objectType: 'OrderProposal',
+            objectId: p.getOutput().orderId,
+          }),
+        })),
+        orderFeedUpdateParams: {
+          ...defaultFlowStageParams,
+          prerequisite: p,
+          testName: 'Order Feed Update (after Simulate Seller Approval)',
+        },
+      });
+      const b = new BFlowStage({
+        ...defaultFlowStageParams,
+        prerequisite: orderFeedUpdateCollector,
+        templateRef: 'afterP',
+        /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
+        just presents `orderProposalVersion` and optional payment details */
+        getInput() {
+          const firstStageInput = getFirstStageInput();
+          return {
+            orderItems: firstStageInput.orderItems,
+            totalPaymentDue: p.getOutput().totalPaymentDue,
+            orderProposalVersion: p.getOutput().orderProposalVersion,
+            prepayment: p.getOutput().prepayment,
+          };
+        },
+      });
+      return {
+        firstStage: p,
+        p,
+        simulateSellerApproval,
+        orderFeedUpdateCollector,
+        b,
+      };
+    }
+    const b = new BFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      templateRef: firstStageReqTemplateRef,
+      brokerRole,
+      accessPass,
+      getInput: getFirstStageInput,
+    });
+    return {
+      firstStage: b,
+      b,
     };
   },
 };
