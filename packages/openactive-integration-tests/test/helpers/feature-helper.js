@@ -174,17 +174,6 @@ class FeatureHelper {
 
     const opportunityTypesInScope = getEnabledFeaturesFromObj(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, skipOpportunityTypes);
     const bookingFlowsInScope = getEnabledFeaturesFromObj(BOOKING_FLOWS_IN_SCOPE, skipBookingFlows);
-
-    // const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE)
-    //   .filter(([key, value]) => value === true && !skipOpportunityTypes.has(key))
-    //   .map(([key]) => key);
-    // // TODO this should come from config var
-    // const bookingFlowsInScope = Object.entries(BOOKING_FLOWS_IN_SCOPE)
-    //   .filter(([key, value]) => value === true && !skipBookingFlows.has(key))
-    //   .map(([key]) => key);
-
-    // const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
-    //   .filter(bookingFlow => !skipBookingFlows.has(bookingFlow));
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
     // Only run the test if it is for the correct implmentation status
