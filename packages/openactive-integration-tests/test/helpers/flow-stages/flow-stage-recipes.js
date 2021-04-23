@@ -1,4 +1,5 @@
 const { BFlowStage } = require('./b');
+const { BookRecipe } = require('./book-recipe');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
@@ -18,7 +19,6 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  * @typedef {import('./p').PFlowStageType} PFlowStageType
  * @typedef {import('./order-feed-update').OrderFeedUpdateCollectorType} OrderFeedUpdateCollectorType
  * @typedef {import('./test-interface-action').TestInterfaceActionFlowStageType} TestInterfaceActionFlowStageType
- * @typedef {import('./order-feed-update').OrderFeedUpdateListenerType} OrderFeedUpdateListenerType
  * @typedef {import('./flow-stage').UnknownFlowStageType} UnknownFlowStageType
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  */
@@ -30,22 +30,92 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   bReqTemplateRef?: BReqTemplateRef | null,
  *   brokerRole?: string | null,
  *   taxMode?: string | null,
+ *   accessPass?: AccessPassItem[] | null,
  * }} InitialiseSimpleC1C2BFlowOptions
  */
 
 /**
  * @typedef {{
- *   b: BFlowStageType,
- *   p?: PFlowStageType,
- *   simulateSellerApproval?: TestInterfaceActionFlowStageType,
- *   orderFeedUpdateCollector?: OrderFeedUpdateCollectorType,
- *   firstStage: BFlowStage | PFlowStageType,
- * }} BookRecipe The Flow Stages required to complete booking in either Simple or Approval flow.
- *   `firstStage` is a special field that represents the first stage that is needed in either flow. Some tests expect
- *   that, regardless of which of P or B was called first, it should fail.
+ *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
+ *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
+ *   bookReqTemplateRef?: PReqTemplateRef | null,
+ *   brokerRole?: string | null,
+ *   taxMode?: string | null,
+ *   accessPass?: AccessPassItem[] | null,
+ * }} InitialiseSimpleC1C2BookFlowOptions
  */
 
+// /**
+//  * @typedef {{
+//  *   b: BFlowStageType,
+//  *   p?: PFlowStageType,
+//  *   simulateSellerApproval?: TestInterfaceActionFlowStageType,
+//  *   orderFeedUpdateCollector?: OrderFeedUpdateCollectorType,
+//  *   firstStage: BFlowStage | PFlowStageType,
+//  * }} BookRecipe The Flow Stages required to complete booking in either Simple or Approval flow.
+//  *   `firstStage` is a special field that represents the first stage that is needed in either flow. Some tests expect
+//  *   that, regardless of which of P or B was called first, it should fail.
+//  */
+
 const FlowStageRecipes = {
+  /**
+   * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> Book (*) flow.
+   *
+   * Rather than setting custom input for each stage, the input is just fed automatically
+   * from the output of previous stages.
+   *
+   * DO NOT USE THIS FUNCTION if you want to use custom inputs for each stage (e.g.
+   * to create erroneous requests).
+   *
+   * (*) Book = B or P -> A -> B. See FlowStageRecipes.book(..) for more info.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {BaseLoggerType} logger
+   * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
+   */
+  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    c1ReqTemplateRef = null,
+    c2ReqTemplateRef = null,
+    bookReqTemplateRef = null,
+    brokerRole = null,
+    taxMode = null,
+    accessPass = null,
+  } = {}) {
+    // ## Initiate Flow Stages
+    const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
+      orderItemCriteriaList,
+      logger,
+      {
+        c1ReqTemplateRef,
+        c2ReqTemplateRef,
+        brokerRole,
+        taxMode,
+      },
+    );
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+      prerequisite: c2,
+      accessPass,
+      brokerRole,
+      firstStageReqTemplateRef: bookReqTemplateRef,
+      getFirstStageInput: () => ({
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        totalPaymentDue: c2.getOutput().totalPaymentDue,
+        prepayment: c2.getOutput().prepayment,
+        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
+      }),
+    });
+
+    return {
+      fetchOpportunities,
+      c1,
+      c2,
+      bookRecipe,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
+    };
+  },
+
   /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> B flow.
    *
@@ -59,7 +129,14 @@ const FlowStageRecipes = {
    * @param {BaseLoggerType} logger
    * @param {InitialiseSimpleC1C2BFlowOptions} [options]
    */
-  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, bReqTemplateRef = null, brokerRole = null, taxMode = null } = {}) {
+  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
+    c1ReqTemplateRef = null,
+    c2ReqTemplateRef = null,
+    bReqTemplateRef = null,
+    brokerRole = null,
+    taxMode = null,
+    accessPass = null,
+  } = {}) {
     // ## Initiate Flow Stages
     const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
@@ -75,6 +152,7 @@ const FlowStageRecipes = {
       ...defaultFlowStageParams,
       templateRef: bReqTemplateRef,
       brokerRole,
+      accessPass,
       prerequisite: c2,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -218,13 +296,13 @@ const FlowStageRecipes = {
           };
         },
       });
-      return {
+      return new BookRecipe({
         firstStage: p,
         p,
         simulateSellerApproval,
         orderFeedUpdateCollector,
         b,
-      };
+      });
     }
     const b = new BFlowStage({
       ...defaultFlowStageParams,
@@ -234,10 +312,10 @@ const FlowStageRecipes = {
       accessPass,
       getInput: getFirstStageInput,
     });
-    return {
+    return new BookRecipe({
       firstStage: b,
       b,
-    };
+    });
   },
 };
 

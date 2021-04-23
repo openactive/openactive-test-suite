@@ -10,7 +10,7 @@ Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookableCancellableOutsideWindow](https://openactive.io/test-interface#TestOpportunityBookableCancellableOutsideWindow) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2, [TestOpportunityBookableCancellableWithinWindow](https://openactive.io/test-interface#TestOpportunityBookableCancellableWithinWindow) x3
+[TestOpportunityBookableCancellableOutsideWindow](https://openactive.io/test-interface#TestOpportunityBookableCancellableOutsideWindow) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x2, [TestOpportunityBookableCancellableWithinWindow](https://openactive.io/test-interface#TestOpportunityBookableCancellableWithinWindow) x3, [undefined](https://openactive.io/test-interface#undefined) x1
 
 
 ### Running tests for only this feature
@@ -55,4 +55,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [assert-unmatched-criteria](./not-implemented/assert-unmatched-criteria-test.js) | Opportunities relevant to this not-implemented feature must not be available in opportunity feeds | Assert that no opportunities that match criteria 'TestOpportunityBookableCancellableWithinWindow' or 'TestOpportunityBookableCancellableOutsideWindow' are available in the opportunity feeds. |  |
+| [assert-unmatched-criteria](./not-implemented/assert-unmatched-criteria-test.js) | Opportunities relevant to this not-implemented feature must not be available in opportunity feeds | Assert that no opportunities that match criteria 'TestOpportunityBookableCancellableWithinWindow' or 'TestOpportunityBookableCancellableOutsideWindow' are available in the opportunity feeds. | [undefined](https://openactive.io/test-interface#undefined) x1 |

@@ -10,12 +10,12 @@ const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require(
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
 /**
+ * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../types/OpportunityCriteria').SellerCriteria} SellerCriteria
  *
- * @typedef {(opportunityType: string) => OpportunityCriteria[]} CreateSingleOportunityCriteriaTemplateFn
- * @typedef {(opportunityType: string, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
- * @typedef {(opportunityType: string) => boolean} RunOnlyIfTemplateFn
+ * @typedef {(opportunityType: string, bookingFlow: BookingFlow) => OpportunityCriteria[]} CreateSingleOportunityCriteriaTemplateFn
+ * @typedef {(opportunityType: string, bookingFlow: BookingFlow, opportunityReuseKey: number) => OpportunityCriteria[]} CreateMultipleOportunityCriteriaTemplateFn
  *
  * @typedef {object} DescribeFeatureConfiguration Configuration for the describeFeature function
  * @property {string} testCategory
@@ -85,11 +85,12 @@ class FeatureHelper {
      * @type {CreateSingleOportunityCriteriaTemplateFn}
      */
     const singleOpportunityCriteriaTemplate = configuration.singleOpportunityCriteriaTemplate
-    || (configuration.testOpportunityCriteria ? (opportunityType => [{
+    || (configuration.testOpportunityCriteria ? ((opportunityType, bookingFlow) => [{
       opportunityType,
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: true,
       control: false,
+      bookingFlow,
     }]) : null);
 
     /**
@@ -97,12 +98,13 @@ class FeatureHelper {
      * @type {CreateMultipleOportunityCriteriaTemplateFn}
      */
     const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate
-    || (configuration.testOpportunityCriteria ? (opportunityType, i) => [{
+    || (configuration.testOpportunityCriteria ? (opportunityType, bookingFlow, i) => [{
       opportunityType,
       opportunityCriteria: configuration.testOpportunityCriteria,
       primary: true,
       control: false,
       opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
+      bookingFlow,
     },
     {
       opportunityType,
@@ -110,6 +112,7 @@ class FeatureHelper {
       primary: false,
       control: false,
       opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
+      bookingFlow,
     },
     {
       opportunityType,
@@ -117,6 +120,7 @@ class FeatureHelper {
       primary: false,
       control: true,
       usedInOrderItems: 1,
+      bookingFlow,
     }] : null);
 
     // Documentation generation
@@ -127,10 +131,16 @@ class FeatureHelper {
       const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
       if (!configuration.runOnce) {
+        /* Note that we use dummy args for opportunityType & bookingFlow in the criteria template functions here
+        because all we want from them is the values for `opportunityCriteria`, which are unrelated. */
         /** @type {OpportunityCriteria[]} */
         const orderItemCriteriaList = [].concat(
-          singleOpportunityCriteriaTemplate === null ? [] : singleOpportunityCriteriaTemplate(null),
-          configuration.skipMultiple || multipleOpportunityCriteriaTemplate === null ? [] : multipleOpportunityCriteriaTemplate(null, 0),
+          singleOpportunityCriteriaTemplate === null
+            ? []
+            : singleOpportunityCriteriaTemplate(null, null),
+          configuration.skipMultiple || (multipleOpportunityCriteriaTemplate === null
+            ? []
+            : multipleOpportunityCriteriaTemplate(null, null, 0)),
         );
 
         for (const orderItemCriteria of orderItemCriteriaList) {
@@ -151,6 +161,9 @@ class FeatureHelper {
     }
 
     const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, value]) => value === true).map(([key]) => key);
+    // TODO TODO TODO this should come from config var
+    /** @type {BookingFlow[]} */
+    const bookingFlowsInScope = ['https://openactive.io/OpenBookingSimpleFlow'];
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
     const skipOpportunityTypes = _.defaultTo(configuration.skipOpportunityTypes, []);
 
@@ -179,9 +192,12 @@ class FeatureHelper {
               tests.bind(this)(configuration, null, implemented, logger, state, flow);
             });
           } else {
-            // Create a new test for each opportunityType in scope
-            opportunityTypesInScope.forEach((opportunityType) => {
-              if (!skipOpportunityTypes.includes(opportunityType)) {
+            // Create a new test for each bookingFlow in scope
+            for (const bookingFlow of bookingFlowsInScope) {
+              // And create a new test for each opportunityType in scope
+              for (const opportunityType of opportunityTypesInScope) {
+                if (skipOpportunityTypes.includes(opportunityType)) { continue; }
+
                 describe(opportunityType, function () {
                   const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
                     config: configuration,
@@ -193,12 +209,15 @@ class FeatureHelper {
                   const state = new RequestState(logger);
                   const flow = new FlowHelper(state);
 
-                  const orderItemCriteria = singleOpportunityCriteriaTemplate === null ? null : singleOpportunityCriteriaTemplate(opportunityType);
+                  const orderItemCriteria = singleOpportunityCriteriaTemplate === null
+                    ? null
+                    : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
 
                   tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
                 });
               }
-            });
+            }
+            // });
 
             if (!configuration.skipMultiple) {
               describe('Multiple', function () {
@@ -212,15 +231,19 @@ class FeatureHelper {
                 const state = new RequestState(logger);
                 const flow = new FlowHelper(state);
 
-                let orderItemCriteria = [];
+                const orderItemCriteria = [];
 
                 // Create multiple orderItems covering all opportunityTypes in scope
                 if (multipleOpportunityCriteriaTemplate !== null) {
-                  opportunityTypesInScope.forEach((opportunityType, i) => {
-                    if (!skipOpportunityTypes.includes(opportunityType)) {
-                      orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
-                    }
-                  });
+                  // Create a new test for each bookingFlow in scope
+                  for (const bookingFlow of bookingFlowsInScope) {
+                    opportunityTypesInScope.forEach((opportunityType, i) => {
+                      if (!skipOpportunityTypes.includes(opportunityType)) {
+                        orderItemCriteria.push(...multipleOpportunityCriteriaTemplate(opportunityType, bookingFlow, i));
+                        // orderItemCriteria = orderItemCriteria.concat(multipleOpportunityCriteriaTemplate(opportunityType, i));
+                      }
+                    });
+                  }
                 }
 
                 tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null);

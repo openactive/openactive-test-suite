@@ -28,12 +28,17 @@ function itShouldHavePrepayment(expected, getOrder) {
   });
 }
 
+/**
+ * @param {string} testOpportunityCriteria
+ * @returns {import('../../helpers/feature-helper').CreateMultipleOportunityCriteriaTemplateFn}
+ */
 function multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria) {
-  return opportunityType => [{
+  return (opportunityType, bookingFlow) => [{
     opportunityType,
     opportunityCriteria: testOpportunityCriteria,
     primary: true,
     control: false,
+    bookingFlow,
   }];
 }
 

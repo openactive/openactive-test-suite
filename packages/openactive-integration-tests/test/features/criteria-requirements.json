@@ -103,13 +103,15 @@
       "primary": {
         "TestOpportunityBookableCancellableOutsideWindow": 3,
         "TestOpportunityBookable": 2,
-        "TestOpportunityBookableCancellableWithinWindow": 3
+        "TestOpportunityBookableCancellableWithinWindow": 3,
+        "undefined": 1
       }
     },
     "customer-requested-cancellation": {
       "primary": {
         "TestOpportunityBookableCancellable": 12,
         "TestOpportunityBookableNotCancellable": 1,
+        "undefined": 1,
         "TestOpportunityBookable": 2
       }
     },
@@ -130,7 +132,8 @@
     },
     "multiple-sellers": {
       "primary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 1,
+        "undefined": 1
       },
       "secondary": {
         "TestOpportunityBookable": 1
@@ -138,7 +141,8 @@
     },
     "test-interface": {
       "primary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 1,
+        "undefined": 1
       }
     },
     "additional-details-capture": {
@@ -177,7 +181,8 @@
     },
     "change-of-logistics-notifications": {
       "primary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 1,
+        "undefined": 1
       }
     },
     "customer-notice-notifications": {
@@ -192,13 +197,15 @@
     },
     "free-opportunities": {
       "primary": {
+        "undefined": 2,
         "TestOpportunityBookableFree": 6
       }
     },
     "non-free-opportunities": {
       "primary": {
         "TestOpportunityBookableNonFree": 3,
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 1,
+        "undefined": 1
       }
     },
     "payment-reconciliation-detail-validation": {
@@ -209,18 +216,21 @@
     },
     "prepayment-optional": {
       "primary": {
-        "TestOpportunityBookableNonFreePrepaymentOptional": 8
+        "TestOpportunityBookableNonFreePrepaymentOptional": 8,
+        "undefined": 1
       }
     },
     "prepayment-required": {
       "primary": {
-        "TestOpportunityBookableNonFreePrepaymentRequired": 8
+        "TestOpportunityBookableNonFreePrepaymentRequired": 8,
+        "undefined": 1
       }
     },
     "prepayment-unavailable": {
       "primary": {
         "TestOpportunityBookableNonFreePrepaymentUnavailable": 9,
-        "TestOpportunityBookableFree": 3
+        "TestOpportunityBookableFree": 3,
+        "undefined": 1
       }
     },
     "booking-restrictions": {},

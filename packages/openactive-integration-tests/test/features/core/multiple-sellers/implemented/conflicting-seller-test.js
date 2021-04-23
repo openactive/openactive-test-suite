@@ -15,16 +15,18 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'conflicting-seller',
   testName: 'SellerMismatchError for inconsistent Sellers of OrderItems',
   testDescription: 'Runs C1, C2 and B where Sellers of OrderItems do not match and check SellerMismatchError is returned in all cases.',
-  singleOpportunityCriteriaTemplate: opportunityType => [
+  singleOpportunityCriteriaTemplate: (opportunityType, bookingFlow) => [
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookable',
       sellerCriteria: 'primary',
+      bookingFlow,
     },
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookable',
       sellerCriteria: 'secondary',
+      bookingFlow,
     },
   ],
   skipMultiple: true,

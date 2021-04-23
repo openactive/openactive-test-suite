@@ -12,7 +12,7 @@ See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x6
+[undefined](https://openactive.io/test-interface#undefined) x2, [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x6
 
 
 ### Running tests for only this feature
@@ -37,7 +37,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [opportunity-free-must-not-include-prepayment](./implemented/opportunity-free-must-not-include-prepayment-test.js) | Free opportunities must have either a `prepayment` value of Unspecified, or have no `prepayment` specified | Assert that no opportunities that match criteria 'TestOpportunityBookableFreePrepaymentOptional' or 'TestOpportunityBookableFreePrepaymentRequired' are available in the opportunity feeds. |  |
+| [opportunity-free-must-not-include-prepayment](./implemented/opportunity-free-must-not-include-prepayment-test.js) | Free opportunities must have either a `prepayment` value of Unspecified, or have no `prepayment` specified | Assert that no opportunities that match criteria 'TestOpportunityBookableFreePrepaymentOptional' or 'TestOpportunityBookableFreePrepaymentRequired' are available in the opportunity feeds. | [undefined](https://openactive.io/test-interface#undefined) x1 |
 | [opportunity-free](./implemented/opportunity-free-test.js) | Successful booking without payment property | A successful end to end booking without the `payment` property included. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x2 |
 | [opportunity-free-unnecessary-payment-error](./implemented/opportunity-free-unnecessary-payment-error-test.js) | Fail free bookings which include erroneous payment property | C1, C2 and B with payment property: payment property is provided but not expected in the request, so an UnnecessaryPaymentDetailsError must be returned. | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x2 |
 | [payment-mismatch](./implemented/payment-mismatch-test.js) | Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities | Run B for a valid opportunity, with totalPaymentDue not matching the value returned by C2, expecting a TotalPaymentDueMismatchError to be returned (C1 and C2 ignored as they do not have totalPaymentDue) | [TestOpportunityBookableFree](https://openactive.io/test-interface#TestOpportunityBookableFree) x2 |
@@ -59,4 +59,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [no-free-opportunities](./not-implemented/no-free-opportunities-test.js) | The open data feeds must not contain any free opportunities | Assert that no opportunities that match criteria 'TestOpportunityBookableFree' are available in the opportunity feeds. |  |
+| [no-free-opportunities](./not-implemented/no-free-opportunities-test.js) | The open data feeds must not contain any free opportunities | Assert that no opportunities that match criteria 'TestOpportunityBookableFree' are available in the opportunity feeds. | [undefined](https://openactive.io/test-interface#undefined) x1 |

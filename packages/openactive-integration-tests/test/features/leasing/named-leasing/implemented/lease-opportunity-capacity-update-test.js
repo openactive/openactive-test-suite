@@ -18,11 +18,12 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'When an opportunity is leased, the capacity is decremented',
   testOpportunityCriteria: 'TestOpportunityBookableFiveSpaces',
   // no control, because we don't know what capacity the control will have
-  multipleOpportunityCriteriaTemplate: opportunityType => [{
+  multipleOpportunityCriteriaTemplate: (opportunityType, bookingFlow) => [{
     opportunityType,
     opportunityCriteria: 'TestOpportunityBookableFiveSpaces',
     primary: true,
     control: false,
+    bookingFlow,
   }],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {

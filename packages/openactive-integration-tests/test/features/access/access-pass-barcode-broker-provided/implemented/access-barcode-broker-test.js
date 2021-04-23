@@ -1,7 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const RequestHelper = require('../../../../helpers/request-helper');
-const { FlowStageUtils, FetchOpportunitiesFlowStage, C1FlowStage, C2FlowStage, BFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -16,8 +15,6 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const requestHelper = new RequestHelper(logger);
-
   /** @type {import('../../../../templates/b-req').AccessPassItem[]} */
   const accessPass = [{
     '@type': 'Barcode',
@@ -26,43 +23,17 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   }];
 
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
     accessPass,
-    prerequisite: c2,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-      prepayment: c2.getOutput().prepayment,
-    }),
   });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include the Barcode accessPass, with url and text, that was sent by the broker', () => {
-      const orderItems = b.getOutput().httpResponse.body.orderedItem;
+      const orderItems = bookRecipe.b.getOutput().httpResponse.body.orderedItem;
       expect(orderItems).to.be.an('array')
         .that.has.lengthOf.above(0)
         .and.has.lengthOf(orderItemCriteriaList.length);
