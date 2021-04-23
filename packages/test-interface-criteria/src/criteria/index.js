@@ -6,7 +6,7 @@ const { TestOpportunityBookableNoSpaces } = require('./TestOpportunityBookableNo
 const { TestOpportunityBookableFiveSpaces } = require('./TestOpportunityBookableFiveSpaces');
 const { TestOpportunityBookableWithinValidFromBeforeStartDate } = require('./TestOpportunityBookableWithinValidFromBeforeStartDate');
 const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookableCancellable');
-const { TestOpportunityNotBookableViaAvailableChannel } = require('./TestOpportunityNotBookableViaAvailableChannel');
+const { TestOpportunitySellerOpenBookingNotAllowed } = require('./TestOpportunitySellerOpenBookingNotAllowed');
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
 const { TestOpportunityBookableFlowRequirementOnlyApproval } = require('./TestOpportunityBookableFlowRequirementOnlyApproval');
 const { TestOpportunityBookableCancellableWithinWindow } = require('./TestOpportunityBookableCancellableWithinWindow');
@@ -36,7 +36,7 @@ module.exports = {
     TestOpportunityBookableWithinValidFromBeforeStartDate,
     TestOpportunityBookableCancellable,
     TestOpportunityBookableNotCancellable,
-    TestOpportunityNotBookableViaAvailableChannel,
+    TestOpportunitySellerOpenBookingNotAllowed,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableFlowRequirementOnlyApproval,
     TestOpportunityBookableCancellableWithinWindow,

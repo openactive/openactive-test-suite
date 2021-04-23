@@ -7,8 +7,9 @@ const {
   mustNotRequireAdditionalDetails,
   remainingCapacityMustBeAtLeastTwo,
   mustHaveBookableOffer,
+  sellerMustAllowOpenBooking,
 } = require('../criteriaUtils');
-const { quantitativeValue, availableChannelArrayConstraint, dateRange, advanceBookingOptionNodeConstraint } = require('../../testDataShape');
+const { quantitativeValue, dateRange, advanceBookingOptionNodeConstraint, TRUE_BOOLEAN_CONSTRAINT } = require('../../testDataShape');
 
 /**
  * @typedef {import('../../types/Criteria').OfferConstraint} OfferConstraint
@@ -26,6 +27,10 @@ const InternalTestOpportunityBookable = createCriteria({
     [
       'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
       remainingCapacityMustBeAtLeastTwo,
+    ],
+    [
+      'Seller must allow Open Booking',
+      sellerMustAllowOpenBooking,
     ],
   ],
   offerConstraints: [
@@ -47,16 +52,14 @@ const InternalTestOpportunityBookable = createCriteria({
       'placeholder:remainingCapacity': quantitativeValue({
         mininclusive: 2,
       }),
+      'oa:allowsOpenBooking': TRUE_BOOLEAN_CONSTRAINT,
     }),
     offerConstraints: ({
-      'schema:availableChannel': availableChannelArrayConstraint({
-        includesAll: ['https://openactive.io/OpenBookingPrepayment'],
-      }),
       'oa:validFromBeforeStartDate': dateRange({
         minDate: moment(options.harvestStartTime).toISOString(),
         allowNull: true,
       }),
-      'oa:advanceBooking': advanceBookingOptionNodeConstraint({
+      'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
         blocklist: ['https://openactive.io/Unavailable'],
       }),
     }),

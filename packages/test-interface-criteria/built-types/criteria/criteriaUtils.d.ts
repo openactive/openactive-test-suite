@@ -117,3 +117,7 @@ export function mustRequireAdditionalDetails(offer: import("../types/Offer").Off
  * @type {OfferConstraint}
  */
 export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity): boolean;

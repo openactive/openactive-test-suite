@@ -343,8 +343,7 @@ function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
 * @type {OfferConstraint}
 */
 function mustHaveBookableOffer(offer, opportunity, options) {
-  return (Array.isArray(offer.availableChannel) && offer.availableChannel.includes('https://openactive.io/OpenBookingPrepayment'))
-   && offer.advanceBooking !== 'https://openactive.io/Unavailable'
+  return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable'
    && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
@@ -381,6 +380,14 @@ function getOrganizerOrProvider(opportunity) {
   throw new Error(`Opportunity has neither superEvent nor facilityUse from which to get organizer/provider. Opportunity fields: ${Object.keys(opportunity).join(', ')}`);
 }
 
+/**
+ * @type {OpportunityConstraint}
+ */
+function sellerMustAllowOpenBooking(opportunity) {
+  const organizerOrProvider = getOrganizerOrProvider(opportunity);
+  return organizerOrProvider.allowOpenBooking === true;
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -400,4 +407,5 @@ module.exports = {
   mustAllowFullRefund,
   mustRequireAdditionalDetails,
   mustNotRequireAdditionalDetails,
+  sellerMustAllowOpenBooking,
 };

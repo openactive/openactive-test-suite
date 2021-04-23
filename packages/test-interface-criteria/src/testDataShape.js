@@ -2,10 +2,10 @@
  * @typedef {import('./types/TestDataShape').EventStatusType} EventStatusType
  * @typedef {import('./types/TestDataShape').TaxMode} TaxMode
  * @typedef {import('./types/TestDataShape').RequiredStatusType} RequiredStatusType
- * @typedef {import('./types/TestDataShape').AvailableChannelType} AvailableChannelType
  * @typedef {import('./types/TestDataShape').OpenBookingFlowRequirement} OpenBookingFlowRequirement
  * @typedef {import('./types/TestDataShape').DateRangeNodeConstraint} DateRangeNodeConstraint
  * @typedef {import('./types/TestDataShape').NumericNodeConstraint} NumericNodeConstraint
+ * @typedef {import('./types/TestDataShape').BooleanNodeConstraint} BooleanNodeConstraint
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
@@ -60,6 +60,26 @@ const FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
 
 const NON_FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
   mininclusive: 0.01, // must cost at least £0.01
+});
+
+/**
+ *
+ * @param {Omit<BooleanNodeConstraint, '@type'>} requirements
+ * @returns {BooleanNodeConstraint}
+ */
+function boolean(requirements) {
+  return {
+    '@type': 'test:BooleanNodeConstraint',
+    ...requirements,
+  };
+}
+
+const TRUE_BOOLEAN_CONSTRAINT = boolean({
+  value: true,
+});
+
+const FALSE_BOOLEAN_CONSTRAINT = boolean({
+  value: false,
 });
 
 /**
@@ -131,17 +151,6 @@ function taxModeOptionNodeConstraint(requirements) {
 }
 
 /**
- * @param {Omit<import('./types/TestDataShape').ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>, '@type' | 'datatype'>} requirements
- * @returns {import('./types/TestDataShape').ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>}
- */
-function availableChannelArrayConstraint(requirements) {
-  return arrayConstraint({
-    datatype: 'oa:AvailableChannelType',
-    ...requirements,
-  });
-}
-
-/**
  * @param {Omit<import('./types/TestDataShape').ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>, '@type' | 'datatype'>} requirements
  * @returns {import('./types/TestDataShape').ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>}
  */
@@ -177,7 +186,8 @@ module.exports = {
   advanceBookingOptionNodeConstraint,
   prepaymentOptionNodeConstraint,
   taxModeOptionNodeConstraint,
-  availableChannelArrayConstraint,
   openBookingFlowRequirementArrayConstraint,
   termsOfServiceArrayConstraint,
+  TRUE_BOOLEAN_CONSTRAINT,
+  FALSE_BOOLEAN_CONSTRAINT,
 };
