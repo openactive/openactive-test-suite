@@ -44,6 +44,7 @@ const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.js
 // # Constants - Config
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+// TODO TODO TODO here's where id get the booking flows
 /** An array of those opportunity types which the Booking System is testing */
 const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ)
   .filter(([_, isInScope]) => isInScope) // eslint-disable-line no-unused-vars

@@ -40,6 +40,10 @@
       "Event": false,
       "OnDemandEvent": false
     },
+    "bookingFlowsInScope": {
+      "OpenBookingSimpleFlow": true,
+      "OpenBookingApprovalFlow": true
+    },
     "implementedFeatures": {
       "test-interface": true,
       "opportunity-feed": null,

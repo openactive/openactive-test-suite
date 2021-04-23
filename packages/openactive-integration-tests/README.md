@@ -66,15 +66,15 @@ Like `bookableOpportunityTypesInScope`, tests will be repeated for each of the B
 
 ```json
   "bookingFlowsInScope": {
-    "OpenBookingSimple": true,
-    "OpenBookingApproval": false
+    "OpenBookingSimpleFlow": true,
+    "OpenBookingApprovalFlow": false
   }
 ```
 
 The different Booking Flows represent the order of API endpoints (and actions) that must be invoked in order to complete a booking. They are:
 
-* `OpenBookingSimple`: [Simple Booking Flow](https://openactive.io/open-booking-api/EditorsDraft/#simple-booking-flow)
-* `OpenBookingApproval`: [Booking Flow with Approval](https://openactive.io/open-booking-api/EditorsDraft/#booking-flow-with-approval)
+* `OpenBookingSimpleFlow`: [Simple Booking Flow](https://openactive.io/open-booking-api/EditorsDraft/#simple-booking-flow)
+* `OpenBookingApprovalFlow`: [Booking Flow with Approval](https://openactive.io/open-booking-api/EditorsDraft/#booking-flow-with-approval)
 
 This combination of Booking Flows also stacks up with the combination of Opportunity Types, so with the following config:
 

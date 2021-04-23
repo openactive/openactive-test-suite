@@ -6,6 +6,7 @@ const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const BOOKING_FLOWS_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookingFlowsInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
@@ -42,6 +43,7 @@ class TestEnvironment extends NodeEnvironment {
 
     // Note these are defined in the test environment to allow the certificate validator to override them
     this.global.BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
+    this.global.BOOKING_FLOWS_IN_SCOPE = BOOKING_FLOWS_IN_SCOPE;
     this.global.IMPLEMENTED_FEATURES = IMPLEMENTED_FEATURES;
     this.global.USE_RANDOM_OPPORTUNITIES = USE_RANDOM_OPPORTUNITIES;
   }

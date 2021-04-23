@@ -7,7 +7,7 @@ const RequestHelper = require('./request-helper');
 const { FlowHelper } = require('./flow-helper');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
-const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
+const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
 /**
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
@@ -164,6 +164,7 @@ class FeatureHelper {
       return;
     }
     const skipOpportunityTypes = new Set(_.defaultTo(configuration.skipOpportunityTypes, []));
+    /** @type {Set<BookingFlow>} */
     const skipBookingFlows = new Set(_.defaultTo(
       configuration.skipBookingFlows,
       configuration.supportsApproval
@@ -171,12 +172,19 @@ class FeatureHelper {
         : ['OpenBookingApprovalFlow'], // the default value if neither skipBookingFlows nor supportsApproval are set.
     ));
 
-    const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE)
-      .filter(([key, value]) => value === true && !skipOpportunityTypes.has(key))
-      .map(([key]) => key);
-    // TODO this should come from config var
-    const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
-      .filter(bookingFlow => !skipBookingFlows.has(bookingFlow));
+    const opportunityTypesInScope = getEnabledFeaturesFromObj(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, skipOpportunityTypes);
+    const bookingFlowsInScope = getEnabledFeaturesFromObj(BOOKING_FLOWS_IN_SCOPE, skipBookingFlows);
+
+    // const opportunityTypesInScope = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE)
+    //   .filter(([key, value]) => value === true && !skipOpportunityTypes.has(key))
+    //   .map(([key]) => key);
+    // // TODO this should come from config var
+    // const bookingFlowsInScope = Object.entries(BOOKING_FLOWS_IN_SCOPE)
+    //   .filter(([key, value]) => value === true && !skipBookingFlows.has(key))
+    //   .map(([key]) => key);
+
+    // const bookingFlowsInScope = /** @type {BookingFlow[]} */(['OpenBookingSimpleFlow', 'OpenBookingApprovalFlow'])
+    //   .filter(bookingFlow => !skipBookingFlows.has(bookingFlow));
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
     // Only run the test if it is for the correct implmentation status
@@ -311,6 +319,18 @@ class FeatureHelper {
       }
     });
   }
+}
+
+/**
+ * @template {string} TFeatureName
+ * @param {{ [featureName in TFeatureName]: boolean}} featuresObj
+ * @param {Set<TFeatureName>} featuresToSkip
+ * @returns {TFeatureName[]}
+ */
+function getEnabledFeaturesFromObj(featuresObj, featuresToSkip) {
+  return /** @type {[TFeatureName, boolean][]} */(Object.entries(featuresObj))
+    .filter(([key, value]) => value === true && !featuresToSkip.has(key))
+    .map(([key]) => key);
 }
 
 module.exports = {
