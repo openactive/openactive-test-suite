@@ -16,14 +16,14 @@ const { itShouldReturnAnOpenBookingError } = require('../../shared-behaviours/er
  * @param {() => unknown} getOrder
  */
 function itShouldHavePrepayment(expected, getOrder) {
-  it(expected == null ? 'should not return `totalPaymentDue.prepayment`' : `should return \`totalPaymentDue.prepayment\` '\`${expected}\`'`, () => {
+  it(expected == null ? 'should not return `totalPaymentDue.openBookingPrepayment`' : `should return \`totalPaymentDue.openBookingPrepayment\` '\`${expected}\`'`, () => {
     const order = getOrder();
 
     if (expected == null) {
       expect(order).to.have.property('totalPaymentDue');
-      expect(order).to.not.have.nested.property('totalPaymentDue.prepayment');
+      expect(order).to.not.have.nested.property('totalPaymentDue.openBookingPrepayment');
     } else {
-      expect(order).to.have.nested.property('totalPaymentDue.prepayment', expected);
+      expect(order).to.have.nested.property('totalPaymentDue.openBookingPrepayment', expected);
     }
   });
 }

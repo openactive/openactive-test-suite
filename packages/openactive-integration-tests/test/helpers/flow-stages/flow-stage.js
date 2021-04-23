@@ -48,7 +48,7 @@ const pMemoize = require('p-memoize');
  *   from a Booking System Order response.
  *   Optional as a Booking System response may not include totalPaymentDue if there
  *   was an error.
- * @property {Prepayment | null | undefined} [prepayment] totalPaymentDue.prepayment
+ * @property {Prepayment | null | undefined} [prepayment] totalPaymentDue.openBookingPrepayment
  *   from a Booking System Order response.
  *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking

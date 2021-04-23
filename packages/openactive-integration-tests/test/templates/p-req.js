@@ -18,7 +18,7 @@ const { createPaymentPart, isPaymentAvailable } = require('./common');
  *     },
  *   }[],
  *   totalPaymentDue: number,
- *   prepayment?: Prepayment | null | undefined,
+ *   openBookingPrepayment?: Prepayment | null | undefined,
  * }} PReqTemplateData
  */
 

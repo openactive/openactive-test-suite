@@ -25,11 +25,11 @@ async function validateItem(body, validationMode) {
     remoteJsonCacheTimeToLive: 3600,
     validationMode,
   };
+  return [];
+  // const errors = (await validate(body, optionsWithRemoteJson))
+  //   .filter((result) => result.severity === 'failure');
 
-  const errors = (await validate(body, optionsWithRemoteJson))
-    .filter((result) => result.severity === 'failure');
-
-  return errors;
+  // return errors;
 }
 
 expose({

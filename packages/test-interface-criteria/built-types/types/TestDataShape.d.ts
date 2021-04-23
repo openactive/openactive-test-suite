@@ -112,7 +112,7 @@ export interface TestDataShape {
   };
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
-    'oa:prepayment'?: OptionNodeConstraint<RequiredStatusType,'oa:RequiredStatusType'>;
+    'oa:openBookingPrepayment'?: OptionNodeConstraint<RequiredStatusType,'oa:RequiredStatusType'>;
     /**
      * Refers to the date calculated as `startDate - validFromBeforeStartDate`.
      * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validFromBeforeStartDate`

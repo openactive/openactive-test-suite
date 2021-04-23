@@ -35,7 +35,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *     },
  *   }[],
  *   totalPaymentDue: number,
- *   prepayment?: Prepayment | null | undefined,
+ *   openBookingPrepayment?: Prepayment | null | undefined,
  *   orderProposalVersion: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole: string | null,
@@ -53,7 +53,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  */
 function assertPaymentIsAvailable(templateName, data) {
   if (!isPaymentAvailable(data)) {
-    throw new Error(`${templateName} B request incorrectly used for an Order for which prepayment is optional. Consider using another B request template or a different OpportunityCriteria`);
+    throw new Error(`${templateName} B request incorrectly used for an Order for which openBookingPrepayment is optional. Consider using another B request template or a different OpportunityCriteria`);
   }
 }
 
@@ -205,8 +205,8 @@ function createStandardFreeBReq(data) {
 
 /**
  * Template for a paid opportunity for which prepayment is being made. This _should_
- * only be used for paid opportunities with prepayment=Required|Optional, but could
- * also be used to purposely fail tests for which prepayment is Unavailable.
+ * only be used for paid opportunities with openBookingPrepayment=Required|Optional, but could
+ * also be used to purposely fail tests for which openBookingPrepayment is Unavailable.
  *
  * @param {BReqTemplateData} data
  */
@@ -224,7 +224,7 @@ function createPaidWithPaymentBReq(data) {
 
 /**
  * Adaptable template for a paid opportunity. `totalPaymentDue` is always set, but
- * `payment` will be set depending on `prepayment`
+ * `payment` will be set depending on `openBookingPrepayment`
  *
  * @param {BReqTemplateData} data
  */

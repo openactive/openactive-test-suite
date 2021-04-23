@@ -10,7 +10,7 @@ const { NON_FREE_PRICE_QUANTITATIVE_VALUE, prepaymentOptionNodeConstraint } = re
  * @type {OfferConstraint}
  */
 function onlyPaidBookableOffers(offer) {
-  return offer.price > 0 && offer.prepayment !== 'https://openactive.io/Unavailable';
+  return offer.price > 0 && offer.openBookingPrepayment !== 'https://openactive.io/Unavailable';
 }
 
 /**
@@ -21,14 +21,14 @@ const TestOpportunityBookableUsingPayment = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Only paid bookable Offers, where prepayment is not Unavailable',
+      'Only paid bookable Offers, where openBookingPrepayment is not Unavailable',
       onlyPaidBookableOffers,
     ],
   ],
   testDataShape: () => ({
     offerConstraints: {
       'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
-      'oa:prepayment': prepaymentOptionNodeConstraint({
+      'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
         blocklist: ['https://openactive.io/Unavailable'],
       }),
     },
