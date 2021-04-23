@@ -58,6 +58,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATIO
  *   state: InstanceType<typeof RequestState>,
  *   flow: InstanceType<typeof FlowHelper>,
  *   opportunityType?: string | null,
+ *   bookingFlow?: BookingFlow | null,
  * ) => void} RunTestsFn
  *
  * @typedef {DescribeFeatureConfiguration & {
@@ -215,7 +216,7 @@ class FeatureHelper {
                       ? null
                       : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType);
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType, bookingFlow);
                   });
                 }
 
@@ -242,7 +243,7 @@ class FeatureHelper {
                       });
                     }
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null);
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null, bookingFlow);
                   });
                 }
               });
@@ -286,13 +287,18 @@ class FeatureHelper {
       runOnce: false,
       ...configuration,
     },
-    function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType) {
+    function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType, bookingFlow) {
       if (opportunityType != null) {
         configuration.unmatchedOpportunityCriteria.forEach((criteria) => {
           describe(`${criteria} opportunity feed items`, function () {
             it(`should be no events matching the [${criteria}](https://openactive.io/test-interface#${criteria}) criteria in the '${opportunityType}' feed(s)`, async () => {
               const requestHelper = new RequestHelper(logger);
-              const response = await requestHelper.callAssertUnmatchedCriteria(opportunityType, criteria);
+              const response = await requestHelper.callAssertUnmatchedCriteria({
+                opportunityType,
+                testOpportunityCriteria: criteria,
+                bookingFlow,
+              });
+                // opportunityType, criteria);
               chakram.expect(response).to.have.status(204);
             });
           });

@@ -100,7 +100,13 @@ const categoryOrFeature = /** @type {string} */(categoryOrFeatureUntyped); // ya
     for (const [opportunityCriteria, numOpportunitiesRequired] of opportunityCriteriaRequirements) {
       for (const opportunityType of IMPLEMENTED_OPPORTUNITY_TYPES) {
         numberOfItems += numOpportunitiesRequired;
-        const testInterfaceOpportunity = createTestInterfaceOpportunity(opportunityType, opportunityCriteria, seller['@id'], seller['@type']);
+        const testInterfaceOpportunity = createTestInterfaceOpportunity({
+          opportunityType,
+          testOpportunityCriteria: opportunityCriteria,
+          bookingFlow: 'OpenBookingSimpleFlow', // TODO TODO TODO test data generation
+          sellerId: seller['@id'],
+          sellerType: seller['@type'],
+        });
         itemListElement.push({
           '@type': 'ListItem',
           'test:numberOfInstancesInDistribution': numOpportunitiesRequired,

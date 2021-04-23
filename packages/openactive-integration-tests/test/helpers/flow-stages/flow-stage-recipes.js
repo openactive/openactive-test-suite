@@ -241,7 +241,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
   }) {
     const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
-      orderItemCriteria.bookingFlow === 'https://openactive.io/OpenBookingApprovalFlow'));
+      orderItemCriteria.bookingFlow === 'OpenBookingApprovalFlow'));
     if (doUseApprovalFlow) {
       const p = new PFlowStage({
         ...defaultFlowStageParams,

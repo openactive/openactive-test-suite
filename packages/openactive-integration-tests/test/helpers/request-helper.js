@@ -11,11 +11,23 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  * @typedef {import('chakram').RequestOptions} RequestOptions
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
  * @typedef {import('../templates/b-req').BReqTemplateData} BReqTemplateData
  * @typedef {import('../templates/b-req').BReqTemplateRef} BReqTemplateRef
  * @typedef {import('../templates/b-req').PReqTemplateData} PReqTemplateData
  * @typedef {import('../templates/b-req').PReqTemplateRef} PReqTemplateRef
+ */
+
+/**
+ * @typedef {{
+ *   opportunityType: string,
+ *   testOpportunityCriteria: string,
+ *   orderItemPosition: number,
+ *   bookingFlow: BookingFlow,
+ *   sellerId?: string | null,
+ *   sellerType?: string | null,
+ * }} TestInterfaceRequestArgs
  */
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
@@ -340,12 +352,27 @@ class RequestHelper {
     return uResponse;
   }
 
-  async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
+  /**
+   * @param {TestInterfaceRequestArgs} args
+   */
+  async createOpportunity({
+    opportunityType,
+    testOpportunityCriteria,
+    orderItemPosition,
+    bookingFlow,
+    sellerId,
+    sellerType,
+  }) {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+        sellerType,
+      }), {
         headers: this.createHeaders(),
         timeout: 10000,
       },
@@ -354,14 +381,33 @@ class RequestHelper {
     return respObj;
   }
 
-  async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
+  /**
+   * @param {TestInterfaceRequestArgs} args
+   */
+  async getRandomOpportunity({
+    opportunityType,
+    testOpportunityCriteria,
+    orderItemPosition,
+    bookingFlow,
+    sellerId,
+    sellerType,
+  }) {
     const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+        sellerType,
+      }), {
         timeout: 10000,
       },
+      // createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
+      // {
+      //   timeout: 10000,
+      // },
     );
 
     return respObj;
@@ -398,15 +444,20 @@ class RequestHelper {
   }
 
   /**
-   * @param {string} opportunityType
-   * @param {string} testOpportunityCriteria
+   * @param {object} args
+   * @param {string} args.opportunityType
+   * @param {string} args.testOpportunityCriteria
+   * @param {BookingFlow} args.bookingFlow
    */
-  async callAssertUnmatchedCriteria(opportunityType, testOpportunityCriteria) {
+  async callAssertUnmatchedCriteria({ opportunityType, testOpportunityCriteria, bookingFlow }) {
     const response = await this.post(
       `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
       `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
-      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+      }), {
         timeout: 10000,
       },
     );

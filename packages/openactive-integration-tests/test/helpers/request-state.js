@@ -99,9 +99,18 @@ class RequestState {
       }
 
       const seller = getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria);
+      /** @type {import('./request-helper').TestInterfaceRequestArgs} */
+      const testInterfaceRequestArgs = {
+        opportunityType: orderItemCriteriaItem.opportunityType,
+        testOpportunityCriteria: orderItemCriteriaItem.opportunityCriteria,
+        orderItemPosition: i,
+        bookingFlow: 'OpenBookingSimpleFlow',
+        sellerId: seller['@id'],
+        sellerType: seller['@type'],
+      };
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
-        ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
-        : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
+        ? this.requestHelper.getRandomOpportunity(testInterfaceRequestArgs)
+        : this.requestHelper.createOpportunity(testInterfaceRequestArgs);
 
       // If this opportunity can be reused, store it
       if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey)) {
