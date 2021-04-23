@@ -13,6 +13,8 @@ Running `npm start` in the root will run the OpenActive Test Suite, which is act
 
 Running `npm start` will orchestrate running the [OpenID Test Client](./packages/openactive-openid-test-client/), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Open Booking API implementation.
 
+Note that the implementation under test will need to implement the [OpenActive Test Interface](https://openactive.io/test-interface/) to run in controlled mode, and for selected tests.
+
 ## Quick start
 
 You can check that the test suite works in your local environment by running it against the hosted [OpenActive Reference Implementation](https://reference-implementation.openactive.io/), simply by using the default configuration:
