@@ -19,6 +19,14 @@ const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 
+// Force TTY based on environment variable to ensure TTY output
+if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
+  process.stdout.isTTY = true;
+  process.stderr.isTTY = true;
+  process.stdout.columns = parseInt(process.env.FORCE_TTY_COLUMNS, 10);
+  process.stderr.columns = parseInt(process.env.FORCE_TTY_COLUMNS, 10);
+}
+
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 

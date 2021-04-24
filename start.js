@@ -14,6 +14,14 @@ if (IS_RUNNING_IN_CI) {
   console.log('OpenActive Test Suite running in non-interactive mode, as `ci` is set to `true`\n');
 }
 
+// Force TTY based on environment variable to ensure correct TTY output from piped child process
+if (process.stdout.isTTY) {
+  process.env.FORCE_TTY = 'true';
+  process.env.FORCE_TTY_COLUMNS = process.stdout.columns;
+  // Force Chalk to display colours
+  process.env.FORCE_COLOR = 'true'
+}
+
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = config.get('integrationTests.bookableOpportunityTypesInScope');
 let bookableOpportunityTypeEntries = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v);
 if (bookableOpportunityTypeEntries.length == 1) {
