@@ -48,10 +48,7 @@ function createStandardPReq(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': `${data.sellerId}`,
-    },
+    seller: data.sellerId,
     customer: {
       '@type': 'Person',
       email: 'geoffcapes@example.com',
