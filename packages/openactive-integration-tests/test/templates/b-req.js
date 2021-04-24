@@ -103,10 +103,7 @@ function createNonPaymentRelatedCoreBReq(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': `${data.sellerId}`,
-    },
+    seller: data.sellerId,
     customer: {
       '@type': 'Person',
       email: 'geoffcapesStageB@example.com',
@@ -156,10 +153,7 @@ function createNonPaymentRelatedCoreBReq(data) {
   *       addressCountry: string,
   *     },
   *   },
-  *   seller: {
-  *     '@type': string,
-  *     '@id': string,
-  *   },
+  *   seller: string,
   *   customer: any, // ToDo: add this?
   *   orderedItem: {
   *     '@type': string,

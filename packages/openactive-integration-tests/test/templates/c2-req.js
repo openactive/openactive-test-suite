@@ -42,10 +42,7 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *       addressCountry: string,
  *     },
  *   },
- *   seller: {
- *     '@type': string,
- *     '@id': string,
- *   },
+ *   seller: string,
  *   customer: any, // ToDo: add this?
  *   orderedItem: {
  *     '@type': string,
@@ -93,10 +90,7 @@ function createStandardC2Req(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': data.sellerId,
-    },
+    seller: data.sellerId,
     customer: {
       '@type': 'Person',
       email: 'geoffcapesStageC2@example.com',
