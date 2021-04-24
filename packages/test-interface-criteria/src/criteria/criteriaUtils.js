@@ -385,7 +385,7 @@ function getOrganizerOrProvider(opportunity) {
  */
 function sellerMustAllowOpenBooking(opportunity) {
   const organizerOrProvider = getOrganizerOrProvider(opportunity);
-  return organizerOrProvider.allowOpenBooking === true;
+  return organizerOrProvider.isOpenBookingAllowed === true;
 }
 
 module.exports = {

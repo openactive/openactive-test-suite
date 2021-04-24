@@ -59,11 +59,11 @@ function isPaidOpportunity(data) {
 /**
  * Is `payment` property needed for B/P request?
  *
- * @param {{ totalPaymentDue: number, openBookingPrepayment?: Prepayment | null | undefined }} data
+ * @param {{ totalPaymentDue: number, prepayment?: Prepayment | null | undefined }} data
  * @returns {boolean}
  */
 function isPaymentAvailable(data) {
-  return isPaidOpportunity(data) && data.openBookingPrepayment !== 'https://openactive.io/Unavailable';
+  return isPaidOpportunity(data) && data.prepayment !== 'https://openactive.io/Unavailable';
 }
 
 /**
