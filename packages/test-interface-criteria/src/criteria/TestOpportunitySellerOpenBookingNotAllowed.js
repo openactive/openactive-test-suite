@@ -11,7 +11,7 @@ const { FALSE_BOOLEAN_CONSTRAINT } = require('../testDataShape');
  */
 function mustNotAllowOpenBooking(opportunity) {
   const organization = getOrganizerOrProvider(opportunity);
-  return organization && organization.isOpenBookingAllowed === true;
+  return organization && organization.isOpenBookingAllowed === false;
 }
 
 /**
