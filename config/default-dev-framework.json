@@ -1,0 +1,35 @@
+// Defaults for running the .NET Framework version of the OpenActive Reference
+// Implementation locally for development
+// Use this via `export NODE_APP_INSTANCE=dev-framework` and `export NODE_ENV=.example.no-auth`
+{
+  "broker": {
+    "datasetSiteUrl": "http://localhost:5000/openactive"
+  },
+  "integrationTests": {
+    "useRandomOpportunities": true
+  },
+  "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "http://localhost:5000/api/identifiers/sellers/1",
+      "authentication": {
+        "loginCredentials": null,
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/1"
+        }
+      }
+    },
+    "secondary": {
+      "@type": "Organization",
+      "@id": "http://localhost:5000/api/identifiers/sellers/2",
+      "authentication": {
+        "loginCredentials": null,
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/2"
+        }
+      }
+    }
+  }
+}
