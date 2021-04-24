@@ -119,14 +119,8 @@ function createNonPaymentRelatedCoreBReq(data) {
       const result = {
         '@type': 'OrderItem',
         position: orderItem.position,
-        acceptedOffer: {
-          '@type': 'Offer',
-          '@id': `${orderItem.acceptedOffer['@id']}`,
-        },
-        orderedItem: {
-          '@type': `${orderItem.orderedItem['@type']}`,
-          '@id': `${orderItem.orderedItem['@id']}`,
-        },
+        acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
+        orderedItem: `${orderItem.orderedItem['@id']}`,
         attendee: undefined,
         orderItemIntakeForm: undefined,
         orderItemIntakeFormResponse: undefined,
@@ -170,14 +164,8 @@ function createNonPaymentRelatedCoreBReq(data) {
   *   orderedItem: {
   *     '@type': string,
   *     position: number,
-  *     acceptedOffer: {
-  *       '@type': string,
-  *       '@id': string,
-  *     },
-  *     orderedItem: {
-  *       '@type': string,
-  *       '@id': string,
-  *     },
+  *     acceptedOffer: string,
+  *     orderedItem: string,
  *      attendee?: {
  *        '@type': 'Person'
  *        telephone: string,

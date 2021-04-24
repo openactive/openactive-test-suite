@@ -50,14 +50,8 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *   orderedItem: {
  *     '@type': string,
  *     position: number,
- *     acceptedOffer: {
- *       '@type': string,
- *       '@id': string,
- *     },
- *     orderedItem: {
- *       '@type': string,
- *       '@id': string,
- *     },
+ *     acceptedOffer: string,
+ *     orderedItem: string,
  *     attendee?: {
  *       '@type': 'Person'
  *       telephone: string,
@@ -114,14 +108,8 @@ function createStandardC2Req(data) {
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
       position: orderItem.position,
-      acceptedOffer: {
-        '@type': 'Offer',
-        '@id': `${orderItem.acceptedOffer['@id']}`,
-      },
-      orderedItem: {
-        '@type': `${orderItem.orderedItem['@type']}`,
-        '@id': `${orderItem.orderedItem['@id']}`,
-      },
+      acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
+      orderedItem: `${orderItem.orderedItem['@id']}`,
       attendee: undefined,
       orderItemIntakeForm: undefined,
       orderItemIntakeFormResponse: undefined,

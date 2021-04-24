@@ -1,0 +1,24 @@
+{
+  "broker": {
+    "datasetSiteUrl": "http://localhost:5000/openactive"
+  },
+  "sellers": {
+    "primary": {
+      "@id": "http://localhost:5000/api/identifiers/sellers/1",
+      "authentication": {
+        "requestHeaders": {
+          "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/1"
+        }
+      }
+    },
+    "secondary": {
+      "@id": "http://localhost:5000/api/identifiers/sellers/2",
+      "authentication": {
+        "requestHeaders": {
+          "X-OpenActive-Test-Seller-Id": "http://localhost:5000/api/identifiers/sellers/2"
+        }
+      }
+    }
+  }
+}
+

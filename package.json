@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "config": "^3.3.6",
-    "node-cleanup": "^2.1.2",
-    "prompts": "^2.4.1"
+    "inquirer": "^8.0.0",
+    "node-cleanup": "^2.1.2"
   },
   "engines": {
     "node": "14.16.0"
