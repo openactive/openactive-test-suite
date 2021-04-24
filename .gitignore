@@ -160,6 +160,7 @@ $RECYCLE.BIN/
 !**/config/default.json
 !**/config/default-ci.json
 !**/config/default-dev.json
+!**/config/default-framework.json
 !**/config/.example.*.json 
 
 # JetBrains IDE files

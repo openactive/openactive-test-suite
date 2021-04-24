@@ -19,6 +19,14 @@ const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 
+// Force TTY based on environment variable to ensure TTY output
+if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
+  process.stdout.isTTY = true;
+  process.stderr.isTTY = true;
+  process.stdout.columns = parseInt(process.env.FORCE_TTY_COLUMNS, 10);
+  process.stderr.columns = parseInt(process.env.FORCE_TTY_COLUMNS, 10);
+}
+
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
@@ -1519,16 +1527,6 @@ Validation errors found in Dataset Site JSON-LD:
 // Ensure that dataset site request also delays "readiness"
 addFeed('DatasetSite');
 
-// Ensure bucket allocation does not become stale
-setTimeout(() => {
-  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
-  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
-    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
-    logError(`${message}\n`);
-    throw new Error(message);
-  }
-}, 3600000); // 3600000 ms = 1 hour
-
 const server = http.createServer(app);
 server.on('error', onError);
 
@@ -1537,6 +1535,9 @@ app.listen(PORT, () => {
 
 Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
 `);
+  // Notify parent process that the server is up
+  process.send('listening');
+
   // Start polling after HTTP server starts listening
   (async () => {
     try {
@@ -1547,6 +1548,16 @@ Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
     }
   })();
 });
+
+// Ensure bucket allocation does not become stale
+setTimeout(() => {
+  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
+  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
+    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+    logError(`${message}\n`);
+    throw new Error(message);
+  }
+}, 3600000); // 3600000 ms = 1 hour
 
 /**
  * Normalize a port into a number, string, or false.
