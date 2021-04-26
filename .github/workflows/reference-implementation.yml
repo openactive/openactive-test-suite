@@ -7,13 +7,13 @@ on:
     branches: [ master ]
 
 jobs:
-  # Random & controlled tests run in parallel
-  random-tests:
-
-    runs-on: ${{ matrix.os }}
+  tests:
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        mode: ['random', 'controlled']
+        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
 
     steps:
     - name: Checkout OpenActive Test Suite
@@ -59,7 +59,7 @@ jobs:
       run: |
         dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
       env:
-        ASPNETCORE_ENVIRONMENT: all-features
+        ASPNETCORE_ENVIRONMENT: ${{ matrix.profile }}
 
     - name: Install OpenActive Test Suite
       run: | 
@@ -71,8 +71,8 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"broker": {"outputPath": "../../publish/example-output/random/"}, "integrationTests": {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true }}
-        NODE_ENV: 
+          {"broker": {"outputPath": "../../output/"}, "integrationTests": {"outputPath": "../../output/", "useRandomOpportunities": "useRandomOpportunities": ${{ matrix.mode == 'random' }} }}
+        NODE_ENV: .example.${{ matrix.profile }}
         NODE_APP_INSTANCE: ci
       working-directory: tests
     # Two purposes to uploading the output from these tests:
@@ -82,111 +82,30 @@ jobs:
       uses: actions/upload-artifact@v2
       if: ${{ success() || failure() }}
       with:
-        name: test-output-${{ matrix.os }}-random
-        path: ./tests/publish/example-output/random/
-
-  # Random & controlled tests run in parallel
-  controlled-tests:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-
-    steps:
-    - name: Checkout OpenActive Test Suite
-      uses: actions/checkout@v2
-      with:
-        path: tests
-    - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
-      if: ${{ startsWith(github.head_ref, 'coverage/') }}
-      id: refs
-      run: echo "::set-output name=mirror_ref::${{ github.head_ref }}"
-    - name: Checkout OpenActive.Server.NET ${{ steps.refs.outputs.mirror_ref }}
-      uses: actions/checkout@v2
-      with:
-        repository: openactive/OpenActive.Server.NET
-        ref: ${{ steps.refs.outputs.mirror_ref }}
-        path: server
-
-    - name: Setup .NET Core 2.1.808 for Booking Server Reference Implementation
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 2.1.808
-    - name: Setup .NET Core 3.0.103 for Authentication Authority Reference Implementation
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.0.103
-
-    - name: Setup Node.js 14.x
-      uses: actions/setup-node@v1
-      with:
-        node-version: 14.x
-
-    - name: Install OpenActive.Server.NET dependencies
-      run: dotnet restore ./server/
-
-    - name: Build .NET Core Authentication Authority Reference Implementation
-      run: dotnet build ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-restore
-    - name: Start .NET Core Authentication Authority Reference Implementation
-      run: |
-        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-build &
-    - name: Build .NET Core Booking Server Reference Implementation
-      run: dotnet build ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
-    - name: Start .NET Core Booking Server Reference Implementation
-      run: |
-        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
-      env:
-        ASPNETCORE_ENVIRONMENT: all-features
-
-    - name: Install OpenActive Test Suite
-      run: | 
-        npm install
-      working-directory: tests
-
-    - name: Run OpenActive Integration Tests in Controlled Mode
-      run: npm start
-      env:
-        FORCE_COLOR: 1
-        NODE_CONFIG: |
-          {"broker": {"outputPath": "../../publish/example-output/controlled/"}, "integrationTests": {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false }}
-        NODE_ENV: 
-        NODE_APP_INSTANCE: ci
-      working-directory: tests
-    # Two purposes to uploading the output from these tests:
-    # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
-    # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
-    - name: Upload test output for Controlled Mode as artifact
-      uses: actions/upload-artifact@v2
-      if: ${{ success() || failure() }}
-      with:
-        name: test-output-${{ matrix.os }}-controlled
-        path: ./tests/publish/example-output/controlled/
-
+        name: ${{ matrix.mode }}.${{ matrix.profile }}
+        path: ./tests/output/
 
   deploy-output:
+    needs: tests
+    # Master branch only
+    if: ${{ github.ref == 'refs/heads/master' }}
 
-    needs: [random-tests, controlled-tests]
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
 
     steps:
     - name: Download test output for Random Mode
       uses: actions/download-artifact@v2
       with:
-        name: test-output-${{ matrix.os }}-random
+        name: random.all-features
         path: ./tests/publish/example-output/random/
     - name: Download test output for Controlled Mode
       uses: actions/download-artifact@v2
       with:
-        name: test-output-${{ matrix.os }}-controlled
+        name: controlled.all-features
         path: ./tests/publish/example-output/controlled/
     - name: Deploy test output to GitHub Pages (master branch on ubuntu only)
       uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' }}
+      
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./tests/publish
