@@ -76,7 +76,7 @@ The different Booking Flows represent the order of API endpoints (and actions) t
 * `OpenBookingSimpleFlow`: [Simple Booking Flow](https://openactive.io/open-booking-api/EditorsDraft/#simple-booking-flow)
 * `OpenBookingApprovalFlow`: [Booking Flow with Approval](https://openactive.io/open-booking-api/EditorsDraft/#booking-flow-with-approval)
 
-This combination of Booking Flows also stacks up with the combination of Opportunity Types, so with the following config:
+This combination of Booking Flows also stacks up with the combination of Opportunity Types:
 
 ```json
   "bookableOpportunityTypesInScope": {
@@ -89,7 +89,7 @@ This combination of Booking Flows also stacks up with the combination of Opportu
   }
 ```
 
-All of the implemented features would be tested 4 times. Once for ScheduledSessions with the Simple Booking Flow, once for ScheduledSessions with the Approval Flow, etc.
+In the example above, all of the implemented features would be tested 4 times. Once for ScheduledSessions with the Simple Booking Flow, once for ScheduledSessions with the Approval Flow, etc.
 
 ### `implementedFeatures`
 

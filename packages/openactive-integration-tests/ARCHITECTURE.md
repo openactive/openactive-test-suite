@@ -59,7 +59,7 @@ These consist of:
 
 - [Chakram](http://dareid.github.io/chakram/): This is a HTTP test framework designed for Mocha (however it works fine on Jest)
 - [Request helper](test/helpers/request-helper.js): This makes requests, and records the request + response against the logger. There are methods to directly make requests, along with methods for each API endpoint.
-- [Flow Stages](test/helpers/flow-stages/flow-stage.js): A part of the booking flow (e.g. the C1 request). Use it to call the relevant API endpoint. When calleed, it stores the results, which can then be applied to successive Flow Stages (e.g. C1 output can be used for the C2 request).
+- [Flow Stages](test/helpers/flow-stages/flow-stage.js): A part of the booking flow (e.g. the C1 request). Use it to call the relevant API endpoint. When called, it stores the results, which can then be applied to successive Flow Stages (e.g. C1 output can be used for the C2 request).
 # Test flow
 
 - [Feature helper](test/helpers/feature-helper.js): This wraps up the initialisation of the test, implementing the describe blocks and initialising the logger.
