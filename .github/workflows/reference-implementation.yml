@@ -14,10 +14,14 @@ jobs:
       matrix:
         mode: ['random', 'controlled']
         profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
-        flow: ['simple', 'approval', 'both']
-
-    # Only run both flows for all-features
-    if: ${{ matrix.flow != 'both' || matrix.profile == 'all-features' }}
+        flow: ['simple', 'approval']
+        include:
+        - mode: 'random'
+          profile: 'all-features'
+          flow: 'both'
+        - mode: 'controlled'
+          profile: 'all-features'
+          flow: 'both'
 
     steps:
     - name: Checkout OpenActive Test Suite
