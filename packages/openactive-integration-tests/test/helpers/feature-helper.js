@@ -35,7 +35,11 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED
  *   even though one of the opportunities in the Order is valid.
  * @property {CreateSingleOportunityCriteriaTemplateFn} [singleOpportunityCriteriaTemplate]
  * @property {CreateMultipleOportunityCriteriaTemplateFn} [multipleOpportunityCriteriaTemplate]
- * @property {boolean} [runOnce]
+ * @property {boolean} [doesNotUseOpportunitiesMode] If true, this test will not bother with finding opportunities that
+ *   match some criteria.
+ *   Instead of running once for each OpportunityType and once for each BookingFlow, this test will just run once - as
+ *   these combinations are irrelevant to it as it does not use opportunities.
+ *   Use this for things like testing a Booking System's auth
  * @property {boolean} [skipMultiple]
  * @property {boolean} [runOnlyIf]
  * @property {boolean} [surviveAuthenticationFailure]
@@ -84,6 +88,13 @@ class FeatureHelper {
    * @param {RunTestsFn} tests
    */
   static describeFeature(documentationModule, configuration, tests) {
+    if (configuration.doesNotUseOpportunitiesMode && (
+      configuration.testOpportunityCriteria
+      || configuration.singleOpportunityCriteriaTemplate
+      || configuration.multipleOpportunityCriteriaTemplate)
+    ) {
+      throw new Error(`doesNotUseOpportunitiesMode cannot be used in conjunction with opportunity criteria settings as the former means that no opportunities whatsoever will be used. Test: "${configuration.testIdentifier}"`);
+    }
     /**
      * Default templates
      * @type {CreateSingleOportunityCriteriaTemplateFn}
@@ -134,7 +145,7 @@ class FeatureHelper {
       const criteriaRequirement = new OpportunityCriteriaRequirements();
       const sellerCriteriaRequirements = new SellerCriteriaRequirements();
 
-      if (!configuration.runOnce) {
+      if (!configuration.doesNotUseOpportunitiesMode) {
         /* Note that we use dummy args for opportunityType & bookingFlow in the criteria template functions here
         because all we want from them is the values for `opportunityCriteria`, which are unrelated. */
         /** @type {OpportunityCriteria[]} */
@@ -186,20 +197,36 @@ class FeatureHelper {
     ) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {
-          if (configuration.runOnce) {
-            // This duplicate describe nesting ensures the number of describe levels remains consistent for the logger
-            describe(configuration.testIdentifier, function () {
-              const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier}`, this, {
-                config: configuration,
-                description: configuration.testDescription,
-                implemented,
+          if (configuration.doesNotUseOpportunitiesMode) {
+            // Here we add some describe blocks so that these test uses the exact same number of describe levels as
+            // normal tests. This means that the logger (which looks at number of describe levels) can be used
+            // consistently across tests.
+            describe('_NoFlow_', () => {
+              describe('_NoOpportunityType_', function () {
+                const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier}`, this, {
+                  config: configuration,
+                  description: configuration.testDescription,
+                  implemented,
+                });
+
+                const state = new RequestState(logger);
+                const flow = new FlowHelper(state);
+
+                tests.bind(this)(configuration, null, implemented, logger, state, flow);
               });
-
-              const state = new RequestState(logger);
-              const flow = new FlowHelper(state);
-
-              tests.bind(this)(configuration, null, implemented, logger, state, flow);
             });
+            // describe(configuration.testIdentifier, function () {
+            //   const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier}`, this, {
+            //     config: configuration,
+            //     description: configuration.testDescription,
+            //     implemented,
+            //   });
+
+            //   const state = new RequestState(logger);
+            //   const flow = new FlowHelper(state);
+
+            //   tests.bind(this)(configuration, null, implemented, logger, state, flow);
+            // });
           } else {
             // Create a new test for each bookingFlow in scope
             for (const bookingFlow of bookingFlowsInScope) {
@@ -287,7 +314,7 @@ class FeatureHelper {
     this.describeFeature(documentationModule, {
       testDescription: `Assert that no opportunities that match criteria ${configuration.unmatchedOpportunityCriteria.map(x => `'${x}'`).join(' or ')} are available in the opportunity feeds.`,
       skipMultiple: true,
-      runOnce: false,
+      doesNotUseOpportunitiesMode: false,
       ...configuration,
     },
     function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType, bookingFlow) {
