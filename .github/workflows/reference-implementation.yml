@@ -114,12 +114,12 @@ jobs:
     # Two purposes to uploading the output from these tests:
     # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
     # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
-    # - name: Upload test output for Random Mode as artifact
-    #   uses: actions/upload-artifact@v2
-    #   if: ${{ success() || failure() }}
-    #   with:
-    #     name: test-output-${{ matrix.os }}-random
-    #     path: ./tests/publish/example-output/random/
+    - name: Upload test output for Random Mode as artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ success() || failure() }}
+      with:
+        name: test-output-${{ matrix.os }}-random
+        path: ./tests/publish/example-output/random/
 
   # # Random & controlled tests run in parallel
   # controlled-tests:
