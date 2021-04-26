@@ -65,6 +65,41 @@ jobs:
         npm install
       working-directory: tests
 
+    # Upload tests and server directories so that they can be used by subsequent jobs
+    - name: Upload built Tests
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-tests-${{ matrix.os }}
+        path: ./tests
+    - name: Upload built Server
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-server-${{ matrix.os }}
+        path: ./server
+
+  # Random & controlled tests run in parallel
+  random-tests:
+
+    needs: build
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+    # Get tests and server from build job
+    - name: Download built Tests
+      uses: actions/download-artifact@v2
+      with:
+        name: build-tests-${{ matrix.os }}
+        path: ./tests
+    -name: Download build Server
+      uses: actions/download-artifact@v2
+      with:
+        name: build-server-${{ matrix.os }}
+        path: ./server
+
     - name: Run OpenActive Integration Tests in Random Mode
       run: npm start
       env:
@@ -74,13 +109,39 @@ jobs:
         NODE_ENV: 
         NODE_APP_INSTANCE: ci
       working-directory: tests
+    # Two purposes to uploading the output from these tests:
+    # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
+    # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
     - name: Upload test output for Random Mode as artifact
       uses: actions/upload-artifact@v2
       if: ${{ success() || failure() }}
       with:
         name: test-output-${{ matrix.os }}-random
         path: ./tests/publish/example-output/random/
-      
+
+  # Random & controlled tests run in parallel
+  controlled-tests:
+
+    needs: build
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+    # Get tests and server from build job
+    - name: Download built Tests
+      uses: actions/download-artifact@v2
+      with:
+        name: build-tests-${{ matrix.os }}
+        path: ./tests
+    -name: Download build Server
+      uses: actions/download-artifact@v2
+      with:
+        name: build-server-${{ matrix.os }}
+        path: ./server
+
     - name: Run OpenActive Integration Tests in Controlled Mode
       run: npm start
       env:
@@ -90,6 +151,9 @@ jobs:
         NODE_ENV: 
         NODE_APP_INSTANCE: ci
       working-directory: tests
+    # Two purposes to uploading the output from these tests:
+    # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
+    # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
     - name: Upload test output for Controlled Mode as artifact
       uses: actions/upload-artifact@v2
       if: ${{ success() || failure() }}
@@ -97,6 +161,26 @@ jobs:
         name: test-output-${{ matrix.os }}-controlled
         path: ./tests/publish/example-output/controlled/
 
+  deploy-output:
+
+    needs: [random-tests, controlled-tests]
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+    - name: Download test output for Random Mode
+      uses: actions/download-artifact@v2
+      with:
+        name: test-output-${{ matrix.os }}-random
+        path: ./tests/publish/example-output/random/
+    - name: Download test output for Controlled Mode
+      uses: actions/download-artifact@v2
+      with:
+        name: test-output-${{ matrix.os }}-controlled
+        path: ./tests/publish/example-output/controlled/
     - name: Deploy test output to GitHub Pages (master branch on ubuntu only)
       uses: peaceiris/actions-gh-pages@v3
       if: ${{ github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' }}
