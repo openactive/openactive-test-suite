@@ -102,18 +102,18 @@ jobs:
         name: build-server-${{ matrix.os }}
         path: ./server
 
-    # - name: Run OpenActive Integration Tests in Random Mode
-    #   run: npm start
-    #   env:
-    #     FORCE_COLOR: 1
-    #     NODE_CONFIG: |
-    #       {"broker": {"outputPath": "../../publish/example-output/random/"}, "integrationTests": {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true }}
-    #     NODE_ENV: 
-    #     NODE_APP_INSTANCE: ci
-    #   working-directory: tests
-    # # Two purposes to uploading the output from these tests:
-    # # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
-    # # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
+    - name: Run OpenActive Integration Tests in Random Mode
+      run: npm start
+      env:
+        FORCE_COLOR: 1
+        NODE_CONFIG: |
+          {"broker": {"outputPath": "../../publish/example-output/random/"}, "integrationTests": {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true }}
+        NODE_ENV: 
+        NODE_APP_INSTANCE: ci
+      working-directory: tests
+    # Two purposes to uploading the output from these tests:
+    # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
+    # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
     # - name: Upload test output for Random Mode as artifact
     #   uses: actions/upload-artifact@v2
     #   if: ${{ success() || failure() }}
