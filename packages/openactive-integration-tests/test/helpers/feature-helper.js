@@ -215,18 +215,6 @@ class FeatureHelper {
                 tests.bind(this)(configuration, null, implemented, logger, state, flow);
               });
             });
-            // describe(configuration.testIdentifier, function () {
-            //   const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier}`, this, {
-            //     config: configuration,
-            //     description: configuration.testDescription,
-            //     implemented,
-            //   });
-
-            //   const state = new RequestState(logger);
-            //   const flow = new FlowHelper(state);
-
-            //   tests.bind(this)(configuration, null, implemented, logger, state, flow);
-            // });
           } else {
             // Create a new test for each bookingFlow in scope
             for (const bookingFlow of bookingFlowsInScope) {
@@ -234,7 +222,7 @@ class FeatureHelper {
                 // And create a new test for each opportunityType in scope
                 for (const opportunityType of opportunityTypesInScope) {
                   describe(opportunityType, function () {
-                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${opportunityType})`, this, {
+                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${bookingFlow} >> ${opportunityType})`, this, {
                       config: configuration,
                       description: configuration.testDescription,
                       implemented,
