@@ -161,6 +161,7 @@ jobs:
         name: test-output-${{ matrix.os }}-controlled
         path: ./tests/publish/example-output/controlled/
 
+
   deploy-output:
 
     needs: [random-tests, controlled-tests]
