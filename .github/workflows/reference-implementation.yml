@@ -17,7 +17,7 @@ jobs:
         flow: ['simple', 'approval', 'both']
 
     # Only run both flows for all-features
-    if: ${{ !(matrix.flow == 'both' && matrix.profile !== 'all-features') }}
+    if: ${{ (matrix.flow == 'both' && matrix.profile !== 'all-features') == false }}
 
     steps:
     - name: Checkout OpenActive Test Suite
