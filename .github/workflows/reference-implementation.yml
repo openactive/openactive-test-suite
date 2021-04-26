@@ -7,7 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  # Random & controlled tests run in parallel
+  random-tests:
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -65,43 +66,6 @@ jobs:
         npm install
       working-directory: tests
 
-    # Upload tests and server directories so that they can be used by subsequent jobs
-    - name: Upload built Tests
-      uses: actions/upload-artifact@v2
-      if: ${{ success() }}
-      with:
-        name: build-tests-${{ matrix.os }}
-        path: ./tests
-    - name: Upload built Server
-      uses: actions/upload-artifact@v2
-      if: ${{ success() }}
-      with:
-        name: build-server-${{ matrix.os }}
-        path: ./server
-
-  # Random & controlled tests run in parallel
-  random-tests:
-
-    needs: build
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-
-    steps:
-    # Get tests and server from build job
-    - name: Download built Tests
-      uses: actions/download-artifact@v2
-      with:
-        name: build-tests-${{ matrix.os }}
-        path: ./tests
-    - name: Download build Server
-      uses: actions/download-artifact@v2
-      with:
-        name: build-server-${{ matrix.os }}
-        path: ./server
-
     - name: Run OpenActive Integration Tests in Random Mode
       run: npm start
       env:
@@ -124,25 +88,61 @@ jobs:
   # Random & controlled tests run in parallel
   controlled-tests:
 
-    needs: build
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
 
     steps:
-    # Get tests and server from build job
-    - name: Download built Tests
-      uses: actions/download-artifact@v2
+    - name: Checkout OpenActive Test Suite
+      uses: actions/checkout@v2
       with:
-        name: build-tests-${{ matrix.os }}
-        path: ./tests
-    - name: Download build Server
-      uses: actions/download-artifact@v2
+        path: tests
+    - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
+      if: ${{ startsWith(github.head_ref, 'coverage/') }}
+      id: refs
+      run: echo "::set-output name=mirror_ref::${{ github.head_ref }}"
+    - name: Checkout OpenActive.Server.NET ${{ steps.refs.outputs.mirror_ref }}
+      uses: actions/checkout@v2
       with:
-        name: build-server-${{ matrix.os }}
-        path: ./server
+        repository: openactive/OpenActive.Server.NET
+        ref: ${{ steps.refs.outputs.mirror_ref }}
+        path: server
+
+    - name: Setup .NET Core 2.1.808 for Booking Server Reference Implementation
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.1.808
+    - name: Setup .NET Core 3.0.103 for Authentication Authority Reference Implementation
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.103
+
+    - name: Setup Node.js 14.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 14.x
+
+    - name: Install OpenActive.Server.NET dependencies
+      run: dotnet restore ./server/
+
+    - name: Build .NET Core Authentication Authority Reference Implementation
+      run: dotnet build ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-restore
+    - name: Start .NET Core Authentication Authority Reference Implementation
+      run: |
+        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-build &
+    - name: Build .NET Core Booking Server Reference Implementation
+      run: dotnet build ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
+    - name: Start .NET Core Booking Server Reference Implementation
+      run: |
+        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
+      env:
+        ASPNETCORE_ENVIRONMENT: all-features
+
+    - name: Install OpenActive Test Suite
+      run: | 
+        npm install
+      working-directory: tests
 
     - name: Run OpenActive Integration Tests in Controlled Mode
       run: npm start
