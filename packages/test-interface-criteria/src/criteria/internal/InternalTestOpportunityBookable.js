@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-const { InternalCriteriaFutureScheduledOpportunity } = require('../internal/InternalCriteriaFutureScheduledOpportunity');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./InternalCriteriaFutureScheduledOpportunity');
 const {
   createCriteria,
   mustNotRequireAttendeeDetails,
@@ -42,7 +42,7 @@ const InternalTestOpportunityBookable = createCriteria({
       mustNotRequireAdditionalDetails,
     ],
   ],
-  testDataShape: options => ({
+  testDataShape: (options) => ({
     opportunityConstraints: ({
       'placeholder:remainingCapacity': quantitativeValue({
         mininclusive: 2,

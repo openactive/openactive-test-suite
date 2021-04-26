@@ -10,7 +10,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'authorization-persisted',
   testName: 'Authorization persists when not requesting offline access',
   testDescription: 'When authorisation is requested without offline access and a user has already given permission, consent must not be required.',
-  runOnce: true,
+  doesNotUseOpportunitiesMode: true,
   surviveAuthenticationFailure: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {

@@ -1,10 +1,8 @@
-const { complement } = require('ramda');
-const { openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const { createCriteria } = require('./criteriaUtils');
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
-const { supportsMinimalProposalFlow } = require('./sharedConstraints');
 
-const doesNotSupportMinimalProposalFlow = complement(supportsMinimalProposalFlow);
+// TODO this criteria is now redundant - probably InternalTestOpportunityBookable can be removed now that we have the
+// testOpenBookingFlow constraint.
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
@@ -16,19 +14,8 @@ const doesNotSupportMinimalProposalFlow = complement(supportsMinimalProposalFlow
 const TestOpportunityBookable = createCriteria({
   name: 'TestOpportunityBookable',
   opportunityConstraints: [],
-  offerConstraints: [
-    [
-      'Does not support Minimal Proposal flow',
-      doesNotSupportMinimalProposalFlow,
-    ],
-  ],
-  testDataShape: () => ({
-    offerConstraints: {
-      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
-        excludesAll: ['https://openactive.io/OpenBookingApproval'],
-      }),
-    },
-  }),
+  offerConstraints: [],
+  testDataShape: () => ({}),
   includeConstraintsFromCriteria: InternalTestOpportunityBookable,
 });
 

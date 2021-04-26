@@ -17,6 +17,7 @@ module.exports = {
         multiline: true, minProperties: 3, consistent: true,
       },
     }],
+    'no-use-before-define': ['error', { functions: false, classes: false }],
     'max-len': 'off',
     'no-await-in-loop': 0,
     'no-continue': 'off',
@@ -30,5 +31,8 @@ module.exports = {
         ],
       },
     ],
+  },
+  parserOptions: {
+    ecmaVersion: '2020',
   },
 };

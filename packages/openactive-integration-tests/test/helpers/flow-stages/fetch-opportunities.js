@@ -93,20 +93,17 @@ async function getOrCreateTestInterfaceOpportunities({ orderItemCriteriaList, se
       ? getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria)
       : sellerConfig;
 
+    const testInterfaceRequestArgs = {
+      opportunityType: orderItemCriteriaItem.opportunityType,
+      testOpportunityCriteria: orderItemCriteriaItem.opportunityCriteria,
+      orderItemPosition: i,
+      bookingFlow: orderItemCriteriaItem.bookingFlow,
+      sellerId: thisOpportunitySellerConfig['@id'],
+      sellerType: thisOpportunitySellerConfig['@type'],
+    };
     const opportunityResponsePromise = USE_RANDOM_OPPORTUNITIES
-      ? requestHelper.getRandomOpportunity(
-        orderItemCriteriaItem.opportunityType,
-        orderItemCriteriaItem.opportunityCriteria,
-        i,
-        thisOpportunitySellerConfig['@id'],
-        thisOpportunitySellerConfig['@type'],
-      ) : requestHelper.createOpportunity(
-        orderItemCriteriaItem.opportunityType,
-        orderItemCriteriaItem.opportunityCriteria,
-        i,
-        thisOpportunitySellerConfig['@id'],
-        thisOpportunitySellerConfig['@type'],
-      );
+      ? requestHelper.getRandomOpportunity(testInterfaceRequestArgs)
+      : requestHelper.createOpportunity(testInterfaceRequestArgs);
 
     // If this opportunity can be reused, store it
     if (hasReuseKey) {

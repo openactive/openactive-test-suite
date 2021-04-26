@@ -2,6 +2,7 @@ const { getTestDataShapeExpressions } = require('@openactive/test-interface-crit
 
 /**
  * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
+ * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  */
 
 const { HARVEST_START_TIME } = global;
@@ -9,22 +10,33 @@ const { HARVEST_START_TIME } = global;
 /**
  * Create opportunity data for sending to https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities
  *
- * @param {string} opportunityType
- * @param {string} testOpportunityCriteria
- * @param {string | null} [sellerId]
- * @param {string | null} [sellerType]
+ * @param {object} args
+ * @param {string} args.opportunityType
+ * @param {string} args.testOpportunityCriteria
+ * @param {BookingFlow} args.bookingFlow
+ * @param {string | null} [args.sellerId]
+ * @param {string | null} [args.sellerType]
  * @returns {TestInterfaceOpportunity}
  */
-function createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
-  const remainingCapacityPredicate = opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot' ? 'oa:remainingUses' : 'schema:remainingAttendeeCapacity';
-  const testDataShapeExpressions = getTestDataShapeExpressions(testOpportunityCriteria, remainingCapacityPredicate, { harvestStartTime: HARVEST_START_TIME });
-  /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
+function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null }) {
+  const remainingCapacityPredicate = (opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot')
+    ? 'oa:remainingUses'
+    : 'schema:remainingAttendeeCapacity';
+  const testDataShapeExpressions = getTestDataShapeExpressions(
+    testOpportunityCriteria,
+    bookingFlow,
+    remainingCapacityPredicate,
+    { harvestStartTime: HARVEST_START_TIME },
+  );
+  /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpenBookingFlow' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
   const testInterfaceOpportunityFields = {
     '@context': [
       'https://openactive.io/',
       'https://openactive.io/test-interface',
     ],
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
+    // e.g. OpenBookingApprovalFlow -> https://openactive.io/test-interface#OpenBookingApprovalFlow
+    'test:testOpenBookingFlow': `https://openactive.io/test-interface#${bookingFlow}`,
     'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
     'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
   };

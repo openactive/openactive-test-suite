@@ -3,6 +3,7 @@ const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
 const { getSellerConfigWithTaxMode } = require('../sellers');
+const { BookRecipe } = require('./book-recipe');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -136,25 +137,39 @@ const FlowStageUtils = {
    * @param {object} checks
    * @param {boolean} checks.doCheckSuccess If true, success checks will be run
    * @param {boolean} checks.doCheckIsValid If true, validation will be run
-   * @param {UnknownFlowStageType} flowStage
+   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   *   all stages within will be checked for validity/success.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndRunChecks(checks, flowStage, itAdditionalTests) {
-    if (!flowStage.shouldDescribeFlowStage) {
-      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStage.getLoggableStageName()} as shouldDescribeFlowStage is false`);
+  describeRunAndRunChecks(checks, flowStageOrBookRecipe, itAdditionalTests) {
+    if (flowStageOrBookRecipe instanceof BookRecipe) {
+      if (flowStageOrBookRecipe.p) {
+        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
+        /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
+        approved items appearing in the feed - which means that the tests will time out */
+        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
+        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
+        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
+      } else {
+        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
+      }
+      return;
     }
-    describe(flowStage.testName, () => {
-      flowStage.beforeSetup();
+    if (!flowStageOrBookRecipe.shouldDescribeFlowStage) {
+      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageOrBookRecipe.getLoggableStageName()} as shouldDescribeFlowStage is false`);
+    }
+    describe(flowStageOrBookRecipe.testName, () => {
+      flowStageOrBookRecipe.beforeSetup();
 
       if (checks.doCheckSuccess) {
-        flowStage.itSuccessChecks();
+        flowStageOrBookRecipe.itSuccessChecks();
       }
       if (checks.doCheckIsValid) {
-        flowStage.itValidationTests();
+        flowStageOrBookRecipe.itValidationTests();
       }
 
       if (itAdditionalTests) {
@@ -170,15 +185,16 @@ const FlowStageUtils = {
    * 2. Runs success checks and validation checks of the response in `it(..)` blocks.
    * 3. Optionally runs extra tests.
    *
-   * @param {UnknownFlowStageType} flowStage
+   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   *   all stages within will be checked for validity/success.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndCheckIsSuccessfulAndValid(flowStage, itAdditionalTests) {
-    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: true }, flowStage, itAdditionalTests);
+  describeRunAndCheckIsSuccessfulAndValid(flowStageOrBookRecipe, itAdditionalTests) {
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: true }, flowStageOrBookRecipe, itAdditionalTests);
   },
 
   /**
@@ -191,15 +207,16 @@ const FlowStageUtils = {
    *   NOTE: Success checks are not run
    * 3. Optionally runs extra tests.
    *
-   * @param {UnknownFlowStageType} flowStage
+   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   *   all stages within will be checked for validity.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndCheckIsValid(flowStage, itAdditionalTests) {
-    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: false }, flowStage, itAdditionalTests);
+  describeRunAndCheckIsValid(flowStageOrBookRecipe, itAdditionalTests) {
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: false }, flowStageOrBookRecipe, itAdditionalTests);
   },
 };
 

@@ -1,12 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "criteriaRequirements": {
-    "minimal-proposal": {
-      "primary": {
-        "TestOpportunityBookableFlowRequirementOnlyApproval": 9,
-        "TestOpportunityBookable": 3
-      }
-    },
     "agent-broker": {
       "primary": {
         "TestOpportunityBookable": 8
