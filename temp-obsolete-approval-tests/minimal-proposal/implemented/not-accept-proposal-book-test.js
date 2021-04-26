@@ -1,13 +1,6 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const {
-  FlowStageRecipes,
-  FlowStageUtils,
-  PFlowStage,
-  BFlowStage,
-  TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
-} = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils, PFlowStage, BFlowStage } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -30,13 +23,14 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'approval',
   testFeature: 'minimal-proposal',
   testFeatureImplemented: true,
-  testIdentifier: 'seller-reject-proposal',
-  testName: 'OrderProposal rejected by the Seller',
-  testDescription: 'An OrderProposal that is rejected by the Seller, and the call to B subsequently fails',
+  testIdentifier: 'not-accept-proposal-book',
+  testName: 'OrderProposal not yet accepted by the Seller',
+  testDescription: 'An OrderProposal that is not yet accepted by the Seller, and the call to B subsequently fails',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookableFlowRequirementOnlyApproval',
+  testOpportunityCriteria: 'TestOpportunityBookable',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
@@ -49,31 +43,14 @@ FeatureHelper.describeFeature(module, {
       prepayment: c2.getOutput().prepayment,
     }),
   });
-  const [simulateSellerRejection, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'Test Interface Action (test:SellerRejectOrderProposalSimulateAction)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:SellerRejectOrderProposalSimulateAction',
-        objectType: 'OrderProposal',
-        objectId: p.getOutput().orderId,
-      }),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: p,
-      testName: 'Orders Feed (after test:SellerRejectOrderProposalSimulateAction)',
-    },
-  });
   const b = new BFlowStage({
     ...defaultFlowStageParams,
-    prerequisite: orderFeedUpdate,
+    prerequisite: p,
     getInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: orderFeedUpdate.getOutput().totalPaymentDue,
-      prepayment: orderFeedUpdate.getOutput().prepayment,
-      orderProposalVersion: orderFeedUpdate.getOutput().orderProposalVersion,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
+      orderProposalVersion: p.getOutput().orderProposalVersion,
       positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
     }),
   });
@@ -83,7 +60,7 @@ FeatureHelper.describeFeature(module, {
     itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
     // TODO does validator check that orderProposalVersion is of form {orderId}/versions/{versionUuid}
@@ -93,21 +70,6 @@ FeatureHelper.describeFeature(module, {
     });
     // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed
     // TODO does validator check that full Seller details are included in the seller response?
-  });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerRejection);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
-    it('should have orderProposalStatus: SellerRejected', () => {
-      expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property(
-        // note that we check data.* because the OrderFeed response is an RPDE item
-        'data.orderProposalStatus', 'https://openactive.io/SellerRejected',
-      );
-    });
-    it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
-      expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property(
-        // note that we check data.* because the OrderFeed response is an RPDE item
-        'data.orderProposalVersion', p.getOutput().orderProposalVersion,
-      );
-    });
   });
   FlowStageUtils.describeRunAndCheckIsValid(b, () => {
     itShouldReturnAnOpenBookingError('OrderCreationFailedError', 500, () => b.getOutput().httpResponse);

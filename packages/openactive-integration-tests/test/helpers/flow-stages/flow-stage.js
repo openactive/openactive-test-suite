@@ -25,6 +25,7 @@ const pMemoize = require('p-memoize');
  *  propertyID: string,
  *  value: string | boolean
  * }} PropertyValue
+ * @typedef {{ [k:number]: OrderItemIntakeForm }} PositionOrderIntakeFormMap
  */
 
 /**
@@ -53,7 +54,7 @@ const pMemoize = require('p-memoize');
  *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
- * @property {{ [k:number]: OrderItemIntakeForm }} [positionOrderIntakeFormMap]
+ * @property {PositionOrderIntakeFormMap} [positionOrderIntakeFormMap]
  *   A map with OrderItem position and it's OrderItemIntakeForm.
  *   If the OrderItem does not need additional details, this map will just be null.
  *   If present, this will only be on the C1FlowStage output as that is the only

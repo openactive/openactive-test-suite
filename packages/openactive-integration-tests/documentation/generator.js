@@ -324,7 +324,9 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
     return '';
   }
   const prefix = prefixOverride !== undefined ? prefixOverride : '\nPrerequisite opportunities per Opportunity Type: ';
-  return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => `[${key}](https://openactive.io/test-interface#${key}) x${value}`).join(', ')}`;
+  return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => (
+    `[${key}](https://openactive.io/test-interface#${key}) x${value}`
+  )).join(', ')}`;
 }
 
 // # JSON rendering functions

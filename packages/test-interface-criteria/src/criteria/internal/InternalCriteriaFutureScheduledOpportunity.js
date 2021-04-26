@@ -39,7 +39,7 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
       mustNotRequireAttendeeDetails,
     ],
   ],
-  testDataShape: options => ({
+  testDataShape: (options) => ({
     opportunityConstraints: ({
       'schema:startDate': dateRange({
         minDate: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),

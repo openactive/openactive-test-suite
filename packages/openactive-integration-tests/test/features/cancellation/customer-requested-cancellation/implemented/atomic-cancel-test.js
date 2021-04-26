@@ -11,18 +11,21 @@ FeatureHelper.describeFeature(module, {
   testName: 'Successful booking and successful cancellation after atomic failed cancellation request',
   testDescription: 'After a successful booking, and an unsuccessful but atomic cancellation request, successfully cancel, including checking the Orders feed.',
   // Single Opportunity Criteria is overridden here as this test must have three Order Items
-  singleOpportunityCriteriaTemplate: opportunityType => [
+  singleOpportunityCriteriaTemplate: (opportunityType, bookingFlow) => [
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookableCancellable',
+      bookingFlow,
     },
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookableCancellable',
+      bookingFlow,
     },
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookableNotCancellable',
+      bookingFlow,
     },
   ],
   skipMultiple: true,

@@ -15,7 +15,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'authorization-code-flow',
   testName: 'Authorization Code Flow and Book',
   testDescription: 'The Authorization Code Flow allows Sellers to authenticate with Booking Partners',
-  runOnce: true,
+  doesNotUseOpportunitiesMode: true,
   surviveAuthenticationFailure: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {

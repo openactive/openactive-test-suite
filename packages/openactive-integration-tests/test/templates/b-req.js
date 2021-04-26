@@ -23,6 +23,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  * }} AccessPassItem
  *
  * @typedef {{
+ *   orderType: 'Order' | 'OrderProposal',
  *   sellerId: string,
  *   orderItems: {
  *     position: number,
@@ -36,11 +37,14 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   }[],
  *   totalPaymentDue: number,
  *   openBookingPrepayment?: Prepayment | null | undefined,
- *   orderProposalVersion: string | null,
+ *   orderProposalVersion?: string | null,
  *   accessPass?: AccessPassItem[],
- *   brokerRole: string | null,
+ *   brokerRole?: string | null,
  *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
  * }} BReqTemplateData
+ *
+ * @typedef {Omit<BReqTemplateData, 'orderProposalVersion'>} PReqTemplateData P accepts the same sort of requests as B.
+ *   Except for `orderProposalVersion` which is only for a "B after P" request.
  */
 
 /**
@@ -65,7 +69,7 @@ function assertPaymentIsAvailable(templateName, data) {
 function createAfterPBReq(data) {
   const result = {
     '@context': 'https://openactive.io/',
-    '@type': 'Order',
+    '@type': 'Order', // This can never be an OrderProposal
     orderProposalVersion: data.orderProposalVersion,
   };
   if (isPaymentAvailable(data)) {
@@ -83,7 +87,7 @@ function createAfterPBReq(data) {
 function createNonPaymentRelatedCoreBReq(data) {
   return {
     '@context': 'https://openactive.io/',
-    '@type': 'Order',
+    '@type': data.orderType,
     brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
     broker: {
       '@type': 'Organization',
@@ -103,10 +107,7 @@ function createNonPaymentRelatedCoreBReq(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': `${data.sellerId}`,
-    },
+    seller: data.sellerId,
     customer: {
       '@type': 'Person',
       email: 'geoffcapesStageB@example.com',
@@ -156,10 +157,7 @@ function createNonPaymentRelatedCoreBReq(data) {
   *       addressCountry: string,
   *     },
   *   },
-  *   seller: {
-  *     '@type': string,
-  *     '@id': string,
-  *   },
+  *   seller: string,
   *   customer: any, // ToDo: add this?
   *   orderedItem: {
   *     '@type': string,
@@ -511,6 +509,7 @@ const bReqTemplates = {
   standardPaid: createStandardPaidBReq,
   standard: createStandardFreeOrPaidBReq,
   paidWithPayment: createPaidWithPaymentBReq,
+  afterP: createAfterPBReq,
   noCustomerEmail: createNoCustomerEmailBReq,
   noBrokerName: createNoBrokerNameBReq,
   noBroker: createNoBrokerBReq,
@@ -532,6 +531,8 @@ const bReqTemplates = {
 
 /**
  * @typedef {keyof typeof bReqTemplates} BReqTemplateRef Reference to a particular B Request template
+ * @typedef {keyof Omit<typeof bReqTemplates, 'afterP'>} PReqTemplateRef P accepts the same sort of requests as B.
+ *   Except for the "B after P" request.
  */
 
 module.exports = {

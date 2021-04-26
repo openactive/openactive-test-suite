@@ -1,5 +1,6 @@
 import { JasmineStateReporter } from './test-framework/jasmine-state-reporter';
 import { BookingPartnerConfig } from './types/BookingPartnerConfig';
+import { BookingFlow } from './types/OpportunityCriteria';
 import { SellerConfig } from './types/SellerConfig';
 
 
@@ -19,6 +20,7 @@ declare global {
       HARVEST_START_TIME: Date;
       TEST_DATASET_IDENTIFIER: string;
       BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: { [opportunityType: string]: boolean };
+      BOOKING_FLOWS_IN_SCOPE: { [bookingFlow in BookingFlow]: boolean }
       IMPLEMENTED_FEATURES: { [featureIdentifier: string]: boolean | null };
       USE_RANDOM_OPPORTUNITIES: boolean;
       // Created in packages/openactive-integration-tests/documentation/generator.js

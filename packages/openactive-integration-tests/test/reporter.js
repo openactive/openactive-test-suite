@@ -47,14 +47,22 @@ class Reporter {
     try {
       const { testResults } = testResult;
 
-      const grouped = _.groupBy(testResults, spec => spec.ancestorTitles.slice(0, 3).join(' '));
+      /* ancestorTitles is the sequence of `describe(..)` labels for each test.
+      We group our labels using the 1st four labels, which are:
+      1. Feature
+      2. Test Identifier
+      3. Booking Flow
+      4. Opportunity Type */
+      const grouped = _.groupBy(testResults, spec => spec.ancestorTitles.slice(0, 4).join(' '));
 
       for (const [testIdentifier, groupedTests] of Object.entries(grouped)) {
         const logger = new ReporterLogger(testIdentifier);
         await logger.load();
 
         for (const singleTestResult of groupedTests) {
-          logger.recordTestResult(singleTestResult.ancestorTitles[3], singleTestResult);
+          /* ancestorTitles[4] is the first `describe(..)` label within the test itself.
+          It will generally be the name of a stage e.g. C1 */
+          logger.recordTestResult(singleTestResult.ancestorTitles[4], singleTestResult);
         }
 
         logger.testFilePath = test.testFilePath;
@@ -78,7 +86,7 @@ class Reporter {
         }
       }
     } catch (exception) {
-      console.log(testResult);
+      console.trace(testResult);
       console.error('logger error', exception);
     }
   }

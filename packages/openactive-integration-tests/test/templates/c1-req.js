@@ -44,10 +44,7 @@ function createStandardC1Req(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': data.sellerId,
-    },
+    seller: data.sellerId,
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
       position: orderItem.position,

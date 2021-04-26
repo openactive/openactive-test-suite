@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'client-credentials-flow',
   testName: 'Client Credentials Flow and Access Orders Feed',
   testDescription: '...',
-  runOnce: true,
+  doesNotUseOpportunitiesMode: true,
   surviveAuthenticationFailure: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {

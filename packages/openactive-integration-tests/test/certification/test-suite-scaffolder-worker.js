@@ -18,7 +18,7 @@ if (isMainThread) {
   throw new Error('The worker must not be run in the main thread, as it severely mutates global variables.');
 }
 
-const { implementedFeatures, opportunityTypesInScope } = workerData;
+const { implementedFeatures, opportunityTypesInScope, bookingFlowsInScope } = workerData;
 
 const suiteRegistry = new Map();
 
@@ -56,6 +56,7 @@ const globalMocks = {
 
   // Temporary overrides for feature configuration
   BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: opportunityTypesInScope,
+  BOOKING_FLOWS_IN_SCOPE: bookingFlowsInScope,
   IMPLEMENTED_FEATURES: implementedFeatures,
   USE_RANDOM_OPPORTUNITIES: true, // Do not generate 'test-interface' tests
   SELLER_CONFIG: { primary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxGross' }, secondary: { '@id': 'mock', taxMode: 'https://openactive.io/TaxNet' } },
