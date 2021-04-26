@@ -79,7 +79,7 @@ jobs:
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"broker": {"outputPath": "../../output/"}, "integrationTests": {"outputPath": "../../output/", "useRandomOpportunities": ${{ matrix.mode == 'random' }}, "bookingFlowsInScope": { "OpenBookingSimpleFlow": ${{ matrix.mode == 'simple' || matrix.mode == 'both' }}, "OpenBookingApprovalFlow": ${{ matrix.flow == 'approval' || matrix.mode == 'both' }} } }}
+          {"broker": {"outputPath": "../../output/"}, "integrationTests": {"outputPath": "../../output/", "useRandomOpportunities": ${{ matrix.mode == 'random' }}, "bookingFlowsInScope": { "OpenBookingSimpleFlow": ${{ matrix.flow == 'simple' || matrix.flow == 'both' }}, "OpenBookingApprovalFlow": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }} } }}
         NODE_ENV: .example.${{ matrix.profile }}
         NODE_APP_INSTANCE: ci
       working-directory: tests
