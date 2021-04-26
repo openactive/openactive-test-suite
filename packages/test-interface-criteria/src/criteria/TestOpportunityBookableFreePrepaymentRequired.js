@@ -10,7 +10,7 @@ const { createCriteria } = require('./criteriaUtils');
  * @type {OfferConstraint}
  */
 function onlyFreeBookableOffersWithPrepaymentRequired(offer) {
-  return offer.price === 0 && offer.prepayment === 'https://openactive.io/Required';
+  return offer.price === 0 && offer.openBookingPrepayment === 'https://openactive.io/Required';
 }
 
 /**
@@ -21,14 +21,14 @@ const TestOpportunityBookableFreePrepaymentRequired = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Only free bookable offers with prepayment Required',
+      'Only free bookable offers with openBookingPrepayment Required',
       onlyFreeBookableOffersWithPrepaymentRequired,
     ],
   ],
   testDataShape: () => ({
     offerConstraints: {
       'schema:price': FREE_PRICE_QUANTITATIVE_VALUE,
-      'oa:prepayment': prepaymentOptionNodeConstraint({
+      'oa:preopenBookingPrepaymentpayment': prepaymentOptionNodeConstraint({
         allowlist: ['https://openactive.io/Required'],
       }),
     },

@@ -119,6 +119,11 @@ export function mustRequireAdditionalDetails(offer: import("../types/Offer").Off
  */
 export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;
 /**
+ * @type {OpportunityConstraint}
+ */
+export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity): boolean;
+
+/**
  * Merge constraints so that the result has the simplest representation of the combination of all constraints.
  *
  * @param {TestDataShape} baseTestDataShape

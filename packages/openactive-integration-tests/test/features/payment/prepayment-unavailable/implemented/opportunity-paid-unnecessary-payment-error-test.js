@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-paid-unnecessary-payment-error',
   testName: 'Fail on unnecessary payment property',
-  testDescription: 'For a paid Opportunity, where prepayment is unavailable, attempt to book with an extraneous `payment` property. Booking should fail with UnnecessaryPaymentDetailsError',
+  testDescription: 'For a paid Opportunity, where openBookingPrepayment is unavailable, attempt to book with an extraneous `payment` property. Booking should fail with UnnecessaryPaymentDetailsError',
   testOpportunityCriteria,
   controlOpportunityCriteria,
 },

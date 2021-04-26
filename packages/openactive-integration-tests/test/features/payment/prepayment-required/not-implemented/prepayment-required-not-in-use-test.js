@@ -5,7 +5,7 @@ FeatureHelper.describeUnmatchedCriteriaFeature(module, {
   testFeature: 'prepayment-required',
   testFeatureImplemented: false,
   testIdentifier: 'prepayment-required-not-in-use',
-  testName: 'The `prepayment` property must not contain the value https://openactive.io/Required, or be unspecified for opportunities with non-zero price',
+  testName: 'The `openBookingPrepayment` property must not contain the value https://openactive.io/Required, or be unspecified for opportunities with non-zero price',
   unmatchedOpportunityCriteria: [
     'TestOpportunityBookableNonFreePrepaymentRequired',
   ],

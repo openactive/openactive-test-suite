@@ -65,10 +65,10 @@ const getTotalPaymentDueFromOrder = pipe(
 
 /** @type {(order: unknown) => Prepayment | null | undefined} */
 const getPrepaymentFromOrder = pipe(
-  path(['totalPaymentDue', 'prepayment']),
+  path(['totalPaymentDue', 'openBookingPrepayment']),
   assertValueSatisfiesPredicateIfExists(
     isInArray(['https://openactive.io/Required', 'https://openactive.io/Optional', 'https://openactive.io/Unavailable']),
-    'totalPaymentDue.prepayment is not a valid value',
+    'totalPaymentDue.openBookingPrepayment is not a valid value',
   ),
 );
 

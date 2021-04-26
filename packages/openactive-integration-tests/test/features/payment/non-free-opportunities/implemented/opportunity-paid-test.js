@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
-  // Note this will automatically determine whether payment is available (e.g. in the case of prepayment == 'https://openactive.io/Unavailable)
+  // Note this will automatically determine whether payment is available (e.g. in the case of openBookingPrepayment == 'https://openactive.io/Unavailable)
   const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
 
   // ## Set up tests
