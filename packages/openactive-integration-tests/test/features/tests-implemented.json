@@ -1,10 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "features": {
-    "minimal-proposal": {
-      "implementedTestFiles": 3,
-      "notImplementedTestFiles": 0
-    },
     "agent-broker": {
       "implementedTestFiles": 2,
       "notImplementedTestFiles": 1

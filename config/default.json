@@ -96,7 +96,6 @@
       "terms-of-service-with-consent-with-date-modified": null,
       "booking-partner-authentication": true,
       "dynamic-client-registration": true,
-      "minimal-proposal": true,
       "access-channel": true,
       "access-channel-update-notifications": true
     },
