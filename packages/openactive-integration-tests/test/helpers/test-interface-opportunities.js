@@ -35,8 +35,8 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
       'https://openactive.io/test-interface',
     ],
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
-    // e.g. OpenBookingApprovalFlow -> https://openactive.io/OpenBookingApprovalFlow
-    'test:testOpenBookingFlow': `https://openactive.io/${bookingFlow}`,
+    // e.g. OpenBookingApprovalFlow -> https://openactive.io/test-interface#OpenBookingApprovalFlow
+    'test:testOpenBookingFlow': `https://openactive.io/test-interface#${bookingFlow}`,
     'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
     'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
   };

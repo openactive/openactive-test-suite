@@ -1028,8 +1028,8 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
   const opportunityType = detectOpportunityType(opportunity);
   const sellerId = detectSellerId(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  // converts e.g. https://openactive.io/OpenBookingApproval -> OpenBookingApproval.
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/', '');
+  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
   const result = getRandomBookableOpportunity({
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
@@ -1067,8 +1067,8 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   const opportunity = req.body;
   const opportunityType = detectOpportunityType(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  // converts e.g. https://openactive.io/OpenBookingApproval -> OpenBookingApproval.
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/', '');
+  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
   const result = assertOpportunityCriteriaNotFound({
     opportunityType, criteriaName, bookingFlow,
