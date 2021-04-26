@@ -96,11 +96,11 @@ jobs:
       with:
         name: build-tests-${{ matrix.os }}
         path: ./tests
-    # -name: Download build Server
-    #   uses: actions/download-artifact@v2
-    #   with:
-    #     name: build-server-${{ matrix.os }}
-    #     path: ./server
+    - name: Download build Server
+      uses: actions/download-artifact@v2
+      with:
+        name: build-server-${{ matrix.os }}
+        path: ./server
 
     # - name: Run OpenActive Integration Tests in Random Mode
     #   run: npm start
