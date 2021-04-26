@@ -1067,7 +1067,8 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   const opportunity = req.body;
   const opportunityType = detectOpportunityType(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  const bookingFlow = opportunity['test:testOpenBookingFlow'];
+  // converts e.g. https://openactive.io/OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/', '');
 
   const result = assertOpportunityCriteriaNotFound({
     opportunityType, criteriaName, bookingFlow,
@@ -1565,8 +1566,11 @@ app.listen(PORT, () => {
 
 Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
 `);
-  // Notify parent process that the server is up
-  process.send('listening');
+  // if this has been run as a child process in the `npm start` script, `process.send` will be defined.
+  if (process.send) {
+    // Notify parent process that the server is up
+    process.send('listening');
+  }
 
   // Start polling after HTTP server starts listening
   (async () => {
