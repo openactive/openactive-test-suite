@@ -1,0 +1,7 @@
+// Defaults for running the .NET Framework version of the OpenActive Reference
+// Implementation in CI
+// Use this via `export NODE_APP_INSTANCE=framework` and `export NODE_ENV=.example.no-auth`
+{
+  "ci": true,
+  "consoleOutputLevel": "detail"
+}

@@ -107,10 +107,7 @@ function createNonPaymentRelatedCoreBReq(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': `${data.sellerId}`,
-    },
+    seller: data.sellerId,
     customer: {
       '@type': 'Person',
       email: 'geoffcapesStageB@example.com',
@@ -123,14 +120,8 @@ function createNonPaymentRelatedCoreBReq(data) {
       const result = {
         '@type': 'OrderItem',
         position: orderItem.position,
-        acceptedOffer: {
-          '@type': 'Offer',
-          '@id': `${orderItem.acceptedOffer['@id']}`,
-        },
-        orderedItem: {
-          '@type': `${orderItem.orderedItem['@type']}`,
-          '@id': `${orderItem.orderedItem['@id']}`,
-        },
+        acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
+        orderedItem: `${orderItem.orderedItem['@id']}`,
         attendee: undefined,
         orderItemIntakeForm: undefined,
         orderItemIntakeFormResponse: undefined,
@@ -166,22 +157,13 @@ function createNonPaymentRelatedCoreBReq(data) {
   *       addressCountry: string,
   *     },
   *   },
-  *   seller: {
-  *     '@type': string,
-  *     '@id': string,
-  *   },
+  *   seller: string,
   *   customer: any, // ToDo: add this?
   *   orderedItem: {
   *     '@type': string,
   *     position: number,
-  *     acceptedOffer: {
-  *       '@type': string,
-  *       '@id': string,
-  *     },
-  *     orderedItem: {
-  *       '@type': string,
-  *       '@id': string,
-  *     },
+  *     acceptedOffer: string,
+  *     orderedItem: string,
  *      attendee?: {
  *        '@type': 'Person'
  *        telephone: string,
