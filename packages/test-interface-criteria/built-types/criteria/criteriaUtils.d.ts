@@ -19,7 +19,7 @@ export type Criteria = {
 };
 export type TestDataShapeFactory = (options: import("../types/Options").Options) => import("../types/TestDataShape").TestDataShape;
 export type TestDataShape = import("../types/TestDataShape").TestDataShape;
-export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
+export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").BooleanNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
 export type DateRangeNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint;
 export type NumericNodeConstraint = import("../types/TestDataShape").NumericNodeConstraint;
 export type ArrayConstraint = import("../types/TestDataShape").ArrayConstraint<any, any>;
@@ -122,7 +122,6 @@ export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").
  * @type {OpportunityConstraint}
  */
 export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity): boolean;
-
 /**
  * Merge constraints so that the result has the simplest representation of the combination of all constraints.
  *

@@ -54,7 +54,7 @@ async function runP({
     sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
-    prepayment,
+    openBookingPrepayment: prepayment,
     accessPass,
     brokerRole,
     positionOrderIntakeFormMap,

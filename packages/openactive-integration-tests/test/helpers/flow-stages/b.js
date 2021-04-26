@@ -44,7 +44,7 @@ async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, o
     sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
-    prepayment,
+    openBookingPrepayment: prepayment,
     orderProposalVersion,
     accessPass,
     brokerRole,

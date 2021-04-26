@@ -91,7 +91,8 @@ export type TestDataNodeConstraint =
   | NumericNodeConstraint
   | OptionNodeConstraint<any, any>
   | ArrayConstraint<any, any>
-  | NullNodeConstraint;
+  | NullNodeConstraint
+  | BooleanNodeConstraint;
 
 /**
  * For a particular criteria, test data requirements that must be met by an opportunity
