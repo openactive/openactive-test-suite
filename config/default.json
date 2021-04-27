@@ -24,7 +24,7 @@
   },
   "integrationTests": {
     "outputPath": "./output/",
-    "useRandomOpportunities": false,
+    "useRandomOpportunities": true,
     "generateConformanceCertificate": false,
     "conformanceCertificateId": "https://www.example.com/",
     "conformanceCertificatePath": "./conformance/",
