@@ -10,17 +10,18 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Should pass',
   testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initialize Flow Stages
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
     c2ReqTemplateRef: 'additionalDetailsSupplied',
-    bReqTemplateRef: 'additionalDetailsSupplied',
+    bookReqTemplateRef: 'additionalDetailsSupplied',
   });
 
   // ## Run Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
 });

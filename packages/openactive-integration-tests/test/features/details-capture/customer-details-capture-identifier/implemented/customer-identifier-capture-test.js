@@ -13,10 +13,11 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120 - no customer.identifier
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -27,10 +28,10 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       expect(c2.getOutput().httpResponse.body.customer.identifier).to.equal('CustomerIdentifierC2');
     });
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include expected Customer identifier', () => {
       // CustomerIdentifierB is set in the standard B request template.
-      expect(b.getOutput().httpResponse.body.customer.identifier).to.equal('CustomerIdentifierB');
+      expect(bookRecipe.b.getOutput().httpResponse.body.customer.identifier).to.equal('CustomerIdentifierB');
     });
   });
 });

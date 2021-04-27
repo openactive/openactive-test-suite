@@ -13,10 +13,11 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120 - no customer.telephone,*
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -29,9 +30,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       expect(apiResponseJson).to.have.nested.property('customer.familyName', 'CapesC2');
     });
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include expected customer details', () => {
-      const apiResponseJson = b.getOutput().httpResponse.body;
+      const apiResponseJson = bookRecipe.b.getOutput().httpResponse.body;
       expect(apiResponseJson).to.have.nested.property('customer.telephone', '020 811 8003');
       expect(apiResponseJson).to.have.nested.property('customer.givenName', 'GeoffB');
       expect(apiResponseJson).to.have.nested.property('customer.familyName', 'CapesB');

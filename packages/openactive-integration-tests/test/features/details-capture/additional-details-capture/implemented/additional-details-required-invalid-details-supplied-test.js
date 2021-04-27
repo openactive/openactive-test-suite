@@ -12,11 +12,12 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Should error',
   testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
 // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteria, logger,
-    { c2ReqTemplateRef: 'additionalDetailsRequiredInvalidSupplied', bReqTemplateRef: 'additionalDetailsRequiredInvalidSupplied' });
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteria, logger,
+    { c2ReqTemplateRef: 'additionalDetailsRequiredInvalidSupplied', bookReqTemplateRef: 'additionalDetailsRequiredInvalidSupplied' });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -36,7 +37,7 @@ FeatureHelper.describeFeature(module, {
       }
     });
   });
-  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => b.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
   });
 });

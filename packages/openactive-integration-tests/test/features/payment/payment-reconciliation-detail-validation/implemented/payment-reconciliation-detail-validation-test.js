@@ -15,6 +15,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'C1, C2 and B including globally configured accountId, paymentProviderId and name should succeed',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120 - no `payment` property in B-after-P
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { paymentReconciliationDetails } = global.SELLER_CONFIG.primary;
@@ -43,7 +44,7 @@ FeatureHelper.describeFeature(module, {
     });
   });
 
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
@@ -52,7 +53,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     itShouldReturnCorrectReconciliationDetails(() => c2.getOutput().httpResponse);
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
-    itShouldReturnCorrectReconciliationDetails(() => b.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
+    itShouldReturnCorrectReconciliationDetails(() => bookRecipe.b.getOutput().httpResponse);
   });
 });
