@@ -13,4 +13,4 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
   supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
 },
-grossTest({ c2ReqTemplateRef: 'businessCustomer', bReqTemplateRef: 'businessCustomer' }));
+grossTest({ c2ReqTemplateRef: 'businessCustomer', bookReqTemplateRef: 'businessCustomer' }));

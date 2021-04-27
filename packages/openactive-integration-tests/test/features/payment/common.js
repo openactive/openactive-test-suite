@@ -83,9 +83,9 @@ function successTests(expectedPrepayment, bookReqTemplateRef) {
 /**
  * @param {Prepayment | null} expectedPrepayment
  * @param {'MissingPaymentDetailsError' | 'UnnecessaryPaymentDetailsError' | 'IncompletePaymentDetailsError' | 'TotalPaymentDueMismatchError'} expectedError
- * @param {PReqTemplateRef} bReqTemplateRef
+ * @param {PReqTemplateRef} bookReqTemplateRef
  */
-function errorTests(expectedPrepayment, expectedError, bReqTemplateRef) {
+function errorTests(expectedPrepayment, expectedError, bookReqTemplateRef) {
   const missingOrUnnecessary = expectedError === 'MissingPaymentDetailsError'
     ? 'Missing'
     : 'Unnecessary';
@@ -94,12 +94,12 @@ function errorTests(expectedPrepayment, expectedError, bReqTemplateRef) {
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     describe(`${missingOrUnnecessary} payment property at B`, () => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef });
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef });
 
       // ## Set up tests
       commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
-      FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-        itShouldReturnAnOpenBookingError(expectedError, 400, () => b.getOutput().httpResponse);
+      FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+        itShouldReturnAnOpenBookingError(expectedError, 400, () => bookRecipe.firstStage.getOutput().httpResponse);
       });
     });
   };

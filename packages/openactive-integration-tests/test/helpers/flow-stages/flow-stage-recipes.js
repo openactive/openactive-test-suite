@@ -27,17 +27,6 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  * @typedef {{
  *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
  *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
- *   bReqTemplateRef?: BReqTemplateRef | null,
- *   brokerRole?: string | null,
- *   taxMode?: string | null,
- *   accessPass?: AccessPassItem[] | null,
- * }} InitialiseSimpleC1C2BFlowOptions
- */
-
-/**
- * @typedef {{
- *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
- *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
  *   bookReqTemplateRef?: PReqTemplateRef | null,
  *   brokerRole?: string | null,
  *   taxMode?: string | null,
@@ -105,62 +94,6 @@ const FlowStageRecipes = {
   },
 
   /**
-   * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> B flow.
-   *
-   * Rather than setting custom input for each stage, the input is just fed automatically
-   * from the output of previous stages.
-   *
-   * DO NOT USE THIS FUNCTION if you want to use custom inputs for each stage (e.g.
-   * to create erroneous requests).
-   *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
-   * @param {BaseLoggerType} logger
-   * @param {InitialiseSimpleC1C2BFlowOptions} [options]
-   */
-  initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
-    c1ReqTemplateRef = null,
-    c2ReqTemplateRef = null,
-    bReqTemplateRef = null,
-    brokerRole = null,
-    taxMode = null,
-    accessPass = null,
-  } = {}) {
-    // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
-      orderItemCriteriaList,
-      logger,
-      {
-        c1ReqTemplateRef,
-        c2ReqTemplateRef,
-        brokerRole,
-        taxMode,
-      },
-    );
-    const b = new BFlowStage({
-      ...defaultFlowStageParams,
-      templateRef: bReqTemplateRef,
-      brokerRole,
-      accessPass,
-      prerequisite: c2,
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        totalPaymentDue: c2.getOutput().totalPaymentDue,
-        prepayment: c2.getOutput().prepayment,
-        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
-      }),
-    });
-
-    return {
-      fetchOpportunities,
-      c1,
-      c2,
-      b,
-      // This is included in the result so that additional stages can be added using
-      // these params.
-      defaultFlowStageParams,
-    };
-  },
-  /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 flow
    *
    * Rather than setting custom input for each stage, the input is just fed automatically
@@ -171,7 +104,7 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
-   * @param {Omit<InitialiseSimpleC1C2BFlowOptions, 'bReqTemplateRef'>} [options]
+   * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef'>} [options]
    */
   initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, brokerRole = null, taxMode = null } = {}) {
     const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });

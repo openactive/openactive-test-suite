@@ -10,5 +10,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'B should return an InvalidPaymentDetailsError due to incorrect reconciliation data',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/126
 },
 invalidDetailsTest('incorrectReconciliationDetails'));
