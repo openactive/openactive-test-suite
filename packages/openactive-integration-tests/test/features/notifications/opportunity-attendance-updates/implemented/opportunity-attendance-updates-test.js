@@ -12,8 +12,9 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/openactive-test-suite/issues/376
 },
-TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:OpportunityAttendanceUpdateSimulateAction' },
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book({ actionType: 'test:OpportunityAttendanceUpdateSimulateAction' },
   ({ orderFeedUpdate, orderItemCriteriaList }) => {
     it('OrderItems should have CustomerAttended statuses', () => {
       // new = after the OpportunityAttendanceUpdateSimulateAction was invoked
