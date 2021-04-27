@@ -1,5 +1,4 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-// const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
