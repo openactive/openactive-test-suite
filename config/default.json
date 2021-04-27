@@ -58,6 +58,7 @@
       "prepayment-required": true,
       "prepayment-optional": true,
       "prepayment-unavailable": true,
+      "minimal-proposal": true,
       "multiple-sellers": true,
       "payment-reconciliation-detail-validation": true,
       "booking-window": true,

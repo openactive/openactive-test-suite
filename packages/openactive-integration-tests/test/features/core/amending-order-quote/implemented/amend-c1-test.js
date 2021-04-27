@@ -4,7 +4,7 @@ const {
   FetchOpportunitiesFlowStage,
   C1FlowStage,
   C2FlowStage,
-  BFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
 
@@ -21,6 +21,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // This test uses 2 opportunities, A & B
   numOpportunitiesUsedPerCriteria: 2,
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/119
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // # Initialise Flow Stages
@@ -61,10 +62,9 @@ FeatureHelper.describeFeature(module, {
       positionOrderIntakeFormMap: secondAttemptC1.getOutput().positionOrderIntakeFormMap,
     }),
   });
-  const secondAttemptB = new BFlowStage({
-    ...defaultFlowStageParams,
+  const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite: secondAttemptC2,
-    getInput: () => ({
+    getFirstStageInput: () => ({
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
       totalPaymentDue: secondAttemptC2.getOutput().totalPaymentDue,
       prepayment: secondAttemptC2.getOutput().prepayment,
@@ -83,11 +83,11 @@ FeatureHelper.describeFeature(module, {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptFetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptC1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptC2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptB, () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptBook, () => {
       itEachOrderItemIdShouldMatchThoseFromFeed({
         orderItemCriteriaList,
         fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
-        apiFlowStage: secondAttemptB,
+        apiFlowStage: secondAttemptBook.b,
       });
     });
   });
