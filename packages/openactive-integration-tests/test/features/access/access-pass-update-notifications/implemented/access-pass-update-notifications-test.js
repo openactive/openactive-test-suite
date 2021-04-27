@@ -13,8 +13,9 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
 },
-TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:AccessPassUpdateSimulateAction' },
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book({ actionType: 'test:AccessPassUpdateSimulateAction' },
   ({ b, orderFeedUpdate }) => {
     it('should have access passes with altered values', () => {
       // original = before the AccessPassUpdateSimulationAction was invoked

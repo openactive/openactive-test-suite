@@ -790,6 +790,14 @@ app.get('/opportunity-cache/:id', function (req, res) {
   }
 });
 
+/**
+ * @typedef {{
+ *   item: any,
+ *   collectRes: import('express').Response | null,
+ * }} Listener
+ *
+ * @type {Map<string, Listener>}
+ */
 const listeners = new Map();
 
 function getListenerInfo(type, id) {

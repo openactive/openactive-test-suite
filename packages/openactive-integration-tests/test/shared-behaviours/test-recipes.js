@@ -10,9 +10,9 @@ const { FlowStageUtils, FlowStageRecipes, TestInterfaceActionFlowStage, OrderFee
 
 const TestRecipes = {
   /**
-   * Flow: FetchOpportunities -> C1 -> C2 -> B -> TestInterfaceAction -> OrderFeedUpdate
+   * Flow: FetchOpportunities -> C1 -> C2 -> Book -> TestInterfaceAction -> OrderFeedUpdate
    *
-   * 1. Make an Order (FetchOpportunities -> C1 -> C2 -> B)
+   * 1. Make an Order (FetchOpportunities -> C1 -> C2 -> Book)
    * 2. Use a TestInterfaceAction to trigger some kind of update to the Order (e.g. access pass update)
    * 3. Expect an update in the Order Feed
    *
@@ -30,11 +30,11 @@ const TestRecipes = {
    *   This function is called with some context, including flow stages, so that their
    *   output can be used in the tests.
    */
-  simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B(testInterfaceActionParams, itAdditionalTestsForOrderFeedUpdate) {
+  simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(testInterfaceActionParams, itAdditionalTestsForOrderFeedUpdate) {
     /** @type {RunTestsFn} */
     const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
       const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
         wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
           ...defaultFlowStageParams,
@@ -44,12 +44,12 @@ const TestRecipes = {
             type: testInterfaceActionParams.actionType,
             // Note that these 2 fields may need to be configurable in future:
             objectType: 'Order',
-            objectId: b.getOutput().orderId,
+            objectId: bookRecipe.b.getOutput().orderId,
           }),
         })),
         orderFeedUpdateParams: {
           ...defaultFlowStageParams,
-          prerequisite: b,
+          prerequisite: bookRecipe.b,
           testName: `Orders Feed (after ${testInterfaceActionParams.actionType})`,
         },
       });
@@ -58,11 +58,13 @@ const TestRecipes = {
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-      FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+      FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(testInterfaceAction);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
         itAdditionalTestsForOrderFeedUpdate({
-          b, orderFeedUpdate, orderItemCriteriaList,
+          orderFeedUpdate,
+          orderItemCriteriaList,
+          b: bookRecipe.b,
         });
       });
     };
