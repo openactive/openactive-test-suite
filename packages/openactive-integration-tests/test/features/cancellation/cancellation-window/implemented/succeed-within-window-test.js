@@ -10,7 +10,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking including cancellation within the cancellation window.',
   testOpportunityCriteria: 'TestOpportunityBookableCancellableWithinWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages

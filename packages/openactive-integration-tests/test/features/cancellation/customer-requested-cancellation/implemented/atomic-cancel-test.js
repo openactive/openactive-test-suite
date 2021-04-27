@@ -29,7 +29,7 @@ FeatureHelper.describeFeature(module, {
     },
   ],
   skipMultiple: true,
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ## Initiate Flow Stages
