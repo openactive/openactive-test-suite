@@ -1,10 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "features": {
-    "minimal-proposal": {
-      "implementedTestFiles": 3,
-      "notImplementedTestFiles": 0
-    },
     "agent-broker": {
       "implementedTestFiles": 2,
       "notImplementedTestFiles": 1
@@ -71,6 +67,14 @@
     },
     "offer-overrides": {
       "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "minimal-proposal": {
+      "implementedTestFiles": 3,
+      "notImplementedTestFiles": 0
+    },
+    "proposal-amendment": {
+      "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
     },
     "booking-partner-authentication": {

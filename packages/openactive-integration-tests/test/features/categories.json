@@ -1,9 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "categories": {
-    "approval": {
-      "minimal-proposal": true
-    },
     "core": {
       "agent-broker": true,
       "amending-order-quote": true,
@@ -28,6 +25,10 @@
     "advanced-payment": {
       "dynamic-payment": true,
       "offer-overrides": true
+    },
+    "approval": {
+      "minimal-proposal": true,
+      "proposal-amendment": true
     },
     "authentication": {
       "booking-partner-authentication": true,

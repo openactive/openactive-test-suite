@@ -1,11 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "criteriaRequirements": {
-    "minimal-proposal": {
-      "primary": {
-        "TestOpportunityBookable": 12
-      }
-    },
     "agent-broker": {
       "primary": {
         "TestOpportunityBookable": 8
@@ -85,6 +80,17 @@
     },
     "dynamic-payment": {},
     "offer-overrides": {},
+    "minimal-proposal": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
+    "proposal-amendment": {
+      "primary": {
+        "TestOpportunityBookableWithNegotiation": 3,
+        "TestOpportunityBookable": 1
+      }
+    },
     "booking-partner-authentication": {},
     "dynamic-client-registration": {},
     "no-broker": {
