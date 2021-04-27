@@ -11,8 +11,9 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
-TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B(
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
   { actionType: 'test:ReplacementSimulateAction' },
   ({ b, orderFeedUpdate, orderItemCriteriaList }) => {
     it('should have replaced (at least one) OrderItems with a new one', () => {
