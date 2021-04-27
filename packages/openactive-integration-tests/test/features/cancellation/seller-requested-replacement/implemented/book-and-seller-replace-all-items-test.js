@@ -11,7 +11,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
+  supportsApproval: false, // https://github.com/openactive/openactive-test-suite/issues/376
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
   { actionType: 'test:ReplacementSimulateAction' },
