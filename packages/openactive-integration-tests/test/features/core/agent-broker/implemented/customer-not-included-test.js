@@ -13,16 +13,17 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, { bReqTemplateRef: 'noCustomer' });
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef: 'noCustomer' });
 
   describe('Booking should fail as Customer is not included in Order', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-      itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, () => b.getOutput().httpResponse);
+    FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+      itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, () => bookRecipe.firstStage.getOutput().httpResponse);
     });
   });
 });
