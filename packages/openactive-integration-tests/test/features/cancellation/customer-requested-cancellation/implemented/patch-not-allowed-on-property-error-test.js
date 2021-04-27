@@ -13,14 +13,15 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const cancelOrder = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromB(b),
-    prerequisite: b,
+    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromB(bookRecipe.b),
+    prerequisite: bookRecipe.b,
     testName: 'Attempt to Cancel OrderItem at Position 0',
     templateRef: 'nonCustomerCancelledOrderItemStatus',
   });
@@ -29,7 +30,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsValid(cancelOrder, () => {
     itShouldReturnAnOpenBookingError('PatchNotAllowedOnPropertyError', 400, () => cancelOrder.getOutput().httpResponse);
   });
