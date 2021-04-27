@@ -18,6 +18,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   skipMultiple: true,
   runOnlyIf: !USE_RANDOM_OPPORTUNITIES,
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages

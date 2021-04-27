@@ -18,7 +18,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
+  supportsApproval: false, // https://github.com/openactive/openactive-test-suite/issues/376 no cancellation after P->A->B
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages

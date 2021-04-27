@@ -16,6 +16,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Expect an UnknownOrIncorrectEndpointError for requests to unknown endpoints',
   testDescription: 'Send a request to an endpoint that does not exist, and expect an UnknownOrIncorrectEndpointError to be returned',
   numOpportunitiesUsedPerCriteria: 0,
+  doesNotUseOpportunitiesMode: true,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   /**

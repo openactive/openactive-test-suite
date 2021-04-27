@@ -36,7 +36,7 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {object} args
    * @param {UReqTemplateRef} [args.templateRef]
    * @param {() => string[]} args.getOrderItemIdArray Cancellation must be run against
-   *   a specific order. The function passed here should return the ID of the OrderItem
+   *   a specific OrderItem. The function passed here should return the ID of the OrderItem
    *   to cancel. For convenience, use the CancelOrderFlowStage.getFirstOrderItemId
    *   function for this value e.g.:
    *

@@ -26,6 +26,7 @@ FeatureHelper.describeFeature(module, {
     control: false,
     bookingFlow,
   }],
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // # First, get the Opportunity Feed Items which will be used in subsequent tests
