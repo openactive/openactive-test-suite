@@ -18,6 +18,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Booking an opportunity outside the specified booking window',
   testOpportunityCriteria: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // # Initialise Flow Stages
