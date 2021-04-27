@@ -794,7 +794,6 @@ app.get('/opportunity-cache/:id', function (req, res) {
  * @typedef {{
  *   item: any,
  *   collectRes: import('express').Response | null,
- *   hasBeenCollected: boolean,
  * }} Listener
  *
  * @type {Map<string, Listener>}
