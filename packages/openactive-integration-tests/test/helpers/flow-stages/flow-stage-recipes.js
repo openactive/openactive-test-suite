@@ -204,28 +204,38 @@ const FlowStageRecipes = {
           testName: 'Order Feed Update (after Simulate Seller Approval)',
         },
       });
-      const b = new BFlowStage({
-        ...defaultFlowStageParams,
-        prerequisite: orderFeedUpdateCollector,
-        templateRef: 'afterP',
-        /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
-        just presents `orderProposalVersion` and optional payment details */
-        getInput() {
-          const firstStageInput = getFirstStageInput();
-          return {
-            orderItems: firstStageInput.orderItems,
-            totalPaymentDue: p.getOutput().totalPaymentDue,
-            orderProposalVersion: p.getOutput().orderProposalVersion,
-            prepayment: p.getOutput().prepayment,
-          };
+
+      const [b, orderFeedUpdateAfterDelete] = OrderFeedUpdateFlowStageUtils.wrap({
+        wrappedStageFn: orderFeedUpdateListener => (new BFlowStage({
+          ...defaultFlowStageParams,
+          prerequisite: orderFeedUpdateListener,
+          templateRef: 'afterP',
+          /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
+          just presents `orderProposalVersion` and optional payment details */
+          getInput() {
+            const firstStageInput = getFirstStageInput();
+            return {
+              orderItems: firstStageInput.orderItems,
+              totalPaymentDue: p.getOutput().totalPaymentDue,
+              orderProposalVersion: p.getOutput().orderProposalVersion,
+              prepayment: p.getOutput().prepayment,
+            };
+          },
+        })),
+        orderFeedUpdateParams: {
+          ...defaultFlowStageParams,
+          prerequisite: orderFeedUpdateCollector,
+          testName: 'Orders Feed (after B)',
         },
       });
+
       return new BookRecipe({
         firstStage: p,
         p,
         simulateSellerApproval,
         orderFeedUpdateCollector,
         b,
+        orderFeedUpdateAfterDelete,
       });
     }
     const b = new BFlowStage({

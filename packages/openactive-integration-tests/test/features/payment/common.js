@@ -73,6 +73,9 @@ function successTests(expectedPrepayment, bookReqTemplateRef) {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       if (bookRecipe.p) {
         itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.p.getOutput().httpResponse.body);
+        it('should have state: deleted', () => {
+          expect(bookRecipe.orderFeedUpdateAfterDelete.getOutput().httpResponse.body.state).to.equal('deleted');
+        });
       }
       itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.b.getOutput().httpResponse.body);
     });
