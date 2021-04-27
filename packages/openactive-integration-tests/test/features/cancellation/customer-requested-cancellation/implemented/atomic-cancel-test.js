@@ -39,7 +39,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   const cancelNotCancellableOrderItems = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
     prerequisite: bookRecipe.b,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.b, [1, 2]),
+    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [1, 2]),
     testName: 'Cancel Order for non-cancellable items',
   });
 
@@ -48,7 +48,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
-      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.b, [0]),
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
       testName: 'Cancel Order for cancellable item',
     })),
     orderFeedUpdateParams: {
@@ -68,7 +68,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter2ndCancel, () => {
-    const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdForPosition0FromBookStages(bookRecipe.firstStage)()[0];
+    const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage)()[0];
     const orderItemsAccessor = () => orderFeedUpdateAfter2ndCancel.getOutput().httpResponse.body.data.orderedItem;
     it('should include all OrderItems', () => {
       expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
