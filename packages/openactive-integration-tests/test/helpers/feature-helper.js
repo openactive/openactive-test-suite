@@ -184,7 +184,7 @@ class FeatureHelper {
         : ['OpenBookingApprovalFlow'], // the default value if neither skipBookingFlows nor supportsApproval are set.
     ));
 
-    const opportunityTypesInScope = getEnabledFeaturesFromObj(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, skipOpportunityTypes);
+    const opportunityTypesInScope = getEnabledFeaturesFromObj(/** @type {{[k in OpportunityType]: boolean}} */(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE), skipOpportunityTypes);
     const bookingFlowsInScope = getEnabledFeaturesFromObj(BOOKING_FLOWS_IN_SCOPE, skipBookingFlows);
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
