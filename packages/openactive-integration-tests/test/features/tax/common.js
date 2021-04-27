@@ -91,7 +91,7 @@ function grossTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
       orderItemCriteriaList,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxGross' },
@@ -105,8 +105,8 @@ function grossTest(options) {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
       itShouldCalculateGrossTaxCorrectly(() => c2.getOutput().httpResponse);
     });
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
-      itShouldCalculateGrossTaxCorrectly(() => b.getOutput().httpResponse);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
+      itShouldCalculateGrossTaxCorrectly(() => bookRecipe.b.getOutput().httpResponse);
     });
   };
   return runTestsFn;
@@ -123,7 +123,7 @@ function netTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
       orderItemCriteriaList,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxNet' },
@@ -137,8 +137,8 @@ function netTest(options) {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
       itShouldCalculateNetTaxCorrectly(() => c2.getOutput().httpResponse);
     });
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
-      itShouldCalculateNetTaxCorrectly(() => b.getOutput().httpResponse);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
+      itShouldCalculateNetTaxCorrectly(() => bookRecipe.b.getOutput().httpResponse);
     });
   };
   return runTestsFn;
