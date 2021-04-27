@@ -11,6 +11,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED
 
 /**
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
+ * @typedef {import('../types/OpportunityCriteria').OpportunityType} OpportunityType
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../types/OpportunityCriteria').SellerCriteria} SellerCriteria
  *
@@ -51,7 +52,7 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED
  *   Used to generate the docs for each test.
  *
  *   Defaults to 1.
- * @property {string[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
+ * @property {OpportunityType[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
  *   certain types of opportunity (in the example provided, access-channel tests should not be run for facility slots)
  * @property {boolean} [supportsApproval] TEMPORARY field until approval works for all tests. Approval will only be
  *   attempted for a test that has this field set to true (unless skipBookingFlows is set).

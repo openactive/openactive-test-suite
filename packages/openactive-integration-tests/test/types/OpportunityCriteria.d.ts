@@ -34,3 +34,14 @@ export interface OpportunityCriteria {
   sellerCriteria?: SellerCriteria;
   bookingFlow: BookingFlow;
 }
+
+export type OpportunityType = 
+"ScheduledSession" 
+    |"FacilityUseSlot"
+    |"IndividualFacilityUseSlot"
+    |"CourseInstance"
+    |"CourseInstanceSubEvent"
+    |"HeadlineEvent"
+    |"HeadlineEventSubEvent"
+    |"Event"
+    |"OnDemandEvent"
