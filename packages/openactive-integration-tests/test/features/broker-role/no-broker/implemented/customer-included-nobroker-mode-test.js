@@ -12,16 +12,17 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/122
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
-    c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker', bReqTemplateRef: 'noBroker', brokerRole: 'https://openactive.io/NoBroker',
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker', bookReqTemplateRef: 'noBroker', brokerRole: 'https://openactive.io/NoBroker',
   });
 
   describe('In NoBroker mode, booking should succeed if Broker is excluded if Customer is included in Order', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   });
 });
