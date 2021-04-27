@@ -16,15 +16,16 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include an `accessChannel` or a `customerNotice`', () => {
-      const { orderedItem } = b.getOutput().httpResponse.body;
+      const { orderedItem } = bookRecipe.b.getOutput().httpResponse.body;
       expect(orderedItem).to.be.an('array');
       /* The item with position 0 will be the one that satisfies the primary test opportunity criteria (and
       therefore is online) */
