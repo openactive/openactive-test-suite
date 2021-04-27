@@ -14,7 +14,7 @@ jobs:
       matrix:
         mode: ['random', 'controlled']
         profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
-        flow: ['simple', 'approval']
+        flow: ['simple'] # TODO return this to ['simple', 'approval'] once cert gen is fixed (https://openactive.slack.com/archives/G01CSJTLZLZ/p1619516585017500?thread_ts=1619460467.023900&cid=G01CSJTLZLZ)
         include:
         - mode: 'random'
           profile: 'all-features'

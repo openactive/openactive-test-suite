@@ -1,6 +1,11 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "criteriaRequirements": {
+    "minimal-proposal": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
     "agent-broker": {
       "primary": {
         "TestOpportunityBookable": 8
