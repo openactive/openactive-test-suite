@@ -184,15 +184,6 @@ class FeatureHelper {
     ));
 
     const opportunityTypesInScope = getEnabledFeaturesFromObj(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, skipOpportunityTypes);
-    // TODO TODO TODO deleteme
-    if (!BOOKING_FLOWS_IN_SCOPE) {
-      console.error('BOOKING_FLOWS_IN_SCOPE is mysteriously absent. configuration:', configuration);
-      throw new Error(`BOOKING_FLOWS_IN_SCOPE is mysteriously absent. configuration: ${JSON.stringify({
-        configuration,
-        BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE,
-        BOOKING_FLOWS_IN_SCOPE,
-      })}`);
-    }
     const bookingFlowsInScope = getEnabledFeaturesFromObj(BOOKING_FLOWS_IN_SCOPE, skipBookingFlows);
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
@@ -203,6 +194,8 @@ class FeatureHelper {
       && implemented === configuration.testFeatureImplemented
       && !(AUTHENTICATION_FAILURE && !configuration.surviveAuthenticationFailure)
       && !(DYNAMIC_REGISTRATION_FAILURE && !configuration.surviveDynamicRegistrationFailure)
+      && (bookingFlowsInScope.length > 0)
+      && (opportunityTypesInScope.length > 0)
     ) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {
