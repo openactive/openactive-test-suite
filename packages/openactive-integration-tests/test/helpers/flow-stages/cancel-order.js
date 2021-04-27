@@ -7,6 +7,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./b').BFlowStageType} BFlowStageType
+ * @typedef {import('./p').PFlowStageType} PFlowStageType
  */
 
 /**
@@ -76,20 +77,32 @@ class CancelOrderFlowStage extends FlowStage {
    * Create a `getOrderItemIdForPosition0FromB` function which gets the "@id" of the
    * OrderItem with position 0 of the FlowStage's output.
    *
-   * @param {BFlowStageType} bFlowStage
+   * @param {BFlowStageType | PFlowStageType} firstBookStageWithPositions First book stage - either B or P
+   *   Note that this uses the first Book stage (B or P) rather than B. This is because B-after-P
+   *   does NOT have `position`s in its OrderItems.
+   * @param {BFlowStageType} bFlowStageWithIds B Flow Stage. This may not have `position`s but it will have
+   *   OrderItem `@id`s.
    */
-  static getOrderItemIdForPosition0FromB(bFlowStage) {
-    return () => CancelOrderFlowStage.getOrderItemIdsByPositionFromB(bFlowStage, [0])();
+  static getOrderItemIdForPosition0FromBookStages(firstBookStageWithPositions, bFlowStageWithIds) {
+    return () => CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(firstBookStageWithPositions, bFlowStageWithIds, [0])();
   }
 
   /**
-   * @param {BFlowStageType} bFlowStage
+   * @param {BFlowStageType | PFlowStageType} firstBookStageWithPositions First book stage - either B or P
+   *   Note that this uses the first Book stage (B or P) rather than B. This is because B-after-P
+   *   does NOT have `position`s in its OrderItems.
+   * @param {BFlowStageType} bFlowStageWithIds B Flow Stage. This may not have `position`s but it will have
+   *   OrderItem `@id`s.
    * @param {number[]} orderItemPositions
    */
-  static getOrderItemIdsByPositionFromB(bFlowStage, orderItemPositions) {
+  static getOrderItemIdsByPositionFromBookStages(firstBookStageWithPositions, bFlowStageWithIds, orderItemPositions) {
     return () => {
-      const order = bFlowStage.getOutput().httpResponse.body;
-      const orderItems = order.orderedItem;
+      const orderItemsWithPositions = firstBookStageWithPositions.getOutput().httpResponse.body.orderedItem;
+      const orderItemsWithIds = bFlowStageWithIds.getOutput().httpResponse.body.orderedItem;
+      /* First, because orderItemsWithIds might not have positions, let's match from positions to IDs using
+      `.orderedItem`, which is the Opportunity ID. */
+      // TODO TODO TODO here i am
+      // const orderItems = order.orderedItem;
       const orderItemIds = orderItemPositions.map((position) => {
         const orderItem = orderItems.find(o => o.position === position);
         if (!orderItem) {

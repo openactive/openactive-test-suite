@@ -20,7 +20,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const cancelOrder = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromB(bookRecipe.b),
+    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromBookStages(bookRecipe.firstStage),
     prerequisite: bookRecipe.b,
     testName: 'Attempt to Cancel OrderItem at Position 0',
     templateRef: 'nonCustomerCancelledOrderItemStatus',

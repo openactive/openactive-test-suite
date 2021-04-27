@@ -11,14 +11,15 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking, but cancellation fails outside the cancellation window.',
   testOpportunityCriteria: 'TestOpportunityBookableCancellableOutsideWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  // supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
   const { defaultFlowStageParams, fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const cancelOrder = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromB(bookRecipe.b),
+    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromBookStages(bookRecipe.firstStage),
     prerequisite: bookRecipe.b,
     testName: 'Attempt to Cancel OrderItem at Position 0',
   });
