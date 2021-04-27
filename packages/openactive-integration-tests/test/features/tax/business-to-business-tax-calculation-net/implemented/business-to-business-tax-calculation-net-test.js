@@ -46,4 +46,4 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxNet',
   supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
 },
-netTest({ c2ReqTemplateRef: 'businessCustomer', bReqTemplateRef: 'businessCustomer' }));
+netTest({ c2ReqTemplateRef: 'businessCustomer', bookReqTemplateRef: 'businessCustomer' }));

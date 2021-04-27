@@ -4,7 +4,7 @@ const { FlowStageRecipes, FlowStageUtils } = require('../../helpers/flow-stages'
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
- * @typedef {import('../../helpers/flow-stages/flow-stage-recipes').InitialiseSimpleC1C2BFlowOptions} InitialiseSimpleC1C2BFlowOptions
+ * @typedef {import('../../helpers/flow-stages/flow-stage-recipes').InitialiseSimpleC1C2BookFlowOptions} InitialiseSimpleC1C2BookFlowOptions
  */
 
 /**
@@ -85,7 +85,7 @@ function itShouldCalculateNetTaxCorrectly(responseAccessor) {
  * brokerRole = ResellerBroker, tax calculations can be excluded by the broker
  * (https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#business-to-business-tax-calculation-by-booking-system-is-optional).
  *
- * @param {Omit<InitialiseSimpleC1C2BFlowOptions, 'taxMode'>} [options]
+ * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'taxMode'>} [options]
  */
 function grossTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
@@ -117,7 +117,7 @@ function grossTest(options) {
  * brokerRole = ResellerBroker, tax calculations can be excluded by the broker
  * (https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#business-to-business-tax-calculation-by-booking-system-is-optional).
  *
- * @param {Omit<InitialiseSimpleC1C2BFlowOptions, 'taxMode'>} [options]
+ * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'taxMode'>} [options]
  */
 function netTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
