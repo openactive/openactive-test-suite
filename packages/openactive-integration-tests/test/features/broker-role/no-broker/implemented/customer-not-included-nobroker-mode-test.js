@@ -13,26 +13,27 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   describe('Booking should fail even if Customer is not included in Order, because we are in NoBroker mode', () => {
     // Note that we ignore testing at C1 because C1 has no customer anyway
     describe('at C2', () => {
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
         c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noCustomerAndNoBroker', brokerRole: 'https://openactive.io/NoBroker',
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
       runFlowStageAndExpectIncompleteCustomerDetailsError(c2);
     });
-    describe('at B', () => {
-      const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
-        c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker', bReqTemplateRef: 'noCustomerAndNoBroker', brokerRole: 'https://openactive.io/NoBroker',
+    describe('at B or P', () => {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+        c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker', bookReqTemplateRef: 'noCustomerAndNoBroker', brokerRole: 'https://openactive.io/NoBroker',
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-      runFlowStageAndExpectIncompleteCustomerDetailsError(b);
+      runFlowStageAndExpectIncompleteCustomerDetailsError(bookRecipe.firstStage);
     });
   });
 });
