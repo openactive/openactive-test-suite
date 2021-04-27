@@ -28,8 +28,14 @@ FeatureHelper.describeFeature(module, {
       const { orderedItem } = bookRecipe.b.getOutput().httpResponse.body;
       expect(orderedItem).to.be.an('array');
       /* The item with position 0 will be the one that satisfies the primary test opportunity criteria (and
-      therefore is online) */
-      const orderItemWithPrivateVirtualLocation = orderedItem.find(orderItem => orderItem.position === 0);
+      therefore is online).
+      Now, B will not return positions in its OrderItems if it happens after P. So, we use the output from the first
+      book stage (which will be either P or B) to get the `@id` of the position=0 OrderItem, and then we can find
+      that OrderItem in B */
+      const orderItemIdOfPosition0 = bookRecipe.firstStage.getOutput().httpResponse.body.orderedItem
+        .find(orderItem => orderItem.position === 0)['@id'];
+      const orderItemWithPrivateVirtualLocation = orderedItem.find(orderItem => (
+        orderItem['@id'] === orderItemIdOfPosition0));
       expect(orderItemWithPrivateVirtualLocation).to.satisfy(orderItem => (
         (orderItem.accessChannel && orderItem.accessChannel['@type'] === 'VirtualLocation')
         || (typeof orderItem.customerNotice === 'string' && orderItem.customerNotice.length > 0)

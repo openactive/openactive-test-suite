@@ -13,14 +13,14 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const cancelOrder = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromB(bookRecipe.b),
+    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
     prerequisite: bookRecipe.b,
     testName: 'Attempt to Cancel OrderItem at Position 0',
     templateRef: 'nonCustomerCancelledOrderItemStatus',
