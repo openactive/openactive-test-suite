@@ -12,8 +12,9 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
 },
-TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B({ actionType: 'test:CustomerNoticeSimulateAction' },
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book({ actionType: 'test:CustomerNoticeSimulateAction' },
   ({ orderFeedUpdate, orderItemCriteriaList }) => {
     it('should have customer notices with non empty string values', () => {
       // new = after the CustomerNoticeSimulateAction was invoked
