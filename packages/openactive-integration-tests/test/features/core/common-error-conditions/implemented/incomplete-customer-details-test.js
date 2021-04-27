@@ -5,6 +5,7 @@ const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behavio
 /**
  * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
  * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/p').PFlowStageType} PFlowStageType
  */
 
 FeatureHelper.describeFeature(module, {
@@ -19,6 +20,7 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
   numOpportunitiesUsedPerCriteria: 2, // one for each of the C2 and B tests
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   /**
@@ -43,16 +45,16 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Customer Details at B', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
-      bReqTemplateRef: 'noCustomerEmail',
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      bookReqTemplateRef: 'noCustomerEmail',
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-      itShouldReturnAnIncompleteCustomerDetailsError(b);
+    FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+      itShouldReturnAnIncompleteCustomerDetailsError(bookRecipe.firstStage);
     });
   });
 });
