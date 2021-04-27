@@ -20,10 +20,11 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // # Set up Tests
   /**
@@ -54,7 +55,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
     itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2);
   });
-  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => b.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
   });
 });

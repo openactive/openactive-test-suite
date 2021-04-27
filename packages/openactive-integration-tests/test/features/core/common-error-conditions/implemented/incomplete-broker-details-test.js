@@ -1,11 +1,13 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage, FlowStageRecipes } = require('../../../../helpers/flow-stages');
+// const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage, FlowStageRecipes } = require('../../../../helpers/flow-stages');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
  * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
  * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/p').PFlowStageType} PFlowStageType
  */
 
 FeatureHelper.describeFeature(module, {
@@ -20,28 +22,19 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
   numOpportunitiesUsedPerCriteria: 3, // one for each of the C1, C2 and B tests
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   /**
-   * @param {C1FlowStage | C2FlowStageType | BFlowStageType} flowStage
+   * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
    */
   const itShouldReturnAnIncompleteBrokerDetailsError = flowStage => (
     itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, () => flowStage.getOutput().httpResponse));
 
   describe('Incomplete Broker Details at C1', () => {
     // # Initialise Flow Stages
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-    const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...defaultFlowStageParams,
-      orderItemCriteriaList,
-    });
-    const c1 = new C1FlowStage({
-      ...defaultFlowStageParams,
-      prerequisite: fetchOpportunities,
-      templateRef: 'noBrokerName',
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
+    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+      c1ReqTemplateRef: 'noBrokerName',
     });
 
     // # Set up Tests
@@ -67,16 +60,16 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at B', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
-      bReqTemplateRef: 'noBrokerName',
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      bookReqTemplateRef: 'noBrokerName',
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-      itShouldReturnAnIncompleteBrokerDetailsError(b);
+    FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+      itShouldReturnAnIncompleteBrokerDetailsError(bookRecipe.firstStage);
     });
   });
 });
