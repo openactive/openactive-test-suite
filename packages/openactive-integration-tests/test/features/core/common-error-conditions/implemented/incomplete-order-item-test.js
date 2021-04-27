@@ -16,45 +16,50 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: false,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  // ## Set up tests for noOrderedItem
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger,
-    {
-      c1ReqTemplateRef: 'noOrderedItem', c2ReqTemplateRef: 'noOrderedItem', bReqTemplateRef: 'noOrderedItem',
+  describe('with noOrderedItem', () => {
+    // ## Set up tests for noOrderedItem
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger,
+      {
+        c1ReqTemplateRef: 'noOrderedItem', c2ReqTemplateRef: 'noOrderedItem', bookReqTemplateRef: 'noOrderedItem',
+      });
+
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c1, () => {
+      // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
+      itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => c1.getOutput().httpResponse);
     });
-
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c1, () => {
-    // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
-    itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => c1.getOutput().httpResponse);
-  });
-  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c2, () => {
-    // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
-    itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => c2.getOutput().httpResponse);
-  });
-  FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-    // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
-    itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => b.getOutput().httpResponse);
-  });
-
-  // ## Set up tests for noAcceptedOffer
-  const second = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger,
-    {
-      c1ReqTemplateRef: 'noAcceptedOffer', c2ReqTemplateRef: 'noAcceptedOffer', bReqTemplateRef: 'noAcceptedOffer',
+    FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c2, () => {
+      // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
+      itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => c2.getOutput().httpResponse);
     });
+    FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+      // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
+      itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+    });
+  });
 
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(second.fetchOpportunities);
-  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, second.c1, () => {
-    // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
-    itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => second.c1.getOutput().httpResponse);
-  });
-  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, second.c2, () => {
-    // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
-    itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => second.c2.getOutput().httpResponse);
-  });
-  FlowStageUtils.describeRunAndCheckIsValid(second.b, () => {
-    // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
-    itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => second.b.getOutput().httpResponse);
+  describe('with noAcceptedOffer', () => {
+    // ## Set up tests for noAcceptedOffer
+    const second = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger,
+      {
+        c1ReqTemplateRef: 'noAcceptedOffer', c2ReqTemplateRef: 'noAcceptedOffer', bookReqTemplateRef: 'noAcceptedOffer',
+      });
+
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(second.fetchOpportunities);
+    FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, second.c1, () => {
+      // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
+      itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => second.c1.getOutput().httpResponse);
+    });
+    FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, second.c2, () => {
+      // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
+      itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => second.c2.getOutput().httpResponse);
+    });
+    FlowStageUtils.describeRunAndCheckIsValid(second.bookRecipe.firstStage, () => {
+      // When CR3 is accepted and merged into the Booking Spec, this will be a 400 error, not a 409
+      itShouldReturnAnOpenBookingError('IncompleteOrderItemError', 409, () => second.bookRecipe.firstStage.getOutput().httpResponse);
+    });
   });
 });
