@@ -89,6 +89,10 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
     let { body } = response;
 
     if (['OrdersFeed', 'BookableRPDEFeed'].includes(options.validationMode)) {
+      // If this is an deleted RPDE item, there's nothing to validate.
+      if (body.state === 'deleted') {
+        return [];
+      }
       body = body.data;
     }
 
