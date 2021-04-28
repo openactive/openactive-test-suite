@@ -30,6 +30,10 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
+/**
+ * @typedef {'orders' | 'order-proposals'} OrderType
+ */
+
 const config = require('config');
 const AsyncValidatorWorker = require('./validator/async-validator');
 const PauseResume = require('./src/util/pause-resume');
@@ -49,10 +53,10 @@ const OUTPUT_PATH = config.get('broker.outputPath');
 
 const HARVEST_START_TIME = new Date();
 const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
+const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
-const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {
-};
+const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
 const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
@@ -102,8 +106,7 @@ const startTime = new Date();
 // create new progress bar container
 let multibar = null;
 
-let datasetSiteJson = {
-};
+let datasetSiteJson = {};
 
 const validatorThreadArray = [];
 const validationResults = new Map();
@@ -202,6 +205,26 @@ async function renderTemplate(templateName, data) {
 
 const opportunityIdCache = OpportunityIdCache.create();
 
+/**
+ * @typedef FeedContext
+ * @property {string} currentPage
+ * @property {number} pages
+ * @property {number} items
+ * @property {number[]} responseTimes
+ * @property {number} totalItemsQueuedForValidation
+ * @property {number} validatedItems
+ * @property {boolean} [sleepMode]
+ * @property {string} [timeToHarvestCompletion]
+ */
+/**
+ * Harvesting state for each RPDE feed.
+ *
+ * Key = Either:
+ *   - 'OrdersFeed' - it's the Orders Feed
+ *   - 'OrderProposalsFeed' - it's the OrderProposalsFeed
+ *   - 'ScheduledSession'|'SessionSeries'|'FacilityUseSlot'|..etc - It's one of the Oportunity feeds.
+ * @type {Map<string, FeedContext>}
+ */
 const feedContextMap = new Map();
 
 const testDatasets = new Map();
@@ -224,8 +247,7 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
   return async () => ({
     Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
-    ...await getHeadersFn() || {
-    },
+    ...await getHeadersFn() || {},
   });
 }
 
@@ -237,8 +259,7 @@ function withOrdersRpdeHeaders(getHeadersFn) {
   return async () => ({
     Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
-    ...await getHeadersFn() || {
-    },
+    ...await getHeadersFn() || {},
   });
 }
 
@@ -260,6 +281,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   let initialHarvestComplete = false;
   let numberOfRetries = 0;
 
+  /** @type {FeedContext} */
   const context = {
     currentPage: baseUrl,
     pages: 0,
@@ -268,6 +290,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
     totalItemsQueuedForValidation: 0,
     validatedItems: 0,
   };
+  /**
+   * @param {FeedContext} c
+   */
   const progressFromContext = (c) => ({
     totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
     validatedItems: c.validatedItems,
@@ -522,22 +547,32 @@ function getOpportunityById(opportunityId) {
 }
 
 /**
- * @typedef {Object} PendingResponse
+ * @typedef {object} PendingResponse
  * @property {(json: any) => void} send
  * @property {() => void} cancel
  */
 
 /** @type {{[id: string]: PendingResponse}} */
-const responses = {
-};
+const responses = {};
 
 const healthCheckResponsesWaitingForHarvest = [];
+/**
+ * List of Feed identifiers which have not yet completed harvesting.
+ *
+ * @type {string[]}
+ */
 const incompleteFeeds = [];
 
-function addFeed(feedUrl) {
-  incompleteFeeds.push(feedUrl);
+/**
+ * @param {string} feedIdentifier
+ */
+function addFeed(feedIdentifier) {
+  incompleteFeeds.push(feedIdentifier);
 }
 
+/**
+ * @param {string} feedIdentifier
+ */
 async function setFeedIsUpToDate(feedIdentifier) {
   if (incompleteFeeds.length !== 0) {
     const index = incompleteFeeds.indexOf(feedIdentifier);
@@ -688,10 +723,11 @@ app.get('/dataset-site', function (req, res) {
 function mapToObjectSummary(map) {
   if (map instanceof Map) {
     // Return a object representation of a Map
-    return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0 ? {
-    } : {
-      [v[0]]: mapToObjectSummary(v[1]),
-    })));
+    return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0
+      ? {}
+      : {
+        [v[0]]: mapToObjectSummary(v[1]),
+      })));
   } if (map instanceof Set) {
     // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
     // instead of outputting the whole set contents. This reduces the size of the output for display.
@@ -800,16 +836,25 @@ app.get('/opportunity-cache/:id', function (req, res) {
  */
 const listeners = new Map();
 
+/**
+ * @param {string} type
+ * @param {string} id
+ */
 function getListenerInfo(type, id) {
+  const isForOrdersFeed = (type === 'orders' || type === 'order-proposals');
   return {
     listenerId: `${type}::${id}`,
-    isForOrdersFeed: type === 'orders',
-    idName: type === 'orders' ? 'UUID' : '@id',
+    isForOrdersFeed,
+    idName: isForOrdersFeed ? 'UUID' : '@id',
   };
 }
 
 /**
- * @param {'opportunities'|'orders'} type
+ * For an item being harvested from RPDE, check if there are any listeners listening for it.
+ *
+ * If so, respond to those listeners.
+ *
+ * @param {'opportunities' | OrderType} type
  * @param {string} id
  * @param {any} item
  */
@@ -834,7 +879,7 @@ function handleListeners(type, id, item) {
 
 app.post('/listeners/:type/:id', async function (req, res) {
   const { type, id } = req.params;
-  const { listenerId, isForOrdersFeed, idName } = getListenerInfo(type, id);
+  const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
   if (!id) {
     return res.status(400).json({
       error: 'id is required',
@@ -854,10 +899,11 @@ app.post('/listeners/:type/:id', async function (req, res) {
     item: null, collectRes: null,
   });
   if (isForOrdersFeed) {
+    const feedContext = feedContextMap.get(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER);
     return res.status(200).send({
       headers: await withOrdersRpdeHeaders(getOrdersFeedHeader)(),
-      startingFeedPage: feedContextMap.get(ORDERS_FEED_IDENTIFIER)?.currentPage,
-      message: `Listening for '${id}' in Orders feed from startingFeedPage using headers`,
+      startingFeedPage: feedContext?.currentPage,
+      message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
     });
   }
   return res.status(204).send();
@@ -1101,38 +1147,84 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   }
 });
 
-/** @type {{[id: string]: PendingResponse}} */
-const orderResponses = {
-};
+// /**
+//  * Pending Responses for Test Suite requests for Orders or OrderProposals.
+//  *
+//  * @type {{ [orderType in OrderType]: {[id: string]: PendingResponse}}}
+//  */
+// const allPendingOrderResponses = {
+//   orders: {},
+//   'order-proposals': {},
+// };
 
-app.get('/get-order/:orderUuid', function (req, res) {
-  if (DO_NOT_HARVEST_ORDERS_FEED) {
-    res.status(403).json({
-      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
-    });
-  } else if (req.params.orderUuid) {
-    const { orderUuid } = req.params;
+// /**
+//  * Create a /get-{order|order-proposal}/:orderUuid Express route.
+//  *
+//  * This is a route which
+//  *
+//  * @param {OrderType} orderType
+//  * @return {import('express').Handler}
+//  */
+// function createGetOrderFromFeedRoute(orderType) {
+//   return (req, res) => {
+//     if (DO_NOT_HARVEST_ORDERS_FEED) {
+//       res.status(403).json({
+//         error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
+//       });
+//       return;
+//     }
+//     if (!req.params.orderUuid) {
+//       res.status(400).json({
+//         error: 'orderUuid is required',
+//       });
+//       return;
+//     }
+//     const { orderUuid } = req.params;
+//     // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
+//     if (allPendingOrderResponses[orderUuid] && allPendingOrderResponses[orderUuid] !== null) allPendingOrderResponses[orderUuid].cancel();
+//     allPendingOrderResponses[orderUuid] = {
+//       send(json) {
+//         allPendingOrderResponses[orderUuid] = null;
+//         res.json(json);
+//       },
+//       cancel() {
+//         log(`Ignoring previous request for "${orderUuid}"`);
+//         res.status(400).json({
+//           error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
+//         });
+//       },
+//     };
+//   };
+// }
 
-    // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
-    if (orderResponses[orderUuid] && orderResponses[orderUuid] !== null) orderResponses[orderUuid].cancel();
-    orderResponses[orderUuid] = {
-      send(json) {
-        orderResponses[orderUuid] = null;
-        res.json(json);
-      },
-      cancel() {
-        log(`Ignoring previous request for "${orderUuid}"`);
-        res.status(400).json({
-          error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
-        });
-      },
-    };
-  } else {
-    res.status(400).json({
-      error: 'orderUuid is required',
-    });
-  }
-});
+// app.get('/get-order/:orderUuid', function (req, res) {
+//   if (DO_NOT_HARVEST_ORDERS_FEED) {
+//     res.status(403).json({
+//       error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
+//     });
+//   } else if (req.params.orderUuid) {
+//     const { orderUuid } = req.params;
+
+//     // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
+//     if (allPendingOrderResponses[orderUuid] && allPendingOrderResponses[orderUuid] !== null) allPendingOrderResponses[orderUuid].cancel();
+//     allPendingOrderResponses[orderUuid] = {
+//       send(json) {
+//         allPendingOrderResponses[orderUuid] = null;
+//         res.json(json);
+//       },
+//       cancel() {
+//         log(`Ignoring previous request for "${orderUuid}"`);
+//         res.status(400).json({
+//           error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
+//         });
+//       },
+//     };
+//   } else {
+//     res.status(400).json({
+//       error: 'orderUuid is required',
+//     });
+//   }
+// });
 
 /**
  * @callback RpdePageProcessor
@@ -1360,16 +1452,22 @@ async function processOpportunityItem(item) {
   }
 }
 
-/** @type {RpdePageProcessor} */
-async function monitorOrdersPage(rpde) {
-  rpde.items.forEach((item) => {
-    if (item.id) {
-      handleListeners('orders', item.id, item);
+/**
+ * @param {OrderType} orderType
+ * @returns {RpdePageProcessor}
+ */
+function monitorOrdersPage(orderType) {
+  // const orderPendingResponses = allPendingOrderResponses[orderType];
+  return (rpdePage) => {
+    for (const item of rpdePage.items) {
+      if (item.id) {
+        handleListeners(orderType, item.id, item);
+      }
+      // if (item.id && orderPendingResponses[item.id]) {
+      //   orderPendingResponses[item.id].send(item);
+      // }
     }
-    if (item.id && orderResponses[item.id]) {
-      orderResponses[item.id].send(item);
-    }
-  });
+  };
 }
 
 function extractJSONLDfromHTML(url, html) {
@@ -1549,10 +1647,28 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
-    const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
-    log(`Found orders feed: ${ordersFeedUrl}`);
-    addFeed(ORDERS_FEED_IDENTIFIER);
-    harvesters.push(harvestRPDE(ordersFeedUrl, ORDERS_FEED_IDENTIFIER, withOrdersRpdeHeaders(getOrdersFeedHeader), monitorOrdersPage, true));
+    for (const { feedUrl, type, feedContextIdentifier } of [
+      {
+        feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
+        type: /** @type {OrderType} */('orders'),
+        feedContextIdentifier: ORDERS_FEED_IDENTIFIER,
+      },
+      {
+        feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
+        type: /** @type {OrderType} */('order-proposals'),
+        feedContextIdentifier: ORDER_PROPOSALS_FEED_IDENTIFIER,
+      },
+    ]) {
+      log(`Found ${type} feed: ${feedUrl}`);
+      addFeed(feedContextIdentifier);
+      harvesters.push(harvestRPDE(
+        feedUrl,
+        feedContextIdentifier,
+        withOrdersRpdeHeaders(getOrdersFeedHeader),
+        monitorOrdersPage(type),
+        true,
+      ));
+    }
   }
 
   // Finished processing dataset site
