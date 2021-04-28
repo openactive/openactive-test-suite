@@ -139,6 +139,10 @@ const FlowStageUtils = {
    * @param {boolean} checks.doCheckIsValid If true, validation will be run
    * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
    *   all stages within will be checked for validity/success.
+   *
+   *   NOTE It is recommended to only use a BookRecipe when expecting success. If expecting failure,
+   *   it is recommended to run only the first stage `describeRunAndRunChecks({ .. }, bookRecipe.firstStage)`.
+   *   There is no point simulating approval if P was expected to fail.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
@@ -153,7 +157,12 @@ const FlowStageUtils = {
         approved items appearing in the feed - which means that the tests will time out */
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
+        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b);
+        FlowStageUtils.describeRunAndRunChecks(
+          checks,
+          flowStageOrBookRecipe.orderFeedUpdateAfterDeleteProposal,
+          itAdditionalTests,
+        );
       } else {
         FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
       }
