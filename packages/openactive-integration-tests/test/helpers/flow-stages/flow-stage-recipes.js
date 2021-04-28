@@ -255,7 +255,8 @@ const FlowStageRecipes = {
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
         prerequisite: p,
-        testName: 'Order Feed Update (after Simulate Seller Approval)',
+        testName: 'OrderProposal Feed Update (after Simulate Seller Approval)',
+        orderType: 'order-proposals',
       },
     });
 
@@ -279,7 +280,8 @@ const FlowStageRecipes = {
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
         prerequisite: orderFeedUpdateCollector,
-        testName: 'OrderProposal Deletion in Feed (after B)',
+        testName: 'OrderProposal Feed Deletion (after B)',
+        orderType: 'order-proposals',
       },
     });
 
