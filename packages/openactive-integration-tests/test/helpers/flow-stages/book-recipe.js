@@ -18,15 +18,15 @@ class BookRecipe {
    * @param {TestInterfaceActionFlowStageType | null} [args.simulateSellerApproval]
    * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateCollector]
    * @param {BFlowStageType | PFlowStageType} args.firstStage
-   * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateAfterDelete]
+   * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateAfterDeleteProposal]
    */
-  constructor({ b, p, simulateSellerApproval, orderFeedUpdateCollector, firstStage, orderFeedUpdateAfterDelete }) {
+  constructor({ b, p, simulateSellerApproval, orderFeedUpdateCollector, firstStage, orderFeedUpdateAfterDeleteProposal }) {
     this.b = b;
     this.p = p;
     this.simulateSellerApproval = simulateSellerApproval;
     this.orderFeedUpdateCollector = orderFeedUpdateCollector;
     this.firstStage = firstStage;
-    this.orderFeedUpdateAfterDelete = orderFeedUpdateAfterDelete;
+    this.orderFeedUpdateAfterDeleteProposal = orderFeedUpdateAfterDeleteProposal;
   }
 }
 
