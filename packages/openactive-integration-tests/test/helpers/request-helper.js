@@ -147,20 +147,20 @@ class RequestHelper {
     };
   }
 
-  /**
-   * @param {string} uuid
-   */
-  async getOrder(uuid) {
-    const ordersFeedUpdate = await this.get(
-      'get-order',
-      `${MICROSERVICE_BASE}/get-order/${uuid}`,
-      {
-        timeout: 30000,
-      },
-    );
+  // /**
+  //  * @param {string} uuid
+  //  */
+  // async getOrder(uuid) {
+  //   const ordersFeedUpdate = await this.get(
+  //     'get-order',
+  //     `${MICROSERVICE_BASE}/get-order/${uuid}`,
+  //     {
+  //       timeout: 30000,
+  //     },
+  //   );
 
-    return ordersFeedUpdate;
-  }
+  //   return ordersFeedUpdate;
+  // }
 
   /**
    * @param {string} eventId
@@ -184,7 +184,7 @@ class RequestHelper {
   }
 
   /**
-   * @param {'opportunities'|'orders'} type
+   * @param {'opportunities' | 'orders' | 'order-proposals'} type
    * @param {string} id
    * @param {number} [orderItemPosition]
    */
