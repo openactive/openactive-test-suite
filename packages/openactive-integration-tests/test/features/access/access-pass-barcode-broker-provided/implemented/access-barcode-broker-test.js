@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   /** @type {import('../../../../templates/b-req').AccessPassItem[]} */
