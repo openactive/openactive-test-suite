@@ -65,7 +65,7 @@ FeatureHelper.describeFeature(module, {
       ...defaultFlowStageParams,
       prerequisite: p,
       testName: 'Orders Feed (after test:SellerRejectOrderProposalSimulateAction)',
-      orderType: 'order-proposals',
+      orderFeedType: 'order-proposals',
     },
   });
   const b = new BFlowStage({
