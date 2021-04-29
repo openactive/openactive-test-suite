@@ -91,6 +91,7 @@ FeatureHelper.describeFeature(module, {
       ...defaultFlowStageParams,
       prerequisite: p,
       testName: 'Order Feed Update (after Simulate Seller Amendment)',
+      orderFeedType: 'order-proposals',
     },
   });
   const [simulateSellerApproval, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
@@ -110,6 +111,7 @@ FeatureHelper.describeFeature(module, {
       ...defaultFlowStageParams,
       prerequisite: p,
       testName: 'Order Feed Update (after Simulate Seller Approval)',
+      orderFeedType: 'order-proposals',
     },
   });
   // Attempt booking with old proposal version
@@ -151,7 +153,6 @@ FeatureHelper.describeFeature(module, {
       expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
         .which.matches(RegExp(`${uuid}/versions/.+`));
     });
-    // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
     // TODO does validator check that full Seller details are included in the seller response?
   });
 

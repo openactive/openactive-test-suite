@@ -65,7 +65,6 @@ FeatureHelper.describeFeature(module, {
       expect(bookRecipe.p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
         .which.matches(RegExp(`${uuid}/versions/.+`));
     });
-    // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed?
     // TODO does validator check that full Seller details are included in the seller response?
     it('should have orderProposalStatus: SellerAccepted', () => {
       expect(bookRecipe.orderFeedUpdateCollector.getOutput().httpResponse.body)
