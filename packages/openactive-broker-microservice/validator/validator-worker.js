@@ -1,9 +1,12 @@
 // workers/auth.js
 const { validate } = require('@openactive/data-model-validator');
 const { expose } = require('threads/worker');
+const { silentlyAllowInsecureConnections } = require('../src/util/suppress-unauthorized-warning');
 
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
+
+silentlyAllowInsecureConnections();
 
 /**
  * Use OpenActive validator to validate the RPDE item

@@ -32,6 +32,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  */
 
 /**
+ * @typedef {'orders' | 'order-proposals'} OrderFeedType
+ *
  * @typedef {{}} ListenerInput
  * @typedef {{}} ListenerOutput
  *
@@ -43,10 +45,11 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
+ * @param {OrderFeedType} args.orderFeedType
  * @returns {Promise<ListenerOutput>}
  */
-async function runOrderFeedListener({ uuid, requestHelper }) {
-  await requestHelper.postFeedChangeListener('orders', uuid);
+async function runOrderFeedListener({ uuid, requestHelper, orderFeedType }) {
+  await requestHelper.postFeedChangeListener(orderFeedType, uuid);
   return {};
 }
 
@@ -54,10 +57,11 @@ async function runOrderFeedListener({ uuid, requestHelper }) {
  * @param {object} args
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
+ * @param {OrderFeedType} args.orderFeedType
  * @returns {Promise<CollectorOutput>}
  */
-async function runOrderFeedCollector({ uuid, requestHelper }) {
-  const response = await requestHelper.getFeedChangeCollection('orders', uuid);
+async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType }) {
+  const response = await requestHelper.getFeedChangeCollection(orderFeedType, uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {
@@ -80,15 +84,20 @@ class OrderFeedUpdateListener extends FlowStage {
    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
+   * @param {OrderFeedType} args.orderFeedType
    */
-  constructor({ prerequisite, uuid, requestHelper }) {
+  constructor({ prerequisite, uuid, requestHelper, orderFeedType }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
       testName: '_Order Feed Update Listener',
       shouldDescribeFlowStage: false,
       async runFn() {
-        return await runOrderFeedListener({ uuid, requestHelper });
+        return await runOrderFeedListener({
+          uuid,
+          requestHelper,
+          orderFeedType,
+        });
       },
       itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdateCollector stage */ },
       itValidationTestsFn() { /* there are no validation tests - validation happens at the OrderFeedUpdateCollector stage */ },
@@ -112,19 +121,24 @@ class OrderFeedUpdateCollector extends FlowStage {
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
+   * @param {OrderFeedType} args.orderFeedType
    */
-  constructor({ testName, prerequisite, logger, uuid, requestHelper }) {
+  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
       testName,
       async runFn() {
-        return await runOrderFeedCollector({ uuid, requestHelper });
+        return await runOrderFeedCollector({
+          uuid,
+          requestHelper,
+          orderFeedType,
+        });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
         name: 'OrderFeed',
-        validationMode: 'OrdersFeed',
+        validationMode: orderFeedType === 'orders' ? 'OrdersFeed' : 'OrderProposalsFeed',
       }),
     });
   }
@@ -160,6 +174,7 @@ const OrderFeedUpdateFlowStageUtils = {
    *   is supplied to it in this function.
    * @param {object} args.orderFeedUpdateParams Params which will be fed into the
    *   OrderFeed update flow stages.
+   * @param {OrderFeedType} [args.orderFeedUpdateParams.orderFeedType] Defaults to `orders`
    * @param {FlowStage<unknown, unknown>} [args.orderFeedUpdateParams.prerequisite]
    *   Prerequisite for the OrderFeedUpdateListener.
    * @param {string} args.orderFeedUpdateParams.testName Name for the OrderFeedUpdateCollector
@@ -173,10 +188,12 @@ const OrderFeedUpdateFlowStageUtils = {
    *   when project upgrades TypeScript to v4
    */
   wrap({ wrappedStageFn, orderFeedUpdateParams }) {
+    const orderFeedType = orderFeedUpdateParams.orderFeedType ?? 'orders';
     const listenForOrderFeedUpdate = new OrderFeedUpdateListener({
       requestHelper: orderFeedUpdateParams.requestHelper,
       uuid: orderFeedUpdateParams.uuid,
       prerequisite: orderFeedUpdateParams.prerequisite,
+      orderFeedType,
     });
     const wrappedStage = wrappedStageFn(listenForOrderFeedUpdate);
     const collectOrderFeedUpdate = new OrderFeedUpdateCollector({
@@ -185,6 +202,7 @@ const OrderFeedUpdateFlowStageUtils = {
       requestHelper: orderFeedUpdateParams.requestHelper,
       uuid: orderFeedUpdateParams.uuid,
       logger: orderFeedUpdateParams.logger,
+      orderFeedType,
     });
     return [wrappedStage, collectOrderFeedUpdate];
   },
