@@ -1,10 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "features": {
-    "minimal-proposal": {
-      "implementedTestFiles": 3,
-      "notImplementedTestFiles": 0
-    },
     "agent-broker": {
       "implementedTestFiles": 2,
       "notImplementedTestFiles": 1
@@ -24,10 +20,6 @@
     "dataset-site": {
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 1
-    },
-    "opportunity-feed": {
-      "implementedTestFiles": 0,
-      "notImplementedTestFiles": 0
     },
     "order-deletion": {
       "implementedTestFiles": 4,
@@ -67,6 +59,10 @@
     },
     "offer-overrides": {
       "implementedTestFiles": 0,
+      "notImplementedTestFiles": 0
+    },
+    "minimal-proposal": {
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 0
     },
     "booking-partner-authentication": {
@@ -111,6 +107,10 @@
     },
     "multiple-sellers": {
       "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "opportunity-feed": {
+      "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
     },
     "test-interface": {

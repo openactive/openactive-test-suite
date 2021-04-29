@@ -128,30 +128,6 @@ class RequestState {
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
   }
 
-  async getOrderAfterU() {
-    const result = await this.requestHelper.getOrder(this.uuid);
-
-    this.getOrderAfterUResponse = result;
-
-    return this;
-  }
-
-  async getOrderAfterP() {
-    const result = await this.requestHelper.getOrder(this.uuid);
-
-    this.getOrderAfterPResponse = result;
-
-    return this;
-  }
-
-  get getOrderAfterPResponseSucceeded() {
-    return isResponse20x(this.getOrderAfterPResponse);
-  }
-
-  get getOrderAfterPResponseReceived() {
-    return isResponse(this.getOrderAfterPResponse);
-  }
-
   async getDatasetSite() {
     const result = await this.requestHelper.getDatasetSite();
 
