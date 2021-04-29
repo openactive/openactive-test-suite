@@ -1,0 +1,11 @@
+{
+  "integrationTests": {
+    "bookingFlowsInScope": {
+      "OpenBookingSimpleFlow": true,
+      "OpenBookingApprovalFlow": false
+    },
+    "implementedFeatures": {
+      "minimal-proposal": false
+    }
+  }
+}
