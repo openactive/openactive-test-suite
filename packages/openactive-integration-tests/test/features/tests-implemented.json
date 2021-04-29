@@ -49,10 +49,6 @@
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
     },
-    "access-pass-barcode-broker-provided": {
-      "implementedTestFiles": 1,
-      "notImplementedTestFiles": 0
-    },
     "access-pass-barcode-seller-provided": {
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
