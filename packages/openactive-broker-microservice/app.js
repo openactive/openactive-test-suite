@@ -411,29 +411,29 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         // If a fatal error, just rethrow
         throw error;
       } else if (!error.response) {
-        log(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
+        logError(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
           // just rethrow
           throw error;
         }
       } else if (error.response.status === 404) {
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
-        log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
+        logError(`\n\nNot Found error for RPDE feed "${url}", feed will be ignored.\n\n\n\n\n\n\n\n\n`);
         // Stop polling feed
         return;
       } else {
-        log(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        logError(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
           // just rethrow
           throw error;
         }

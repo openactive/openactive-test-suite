@@ -138,7 +138,7 @@ class OrderFeedUpdateCollector extends FlowStage {
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
         name: 'OrderFeed',
-        validationMode: 'OrdersFeed',
+        validationMode: orderType === 'orders' ? 'OrdersFeed' : 'OrderProposalsFeed',
       }),
     });
   }
