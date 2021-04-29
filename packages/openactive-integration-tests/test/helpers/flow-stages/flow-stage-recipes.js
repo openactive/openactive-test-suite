@@ -34,6 +34,19 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  * }} InitialiseSimpleC1C2BookFlowOptions
  */
 
+/**
+ * @typedef {object} BookRecipeArgs
+ * @property {UnknownFlowStageType} prerequisite
+ * @property {string | null} [brokerRole]
+ * @property {AccessPassItem[] | null} [accessPass]
+ * @property {PReqTemplateRef | null} [firstStageReqTemplateRef] Reference for the template which will be used
+ *   for the first stage - B or P.
+ *   Note that the template ref is a `PReqTemplateRef`. That's because the only difference between `PReqTemplateRef`
+ *   and `BReqTemplateRef` is that the latter includes the `afterP` template which is exclusively used for the B at
+ *   the end of approval flow. Therefore, regardless of flow, the first stage will never use `afterP`.
+ * @property {() => import('./p').Input} getFirstStageInput Input for the first flow stage - B or P.
+ */
+
 const FlowStageRecipes = {
   /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> Book (*) flow.
@@ -141,10 +154,15 @@ const FlowStageRecipes = {
     };
   },
   /**
-   * A Recipe to either run B or P -> OrderFeedUpdate[SellerAcceptOrderProposalSimulateAction] -> B depending on the flow.
+   * A Recipe to either run B or P -> Approve -> B depending on the flow.
    *
    * - If in Simple Booking Flow, the recipe will just return B
-   * - If in Approval Flow, the recipe will return P -> OrderFeedUpdate[SellerAcceptOrderProposalSimulateAction] -> B
+   * - If in Approval Flow, the recipe will return
+   *   1. P
+   *   2. SellerAcceptOrderProposalSimulateAction
+   *     a. Await OrderFeedUpdate, which should return approved Proposal
+   *   3. B
+   *     a. Await OrderFeedUpdate, which should delete Proposal
    *
    * This therefore represents the Book step of either flow.
    *
@@ -157,56 +175,95 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
-   * @param {object} args
-   * @param {UnknownFlowStageType} args.prerequisite
-   * @param {string | null} [args.brokerRole]
-   * @param {AccessPassItem[] | null} [args.accessPass]
-   * @param {PReqTemplateRef | null} [args.firstStageReqTemplateRef] Reference for the template which will be used
-   *   for the first stage - B or P.
-   *   Note that the template ref is a `PReqTemplateRef`. That's because the only difference between `PReqTemplateRef`
-   *   and `BReqTemplateRef` is that the latter includes the `afterP` template which is exclusively used for the B at
-   *   the end of approval flow. Therefore, regardless of flow, the first stage will never use `afterP`.
-   * @param {() => import('./p').Input} args.getFirstStageInput Input for the first flow stage - B or P.
+   * @param {BookRecipeArgs} bookRecipeArgs
    * @returns {BookRecipe}
    */
-  book(orderItemCriteriaList, defaultFlowStageParams, {
+  book(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs) {
+    const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
+      orderItemCriteria.bookingFlow === 'OpenBookingApprovalFlow'));
+    if (doUseApprovalFlow) {
+      return FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
+    }
+    return FlowStageRecipes.bookSimple(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
+  },
+  /**
+   * Create a BookRecipe explicitly for the Simple Booking Flow.
+   *
+   * See: FlowStageRecipes.book for more info
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {BookRecipeArgs} args
+   * @returns {BookRecipe}
+   */
+  bookSimple(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
     firstStageReqTemplateRef = null,
     getFirstStageInput,
   }) {
-    const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
-      orderItemCriteria.bookingFlow === 'OpenBookingApprovalFlow'));
-    if (doUseApprovalFlow) {
-      const p = new PFlowStage({
+    const b = new BFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      templateRef: firstStageReqTemplateRef,
+      brokerRole,
+      accessPass,
+      getInput: getFirstStageInput,
+    });
+    return new BookRecipe({
+      firstStage: b,
+      b,
+    });
+  },
+  /**
+   * Create a BookRecipe explicitly for the Approval Flow.
+   *
+   * See: FlowStageRecipes.book for more info
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {BookRecipeArgs} args
+   * @returns {BookRecipe}
+   */
+  bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
+    prerequisite,
+    brokerRole = null,
+    accessPass = null,
+    firstStageReqTemplateRef = null,
+    getFirstStageInput,
+  }) {
+    const p = new PFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      templateRef: firstStageReqTemplateRef,
+      brokerRole,
+      accessPass,
+      getInput: getFirstStageInput,
+    });
+    const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
-        prerequisite,
-        templateRef: firstStageReqTemplateRef,
-        brokerRole,
-        accessPass,
-        getInput: getFirstStageInput,
-      });
-      const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
-        wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
-          ...defaultFlowStageParams,
-          testName: 'Simulate Seller Approval (Test Interface Action)',
-          prerequisite: orderFeedUpdateListener,
-          createActionFn: () => ({
-            type: 'test:SellerAcceptOrderProposalSimulateAction',
-            objectType: 'OrderProposal',
-            objectId: p.getOutput().orderId,
-          }),
-        })),
-        orderFeedUpdateParams: {
-          ...defaultFlowStageParams,
-          prerequisite: p,
-          testName: 'Order Feed Update (after Simulate Seller Approval)',
-        },
-      });
-      const b = new BFlowStage({
+        testName: 'Simulate Seller Approval (Test Interface Action)',
+        prerequisite: orderFeedUpdateListener,
+        createActionFn: () => ({
+          type: 'test:SellerAcceptOrderProposalSimulateAction',
+          objectType: 'OrderProposal',
+          objectId: p.getOutput().orderId,
+        }),
+      })),
+      orderFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: orderFeedUpdateCollector,
+        prerequisite: p,
+        testName: 'OrderProposal Feed Update (after Simulate Seller Approval)',
+        orderFeedType: 'order-proposals',
+      },
+    });
+
+    const [b, orderFeedUpdateAfterDeleteProposal] = OrderFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: orderFeedUpdateListener => (new BFlowStage({
+        ...defaultFlowStageParams,
+        prerequisite: orderFeedUpdateListener,
         templateRef: 'afterP',
         /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
         just presents `orderProposalVersion` and optional payment details */
@@ -219,26 +276,22 @@ const FlowStageRecipes = {
             prepayment: p.getOutput().prepayment,
           };
         },
-      });
-      return new BookRecipe({
-        firstStage: p,
-        p,
-        simulateSellerApproval,
-        orderFeedUpdateCollector,
-        b,
-      });
-    }
-    const b = new BFlowStage({
-      ...defaultFlowStageParams,
-      prerequisite,
-      templateRef: firstStageReqTemplateRef,
-      brokerRole,
-      accessPass,
-      getInput: getFirstStageInput,
+      })),
+      orderFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        prerequisite: orderFeedUpdateCollector,
+        testName: 'OrderProposal Feed Deletion (after B)',
+        orderFeedType: 'order-proposals',
+      },
     });
+
     return new BookRecipe({
-      firstStage: b,
+      firstStage: p,
+      p,
+      simulateSellerApproval,
+      orderFeedUpdateCollector,
       b,
+      orderFeedUpdateAfterDeleteProposal,
     });
   },
 };
