@@ -8,6 +8,9 @@ const { BOOKING_API_BASE } = global;
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
+/* ! This test will always fail hen run against a Reference Implementation that is running in dev mode.
+This is because, in dev mode, the Reference Implementation returns an HTML error for 404 responses rather than
+the expected JSON */
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'common-error-conditions',
