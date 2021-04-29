@@ -21,10 +21,6 @@
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 1
     },
-    "opportunity-feed": {
-      "implementedTestFiles": 0,
-      "notImplementedTestFiles": 0
-    },
     "order-deletion": {
       "implementedTestFiles": 4,
       "notImplementedTestFiles": 0
@@ -119,6 +115,10 @@
     },
     "multiple-sellers": {
       "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "opportunity-feed": {
+      "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
     },
     "test-interface": {

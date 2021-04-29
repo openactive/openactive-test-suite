@@ -25,8 +25,15 @@ jobs:
         #   profile: 'all-features'
         #   flow: 'both'
         mode: ['random', 'controlled']
-        profile: ['all-features']
+        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
         flow: ['both']
+        include:
+        - mode: 'random'
+          profile: 'simple-book-only'
+          flow: 'simple'
+        - mode: 'controlled'
+          profile: 'simple-book-only'
+          flow: 'simple'
 
     steps:
     - name: Checkout OpenActive Test Suite

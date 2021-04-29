@@ -184,19 +184,28 @@ class Reporter {
         const html = await certificationWriter.generateCertificate();
 
         const validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
-        if (!validationResult || !validationResult.valid) {
+        /* process.env.DEBUG_SAVE_INVALID_CONFORMANCE_CERTIFICATE can be used to ensure a certificate is saved even if it
+        is not valid. This can help with debugging conformance certificates */
+        if (validationResult?.valid || process.env.DEBUG_SAVE_INVALID_CONFORMANCE_CERTIFICATE === 'true') {
+          const filename = 'index.html';
+          await mkdirp(certificationWriter.certificationOutputPath);
+          await fs.writeFile(certificationWriter.certificationOutputPath + filename, html);
+          if (validationResult?.valid) {
+            console.log(`\n${chalk.green(
+              `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath + filename} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
+            )}`);
+          } else {
+            console.log(`\n${chalk.red(
+              `Conformance certificate not valid but saved anyway to: ${certificationWriter.certificationOutputPath + filename}`,
+            )}`);
+          }
+        }
+        if (!validationResult?.valid) {
           console.error(`\n${chalk.red(
             'A valid conformance certificate could not be generated.\n\nIf you have not already done so, try simply running `npm start`, without specifying a specific test subset, to ensure that all tests are run for this feature configuration.',
           )}`);
           // Ensure that CI fails on validation error, without a stack trace
           process.exitCode = 1;
-        } else {
-          const filename = 'index.html';
-          await mkdirp(certificationWriter.certificationOutputPath);
-          await fs.writeFile(certificationWriter.certificationOutputPath + filename, html);
-          console.log(`\n${chalk.green(
-            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath + filename} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
-          )}`);
         }
       }
     }

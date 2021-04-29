@@ -24,7 +24,6 @@
       }
     },
     "dataset-site": {},
-    "opportunity-feed": {},
     "order-deletion": {
       "primary": {
         "TestOpportunityBookable": 12
@@ -141,6 +140,7 @@
         "TestOpportunityBookable": 1
       }
     },
+    "opportunity-feed": {},
     "test-interface": {
       "primary": {
         "TestOpportunityBookable": 1

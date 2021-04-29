@@ -7,9 +7,9 @@
       "availability-check": true,
       "common-error-conditions": true,
       "dataset-site": true,
-      "opportunity-feed": true,
       "order-deletion": true,
       "multiple-sellers": true,
+      "opportunity-feed": true,
       "test-interface": true
     },
     "access": {
