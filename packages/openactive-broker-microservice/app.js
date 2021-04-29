@@ -31,7 +31,7 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
 /**
- * @typedef {'orders' | 'order-proposals'} OrderType
+ * @typedef {'orders' | 'order-proposals'} OrderFeedType
  */
 
 const config = require('config');
@@ -854,7 +854,7 @@ function getListenerInfo(type, id) {
  *
  * If so, respond to those listeners.
  *
- * @param {'opportunities' | OrderType} type
+ * @param {'opportunities' | OrderFeedType} type
  * @param {string} id
  * @param {any} item
  */
@@ -1374,19 +1374,15 @@ async function processOpportunityItem(item) {
 }
 
 /**
- * @param {OrderType} orderType
+ * @param {OrderFeedType} orderFeedType
  * @returns {RpdePageProcessor}
  */
-function monitorOrdersPage(orderType) {
-  // const orderPendingResponses = allPendingOrderResponses[orderType];
+function monitorOrdersPage(orderFeedType) {
   return (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
-        handleListeners(orderType, item.id, item);
+        handleListeners(orderFeedType, item.id, item);
       }
-      // if (item.id && orderPendingResponses[item.id]) {
-      //   orderPendingResponses[item.id].send(item);
-      // }
     }
   };
 }
@@ -1571,12 +1567,12 @@ Validation errors found in Dataset Site JSON-LD:
     for (const { feedUrl, type, feedContextIdentifier } of [
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
-        type: /** @type {OrderType} */('orders'),
+        type: /** @type {OrderFeedType} */('orders'),
         feedContextIdentifier: ORDERS_FEED_IDENTIFIER,
       },
       {
         feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
-        type: /** @type {OrderType} */('order-proposals'),
+        type: /** @type {OrderFeedType} */('order-proposals'),
         feedContextIdentifier: ORDER_PROPOSALS_FEED_IDENTIFIER,
       },
     ]) {
