@@ -1,18 +1,15 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "categories": {
-    "approval": {
-      "minimal-proposal": true
-    },
     "core": {
       "agent-broker": true,
       "amending-order-quote": true,
       "availability-check": true,
       "common-error-conditions": true,
       "dataset-site": true,
-      "opportunity-feed": true,
       "order-deletion": true,
       "multiple-sellers": true,
+      "opportunity-feed": true,
       "test-interface": true
     },
     "access": {
@@ -28,6 +25,9 @@
     "advanced-payment": {
       "dynamic-payment": true,
       "offer-overrides": true
+    },
+    "approval": {
+      "minimal-proposal": true
     },
     "authentication": {
       "booking-partner-authentication": true,

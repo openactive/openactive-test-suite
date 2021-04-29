@@ -1,11 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "criteriaRequirements": {
-    "minimal-proposal": {
-      "primary": {
-        "TestOpportunityBookable": 12
-      }
-    },
     "agent-broker": {
       "primary": {
         "TestOpportunityBookable": 8
@@ -29,7 +24,6 @@
       }
     },
     "dataset-site": {},
-    "opportunity-feed": {},
     "order-deletion": {
       "primary": {
         "TestOpportunityBookable": 12
@@ -85,6 +79,11 @@
     },
     "dynamic-payment": {},
     "offer-overrides": {},
+    "minimal-proposal": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
     "booking-partner-authentication": {},
     "dynamic-client-registration": {},
     "no-broker": {
@@ -135,6 +134,7 @@
         "TestOpportunityBookable": 1
       }
     },
+    "opportunity-feed": {},
     "test-interface": {
       "primary": {
         "TestOpportunityBookable": 1
