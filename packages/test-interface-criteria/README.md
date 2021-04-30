@@ -37,3 +37,11 @@ TypeScript-related scripts:
 - `gen-types`: This uses the `tsconfig.gen.json` config, which emits TS declaration files into `built-types/`.
 
   Additionally, it copies programmer-created `.d.ts` files from our source code (e.g. `src/types/Criteria.d.ts`) into `built-types/`. This is because our code references these types, so they must be in the `built-types/` directory so that the relative paths match (e.g. so that `import('../types/Criteria').Criteria` works).
+
+### FAQs
+
+#### Why Does ESLint sometimes downgrade its version?
+
+Sometimes you'll notice ESLint erroring with "Error: invalid ecmaParser option" or changing its mind as to whether or not single-argument arrow functions should have parentheses around their arg. This is because NPM has for some reason installed an old version of ESLint. You can remedy this by running `npm install` again in the test-interface-criteria package.
+
+This seems to happen as a result of running `npm install` in the Broker or Integration Tests packages. For more info: https://github.com/openactive/openactive-test-suite/pull/366#issuecomment-825951901.

@@ -1,5 +1,5 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria, mustBeWithinCancellationWindow } = require('./criteriaUtils');
+const { createCriteria, getDateBeforeWhichCancellationsCanBeMade } = require('./criteriaUtils');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -9,7 +9,11 @@ const { createCriteria, mustBeWithinCancellationWindow } = require('./criteriaUt
  * @type {OfferConstraint}
  */
 function mustBeOutsideCancellationWindow(offer, opportunity, options) {
-  return offer.latestCancellationBeforeStartDate && !mustBeWithinCancellationWindow(offer, opportunity, options);
+  const dateBeforeWhichCancellationsCanBeMade = getDateBeforeWhichCancellationsCanBeMade(offer, opportunity);
+  if (dateBeforeWhichCancellationsCanBeMade == null) {
+    return false; // has no cancellation window
+  }
+  return options.harvestStartTime > dateBeforeWhichCancellationsCanBeMade;
 }
 
 /**

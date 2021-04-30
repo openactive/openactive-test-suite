@@ -17,7 +17,8 @@ declare global {
       MICROSERVICE_BASE: string;
       BOOKING_API_BASE?: string;
       AUTHENTICATION_AUTHORITY?: string;
-      HARVEST_START_TIME: Date;
+      /** ISO string - provided, in testEnvironment, by Broker's /config */
+      HARVEST_START_TIME: string;
       TEST_DATASET_IDENTIFIER: string;
       BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE: { [opportunityType: string]: boolean };
       BOOKING_FLOWS_IN_SCOPE: { [bookingFlow in BookingFlow]: boolean }

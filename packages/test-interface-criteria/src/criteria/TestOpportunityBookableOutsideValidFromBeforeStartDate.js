@@ -1,7 +1,5 @@
-const moment = require('moment');
-
 const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
-const { remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteriaUtils');
+const { getDateAfterWhichBookingsCanBeMade, remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteriaUtils');
 const { quantitativeValue, dateRange } = require('../testDataShape');
 
 /**
@@ -11,17 +9,15 @@ const { quantitativeValue, dateRange } = require('../testDataShape');
 /**
  * @type {OfferConstraint}
  */
-function musHaveBookingWindowAndBeOutsideOfIt(offer, opportunity, options) {
-  if (!offer || !offer.validFromBeforeStartDate) {
+function mustHaveBookingWindowAndBeOutsideOfIt(offer, opportunity, options) {
+  const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
+  if (dateAfterWhichBookingsCanBeMade == null) {
     return false; // has no booking window
   }
-
-  const start = moment(opportunity.startDate);
-  const duration = moment.duration(offer.validFromBeforeStartDate);
-
-  // This constraint needs to stay valid for 2 hours
-  const valid = start.subtract(duration).add('PT2H').isAfter(options.harvestStartTime);
-  return valid;
+  /* If, within 2 hours, the booking window would be reached, it may be possible for this to happen
+  during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
+  starts at least 2 hours in the future. */
+  return options.harvestStartTimeTwoHoursLater < dateAfterWhichBookingsCanBeMade;
 }
 
 /**
@@ -38,7 +34,7 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
   offerConstraints: [
     [
       'Must be outside booking window',
-      musHaveBookingWindowAndBeOutsideOfIt,
+      mustHaveBookingWindowAndBeOutsideOfIt,
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
@@ -50,12 +46,9 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     },
     offerConstraints: {
       'oa:validFromBeforeStartDate': dateRange({
-        minDate: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+        minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),
     },
-    // remainingCapacityMin: 2,
-    // validFromMin: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
-    // validFromMax: moment(options.harvestStartTime).add(moment.duration('P28D')).toISOString(),
   }),
 });
 

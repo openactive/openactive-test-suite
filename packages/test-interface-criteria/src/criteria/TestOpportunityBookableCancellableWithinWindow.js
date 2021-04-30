@@ -1,5 +1,16 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria, mustBeWithinCancellationWindow, mustAllowFullRefund } = require('./criteriaUtils');
+const { createCriteria, mustAllowFullRefund, getDateBeforeWhichCancellationsCanBeMade } = require('./criteriaUtils');
+
+/**
+ * @type {import('../types/Criteria').OfferConstraint}
+ */
+function mustBeWithinCancellationWindow(offer, opportunity, options) {
+  const dateBeforeWhichCancellationsCanBeMade = getDateBeforeWhichCancellationsCanBeMade(offer, opportunity);
+  if (dateBeforeWhichCancellationsCanBeMade == null) {
+    return false; // has no cancellation window
+  }
+  return options.harvestStartTimeTwoHoursLater < dateBeforeWhichCancellationsCanBeMade;
+}
 
 /**
  * Note that this criteria will ALWAYS reject any event whose latestCancellationBeforeStartDate
