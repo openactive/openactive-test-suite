@@ -5,7 +5,8 @@
       "OpenBookingApprovalFlow": false
     },
     "implementedFeatures": {
-      "minimal-proposal": false
+      "minimal-proposal": false,
+      "proposal-amendment": false
     }
   }
 }
