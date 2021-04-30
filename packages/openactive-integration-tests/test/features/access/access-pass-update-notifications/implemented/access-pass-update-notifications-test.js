@@ -13,15 +13,17 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book({ actionType: 'test:AccessPassUpdateSimulateAction' },
   ({ b, orderFeedUpdate }) => {
     it('should have access passes with altered values', () => {
       // original = before the AccessPassUpdateSimulationAction was invoked
-      const originalPhysicalOrderItems = b.getOutput().httpResponse.body.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
+      const originalPhysicalOrderItems = b.getOutput().httpResponse.body.orderedItem
+        .filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
       // new = after the AccessPassUpdateSimulationAction was invoked
-      const newPhysicalOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem.filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
+      const newPhysicalOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem
+        .filter(orderItem => !orderItem.accessChannel || orderItem.accessChannel['@type'] !== 'VirtualLocation');
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.

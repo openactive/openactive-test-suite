@@ -53,12 +53,6 @@
         "TestOpportunityBookable": 1
       }
     },
-    "access-pass-barcode-broker-provided": {
-      "primary": {
-        "TestOpportunityOfflineBookable": 3,
-        "TestOpportunityBookable": 1
-      }
-    },
     "access-pass-barcode-seller-provided": {
       "primary": {
         "TestOpportunityOfflineBookable": 3,

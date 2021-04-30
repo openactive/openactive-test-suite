@@ -17,7 +17,6 @@
       "access-channel-update-notifications": true,
       "access-code": true,
       "access-code-update-notifications": true,
-      "access-pass-barcode-broker-provided": true,
       "access-pass-barcode-seller-provided": true,
       "access-pass-image": true,
       "access-pass-update-notifications": true
