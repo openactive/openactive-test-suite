@@ -7,7 +7,8 @@ export type Offer = {
     '@id': string;
 };
 export type Options = {
-    harvestStartTime: Date;
+    harvestStartTime: any;
+    harvestStartTimeTwoHoursLater: any;
 };
 export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
@@ -58,13 +59,19 @@ export function getType(opportunity: Opportunity): string;
 */
 export function getRemainingCapacity(opportunity: Opportunity): number | null | undefined;
 /**
-* @type {OfferConstraint}
-*/
-export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+ * Get the date that the startDate - validFromBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window defined.
+ */
+export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
 /**
-* @type {OfferConstraint}
-*/
-export function mustBeWithinCancellationWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no cancellation window defined.
+ */
+export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
 /**
 * @param {Opportunity} opportunity
 * @returns {boolean}

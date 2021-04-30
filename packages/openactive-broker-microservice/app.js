@@ -51,7 +51,7 @@ const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarve
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
 
-const HARVEST_START_TIME = new Date();
+const HARVEST_START_TIME = (new Date()).toISOString();
 const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
 const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
@@ -684,7 +684,7 @@ app.post('/pause', async function (req, res) {
 function getConfig() {
   return {
     // Allow a consistent startDate to be used when calling test-interface-criteria
-    harvestStartTime: HARVEST_START_TIME.toISOString(),
+    harvestStartTime: HARVEST_START_TIME,
     // Base URL used by the integration tests
     bookingApiBaseUrl: datasetSiteJson.accessService?.endpointURL,
     // Base URL used by the authentication tests
