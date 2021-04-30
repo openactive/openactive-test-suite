@@ -14,6 +14,12 @@ silentlyAllowInsecureConnections();
  * @param {any} body the data item
  */
 async function validateItem(body, validationMode) {
+  /* When re-harvesting the feed frequently during development, this can speed up the process. However, note
+  that leaving this on may allow Broker to miss some critical issues which will cause confusing errors later down
+  the line */
+  if (process.env.DEBUG_BROKER_NO_VALIDATE === 'true') {
+    return [];
+  }
   /**
    * @type {{
    *   loadRemoteJson: boolean,

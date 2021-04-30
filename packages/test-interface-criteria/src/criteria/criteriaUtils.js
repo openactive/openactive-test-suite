@@ -396,7 +396,7 @@ function mustHaveBookableOffer(offer, opportunity, options) {
     return false;
   }
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
-  if (dateAfterWhichBookingsCanBeMade == null) { return false; } // no booking window - therefore bookable at any time
+  if (dateAfterWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
   return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
   // return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable'
   //  && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
