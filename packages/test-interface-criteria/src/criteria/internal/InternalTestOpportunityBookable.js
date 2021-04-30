@@ -55,7 +55,6 @@ const InternalTestOpportunityBookable = createCriteria({
     offerConstraints: ({
       'oa:validFromBeforeStartDate': dateRange({
         maxDate: options.harvestStartTime,
-        // minDate: moment(options.harvestStartTime).toISOString(),
         allowNull: true,
       }),
       'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({

@@ -16,12 +16,6 @@ const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape')
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  */
 
-// /**
-//  * @typedef {{
-//  *   harvestStartTime: DateTime;
-//  *   harvestStartTimeTwoHoursLater: DateTime;
-//  * }} LibOptions Options object as supplied to the test-interface-criteria library API.
-//  */
 /**
  * @typedef {{
  *   harvestStartTime: string;

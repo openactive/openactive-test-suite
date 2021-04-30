@@ -18,13 +18,6 @@ function mustHaveBookingWindowAndBeOutsideOfIt(offer, opportunity, options) {
   during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
   starts at least 2 hours in the future. */
   return options.harvestStartTimeTwoHoursLater < dateAfterWhichBookingsCanBeMade;
-
-  // const start = moment(opportunity.startDate);
-  // const duration = moment.duration(offer.validFromBeforeStartDate);
-
-  // // This constraint needs to stay valid for 2 hours
-  // const valid = start.subtract(duration).add('PT2H').isAfter(options.harvestStartTime);
-  // return valid;
 }
 
 /**

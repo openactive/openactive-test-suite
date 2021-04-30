@@ -261,21 +261,6 @@ function getRemainingCapacity(opportunity) {
   return opportunity.remainingAttendeeCapacity !== undefined ? opportunity.remainingAttendeeCapacity : opportunity.remainingUses;
 }
 
-// /**
-// * @type {OfferConstraint}
-// */
-// function mustBeWithinBookingWindow(offer, opportunity, options) {
-//   if (!offer || !offer.validFromBeforeStartDate) {
-//     return null; // Required for validation step
-//   }
-
-//   const start = moment(opportunity.startDate);
-//   const duration = moment.duration(offer.validFromBeforeStartDate);
-
-//   const valid = start.subtract(duration).isBefore(options.harvestStartTime);
-//   return valid;
-// }
-
 /**
  * @param {string} datetimeIso
  * @param {string} durationIso
@@ -297,9 +282,6 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   }
 
   return dateMinusDuration(opportunity.startDate, offer.validFromBeforeStartDate);
-
-  // // This constraint needs to stay valid for 2 hours
-  // const valid = start.subtract(duration).add('PT2H').isAfter(options.harvestStartTime);
 }
 
 /**
@@ -329,21 +311,6 @@ function mustRequireAdditionalDetails(offer) {
 function mustNotRequireAdditionalDetails(offer) {
   return !mustRequireAdditionalDetails(offer);
 }
-
-// /**
-// * @type {OfferConstraint}
-// */
-// function mustBeWithinCancellationWindow(offer, opportunity, options) {
-//   if (!offer || !offer.latestCancellationBeforeStartDate) {
-//     return null; // has no cancellation window
-//   }
-
-//   const start = moment(opportunity.startDate);
-//   const duration = moment.duration(offer.latestCancellationBeforeStartDate);
-
-//   const valid = !start.subtract(duration).isBefore(options.harvestStartTime);
-//   return valid;
-// }
 
 /**
  * @type {OfferConstraint}
@@ -378,7 +345,6 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 */
 function startDateMustBe2HrsInAdvance(opportunity, options) {
   return options.harvestStartTimeTwoHoursLater < DateTime.fromISO(opportunity.startDate);
-  // return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
 }
 
 /**
@@ -398,8 +364,6 @@ function mustHaveBookableOffer(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
   if (dateAfterWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
   return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
-  // return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable'
-  //  && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
 /**
@@ -448,9 +412,7 @@ module.exports = {
   getId,
   getType,
   getRemainingCapacity,
-  // mustBeWithinBookingWindow,
   getDateAfterWhichBookingsCanBeMade,
-  // mustBeWithinCancellationWindow,
   getDateBeforeWhichCancellationsCanBeMade,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
