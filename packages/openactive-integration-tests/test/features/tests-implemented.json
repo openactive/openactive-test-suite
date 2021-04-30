@@ -69,6 +69,10 @@
       "implementedTestFiles": 3,
       "notImplementedTestFiles": 0
     },
+    "proposal-amendment": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
     "booking-partner-authentication": {
       "implementedTestFiles": 4,
       "notImplementedTestFiles": 0

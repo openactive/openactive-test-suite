@@ -31,7 +31,7 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
 /**
- * @typedef {'orders' | 'order-proposals'} OrderType
+ * @typedef {'orders' | 'order-proposals'} OrderFeedType
  */
 
 const config = require('config');
@@ -411,29 +411,29 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         // If a fatal error, just rethrow
         throw error;
       } else if (!error.response) {
-        log(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
+        logError(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
           // just rethrow
           throw error;
         }
       } else if (error.response.status === 404) {
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
-        log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
+        logError(`\n\nNot Found error for RPDE feed "${url}", feed will be ignored.\n\n\n\n\n\n\n\n\n`);
         // Stop polling feed
         return;
       } else {
-        log(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        logError(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
           // just rethrow
           throw error;
         }
@@ -854,7 +854,7 @@ function getListenerInfo(type, id) {
  *
  * If so, respond to those listeners.
  *
- * @param {'opportunities' | OrderType} type
+ * @param {'opportunities' | OrderFeedType} type
  * @param {string} id
  * @param {any} item
  */
@@ -1147,85 +1147,6 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   }
 });
 
-// /**
-//  * Pending Responses for Test Suite requests for Orders or OrderProposals.
-//  *
-//  * @type {{ [orderType in OrderType]: {[id: string]: PendingResponse}}}
-//  */
-// const allPendingOrderResponses = {
-//   orders: {},
-//   'order-proposals': {},
-// };
-
-// /**
-//  * Create a /get-{order|order-proposal}/:orderUuid Express route.
-//  *
-//  * This is a route which
-//  *
-//  * @param {OrderType} orderType
-//  * @return {import('express').Handler}
-//  */
-// function createGetOrderFromFeedRoute(orderType) {
-//   return (req, res) => {
-//     if (DO_NOT_HARVEST_ORDERS_FEED) {
-//       res.status(403).json({
-//         error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
-//       });
-//       return;
-//     }
-//     if (!req.params.orderUuid) {
-//       res.status(400).json({
-//         error: 'orderUuid is required',
-//       });
-//       return;
-//     }
-//     const { orderUuid } = req.params;
-//     // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
-//     if (allPendingOrderResponses[orderUuid] && allPendingOrderResponses[orderUuid] !== null) allPendingOrderResponses[orderUuid].cancel();
-//     allPendingOrderResponses[orderUuid] = {
-//       send(json) {
-//         allPendingOrderResponses[orderUuid] = null;
-//         res.json(json);
-//       },
-//       cancel() {
-//         log(`Ignoring previous request for "${orderUuid}"`);
-//         res.status(400).json({
-//           error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
-//         });
-//       },
-//     };
-//   };
-// }
-
-// app.get('/get-order/:orderUuid', function (req, res) {
-//   if (DO_NOT_HARVEST_ORDERS_FEED) {
-//     res.status(403).json({
-//       error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
-//     });
-//   } else if (req.params.orderUuid) {
-//     const { orderUuid } = req.params;
-
-//     // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
-//     if (allPendingOrderResponses[orderUuid] && allPendingOrderResponses[orderUuid] !== null) allPendingOrderResponses[orderUuid].cancel();
-//     allPendingOrderResponses[orderUuid] = {
-//       send(json) {
-//         allPendingOrderResponses[orderUuid] = null;
-//         res.json(json);
-//       },
-//       cancel() {
-//         log(`Ignoring previous request for "${orderUuid}"`);
-//         res.status(400).json({
-//           error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
-//         });
-//       },
-//     };
-//   } else {
-//     res.status(400).json({
-//       error: 'orderUuid is required',
-//     });
-//   }
-// });
-
 /**
  * @callback RpdePageProcessor
  * @param {any} rpdePage
@@ -1453,19 +1374,15 @@ async function processOpportunityItem(item) {
 }
 
 /**
- * @param {OrderType} orderType
+ * @param {OrderFeedType} orderFeedType
  * @returns {RpdePageProcessor}
  */
-function monitorOrdersPage(orderType) {
-  // const orderPendingResponses = allPendingOrderResponses[orderType];
+function monitorOrdersPage(orderFeedType) {
   return (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
-        handleListeners(orderType, item.id, item);
+        handleListeners(orderFeedType, item.id, item);
       }
-      // if (item.id && orderPendingResponses[item.id]) {
-      //   orderPendingResponses[item.id].send(item);
-      // }
     }
   };
 }
@@ -1650,12 +1567,12 @@ Validation errors found in Dataset Site JSON-LD:
     for (const { feedUrl, type, feedContextIdentifier } of [
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
-        type: /** @type {OrderType} */('orders'),
+        type: /** @type {OrderFeedType} */('orders'),
         feedContextIdentifier: ORDERS_FEED_IDENTIFIER,
       },
       {
         feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
-        type: /** @type {OrderType} */('order-proposals'),
+        type: /** @type {OrderFeedType} */('order-proposals'),
         feedContextIdentifier: ORDER_PROPOSALS_FEED_IDENTIFIER,
       },
     ]) {

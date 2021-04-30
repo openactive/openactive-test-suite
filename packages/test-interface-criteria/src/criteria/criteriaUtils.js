@@ -346,6 +346,13 @@ function mustNotRequireAdditionalDetails(offer) {
 // }
 
 /**
+ * @type {OfferConstraint}
+ */
+function mustAllowProposalAmendment(offer) {
+  return Array.isArray(offer.openBookingFlowRequirement) && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingNegotiation');
+}
+
+/**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
  * @returns {DateTime | null} null if there is no cancellation window defined.
@@ -449,6 +456,7 @@ module.exports = {
   remainingCapacityMustBeAtLeastTwo,
   mustRequireAttendeeDetails,
   mustNotRequireAttendeeDetails,
+  mustAllowProposalAmendment,
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   mustHaveBookableOffer,

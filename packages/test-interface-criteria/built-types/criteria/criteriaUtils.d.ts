@@ -90,6 +90,10 @@ export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer
 */
 export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
 /**
+ * @type {OfferConstraint}
+ */
+export function mustAllowProposalAmendment(offer: import("../types/Offer").Offer): boolean;
+/**
 * @type {OpportunityConstraint}
 */
 export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
