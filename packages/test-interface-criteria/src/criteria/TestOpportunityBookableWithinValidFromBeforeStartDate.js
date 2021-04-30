@@ -1,7 +1,7 @@
 const moment = require('moment');
 
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
+const { createCriteria, getDateAfterWhichBookingsCanBeMade } = require('./criteriaUtils');
 const { dateRange } = require('../testDataShape');
 
 /**
@@ -12,15 +12,17 @@ const { dateRange } = require('../testDataShape');
  * @type {OfferConstraint}
  */
 function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
-  if (!offer || !offer.validFromBeforeStartDate) {
+  const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
+  if (dateAfterWhichBookingsCanBeMade == null) {
     return false; // has no booking window
   }
+  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
 
-  const start = moment(opportunity.startDate);
-  const duration = moment.duration(offer.validFromBeforeStartDate);
+  // const start = moment(opportunity.startDate);
+  // const duration = moment.duration(offer.validFromBeforeStartDate);
 
-  const valid = start.subtract(duration).isBefore(options.harvestStartTime);
-  return valid;
+  // const valid = start.subtract(duration).isBefore(options.harvestStartTime);
+  // return valid;
 }
 
 const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({

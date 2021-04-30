@@ -1,6 +1,6 @@
-// const moment = require('moment');
-const { isObject, cloneDeep } = require('lodash');
 const moment = require('moment');
+const { isObject, cloneDeep } = require('lodash');
+const { DateTime, Duration } = require('luxon');
 
 /**
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
@@ -261,19 +261,45 @@ function getRemainingCapacity(opportunity) {
   return opportunity.remainingAttendeeCapacity !== undefined ? opportunity.remainingAttendeeCapacity : opportunity.remainingUses;
 }
 
+// /**
+// * @type {OfferConstraint}
+// */
+// function mustBeWithinBookingWindow(offer, opportunity, options) {
+//   if (!offer || !offer.validFromBeforeStartDate) {
+//     return null; // Required for validation step
+//   }
+
+//   const start = moment(opportunity.startDate);
+//   const duration = moment.duration(offer.validFromBeforeStartDate);
+
+//   const valid = start.subtract(duration).isBefore(options.harvestStartTime);
+//   return valid;
+// }
+
 /**
-* @type {OfferConstraint}
-*/
-function mustBeWithinBookingWindow(offer, opportunity, options) {
+ * @param {string} datetimeIso
+ * @param {string} durationIso
+ */
+function dateMinusDuration(datetimeIso, durationIso) {
+  return DateTime.fromISO(datetimeIso).minus(Duration.fromISO(durationIso));
+}
+
+/**
+ * Get the date that the startDate - validFromBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window defined.
+ */
+function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validFromBeforeStartDate) {
-    return null; // Required for validation step
+    return null; // has no booking window
   }
 
-  const start = moment(opportunity.startDate);
-  const duration = moment.duration(offer.validFromBeforeStartDate);
+  return dateMinusDuration(opportunity.startDate, offer.validFromBeforeStartDate);
 
-  const valid = start.subtract(duration).isBefore(options.harvestStartTime);
-  return valid;
+  // // This constraint needs to stay valid for 2 hours
+  // const valid = start.subtract(duration).add('PT2H').isAfter(options.harvestStartTime);
 }
 
 /**
@@ -304,19 +330,31 @@ function mustNotRequireAdditionalDetails(offer) {
   return !mustRequireAdditionalDetails(offer);
 }
 
+// /**
+// * @type {OfferConstraint}
+// */
+// function mustBeWithinCancellationWindow(offer, opportunity, options) {
+//   if (!offer || !offer.latestCancellationBeforeStartDate) {
+//     return null; // has no cancellation window
+//   }
+
+//   const start = moment(opportunity.startDate);
+//   const duration = moment.duration(offer.latestCancellationBeforeStartDate);
+
+//   const valid = !start.subtract(duration).isBefore(options.harvestStartTime);
+//   return valid;
+// }
+
 /**
-* @type {OfferConstraint}
-*/
-function mustBeWithinCancellationWindow(offer, opportunity, options) {
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no cancellation window defined.
+ */
+function getDateBeforeWhichCancellationsCanBeMade(offer, opportunity) {
   if (!offer || !offer.latestCancellationBeforeStartDate) {
-    return null; // Required for validation step
+    return null; // has no cancellation window
   }
-
-  const start = moment(opportunity.startDate);
-  const duration = moment.duration(offer.latestCancellationBeforeStartDate);
-
-  const valid = !start.subtract(duration).isBefore(options.harvestStartTime);
-  return valid;
+  return dateMinusDuration(opportunity.startDate, offer.latestCancellationBeforeStartDate);
 }
 
 /**
@@ -332,7 +370,8 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 * @type {OpportunityConstraint}
 */
 function startDateMustBe2HrsInAdvance(opportunity, options) {
-  return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
+  return options.harvestStartTimeTwoHoursLater < DateTime.fromISO(opportunity.startDate);
+  // return moment(options.harvestStartTime).add(moment.duration('P2H')).isBefore(opportunity.startDate);
 }
 
 /**
@@ -346,8 +385,14 @@ function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
 * @type {OfferConstraint}
 */
 function mustHaveBookableOffer(offer, opportunity, options) {
-  return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable'
-   && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
+  if (offer.openBookingInAdvance === 'https://openactive.io/Unavailable') {
+    return false;
+  }
+  const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
+  if (dateAfterWhichBookingsCanBeMade == null) { return false; } // no booking window - therefore bookable at any time
+  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
+  // return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable'
+  //  && (!offer.validFromBeforeStartDate || moment(opportunity.startDate).subtract(moment.duration(offer.validFromBeforeStartDate)).isBefore(options.harvestStartTime));
 }
 
 /**
@@ -396,8 +441,10 @@ module.exports = {
   getId,
   getType,
   getRemainingCapacity,
-  mustBeWithinBookingWindow,
-  mustBeWithinCancellationWindow,
+  // mustBeWithinBookingWindow,
+  getDateAfterWhichBookingsCanBeMade,
+  // mustBeWithinCancellationWindow,
+  getDateBeforeWhichCancellationsCanBeMade,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
   mustRequireAttendeeDetails,

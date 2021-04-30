@@ -39,6 +39,7 @@
     "htmlparser2": "^4.1.0",
     "import-fresh": "^3.2.1",
     "jest": "^24.9.0",
+    "jest-environment-node": "^26.6.2",
     "jest-spec-reporter": "^1.0.10",
     "jszip": "^3.5.0",
     "lodash": "^4.17.19",
