@@ -231,7 +231,7 @@
     },
     "business-to-business-tax-calculation-net": {
       "primary": {
-        "TestOpportunityBookableNonFreeTaxNet": 4
+        "TestOpportunityBookableNonFreeTaxNet": 1
       }
     },
     "business-to-consumer-tax-calculation-gross": {
