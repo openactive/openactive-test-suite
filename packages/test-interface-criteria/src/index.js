@@ -49,8 +49,12 @@ function getOffers(opportunity) {
   return opportunity.offers || (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
 }
 
+/**
+ * Memoized as an optimization so as to not have to recalculate the same +2 hours datetime with every
+ * single new item that is processed by Broker.
+ */
 const getHarvestStartTimeAndTwoHoursLater = memoize((/** @type {string} */harvestStartTimeIso) => {
-  const harvestStartTime = DateTime.fromJSDate(harvestStartTimeIso);
+  const harvestStartTime = DateTime.fromISO(harvestStartTimeIso);
   const harvestStartTimeTwoHoursLater = harvestStartTime.plus({ hours: 2 });
   return {
     harvestStartTime,

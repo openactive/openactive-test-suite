@@ -1,4 +1,4 @@
-const moment = require('moment');
+// const moment = require('moment');
 
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
 const { createCriteria, getDateAfterWhichBookingsCanBeMade } = require('./criteriaUtils');
@@ -38,10 +38,10 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
   testDataShape: (options) => ({
     offerConstraints: {
       'oa:validFromBeforeStartDate': dateRange({
-        maxDate: moment(options.harvestStartTime).toISOString(),
+        maxDate: options.harvestStartTime.toISO(),
+        // maxDate: moment(options.harvestStartTime).toISOString(),
       }),
     },
-    // validFromMin: moment(options.harvestStartTime).subtract(moment.duration('P28D')).toISOString(),
   }),
 });
 

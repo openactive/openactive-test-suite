@@ -1,5 +1,3 @@
-const moment = require('moment');
-
 const { InternalCriteriaFutureScheduledOpportunity } = require('./InternalCriteriaFutureScheduledOpportunity');
 const {
   createCriteria,
@@ -56,7 +54,8 @@ const InternalTestOpportunityBookable = createCriteria({
     }),
     offerConstraints: ({
       'oa:validFromBeforeStartDate': dateRange({
-        minDate: moment(options.harvestStartTime).toISOString(),
+        maxDate: options.harvestStartTime,
+        // minDate: moment(options.harvestStartTime).toISOString(),
         allowNull: true,
       }),
       'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
