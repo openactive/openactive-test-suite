@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120 - no customer.identifier
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages

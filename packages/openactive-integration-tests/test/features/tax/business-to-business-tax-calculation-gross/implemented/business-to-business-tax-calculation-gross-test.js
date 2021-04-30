@@ -11,6 +11,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
   // the simple tests can only work if all OrderItems have the same tax mode
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/120
+  supportsApproval: true,
 },
 grossTest({ c2ReqTemplateRef: 'businessCustomer', bookReqTemplateRef: 'businessCustomer' }));
