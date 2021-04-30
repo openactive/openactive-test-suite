@@ -84,6 +84,12 @@
         "TestOpportunityBookable": 12
       }
     },
+    "proposal-amendment": {
+      "primary": {
+        "TestOpportunityBookableWithNegotiation": 3,
+        "TestOpportunityBookable": 1
+      }
+    },
     "booking-partner-authentication": {},
     "dynamic-client-registration": {},
     "no-broker": {

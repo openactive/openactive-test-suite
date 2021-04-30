@@ -27,7 +27,8 @@
       "offer-overrides": true
     },
     "approval": {
-      "minimal-proposal": true
+      "minimal-proposal": true,
+      "proposal-amendment": true
     },
     "authentication": {
       "booking-partner-authentication": true,
