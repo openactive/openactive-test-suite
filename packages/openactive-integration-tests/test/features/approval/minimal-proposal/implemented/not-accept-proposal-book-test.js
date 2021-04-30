@@ -68,7 +68,6 @@ FeatureHelper.describeFeature(module, {
       expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
         .which.matches(RegExp(`${defaultFlowStageParams.uuid}/versions/.+`));
     });
-    // TODO does validator check that orderItemStatus is https://openactive.io/OrderItemProposed
     // TODO does validator check that full Seller details are included in the seller response?
   });
   FlowStageUtils.describeRunAndCheckIsValid(b, () => {

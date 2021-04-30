@@ -116,6 +116,11 @@ class Reporter {
       startTime,
     } = results;
     console.log(chalk.white(`Ran ${numTotalTests - numTodoTests} tests in ${testDuration(startTime)}`));
+
+    if (numTotalTests - numTodoTests === 0 && numTodoTests > 0) {
+      console.log(chalk.red('\n\nNone of the tests in scope were enabled in the JSON config. Please check `implementedFeatures` and ensure they are not set to `null`.'));
+    }
+
     if (numPassedTests) {
       console.log(chalk.green(
         `✅ ${numPassedTests} passing`,

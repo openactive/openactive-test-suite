@@ -18,6 +18,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  *   | 'test:OpportunityAttendanceUpdateSimulateAction'
  *   | 'test:ReplacementSimulateAction'
  *   | 'test:SellerAcceptOrderProposalSimulateAction'
+ *   | 'test:SellerAmendOrderProposalSimulateAction'
  *   | 'test:SellerRejectOrderProposalSimulateAction'
  *   | 'test:SellerRequestedCancellationSimulateAction'
  *   | 'test:SellerRequestedCancellationWithMessageSimulateAction'
