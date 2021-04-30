@@ -1,7 +1,5 @@
-const moment = require('moment');
-
 const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
+const { createCriteria, getDateAfterWhichBookingsCanBeMade } = require('./criteriaUtils');
 const { dateRange } = require('../testDataShape');
 
 /**
@@ -12,15 +10,11 @@ const { dateRange } = require('../testDataShape');
  * @type {OfferConstraint}
  */
 function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
-  if (!offer || !offer.validFromBeforeStartDate) {
+  const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
+  if (dateAfterWhichBookingsCanBeMade == null) {
     return false; // has no booking window
   }
-
-  const start = moment(opportunity.startDate);
-  const duration = moment.duration(offer.validFromBeforeStartDate);
-
-  const valid = start.subtract(duration).isBefore(options.harvestStartTime);
-  return valid;
+  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
 }
 
 const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
@@ -36,10 +30,10 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
   testDataShape: (options) => ({
     offerConstraints: {
       'oa:validFromBeforeStartDate': dateRange({
-        maxDate: moment(options.harvestStartTime).toISOString(),
+        maxDate: options.harvestStartTime.toISO(),
+        // maxDate: moment(options.harvestStartTime).toISOString(),
       }),
     },
-    // validFromMin: moment(options.harvestStartTime).subtract(moment.duration('P28D')).toISOString(),
   }),
 });
 
