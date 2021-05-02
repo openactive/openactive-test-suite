@@ -75,7 +75,7 @@ if (!IS_RUNNING_IN_CI) {
 * within the terminal of MacOS or Linux, or from Windows Command Prompt.      *
 *                                                                             *
 * For best results when running in a continuous integration environment,      *
-* disable interactive mode by setting \`"ci": true\` in the config.           *
+* disable interactive mode by setting "ci": true in the config.               *
 *                                                                             *
 *******************************************************************************
 
