@@ -13,6 +13,7 @@ const { createPaymentPart } = require('./common');
  *       '@type': string,
  *       '@id': string,
  *     },
+ *     'test:control': boolean,
  *   }[],
  *   brokerRole: string | null,
  * }} C1ReqTemplateData
@@ -69,21 +70,6 @@ function createNoBrokerNameC1Req(data) {
 }
 
 /**
- * C1 request with missing OrderItem.OrderedItem
- *
- * @param {C1ReqTemplateData} data
- */
-function createStandardC1WithoutOrderedItem(data) {
-  const req = createStandardC1Req(data);
-  req.orderedItem.forEach((orderedItem) => {
-    const ret = orderedItem;
-    delete ret.orderedItem;
-  });
-
-  return req;
-}
-
-/**
  * C1 request with attendee details
  *
  * @param {C1ReqTemplateData} data
@@ -103,15 +89,34 @@ function createAttendeeDetailsC1Req(data) {
 }
 
 /**
- * C1 request with missing OrderItem.AcceptedOffer
+ * C1 request with missing OrderItem.OrderedItem for primary OrderItems
+ *
+ * @param {C1ReqTemplateData} data
+ */
+function createStandardC1WithoutOrderedItem(data) {
+  const req = createStandardC1Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+      const ret = orderedItem;
+      delete ret.orderedItem;
+    }
+  });
+
+  return req;
+}
+
+/**
+ * C1 request with missing OrderItem.AcceptedOffer for primary OrderItems
  *
  * @param {C1ReqTemplateData} data
  */
 function createStandardC1WithoutAcceptedOffer(data) {
   const req = createStandardC1Req(data);
   req.orderedItem.forEach((orderedItem) => {
-    const ret = orderedItem;
-    delete ret.acceptedOffer;
+    if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+      const ret = orderedItem;
+      delete ret.acceptedOffer;
+    }
   });
   return req;
 }

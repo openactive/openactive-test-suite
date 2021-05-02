@@ -36,7 +36,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [broker-not-included-resellerbroker-mode](./implemented/broker-not-included-resellerbroker-mode-test.js) | Broker not included in Order in ResellerBroker mode | Request shoud fail if broker is not included in Order in ResellerBroke mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
-| [customer-included-resellerbroker-mode](./implemented/customer-included-resellerbroker-mode-test.js) | Customer included in Order in ResellerBroker mode | Request shoud succeed if broker and customer are included in Order in ResellerBroke mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [customer-included-resellerbroker-mode](./implemented/customer-included-resellerbroker-mode-test.js) | Customer included in Order in ResellerBroker mode | Request should succeed if broker and customer are included in Order in ResellerBroke mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 | [customer-not-included-resellerbroker-mode](./implemented/customer-not-included-resellerbroker-mode-test.js) | Customer not included in Order in ResellerBroker mode | Request shoud succeed if customer is not included in Order in ResellerBroke mode for B request. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 

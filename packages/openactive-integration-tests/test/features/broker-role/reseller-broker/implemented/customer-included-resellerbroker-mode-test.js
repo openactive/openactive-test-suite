@@ -7,7 +7,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'customer-included-resellerbroker-mode',
   testName: 'Customer included in Order in ResellerBroker mode',
-  testDescription: 'Request shoud succeed if broker and customer are included in Order in ResellerBroke mode for B request.',
+  testDescription: 'Request should succeed if broker and customer are included in Order in ResellerBroke mode for B request.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests

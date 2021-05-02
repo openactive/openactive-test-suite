@@ -18,7 +18,7 @@
   "eslintConfig": {},
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.47",
-    "@openactive/data-models": "^2.0.216",
+    "@openactive/data-models": "^2.0.217",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "async-mutex": "^0.3.1",

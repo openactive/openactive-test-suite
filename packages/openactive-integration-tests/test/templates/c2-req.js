@@ -13,6 +13,7 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *       '@type': string,
  *       '@id': string,
  *     },
+ *     'test:control': boolean,
  *   }[],
  *   brokerRole: string | null,
  *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
@@ -133,17 +134,35 @@ function createNoBrokerNameC2Req(data) {
 }
 
 /**
- * C2 request with missing OrderItem.OrderedItem
+ * C2 request with missing OrderItem.OrderedItem for primary OrderItems
  *
  * @param {C2ReqTemplateData} data
  */
 function createStandardC2WithoutOrderedItem(data) {
   const req = createStandardC2Req(data);
   req.orderedItem.forEach((orderedItem) => {
-    const ret = orderedItem;
-    delete ret.orderedItem;
+    if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+      const ret = orderedItem;
+      delete ret.orderedItem;
+    }
   });
 
+  return req;
+}
+
+/**
+ * C2 request missing OrderItem.AcceptedOffer for primary OrderItems
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createStandardC2WithoutAcceptedOffer(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+      const ret = orderedItem;
+      delete ret.acceptedOffer;
+    }
+  });
   return req;
 }
 
@@ -163,20 +182,6 @@ function createAttendeeDetailsC2Req(data) {
       email: 'fred.bloggs@mailinator.com',
     };
   }
-  return req;
-}
-
-/**
- * C2 request missing OrderItem.AcceptedOffer
- *
- * @param {C2ReqTemplateData} data
- */
-function createStandardC2WithoutAcceptedOffer(data) {
-  const req = createStandardC2Req(data);
-  req.orderedItem.forEach((orderedItem) => {
-    const ret = orderedItem;
-    delete ret.acceptedOffer;
-  });
   return req;
 }
 

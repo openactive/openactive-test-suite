@@ -87,7 +87,7 @@ class Common {
   }
 
   /**
-   * Run a check against each OrderItem in an Orders API response. Each OrderItem from the API response
+   * Run a check against each OrderItem in an API response. Each OrderItem from the API response
    * can also be checked against the associated item from the feed.
    *
    * You can define a different check to run if the OrderItem is a control.

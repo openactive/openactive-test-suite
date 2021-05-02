@@ -65,11 +65,16 @@ module.exports = async () => {
   if (booleanObjIsAllFalse(BOOKING_FLOWS_IN_SCOPE)) {
     throw new Error('There are no Booking Flows selected for testing. Please ensure `bookingFlowsInScope` contains at least one value set to `true`.');
   }
-  console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${
-    booleanObjGetTrueKeys(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).map(k => `'${k}'`).join(', ')
-  } and booking flows: ${
-    booleanObjGetTrueKeys(BOOKING_FLOWS_IN_SCOPE).map(k => `'${k}'`).join(', ')
-  }`);
+  if (process.env.SINGLE_FLOW_PATH_MODE) {
+    console.log(`Running a single flow path "${process.env.SINGLE_FLOW_PATH_MODE}" for tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode.`);
+  } else {
+    console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${
+      booleanObjGetTrueKeys(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).map(k => `'${k}'`).join(', ')
+    } and booking flows: ${
+      booleanObjGetTrueKeys(BOOKING_FLOWS_IN_SCOPE).map(k => `'${k}'`).join(', ')
+    }`);
+  }
+
   try {
     console.log('Waiting for broker microservice to be ready...');
     await ping();

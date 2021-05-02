@@ -9,6 +9,8 @@ const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require(
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
+const { SINGLE_FLOW_PATH_MODE } = process.env;
+
 /**
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  * @typedef {import('../types/OpportunityCriteria').OpportunityType} OpportunityType
@@ -188,6 +190,10 @@ class FeatureHelper {
     const bookingFlowsInScope = getEnabledFeaturesFromObj(BOOKING_FLOWS_IN_SCOPE, skipBookingFlows);
     const implemented = IMPLEMENTED_FEATURES[configuration.testFeature];
 
+    // Selections for SINGLE_FLOW_PATH_MODE
+    const bookingFlowsSingleSelection = (SINGLE_FLOW_PATH_MODE || '').split('/')[0];
+    const opportunityTypesSingleSelection = (SINGLE_FLOW_PATH_MODE || '').split('/')[1];
+
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
     if (
@@ -197,6 +203,8 @@ class FeatureHelper {
       && !(DYNAMIC_REGISTRATION_FAILURE && !configuration.surviveDynamicRegistrationFailure)
       && (bookingFlowsInScope.length > 0)
       && (opportunityTypesInScope.length > 0)
+      // @ts-ignore
+      && (!SINGLE_FLOW_PATH_MODE || (bookingFlowsInScope.includes(bookingFlowsSingleSelection) && (opportunityTypesInScope.includes(opportunityTypesSingleSelection) || (!configuration.skipMultiple && opportunityTypesSingleSelection === 'Multiple'))))
     ) {
       describe(configuration.testFeature, function () {
         describe(configuration.testIdentifier, function () {
@@ -221,9 +229,11 @@ class FeatureHelper {
           } else {
             // Create a new test for each bookingFlow in scope
             for (const bookingFlow of bookingFlowsInScope) {
+              if (SINGLE_FLOW_PATH_MODE && bookingFlow !== bookingFlowsSingleSelection) continue;
               describe(bookingFlow, () => {
                 // And create a new test for each opportunityType in scope
                 for (const opportunityType of opportunityTypesInScope) {
+                  if (SINGLE_FLOW_PATH_MODE && opportunityType !== opportunityTypesSingleSelection) continue;
                   describe(opportunityType, function () {
                     const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${bookingFlow} >> ${opportunityType})`, this, {
                       config: configuration,
@@ -243,7 +253,7 @@ class FeatureHelper {
                   });
                 }
 
-                if (!configuration.skipMultiple) {
+                if (!configuration.skipMultiple && (!SINGLE_FLOW_PATH_MODE || opportunityTypesSingleSelection === 'Multiple')) {
                   describe('Multiple', function () {
                     const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
                       config: configuration,
