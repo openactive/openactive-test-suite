@@ -57,24 +57,28 @@ nodeCleanup(function (exitCode, signal) {
 function setupEscapeKey()
 {
   // inquirer resets raw mode after the prompt completes, so resume it to allow esc to be detected
-  process.stdin.setRawMode(true);
+  if (process.stdin.isTTY) {
+    process.stdin.setRawMode(true);
+  }
   // inquirer pauses the stream after the prompt completes, so resume it to allow esc to be detected
   process.stdin.resume();
 }
 
-// Setup escape key to cancel running tests
-readline.emitKeypressEvents(process.stdin);
-process.stdin.on('keypress', (ch, key) => {
-  if (!key) {
-    return;
-  }
-  if (key.name === 'escape') {
-    if (integrationTests !== null) integrationTests.kill();
-  } else if (key.ctrl && key.name === 'c') {
-    process.exit(); // eslint-disable-line unicorn/no-process-exit
-  }
-});
-setupEscapeKey();
+if (!IS_RUNNING_IN_CI) {
+  // Setup escape key to cancel running tests
+  readline.emitKeypressEvents(process.stdin);
+  process.stdin.on('keypress', (ch, key) => {
+    if (!key) {
+      return;
+    }
+    if (key.name === 'escape') {
+      if (integrationTests !== null) integrationTests.kill();
+    } else if (key.ctrl && key.name === 'c') {
+      process.exit(); // eslint-disable-line unicorn/no-process-exit
+    }
+  });
+  setupEscapeKey();
+}
 
 microservice = fork('app.js', [], { cwd: './packages/openactive-broker-microservice/', silent: true } );
 microservice.stdout.pipe(process.stdout);
@@ -167,7 +171,9 @@ in order to harvest the latest data.
       microservice.stderr.resume();
 
       // Ensure escape key can be captured
-      setupEscapeKey();
+      if (!IS_RUNNING_IN_CI) {
+        setupEscapeKey();
+      }
     });
   }
 }
