@@ -65,6 +65,23 @@ function setupEscapeKey()
 }
 
 if (!IS_RUNNING_IN_CI) {
+  if (!process.stdin.isTTY) {
+    console.log(`
+
+*******************************************************************************
+* WARNING: TEST SUITE IS RUNNING IN INTERACTIVE MODE OUTSIDE OF A TTY SESSION *
+*                                                                             *
+* For best results when running interactively, test suite should be run from  *
+* within the terminal of MacOS or Linux, or from Windows Command Prompt.      *
+*                                                                             *
+* For best results when running in a continuous integration environment,      *
+* disable interactive mode by setting \`"ci": true\` in the config.           *
+*                                                                             *
+*******************************************************************************
+
+`);
+  }
+
   // Setup escape key to cancel running tests
   readline.emitKeypressEvents(process.stdin);
   process.stdin.on('keypress', (ch, key) => {
@@ -126,8 +143,6 @@ function launchIntegrationTests(args, singleFlowPathMode) {
       const testArgs = args.join(' ');
     
       console.log(`
-Pausing broker microservice...
-
 When data feeds are stable or when using 'controlled' mode, tests can be rerun
 quickly without reharvesting. However, for 'random' mode, if data feeds have
 been updated without the RPDE 'modified' property being updated (e.g. when
