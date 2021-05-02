@@ -2,6 +2,8 @@
  * test-interface-criteria
  * MIT Licensed
  */
+const { memoize } = require('lodash');
+const { DateTime } = require('luxon');
 const { allCriteria } = require('./criteria');
 const { getOrganizerOrProvider, extendTestDataShape } = require('./criteria/criteriaUtils');
 const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape');
@@ -12,6 +14,12 @@ const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape')
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
+ */
+
+/**
+ * @typedef {{
+ *   harvestStartTime: string;
+ * }} LibOptions Options object as supplied to the test-interface-criteria library API.
  */
 
 const criteriaMap = new Map(allCriteria.map((criteria) => [criteria.name, criteria]));
@@ -36,6 +44,27 @@ function getOffers(opportunity) {
 }
 
 /**
+ * Memoized as an optimization so as to not have to recalculate the same +2 hours datetime with every
+ * single new item that is processed by Broker.
+ */
+const getHarvestStartTimeAndTwoHoursLater = memoize((/** @type {string} */harvestStartTimeIso) => {
+  const harvestStartTime = DateTime.fromISO(harvestStartTimeIso);
+  const harvestStartTimeTwoHoursLater = harvestStartTime.plus({ hours: 2 });
+  return {
+    harvestStartTime,
+    harvestStartTimeTwoHoursLater,
+  };
+});
+
+/**
+ * @param {LibOptions} libOptions
+ * @returns {Options}
+ */
+function augmentLibOptions(libOptions) {
+  return getHarvestStartTimeAndTwoHoursLater(libOptions.harvestStartTime);
+}
+
+/**
  * @param {Criteria} criteria
  * @param {Opportunity} opportunity
  * @param {Options} options
@@ -56,9 +85,10 @@ function filterRelevantOffers(criteria, opportunity, options) {
  *
  * @param {Criteria} criteria
  * @param {Opportunity} opportunity
- * @param {Options} options
+ * @param {LibOptions} libOptions
  */
-function testMatch(criteria, opportunity, options) {
+function testMatch(criteria, opportunity, libOptions) {
+  const options = augmentLibOptions(libOptions);
   // Array of unmetOpportunityConstraints labels
   const unmetOpportunityConstraints = criteria.opportunityConstraints
     .filter(([, test]) => !test(opportunity, options))
@@ -89,9 +119,10 @@ function testMatch(criteria, opportunity, options) {
 /**
  * @param {string} criteriaName
  * @param {Opportunity} opportunity
- * @param {Options} options
+ * @param {LibOptions} libOptions
  */
-function getRelevantOffers(criteriaName, opportunity, options) {
+function getRelevantOffers(criteriaName, opportunity, libOptions) {
+  const options = augmentLibOptions(libOptions);
   const criteria = getCriteriaAndAssertExists(criteriaName);
   return filterRelevantOffers(criteria, opportunity, options);
 }
@@ -101,9 +132,10 @@ function getRelevantOffers(criteriaName, opportunity, options) {
  * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
  * @param {string} remainingCapacityPredicate The ShEx predicate to use for "remaining capacity". This should be
  *   remainingUses for Slots and remainingAttendeeCapacity for Events.
- * @param {Options} options
+ * @param {LibOptions} libOptions
  */
-function getTestDataShapeExpressions(criteriaName, bookingFlow, remainingCapacityPredicate, options) {
+function getTestDataShapeExpressions(criteriaName, bookingFlow, remainingCapacityPredicate, libOptions) {
+  const options = augmentLibOptions(libOptions);
   const criteria = getCriteriaAndAssertExists(criteriaName);
   const shape = criteria.testDataShape(options);
   const contextualisePredicate = (predicate) => (predicate === 'placeholder:remainingCapacity' ? remainingCapacityPredicate : predicate);

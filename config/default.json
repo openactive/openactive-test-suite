@@ -77,7 +77,6 @@
       "access-code": true,
       "access-pass-image": true,
       "access-pass-barcode-seller-provided": true,
-      "access-pass-barcode-broker-provided": true,
       "reseller-broker": true,
       "reseller-broker-tax-calculation": null,
       "no-broker": true,
