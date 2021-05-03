@@ -23,12 +23,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   describe('Booking should succeed even if Customer is not included in Order, because we are in ResellerBroker mode', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-    // Validation for C2 has been skipped below. This because of the following outstanding issues:
-    // - Modelling Spec: https://github.com/openactive/modelling-opportunity-data/issues/261
-    // - Validator: https://github.com/openactive/data-model-validator/issues/366
-    // When these issues are fixed, the line below can be changed to
-    // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   });
 });

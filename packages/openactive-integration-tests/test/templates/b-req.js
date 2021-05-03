@@ -34,6 +34,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *       '@type': string,
  *       '@id': string,
  *     },
+ *     'test:control': boolean,
  *   }[],
  *   totalPaymentDue: number,
  *   openBookingPrepayment?: Prepayment | null | undefined,
@@ -418,7 +419,7 @@ function createIncorrectReconciliationDetails(data) {
 }
 
 /**
- * Flexible B request - but with missing OrderItem.OrderedItem
+ * Flexible B request - but with missing OrderItem.OrderedItem for primary OrderItems
  *
  * @param {BReqTemplateData} data
  */
@@ -427,8 +428,32 @@ function createStandardBWithoutOrderedItem(data) {
     const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
     if (req.orderedItem) {
       req.orderedItem.forEach((orderedItem) => {
-        const ret = orderedItem;
-        delete ret.orderedItem;
+        if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+          const ret = orderedItem;
+          delete ret.orderedItem;
+        }
+      });
+    }
+    return req;
+  }
+
+  return null;
+}
+
+/**
+ * Flexible B request - but with missing OrderItem.AcceptedOffer for primary OrderItems
+ *
+ * @param {BReqTemplateData} data
+ */
+function createStandardBWithoutAcceptedOffer(data) {
+  if (!data.orderProposalVersion) {
+    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
+    if (req.orderedItem) {
+      req.orderedItem.forEach((orderedItem) => {
+        if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+          const ret = orderedItem;
+          delete ret.acceptedOffer;
+        }
       });
     }
     return req;
@@ -454,26 +479,6 @@ function createAttendeeDetails(data) {
     };
   }
   return req;
-}
-
-/**
- * Flexible B request - but with missing OrderItem.AcceptedOffer.
- *
- * @param {BReqTemplateData} data
- */
-function createStandardBWithoutAcceptedOffer(data) {
-  if (!data.orderProposalVersion) {
-    const req = isPaidOpportunity(data) ? createStandardPaidBReq(data) : createStandardFreeBReq(data);
-    if (req.orderedItem) {
-      req.orderedItem.forEach((orderedItem) => {
-        const ret = orderedItem;
-        delete ret.acceptedOffer;
-      });
-    }
-    return req;
-  }
-
-  return null;
 }
 
 /**

@@ -1,5 +1,8 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const {
+  FlowStageUtils,
+  FlowStageRecipes,
+} = require('../../../../helpers/flow-stages');
 const { itShouldIncludeErrorForOnlyPrimaryOrderItems, itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -11,25 +14,28 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'common-error-conditions',
   testFeatureImplemented: true,
-  testIdentifier: 'not-bookable',
-  testName: 'Expect an OpportunityOfferPairNotBookableError when booking not bookable opportunity',
-  testDescription: 'Runs C1, C2 and B for an opportunity that is not bookable, expecting an OpportunityOfferPairNotBookableError to be returned at C1 and C2, and an UnableToProcessOrderItemError to be returned at B',
+  testIdentifier: 'incomplete-order-item-no-opportunity',
+  testName: 'Test for IncompleteOrderItemError with missing `orderedItem`',
+  testDescription: 'Test for IncompleteOrderItemError (at C1, C2 and B). If there is a missing `orderedItem` property on the OrderItem.',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
+  testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
   supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  // ## Set up tests for noOrderedItem
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger,
+    {
+      c1ReqTemplateRef: 'noOrderedItem', c2ReqTemplateRef: 'noOrderedItem', bookReqTemplateRef: 'noOrderedItem',
+    });
 
   // # Set up Tests
   /**
    * @param {C1FlowStageType | C2FlowStageType} flowStage
    */
-  function itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(flowStage) {
-    itShouldIncludeErrorForOnlyPrimaryOrderItems('OpportunityOfferPairNotBookableError', {
+  function itShouldIncludeIncompleteOrderItemErrorWhereRelevant(flowStage) {
+    itShouldIncludeErrorForOnlyPrimaryOrderItems('IncompleteOrderItemError', {
       orderItemCriteriaList,
       getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
       getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
@@ -37,11 +43,11 @@ FeatureHelper.describeFeature(module, {
   }
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c1);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c1, () => {
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c1);
   });
-  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c2, () => {
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c2);
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
     itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);

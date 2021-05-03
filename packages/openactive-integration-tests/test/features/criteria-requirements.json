@@ -19,7 +19,7 @@
     },
     "common-error-conditions": {
       "primary": {
-        "TestOpportunityBookable": 25,
+        "TestOpportunityBookable": 29,
         "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
       }
     },
