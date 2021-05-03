@@ -166,7 +166,7 @@
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {
-      "implementedTestFiles": 3,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 2
     },
     "prepayment-optional": {

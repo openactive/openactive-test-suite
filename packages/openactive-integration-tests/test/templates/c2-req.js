@@ -1,4 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
+const shortid = require('shortid');
 const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
@@ -60,6 +61,10 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *   }[],
  *   payment: {
  *     '@type': string,
+ *     identifier?: string,
+ *     name?: string,
+ *     accountId?: string,
+ *     paymentProviderId?: string,
  *   },
  * }} C2Req
  */
@@ -237,6 +242,47 @@ function createBusinessCustomerC2Req(data) {
 }
 
 /**
+ * C2 request with payment property - though reconciliation fields in `payment`
+ * are missing.
+ *
+ * Note that the purpose of this template is to test using missing `payment` data
+ * when `payment` is required.
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createMissingPaymentReconciliationDetails(data) {
+  const req = createStandardC2Req(data);
+  return {
+    ...req,
+    // @ts-ignore
+    payment: omit(['accountId', 'name', 'paymentProviderId'], req.payment),
+  };
+}
+
+/**
+ * C2 request with payment property - though reconciliation fields in `payment`
+ * are incorrect.
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createIncorrectReconciliationDetails(data) {
+  const req = createStandardC2Req(data);
+  // Always include payment details, regardless of if payment reconciliation
+  // details are available in the config, as per the spec for Payment reconciliation detail validation
+  if (!req.payment) req.payment = createPaymentPart(false, true);
+  if (req.payment.accountId) {
+    req.payment.accountId = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.name) {
+    req.payment.name = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.paymentProviderId) {
+    req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
+  }
+  return req;
+}
+
+/**
  * C2 request with missing broker
  *
  * @param {C2ReqTemplateData} data
@@ -265,6 +311,8 @@ const c2ReqTemplates = {
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,
   noCustomer: createNoCustomerC2Req,
+  incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetails,
 };
 
 /**
