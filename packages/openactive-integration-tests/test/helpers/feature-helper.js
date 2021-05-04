@@ -4,7 +4,6 @@ const chakram = require('chakram');
 const { Logger } = require('./logger');
 const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
-const { FlowHelper } = require('./flow-helper');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
@@ -66,7 +65,6 @@ const { SINGLE_FLOW_PATH_MODE } = process.env;
  *   implemented: boolean,
  *   logger: InstanceType<typeof Logger>,
  *   state: InstanceType<typeof RequestState>,
- *   flow: InstanceType<typeof FlowHelper>,
  *   opportunityType?: string | null,
  *   bookingFlow?: BookingFlow | null,
  * ) => void} RunTestsFn
@@ -221,9 +219,8 @@ class FeatureHelper {
                 });
 
                 const state = new RequestState(logger);
-                const flow = new FlowHelper(state);
 
-                tests.bind(this)(configuration, null, implemented, logger, state, flow);
+                tests.bind(this)(configuration, null, implemented, logger, state);
               });
             });
           } else {
@@ -244,13 +241,12 @@ class FeatureHelper {
                     });
 
                     const state = new RequestState(logger);
-                    const flow = new FlowHelper(state);
 
                     const orderItemCriteria = singleOpportunityCriteriaTemplate === null
                       ? null
                       : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType, bookingFlow);
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, opportunityType, bookingFlow);
                   });
                 }
 
@@ -265,7 +261,6 @@ class FeatureHelper {
                     });
 
                     const state = new RequestState(logger);
-                    const flow = new FlowHelper(state);
 
                     const orderItemCriteria = [];
 
@@ -276,7 +271,7 @@ class FeatureHelper {
                       });
                     }
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null, bookingFlow);
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, null, bookingFlow);
                   });
                 }
               });
