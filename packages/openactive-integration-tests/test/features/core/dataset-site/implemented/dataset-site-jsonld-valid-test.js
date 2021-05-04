@@ -17,6 +17,7 @@ FeatureHelper.describeFeature(module, {
   testName: 'Dataset Site JSON-LD valid',
   testDescription: 'Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice.',
   doesNotUseOpportunitiesMode: true,
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
   describe('Get Dataset Site', function () {
