@@ -4,61 +4,9 @@ const { expect } = require('chai');
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../helpers/flow-stages/fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
- * @typedef {InstanceType<import('../helpers/request-state')['RequestState']>} RequestState
- * @typedef {InstanceType<import('../shared-behaviours/c1')['C1']>} C1
- * @typedef {InstanceType<import('../shared-behaviours/c2')['C2']>} C2
- * @typedef {InstanceType<import('../shared-behaviours/b')['B']>} B
- * @typedef {InstanceType<import('../helpers/flow-stages/book-recipe')['BookRecipe']>} BookRecipe
  */
 
 class Common {
-  // TODO remove these top 2 functions now that all tests uses FlowStages
-  /**
-   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
-   *
-   * @param {OpportunityCriteria[]} orderItemCriteria
-   * @param {RequestState} state
-   * @param {C1 | C2 | B} stage
-   * @param {() => any} orderAccessor
-   * @param {string} name Used for the it() test description
-   * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} cb
-   */
-  static itForOrderItem(orderItemCriteria, state, stage, orderAccessor, name, cb) {
-    this.itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, name, cb, name, cb);
-  }
-
-  /**
-   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
-   *
-   * @param {OpportunityCriteria[]} orderItemCriteria
-   * @param {RequestState} state
-   * @param {C1 | C2 | B} stage
-   * @param {() => any} orderAccessor
-   * @param {string} testName Used for the it() test description for order item criteria which are not controls
-   * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} testCb
-   * @param {string} controlName Used for the it() test description for order item criteria which are controls
-   * @param {(feedOrderItem: any, responseOrderItem: any, responseOrderItemErrorTypes: any) => void} controlCb
-   */
-  static itForOrderItemByControl(orderItemCriteria, state, stage, orderAccessor, testName, testCb, controlName, controlCb) {
-    orderItemCriteria.forEach((c, i) => {
-      it(`OrderItem at position ${i} ${c.control ? controlName : testName}`, () => {
-        if (stage) stage.expectResponseReceived();
-
-        const feedOrderItem = state.orderItems[i];
-
-        expect(orderAccessor().orderedItem).to.be.an('array');
-
-        const responseOrderItem = orderAccessor().orderedItem.find(x => x.position === feedOrderItem.position);
-
-        const responseOrderItemErrorTypes = (responseOrderItem.error || []).map(x => x['@type']);
-
-        const cb = c.control ? controlCb : testCb;
-
-        cb(feedOrderItem, responseOrderItem, responseOrderItemErrorTypes);
-      });
-    });
-  }
-
   /**
    * Run a check against each OrderItem in an Orders API response. Each OrderItem from the API response
    * can also be checked against the associated item from the feed.
@@ -161,9 +109,6 @@ class Common {
           getOrdersApiResponse(),
           getBookFirstStageResponse && getBookFirstStageResponse(),
         );
-        // const apiResponseOrderItem = getOrdersApiResponse().body.orderedItem.find(orderItem => (
-        //   orderItem.position === feedOrderItem.position
-        // ));
         // chai why are you like this -.-
         // eslint-disable-next-line no-unused-expressions
         expect(apiResponseOrderItem).to.not.be.null

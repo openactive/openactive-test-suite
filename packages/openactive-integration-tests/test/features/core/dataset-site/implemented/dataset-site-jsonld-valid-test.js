@@ -1,13 +1,7 @@
-/* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai');
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetDatasetSite } = require('../../../../shared-behaviours');
-
-/* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
