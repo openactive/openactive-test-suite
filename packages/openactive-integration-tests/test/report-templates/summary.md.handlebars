@@ -7,8 +7,8 @@ Mode: **{{ useRandomOpportunitiesMode }}**
 {{/if}}{{#if testResultSummary.numPendingTests}}– {{ testResultSummary.numPendingTests }} pending
 {{/if}}
 
-{{#each opportunityTypeGroups }}
-{{ opportunityTypeName }}
+{{#eachSorted opportunityTypeGroups }}
+{{{ opportunityTypeName }}}
 ---
 
   {{#each featureGroups }}
@@ -18,4 +18,4 @@ Mode: **{{ useRandomOpportunitiesMode }}**
     {{/each}}
   {{/each}}
 
-{{/each}}
+{{/eachSorted}}

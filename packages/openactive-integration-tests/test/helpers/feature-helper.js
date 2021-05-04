@@ -239,6 +239,7 @@ class FeatureHelper {
                       config: configuration,
                       description: configuration.testDescription,
                       implemented,
+                      bookingFlow,
                       opportunityType,
                     });
 
@@ -259,6 +260,7 @@ class FeatureHelper {
                       config: configuration,
                       description: configuration.testDescription,
                       implemented,
+                      bookingFlow,
                       opportunityType: 'Multiple',
                     });
 
