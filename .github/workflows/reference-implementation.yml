@@ -12,28 +12,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO we cannot do these focused modes yet until cert gen is fixed so that it does not validate against tests which could not have run due to the bookingFlows in scope and the tests bookingFlow requirements
-        # (https://openactive.slack.com/archives/G01CSJTLZLZ/p1619516585017500?thread_ts=1619460467.023900&cid=G01CSJTLZLZ)
-        # mode: ['random', 'controlled']
-        # profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
-        # flow: ['simple', 'approval']
-        # include:
-        # - mode: 'random'
-        #   profile: 'all-features'
-        #   flow: 'both'
-        # - mode: 'controlled'
-        #   profile: 'all-features'
-        #   flow: 'both'
         mode: ['random', 'controlled']
         profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
-        flow: ['both']
+        flow: ['simple', 'approval']
         include:
         - mode: 'random'
-          profile: 'simple-book-only'
-          flow: 'simple'
+          profile: 'all-features'
+          flow: 'both'
         - mode: 'controlled'
-          profile: 'simple-book-only'
-          flow: 'simple'
+          profile: 'all-features'
+          flow: 'both'
 
     steps:
     - name: Checkout OpenActive Test Suite
