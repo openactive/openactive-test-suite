@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-// const { getOrderItemAtPositionXFromOrdersApiResponse } = require('../../../../shared-behaviours/common');
+const { getOrderItemAtPositionXFromOrdersApiResponse } = require('../../../../shared-behaviours/common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -26,19 +26,13 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include an `accessChannel` or a `customerNotice`', () => {
-      const { orderedItem } = bookRecipe.b.getOutput().httpResponse.body;
-      expect(orderedItem).to.be.an('array');
-      // TODO maybe refactor this
-      // const orderItemWithPrivateVirtualLocation = getOrderItemAtPositionXFromOrdersApiResponse(0, bookRecipe.b.getO)
       /* The item with position 0 will be the one that satisfies the primary test opportunity criteria (and
-      therefore is online).
-      Now, B will not return positions in its OrderItems if it happens after P. So, we use the output from the first
-      book stage (which will be either P or B) to get the `@id` of the position=0 OrderItem, and then we can find
-      that OrderItem in B */
-      const orderItemIdOfPosition0 = bookRecipe.firstStage.getOutput().httpResponse.body.orderedItem
-        .find(orderItem => orderItem.position === 0)['@id'];
-      const orderItemWithPrivateVirtualLocation = orderedItem.find(orderItem => (
-        orderItem['@id'] === orderItemIdOfPosition0));
+      therefore is online). */
+      const orderItemWithPrivateVirtualLocation = getOrderItemAtPositionXFromOrdersApiResponse(
+        0,
+        bookRecipe.b.getOutput().httpResponse,
+        bookRecipe.firstStage.getOutput().httpResponse,
+      );
       expect(orderItemWithPrivateVirtualLocation).to.satisfy(orderItem => (
         (orderItem.accessChannel && orderItem.accessChannel['@type'] === 'VirtualLocation')
         || (typeof orderItem.customerNotice === 'string' && orderItem.customerNotice.length > 0)
