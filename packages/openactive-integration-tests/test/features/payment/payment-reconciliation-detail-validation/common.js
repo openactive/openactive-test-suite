@@ -11,7 +11,6 @@ const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
-
 /**
  * @param {InitialiseSimpleC1C2BookFlowOptions} [reqTemplateRefs]
  */
