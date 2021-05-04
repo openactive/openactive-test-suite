@@ -256,7 +256,7 @@ class FeatureHelper {
 
                 if (!configuration.skipMultiple && (!SINGLE_FLOW_PATH_MODE || opportunityTypesSingleSelection === 'Multiple')) {
                   describe('Multiple', function () {
-                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
+                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${bookingFlow} >> Multiple)`, this, {
                       config: configuration,
                       description: configuration.testDescription,
                       implemented,

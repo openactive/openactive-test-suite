@@ -33,7 +33,7 @@ let flowPathOptions = [
     [...bookableOpportunityTypes, 'Multiple'].map(bookableOpportunityType => 
       ({name: `${bookingFlow} >> ${bookableOpportunityType}`, value: `${bookingFlow}/${bookableOpportunityType}`})
     )
-  ),
+  ).sort((a, b) => (a.name > b.name) ? 1 : -1),
 ];
 let currentFlowPathSelection = '';
 

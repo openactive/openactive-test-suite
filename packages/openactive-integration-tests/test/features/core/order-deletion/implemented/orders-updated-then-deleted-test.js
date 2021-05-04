@@ -18,7 +18,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/openactive-test-suite/issues/376 OrderFeed-after-action after P-after-B has intermittent failures
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
