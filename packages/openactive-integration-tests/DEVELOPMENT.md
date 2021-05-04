@@ -30,7 +30,7 @@ Implemented and non-implemented tests are the test modes, these are configured w
 
 ## FeatureHelper
 
-This is a class that abstracts away much of the above. This implements the `describe` blocks, initiates the state tracker, flow and logger. This allows describing the current test, along with the criteria required for it.
+This is a class that abstracts away much of the above. This implements the `describe` blocks and initiates the logger. This allows describing the current test, along with the criteria required for it.
 
 ## Approach
 
@@ -77,7 +77,7 @@ FeatureHelper.describeFeature(module, {
   const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 ```
 
-Each stage of the test (e.g. C1, or C2, or ..etc), a `describe(..)` block should be created. The `FlowStageUtils.describeRun..` functions will do this automatically e.g.:
+For each Stage of the test (e.g. C1, or C2, or ..etc), a `describe(..)` block should be created. The `FlowStageUtils.describeRun..` functions will do this automatically e.g.:
 
 ```js
   // # Test flow stages
@@ -85,28 +85,6 @@ Each stage of the test (e.g. C1, or C2, or ..etc), a `describe(..)` block should
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
     it('should return `totalPaymentDue.openBookingPrepayment` "Required"', () => {
       expect(c1.getOutput().httpResponse.body).to.have.nested.property('totalPaymentDue.openBookingPrepayment', 'https://openactive.io/Required');
-    });
-  });
-```
-
-For each phase of the test, implement a describe block, i.e.
-
-```js
-describe('C1', function () {
-    const c1 = (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    it('availability should match open data feed', () => {
-      c1.expectSuccessful();
-
-      expect(state.c1Response).to.have.json(
-        'orderedItem[0].orderedItem.remainingAttendeeCapacity',
-        state.apiResponse.body.data.remainingAttendeeCapacity,
-      );
     });
   });
 ```

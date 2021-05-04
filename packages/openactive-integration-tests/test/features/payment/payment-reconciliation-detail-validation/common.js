@@ -4,7 +4,6 @@ const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours
 
 /**
  * @typedef {import('../../../helpers/logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('../../../helpers/request-state').RequestStateType} RequestStateType
  * @typedef {import('../../../templates/b-req').PReqTemplateRef} PReqTemplateRef
  * @typedef {import('../../../helpers/flow-stages/flow-stage-recipes').InitialiseSimpleC1C2BookFlowOptions} InitialiseSimpleC1C2BookFlowOptions
  * @typedef {import('chakram').ChakramResponse} ChakramResponse

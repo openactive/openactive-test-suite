@@ -66,7 +66,7 @@ These consist of:
 
 ## Feature Helper
 
-This is a class that abstracts away much of the above. This implements the `describe` blocks, initiates the state tracker, flow and logger.
+This is a class that abstracts away much of the above. This implements the `describe` blocks and initiates the logger.
 
 i.e.
 
@@ -83,5 +83,5 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
 ```
