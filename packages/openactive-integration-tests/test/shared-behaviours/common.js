@@ -200,4 +200,5 @@ function getOrderItemAtPositionXFromOrdersApiResponse(position, ordersApiRespons
 
 module.exports = {
   Common,
+  getOrderItemAtPositionXFromOrdersApiResponse,
 };

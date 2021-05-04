@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+// const { getOrderItemAtPositionXFromOrdersApiResponse } = require('../../../../shared-behaviours/common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -27,6 +28,8 @@ FeatureHelper.describeFeature(module, {
     it('should include an `accessChannel` or a `customerNotice`', () => {
       const { orderedItem } = bookRecipe.b.getOutput().httpResponse.body;
       expect(orderedItem).to.be.an('array');
+      // TODO maybe refactor this
+      // const orderItemWithPrivateVirtualLocation = getOrderItemAtPositionXFromOrdersApiResponse(0, bookRecipe.b.getO)
       /* The item with position 0 will be the one that satisfies the primary test opportunity criteria (and
       therefore is online).
       Now, B will not return positions in its OrderItems if it happens after P. So, we use the output from the first
