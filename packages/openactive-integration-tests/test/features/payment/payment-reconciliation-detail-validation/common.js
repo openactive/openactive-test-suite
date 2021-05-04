@@ -30,7 +30,7 @@ function notImplementedTest(reqTemplateRefs) {
 /**
  * Test that runs C1 -> C2 -> B and expects B to fail with an InvalidPaymentDetailsError.
  *
- * @param {PReqTemplateRef} templateRef
+ * @param {'incorrectReconciliationDetails' | 'missingPaymentReconciliationDetails'} templateRef
  */
 function invalidDetailsTest(templateRef) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
