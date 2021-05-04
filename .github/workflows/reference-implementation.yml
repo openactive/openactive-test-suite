@@ -74,8 +74,8 @@ jobs:
         npm install
       working-directory: tests
 
-    - name: Run OpenActive Integration Tests in Random Mode
-      run: npm start
+    - name: Run OpenActive Integration Tests in ${{ matrix.mode }} mode
+      run: npm start -- --runInBand
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
