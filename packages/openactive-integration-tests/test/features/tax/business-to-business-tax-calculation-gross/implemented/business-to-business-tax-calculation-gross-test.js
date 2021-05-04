@@ -11,5 +11,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
   // the simple tests can only work if all OrderItems have the same tax mode
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
+  supportsApproval: true,
 },
-grossTest({ c2ReqTemplateRef: 'businessCustomer', bReqTemplateRef: 'businessCustomer' }));
+grossTest({ c2ReqTemplateRef: 'businessCustomer', bookReqTemplateRef: 'businessCustomer' }));

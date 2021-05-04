@@ -99,9 +99,18 @@ class RequestState {
       }
 
       const seller = getSellerConfigFromSellerCriteria(orderItemCriteriaItem.sellerCriteria);
+      /** @type {import('./request-helper').TestInterfaceRequestArgs} */
+      const testInterfaceRequestArgs = {
+        opportunityType: orderItemCriteriaItem.opportunityType,
+        testOpportunityCriteria: orderItemCriteriaItem.opportunityCriteria,
+        orderItemPosition: i,
+        bookingFlow: 'OpenBookingSimpleFlow',
+        sellerId: seller['@id'],
+        sellerType: seller['@type'],
+      };
       const opportunityPromise = (randomModeOverride !== undefined ? randomModeOverride : USE_RANDOM_OPPORTUNITIES)
-        ? this.requestHelper.getRandomOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type'])
-        : this.requestHelper.createOpportunity(orderItemCriteriaItem.opportunityType, orderItemCriteriaItem.opportunityCriteria, i, seller['@id'], seller['@type']);
+        ? this.requestHelper.getRandomOpportunity(testInterfaceRequestArgs)
+        : this.requestHelper.createOpportunity(testInterfaceRequestArgs);
 
       // If this opportunity can be reused, store it
       if (!_.isNil(orderItemCriteriaItem.opportunityReuseKey)) {
@@ -117,30 +126,6 @@ class RequestState {
     if (relevantOffers.length === 0) return null;
 
     return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
-  }
-
-  async getOrderAfterU() {
-    const result = await this.requestHelper.getOrder(this.uuid);
-
-    this.getOrderAfterUResponse = result;
-
-    return this;
-  }
-
-  async getOrderAfterP() {
-    const result = await this.requestHelper.getOrder(this.uuid);
-
-    this.getOrderAfterPResponse = result;
-
-    return this;
-  }
-
-  get getOrderAfterPResponseSucceeded() {
-    return isResponse20x(this.getOrderAfterPResponse);
-  }
-
-  get getOrderAfterPResponseReceived() {
-    return isResponse(this.getOrderAfterPResponse);
   }
 
   async getDatasetSite() {
@@ -262,9 +247,11 @@ class RequestState {
   }
 
   async putOrder() {
+    /** @type {import('../templates/b-req').BReqTemplateData} */
+    const params = { ...this, orderType: 'Order' };
     const result = this._bReqTemplateRef
-      ? await this.requestHelper.putOrder(this.uuid, this, this._bReqTemplateRef)
-      : await this.requestHelper.putOrder(this.uuid, this);
+      ? await this.requestHelper.putOrder(this.uuid, params, this._bReqTemplateRef)
+      : await this.requestHelper.putOrder(this.uuid, params);
 
     this.bResponse = result;
 
@@ -280,7 +267,7 @@ class RequestState {
   }
 
   async putOrderProposal() {
-    const result = await this.requestHelper.putOrderProposal(this.uuid, this);
+    const result = await this.requestHelper.putOrderProposal(this.uuid, { ...this, orderType: 'OrderProposal' });
     this.pResponse = result;
 
     return this;

@@ -22,7 +22,7 @@ function priorityOfSeverity(severity) {
 }
 
 /**
- * @typedef {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed'} ValidationMode
+ * @typedef {'C1Response' | 'C2Response' | 'BResponse' | 'PResponse' | 'BookableRPDEFeed' | 'DatasetSite' | 'OrdersFeed' | 'OrderProposalsFeed'} ValidationMode
  */
 
 /**
@@ -88,7 +88,11 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
 
     let { body } = response;
 
-    if (['OrdersFeed', 'BookableRPDEFeed'].includes(options.validationMode)) {
+    if (['OrdersFeed', 'OrderProposalsFeed', 'BookableRPDEFeed'].includes(options.validationMode)) {
+      // If this is an deleted RPDE item, there's nothing to validate.
+      if (body.state === 'deleted') {
+        return [];
+      }
       body = body.data;
     }
 

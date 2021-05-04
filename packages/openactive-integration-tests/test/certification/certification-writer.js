@@ -6,12 +6,14 @@ const mapping = require('../helpers/mapping');
 const { getConfigVarOrThrow } = require('../helpers/config-utils');
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const BOOKING_FLOWS_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookingFlowsInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const CONFORMANCE_CERTIFICATE_PATH = getConfigVarOrThrow('integrationTests', 'conformanceCertificatePath');
 
 class CertificationWriter {
   constructor(loggers, generator, datasetJson, conformanceCertificateId) {
     this.opportunityTypesInScope = BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
+    this.bookingFlowsInScope = BOOKING_FLOWS_IN_SCOPE;
     this.implementedFeatures = IMPLEMENTED_FEATURES;
     this.loggers = loggers;
     this.generator = generator;
@@ -91,6 +93,7 @@ class CertificationWriter {
         }
       )),
       opportunityTypeImplemented: Object.keys(this.opportunityTypesInScope).filter(x => this.opportunityTypesInScope[x]),
+      bookingFlowsImplemented: Object.keys(this.bookingFlowsInScope).filter(x => this.bookingFlowsInScope[x]),
       associatedMedia: {
         '@type': 'MediaObject',
         contentUrl: null,

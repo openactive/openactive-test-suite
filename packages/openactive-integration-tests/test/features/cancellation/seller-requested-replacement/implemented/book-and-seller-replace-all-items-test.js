@@ -11,15 +11,16 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
-TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2B(
+TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
   { actionType: 'test:ReplacementSimulateAction' },
   ({ b, orderFeedUpdate, orderItemCriteriaList }) => {
     it('should have replaced (at least one) OrderItems with a new one', () => {
       // original = before the AccessPassUpdateSimulationAction was invoked
       const originalOrderItems = b.getOutput().httpResponse.body.orderedItem;
 
-      // new = after the AccessPassUpdateSimulationAction was invoked
+      // new = after the ReplacementSimulateAction was invoked
       const newOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
 
       // As we'll be setting out expectations in an iteration, this test would

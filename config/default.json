@@ -40,6 +40,10 @@
       "Event": false,
       "OnDemandEvent": false
     },
+    "bookingFlowsInScope": {
+      "OpenBookingSimpleFlow": true,
+      "OpenBookingApprovalFlow": true
+    },
     "implementedFeatures": {
       "test-interface": true,
       "opportunity-feed": null,
@@ -54,6 +58,8 @@
       "prepayment-required": true,
       "prepayment-optional": true,
       "prepayment-unavailable": true,
+      "minimal-proposal": true,
+      "proposal-amendment": true,
       "multiple-sellers": true,
       "payment-reconciliation-detail-validation": true,
       "booking-window": true,
@@ -71,7 +77,6 @@
       "access-code": true,
       "access-pass-image": true,
       "access-pass-barcode-seller-provided": true,
-      "access-pass-barcode-broker-provided": true,
       "reseller-broker": true,
       "reseller-broker-tax-calculation": null,
       "no-broker": true,
@@ -92,7 +97,6 @@
       "terms-of-service-with-consent-with-date-modified": null,
       "booking-partner-authentication": true,
       "dynamic-client-registration": true,
-      "minimal-proposal": true,
       "access-channel": true,
       "access-channel-update-notifications": true
     },

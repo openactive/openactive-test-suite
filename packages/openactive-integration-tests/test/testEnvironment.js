@@ -6,6 +6,7 @@ const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
 
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const BOOKING_FLOWS_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookingFlowsInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
@@ -15,10 +16,6 @@ const { silentlyAllowInsecureConnections } = require('./helpers/suppress-unautho
 silentlyAllowInsecureConnections();
 
 class TestEnvironment extends NodeEnvironment {
-  constructor(config) {
-    super(config);
-  }
-
   async setup() {
     await super.setup();
 
@@ -28,7 +25,7 @@ class TestEnvironment extends NodeEnvironment {
     if (response && response.data) {
       this.global.BOOKING_API_BASE = response.data.bookingApiBaseUrl;
       this.global.AUTHENTICATION_AUTHORITY = response.data.authenticationAuthority;
-      this.global.HARVEST_START_TIME = new Date(response.data.harvestStartTime);
+      this.global.HARVEST_START_TIME = response.data.harvestStartTime;
       this.global.SELLER_CONFIG = response.data.sellersConfig;
       this.global.BOOKING_PARTNER_CONFIG = response.data.bookingPartnersConfig;
       this.global.AUTHENTICATION_FAILURE = response.data.authenticationFailure;
@@ -42,6 +39,7 @@ class TestEnvironment extends NodeEnvironment {
 
     // Note these are defined in the test environment to allow the certificate validator to override them
     this.global.BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE;
+    this.global.BOOKING_FLOWS_IN_SCOPE = BOOKING_FLOWS_IN_SCOPE;
     this.global.IMPLEMENTED_FEATURES = IMPLEMENTED_FEATURES;
     this.global.USE_RANDOM_OPPORTUNITIES = USE_RANDOM_OPPORTUNITIES;
   }

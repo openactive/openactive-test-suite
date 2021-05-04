@@ -75,6 +75,19 @@
             "port": 9229,
         },
         {
+            "name": "integration-tests (NODE_ENV=dev) - all tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "14.16.0",
+            "runtimeArgs": ["run-script", "debug"],
+            "env": {
+                "NODE_ENV": "dev",
+            },
+            "port": 9229,
+        },
+        {
             "name": "broker-microservice",
             "type": "node",
             "request": "launch",
@@ -106,6 +119,22 @@
             "request": "launch",
             "runtimeVersion": "14.16.0",
             "program": "${workspaceFolder}/packages/openactive-integration-tests/test-data-generator/test-data-generator.js",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests/"
+        },
+        {
+            "name": "certification-validator-microservice",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "14.16.0",
+            "program": "${workspaceFolder}/packages/openactive-integration-tests/test/certification/certification-validator-microservice.js",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests/",
+        },
+        {
+            "name": "doc-gen",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "14.16.0",
+            "program": "${workspaceFolder}/packages/openactive-integration-tests/documentation/generator.js",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests/"
         },
         {

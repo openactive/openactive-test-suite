@@ -7,7 +7,8 @@ export type Offer = {
     '@id': string;
 };
 export type Options = {
-    harvestStartTime: Date;
+    harvestStartTime: any;
+    harvestStartTimeTwoHoursLater: any;
 };
 export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
 export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
@@ -19,9 +20,10 @@ export type Criteria = {
 };
 export type TestDataShapeFactory = (options: import("../types/Options").Options) => import("../types/TestDataShape").TestDataShape;
 export type TestDataShape = import("../types/TestDataShape").TestDataShape;
-export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
+export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").BooleanNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
 export type DateRangeNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint;
 export type NumericNodeConstraint = import("../types/TestDataShape").NumericNodeConstraint;
+export type ArrayConstraint = import("../types/TestDataShape").ArrayConstraint<any, any>;
 /**
  * @param {object} args
  * @param {string} args.name
@@ -57,13 +59,19 @@ export function getType(opportunity: Opportunity): string;
 */
 export function getRemainingCapacity(opportunity: Opportunity): number | null | undefined;
 /**
-* @type {OfferConstraint}
-*/
-export function mustBeWithinBookingWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+ * Get the date that the startDate - validFromBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window defined.
+ */
+export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
 /**
-* @type {OfferConstraint}
-*/
-export function mustBeWithinCancellationWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no cancellation window defined.
+ */
+export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
 /**
 * @param {Opportunity} opportunity
 * @returns {boolean}
@@ -81,6 +89,10 @@ export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer
 * @type {OfferConstraint}
 */
 export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function mustAllowProposalAmendment(offer: import("../types/Offer").Offer): boolean;
 /**
 * @type {OpportunityConstraint}
 */
@@ -117,3 +129,16 @@ export function mustRequireAdditionalDetails(offer: import("../types/Offer").Off
  * @type {OfferConstraint}
  */
 export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;
+/**
+ * @type {OpportunityConstraint}
+ */
+export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * Merge constraints so that the result has the simplest representation of the combination of all constraints.
+ *
+ * @param {TestDataShape} baseTestDataShape
+ * @param {TestDataShape} extraTestDataShape
+ * @param {string} criteriaName
+ * @return {TestDataShape}
+ */
+export function extendTestDataShape(baseTestDataShape: TestDataShape, extraTestDataShape: TestDataShape, criteriaName: string): TestDataShape;

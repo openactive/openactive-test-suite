@@ -46,8 +46,12 @@ const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implemente
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
 /** An array of those opportunity types which the Booking System is testing */
 const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ)
-  .filter(([_, isInScope]) => isInScope) // eslint-disable-line no-unused-vars
-  .map(([opportunityType, _]) => opportunityType); // eslint-disable-line no-unused-vars
+  .filter(([, isInScope]) => isInScope)
+  .map(([opportunityType]) => opportunityType);
+const BOOKING_FLOWS_IN_SCOPE_OBJ = getConfigVarOrThrow('integrationTests', 'bookingFlowsInScope');
+const IMPLEMENTED_BOOKING_FLOWS = Object.entries(BOOKING_FLOWS_IN_SCOPE_OBJ)
+  .filter(([, isInScope]) => isInScope)
+  .map(([bookingFlow]) => bookingFlow);
 
 // # Process CLI Args
 const argv = yargs(process.argv.slice(2)) // eslint-disable-line prefer-destructuring
@@ -98,14 +102,24 @@ const categoryOrFeature = /** @type {string} */(categoryOrFeatureUntyped); // ya
     // Broker is not running, so we override it with seller config directly from the config file.
     const seller = getSellerConfigFromSellerCriteria(sellerCriteria, SELLER_CONFIG);
     for (const [opportunityCriteria, numOpportunitiesRequired] of opportunityCriteriaRequirements) {
-      for (const opportunityType of IMPLEMENTED_OPPORTUNITY_TYPES) {
-        numberOfItems += numOpportunitiesRequired;
-        const testInterfaceOpportunity = createTestInterfaceOpportunity(opportunityType, opportunityCriteria, seller['@id'], seller['@type']);
-        itemListElement.push({
-          '@type': 'ListItem',
-          'test:numberOfInstancesInDistribution': numOpportunitiesRequired,
-          item: dissoc('@context', testInterfaceOpportunity),
-        });
+      for (const bookingFlow of IMPLEMENTED_BOOKING_FLOWS) {
+        for (const opportunityType of IMPLEMENTED_OPPORTUNITY_TYPES) {
+          // TODO this needs to take into account FeatureHelper.skipOpportunityTypes/skipBookingFlows
+          numberOfItems += numOpportunitiesRequired;
+          const testInterfaceOpportunity = createTestInterfaceOpportunity({
+            opportunityType,
+            testOpportunityCriteria: opportunityCriteria,
+            // @ts-expect-error <- Needed until we assert that bookingFlow is one of the allowed string values
+            bookingFlow,
+            sellerId: seller['@id'],
+            sellerType: seller['@type'],
+          });
+          itemListElement.push({
+            '@type': 'ListItem',
+            'test:numberOfInstancesInDistribution': numOpportunitiesRequired,
+            item: dissoc('@context', testInterfaceOpportunity),
+          });
+        }
       }
     }
   }

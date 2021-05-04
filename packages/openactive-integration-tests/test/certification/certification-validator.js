@@ -52,9 +52,10 @@ async function validateCertificate(certificateJson, certificateUrl, holderName) 
   // Derive intended config from certificate
   const implementedFeatures = getFeatureConfig(certificateJson);
   const opportunityTypesInScope = getOpportunityTypesInScope(certificateJson);
+  const bookingFlowsInScope = getBookingFlowsInScope(certificateJson);
 
   // Run stubbed test suite using this config, to simulate which tests would be run
-  const scaffoldedSuites = await getScaffoldedSuites(implementedFeatures, opportunityTypesInScope);
+  const scaffoldedSuites = await getScaffoldedSuites(implementedFeatures, opportunityTypesInScope, bookingFlowsInScope);
 
   /*
   fs.writeFile('./test/certification/debug.json', JSON.stringify(Object.fromEntries(scaffoldedSuites), null, 2), function(err) {
@@ -118,6 +119,13 @@ function getOpportunityTypesInScope(certificateJson) {
   return opportunityTypeConfig;
 }
 
+function getBookingFlowsInScope(certificateJson) {
+  return (certificateJson.bookingFlowsImplemented || []).reduce((result, bookingFlow) => {
+    result[bookingFlow] = true; // eslint-disable-line no-param-reassign
+    return result;
+  }, {});
+}
+
 function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJsonFiles) {
   const indexJson = evidenceJsonFiles.get('index.json');
 
@@ -178,10 +186,10 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
     return result;
   }, {}), implementedFeatures);
 
-  // Check list of opportunityTypes index.json
+  // Check list of bookingFlows and opportunityTypes in index.json
   assert.deepStrictEqual(
-    new Set(indexJson.features.map(x => x.opportunityTypeName).filter(x => x !== 'Generic' && x !== 'Multiple')),
-    new Set(certificateJson.opportunityTypeImplemented),
+    new Set(indexJson.features.map(x => x.opportunityTypeName).filter(x => x !== 'Generic' && x.indexOf('>> Multiple') === -1)),
+    new Set(certificateJson.bookingFlowsImplemented.flatMap(bookingFlow => certificateJson.opportunityTypeImplemented.map(opportunityType => `${bookingFlow} >> ${opportunityType}`))),
   );
 
   // Check every test in the index file has passed
@@ -236,11 +244,21 @@ async function extractCertificateEvidenceFilesFromJson(certificateJson) {
   );
 }
 
-async function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope) {
+/**
+ * @param {{[opportunityType: string]: boolean}} opportunityTypesInScope
+ * @param {{[bookingFlow: string]: boolean}} bookingFlowsInScope
+ */
+async function getScaffoldedSuites(implementedFeatures, opportunityTypesInScope, bookingFlowsInScope) {
   const workerFile = path.join(__dirname, 'test-suite-scaffolder-worker.js');
   return new Promise((resolve, reject) => {
     // Note this runs in a worker as it manipulates the global object to run all tests using mocks, and determine which tests are run
-    const worker = new Worker(workerFile, { workerData: { implementedFeatures, opportunityTypesInScope } });
+    const worker = new Worker(workerFile, {
+      workerData: {
+        implementedFeatures,
+        opportunityTypesInScope,
+        bookingFlowsInScope,
+      },
+    });
     worker.on('message', (suiteRegistry) => { resolve(suiteRegistry); });
     worker.on('error', (err) => { reject(err); });
     worker.on('exit', () => { reject(new Error('Worker exited without calculating a response')); });

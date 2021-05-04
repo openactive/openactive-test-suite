@@ -1,21 +1,21 @@
 export type EventStatusType = "https://schema.org/EventCancelled" | "https://schema.org/EventPostponed" | "https://schema.org/EventScheduled";
 export type TaxMode = "https://openactive.io/TaxGross" | "https://openactive.io/TaxNet";
 export type RequiredStatusType = "https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable";
-export type AvailableChannelType = "https://openactive.io/OpenBookingPrepayment" | "https://openactive.io/TelephoneAdvanceBooking" | "https://openactive.io/TelephonePrepayment" | "https://openactive.io/OnlinePrepayment";
 export type OpenBookingFlowRequirement = "https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange";
 export type DateRangeNodeConstraint = import("./types/TestDataShape").DateRangeNodeConstraint;
 export type NumericNodeConstraint = import("./types/TestDataShape").NumericNodeConstraint;
+export type BooleanNodeConstraint = import("./types/TestDataShape").BooleanNodeConstraint;
 export type NullNodeConstraint = import("./types/TestDataShape").NullNodeConstraint;
 export type TestDataShape = import("./types/TestDataShape").TestDataShape;
-export type ValueType = "oa:AvailableChannelType" | "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType";
+export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType";
 /**
  * @typedef {import('./types/TestDataShape').EventStatusType} EventStatusType
  * @typedef {import('./types/TestDataShape').TaxMode} TaxMode
  * @typedef {import('./types/TestDataShape').RequiredStatusType} RequiredStatusType
- * @typedef {import('./types/TestDataShape').AvailableChannelType} AvailableChannelType
  * @typedef {import('./types/TestDataShape').OpenBookingFlowRequirement} OpenBookingFlowRequirement
  * @typedef {import('./types/TestDataShape').DateRangeNodeConstraint} DateRangeNodeConstraint
  * @typedef {import('./types/TestDataShape').NumericNodeConstraint} NumericNodeConstraint
+ * @typedef {import('./types/TestDataShape').BooleanNodeConstraint} BooleanNodeConstraint
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
@@ -79,11 +79,6 @@ export function prepaymentOptionNodeConstraint(requirements: Omit<import('./type
  */
 export function taxModeOptionNodeConstraint(requirements: Omit<import('./types/TestDataShape').OptionNodeConstraint<TaxMode, 'oa:TaxMode'>, '@type' | 'datatype'>): import('./types/TestDataShape').OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
 /**
- * @param {Omit<import('./types/TestDataShape').ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>, '@type' | 'datatype'>} requirements
- * @returns {import('./types/TestDataShape').ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>}
- */
-export function availableChannelArrayConstraint(requirements: Omit<import('./types/TestDataShape').ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>, '@type' | 'datatype'>): import('./types/TestDataShape').ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>;
-/**
  * @param {Omit<import('./types/TestDataShape').ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>, '@type' | 'datatype'>} requirements
  * @returns {import('./types/TestDataShape').ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>}
  */
@@ -93,3 +88,5 @@ export function openBookingFlowRequirementArrayConstraint(requirements: Omit<imp
  * @returns {import('./types/TestDataShape').ArrayConstraint<unknown, 'oa:Terms'>}
  */
 export function termsOfServiceArrayConstraint(minLength: number): import('./types/TestDataShape').ArrayConstraint<unknown, 'oa:Terms'>;
+export const TRUE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
+export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;

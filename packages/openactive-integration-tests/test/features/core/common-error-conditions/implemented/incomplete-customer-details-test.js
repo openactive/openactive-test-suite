@@ -1,11 +1,11 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/p').PFlowStageType} PFlowStageType
  */
 
 FeatureHelper.describeFeature(module, {
@@ -20,87 +20,41 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
   numOpportunitiesUsedPerCriteria: 2, // one for each of the C2 and B tests
+  supportsApproval: true,
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   /**
-   * Fetch some opportunities and run C1
-   *
-   * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
-   *
-   * @param {RequestState} state
-   * @param {FlowHelper} flow
+   * @param {C2FlowStageType | BFlowStageType} flowStage
    */
-  function runC1(state, flow) {
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
-    });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    return { state, flow };
-  }
-
-  /**
-   * @param {() => ChakramResponse} getChakramResponse
-   */
-  const itShouldReturnAnIncompleteCustomerDetailsError = getChakramResponse => (
-    itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, getChakramResponse));
+  const itShouldReturnAnIncompleteCustomerDetailsError = flowStage => (
+    itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, () => flowStage.getOutput().httpResponse));
 
   describe('Incomplete Customer Details at C2', () => {
-    const state = new RequestState(logger, { c2ReqTemplateRef: 'noCustomerEmail' });
-    const flow = new FlowHelper(state);
+    // # Initialise Flow Stages
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+      c2ReqTemplateRef: 'noCustomerEmail',
+    });
 
-    runC1(state, flow);
-
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup();
-
-      itShouldReturnAnIncompleteCustomerDetailsError(() => state.c2Response);
+    // # Set up Tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+      itShouldReturnAnIncompleteCustomerDetailsError(c2);
     });
   });
 
   describe('Incomplete Customer Details at B', () => {
-    const state = new RequestState(logger, { bReqTemplateRef: 'noCustomerEmail' });
-    const flow = new FlowHelper(state);
-
-    runC1(state, flow);
-
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
+    // # Initialise Flow Stages
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      bookReqTemplateRef: 'noCustomerEmail',
     });
 
-    describe('B', () => {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldReturnAnIncompleteCustomerDetailsError(() => state.bResponse);
+    // # Set up Tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+      itShouldReturnAnIncompleteCustomerDetailsError(bookRecipe.firstStage);
     });
   });
 });

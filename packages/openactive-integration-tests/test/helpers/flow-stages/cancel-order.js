@@ -7,6 +7,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./b').BFlowStageType} BFlowStageType
+ * @typedef {import('./p').PFlowStageType} PFlowStageType
  */
 
 /**
@@ -36,7 +37,7 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {object} args
    * @param {UReqTemplateRef} [args.templateRef]
    * @param {() => string[]} args.getOrderItemIdArray Cancellation must be run against
-   *   a specific order. The function passed here should return the ID of the OrderItem
+   *   a specific OrderItem. The function passed here should return the ID of the OrderItem
    *   to cancel. For convenience, use the CancelOrderFlowStage.getFirstOrderItemId
    *   function for this value e.g.:
    *
@@ -50,7 +51,7 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
-   * @param {string} [args.testName]
+   * @param {string} [args.testName] Defaults to "Cancel Order"
    */
   constructor({ templateRef, getOrderItemIdArray, prerequisite, requestHelper, uuid, testName }) {
     super({
@@ -76,20 +77,23 @@ class CancelOrderFlowStage extends FlowStage {
    * Create a `getOrderItemIdForPosition0FromB` function which gets the "@id" of the
    * OrderItem with position 0 of the FlowStage's output.
    *
-   * @param {BFlowStageType} bFlowStage
+   * @param {BFlowStageType | PFlowStageType} firstBookStage First book stage - either B or P
+   *   Note that this uses the first Book stage (B or P) rather than B. This is because B-after-P
+   *   does NOT have `position`s in its OrderItems.
    */
-  static getOrderItemIdForPosition0FromB(bFlowStage) {
-    return () => CancelOrderFlowStage.getOrderItemIdsByPositionFromB(bFlowStage, [0])();
+  static getOrderItemIdForPosition0FromFirstBookStage(firstBookStage) {
+    return () => CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(firstBookStage, [0])();
   }
 
   /**
-   * @param {BFlowStageType} bFlowStage
+   * @param {BFlowStageType | PFlowStageType} firstBookStage First book stage - either B or P
+   *   Note that this uses the first Book stage (B or P) rather than B. This is because B-after-P
+   *   does NOT have `position`s in its OrderItems.
    * @param {number[]} orderItemPositions
    */
-  static getOrderItemIdsByPositionFromB(bFlowStage, orderItemPositions) {
+  static getOrderItemIdsByPositionFromBookStages(firstBookStage, orderItemPositions) {
     return () => {
-      const order = bFlowStage.getOutput().httpResponse.body;
-      const orderItems = order.orderedItem;
+      const orderItems = firstBookStage.getOutput().httpResponse.body.orderedItem;
       const orderItemIds = orderItemPositions.map((position) => {
         const orderItem = orderItems.find(o => o.position === position);
         if (!orderItem) {

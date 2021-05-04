@@ -1,4 +1,5 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
+const shortid = require('shortid');
 const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
@@ -13,6 +14,7 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *       '@type': string,
  *       '@id': string,
  *     },
+ *     'test:control': boolean,
  *   }[],
  *   brokerRole: string | null,
  *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
@@ -42,22 +44,13 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *       addressCountry: string,
  *     },
  *   },
- *   seller: {
- *     '@type': string,
- *     '@id': string,
- *   },
+ *   seller: string,
  *   customer: any, // ToDo: add this?
  *   orderedItem: {
  *     '@type': string,
  *     position: number,
- *     acceptedOffer: {
- *       '@type': string,
- *       '@id': string,
- *     },
- *     orderedItem: {
- *       '@type': string,
- *       '@id': string,
- *     },
+ *     acceptedOffer: string,
+ *     orderedItem: string,
  *     attendee?: {
  *       '@type': 'Person'
  *       telephone: string,
@@ -68,6 +61,10 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *   }[],
  *   payment: {
  *     '@type': string,
+ *     identifier?: string,
+ *     name?: string,
+ *     accountId?: string,
+ *     paymentProviderId?: string,
  *   },
  * }} C2Req
  */
@@ -99,10 +96,7 @@ function createStandardC2Req(data) {
         addressCountry: 'GB',
       },
     },
-    seller: {
-      '@type': 'Organization',
-      '@id': data.sellerId,
-    },
+    seller: data.sellerId,
     customer: {
       '@type': 'Person',
       email: 'geoffcapesStageC2@example.com',
@@ -114,14 +108,8 @@ function createStandardC2Req(data) {
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
       position: orderItem.position,
-      acceptedOffer: {
-        '@type': 'Offer',
-        '@id': `${orderItem.acceptedOffer['@id']}`,
-      },
-      orderedItem: {
-        '@type': `${orderItem.orderedItem['@type']}`,
-        '@id': `${orderItem.orderedItem['@id']}`,
-      },
+      acceptedOffer: `${orderItem.acceptedOffer['@id']}`,
+      orderedItem: `${orderItem.orderedItem['@id']}`,
       attendee: undefined,
       orderItemIntakeForm: undefined,
       orderItemIntakeFormResponse: undefined,
@@ -151,17 +139,35 @@ function createNoBrokerNameC2Req(data) {
 }
 
 /**
- * C2 request with missing OrderItem.OrderedItem
+ * C2 request with missing OrderItem.OrderedItem for primary OrderItems
  *
  * @param {C2ReqTemplateData} data
  */
 function createStandardC2WithoutOrderedItem(data) {
   const req = createStandardC2Req(data);
   req.orderedItem.forEach((orderedItem) => {
-    const ret = orderedItem;
-    delete ret.orderedItem;
+    if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+      const ret = orderedItem;
+      delete ret.orderedItem;
+    }
   });
 
+  return req;
+}
+
+/**
+ * C2 request missing OrderItem.AcceptedOffer for primary OrderItems
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createStandardC2WithoutAcceptedOffer(data) {
+  const req = createStandardC2Req(data);
+  req.orderedItem.forEach((orderedItem) => {
+    if (!data.orderItems.find(x => x.position === orderedItem.position)['test:control']) {
+      const ret = orderedItem;
+      delete ret.acceptedOffer;
+    }
+  });
   return req;
 }
 
@@ -181,20 +187,6 @@ function createAttendeeDetailsC2Req(data) {
       email: 'fred.bloggs@mailinator.com',
     };
   }
-  return req;
-}
-
-/**
- * C2 request missing OrderItem.AcceptedOffer
- *
- * @param {C2ReqTemplateData} data
- */
-function createStandardC2WithoutAcceptedOffer(data) {
-  const req = createStandardC2Req(data);
-  req.orderedItem.forEach((orderedItem) => {
-    const ret = orderedItem;
-    delete ret.acceptedOffer;
-  });
   return req;
 }
 
@@ -250,6 +242,47 @@ function createBusinessCustomerC2Req(data) {
 }
 
 /**
+ * C2 request with payment property - though reconciliation fields in `payment`
+ * are missing.
+ *
+ * Note that the purpose of this template is to test using missing `payment` data
+ * when `payment` is required.
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createMissingPaymentReconciliationDetails(data) {
+  const req = createStandardC2Req(data);
+  return {
+    ...req,
+    // @ts-ignore
+    payment: omit(['accountId', 'name', 'paymentProviderId'], req.payment),
+  };
+}
+
+/**
+ * C2 request with payment property - though reconciliation fields in `payment`
+ * are incorrect.
+ *
+ * @param {C2ReqTemplateData} data
+ */
+function createIncorrectReconciliationDetails(data) {
+  const req = createStandardC2Req(data);
+  // Always include payment details, regardless of if payment reconciliation
+  // details are available in the config, as per the spec for Payment reconciliation detail validation
+  if (!req.payment) req.payment = createPaymentPart(false, true);
+  if (req.payment.accountId) {
+    req.payment.accountId = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.name) {
+    req.payment.name = `invalid-${shortid.generate()}`;
+  }
+  if (req.payment.paymentProviderId) {
+    req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
+  }
+  return req;
+}
+
+/**
  * C2 request with missing broker
  *
  * @param {C2ReqTemplateData} data
@@ -278,6 +311,8 @@ const c2ReqTemplates = {
   noBroker: createNoBrokerC2Req,
   noCustomerAndNoBroker: createNoCustomerAndNoBrokerC2Req,
   noCustomer: createNoCustomerC2Req,
+  incorrectReconciliationDetails: createIncorrectReconciliationDetails,
+  missingPaymentReconciliationDetails: createMissingPaymentReconciliationDetails,
 };
 
 /**

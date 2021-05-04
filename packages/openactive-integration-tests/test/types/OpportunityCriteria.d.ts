@@ -13,6 +13,16 @@ export type SellerCriteria =
   | 'taxGross'
   | 'taxNet';
 
+/**
+ * What kind of Booking Flow is being tested?
+ *
+ * For more info about how Test Suite tests both Booking Flows, see the section on "bookingFlowsInScope" in the
+ * openactive-integration-tests README.md
+ */
+export type BookingFlow =
+  | 'OpenBookingSimpleFlow'
+  | 'OpenBookingApprovalFlow';
+
 export interface OpportunityCriteria {
   opportunityType: string | null;
   /** Name of the type of OpportunityCriteria e.g. TestOpportunityBookableFree */
@@ -22,4 +32,16 @@ export interface OpportunityCriteria {
   opportunityReuseKey?: number;
   usedInOrderItems?: number;
   sellerCriteria?: SellerCriteria;
+  bookingFlow: BookingFlow;
 }
+
+export type OpportunityType = 
+"ScheduledSession" 
+    |"FacilityUseSlot"
+    |"IndividualFacilityUseSlot"
+    |"CourseInstance"
+    |"CourseInstanceSubEvent"
+    |"HeadlineEvent"
+    |"HeadlineEventSubEvent"
+    |"Event"
+    |"OnDemandEvent"

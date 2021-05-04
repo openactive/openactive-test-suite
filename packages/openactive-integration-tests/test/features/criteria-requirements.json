@@ -1,12 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "criteriaRequirements": {
-    "minimal-proposal": {
-      "primary": {
-        "TestOpportunityBookableFlowRequirementOnlyApproval": 9,
-        "TestOpportunityBookable": 3
-      }
-    },
     "agent-broker": {
       "primary": {
         "TestOpportunityBookable": 8
@@ -25,12 +19,11 @@
     },
     "common-error-conditions": {
       "primary": {
-        "TestOpportunityBookable": 25,
+        "TestOpportunityBookable": 29,
         "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
       }
     },
     "dataset-site": {},
-    "opportunity-feed": {},
     "order-deletion": {
       "primary": {
         "TestOpportunityBookable": 12
@@ -60,12 +53,6 @@
         "TestOpportunityBookable": 1
       }
     },
-    "access-pass-barcode-broker-provided": {
-      "primary": {
-        "TestOpportunityOfflineBookable": 3,
-        "TestOpportunityBookable": 1
-      }
-    },
     "access-pass-barcode-seller-provided": {
       "primary": {
         "TestOpportunityOfflineBookable": 3,
@@ -86,6 +73,17 @@
     },
     "dynamic-payment": {},
     "offer-overrides": {},
+    "minimal-proposal": {
+      "primary": {
+        "TestOpportunityBookable": 12
+      }
+    },
+    "proposal-amendment": {
+      "primary": {
+        "TestOpportunityBookableWithNegotiation": 3,
+        "TestOpportunityBookable": 1
+      }
+    },
     "booking-partner-authentication": {},
     "dynamic-client-registration": {},
     "no-broker": {
@@ -108,8 +106,9 @@
     },
     "customer-requested-cancellation": {
       "primary": {
-        "TestOpportunityBookableCancellable": 8,
-        "TestOpportunityBookableNotCancellable": 1
+        "TestOpportunityBookableCancellable": 12,
+        "TestOpportunityBookableNotCancellable": 1,
+        "TestOpportunityBookable": 2
       }
     },
     "seller-requested-cancellation": {
@@ -135,6 +134,7 @@
         "TestOpportunityBookable": 1
       }
     },
+    "opportunity-feed": {},
     "test-interface": {
       "primary": {
         "TestOpportunityBookable": 1
@@ -203,7 +203,8 @@
     "payment-reconciliation-detail-validation": {
       "primary": {
         "TestOpportunityBookableUsingPayment": 15,
-        "TestOpportunityBookable": 5
+        "TestOpportunityBookable": 5,
+        "TestOpportunityBookableFree": 8
       }
     },
     "prepayment-optional": {

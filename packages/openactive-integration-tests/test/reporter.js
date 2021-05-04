@@ -47,14 +47,22 @@ class Reporter {
     try {
       const { testResults } = testResult;
 
-      const grouped = _.groupBy(testResults, spec => spec.ancestorTitles.slice(0, 3).join(' '));
+      /* ancestorTitles is the sequence of `describe(..)` labels for each test.
+      We group our labels using the 1st four labels, which are:
+      1. Feature
+      2. Test Identifier
+      3. Booking Flow
+      4. Opportunity Type */
+      const grouped = _.groupBy(testResults, spec => spec.ancestorTitles.slice(0, 4).join(' '));
 
       for (const [testIdentifier, groupedTests] of Object.entries(grouped)) {
         const logger = new ReporterLogger(testIdentifier);
         await logger.load();
 
         for (const singleTestResult of groupedTests) {
-          logger.recordTestResult(singleTestResult.ancestorTitles[3], singleTestResult);
+          /* ancestorTitles[4] is the first `describe(..)` label within the test itself.
+          It will generally be the name of a stage e.g. C1 */
+          logger.recordTestResult(singleTestResult.ancestorTitles[4], singleTestResult);
         }
 
         logger.testFilePath = test.testFilePath;
@@ -78,7 +86,7 @@ class Reporter {
         }
       }
     } catch (exception) {
-      console.log(testResult);
+      console.trace(testResult);
       console.error('logger error', exception);
     }
   }
@@ -108,6 +116,11 @@ class Reporter {
       startTime,
     } = results;
     console.log(chalk.white(`Ran ${numTotalTests - numTodoTests} tests in ${testDuration(startTime)}`));
+
+    if (numTotalTests - numTodoTests === 0 && numTodoTests > 0) {
+      console.log(chalk.red('\n\nNone of the tests in scope were enabled in the JSON config. Please check `implementedFeatures` and ensure they are not set to `null`.'));
+    }
+
     if (numPassedTests) {
       console.log(chalk.green(
         `✅ ${numPassedTests} passing`,
@@ -171,19 +184,28 @@ class Reporter {
         const html = await certificationWriter.generateCertificate();
 
         const validationResult = await validateCertificateHtml(html, CONFORMANCE_CERTIFICATE_ID, certificationWriter.awardedTo.name);
-        if (!validationResult || !validationResult.valid) {
+        /* process.env.DEBUG_SAVE_INVALID_CONFORMANCE_CERTIFICATE can be used to ensure a certificate is saved even if it
+        is not valid. This can help with debugging conformance certificates */
+        if (validationResult?.valid || process.env.DEBUG_SAVE_INVALID_CONFORMANCE_CERTIFICATE === 'true') {
+          const filename = 'index.html';
+          await mkdirp(certificationWriter.certificationOutputPath);
+          await fs.writeFile(certificationWriter.certificationOutputPath + filename, html);
+          if (validationResult?.valid) {
+            console.log(`\n${chalk.green(
+              `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath + filename} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
+            )}`);
+          } else {
+            console.log(`\n${chalk.red(
+              `Conformance certificate not valid but saved anyway to: ${certificationWriter.certificationOutputPath + filename}`,
+            )}`);
+          }
+        }
+        if (!validationResult?.valid) {
           console.error(`\n${chalk.red(
             'A valid conformance certificate could not be generated.\n\nIf you have not already done so, try simply running `npm start`, without specifying a specific test subset, to ensure that all tests are run for this feature configuration.',
           )}`);
           // Ensure that CI fails on validation error, without a stack trace
           process.exitCode = 1;
-        } else {
-          const filename = 'index.html';
-          await mkdirp(certificationWriter.certificationOutputPath);
-          await fs.writeFile(certificationWriter.certificationOutputPath + filename, html);
-          console.log(`\n${chalk.green(
-            `Conformance certificate for '${certificationWriter.awardedTo.name}' generated successfully: ${certificationWriter.certificationOutputPath + filename} and must be made available at '${CONFORMANCE_CERTIFICATE_ID}' to be valid.`,
-          )}`);
         }
       }
     }

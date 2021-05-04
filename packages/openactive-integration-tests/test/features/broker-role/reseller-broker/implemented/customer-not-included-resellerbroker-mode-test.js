@@ -12,22 +12,18 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
     // Note that we haven't included a noCustomer template for C1 because C1 never has a customer property
-    c2ReqTemplateRef: 'noCustomer', bReqTemplateRef: 'noCustomer', brokerRole: 'https://openactive.io/ResellerBroker',
+    c2ReqTemplateRef: 'noCustomer', bookReqTemplateRef: 'noCustomer', brokerRole: 'https://openactive.io/ResellerBroker',
   });
 
   describe('Booking should succeed even if Customer is not included in Order, because we are in ResellerBroker mode', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-    // Validation for C2 has been skipped below. This because of the following outstanding issues:
-    // - Modelling Spec: https://github.com/openactive/modelling-opportunity-data/issues/261
-    // - Validator: https://github.com/openactive/data-model-validator/issues/366
-    // When these issues are fixed, the line below can be changed to
-    // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: true }, c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   });
 });

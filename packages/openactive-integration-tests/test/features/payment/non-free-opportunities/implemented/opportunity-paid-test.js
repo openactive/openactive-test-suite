@@ -10,15 +10,16 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking of a non-free opportunity with the `payment` property included if required.',
   testOpportunityCriteria: 'TestOpportunityBookableNonFree',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
-  // Note this will automatically determine whether payment is available (e.g. in the case of prepayment == 'https://openactive.io/Unavailable)
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  // Note this will automatically determine whether payment is available (e.g. in the case of openBookingPrepayment == 'https://openactive.io/Unavailable)
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
 });

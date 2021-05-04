@@ -17,11 +17,12 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // It is not possible to run multiple OrderItem tests for this due to (https://github.com/openactive/openactive-test-suite/issues/312)
   skipMultiple: true,
+  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   describe('ChangeOfLogisticsTimeSimulateAction triggered in the Opportunity (eg startDate)', () => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
     const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
@@ -35,7 +36,7 @@ FeatureHelper.describeFeature(module, {
       })),
       opportunityFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: b,
+        prerequisite: bookRecipe.b,
         getInput: () => ({
           testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
         }),
@@ -53,14 +54,14 @@ FeatureHelper.describeFeature(module, {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
   });
 
   describe('ChangeOfLogisticsNameSimulateAction triggered in the Opportunity', () => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
     const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
@@ -74,7 +75,7 @@ FeatureHelper.describeFeature(module, {
       })),
       opportunityFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: b,
+        prerequisite: bookRecipe.b,
         getInput: () => ({
           testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
         }),
@@ -92,14 +93,14 @@ FeatureHelper.describeFeature(module, {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
   });
 
   describe('ChangeOfLogisticsLocationSimulateAction triggered in the Opportunity', () => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
     const [simulateChangeOfLogisticsUpdate, opportunityFeedUpdate] = OpportunityFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
@@ -113,7 +114,7 @@ FeatureHelper.describeFeature(module, {
       })),
       opportunityFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: b,
+        prerequisite: bookRecipe.b,
         getInput: () => ({
           testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
         }),
@@ -131,7 +132,7 @@ FeatureHelper.describeFeature(module, {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateChangeOfLogisticsUpdate);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(opportunityFeedUpdate);
   });

@@ -19,13 +19,26 @@ const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 
+// Force TTY based on environment variable to ensure TTY output
+if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
+  process.stdout.isTTY = true;
+  process.stderr.isTTY = true;
+  process.stdout.columns = parseInt(process.env.FORCE_TTY_COLUMNS, 10);
+  process.stderr.columns = parseInt(process.env.FORCE_TTY_COLUMNS, 10);
+}
+
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
+
+/**
+ * @typedef {'orders' | 'order-proposals'} OrderFeedType
+ */
 
 const config = require('config');
 const AsyncValidatorWorker = require('./validator/async-validator');
 const PauseResume = require('./src/util/pause-resume');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
+const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');
 
 const markdown = new Remarkable();
 
@@ -38,12 +51,12 @@ const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarve
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
 
-const HARVEST_START_TIME = new Date();
+const HARVEST_START_TIME = (new Date()).toISOString();
 const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
+const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
-const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {
-};
+const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
 const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
@@ -93,8 +106,7 @@ const startTime = new Date();
 // create new progress bar container
 let multibar = null;
 
-let datasetSiteJson = {
-};
+let datasetSiteJson = {};
 
 const validatorThreadArray = [];
 const validationResults = new Map();
@@ -191,25 +203,28 @@ async function renderTemplate(templateName, data) {
   });
 }
 
-// Buckets for criteria matches
-/** @type {Map<string, Map<string, Map<string, Set<string>>>>} */
-const matchingCriteriaOpportunityIds = new Map();
-criteria.map((c) => c.name).forEach((criteriaName) => {
-  const typeBucket = new Map();
-  [
-    'ScheduledSession',
-    'FacilityUseSlot',
-    'IndividualFacilityUseSlot',
-    'CourseInstance',
-    'HeadlineEvent',
-    'Event',
-    'HeadlineEventSubEvent',
-    'CourseInstanceSubEvent',
-    'OnDemandEvent',
-  ].forEach((x) => typeBucket.set(x, new Map()));
-  matchingCriteriaOpportunityIds.set(criteriaName, typeBucket);
-});
+const opportunityIdCache = OpportunityIdCache.create();
 
+/**
+ * @typedef FeedContext
+ * @property {string} currentPage
+ * @property {number} pages
+ * @property {number} items
+ * @property {number[]} responseTimes
+ * @property {number} totalItemsQueuedForValidation
+ * @property {number} validatedItems
+ * @property {boolean} [sleepMode]
+ * @property {string} [timeToHarvestCompletion]
+ */
+/**
+ * Harvesting state for each RPDE feed.
+ *
+ * Key = Either:
+ *   - 'OrdersFeed' - it's the Orders Feed
+ *   - 'OrderProposalsFeed' - it's the OrderProposalsFeed
+ *   - 'ScheduledSession'|'SessionSeries'|'FacilityUseSlot'|..etc - It's one of the Oportunity feeds.
+ * @type {Map<string, FeedContext>}
+ */
 const feedContextMap = new Map();
 
 const testDatasets = new Map();
@@ -232,8 +247,7 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
   return async () => ({
     Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
-    ...await getHeadersFn() || {
-    },
+    ...await getHeadersFn() || {},
   });
 }
 
@@ -245,8 +259,7 @@ function withOrdersRpdeHeaders(getHeadersFn) {
   return async () => ({
     Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
-    ...await getHeadersFn() || {
-    },
+    ...await getHeadersFn() || {},
   });
 }
 
@@ -268,6 +281,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   let initialHarvestComplete = false;
   let numberOfRetries = 0;
 
+  /** @type {FeedContext} */
   const context = {
     currentPage: baseUrl,
     pages: 0,
@@ -276,6 +290,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
     totalItemsQueuedForValidation: 0,
     validatedItems: 0,
   };
+  /**
+   * @param {FeedContext} c
+   */
   const progressFromContext = (c) => ({
     totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
     validatedItems: c.validatedItems,
@@ -405,29 +422,29 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         // If a fatal error, just rethrow
         throw error;
       } else if (!error.response) {
-        log(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
+        logError(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
           // just rethrow
           throw error;
         }
       } else if (error.response.status === 404) {
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
-        log(`\nNot Found error for RPDE feed "${url}", feed will be ignored.`);
+        logError(`\n\nNot Found error for RPDE feed "${url}", feed will be ignored.\n\n\n\n\n\n\n\n\n`);
         // Stop polling feed
         return;
       } else {
-        log(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        logError(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          log(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
           // just rethrow
           throw error;
         }
@@ -443,15 +460,22 @@ function getBaseUrl(url) {
   throw new Error("RPDE 'next' property MUST be an absolute URL");
 }
 
-function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier) {
-  const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
-  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
-  const bucket = criteriaBucket.get(opportunityType);
-  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
-  const sellerCompartment = bucket.get(sellerId);
+/**
+ * @param {object} args
+ * @param {string} args.sellerId
+ * @param {string} args.bookingFlow
+ * @param {string} args.opportunityType
+ * @param {string} args.criteriaName
+ * @param {string} args.testDatasetIdentifier
+ */
+function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
+  const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+    criteriaName, bookingFlow, opportunityType,
+  });
+  const sellerCompartment = typeBucket.get(sellerId);
   if (!sellerCompartment) {
     return {
-      sellers: Array.from(bucket.keys()),
+      sellers: Array.from(typeBucket.keys()),
     };
   } // Seller has no items
 
@@ -475,17 +499,18 @@ function getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, t
 }
 
 /**
- * @param {string} opportunityType
- * @param {string} criteriaName
+ * @param {object} args
+ * @param {string} args.opportunityType
+ * @param {string} args.criteriaName
+ * @param {string} args.bookingFlow
  */
-function assertOpportunityCriteriaNotFound(opportunityType, criteriaName) {
-  const criteriaBucket = matchingCriteriaOpportunityIds.get(criteriaName);
-  if (!criteriaBucket) throw new Error('The specified testOpportunityCriteria is not currently supported.');
-  const bucket = criteriaBucket.get(opportunityType);
-  if (!bucket) throw new Error('The specified opportunity type is not currently supported.');
+function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, bookingFlow }) {
+  const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+    criteriaName, opportunityType, bookingFlow,
+  });
 
   // Check that all sellerCompartments are empty
-  return Array.from(bucket).every(([, items]) => (items.size === 0));
+  return Array.from(typeBucket).every(([, items]) => (items.size === 0));
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
@@ -533,22 +558,32 @@ function getOpportunityById(opportunityId) {
 }
 
 /**
- * @typedef {Object} PendingResponse
+ * @typedef {object} PendingResponse
  * @property {(json: any) => void} send
  * @property {() => void} cancel
  */
 
 /** @type {{[id: string]: PendingResponse}} */
-const responses = {
-};
+const responses = {};
 
 const healthCheckResponsesWaitingForHarvest = [];
+/**
+ * List of Feed identifiers which have not yet completed harvesting.
+ *
+ * @type {string[]}
+ */
 const incompleteFeeds = [];
 
-function addFeed(feedUrl) {
-  incompleteFeeds.push(feedUrl);
+/**
+ * @param {string} feedIdentifier
+ */
+function addFeed(feedIdentifier) {
+  incompleteFeeds.push(feedIdentifier);
 }
 
+/**
+ * @param {string} feedIdentifier
+ */
 async function setFeedIsUpToDate(feedIdentifier) {
   if (incompleteFeeds.length !== 0) {
     const index = incompleteFeeds.indexOf(feedIdentifier);
@@ -660,7 +695,7 @@ app.post('/pause', async function (req, res) {
 function getConfig() {
   return {
     // Allow a consistent startDate to be used when calling test-interface-criteria
-    harvestStartTime: HARVEST_START_TIME.toISOString(),
+    harvestStartTime: HARVEST_START_TIME,
     // Base URL used by the integration tests
     bookingApiBaseUrl: datasetSiteJson.accessService?.endpointURL,
     // Base URL used by the authentication tests
@@ -692,13 +727,18 @@ app.get('/dataset-site', function (req, res) {
   res.json(datasetSiteJson);
 });
 
-function mapToObject(map) {
+/**
+ * @param {Map | Set} map
+ * @returns {{[k: string]: any} | number}
+ */
+function mapToObjectSummary(map) {
   if (map instanceof Map) {
     // Return a object representation of a Map
-    return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0 ? {
-    } : {
-      [v[0]]: mapToObject(v[1]),
-    })));
+    return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0
+      ? {}
+      : {
+        [v[0]]: mapToObjectSummary(v[1]),
+      })));
   } if (map instanceof Set) {
     // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
     // instead of outputting the whole set contents. This reduces the size of the output for display.
@@ -758,11 +798,11 @@ app.get('/status', function (req, res) {
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     harvestingStatus: pauseResume.pauseHarvestingStatus,
-    feeds: mapToObject(feedContextMap),
+    feeds: mapToObjectSummary(feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObject(matchingCriteriaOpportunityIds),
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(opportunityIdCache),
   });
 });
 
@@ -797,18 +837,35 @@ app.get('/opportunity-cache/:id', function (req, res) {
   }
 });
 
+/**
+ * @typedef {{
+ *   item: any,
+ *   collectRes: import('express').Response | null,
+ * }} Listener
+ *
+ * @type {Map<string, Listener>}
+ */
 const listeners = new Map();
 
+/**
+ * @param {string} type
+ * @param {string} id
+ */
 function getListenerInfo(type, id) {
+  const isForOrdersFeed = (type === 'orders' || type === 'order-proposals');
   return {
     listenerId: `${type}::${id}`,
-    isForOrdersFeed: type === 'orders',
-    idName: type === 'orders' ? 'UUID' : '@id',
+    isForOrdersFeed,
+    idName: isForOrdersFeed ? 'UUID' : '@id',
   };
 }
 
 /**
- * @param {'opportunities'|'orders'} type
+ * For an item being harvested from RPDE, check if there are any listeners listening for it.
+ *
+ * If so, respond to those listeners.
+ *
+ * @param {'opportunities' | OrderFeedType} type
  * @param {string} id
  * @param {any} item
  */
@@ -833,7 +890,7 @@ function handleListeners(type, id, item) {
 
 app.post('/listeners/:type/:id', async function (req, res) {
   const { type, id } = req.params;
-  const { listenerId, isForOrdersFeed, idName } = getListenerInfo(type, id);
+  const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
   if (!id) {
     return res.status(400).json({
       error: 'id is required',
@@ -853,10 +910,11 @@ app.post('/listeners/:type/:id', async function (req, res) {
     item: null, collectRes: null,
   });
   if (isForOrdersFeed) {
+    const feedContext = feedContextMap.get(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER);
     return res.status(200).send({
       headers: await withOrdersRpdeHeaders(getOrdersFeedHeader)(),
-      startingFeedPage: feedContextMap.get(ORDERS_FEED_IDENTIFIER)?.currentPage,
-      message: `Listening for '${id}' in Orders feed from startingFeedPage using headers`,
+      startingFeedPage: feedContext?.currentPage,
+      message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
     });
   }
   return res.status(204).send();
@@ -998,6 +1056,28 @@ function detectOpportunityType(opportunity) {
   }
 }
 
+/**
+ * @param {{[k: string]: any}} opportunity
+ * @returns {string[]} An opportunity can support multiple Booking Flows as these are in the Offers. An Opportunity
+ *   can have an Offer requiring approval and one that does not.
+ */
+function detectOpportunityBookingFlows(opportunity) {
+  const offers = opportunity.offers || (opportunity.superEvent || opportunity.facilityUse)?.offers;
+  if (!offers) {
+    throw new Error(`Opportunity (ID: ${opportunity['@id']}) has no offers in superEvent/facilityUse`);
+  }
+  /** @type {Set<string>} */
+  const bookingFlows = new Set();
+  for (const offer of offers) {
+    if (offer.openBookingFlowRequirement && offer.openBookingFlowRequirement.includes('https://openactive.io/OpenBookingApproval')) {
+      bookingFlows.add('OpenBookingApprovalFlow');
+    } else {
+      bookingFlows.add('OpenBookingSimpleFlow');
+    }
+  }
+  return [...bookingFlows];
+}
+
 app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', function (req, res) {
   if (DO_NOT_FILL_BUCKETS) {
     res.status(403).json({
@@ -1013,8 +1093,12 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
   const opportunityType = detectOpportunityType(opportunity);
   const sellerId = detectSellerId(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const result = getRandomBookableOpportunity(sellerId, opportunityType, criteriaName, testDatasetIdentifier);
+  const result = getRandomBookableOpportunity({
+    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
+  });
   if (result && result.opportunity) {
     if (CONSOLE_OUTPUT_LEVEL === 'dot') {
       logCharacter('.');
@@ -1048,8 +1132,12 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   const opportunity = req.body;
   const opportunityType = detectOpportunityType(opportunity);
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const result = assertOpportunityCriteriaNotFound(opportunityType, criteriaName);
+  const result = assertOpportunityCriteriaNotFound({
+    opportunityType, criteriaName, bookingFlow,
+  });
 
   if (result) {
     if (CONSOLE_OUTPUT_LEVEL === 'dot') {
@@ -1066,39 +1154,6 @@ app.post('/assert-unmatched-criteria', function (req, res) {
     }
     res.status(404).json({
       error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
-    });
-  }
-});
-
-/** @type {{[id: string]: PendingResponse}} */
-const orderResponses = {
-};
-
-app.get('/get-order/:orderUuid', function (req, res) {
-  if (DO_NOT_HARVEST_ORDERS_FEED) {
-    res.status(403).json({
-      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in openactive-broker-microservice configuration.',
-    });
-  } else if (req.params.orderUuid) {
-    const { orderUuid } = req.params;
-
-    // Stash the response and reply later when an event comes through (kill any existing orderUuid still waiting)
-    if (orderResponses[orderUuid] && orderResponses[orderUuid] !== null) orderResponses[orderUuid].cancel();
-    orderResponses[orderUuid] = {
-      send(json) {
-        orderResponses[orderUuid] = null;
-        res.json(json);
-      },
-      cancel() {
-        log(`Ignoring previous request for "${orderUuid}"`);
-        res.status(400).json({
-          error: `A newer request to wait for "${orderUuid}" has been received, so this request has been cancelled.`,
-        });
-      },
-    };
-  } else {
-    res.status(400).json({
-      error: 'orderUuid is required',
     });
   }
 });
@@ -1288,25 +1343,30 @@ async function processOpportunityItem(item) {
 
     if (!DO_NOT_FILL_BUCKETS) {
       const opportunityType = detectOpportunityType(item.data);
+      const bookingFlows = detectOpportunityBookingFlows(item.data);
       const sellerId = detectSellerId(item.data);
 
-      criteria.map((c) => ({
+      for (const { criteriaName, criteriaResult } of criteria.map((c) => ({
         criteriaName: c.name,
         criteriaResult: testMatch(c, item.data, {
           harvestStartTime: HARVEST_START_TIME,
         }),
-      })).forEach((result) => {
-        const bucket = matchingCriteriaOpportunityIds.get(result.criteriaName).get(opportunityType);
-        if (!bucket.has(sellerId)) bucket.set(sellerId, new Set());
-        const sellerCompartment = bucket.get(sellerId);
-        if (result.criteriaResult.matchesCriteria) {
-          sellerCompartment.add(id);
-          matchingCriteria.push(result.criteriaName);
-        } else {
-          sellerCompartment.delete(id);
-          unmetCriteriaDetails = unmetCriteriaDetails.concat(result.criteriaResult.unmetCriteriaDetails);
+      }))) {
+        for (const bookingFlow of bookingFlows) {
+          const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+            criteriaName, opportunityType, bookingFlow,
+          });
+          if (!typeBucket.has(sellerId)) typeBucket.set(sellerId, new Set());
+          const sellerCompartment = typeBucket.get(sellerId);
+          if (criteriaResult.matchesCriteria) {
+            sellerCompartment.add(id);
+            matchingCriteria.push(criteriaName);
+          } else {
+            sellerCompartment.delete(id);
+            unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
+          }
         }
-      });
+      }
     }
 
     const bookableIssueList = unmetCriteriaDetails.length > 0
@@ -1324,16 +1384,18 @@ async function processOpportunityItem(item) {
   }
 }
 
-/** @type {RpdePageProcessor} */
-async function monitorOrdersPage(rpde) {
-  rpde.items.forEach((item) => {
-    if (item.id) {
-      handleListeners('orders', item.id, item);
+/**
+ * @param {OrderFeedType} orderFeedType
+ * @returns {RpdePageProcessor}
+ */
+function monitorOrdersPage(orderFeedType) {
+  return (rpdePage) => {
+    for (const item of rpdePage.items) {
+      if (item.id) {
+        handleListeners(orderFeedType, item.id, item);
+      }
     }
-    if (item.id && orderResponses[item.id]) {
-      orderResponses[item.id].send(item);
-    }
-  });
+  };
 }
 
 function extractJSONLDfromHTML(url, html) {
@@ -1513,10 +1575,28 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
-    const ordersFeedUrl = `${dataset.accessService.endpointURL}/orders-rpde`;
-    log(`Found orders feed: ${ordersFeedUrl}`);
-    addFeed(ORDERS_FEED_IDENTIFIER);
-    harvesters.push(harvestRPDE(ordersFeedUrl, ORDERS_FEED_IDENTIFIER, withOrdersRpdeHeaders(getOrdersFeedHeader), monitorOrdersPage, true));
+    for (const { feedUrl, type, feedContextIdentifier } of [
+      {
+        feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
+        type: /** @type {OrderFeedType} */('orders'),
+        feedContextIdentifier: ORDERS_FEED_IDENTIFIER,
+      },
+      {
+        feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
+        type: /** @type {OrderFeedType} */('order-proposals'),
+        feedContextIdentifier: ORDER_PROPOSALS_FEED_IDENTIFIER,
+      },
+    ]) {
+      log(`Found ${type} feed: ${feedUrl}`);
+      addFeed(feedContextIdentifier);
+      harvesters.push(harvestRPDE(
+        feedUrl,
+        feedContextIdentifier,
+        withOrdersRpdeHeaders(getOrdersFeedHeader),
+        monitorOrdersPage(type),
+        true,
+      ));
+    }
   }
 
   // Finished processing dataset site
@@ -1530,16 +1610,6 @@ Validation errors found in Dataset Site JSON-LD:
 // Ensure that dataset site request also delays "readiness"
 addFeed('DatasetSite');
 
-// Ensure bucket allocation does not become stale
-setTimeout(() => {
-  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
-  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
-    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
-    logError(`${message}\n`);
-    throw new Error(message);
-  }
-}, 3600000); // 3600000 ms = 1 hour
-
 const server = http.createServer(app);
 server.on('error', onError);
 
@@ -1548,6 +1618,12 @@ app.listen(PORT, () => {
 
 Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
 `);
+  // if this has been run as a child process in the `npm start` script, `process.send` will be defined.
+  if (process.send) {
+    // Notify parent process that the server is up
+    process.send('listening');
+  }
+
   // Start polling after HTTP server starts listening
   (async () => {
     try {
@@ -1558,6 +1634,16 @@ Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
     }
   })();
 });
+
+// Ensure bucket allocation does not become stale
+setTimeout(() => {
+  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
+  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
+    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+    logError(`${message}\n`);
+    throw new Error(message);
+  }
+}, 3600000); // 3600000 ms = 1 hour
 
 /**
  * Normalize a port into a number, string, or false.

@@ -1,4 +1,3 @@
-const moment = require('moment');
 const {
   // EVENT_STATUS_EVENT_CANCELLED,
   // EVENT_STATUS_EVENT_POSTPONED,
@@ -39,10 +38,10 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
       mustNotRequireAttendeeDetails,
     ],
   ],
-  testDataShape: options => ({
+  testDataShape: (options) => ({
     opportunityConstraints: ({
       'schema:startDate': dateRange({
-        minDate: moment(options.harvestStartTime).add(moment.duration('P2H')).toISOString(),
+        minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),
       'schema:eventStatus': eventStatusOptionNodeConstraint({
         blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],

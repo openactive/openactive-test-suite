@@ -12,7 +12,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'authentication-authority-present',
   testName: 'authenticationAuthority present in dataset site',
   testDescription: 'The authenticationAuthority must be specified within the dataset site to facilitate Open ID Connect authentication',
-  runOnce: true,
+  doesNotUseOpportunitiesMode: true,
   surviveAuthenticationFailure: true,
   surviveDynamicRegistrationFailure: true,
 },

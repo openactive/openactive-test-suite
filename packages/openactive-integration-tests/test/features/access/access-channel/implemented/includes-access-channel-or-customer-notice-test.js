@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { getOrderItemAtPositionXFromOrdersApiResponse } = require('../../../../shared-behaviours/common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'access',
@@ -16,19 +17,22 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
+  supportsApproval: true,
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include an `accessChannel` or a `customerNotice`', () => {
-      const { orderedItem } = b.getOutput().httpResponse.body;
-      expect(orderedItem).to.be.an('array');
       /* The item with position 0 will be the one that satisfies the primary test opportunity criteria (and
-      therefore is online) */
-      const orderItemWithPrivateVirtualLocation = orderedItem.find(orderItem => orderItem.position === 0);
+      therefore is online). */
+      const orderItemWithPrivateVirtualLocation = getOrderItemAtPositionXFromOrdersApiResponse(
+        0,
+        bookRecipe.b.getOutput().httpResponse,
+        bookRecipe.firstStage.getOutput().httpResponse,
+      );
       expect(orderItemWithPrivateVirtualLocation).to.satisfy(orderItem => (
         (orderItem.accessChannel && orderItem.accessChannel['@type'] === 'VirtualLocation')
         || (typeof orderItem.customerNotice === 'string' && orderItem.customerNotice.length > 0)

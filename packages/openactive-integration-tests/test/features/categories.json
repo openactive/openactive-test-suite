@@ -1,18 +1,15 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "categories": {
-    "approval": {
-      "minimal-proposal": true
-    },
     "core": {
       "agent-broker": true,
       "amending-order-quote": true,
       "availability-check": true,
       "common-error-conditions": true,
       "dataset-site": true,
-      "opportunity-feed": true,
       "order-deletion": true,
       "multiple-sellers": true,
+      "opportunity-feed": true,
       "test-interface": true
     },
     "access": {
@@ -20,7 +17,6 @@
       "access-channel-update-notifications": true,
       "access-code": true,
       "access-code-update-notifications": true,
-      "access-pass-barcode-broker-provided": true,
       "access-pass-barcode-seller-provided": true,
       "access-pass-image": true,
       "access-pass-update-notifications": true
@@ -28,6 +24,10 @@
     "advanced-payment": {
       "dynamic-payment": true,
       "offer-overrides": true
+    },
+    "approval": {
+      "minimal-proposal": true,
+      "proposal-amendment": true
     },
     "authentication": {
       "booking-partner-authentication": true,

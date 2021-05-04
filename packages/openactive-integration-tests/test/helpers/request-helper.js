@@ -3,7 +3,6 @@ const chakram = require('chakram');
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
-const { pReqTemplates } = require('../templates/p-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
 const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
 
@@ -12,7 +11,23 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  * @typedef {import('chakram').RequestOptions} RequestOptions
  * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
+ * @typedef {import('../templates/b-req').BReqTemplateData} BReqTemplateData
+ * @typedef {import('../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ * @typedef {import('../templates/b-req').PReqTemplateData} PReqTemplateData
+ * @typedef {import('../templates/b-req').PReqTemplateRef} PReqTemplateRef
+ */
+
+/**
+ * @typedef {{
+ *   opportunityType: string,
+ *   testOpportunityCriteria: string,
+ *   orderItemPosition: number,
+ *   bookingFlow: BookingFlow,
+ *   sellerId?: string | null,
+ *   sellerType?: string | null,
+ * }} TestInterfaceRequestArgs
  */
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
@@ -133,21 +148,6 @@ class RequestHelper {
   }
 
   /**
-   * @param {string} uuid
-   */
-  async getOrder(uuid) {
-    const ordersFeedUpdate = await this.get(
-      'get-order',
-      `${MICROSERVICE_BASE}/get-order/${uuid}`,
-      {
-        timeout: 30000,
-      },
-    );
-
-    return ordersFeedUpdate;
-  }
-
-  /**
    * @param {string} eventId
    * @param {unknown} orderItemPosition
    * @param {boolean} [useCacheIfAvailable] If true, Broker will potentially return the
@@ -169,13 +169,13 @@ class RequestHelper {
   }
 
   /**
-   * @param {'opportunities'|'orders'} type
+   * @param {'opportunities' | 'orders' | 'order-proposals'} type
    * @param {string} id
    * @param {number} [orderItemPosition]
    */
   async postFeedChangeListener(type, id, orderItemPosition) {
     const respObj = await this.post(
-      type === 'orders'
+      (type === 'orders' || type === 'order-proposals')
         ? `Orders Feed listen for '${id}' change`
         : `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
       `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
@@ -189,14 +189,14 @@ class RequestHelper {
   }
 
   /**
-   * @param {'opportunities'|'orders'} type
+   * @param {'opportunities' | 'orders' | 'order-proposals'} type
    * @param {string} id
    * @param {number} [orderItemPosition]
 
    */
   async getFeedChangeCollection(type, id, orderItemPosition) {
     const respObj = await this.get(
-      type === 'orders'
+      (type === 'orders' || type === 'order-proposals')
         ? `Orders Feed collect for '${id}' change`
         : `Opportunity Feed collect for OrderItem ${orderItemPosition} change`,
       `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
@@ -268,8 +268,8 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
+   * @param {BReqTemplateData} params
+   * @param {BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
   async putOrder(uuid, params, maybeBReqTemplateRef) {
     const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
@@ -291,12 +291,12 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef | null} [maybePReqTemplateRef]
+   * @param {PReqTemplateData} params
+   * @param {PReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrderProposal(uuid, params, maybePReqTemplateRef) {
-    const pReqTemplateRef = maybePReqTemplateRef || 'standard';
-    const templateFn = pReqTemplates[pReqTemplateRef];
+  async putOrderProposal(uuid, params, maybeBReqTemplateRef) {
+    const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
+    const templateFn = bReqTemplates[bReqTemplateRef];
     const requestBody = templateFn(params);
 
     const pResponse = await this.put(
@@ -337,12 +337,27 @@ class RequestHelper {
     return uResponse;
   }
 
-  async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
+  /**
+   * @param {TestInterfaceRequestArgs} args
+   */
+  async createOpportunity({
+    opportunityType,
+    testOpportunityCriteria,
+    orderItemPosition,
+    bookingFlow,
+    sellerId,
+    sellerType,
+  }) {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+        sellerType,
+      }), {
         headers: this.createHeaders(),
         timeout: 10000,
       },
@@ -351,12 +366,27 @@ class RequestHelper {
     return respObj;
   }
 
-  async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
+  /**
+   * @param {TestInterfaceRequestArgs} args
+   */
+  async getRandomOpportunity({
+    opportunityType,
+    testOpportunityCriteria,
+    orderItemPosition,
+    bookingFlow,
+    sellerId,
+    sellerType,
+  }) {
     const respObj = await this.post(
       `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+        sellerType,
+      }), {
         timeout: 10000,
       },
     );
@@ -395,15 +425,20 @@ class RequestHelper {
   }
 
   /**
-   * @param {string} opportunityType
-   * @param {string} testOpportunityCriteria
+   * @param {object} args
+   * @param {string} args.opportunityType
+   * @param {string} args.testOpportunityCriteria
+   * @param {BookingFlow} args.bookingFlow
    */
-  async callAssertUnmatchedCriteria(opportunityType, testOpportunityCriteria) {
+  async callAssertUnmatchedCriteria({ opportunityType, testOpportunityCriteria, bookingFlow }) {
     const response = await this.post(
       `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
       `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
-      createTestInterfaceOpportunity(opportunityType, testOpportunityCriteria),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+      }), {
         timeout: 10000,
       },
     );

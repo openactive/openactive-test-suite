@@ -168,7 +168,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -215,7 +215,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -262,7 +262,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -308,7 +308,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -354,7 +354,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -400,7 +400,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -446,7 +446,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -492,7 +492,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -538,7 +538,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",
@@ -584,7 +584,7 @@
           },
           {
             "@type": "test:TripleConstraint",
-            "predicate": "https://openactive.io/prepayment",
+            "predicate": "https://openactive.io/openBookingPrepayment",
             "valueExpr": {
               "@type": "test:OptionNodeConstraint",
               "datatype": "oa:RequiredStatusType",

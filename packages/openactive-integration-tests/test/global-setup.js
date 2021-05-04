@@ -5,6 +5,7 @@ const { getConfigVarOrThrow } = require('./helpers/config-utils');
 const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 const TEST_DATASET_IDENTIFIER = getConfigVarOrThrow('integrationTests', 'testDatasetIdentifier');
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const BOOKING_FLOWS_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookingFlowsInScope');
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
@@ -43,11 +44,37 @@ async function deleteTestDataset(testInterfaceBaseUrl) {
   return true;
 }
 
+/**
+ * @param {{[k: string]: boolean}} booleanObj
+ */
+function booleanObjIsAllFalse(booleanObj) {
+  return Object.entries(booleanObj).filter(([, v]) => v).length === 0;
+}
+
+/**
+ * @param {{[k: string]: boolean}} booleanObj
+ */
+function booleanObjGetTrueKeys(booleanObj) {
+  return Object.entries(booleanObj).filter(([, v]) => v).map(([k]) => k);
+}
+
 module.exports = async () => {
-  if (Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).length === 0) {
-    throw new Error('There are no opportunity types selected for testing. Please ensure `bookableOpportunityTypesInScope` contains at least one value set to `true`.');
+  if (booleanObjIsAllFalse(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE)) {
+    throw new Error('There are no Opportunity Types selected for testing. Please ensure `bookableOpportunityTypesInScope` contains at least one value set to `true`.');
   }
-  console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).filter(([, v]) => v).map(([k]) => `'${k}'`).join(', ')}`);
+  if (booleanObjIsAllFalse(BOOKING_FLOWS_IN_SCOPE)) {
+    throw new Error('There are no Booking Flows selected for testing. Please ensure `bookingFlowsInScope` contains at least one value set to `true`.');
+  }
+  if (process.env.SINGLE_FLOW_PATH_MODE) {
+    console.log(`Running a single flow path "${process.env.SINGLE_FLOW_PATH_MODE}" for tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode.`);
+  } else {
+    console.log(`Running tests in "${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}" mode for opportunity types: ${
+      booleanObjGetTrueKeys(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE).map(k => `'${k}'`).join(', ')
+    } and booking flows: ${
+      booleanObjGetTrueKeys(BOOKING_FLOWS_IN_SCOPE).map(k => `'${k}'`).join(', ')
+    }`);
+  }
+
   try {
     console.log('Waiting for broker microservice to be ready...');
     await ping();

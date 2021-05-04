@@ -15,8 +15,9 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
+  supportsApproval: true,
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, b, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   const [simulateAccessChannelUpdate, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
@@ -27,12 +28,12 @@ FeatureHelper.describeFeature(module, {
         type: 'test:AccessChannelUpdateSimulateAction',
         // Note that these 2 fields may need to be configurable in future:
         objectType: 'Order',
-        objectId: b.getOutput().orderId,
+        objectId: bookRecipe.b.getOutput().orderId,
       }),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: b,
+      prerequisite: bookRecipe.b,
       testName: 'Orders Feed (after test:AccessChannelUpdateSimulateAction)',
     },
   });
@@ -40,12 +41,12 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateAccessChannelUpdate);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
     it('should have a new access channel value', () => {
       // original = before the AccessChannelUpdateSimulationAction was invoked
-      const originalOnlineOrderItem = b.getOutput().httpResponse.body.orderedItem[0];
+      const originalOnlineOrderItem = bookRecipe.b.getOutput().httpResponse.body.orderedItem[0];
       const orderItemId = originalOnlineOrderItem.id;
       // new = after the AccessChannelUpdateSimulationAction was invoked
       const newOnlineOrderItem = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem.find(orderItem => (

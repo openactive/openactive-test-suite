@@ -1,7 +1,6 @@
 export type EventStatusType = 'https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled';
 export type TaxMode = 'https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet';
 export type RequiredStatusType = 'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable';
-export type AvailableChannelType = 'https://openactive.io/OpenBookingPrepayment' | 'https://openactive.io/TelephoneAdvanceBooking' | 'https://openactive.io/TelephonePrepayment' | 'https://openactive.io/OnlinePrepayment';
 export type OpenBookingFlowRequirement = 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
 
 export interface DateRangeNodeConstraint {
@@ -20,12 +19,16 @@ export interface NumericNodeConstraint {
   maxinclusive?: number;
 }
 
+export interface BooleanNodeConstraint {
+  '@type': 'test:BooleanNodeConstraint';
+  value: boolean; 
+}
+
 /**
  * A reference to a schema.org or OpenActive type, prefixed
  * e.g. oa:RequiredStatusType or schema:EventStatusType
  */
 export type ValueType = 
-  | 'oa:AvailableChannelType'
   | 'oa:OpenBookingFlowRequirement'
   | 'oa:RequiredStatusType'
   | 'oa:TaxMode'
@@ -88,7 +91,8 @@ export type TestDataNodeConstraint =
   | NumericNodeConstraint
   | OptionNodeConstraint<any, any>
   | ArrayConstraint<any, any>
-  | NullNodeConstraint;
+  | NullNodeConstraint
+  | BooleanNodeConstraint;
 
 /**
  * For a particular criteria, test data requirements that must be met by an opportunity
@@ -105,18 +109,18 @@ export interface TestDataShape {
     'placeholder:remainingCapacity'?: NumericNodeConstraint;
     'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
     'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
+    'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
   };
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
-    'oa:prepayment'?: OptionNodeConstraint<RequiredStatusType,'oa:RequiredStatusType'>;
+    'oa:openBookingPrepayment'?: OptionNodeConstraint<RequiredStatusType,'oa:RequiredStatusType'>;
     /**
      * Refers to the date calculated as `startDate - validFromBeforeStartDate`.
      * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validFromBeforeStartDate`
      * can be null.
      */
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
-    'schema:availableChannel'?: ArrayConstraint<AvailableChannelType, 'oa:AvailableChannelType'>;
-    'oa:advanceBooking'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
+    'oa:openBookingInAdvance'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
     'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint;
     // note that the type isn't specified yet (it's a '@type': 'Terms' object) as

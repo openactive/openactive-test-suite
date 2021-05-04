@@ -1,5 +1,3 @@
-import { TestDataShape } from '@openactive/test-interface-criteria/built-types/types/TestDataShape';
-
 /**
  * Opportunity data for test interface requests. Just has ID and organizer/provider ID
  */
@@ -20,6 +18,7 @@ export interface BaseTestInterfaceOpportunity {
     'https://openactive.io/test-interface',
   ];
   'test:testOpportunityCriteria': string;
+  'test:testOpenBookingFlow': string;
   'test:testOpportunityDataShapeExpression'?: any;
   'test:testOfferDataShapeExpression'?: any;
 }

@@ -13,7 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../sellers').SellerConfig} SellerConfig
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./flow-stage').Prepayment} Prepayment
- * @typedef {import('./flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
+ * @typedef {import('./flow-stage').PositionOrderIntakeFormMap} PositionOrderIntakeFormMap
  */
 
 /**
@@ -25,7 +25,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @param {object} args
  * @param {BReqTemplateRef} [args.templateRef]
- * @param {AccessPassItem[]} [args.accessPass]
+ * @param {AccessPassItem[] | null} [args.accessPass]
  * @param {string} args.uuid
  * @param {SellerConfig} args.sellerConfig
  * @param {OrderItem[]} args.orderItems
@@ -34,15 +34,17 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string} [args.orderProposalVersion]
  * @param {RequestHelperType} args.requestHelper
  * @param {string | null} args.brokerRole
- * @param {{[k:string]: OrderItemIntakeForm}} args.positionOrderIntakeFormMap
+ * @param {PositionOrderIntakeFormMap} args.positionOrderIntakeFormMap
  * @returns {Promise<Output>}
  */
 async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper, positionOrderIntakeFormMap }) {
+  /** @type {BReqTemplateData} */
   const params = {
+    orderType: 'Order',
     sellerId: sellerConfig['@id'],
     orderItems,
     totalPaymentDue,
-    prepayment,
+    openBookingPrepayment: prepayment,
     orderProposalVersion,
     accessPass,
     brokerRole,

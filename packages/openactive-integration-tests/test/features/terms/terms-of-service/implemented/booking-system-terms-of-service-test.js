@@ -27,9 +27,10 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, b } = FlowStageRecipes.initialiseSimpleC1C2BFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   describe('Terms of service should be part of bookingService in all stages', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -39,8 +40,8 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
       itShouldContainBookingServiceWithValidTermsOfService(() => c2.getOutput().httpResponse);
     });
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(b, () => {
-      itShouldContainBookingServiceWithValidTermsOfService(() => b.getOutput().httpResponse);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
+      itShouldContainBookingServiceWithValidTermsOfService(() => bookRecipe.b.getOutput().httpResponse);
     });
   });
 });
