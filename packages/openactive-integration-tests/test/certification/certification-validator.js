@@ -186,10 +186,10 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
     return result;
   }, {}), implementedFeatures);
 
-  // Check list of opportunityTypes index.json
+  // Check list of bookingFlows and opportunityTypes in index.json
   assert.deepStrictEqual(
-    new Set(indexJson.features.map(x => x.opportunityTypeName).filter(x => x !== 'Generic' && x !== 'Multiple')),
-    new Set(certificateJson.opportunityTypeImplemented),
+    new Set(indexJson.features.map(x => x.opportunityTypeName).filter(x => x !== 'Generic' && x.indexOf('>> Multiple') === -1)),
+    new Set(certificateJson.bookingFlowsImplemented.flatMap(bookingFlow => certificateJson.opportunityTypeImplemented.map(opportunityType => `${bookingFlow} >> ${opportunityType}`))),
   );
 
   // Check every test in the index file has passed
