@@ -88,6 +88,7 @@ FeatureHelper.describeFeature(module, {
         orderItemCriteriaList,
         fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
         apiFlowStage: secondAttemptBook.b,
+        bookRecipe: secondAttemptBook,
       });
     });
   });
