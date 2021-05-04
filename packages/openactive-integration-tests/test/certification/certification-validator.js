@@ -188,7 +188,7 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
 
   // Check list of bookingFlows and opportunityTypes in index.json
   assert.deepStrictEqual(
-    new Set(indexJson.features.map(x => x.opportunityTypeName).filter(x => x !== 'Generic' && x.indexOf('>> Multiple') > -1)),
+    new Set(indexJson.features.map(x => x.opportunityTypeName).filter(x => x !== 'Generic' && x.indexOf('>> Multiple') === -1)),
     new Set(certificateJson.bookingFlowsImplemented.flatMap(bookingFlow => certificateJson.opportunityTypeImplemented.map(opportunityType => `${bookingFlow} >> ${opportunityType}`))),
   );
 
