@@ -29,7 +29,6 @@ FeatureHelper.describeFeature(module, {
     },
   ],
   skipMultiple: true,
-  supportsApproval: true,
 },
 function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ## Initiate Flow Stages

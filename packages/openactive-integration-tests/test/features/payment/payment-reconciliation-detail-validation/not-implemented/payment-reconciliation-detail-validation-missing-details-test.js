@@ -10,6 +10,5 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'C1, C2 and B - with missing reconciliation details - should succeed, ignoring these values',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 notImplementedTest({ bookReqTemplateRef: 'missingPaymentReconciliationDetails' }));

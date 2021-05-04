@@ -17,7 +17,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // It is not possible to run multiple OrderItem tests for this due to (https://github.com/openactive/openactive-test-suite/issues/312)
   skipMultiple: true,
-  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   describe('ChangeOfLogisticsTimeSimulateAction triggered in the Opportunity (eg startDate)', () => {

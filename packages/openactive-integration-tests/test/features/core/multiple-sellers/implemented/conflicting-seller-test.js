@@ -31,7 +31,6 @@ FeatureHelper.describeFeature(module, {
     },
   ],
   skipMultiple: true,
-  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   /**

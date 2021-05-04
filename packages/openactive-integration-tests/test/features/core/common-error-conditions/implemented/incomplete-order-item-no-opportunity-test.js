@@ -21,7 +21,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Set up tests for noOrderedItem

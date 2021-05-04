@@ -10,7 +10,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking including cancellation within the cancellation window.',
   testOpportunityCriteria: 'TestOpportunityBookableCancellableWithinWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages

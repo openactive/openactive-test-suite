@@ -15,7 +15,6 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
-  supportsApproval: true,
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 

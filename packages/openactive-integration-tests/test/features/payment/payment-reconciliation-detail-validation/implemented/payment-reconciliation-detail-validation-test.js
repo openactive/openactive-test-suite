@@ -10,6 +10,5 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'C1, C2 and B including globally configured accountId, paymentProviderId and name should succeed',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 paymentReconciliationSuccessTest(false));
