@@ -30,7 +30,7 @@ class BaseReportGenerator {
       "renderSuiteName": function(suiteName, options) {
         if (suiteName.length <= 2) return "Test setup";
 
-        return suiteName.slice(3).join(" >> ");
+        return suiteName.slice(4).join(" >> ");
       },
       "validationIcon": function(severity, options) {
         switch (severity) {
@@ -125,7 +125,14 @@ class BaseReportGenerator {
         }
 
         return ret;
-      }
+      },
+      "eachSorted": (context, options) => {
+        var ret = "";
+        Object.keys(context).sort().forEach(function(key) {
+          ret = ret + options.fn(context[key]);
+        })
+        return ret;
+      },
     };
   }
 
@@ -296,7 +303,7 @@ class LoggerGroup {
 
     return this._opportunityTypeGroups = _
       .chain(this.loggers)
-      .groupBy(logger => logger.opportunityType || "Generic")
+      .groupBy(logger => logger.opportunityType ? `${logger.bookingFlow} >> ${logger.opportunityType}` : "Generic")
       .mapValues(group => new LoggerGroup(this.reporter, group))
       .value();
   }
@@ -313,7 +320,7 @@ class LoggerGroup {
   }
 
   get opportunityTypeName() {
-    return this.loggers[0].opportunityType || "Generic";
+    return this.loggers[0].opportunityType ? (`${this.loggers[0].bookingFlow} >> ${this.loggers[0].opportunityType}`) : 'Generic';
   }
 
   get featureName () {

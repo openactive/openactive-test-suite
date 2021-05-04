@@ -2,8 +2,8 @@ Summary
 
 See `{{{ reportMarkdownPath }}}` for a Markdown version.
 
-{{#each opportunityTypeGroups }}
-{{# chalk "bold"}}{{ opportunityTypeName }}{{/chalk}}
+{{#eachSorted opportunityTypeGroups }}
+{{# chalk "bold"}}{{{ opportunityTypeName }}}{{/chalk}}
 ---
 
   {{#each featureGroups }}
@@ -13,4 +13,4 @@ See `{{{ reportMarkdownPath }}}` for a Markdown version.
     {{/each}}
   {{/each}}
 
-{{/each}}
+{{/eachSorted}}
