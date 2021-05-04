@@ -16,6 +16,6 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // temporarily disable control in multiple mode until refactoring complete
   multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria),
-  supportsApproval: false, // https://github.com/openactive/OpenActive.Server.NET/issues/125
+  supportsApproval: true, // https://github.com/openactive/OpenActive.Server.NET/issues/125
 },
 successTests(expectedPrepayment, bReqTemplateRef));
