@@ -8,7 +8,7 @@ const { expect } = require('chai');
  * @typedef {InstanceType<import('../shared-behaviours/c1')['C1']>} C1
  * @typedef {InstanceType<import('../shared-behaviours/c2')['C2']>} C2
  * @typedef {InstanceType<import('../shared-behaviours/b')['B']>} B
- * @typedef {import('../helpers/flow-stages/book-recipe').BookRecipe} BookRecipe
+ * @typedef {InstanceType<import('../helpers/flow-stages/book-recipe')['BookRecipe']>} BookRecipe
  */
 
 class Common {
