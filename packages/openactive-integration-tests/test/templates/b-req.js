@@ -375,44 +375,47 @@ function createBReqWithBusinessCustomer(data) {
 }
 
 /**
- * Paid B request with payment property - though reconciliation fields in `payment`
+ * B request with payment property - though reconciliation fields in `payment`
  * are missing.
  *
- * Note that the purpose of this template is to test using invalid `payment` data
- * when `payment` is required. This template therefore asserts that `payment` should
- * be required.
+ * Note that the purpose of this template is to test using missing `payment` data
+ * when `payment` is required.
  *
  * @param {BReqTemplateData} data
  */
 function createMissingPaymentReconciliationDetailsBReq(data) {
-  assertPaymentIsAvailable('missingPaymentReconciliationDetails', data);
-  const req = createPaidWithPaymentBReq(data);
+  const req = createStandardPaidBReq(data);
   return {
     ...req,
+    // @ts-ignore
     payment: omit(['accountId', 'name', 'paymentProviderId'], req.payment),
   };
 }
 
 /**
- * Paid B request with payment property - though reconciliation fields in `payment`
+ * B request with payment property - though reconciliation fields in `payment`
  * are incorrect.
  *
  * Note that the purpose of this template is to test using invalid `payment` data
- * when `payment` is required. This template therefore asserts that `payment` should
- * be required.
+ * when `payment` is required.
  *
  * @param {BReqTemplateData} data
  */
 function createIncorrectReconciliationDetails(data) {
-  assertPaymentIsAvailable('missingPaymentReconciliationDetails', data);
-  const req = createPaidWithPaymentBReq(data);
-  if (req.payment.accountId) {
+  const req = createStandardPaidBReq(data);
+  // @ts-ignore // TODO: Figure out why req.payment isn't recognised here?!
+  if (req.payment?.accountId) {
+    // @ts-ignore
     req.payment.accountId = `invalid-${shortid.generate()}`;
   }
-  if (req.payment.name) {
+  // @ts-ignore
+  if (req.payment?.name) {
+    // @ts-ignore
     req.payment.name = `invalid-${shortid.generate()}`;
   }
-  if (req.payment.paymentProviderId) {
+  // @ts-ignore
+  if (req.payment?.paymentProviderId) {
+    // @ts-ignore
     req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
   }
   return req;
