@@ -3,6 +3,7 @@ const {
   // EVENT_STATUS_EVENT_POSTPONED,
   dateRange,
   eventStatusOptionNodeConstraint,
+  openBookingFlowRequirementArrayConstraint,
 } = require('../../testDataShape');
 
 /**
@@ -47,6 +48,11 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
       }),
       'schema:eventStatus': eventStatusOptionNodeConstraint({
         blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
+      }),
+    }),
+    offerConstraints: ({
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        excludesAll: ['https://openactive.io/OpenBookingAttendeeDetails'],
       }),
     }),
   }),

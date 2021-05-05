@@ -1,7 +1,12 @@
 export type EventStatusType = 'https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled';
 export type TaxMode = 'https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet';
 export type RequiredStatusType = 'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable';
-export type OpenBookingFlowRequirement = 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
+export type OpenBookingFlowRequirement =
+  | 'https://openactive.io/OpenBookingIntakeForm'
+  | 'https://openactive.io/OpenBookingAttendeeDetails'
+  | 'https://openactive.io/OpenBookingApproval'
+  | 'https://openactive.io/OpenBookingNegotiation'
+  | 'https://openactive.io/OpenBookingMessageExchange';
 
 export interface DateRangeNodeConstraint {
   '@type': 'test:DateRangeNodeConstraint';
