@@ -28,6 +28,7 @@ const TestOpportunitySellerOpenBookingNotAllowed = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     opportunityConstraints: {
+      // mustNotAllowOpenBooking
       'oa:isOpenBookingAllowed': FALSE_BOOLEAN_CONSTRAINT,
     },
   }),

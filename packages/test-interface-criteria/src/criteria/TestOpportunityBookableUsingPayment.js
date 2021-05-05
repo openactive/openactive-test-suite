@@ -27,6 +27,7 @@ const TestOpportunityBookableUsingPayment = createCriteria({
   ],
   testDataShape: () => ({
     offerConstraints: {
+      // onlyPaidBookableOffers
       'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
       'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
         blocklist: ['https://openactive.io/Unavailable'],

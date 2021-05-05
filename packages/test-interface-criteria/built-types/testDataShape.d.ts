@@ -7,7 +7,7 @@ export type NumericNodeConstraint = import("./types/TestDataShape").NumericNodeC
 export type BooleanNodeConstraint = import("./types/TestDataShape").BooleanNodeConstraint;
 export type NullNodeConstraint = import("./types/TestDataShape").NullNodeConstraint;
 export type TestDataShape = import("./types/TestDataShape").TestDataShape;
-export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType";
+export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType" | "schema:EventAttendanceModeEnumeration";
 export type Options = {
     harvestStartTime: any;
     harvestStartTimeTwoHoursLater: any;
@@ -68,6 +68,11 @@ export const BLOCKED_FIELD: NullNodeConstraint;
  * @returns {import('./types/TestDataShape').OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>}
  */
 export function eventStatusOptionNodeConstraint(requirements: Omit<import('./types/TestDataShape').OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>, '@type' | 'datatype'>): import('./types/TestDataShape').OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
+/**
+ * @param {Omit<import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'], '@type' | 'datatype'>} requirements
+ * @returns {import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode']}
+ */
+export function eventAttendanceModeOptionNodeConstraint(requirements: Omit<import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'], '@type' | 'datatype'>): import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'];
 /**
  * @param {Omit<import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>, '@type' | 'datatype'>} requirements
  * @returns {import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>}

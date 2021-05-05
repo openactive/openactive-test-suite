@@ -1,3 +1,4 @@
+const { openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const {
   createCriteria,
   mustAllowProposalAmendment,
@@ -13,7 +14,14 @@ const TestOpportunityBookableWithNegotiation = createCriteria({
       mustAllowProposalAmendment,
     ],
   ],
-  testDataShape: () => ({}), // TODO: Add data shape
+  testDataShape: () => ({
+    offerConstraints: {
+      // mustAllowProposalAmendment
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        includesAll: ['https://openactive.io/OpenBookingNegotiation'],
+      }),
+    },
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

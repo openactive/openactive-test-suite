@@ -127,6 +127,17 @@ function eventStatusOptionNodeConstraint(requirements) {
 }
 
 /**
+ * @param {Omit<import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'], '@type' | 'datatype'>} requirements
+ * @returns {import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode']}
+ */
+function eventAttendanceModeOptionNodeConstraint(requirements) {
+  return optionNodeConstraint({
+    datatype: 'schema:EventAttendanceModeEnumeration',
+    ...requirements,
+  });
+}
+
+/**
  * @param {Omit<import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>, '@type' | 'datatype'>} requirements
  * @returns {import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>}
  */
@@ -211,6 +222,7 @@ module.exports = {
   arrayConstraint,
   BLOCKED_FIELD,
   eventStatusOptionNodeConstraint,
+  eventAttendanceModeOptionNodeConstraint,
   advanceBookingOptionNodeConstraint,
   prepaymentOptionNodeConstraint,
   taxModeOptionNodeConstraint,

@@ -1,3 +1,4 @@
+const { eventAttendanceModeOptionNodeConstraint } = require('../testDataShape');
 const { createCriteria } = require('./criteriaUtils');
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 
@@ -26,12 +27,19 @@ const TestOpportunityOfflineBookable = createCriteria({
   name: 'TestOpportunityOfflineBookable',
   opportunityConstraints: [
     [
-      'eventAttendanceMode must be equal to MixedEventAttendanceMode or OfflineEventAttendanceMode',
+      'eventAttendanceMode must be equal to OfflineEventAttendanceMode',
       isOpportunityEventAttendanceModeEqualToMixedOrOffline,
     ],
   ],
   offerConstraints: [],
-  testDataShape: () => ({}), // TODO: Add data shape
+  testDataShape: () => ({
+    opportunityConstraints: {
+      // isOpportunityEventAttendanceModeEqualToMixedOrOffline
+      'schema:eventAttendanceMode': eventAttendanceModeOptionNodeConstraint({
+        allowlist: ['https://schema.org/OfflineEventAttendanceMode'],
+      }),
+    },
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

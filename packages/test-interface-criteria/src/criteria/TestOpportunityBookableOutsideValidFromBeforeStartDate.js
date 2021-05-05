@@ -1,5 +1,5 @@
 const { getDateAfterWhichBookingsCanBeMade, remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteriaUtils');
-const { quantitativeValue, dateRange } = require('../testDataShape');
+const { dateRange, shapeConstraintRecipes } = require('../testDataShape');
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
@@ -40,11 +40,10 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
   testDataShape: (options) => ({
     opportunityConstraints: {
-      'placeholder:remainingCapacity': quantitativeValue({
-        mininclusive: 2,
-      }),
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
     },
     offerConstraints: {
+      // mustHaveBookingWindowAndBeOutsideOfIt
       'oa:validFromBeforeStartDate': dateRange({
         minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),

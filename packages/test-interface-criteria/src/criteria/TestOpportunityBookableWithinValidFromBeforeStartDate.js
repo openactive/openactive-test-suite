@@ -22,13 +22,14 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Must be within booking window',
+      'Must have booking window and be within it',
       mustHaveBookingWindowAndBeWithinIt,
     ],
   ],
   includeConstraintsFromCriteria: TestOpportunityBookable,
   testDataShape: (options) => ({
     offerConstraints: {
+      // mustHaveBookingWindowAndBeWithinIt
       'oa:validFromBeforeStartDate': dateRange({
         maxDate: options.harvestStartTime.toISO(),
         // This differs from TestOpportunityBookable as it does not allow null values

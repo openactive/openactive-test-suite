@@ -7,6 +7,10 @@ export type OpenBookingFlowRequirement =
   | 'https://openactive.io/OpenBookingApproval'
   | 'https://openactive.io/OpenBookingNegotiation'
   | 'https://openactive.io/OpenBookingMessageExchange';
+export type EventAttendanceMode =
+  | 'https://schema.org/MixedEventAttendanceMode'
+  | 'https://schema.org/OfflineEventAttendanceMode'
+  | 'https://schema.org/OnlineEventAttendanceMode';
 
 export interface DateRangeNodeConstraint {
   '@type': 'test:DateRangeNodeConstraint';
@@ -38,7 +42,8 @@ export type ValueType =
   | 'oa:RequiredStatusType'
   | 'oa:TaxMode'
   | 'oa:Terms'
-  | 'schema:EventStatusType';
+  | 'schema:EventStatusType'
+  | 'schema:EventAttendanceModeEnumeration';
 
 export interface OptionNodeConstraint<
   /** TypeScript union of the types that this option can take */
@@ -115,6 +120,7 @@ export interface TestDataShape {
     'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
     'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
     'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
+    'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
   };
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
