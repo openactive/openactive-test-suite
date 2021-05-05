@@ -28,6 +28,7 @@ const TestOpportunityBookableNonFreeTaxGross = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     opportunityConstraints: {
+      // sellerTaxModeGross
       'oa:taxMode': taxModeOptionNodeConstraint({
         allowlist: ['https://openactive.io/TaxGross'],
       }),

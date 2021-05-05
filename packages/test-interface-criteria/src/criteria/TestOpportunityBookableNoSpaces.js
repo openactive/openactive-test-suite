@@ -27,6 +27,7 @@ const TestOpportunityBookableNoSpaces = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     opportunityConstraints: {
+      // remainingCapacityMustBeZero
       'placeholder:remainingCapacity': quantitativeValue({
         maxinclusive: 0,
       }),
