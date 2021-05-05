@@ -16,9 +16,11 @@ const { HARVEST_START_TIME } = global;
  * @param {BookingFlow} args.bookingFlow
  * @param {string | null} [args.sellerId]
  * @param {string | null} [args.sellerType]
+ * @param {string | null} [args.harvestStartTimeOverride] If provided, this value will be used instead of the
+ *   global HARVEST_START_TIME.
  * @returns {TestInterfaceOpportunity}
  */
-function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null }) {
+function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null, harvestStartTimeOverride = null }) {
   const remainingCapacityPredicate = (opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot')
     ? 'oa:remainingUses'
     : 'schema:remainingAttendeeCapacity';
@@ -26,7 +28,7 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
     testOpportunityCriteria,
     bookingFlow,
     remainingCapacityPredicate,
-    { harvestStartTime: HARVEST_START_TIME },
+    { harvestStartTime: harvestStartTimeOverride ?? HARVEST_START_TIME },
   );
   /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpenBookingFlow' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
   const testInterfaceOpportunityFields = {

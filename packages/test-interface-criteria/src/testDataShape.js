@@ -196,7 +196,7 @@ const shapeConstraintRecipes = {
    */
   mustHaveBookableOffer: (options) => ({
     'oa:validFromBeforeStartDate': dateRange({
-      maxDate: options.harvestStartTime,
+      maxDate: options.harvestStartTime.toISO(),
       allowNull: true,
     }),
     'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
