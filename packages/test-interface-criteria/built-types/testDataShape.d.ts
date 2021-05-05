@@ -106,4 +106,7 @@ export namespace shapeConstraintRecipes {
     export function sellerMustAllowOpenBooking(): {
         'oa:isOpenBookingAllowed': import("./types/TestDataShape").BooleanNodeConstraint;
     };
+    export function mustAllowFullRefund(): {
+        'oa:allowCustomerCancellationFullRefund': import("./types/TestDataShape").BooleanNodeConstraint;
+    };
 }

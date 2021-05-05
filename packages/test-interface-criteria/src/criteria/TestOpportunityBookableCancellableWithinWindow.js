@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria, mustAllowFullRefund, getDateBeforeWhichCancellationsCanBeMade } = require('./criteriaUtils');
+const { dateRange, shapeConstraintRecipes } = require('../testDataShape');
 
 /**
  * @type {import('../types/Criteria').OfferConstraint}
@@ -32,7 +33,15 @@ const TestOpportunityBookableCancellableWithinWindow = createCriteria({
       mustAllowFullRefund,
     ],
   ],
-  testDataShape: () => ({}), // TODO: Add data shape
+  testDataShape: (options) => ({
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustAllowFullRefund(),
+      // mustBeWithinCancellationWindow
+      'oa:latestCancellationBeforeStartDate': dateRange({
+        minDate: options.harvestStartTimeTwoHoursLater,
+      }),
+    },
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

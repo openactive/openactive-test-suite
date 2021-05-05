@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria, getDateBeforeWhichCancellationsCanBeMade } = require('./criteriaUtils');
+const { dateRange } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -13,6 +14,7 @@ function mustBeOutsideCancellationWindow(offer, opportunity, options) {
   if (dateBeforeWhichCancellationsCanBeMade == null) {
     return false; // has no cancellation window
   }
+  // it has to be too late to cancel
   return options.harvestStartTime > dateBeforeWhichCancellationsCanBeMade;
 }
 
@@ -28,7 +30,14 @@ const TestOpportunityBookableCancellableOutsideWindow = createCriteria({
       mustBeOutsideCancellationWindow,
     ],
   ],
-  testDataShape: () => ({}), // TODO: Add data shape
+  testDataShape: (options) => ({
+    offerConstraints: {
+      // mustBeOutsideCancellationWindow
+      'oa:latestCancellationBeforeStartDate': dateRange({
+        maxDate: options.harvestStartTime,
+      }),
+    },
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

@@ -195,6 +195,9 @@ const shapeConstraintRecipes = {
   sellerMustAllowOpenBooking: () => ({
     'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
   }),
+  mustAllowFullRefund: () => ({
+    'oa:allowCustomerCancellationFullRefund': TRUE_BOOLEAN_CONSTRAINT,
+  }),
 };
 
 module.exports = {

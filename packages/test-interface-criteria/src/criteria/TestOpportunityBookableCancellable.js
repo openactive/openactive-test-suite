@@ -1,6 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria, mustAllowFullRefund } = require('./criteriaUtils');
-const { BLOCKED_FIELD } = require('../testDataShape');
+const { BLOCKED_FIELD, shapeConstraintRecipes } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -33,6 +33,8 @@ const TestOpportunityBookableCancellable = createCriteria({
   ],
   testDataShape: () => ({
     offerConstraints: {
+      ...shapeConstraintRecipes.mustAllowFullRefund(),
+      // offersMustNotHaveCancellationWindow
       'oa:latestCancellationBeforeStartDate': BLOCKED_FIELD,
     },
   }),

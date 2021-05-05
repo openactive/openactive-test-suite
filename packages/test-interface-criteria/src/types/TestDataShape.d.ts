@@ -127,7 +127,8 @@ export interface TestDataShape {
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
     'oa:openBookingInAdvance'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
-    'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint;
+    'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint | DateRangeNodeConstraint;
+    'oa:allowCustomerCancellationFullRefund'?: BooleanNodeConstraint;
     // note that the type isn't specified yet (it's a '@type': 'Terms' object) as
     // we don't use includes/excludes rules for this field, so it's irrelevant.
     'schema:termsOfService'?: ArrayConstraint<unknown, 'oa:Terms'>;
