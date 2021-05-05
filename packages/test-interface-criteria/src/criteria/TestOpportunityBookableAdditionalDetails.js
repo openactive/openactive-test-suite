@@ -47,8 +47,8 @@ const TestOpportunityBookableAdditionalDetails = createCriteria({
       ...shapeConstraintRecipes.mustHaveBookableOffer(options),
       // mustRequireAttendeeDetails, mustNotRequireAdditionalDetails
       'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
-        includesAll: ['https://openactive.io/OpenBookingAttendeeDetails'],
-        excludesAll: ['https://openactive.io/OpenBookingIntakeForm'],
+        includesAll: ['https://openactive.io/OpenBookingIntakeForm'],
+        excludesAll: ['https://openactive.io/OpenBookingAttendeeDetails'],
       }),
     },
   }),

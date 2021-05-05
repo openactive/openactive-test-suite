@@ -1,12 +1,13 @@
+const { shapeConstraintRecipes, openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const {
   createCriteria,
   mustRequireAttendeeDetails,
   remainingCapacityMustBeAtLeastTwo,
-  startDateMustBe2HrsInAdvance,
-  eventStatusMustNotBeCancelledOrPostponed,
   mustHaveBookableOffer,
   mustNotRequireAdditionalDetails,
+  sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 
 const TestOpportunityBookableAttendeeDetails = createCriteria({
   name: 'TestOpportunityBookableAttendeeDetails',
@@ -16,12 +17,8 @@ const TestOpportunityBookableAttendeeDetails = createCriteria({
       remainingCapacityMustBeAtLeastTwo,
     ],
     [
-      'Start date must be 2hrs in advance for random tests to use',
-      startDateMustBe2HrsInAdvance,
-    ],
-    [
-      'eventStatus must not be Cancelled or Postponed',
-      eventStatusMustNotBeCancelledOrPostponed,
+      'Seller must allow Open Booking',
+      sellerMustAllowOpenBooking,
     ],
   ],
   offerConstraints: [
@@ -38,7 +35,21 @@ const TestOpportunityBookableAttendeeDetails = createCriteria({
       mustNotRequireAdditionalDetails,
     ],
   ],
-  testDataShape: () => ({}), // TODO: Add data shape
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+      // mustRequireAttendeeDetails, mustNotRequireAdditionalDetails
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        includesAll: ['https://openactive.io/OpenBookingAttendeeDetails'],
+        excludesAll: ['https://openactive.io/OpenBookingIntakeForm'],
+      }),
+    },
+  }),
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 
 module.exports = {
