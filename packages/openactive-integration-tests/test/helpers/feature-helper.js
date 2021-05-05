@@ -2,9 +2,7 @@ const _ = require('lodash');
 const chakram = require('chakram');
 
 const { Logger } = require('./logger');
-const { RequestState } = require('./request-state');
 const RequestHelper = require('./request-helper');
-const { FlowHelper } = require('./flow-helper');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
@@ -63,8 +61,6 @@ const { SINGLE_FLOW_PATH_MODE } = process.env;
  *   orderItemCriteria: OpportunityCriteria[],
  *   implemented: boolean,
  *   logger: InstanceType<typeof Logger>,
- *   state: InstanceType<typeof RequestState>,
- *   flow: InstanceType<typeof FlowHelper>,
  *   opportunityType?: string | null,
  *   bookingFlow?: BookingFlow | null,
  * ) => void} RunTestsFn
@@ -216,10 +212,7 @@ class FeatureHelper {
                   implemented,
                 });
 
-                const state = new RequestState(logger);
-                const flow = new FlowHelper(state);
-
-                tests.bind(this)(configuration, null, implemented, logger, state, flow);
+                tests.bind(this)(configuration, null, implemented, logger);
               });
             });
           } else {
@@ -239,14 +232,11 @@ class FeatureHelper {
                       opportunityType,
                     });
 
-                    const state = new RequestState(logger);
-                    const flow = new FlowHelper(state);
-
                     const orderItemCriteria = singleOpportunityCriteriaTemplate === null
                       ? null
                       : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, opportunityType, bookingFlow);
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, opportunityType, bookingFlow);
                   });
                 }
 
@@ -260,9 +250,6 @@ class FeatureHelper {
                       opportunityType: 'Multiple',
                     });
 
-                    const state = new RequestState(logger);
-                    const flow = new FlowHelper(state);
-
                     const orderItemCriteria = [];
 
                     // Create multiple orderItems covering all opportunityTypes in scope
@@ -272,7 +259,7 @@ class FeatureHelper {
                       });
                     }
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, state, flow, null, bookingFlow);
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, null, bookingFlow);
                   });
                 }
               });
@@ -293,10 +280,9 @@ class FeatureHelper {
   static describeRequiredFeature(documentationModule, configuration) {
     this.describeFeature(documentationModule, { testDescription: 'This feature is required by the specification and must be implemented.', ...configuration },
     // eslint-disable-next-line no-unused-vars
-      function (_configuration, _orderItemCriteria, _featureIsImplemented, _logger, state, _flow) {
-        describe('Feature', function () {
+      (_configuration, _orderItemCriteria, _featureIsImplemented, _logger) => {
+        describe('Feature', () => {
           it('must be implemented', () => {
-          // eslint-disable-next-line no-unused-expressions
             throw new Error('This feature is required by the specification, and so cannot be set to "not-implemented".');
           });
         });
@@ -315,11 +301,10 @@ class FeatureHelper {
       skipMultiple: true,
       doesNotUseOpportunitiesMode: false,
       ...configuration,
-    },
-    function (_configuration, orderItemCriteria, _featureIsImplemented, logger, state, _flow, opportunityType, bookingFlow) {
+    }, (_configuration, orderItemCriteria, _featureIsImplemented, logger, opportunityType, bookingFlow) => {
       if (opportunityType != null) {
         configuration.unmatchedOpportunityCriteria.forEach((criteria) => {
-          describe(`${criteria} opportunity feed items`, function () {
+          describe(`${criteria} opportunity feed items`, () => {
             it(`should be no events matching the [${criteria}](https://openactive.io/test-interface#${criteria}) criteria in the '${opportunityType}' feed(s)`, async () => {
               const requestHelper = new RequestHelper(logger);
               const response = await requestHelper.callAssertUnmatchedCriteria({

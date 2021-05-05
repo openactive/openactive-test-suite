@@ -1,16 +1,24 @@
 const { expect } = require('chakram');
+const RequestHelper = require('../helpers/request-helper');
 const sharedValidationTests = require('./validation');
 
+/**
+ * @typedef {import('../helpers/logger').BaseLoggerType} BaseLoggerType
+ */
+
 class GetDatasetSite {
-  constructor({ state, flow, logger }) {
-    this.state = state;
-    this.flow = flow;
+  /**
+   * @param {object} args
+   * @param {BaseLoggerType} args.logger
+   */
+  constructor({ logger }) {
     this.logger = logger;
+    this.requestHelper = new RequestHelper(logger);
   }
 
   validationTests() {
     sharedValidationTests.shouldBeValidResponse(
-      () => this.state.datasetSite,
+      () => this.datasetSite,
       'Dataset Site',
       this.logger,
       {
@@ -22,7 +30,7 @@ class GetDatasetSite {
 
   beforeSetup() {
     beforeAll(async () => {
-      await this.flow.getDatasetSite();
+      this.datasetSite = await this.requestHelper.getDatasetSite();
     });
     return this;
   }
@@ -31,7 +39,7 @@ class GetDatasetSite {
     // The validator will not yet fail on an object of incorrect type in DatasetSite mode,
     // so check that the base type is correct
     it('should contain JSON-LD representing the Dataset', () => {
-      expect(this.state.datasetSite).to.have.json(
+      expect(this.datasetSite).to.have.json(
         '@type',
         'Dataset',
       );

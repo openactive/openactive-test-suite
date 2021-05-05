@@ -3,9 +3,7 @@ const { FlowStageRecipes, FlowStageUtils } = require('../../../helpers/flow-stag
 const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours/errors');
 
 /**
- * @typedef {import('../../../helpers/flow-helper').FlowHelperType} FlowHelperType
  * @typedef {import('../../../helpers/logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('../../../helpers/request-state').RequestStateType} RequestStateType
  * @typedef {import('../../../templates/b-req').PReqTemplateRef} PReqTemplateRef
  * @typedef {import('../../../helpers/flow-stages/flow-stage-recipes').InitialiseSimpleC1C2BookFlowOptions} InitialiseSimpleC1C2BookFlowOptions
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
