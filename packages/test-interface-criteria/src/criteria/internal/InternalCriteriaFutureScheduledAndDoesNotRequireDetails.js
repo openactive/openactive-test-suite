@@ -16,7 +16,6 @@ const InternalCriteriaFutureScheduledAndDoesNotRequireDetails = createCriteria({
   name: '_InternalCriteriaFutureScheduledAndDoesNotRequireDetails',
   opportunityConstraints: [],
   offerConstraints: [
-    // TODO why is the attendee details constraint in this criteria ..?
     [
       'Must not require attendee details',
       mustNotRequireAttendeeDetails,

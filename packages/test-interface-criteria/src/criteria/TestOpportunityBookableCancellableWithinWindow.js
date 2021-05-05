@@ -38,7 +38,7 @@ const TestOpportunityBookableCancellableWithinWindow = createCriteria({
       ...shapeConstraintRecipes.mustAllowFullRefund(),
       // mustBeWithinCancellationWindow
       'oa:latestCancellationBeforeStartDate': dateRange({
-        minDate: options.harvestStartTimeTwoHoursLater,
+        minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),
     },
   }),
