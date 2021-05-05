@@ -54,8 +54,6 @@ const { SINGLE_FLOW_PATH_MODE } = process.env;
  *   Defaults to 1.
  * @property {OpportunityType[]} [skipOpportunityTypes] Some tests (eg access-channel tests for virtual events) only apply to
  *   certain types of opportunity (in the example provided, access-channel tests should not be run for facility slots)
- * @property {boolean} [supportsApproval] TEMPORARY field until approval works for all tests. Approval will only be
- *   attempted for a test that has this field set to true (unless skipBookingFlows is set).
  * @property {BookingFlow[]} [skipBookingFlows] This test will not be run for any of these Booking Flows
  *
  * @typedef {(
@@ -177,9 +175,7 @@ class FeatureHelper {
     /** @type {Set<BookingFlow>} */
     const skipBookingFlows = new Set(_.defaultTo(
       configuration.skipBookingFlows,
-      configuration.supportsApproval
-        ? []
-        : ['OpenBookingApprovalFlow'], // the default value if neither skipBookingFlows nor supportsApproval are set.
+      [], // the default value if skipBookingFlows is not set.
     ));
 
     const opportunityTypesInScope = getEnabledFeaturesFromObj(/** @type {{[k in OpportunityType]: boolean}} */(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE), skipOpportunityTypes);
@@ -246,7 +242,7 @@ class FeatureHelper {
 
                 if (!configuration.skipMultiple && (!SINGLE_FLOW_PATH_MODE || opportunityTypesSingleSelection === 'Multiple')) {
                   describe('Multiple', function () {
-                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (Multiple)`, this, {
+                    const logger = new Logger(`${configuration.testFeature} >> ${configuration.testIdentifier} (${bookingFlow} >> Multiple)`, this, {
                       config: configuration,
                       description: configuration.testDescription,
                       implemented,

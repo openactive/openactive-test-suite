@@ -15,6 +15,5 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Successful booking of a paid Opportunity, where openBookingPrepayment is unavailable, without `payment` property',
   testOpportunityCriteria,
   controlOpportunityCriteria,
-  supportsApproval: true, // https://github.com/openactive/OpenActive.Server.NET/issues/125
 },
 successTests(expectedPrepayment, bReqTemplateRef));

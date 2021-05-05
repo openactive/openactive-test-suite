@@ -20,7 +20,6 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // This test uses 2 opportunities, A & B
   numOpportunitiesUsedPerCriteria: 2,
-  supportsApproval: true, // https://github.com/openactive/OpenActive.Server.NET/issues/119
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // # Initialise Flow Stages

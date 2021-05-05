@@ -13,6 +13,5 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableFree',
   controlOpportunityCriteria: 'TestOpportunityBookableFree',
   runOnlyIf: IMPLEMENTED_FEATURES['free-opportunities'],
-  supportsApproval: true, // https://github.com/openactive/OpenActive.Server.NET/issues/126
 },
 invalidDetailsTest('incorrectReconciliationDetails'));

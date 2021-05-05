@@ -10,6 +10,5 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'B should return an InvalidPaymentDetailsError due to missing reconciliation data',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 invalidDetailsTest('missingPaymentReconciliationDetails'));

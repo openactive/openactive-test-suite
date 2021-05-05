@@ -11,7 +11,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: false, // https://github.com/openactive/openactive-test-suite/issues/376
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
   { actionType: 'test:ReplacementSimulateAction' },
@@ -20,7 +19,7 @@ TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
       // original = before the AccessPassUpdateSimulationAction was invoked
       const originalOrderItems = b.getOutput().httpResponse.body.orderedItem;
 
-      // new = after the AccessPassUpdateSimulationAction was invoked
+      // new = after the ReplacementSimulateAction was invoked
       const newOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
 
       // As we'll be setting out expectations in an iteration, this test would
