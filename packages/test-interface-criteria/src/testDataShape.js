@@ -172,6 +172,15 @@ function termsOfServiceArrayConstraint(minLength) {
   });
 }
 
+/** Constraints that match the criteriaUtils functions */
+const shapeConstraintRecipes = {
+  remainingCapacityMustBeAtLeastTwo: () => ({
+    'placeholder:remainingCapacity': quantitativeValue({
+      mininclusive: 2,
+    }),
+  }),
+};
+
 module.exports = {
   testOpportunityDataShapeExpression,
   testOfferDataShapeExpression,
@@ -190,4 +199,5 @@ module.exports = {
   termsOfServiceArrayConstraint,
   TRUE_BOOLEAN_CONSTRAINT,
   FALSE_BOOLEAN_CONSTRAINT,
+  shapeConstraintRecipes,
 };

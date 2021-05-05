@@ -1,6 +1,6 @@
-const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { getDateAfterWhichBookingsCanBeMade, remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteriaUtils');
 const { quantitativeValue, dateRange } = require('../testDataShape');
+const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -37,7 +37,7 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
       mustHaveBookingWindowAndBeOutsideOfIt,
     ],
   ],
-  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
   testDataShape: (options) => ({
     opportunityConstraints: {
       'placeholder:remainingCapacity': quantitativeValue({

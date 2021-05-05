@@ -1,19 +1,16 @@
-const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const {
   createCriteria,
-  mustNotRequireAttendeeDetails,
-  mustNotRequireAdditionalDetails,
   remainingCapacityMustBeAtLeastTwo,
   mustHaveBookableOffer,
   sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
 const {
-  quantitativeValue,
   dateRange,
   advanceBookingOptionNodeConstraint,
   TRUE_BOOLEAN_CONSTRAINT,
-  openBookingFlowRequirementArrayConstraint,
+  shapeConstraintRecipes,
 } = require('../testDataShape');
+const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
@@ -35,21 +32,11 @@ const TestOpportunityBookable = createCriteria({
       'Must have "bookable" offer',
       mustHaveBookableOffer,
     ],
-    [
-      'Must not require attendee details',
-      mustNotRequireAttendeeDetails,
-    ],
-    [
-      'Must not require additional details',
-      mustNotRequireAdditionalDetails,
-    ],
   ],
   testDataShape: (options) => ({
     opportunityConstraints: ({
       // remainingCapacityMustBeAtLeastTwo
-      'placeholder:remainingCapacity': quantitativeValue({
-        mininclusive: 2,
-      }),
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
       // sellerMustAllowOpenBooking
       'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
     }),
@@ -62,16 +49,9 @@ const TestOpportunityBookable = createCriteria({
       'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
         blocklist: ['https://openactive.io/Unavailable'],
       }),
-      // mustNotRequireAttendeeDetails, mustNotRequireAdditionalDetails
-      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
-        excludesAll: [
-          'https://openactive.io/OpenBookingAttendeeDetails',
-          'https://openactive.io/OpenBookingIntakeForm',
-        ],
-      }),
     }),
   }),
-  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
 });
 
 module.exports = {

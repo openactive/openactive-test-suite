@@ -90,3 +90,8 @@ export function openBookingFlowRequirementArrayConstraint(requirements: Omit<imp
 export function termsOfServiceArrayConstraint(minLength: number): import('./types/TestDataShape').ArrayConstraint<unknown, 'oa:Terms'>;
 export const TRUE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
+export namespace shapeConstraintRecipes {
+    export function remainingCapacityMustBeAtLeastTwo(): {
+        'placeholder:remainingCapacity': import("./types/TestDataShape").NumericNodeConstraint;
+    };
+}
