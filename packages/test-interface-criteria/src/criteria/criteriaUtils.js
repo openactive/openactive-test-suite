@@ -164,7 +164,6 @@ function createCriteria({
 }) {
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
-  // TODO TODO the base test data shape surely needs to be recursive
   /** @type {TestDataShapeFactory} */
   const baseTestDataShapeFactory = includeConstraintsFromCriteria
     ? includeConstraintsFromCriteria.testDataShape
