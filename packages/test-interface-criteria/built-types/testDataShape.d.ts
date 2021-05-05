@@ -8,6 +8,10 @@ export type BooleanNodeConstraint = import("./types/TestDataShape").BooleanNodeC
 export type NullNodeConstraint = import("./types/TestDataShape").NullNodeConstraint;
 export type TestDataShape = import("./types/TestDataShape").TestDataShape;
 export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType";
+export type Options = {
+    harvestStartTime: any;
+    harvestStartTimeTwoHoursLater: any;
+};
 /**
  * @typedef {import('./types/TestDataShape').EventStatusType} EventStatusType
  * @typedef {import('./types/TestDataShape').TaxMode} TaxMode
@@ -19,6 +23,7 @@ export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
+ * @typedef {import('./types/Options').Options} Options
  */
 /**
  * @param {Omit<TestDataShape['opportunityConstraints'], '@type'>} requirements
@@ -93,5 +98,12 @@ export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNo
 export namespace shapeConstraintRecipes {
     export function remainingCapacityMustBeAtLeastTwo(): {
         'placeholder:remainingCapacity': import("./types/TestDataShape").NumericNodeConstraint;
+    };
+    export function mustHaveBookableOffer(options: import("./types/Options").Options): {
+        'oa:validFromBeforeStartDate': import("./types/TestDataShape").DateRangeNodeConstraint;
+        'oa:openBookingInAdvance': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
+    };
+    export function sellerMustAllowOpenBooking(): {
+        'oa:isOpenBookingAllowed': import("./types/TestDataShape").BooleanNodeConstraint;
     };
 }

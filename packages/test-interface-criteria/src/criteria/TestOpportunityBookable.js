@@ -5,9 +5,6 @@ const {
   sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
 const {
-  dateRange,
-  advanceBookingOptionNodeConstraint,
-  TRUE_BOOLEAN_CONSTRAINT,
   shapeConstraintRecipes,
 } = require('../testDataShape');
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
@@ -34,22 +31,13 @@ const TestOpportunityBookable = createCriteria({
     ],
   ],
   testDataShape: (options) => ({
-    opportunityConstraints: ({
-      // remainingCapacityMustBeAtLeastTwo
+    opportunityConstraints: {
       ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
-      // sellerMustAllowOpenBooking
-      'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
-    }),
-    offerConstraints: ({
-      // mustHaveBookableOffer
-      'oa:validFromBeforeStartDate': dateRange({
-        maxDate: options.harvestStartTime,
-        allowNull: true,
-      }),
-      'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
-        blocklist: ['https://openactive.io/Unavailable'],
-      }),
-    }),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+    },
   }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
 });

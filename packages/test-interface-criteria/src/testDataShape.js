@@ -9,6 +9,7 @@
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
+ * @typedef {import('./types/Options').Options} Options
  */
 
 // # Generic requirements
@@ -178,6 +179,21 @@ const shapeConstraintRecipes = {
     'placeholder:remainingCapacity': quantitativeValue({
       mininclusive: 2,
     }),
+  }),
+  /**
+   * @param {Options} options
+   */
+  mustHaveBookableOffer: (options) => ({
+    'oa:validFromBeforeStartDate': dateRange({
+      maxDate: options.harvestStartTime,
+      allowNull: true,
+    }),
+    'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
+      blocklist: ['https://openactive.io/Unavailable'],
+    }),
+  }),
+  sellerMustAllowOpenBooking: () => ({
+    'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
   }),
 };
 
