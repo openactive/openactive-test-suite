@@ -1,4 +1,4 @@
-const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
+const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria, getDateAfterWhichBookingsCanBeMade } = require('./criteriaUtils');
 const { dateRange } = require('../testDataShape');
 
@@ -26,12 +26,12 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
       mustHaveBookingWindowAndBeWithinIt,
     ],
   ],
-  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  includeConstraintsFromCriteria: TestOpportunityBookable,
   testDataShape: (options) => ({
     offerConstraints: {
       'oa:validFromBeforeStartDate': dateRange({
         maxDate: options.harvestStartTime.toISO(),
-        // maxDate: moment(options.harvestStartTime).toISOString(),
+        // This differs from TestOpportunityBookable as it does not allow null values
       }),
     },
   }),

@@ -2,7 +2,7 @@ const {
   createCriteria,
   mustAllowProposalAmendment,
 } = require('./criteriaUtils');
-const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
+const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 
 const TestOpportunityBookableWithNegotiation = createCriteria({
   name: 'TestOpportunityBookableWithNegotiation',
@@ -14,7 +14,7 @@ const TestOpportunityBookableWithNegotiation = createCriteria({
     ],
   ],
   testDataShape: () => ({}), // TODO: Add data shape
-  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 
 module.exports = {

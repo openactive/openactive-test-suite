@@ -1,22 +1,62 @@
-const { createCriteria } = require('./criteriaUtils');
-const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
+const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
+const {
+  createCriteria,
+  mustNotRequireAttendeeDetails,
+  mustNotRequireAdditionalDetails,
+  remainingCapacityMustBeAtLeastTwo,
+  mustHaveBookableOffer,
+  sellerMustAllowOpenBooking,
+} = require('./criteriaUtils');
+const { quantitativeValue, dateRange, advanceBookingOptionNodeConstraint, TRUE_BOOLEAN_CONSTRAINT } = require('../testDataShape');
 
-// TODO this criteria is now redundant - probably InternalTestOpportunityBookable can be removed now that we have the
-// testOpenBookingFlow constraint.
-
+// TODO TODO TODO why does this have a validFrom ShEx but not relevant offerConstraint?
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
- *
- * Note that this differs from the above by forbidding Minimal Proposal Flow
- * offers. This means that tests written for this criteria can focus on
- * Simple Booking Flow scenarios.
  */
 const TestOpportunityBookable = createCriteria({
   name: 'TestOpportunityBookable',
-  opportunityConstraints: [],
-  offerConstraints: [],
-  testDataShape: () => ({}),
-  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  opportunityConstraints: [
+    [
+      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
+      remainingCapacityMustBeAtLeastTwo,
+    ],
+    [
+      'Seller must allow Open Booking',
+      sellerMustAllowOpenBooking,
+    ],
+  ],
+  offerConstraints: [
+    [
+      'Must have "bookable" offer',
+      mustHaveBookableOffer,
+    ],
+    [
+      'Must not require attendee details',
+      mustNotRequireAttendeeDetails,
+    ],
+    [
+      'Must not require additional details',
+      mustNotRequireAdditionalDetails,
+    ],
+  ],
+  testDataShape: (options) => ({
+    opportunityConstraints: ({
+      'placeholder:remainingCapacity': quantitativeValue({
+        mininclusive: 2,
+      }),
+      'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
+    }),
+    offerConstraints: ({
+      'oa:validFromBeforeStartDate': dateRange({
+        maxDate: options.harvestStartTime,
+        allowNull: true,
+      }),
+      'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
+        blocklist: ['https://openactive.io/Unavailable'],
+      }),
+    }),
+  }),
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
 });
 
 module.exports = {
