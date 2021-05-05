@@ -1,6 +1,4 @@
 const {
-  // EVENT_STATUS_EVENT_CANCELLED,
-  // EVENT_STATUS_EVENT_POSTPONED,
   dateRange,
   eventStatusOptionNodeConstraint,
   openBookingFlowRequirementArrayConstraint,
@@ -20,6 +18,7 @@ const {
 
 /**
  * Useful base filters for future opportunities.
+ *
  * This shouldn't be used for any tests, as it is not an [official criteria](https://openactive.io/test-interface/).
  * It's just a useful basis for other criteria to include constraints from.
  */
@@ -36,6 +35,7 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
     ],
   ],
   offerConstraints: [
+    // TODO why is the attendee details constraint in this criteria ..?
     [
       'Must not require attendee details',
       mustNotRequireAttendeeDetails,
@@ -43,14 +43,17 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   ],
   testDataShape: (options) => ({
     opportunityConstraints: ({
+      // startDateMustBe2HrsInAdvance
       'schema:startDate': dateRange({
         minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),
+      // eventStatusMustNotBeCancelledOrPostponed
       'schema:eventStatus': eventStatusOptionNodeConstraint({
         blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
       }),
     }),
     offerConstraints: ({
+      // mustNotRequireAttendeeDetails
       'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
         excludesAll: ['https://openactive.io/OpenBookingAttendeeDetails'],
       }),

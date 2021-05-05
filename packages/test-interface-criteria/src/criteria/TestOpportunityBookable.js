@@ -7,9 +7,14 @@ const {
   mustHaveBookableOffer,
   sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
-const { quantitativeValue, dateRange, advanceBookingOptionNodeConstraint, TRUE_BOOLEAN_CONSTRAINT } = require('../testDataShape');
+const {
+  quantitativeValue,
+  dateRange,
+  advanceBookingOptionNodeConstraint,
+  TRUE_BOOLEAN_CONSTRAINT,
+  openBookingFlowRequirementArrayConstraint,
+} = require('../testDataShape');
 
-// TODO TODO TODO why does this have a validFrom ShEx but not relevant offerConstraint?
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
  */
@@ -41,18 +46,28 @@ const TestOpportunityBookable = createCriteria({
   ],
   testDataShape: (options) => ({
     opportunityConstraints: ({
+      // remainingCapacityMustBeAtLeastTwo
       'placeholder:remainingCapacity': quantitativeValue({
         mininclusive: 2,
       }),
+      // sellerMustAllowOpenBooking
       'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
     }),
     offerConstraints: ({
+      // mustHaveBookableOffer
       'oa:validFromBeforeStartDate': dateRange({
         maxDate: options.harvestStartTime,
         allowNull: true,
       }),
       'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
         blocklist: ['https://openactive.io/Unavailable'],
+      }),
+      // mustNotRequireAttendeeDetails, mustNotRequireAdditionalDetails
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        excludesAll: [
+          'https://openactive.io/OpenBookingAttendeeDetails',
+          'https://openactive.io/OpenBookingIntakeForm',
+        ],
       }),
     }),
   }),
