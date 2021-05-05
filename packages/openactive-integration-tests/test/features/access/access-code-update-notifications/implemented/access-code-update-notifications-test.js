@@ -13,7 +13,6 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityOfflineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book({ actionType: 'test:AccessCodeUpdateSimulateAction' },
   ({ b, orderFeedUpdate }) => {

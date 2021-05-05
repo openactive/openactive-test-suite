@@ -16,6 +16,5 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'For a paid Opportunity, where openBookingPrepayment is unavailable, attempt to book with an extraneous `payment` property. Booking should fail with UnnecessaryPaymentDetailsError',
   testOpportunityCriteria,
   controlOpportunityCriteria,
-  supportsApproval: true,
 },
 errorTests(expectedPrepayment, expectedError, bReqTemplateRef));

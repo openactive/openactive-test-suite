@@ -11,7 +11,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking, but cancellation fails outside the cancellation window.',
   testOpportunityCriteria: 'TestOpportunityBookableCancellableOutsideWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
