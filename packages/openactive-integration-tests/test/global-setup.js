@@ -15,6 +15,7 @@ silentlyAllowInsecureConnections();
 
 async function ping() {
   const response = await axios.get(`${MICROSERVICE_BASE}/health-check`, {
+    // Allow up to 30 minutes for full harvest to complete
     timeout: 1000 * 60 * 30,
   });
 
@@ -36,7 +37,7 @@ async function getEndpointUrl() {
 async function deleteTestDataset(testInterfaceBaseUrl) {
   const response = await axios.delete(`${testInterfaceBaseUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
     {
-      timeout: 10000,
+      timeout: 30000,
     });
 
   assert.strictEqual(response.status, 204);
