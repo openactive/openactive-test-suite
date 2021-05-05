@@ -12,28 +12,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO we cannot do these focused modes yet until cert gen is fixed so that it does not validate against tests which could not have run due to the bookingFlows in scope and the tests bookingFlow requirements
-        # (https://openactive.slack.com/archives/G01CSJTLZLZ/p1619516585017500?thread_ts=1619460467.023900&cid=G01CSJTLZLZ)
-        # mode: ['random', 'controlled']
-        # profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
-        # flow: ['simple', 'approval']
-        # include:
-        # - mode: 'random'
-        #   profile: 'all-features'
-        #   flow: 'both'
-        # - mode: 'controlled'
-        #   profile: 'all-features'
-        #   flow: 'both'
         mode: ['random', 'controlled']
         profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth']
-        flow: ['both']
+        flow: ['simple', 'approval']
         include:
         - mode: 'random'
-          profile: 'simple-book-only'
-          flow: 'simple'
+          profile: 'all-features'
+          flow: 'both'
         - mode: 'controlled'
-          profile: 'simple-book-only'
-          flow: 'simple'
+          profile: 'all-features'
+          flow: 'both'
 
     steps:
     - name: Checkout OpenActive Test Suite
@@ -86,19 +74,19 @@ jobs:
         npm install
       working-directory: tests
 
-    - name: Run OpenActive Integration Tests in Random Mode
-      run: npm start
+    - name: Run OpenActive Integration Tests in ${{ matrix.mode }} mode
+      run: npm start -- --runInBand
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |
-          {"broker": {"outputPath": "../../output/"}, "integrationTests": {"outputPath": "../../output/", "useRandomOpportunities": ${{ matrix.mode == 'random' }}, "bookingFlowsInScope": { "OpenBookingSimpleFlow": ${{ matrix.flow == 'simple' || matrix.flow == 'both' }}, "OpenBookingApprovalFlow": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }} } }}
+          {"broker": {"outputPath": "../../output/"}, "integrationTests": {"outputPath": "../../output/", "useRandomOpportunities": ${{ matrix.mode == 'random' }}, "implementedFeatures": { "minimal-proposal": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }}, "proposal-amendment": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }} }, "bookingFlowsInScope": { "OpenBookingSimpleFlow": ${{ matrix.flow == 'simple' || matrix.flow == 'both' }}, "OpenBookingApprovalFlow": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }} } }}
         NODE_ENV: .example.${{ matrix.profile }}
         NODE_APP_INSTANCE: ci
       working-directory: tests
     # Two purposes to uploading the output from these tests:
     # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
     # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
-    - name: Upload test output for Random Mode as artifact
+    - name: Upload test output for ${{ matrix.mode }} mode as artifact
       uses: actions/upload-artifact@v2
       if: ${{ success() || failure() }}
       with:

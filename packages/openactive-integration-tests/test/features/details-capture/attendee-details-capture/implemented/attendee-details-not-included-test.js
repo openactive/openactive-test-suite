@@ -13,7 +13,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Should error',
   testOpportunityCriteria: 'TestOpportunityBookableAttendeeDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 (configuration, orderItemCriteria, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages

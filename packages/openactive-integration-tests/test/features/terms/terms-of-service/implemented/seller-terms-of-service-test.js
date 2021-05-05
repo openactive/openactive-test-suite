@@ -29,7 +29,6 @@ FeatureHelper.describeFeature(module, {
   // Orders cannot contain OrderItems from different sellers, so there can be no OrderItems
   // that don't satisfy this criteria, which constraints the seller.
   controlOpportunityCriteria: 'TestOpportunityBookableSellerTermsOfService',
-  supportsApproval: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);

@@ -10,7 +10,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Should pass',
   testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  supportsApproval: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initialize Flow Stages
