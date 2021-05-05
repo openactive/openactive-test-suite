@@ -75,7 +75,7 @@ jobs:
       working-directory: tests
 
     - name: Run OpenActive Integration Tests in ${{ matrix.mode }} mode
-      run: npm start -- --runInBand
+      run: npm start
       env:
         FORCE_COLOR: 1
         NODE_CONFIG: |

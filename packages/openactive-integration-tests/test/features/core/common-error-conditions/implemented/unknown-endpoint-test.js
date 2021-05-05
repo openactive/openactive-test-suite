@@ -36,7 +36,7 @@ FeatureHelper.describeFeature(module, {
         'UnknownEndpoint',
         `${BOOKING_API_BASE}/ordeeeeers/abc`,
         { hi: 'there' },
-        { timeout: 10000, headers: requestHelper.createHeaders() },
+        { timeout: 20000, headers: requestHelper.createHeaders() },
       );
     });
 
@@ -47,7 +47,7 @@ FeatureHelper.describeFeature(module, {
     let response;
     beforeAll(async () => {
       const requestHelper = new RequestHelper(logger);
-      response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}/ordeeeeers/abc`, { timeout: 10000 });
+      response = await requestHelper.get('UnknownEndpoint', `${BOOKING_API_BASE}/ordeeeeers/abc`, { timeout: 20000 });
     });
 
     itShouldReturnAnUnknownOrIncorrectEndpointError(() => response);

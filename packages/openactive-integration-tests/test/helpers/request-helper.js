@@ -32,6 +32,9 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
+const OPEN_BOOKING_API_REQUEST_TIMEOUT = 20000; // Allow 20 seconds for booking systems under load
+const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = 60000; // Allow extra time for feed updates
+
 class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
@@ -161,7 +164,7 @@ class RequestHelper {
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
       {
-        timeout: 60000,
+        timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
       },
     );
 
@@ -181,7 +184,7 @@ class RequestHelper {
       `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
       null,
       {
-        timeout: 60000,
+        timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
       },
     );
 
@@ -201,7 +204,7 @@ class RequestHelper {
         : `Opportunity Feed collect for OrderItem ${orderItemPosition} change`,
       `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
       {
-        timeout: 60000,
+        timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
       },
     );
 
@@ -213,7 +216,7 @@ class RequestHelper {
       'Dataset Site Cached Proxy',
       `${MICROSERVICE_BASE}/dataset-site`,
       {
-        timeout: 5000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -236,7 +239,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -259,7 +262,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -282,7 +285,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -305,9 +308,7 @@ class RequestHelper {
       requestBody,
       {
         headers: this.createHeaders(),
-        // allow a bit of time leeway for this request, as the P request must be
-        // processed atomically
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -330,7 +331,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -359,7 +360,7 @@ class RequestHelper {
         sellerType,
       }), {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -387,7 +388,7 @@ class RequestHelper {
         sellerId,
         sellerType,
       }), {
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -418,7 +419,7 @@ class RequestHelper {
       },
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return response;
@@ -439,7 +440,7 @@ class RequestHelper {
         testOpportunityCriteria,
         bookingFlow,
       }), {
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return response;
@@ -455,7 +456,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return respObj;
@@ -470,7 +471,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/order-quotes/${uuid}`,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return respObj;
@@ -485,7 +486,7 @@ class RequestHelper {
       `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return respObj;
