@@ -4,7 +4,7 @@ const MICROSERVICE_BASE = `http://localhost:${process.env.PORT || 3000}`;
 
 async function pause() {
   await axios.post(`${MICROSERVICE_BASE}/pause`, {
-    timeout: 1000 * 30,
+    timeout: 30000,
   });
 
   return true;
