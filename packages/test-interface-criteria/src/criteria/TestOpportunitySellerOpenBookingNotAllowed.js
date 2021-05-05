@@ -1,6 +1,6 @@
-const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 const { createCriteria, getOrganizerOrProvider } = require('./criteriaUtils');
 const { FALSE_BOOLEAN_CONSTRAINT } = require('../testDataShape');
+const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -28,10 +28,11 @@ const TestOpportunitySellerOpenBookingNotAllowed = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     opportunityConstraints: {
+      // mustNotAllowOpenBooking
       'oa:isOpenBookingAllowed': FALSE_BOOLEAN_CONSTRAINT,
     },
   }),
-  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
 });
 
 module.exports = {

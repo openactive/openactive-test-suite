@@ -9,6 +9,7 @@
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
+ * @typedef {import('./types/Options').Options} Options
  */
 
 // # Generic requirements
@@ -126,6 +127,17 @@ function eventStatusOptionNodeConstraint(requirements) {
 }
 
 /**
+ * @param {Omit<import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'], '@type' | 'datatype'>} requirements
+ * @returns {import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode']}
+ */
+function eventAttendanceModeOptionNodeConstraint(requirements) {
+  return optionNodeConstraint({
+    datatype: 'schema:EventAttendanceModeEnumeration',
+    ...requirements,
+  });
+}
+
+/**
  * @param {Omit<import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>, '@type' | 'datatype'>} requirements
  * @returns {import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>}
  */
@@ -172,6 +184,33 @@ function termsOfServiceArrayConstraint(minLength) {
   });
 }
 
+/** Constraints that match the criteriaUtils functions */
+const shapeConstraintRecipes = {
+  remainingCapacityMustBeAtLeastTwo: () => ({
+    'placeholder:remainingCapacity': quantitativeValue({
+      mininclusive: 2,
+    }),
+  }),
+  /**
+   * @param {Options} options
+   */
+  mustHaveBookableOffer: (options) => ({
+    'oa:validFromBeforeStartDate': dateRange({
+      maxDate: options.harvestStartTime,
+      allowNull: true,
+    }),
+    'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
+      blocklist: ['https://openactive.io/Unavailable'],
+    }),
+  }),
+  sellerMustAllowOpenBooking: () => ({
+    'oa:isOpenBookingAllowed': TRUE_BOOLEAN_CONSTRAINT,
+  }),
+  mustAllowFullRefund: () => ({
+    'oa:allowCustomerCancellationFullRefund': TRUE_BOOLEAN_CONSTRAINT,
+  }),
+};
+
 module.exports = {
   testOpportunityDataShapeExpression,
   testOfferDataShapeExpression,
@@ -183,6 +222,7 @@ module.exports = {
   arrayConstraint,
   BLOCKED_FIELD,
   eventStatusOptionNodeConstraint,
+  eventAttendanceModeOptionNodeConstraint,
   advanceBookingOptionNodeConstraint,
   prepaymentOptionNodeConstraint,
   taxModeOptionNodeConstraint,
@@ -190,4 +230,5 @@ module.exports = {
   termsOfServiceArrayConstraint,
   TRUE_BOOLEAN_CONSTRAINT,
   FALSE_BOOLEAN_CONSTRAINT,
+  shapeConstraintRecipes,
 };

@@ -27,9 +27,11 @@ const TestOpportunityBookableNonFreePrepaymentRequired = createCriteria({
   ],
   testDataShape: () => ({
     offerConstraints: {
+      // onlyPaidBookableOffersWithPrepaymentRequired
       'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
       'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
         allowlist: ['https://openactive.io/Required'],
+        allowNull: true,
       }),
     },
   }),

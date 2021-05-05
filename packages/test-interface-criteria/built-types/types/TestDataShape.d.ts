@@ -1,7 +1,16 @@
 export type EventStatusType = 'https://schema.org/EventCancelled' | 'https://schema.org/EventPostponed' | 'https://schema.org/EventScheduled';
 export type TaxMode = 'https://openactive.io/TaxGross' | 'https://openactive.io/TaxNet';
 export type RequiredStatusType = 'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable';
-export type OpenBookingFlowRequirement = 'https://openactive.io/OpenBookingIntakeForm' | 'https://openactive.io/OpenBookingAttendeeDetails' | 'https://openactive.io/OpenBookingApproval' | 'https://openactive.io/OpenBookingNegotiation' | 'https://openactive.io/OpenBookingMessageExchange';
+export type OpenBookingFlowRequirement =
+  | 'https://openactive.io/OpenBookingIntakeForm'
+  | 'https://openactive.io/OpenBookingAttendeeDetails'
+  | 'https://openactive.io/OpenBookingApproval'
+  | 'https://openactive.io/OpenBookingNegotiation'
+  | 'https://openactive.io/OpenBookingMessageExchange';
+export type EventAttendanceMode =
+  | 'https://schema.org/MixedEventAttendanceMode'
+  | 'https://schema.org/OfflineEventAttendanceMode'
+  | 'https://schema.org/OnlineEventAttendanceMode';
 
 export interface DateRangeNodeConstraint {
   '@type': 'test:DateRangeNodeConstraint';
@@ -33,7 +42,8 @@ export type ValueType =
   | 'oa:RequiredStatusType'
   | 'oa:TaxMode'
   | 'oa:Terms'
-  | 'schema:EventStatusType';
+  | 'schema:EventStatusType'
+  | 'schema:EventAttendanceModeEnumeration';
 
 export interface OptionNodeConstraint<
   /** TypeScript union of the types that this option can take */
@@ -110,6 +120,7 @@ export interface TestDataShape {
     'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
     'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
     'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
+    'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
   };
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
@@ -122,7 +133,8 @@ export interface TestDataShape {
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
     'oa:openBookingInAdvance'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
-    'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint;
+    'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint | DateRangeNodeConstraint;
+    'oa:allowCustomerCancellationFullRefund'?: BooleanNodeConstraint;
     // note that the type isn't specified yet (it's a '@type': 'Terms' object) as
     // we don't use includes/excludes rules for this field, so it's irrelevant.
     'schema:termsOfService'?: ArrayConstraint<unknown, 'oa:Terms'>;

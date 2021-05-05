@@ -1,8 +1,9 @@
+const { openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const {
   createCriteria,
   mustAllowProposalAmendment,
 } = require('./criteriaUtils');
-const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
+const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 
 const TestOpportunityBookableWithNegotiation = createCriteria({
   name: 'TestOpportunityBookableWithNegotiation',
@@ -13,8 +14,15 @@ const TestOpportunityBookableWithNegotiation = createCriteria({
       mustAllowProposalAmendment,
     ],
   ],
-  testDataShape: () => ({}), // TODO: Add data shape
-  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  testDataShape: () => ({
+    offerConstraints: {
+      // mustAllowProposalAmendment
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        includesAll: ['https://openactive.io/OpenBookingNegotiation'],
+      }),
+    },
+  }),
+  includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 
 module.exports = {

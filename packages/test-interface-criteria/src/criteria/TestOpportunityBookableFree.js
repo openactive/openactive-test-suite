@@ -27,6 +27,7 @@ const TestOpportunityBookableFree = createCriteria({
   ],
   testDataShape: () => ({
     offerConstraints: {
+      // onlyFreeBookableOffersWithUnavailablePrepayment
       'schema:price': FREE_PRICE_QUANTITATIVE_VALUE,
       'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
         allowlist: ['https://openactive.io/Unavailable'],

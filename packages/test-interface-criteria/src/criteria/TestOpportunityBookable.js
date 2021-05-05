@@ -1,22 +1,45 @@
-const { createCriteria } = require('./criteriaUtils');
-const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
-
-// TODO this criteria is now redundant - probably InternalTestOpportunityBookable can be removed now that we have the
-// testOpenBookingFlow constraint.
+const {
+  createCriteria,
+  remainingCapacityMustBeAtLeastTwo,
+  mustHaveBookableOffer,
+  sellerMustAllowOpenBooking,
+} = require('./criteriaUtils');
+const {
+  shapeConstraintRecipes,
+} = require('../testDataShape');
+const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
- *
- * Note that this differs from the above by forbidding Minimal Proposal Flow
- * offers. This means that tests written for this criteria can focus on
- * Simple Booking Flow scenarios.
  */
 const TestOpportunityBookable = createCriteria({
   name: 'TestOpportunityBookable',
-  opportunityConstraints: [],
-  offerConstraints: [],
-  testDataShape: () => ({}),
-  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  opportunityConstraints: [
+    [
+      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
+      remainingCapacityMustBeAtLeastTwo,
+    ],
+    [
+      'Seller must allow Open Booking',
+      sellerMustAllowOpenBooking,
+    ],
+  ],
+  offerConstraints: [
+    [
+      'Must have "bookable" offer',
+      mustHaveBookableOffer,
+    ],
+  ],
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+    },
+  }),
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
 });
 
 module.exports = {

@@ -1,6 +1,4 @@
 const {
-  // EVENT_STATUS_EVENT_CANCELLED,
-  // EVENT_STATUS_EVENT_POSTPONED,
   dateRange,
   eventStatusOptionNodeConstraint,
 } = require('../../testDataShape');
@@ -12,13 +10,15 @@ const {
 
 const {
   createCriteria,
-  mustNotRequireAttendeeDetails,
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
 } = require('../criteriaUtils');
 
 /**
- * Useful base filters for future opportunities
+ * Useful base constraints for future opportunities.
+ *
+ * This shouldn't be used for any tests, as it is not an [official criteria](https://openactive.io/test-interface/).
+ * It's just a useful basis for other criteria to include constraints from.
  */
 const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   name: '_InternalCriteriaFutureScheduledOpportunity',
@@ -32,17 +32,14 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
       eventStatusMustNotBeCancelledOrPostponed,
     ],
   ],
-  offerConstraints: [
-    [
-      'Must not require attendee details',
-      mustNotRequireAttendeeDetails,
-    ],
-  ],
+  offerConstraints: [],
   testDataShape: (options) => ({
     opportunityConstraints: ({
+      // startDateMustBe2HrsInAdvance
       'schema:startDate': dateRange({
         minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),
+      // eventStatusMustNotBeCancelledOrPostponed
       'schema:eventStatus': eventStatusOptionNodeConstraint({
         blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
       }),

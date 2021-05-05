@@ -28,6 +28,7 @@ const TestOpportunityBookableSellerTermsOfService = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     offerConstraints: {
+      // hasTermsOfService
       'schema:termsOfService': termsOfServiceArrayConstraint(1),
     },
   }),

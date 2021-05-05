@@ -27,6 +27,7 @@ const TestOpportunityBookableNonFree = createCriteria({
   ],
   testDataShape: () => ({
     offerConstraints: {
+      // onlyNonFreeBookableOffers
       'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
     },
   }),

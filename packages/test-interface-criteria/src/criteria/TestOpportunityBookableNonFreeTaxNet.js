@@ -28,6 +28,7 @@ const TestOpportunityBookableNonFreeTaxNet = createCriteria({
   offerConstraints: [],
   testDataShape: () => ({
     opportunityConstraints: {
+      // sellerTaxModeNet
       'oa:taxMode': taxModeOptionNodeConstraint({
         allowlist: ['https://openactive.io/TaxNet'],
       }),

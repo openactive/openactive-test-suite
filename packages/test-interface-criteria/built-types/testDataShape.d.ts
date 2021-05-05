@@ -7,7 +7,11 @@ export type NumericNodeConstraint = import("./types/TestDataShape").NumericNodeC
 export type BooleanNodeConstraint = import("./types/TestDataShape").BooleanNodeConstraint;
 export type NullNodeConstraint = import("./types/TestDataShape").NullNodeConstraint;
 export type TestDataShape = import("./types/TestDataShape").TestDataShape;
-export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType";
+export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType" | "schema:EventAttendanceModeEnumeration";
+export type Options = {
+    harvestStartTime: any;
+    harvestStartTimeTwoHoursLater: any;
+};
 /**
  * @typedef {import('./types/TestDataShape').EventStatusType} EventStatusType
  * @typedef {import('./types/TestDataShape').TaxMode} TaxMode
@@ -19,6 +23,7 @@ export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
+ * @typedef {import('./types/Options').Options} Options
  */
 /**
  * @param {Omit<TestDataShape['opportunityConstraints'], '@type'>} requirements
@@ -64,6 +69,11 @@ export const BLOCKED_FIELD: NullNodeConstraint;
  */
 export function eventStatusOptionNodeConstraint(requirements: Omit<import('./types/TestDataShape').OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>, '@type' | 'datatype'>): import('./types/TestDataShape').OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
 /**
+ * @param {Omit<import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'], '@type' | 'datatype'>} requirements
+ * @returns {import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode']}
+ */
+export function eventAttendanceModeOptionNodeConstraint(requirements: Omit<import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'], '@type' | 'datatype'>): import('./types/TestDataShape').TestDataShape['opportunityConstraints']['schema:eventAttendanceMode'];
+/**
  * @param {Omit<import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>, '@type' | 'datatype'>} requirements
  * @returns {import('./types/TestDataShape').OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>}
  */
@@ -90,3 +100,18 @@ export function openBookingFlowRequirementArrayConstraint(requirements: Omit<imp
 export function termsOfServiceArrayConstraint(minLength: number): import('./types/TestDataShape').ArrayConstraint<unknown, 'oa:Terms'>;
 export const TRUE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
+export namespace shapeConstraintRecipes {
+    export function remainingCapacityMustBeAtLeastTwo(): {
+        'placeholder:remainingCapacity': import("./types/TestDataShape").NumericNodeConstraint;
+    };
+    export function mustHaveBookableOffer(options: import("./types/Options").Options): {
+        'oa:validFromBeforeStartDate': import("./types/TestDataShape").DateRangeNodeConstraint;
+        'oa:openBookingInAdvance': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
+    };
+    export function sellerMustAllowOpenBooking(): {
+        'oa:isOpenBookingAllowed': import("./types/TestDataShape").BooleanNodeConstraint;
+    };
+    export function mustAllowFullRefund(): {
+        'oa:allowCustomerCancellationFullRefund': import("./types/TestDataShape").BooleanNodeConstraint;
+    };
+}
