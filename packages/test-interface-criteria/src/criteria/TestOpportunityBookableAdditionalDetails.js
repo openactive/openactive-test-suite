@@ -12,8 +12,6 @@ const {
 } = require('./criteriaUtils');
 const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
 
-// TODOs:
-// - openBookingInAdvance doesn't even appear in test-data.json..
 const TestOpportunityBookableAdditionalDetails = createCriteria({
   name: 'TestOpportunityBookableAdditionalDetails',
   opportunityConstraints: [
