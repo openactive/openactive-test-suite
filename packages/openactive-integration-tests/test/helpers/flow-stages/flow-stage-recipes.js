@@ -168,7 +168,12 @@ const FlowStageRecipes = {
     /** @returns {import('./p').Input}  */
     const bookRecipeGetFirstStageInput = () => {
       const totalPaymentDue = fetchOpportunities.getOutput().orderItems
-        .map(o => o.acceptedOffer.price ?? 0)
+        .map((orderItem) => {
+          if (orderItem.acceptedOffer.openBookingPrepayment === 'https://openactive.io/Unavailable') {
+            return 0;
+          }
+          return orderItem.acceptedOffer.price ?? 0;
+        })
         .reduce((x, y) => x + y, 0);
       return {
         orderItems: fetchOpportunities.getOutput().orderItems,
