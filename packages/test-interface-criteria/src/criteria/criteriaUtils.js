@@ -165,8 +165,9 @@ function createCriteria({
   const baseOpportunityConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.opportunityConstraints : [];
   const baseOfferConstraints = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.offerConstraints : [];
   /** @type {TestDataShapeFactory} */
-  const baseTestDataShapeFactory = includeConstraintsFromCriteria ? includeConstraintsFromCriteria.testDataShape : () => ({
-  });
+  const baseTestDataShapeFactory = includeConstraintsFromCriteria
+    ? includeConstraintsFromCriteria.testDataShape
+    : () => ({ });
   return {
     name,
     opportunityConstraints: [
@@ -199,11 +200,12 @@ function extendTestDataShape(baseTestDataShape, extraTestDataShape, criteriaName
   // Do any of the opportunity requirements overlap?
   if (baseTestDataShape.opportunityConstraints && extraTestDataShape.opportunityConstraints) {
     for (const key of Object.keys(baseTestDataShape.opportunityConstraints)) {
-      if (key === '@type') { continue; } // this is not a requirement field
+      const baseNodeConstraint = baseTestDataShape.opportunityConstraints[key];
       if (key in extraTestDataShape.opportunityConstraints) {
-        const baseNodeConstraint = baseTestDataShape.opportunityConstraints[key];
         const thisNodeConstraint = extraTestDataShape.opportunityConstraints[key];
         resultTestDataShape.opportunityConstraints[key] = mergeTestData(baseNodeConstraint, thisNodeConstraint, criteriaName);
+      } else {
+        resultTestDataShape.opportunityConstraints[key] = baseNodeConstraint;
       }
     }
   } else if (baseTestDataShape.opportunityConstraints) {
@@ -212,11 +214,12 @@ function extendTestDataShape(baseTestDataShape, extraTestDataShape, criteriaName
   // Do any of the offer requirements overlap?
   if (baseTestDataShape.offerConstraints && extraTestDataShape.offerConstraints) {
     for (const key of Object.keys(baseTestDataShape.offerConstraints)) {
-      if (key === '@type') { continue; } // this is not a requirement field
+      const baseNodeConstraint = baseTestDataShape.offerConstraints[key];
       if (key in extraTestDataShape.offerConstraints) {
-        const baseNodeConstraint = baseTestDataShape.offerConstraints[key];
         const thisNodeConstraint = extraTestDataShape.offerConstraints[key];
         resultTestDataShape.offerConstraints[key] = mergeTestData(baseNodeConstraint, thisNodeConstraint, criteriaName);
+      } else {
+        resultTestDataShape.offerConstraints[key] = baseNodeConstraint;
       }
     }
   } else if (baseTestDataShape.offerConstraints) {

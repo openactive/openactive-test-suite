@@ -202,9 +202,9 @@
     },
     "payment-reconciliation-detail-validation": {
       "primary": {
+        "TestOpportunityBookableFree": 12,
         "TestOpportunityBookableUsingPayment": 15,
-        "TestOpportunityBookable": 5,
-        "TestOpportunityBookableFree": 8
+        "TestOpportunityBookable": 5
       }
     },
     "prepayment-optional": {

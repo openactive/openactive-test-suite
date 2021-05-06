@@ -3,6 +3,7 @@
 // This should look something like `npm run test-data-generator -- [category-or-feature]`
 // e.g. `npm run test-data-generator -- authorization`
 const fs = require('fs').promises;
+const { DateTime } = require('luxon');
 const path = require('path');
 const { dissoc } = require('ramda');
 const yargs = require('yargs/yargs');
@@ -93,6 +94,7 @@ const categoryOrFeature = /** @type {string} */(categoryOrFeatureUntyped); // ya
   // ## Create Test Data
   //
   // One for each seller x opportunity criteria
+  const harvestStartTimeOverride = DateTime.now().toISO();
   /** @type {TestDataListItem[]} */
   const itemListElement = [];
   let numberOfItems = 0;
@@ -113,6 +115,7 @@ const categoryOrFeature = /** @type {string} */(categoryOrFeatureUntyped); // ya
             bookingFlow,
             sellerId: seller['@id'],
             sellerType: seller['@type'],
+            harvestStartTimeOverride,
           });
           itemListElement.push({
             '@type': 'ListItem',

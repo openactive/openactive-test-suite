@@ -14,7 +14,7 @@
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
-    "@openactive/data-model-validator": "^2.0.47",
+    "@openactive/data-model-validator": "^2.0.48",
     "@openactive/data-models": "^2.0.218",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
