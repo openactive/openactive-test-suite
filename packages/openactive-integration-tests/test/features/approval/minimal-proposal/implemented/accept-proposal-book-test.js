@@ -39,7 +39,7 @@ FeatureHelper.describeFeature(module, {
     orderItemCriteriaList,
     logger,
   );
-  const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
+  const bookRecipe = FlowStageRecipes.bookApproval(defaultFlowStageParams, {
     prerequisite: c2,
     getFirstStageInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,

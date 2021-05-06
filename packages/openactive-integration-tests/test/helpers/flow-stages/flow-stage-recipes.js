@@ -165,23 +165,25 @@ const FlowStageRecipes = {
       ...defaultFlowStageParams,
       orderItemCriteriaList,
     });
+    /** @returns {import('./p').Input}  */
+    const bookRecipeGetFirstStageInput = () => {
+      const totalPaymentDue = fetchOpportunities.getOutput().orderItems
+        .map(o => o.acceptedOffer.price ?? 0)
+        .reduce((x, y) => x + y, 0);
+      return {
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        // Because we're not using C2, we've gotta calculate the price ourselves
+        totalPaymentDue,
+        prepayment: (totalPaymentDue === 0)
+          ? 'https://openactive.io/Unavailable'
+          : 'https://openactive.io/Required',
+        // excluding `positionOrderIntakeFormMap` because book-only flow cannot be used in conjunction with the
+        // intake form flow, which requires C2
+      };
+    };
     const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
       prerequisite: fetchOpportunities,
-      getFirstStageInput: () => {
-        const totalPaymentDue = fetchOpportunities.getOutput().orderItems
-          .map(o => o.acceptedOffer.price ?? 0)
-          .reduce((x, y) => x + y, 0);
-        return {
-          orderItems: fetchOpportunities.getOutput().orderItems,
-          // Because we're not using C2, we've gotta calculate the price ourselves
-          totalPaymentDue,
-          prepayment: (totalPaymentDue === 0)
-            ? 'https://openactive.io/Unavailable'
-            : 'https://openactive.io/Required',
-          // excluding `positionOrderIntakeFormMap` because book-only flow cannot be used in conjunction with the
-          // intake form flow, which requires C2
-        };
-      },
+      getFirstStageInput: bookRecipeGetFirstStageInput,
     });
     return {
       fetchOpportunities,
@@ -189,7 +191,32 @@ const FlowStageRecipes = {
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,
+      // This can be used to create an idempotent second B stage.
+      bookRecipeGetFirstStageInput,
     };
+  },
+  /**
+   * B requests should be idempotent. A repeat B request with the exact same input as a previous one should
+   * obtain the same results.
+   *
+   * This recipe returns a BFlowStage which should be an exact repeat of the last B stage in a given BookRecipe.
+   * Use this to test that a Booking System is idempotent at B.
+   *
+   * @param {BookRecipe} bookRecipe
+   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {Omit<BookRecipeArgs, 'prerequisite'>} bookRecipeArgs
+   */
+  idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, bookRecipeArgs) {
+    if (bookRecipe.p) {
+      return bAfterP({
+        p: bookRecipe.p,
+        bookRecipeGetFirstStageInput: bookRecipeArgs.getFirstStageInput,
+        defaultFlowStageParams,
+        prerequisite: bookRecipe.lastStage,
+      });
+    }
+    const bookRecipeArgsWithPrerequisite = { ...bookRecipeArgs, prerequisite: bookRecipe.lastStage };
+    return FlowStageRecipes.bookSimple(defaultFlowStageParams, bookRecipeArgsWithPrerequisite).b;
   },
   /**
    * A Recipe to either run B or P -> Approve -> B depending on the flow.
@@ -220,21 +247,20 @@ const FlowStageRecipes = {
     const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
       orderItemCriteria.bookingFlow === 'OpenBookingApprovalFlow'));
     if (doUseApprovalFlow) {
-      return FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
+      return FlowStageRecipes.bookApproval(defaultFlowStageParams, bookRecipeArgs);
     }
-    return FlowStageRecipes.bookSimple(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
+    return FlowStageRecipes.bookSimple(defaultFlowStageParams, bookRecipeArgs);
   },
   /**
    * Create a BookRecipe explicitly for the Simple Booking Flow.
    *
    * See: FlowStageRecipes.book for more info
    *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
-  bookSimple(orderItemCriteriaList, defaultFlowStageParams, {
+  bookSimple(defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
@@ -251,6 +277,7 @@ const FlowStageRecipes = {
     });
     return new BookRecipe({
       firstStage: b,
+      lastStage: b,
       b,
     });
   },
@@ -259,12 +286,11 @@ const FlowStageRecipes = {
    *
    * See: FlowStageRecipes.book for more info
    *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
-  bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
+  bookApproval(defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
@@ -299,22 +325,12 @@ const FlowStageRecipes = {
     });
 
     const [b, orderFeedUpdateAfterDeleteProposal] = OrderFeedUpdateFlowStageUtils.wrap({
-      wrappedStageFn: orderFeedUpdateListener => (new BFlowStage({
-        ...defaultFlowStageParams,
+      wrappedStageFn: orderFeedUpdateListener => bAfterP({
+        p,
+        defaultFlowStageParams,
         prerequisite: orderFeedUpdateListener,
-        templateRef: 'afterP',
-        /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
-        just presents `orderProposalVersion` and optional payment details */
-        getInput() {
-          const firstStageInput = getFirstStageInput();
-          return {
-            orderItems: firstStageInput.orderItems,
-            totalPaymentDue: p.getOutput().totalPaymentDue,
-            orderProposalVersion: p.getOutput().orderProposalVersion,
-            prepayment: p.getOutput().prepayment,
-          };
-        },
-      })),
+        bookRecipeGetFirstStageInput: getFirstStageInput,
+      }),
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
         prerequisite: orderFeedUpdateCollector,
@@ -325,6 +341,7 @@ const FlowStageRecipes = {
 
     return new BookRecipe({
       firstStage: p,
+      lastStage: orderFeedUpdateAfterDeleteProposal,
       p,
       simulateSellerApproval,
       orderFeedUpdateCollector,
@@ -333,6 +350,34 @@ const FlowStageRecipes = {
     });
   },
 };
+
+/**
+ * BFlowStage that succeeds a PFlowStage
+ *
+ * @param {object} args
+ * @param {PFlowStageType} args.p
+ * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} args.defaultFlowStageParams
+ * @param {UnknownFlowStageType} args.prerequisite
+ * @param {() => import('./p').Input} args.bookRecipeGetFirstStageInput
+ */
+function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstStageInput }) {
+  return new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite,
+    templateRef: 'afterP',
+    getInput: () => {
+      /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
+      just presents `orderProposalVersion` and optional payment details */
+      const firstStageInput = bookRecipeGetFirstStageInput();
+      return {
+        orderItems: firstStageInput.orderItems,
+        totalPaymentDue: p.getOutput().totalPaymentDue,
+        orderProposalVersion: p.getOutput().orderProposalVersion,
+        prepayment: p.getOutput().prepayment,
+      };
+    },
+  });
+}
 
 module.exports = {
   FlowStageRecipes,
