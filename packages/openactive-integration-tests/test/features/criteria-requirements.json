@@ -243,7 +243,7 @@
     },
     "business-to-consumer-tax-calculation-gross": {
       "primary": {
-        "TestOpportunityBookableNonFreeTaxGross": 4
+        "TestOpportunityBookableNonFreeTaxGross": 8
       }
     },
     "business-to-consumer-tax-calculation-net": {

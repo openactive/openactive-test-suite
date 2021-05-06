@@ -2,16 +2,17 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
-  testCategory: 'payment',
-  testFeature: 'free-opportunities',
+  testCategory: 'tax',
+  testFeature: 'business-to-consumer-tax-calculation-gross',
   testFeatureImplemented: true,
-  testIdentifier: 'opportunity-free-without-checkpoints',
+  testIdentifier: 'business-to-consumer-tax-calculation-gross-without-checkpoints',
   testName: 'Successful booking without Checkpoints',
-  testDescription: 'Free Opportunities, as they need no tax calculation by the Booking System, and, if they do not'
-    + ' require additional details, should be bookable without using Checkpoints C1 & C2',
-  testOpportunityCriteria: 'TestOpportunityBookableFree',
-  // This must also be TestOpportunityBookableFree as the entire Order must be free.
-  controlOpportunityCriteria: 'TestOpportunityBookableFree',
+  testDescription: 'Business to Consumer bookings with gross tax prices, as they need no tax calculation by the'
+    + ' Booking System, and, if they do not require additional details, should be bookable without using Checkpoints'
+    + ' C1 & C2',
+  testOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
+  // the simple tests can only work if all OrderItems have the same tax mode
+  controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
   const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
   const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, {

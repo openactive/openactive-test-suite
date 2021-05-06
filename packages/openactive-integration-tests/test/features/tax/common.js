@@ -112,6 +112,16 @@ function grossTest(options) {
   return runTestsFn;
 }
 
+// /**
+//  * Note: This only works for brokerRole =/= ResellerBroker. This is because if
+//  * brokerRole = ResellerBroker, tax calculations can be excluded by the broker
+//  * (https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#business-to-business-tax-calculation-by-booking-system-is-optional).
+//  *
+//  * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'taxMode'>} [options]
+//  */
+// function grossBookOnlyTest(options) {
+// }
+
 /**
  * Note: This only works for brokerRole =/= ResellerBroker. This is because if
  * brokerRole = ResellerBroker, tax calculations can be excluded by the broker

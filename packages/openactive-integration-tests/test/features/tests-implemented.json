@@ -198,7 +198,7 @@
       "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-gross": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-net": {
