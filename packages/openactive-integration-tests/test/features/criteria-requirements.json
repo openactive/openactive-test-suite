@@ -191,7 +191,7 @@
     },
     "free-opportunities": {
       "primary": {
-        "TestOpportunityBookableFree": 6
+        "TestOpportunityBookableFree": 10
       }
     },
     "non-free-opportunities": {

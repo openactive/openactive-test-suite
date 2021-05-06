@@ -154,6 +154,44 @@ const FlowStageRecipes = {
     };
   },
   /**
+   * A flow which skips C1 & C2 (which are optional in certain circumstances) and proceeds straight to book.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {BaseLoggerType} logger
+   */
+  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger) {
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+    const fetchOpportunities = new FetchOpportunitiesFlowStage({
+      ...defaultFlowStageParams,
+      orderItemCriteriaList,
+    });
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+      prerequisite: fetchOpportunities,
+      getFirstStageInput: () => {
+        const totalPaymentDue = fetchOpportunities.getOutput().orderItems
+          .map(o => o.acceptedOffer.price ?? 0)
+          .reduce((x, y) => x + y, 0);
+        return {
+          orderItems: fetchOpportunities.getOutput().orderItems,
+          // Because we're not using C2, we've gotta calculate the price ourselves
+          totalPaymentDue,
+          prepayment: (totalPaymentDue === 0)
+            ? 'https://openactive.io/Unavailable'
+            : 'https://openactive.io/Required',
+          // excluding `positionOrderIntakeFormMap` because book-only flow cannot be used in conjunction with the
+          // intake form flow, which requires C2
+        };
+      },
+    });
+    return {
+      fetchOpportunities,
+      bookRecipe,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
+    };
+  },
+  /**
    * A Recipe to either run B or P -> Approve -> B depending on the flow.
    *
    * - If in Simple Booking Flow, the recipe will just return B
