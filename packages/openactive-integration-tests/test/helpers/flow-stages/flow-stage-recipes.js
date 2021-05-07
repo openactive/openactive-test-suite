@@ -329,6 +329,7 @@ const FlowStageRecipes = {
       })),
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
+        failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400,
         prerequisite: p,
         testName: 'OrderProposal Feed Update (after Simulate Seller Approval)',
         orderFeedType: 'order-proposals',

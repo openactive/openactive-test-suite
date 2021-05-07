@@ -46,9 +46,14 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
+ * @param {() => boolean} args.failEarlyIf
  * @returns {Promise<ListenerOutput>}
  */
-async function runOrderFeedListener({ uuid, requestHelper, orderFeedType }) {
+async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  // If a previous stage has failed, don't bother listening for the expected feed update.
+  if (failEarlyIf()) {
+    throw new Error('failing early as a previous stage failed');
+  }
   await requestHelper.postFeedChangeListener(orderFeedType, uuid);
   return {};
 }
@@ -58,9 +63,13 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType }) {
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
+ * @param {() => boolean} args.failEarlyIf
  * @returns {Promise<CollectorOutput>}
  */
-async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType }) {
+async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  if (failEarlyIf()) {
+    throw new Error('failing early as a previous stage failed');
+  }
   const response = await requestHelper.getFeedChangeCollection(orderFeedType, uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
@@ -85,8 +94,9 @@ class OrderFeedUpdateListener extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
+   * @param {() => boolean} args.failEarlyIf
    */
-  constructor({ prerequisite, uuid, requestHelper, orderFeedType }) {
+  constructor({ prerequisite, uuid, requestHelper, orderFeedType, failEarlyIf }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -97,6 +107,7 @@ class OrderFeedUpdateListener extends FlowStage {
           uuid,
           requestHelper,
           orderFeedType,
+          failEarlyIf,
         });
       },
       itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdateCollector stage */ },
@@ -122,8 +133,9 @@ class OrderFeedUpdateCollector extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
+   * @param {() => boolean} args.failEarlyIf
    */
-  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType }) {
+  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, failEarlyIf }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -133,6 +145,7 @@ class OrderFeedUpdateCollector extends FlowStage {
           uuid,
           requestHelper,
           orderFeedType,
+          failEarlyIf,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
@@ -165,6 +178,8 @@ const OrderFeedUpdateFlowStageUtils = {
    * 4. `orderFeedUpdateCollector`
    * 5. Whatever FlowStage is set up to take `orderFeedUpdateCollector` as its prerequisite
    *
+   * N.B. The Order Collector will fail early if the wrapped stage has an `httpResponse` with non-2xx status code.
+   *
    * @template {import('./flow-stage').FlowStageType<any, any>} TWrappedFlowStage
    * @param {object} args
    * @param {(prerequisite: OrderFeedUpdateListener) => TWrappedFlowStage} args.wrappedStageFn
@@ -183,17 +198,29 @@ const OrderFeedUpdateFlowStageUtils = {
    * @param {RequestHelperType} args.orderFeedUpdateParams.requestHelper
    * @param {BaseLoggerType} args.orderFeedUpdateParams.logger
    * @param {string} args.orderFeedUpdateParams.uuid
+   * @param {() => boolean} [args.orderFeedUpdateParams.failEarlyIf] There's no point waiting for an Order Feed update that's never going
+   *   to come. If a previous stage, which is supposed to have prompted an Order Feed update (e.g. a cancellation)
+   *   then we want the Order Feed update to immediately fail. Otherwise it will wait and wait, which will last until
+   *   the Jest timeout, leading to a frustrating experience for test runners.
+   *
+   *   Set `failEarlyIf` to a function that returns `true` if the Order Feed update should fail early.
+   *
+   *   Generally, this will be something like `failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400`.
+   *
+   *   Defaults to () => false (i.e. do not fail early).
    * @returns {[TWrappedFlowStage, OrderFeedUpdateCollector]}
    *   TODO update return signature to `{[wrappedStage: TWrappedFlowStage, orderFeedUpdateCollector: OrderFeedUpdateCollector]}`
    *   when project upgrades TypeScript to v4
    */
   wrap({ wrappedStageFn, orderFeedUpdateParams }) {
+    const failEarlyIf = orderFeedUpdateParams.failEarlyIf ?? (() => false);
     const orderFeedType = orderFeedUpdateParams.orderFeedType ?? 'orders';
     const listenForOrderFeedUpdate = new OrderFeedUpdateListener({
       requestHelper: orderFeedUpdateParams.requestHelper,
       uuid: orderFeedUpdateParams.uuid,
       prerequisite: orderFeedUpdateParams.prerequisite,
       orderFeedType,
+      failEarlyIf,
     });
     const wrappedStage = wrappedStageFn(listenForOrderFeedUpdate);
     const collectOrderFeedUpdate = new OrderFeedUpdateCollector({
@@ -203,6 +230,12 @@ const OrderFeedUpdateFlowStageUtils = {
       uuid: orderFeedUpdateParams.uuid,
       logger: orderFeedUpdateParams.logger,
       orderFeedType,
+      failEarlyIf: () => {
+        if (failEarlyIf()) { return true; }
+        // Don't bother collecting if the wrapped stage fails.
+        if ((wrappedStage.getOutput()?.httpResponse?.response?.statusCode ?? 200) >= 400) { return true; }
+        return false;
+      },
     });
     return [wrappedStage, collectOrderFeedUpdate];
   },
