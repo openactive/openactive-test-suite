@@ -167,21 +167,27 @@ const FlowStageRecipes = {
     });
     /** @returns {import('./p').Input}  */
     const bookRecipeGetFirstStageInput = () => {
-      const totalPaymentDue = fetchOpportunities.getOutput().orderItems
-        .map((orderItem) => {
-          if (orderItem.acceptedOffer.openBookingPrepayment === 'https://openactive.io/Unavailable') {
-            return 0;
+      const { totalPaymentDue, doPrepay } = (() => {
+        const result = { totalPaymentDue: 0, doPrepay: true };
+        for (const orderItem of fetchOpportunities.getOutput().orderItems) {
+          const { openBookingPrepayment, price } = orderItem.acceptedOffer;
+          /* If there are any non-zero unavailable items, there should be no prepayment on the entire Order.
+          In fact, non-zero Unavailable items and Required items should not be mixed in the same Order (https://github.com/openactive/open-booking-api/issues/171)
+          but this is tested separately */
+          if (openBookingPrepayment === 'https://openactive.io/Unavailable' && price > 0) {
+            result.doPrepay = false;
           }
-          return orderItem.acceptedOffer.price ?? 0;
-        })
-        .reduce((x, y) => x + y, 0);
+          result.totalPaymentDue += price;
+        }
+        return result;
+      })();
       return {
         orderItems: fetchOpportunities.getOutput().orderItems,
         // Because we're not using C2, we've gotta calculate the price ourselves
         totalPaymentDue,
-        prepayment: (totalPaymentDue === 0)
-          ? 'https://openactive.io/Unavailable'
-          : 'https://openactive.io/Required',
+        prepayment: doPrepay
+          ? 'https://openactive.io/Required'
+          : 'https://openactive.io/Unavailable',
         // excluding `positionOrderIntakeFormMap` because book-only flow cannot be used in conjunction with the
         // intake form flow, which requires C2
       };
