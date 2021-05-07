@@ -746,10 +746,10 @@ app.get('/orphans', function (req, res) {
   const rows = Array.from(rowStoreMap.values());
   res.send({
     children: {
-      matched: rows.filter((x) => x.parentIngested).length,
-      orphaned: rows.filter((x) => !x.parentIngested).length,
+      matched: rows.filter((x) => x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length,
+      orphaned: rows.filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length,
       total: rows.length,
-      orphanedList: rows.filter((x) => !x.parentIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
+      orphanedList: rows.filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
         jsonLdType,
         id,
         modified,
@@ -772,7 +772,7 @@ app.get('/orphans', function (req, res) {
  * @returns {OrphanStats}
  */
 function getOrphanStats() {
-  const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length;
+  const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length;
   const totalChildren = rowStoreMap.size;
   const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
   return {
@@ -1036,6 +1036,7 @@ function detectOpportunityType(opportunity) {
           return 'CourseInstanceSubEvent';
         case 'EventSeries':
         case null:
+        case undefined:
           return 'Event';
         default:
           throw new Error('Event has unrecognised @type of superEvent');
@@ -1260,7 +1261,7 @@ async function storeOpportunityItem(item) {
 
   rowStoreMap.set(row.jsonLdId, row);
 
-  if (row.parentIngested) {
+  if (row.parentIngested || jsonLdTypeDoesNotHaveParent(row.jsonLdType)) {
     await processRow(row);
   }
 }
@@ -1277,46 +1278,61 @@ function getMergedJsonLdContext(...contexts) {
   return sortWithOpenActiveOnTop([...new Set(contexts.map((x) => x && x['@context']).filter((x) => x).flat())]);
 }
 
+function jsonLdTypeDoesNotHaveParent(jsonLdType) {
+  return jsonLdType === 'Event' || jsonLdType === 'OnDemandEvent';
+}
+
 async function processRow(row) {
-  const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
-  const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
-
-  const parentOpportunityWithoutContext = {
-    ...parentOpportunity,
-  };
-  delete parentOpportunityWithoutContext['@context'];
-
-  const rowJsonLdWithoutContext = {
-    ...row.jsonLd,
-  };
-  delete rowJsonLdWithoutContext['@context'];
-
-  let newItem = {
-    state: row.deleted ? 'deleted' : 'updated',
-    id: row.jsonLdId,
-    modified: row.feedModified,
-    data: {
-      '@context': mergedContexts,
-      ...rowJsonLdWithoutContext,
-    },
-  };
-
-  if (row.jsonLdType === 'Slot') {
+  let newItem;
+  // No need for processing for items without parents
+  if (jsonLdTypeDoesNotHaveParent(row.jsonLdType)) {
     newItem = {
-      ...newItem,
-      data: {
-        ...newItem.data,
-        facilityUse: parentOpportunityWithoutContext,
-      },
+      state: row.deleted ? 'deleted' : 'updated',
+      id: row.jsonLdId,
+      modified: row.feedModified,
+      data: row.jsonLd,
     };
   } else {
+    const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
+    const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
+
+    const parentOpportunityWithoutContext = {
+      ...parentOpportunity,
+    };
+    delete parentOpportunityWithoutContext['@context'];
+
+    const rowJsonLdWithoutContext = {
+      ...row.jsonLd,
+    };
+    delete rowJsonLdWithoutContext['@context'];
+
     newItem = {
-      ...newItem,
+      state: row.deleted ? 'deleted' : 'updated',
+      id: row.jsonLdId,
+      modified: row.feedModified,
       data: {
-        ...newItem.data,
-        superEvent: parentOpportunityWithoutContext,
+        '@context': mergedContexts,
+        ...rowJsonLdWithoutContext,
       },
     };
+
+    if (row.jsonLdType === 'Slot') {
+      newItem = {
+        ...newItem,
+        data: {
+          ...newItem.data,
+          facilityUse: parentOpportunityWithoutContext,
+        },
+      };
+    } else {
+      newItem = {
+        ...newItem,
+        data: {
+          ...newItem.data,
+          superEvent: parentOpportunityWithoutContext,
+        },
+      };
+    }
   }
 
   await processOpportunityItem(newItem);
