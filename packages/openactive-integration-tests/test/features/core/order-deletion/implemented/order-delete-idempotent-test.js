@@ -22,7 +22,7 @@ FeatureHelper.describeFeature(module, {
 
   const deleteStage1 = new OrderDeletionFlowStage({
     ...defaultFlowStageParams,
-    prerequisite: bookRecipe.b,
+    prerequisite: bookRecipe.lastStage,
   });
 
   const deleteStage2 = new OrderDeletionFlowStage({

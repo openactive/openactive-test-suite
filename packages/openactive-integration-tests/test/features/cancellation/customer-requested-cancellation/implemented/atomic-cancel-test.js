@@ -37,7 +37,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
   const cancelNotCancellableOrderItems = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
-    prerequisite: bookRecipe.b,
+    prerequisite: bookRecipe.lastStage,
     getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [1, 2]),
     testName: 'Cancel Order for non-cancellable items',
   });
