@@ -177,6 +177,10 @@
       "implementedTestFiles": 4,
       "notImplementedTestFiles": 1
     },
+    "prepayment-required-unavailable": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
+    },
     "prepayment-unavailable": {
       "implementedTestFiles": 3,
       "notImplementedTestFiles": 1

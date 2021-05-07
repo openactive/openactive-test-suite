@@ -1,0 +1,11 @@
+{
+  "category": "payment",
+  "identifier": "prepayment-required-unavailable",
+  "name": "prepayment required and unavailable",
+  "description": "Support for bookings with prepayment required and bookings with prepayment unavailable",
+  "explainer": "This feature must be implemented if prepayment-required and prepayment-unavailable are both required.",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#booking-without-payment",
+  "required": false,
+  "coverageStatus": "complete",
+  "requiresOneOfIfImplemented": ["prepayment"]
+}

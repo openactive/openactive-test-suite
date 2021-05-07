@@ -56,6 +56,7 @@
       "free-opportunities": true,
       "non-free-opportunities": true,
       "prepayment-required": true,
+      "prepayment-required-unavailable": true,
       "prepayment-optional": true,
       "prepayment-unavailable": true,
       "minimal-proposal": true,

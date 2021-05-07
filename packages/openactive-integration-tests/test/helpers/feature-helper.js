@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { expect } = require('chai');
 const chakram = require('chakram');
 
 const { Logger } = require('./logger');
@@ -287,6 +288,33 @@ class FeatureHelper {
           });
         });
       });
+  }
+
+  /**
+   * Use this for a `not-implemented` test for a feature that should be implemented if another given
+   * set of features are.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+   *   otherFeaturesWhichImplyThisOne: string[];
+   * }} configuration
+   */
+  static describeFeatureShouldBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
+    const otherFeaturesSummary = configuration.otherFeaturesWhichImplyThisOne.map(f => `'${f}'`).join(' and ');
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`must be implemented if other features: ${otherFeaturesSummary} are`, () => {
+          expect(IMPLEMENTED_FEATURES).to.not.include(
+            Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
+          );
+        });
+      });
+    });
   }
 
   /**
