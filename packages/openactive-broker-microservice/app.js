@@ -591,42 +591,69 @@ async function setFeedIsUpToDate(feedIdentifier) {
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
 
+        let validationPassed = true;
+
         if (totalChildren === 0) {
           logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
           logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
-          throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
+          if (!VALIDATE_ONLY) {
+            throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
+          } else {
+            validationPassed = false;
+          }
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          if (!VALIDATE_ONLY) logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
-          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-          // User interaction is not required to exit, for compatibility with CI
-          if (!VALIDATE_ONLY) await sleep(60000);
-          throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+          await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+          if (!VALIDATE_ONLY) {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
+            // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+            // User interaction is not required to exit, for compatibility with CI
+            await sleep(60000);
+            throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+          } else {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
+            validationPassed = false;
+          }
         } else if (childOrphans > 0) {
-          logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+          logError(`\n${VALIDATE_ONLY ? 'FATAL ERROR' : 'WARNING'}: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
+          await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+          if (!VALIDATE_ONLY) {
+            // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+            // User interaction is not required to exit, for compatibility with CI
+            await sleep(60000);
+            logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
+          } else {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
+            validationPassed = false;
+          }
         }
 
         if (validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
-          if (VALIDATE_ONLY) {
-            logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
-          } else {
+          if (!VALIDATE_ONLY) {
             logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
+            // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+            // User interaction is not required to exit, for compatibility with CI
+            await sleep(60000);
+            throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
+          } else {
+            logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
+            validationPassed = false;
           }
-          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-          // User interaction is not required to exit, for compatibility with CI
-          if (!VALIDATE_ONLY) await sleep(60000);
-          throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
         }
 
         if (VALIDATE_ONLY) {
-          log(chalk.bold.green('\nFeed validation passed'));
-          process.exit(0);
+          if (validationPassed) {
+            log(chalk.bold.green('\nFeed validation passed'));
+            process.exit(0);
+          } else {
+            log(chalk.bold.red('\nFeed validation failed'));
+            process.exit(1);
+          }
         }
 
         unlockHealthCheck();
@@ -742,9 +769,9 @@ function millisToMinutesAndSeconds(millis) {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
 
-app.get('/orphans', function (req, res) {
+function getOrphanJson() {
   const rows = Array.from(rowStoreMap.values());
-  res.send({
+  return {
     children: {
       matched: rows.filter((x) => x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length,
       orphaned: rows.filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length,
@@ -758,7 +785,11 @@ app.get('/orphans', function (req, res) {
         jsonLdParentId,
       }))),
     },
-  });
+  };
+}
+
+app.get('/orphans', function (req, res) {
+  res.send(getOrphanJson());
 });
 
 /**
