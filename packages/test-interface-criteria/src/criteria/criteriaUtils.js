@@ -399,7 +399,11 @@ function getOrganizerOrProvider(opportunity) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
     return /** @type {any} */(opportunity.facilityUse).provider;
   }
-  throw new Error(`Opportunity has neither superEvent nor facilityUse from which to get organizer/provider. Opportunity fields: ${Object.keys(opportunity).join(', ')}`);
+  if (isObject(opportunity.organizer)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.organizer);
+  }
+  throw new Error(`Opportunity does not have organizer/provider. Opportunity fields: ${Object.keys(opportunity).join(', ')}`);
 }
 
 /**
