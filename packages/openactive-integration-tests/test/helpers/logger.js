@@ -105,22 +105,24 @@ class BaseLogger {
   /**
    * @param {string} stage
    * @param {{[k: string]: unknown}} request
+   * @param {any} requestMetadata
    * @param {Promise<ChakramResponse>} responsePromise
    */
-  recordRequestResponse (stage, request, responsePromise) {
-    let entry = this.recordLogEntry({
-      type: "request",
-      stage: stage,
+  recordRequestResponse(stage, request, requestMetadata, responsePromise) {
+    const entry = this.recordLogEntry({
+      type: 'request',
+      stage,
       request: {
         ...request,
       },
       isPending: true,
+      requestMetadata,
       duration: 0,
     });
 
     // manually count how long it's been waiting
     // todo: capture a timestamp and hook into test state instead
-    let responseTimer = setInterval(() => {
+    const responseTimer = setInterval(() => {
       entry.duration += 100;
     }, 100);
 

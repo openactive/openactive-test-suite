@@ -52,8 +52,9 @@ class RequestHelper {
    * @param {unknown | null} jsonBody Data to send - generally not applicable to
    *   GET requests. A JSON-serializable object.
    * @param {RequestOptions} requestOptions
+   * @param {any} requestMetadata
    */
-  async _request(stage, method, url, jsonBody, requestOptions) {
+  async _request(stage, method, url, jsonBody, requestOptions, requestMetadata) {
     const params = { ...requestOptions };
     if (jsonBody) {
       params.body = jsonBody;
@@ -66,7 +67,9 @@ class RequestHelper {
       url,
       jsonBody,
       requestOptions,
-    }, responsePromise);
+    },
+    requestMetadata,
+    responsePromise);
 
     if (jsonBody) {
       this.logger.recordRequest(stage, jsonBody);
@@ -82,9 +85,10 @@ class RequestHelper {
    * @param {string} stage
    * @param {string} url
    * @param {RequestOptions} requestOptions
+   * @param {any} requestMetadata
    */
-  async get(stage, url, requestOptions) {
-    return await this._request(stage, 'GET', url, null, requestOptions);
+  async get(stage, url, requestOptions, requestMetadata) {
+    return await this._request(stage, 'GET', url, null, requestOptions, requestMetadata);
   }
 
   /**
@@ -166,6 +170,12 @@ class RequestHelper {
       {
         timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
       },
+      {
+        feedExtract: {
+          id: eventId,
+          type: 'opportunities',
+        },
+      },
     );
 
     return respObj;
@@ -205,6 +215,12 @@ class RequestHelper {
       `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
       {
         timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
+      },
+      {
+        feedExtract: {
+          id,
+          type,
+        },
       },
     );
 
