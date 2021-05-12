@@ -52,7 +52,7 @@ class RequestHelper {
    * @param {unknown | null} jsonBody Data to send - generally not applicable to
    *   GET requests. A JSON-serializable object.
    * @param {RequestOptions} requestOptions
-   * @param {any} requestMetadata
+   * @param {any} [requestMetadata]
    */
   async _request(stage, method, url, jsonBody, requestOptions, requestMetadata) {
     const params = { ...requestOptions };
@@ -85,7 +85,7 @@ class RequestHelper {
    * @param {string} stage
    * @param {string} url
    * @param {RequestOptions} requestOptions
-   * @param {any} requestMetadata
+   * @param {any} [requestMetadata]
    */
   async get(stage, url, requestOptions, requestMetadata) {
     return await this._request(stage, 'GET', url, null, requestOptions, requestMetadata);
