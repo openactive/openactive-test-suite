@@ -41,8 +41,7 @@
   "dependencies": {
     "config": "^3.3.6",
     "inquirer": "^8.0.0",
-    "node-cleanup": "^2.1.2",
-    "why-is-node-running": "^2.2.0"
+    "node-cleanup": "^2.1.2"
   },
   "engines": {
     "node": "14.16.0"
