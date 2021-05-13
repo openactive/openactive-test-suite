@@ -34,12 +34,15 @@
     "test-data-generator": "cd packages/openactive-integration-tests && npm run test-data-generator",
     "gen-openid-client-types": "cd packages/openactive-openid-test-client && npm run gen-types",
     "git-add-newly-generated-openid-client-types": "git add packages/openactive-openid-test-client/built-types",
-    "gen-and-git-add-everything": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run gen-openid-client-types && npm run git-add-newly-generated-openid-client-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs"
+    "gen-and-git-add-everything": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run gen-openid-client-types && npm run git-add-newly-generated-openid-client-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs",
+    "clean-install": "npx rimraf ./**/node_modules",
+    "update-test-suite": "npm run clean-install && git pull && npm install"
   },
   "dependencies": {
     "config": "^3.3.6",
     "inquirer": "^8.0.0",
-    "node-cleanup": "^2.1.2"
+    "node-cleanup": "^2.1.2",
+    "why-is-node-running": "^2.2.0"
   },
   "engines": {
     "node": "14.16.0"

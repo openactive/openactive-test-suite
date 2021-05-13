@@ -50,6 +50,9 @@ const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
 const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarvestCompletion');
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
+const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
+// TODO: move this property to the root of the config
+const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
 
 const HARVEST_START_TIME = (new Date()).toISOString();
 const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
@@ -330,11 +333,17 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       const json = response.data;
 
       // Validate RPDE base URL
+      // TODO: add full RPDE validation here
       if (!json.next) {
-        throw new Error("RPDE does not have 'next' property");
+        if (multibar) multibar.stop();
+        logError(`\nRPDE page does not have 'next' property: ${url}`);
+        process.exit(1);
       }
-      if (getBaseUrl(json.next) !== getBaseUrl(url)) {
-        throw new Error(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
+
+      if (getBasePath(json.next) !== getBasePath(url)) {
+        if (multibar) multibar.stop();
+        logError(`\nFATAL ERROR: Base path of RPDE 'next' property ("${getBasePath(json.next)}") does not match base path of RPDE page "${url}"\n`);
+        process.exit(1);
       }
 
       context.currentPage = url;
@@ -442,9 +451,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   }
 }
 
-function getBaseUrl(url) {
+function getBasePath(url) {
   if (url.indexOf('//') > -1) {
-    return url.substring(0, url.indexOf('/', url.indexOf('//') + 2));
+    return url.split('?')[0];
   }
   throw new Error("RPDE 'next' property MUST be an absolute URL");
 }
@@ -594,66 +603,58 @@ async function setFeedIsUpToDate(feedIdentifier) {
         let validationPassed = true;
 
         if (totalChildren === 0) {
-          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
+          logError(`\n${VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES ? 'FATAL ERROR' : 'NOTE'}: Zero opportunities could be harvested from the opportunities feeds.`);
           logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
-          if (!VALIDATE_ONLY) {
-            throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
-          } else {
-            validationPassed = false;
-          }
-        } else if (childOrphans === totalChildren) {
+          if (VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES) validationPassed = false;
+        } else if (childOrphans === totalChildren && totalChildren !== 0) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
-          if (!VALIDATE_ONLY) {
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
             logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
-            // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-            // User interaction is not required to exit, for compatibility with CI
-            await sleep(60000);
-            throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
           } else {
             logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
-            validationPassed = false;
           }
+          validationPassed = false;
         } else if (childOrphans > 0) {
-          logError(`\n${VALIDATE_ONLY ? 'FATAL ERROR' : 'WARNING'}: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+          logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
-          if (!VALIDATE_ONLY) {
-            // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-            // User interaction is not required to exit, for compatibility with CI
-            await sleep(60000);
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
             logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
           } else {
             logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
-            validationPassed = false;
           }
+          validationPassed = false;
         }
 
         if (validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
-          if (!VALIDATE_ONLY) {
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
             logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
-            // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-            // User interaction is not required to exit, for compatibility with CI
-            await sleep(60000);
-            throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
           } else {
             logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
-            validationPassed = false;
           }
+          validationPassed = false;
         }
 
-        if (VALIDATE_ONLY) {
-          if (validationPassed) {
+        if (validationPassed) {
+          if (VALIDATE_ONLY) {
             log(chalk.bold.green('\nFeed validation passed'));
             process.exit(0);
-          } else {
-            log(chalk.bold.red('\nFeed validation failed'));
-            process.exit(1);
           }
+        } else {
+          log(chalk.bold.red('\nFeed validation failed\n'));
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+            log(chalk.red('(press ctrl+c to close or wait 60 seconds)\n'));
+            // Pause harvester and sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+            // User interaction is not required to exit, for compatibility with CI
+            await pauseResume.pause();
+            await sleep(60000);
+          }
+          process.exit(1);
         }
 
         unlockHealthCheck();
