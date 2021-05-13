@@ -98,6 +98,8 @@ if (!IS_RUNNING_IN_CI) {
 }
 
 microservice = fork('app.js', [], { cwd: './packages/openactive-broker-microservice/', silent: true } );
+
+// Pipe output from microservice to stdout
 microservice.stdout.pipe(process.stdout);
 microservice.stderr.pipe(process.stderr);
 
@@ -107,9 +109,12 @@ microservice.on('close', (code) => {
   // Close prompt if currently open
   prompt?.ui?.close();
 
-  if (integrationTests !== null) integrationTests.kill();
   // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
+  if (integrationTests !== null) integrationTests.kill();
   if (code !== 0 && code !== null) process.exitCode = code;
+  if (!IS_RUNNING_IN_CI) {
+    process.exit();
+  }
 });
 
 // Wait for microservice to start listening before starting integration tests
@@ -125,9 +130,9 @@ function launchIntegrationTests(args, singleFlowPathMode) {
   if (IS_RUNNING_IN_CI) {
     // When integration tests exit, kill the microservice
     integrationTests.on('close', (code) => {
-      if (microservice !== null) microservice.kill();
       // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
       if (code !== 0 && code !== null) process.exitCode = code;
+      if (microservice !== null) microservice.kill();
     });
   } else {
     integrationTests.on('close', async (code) => {
