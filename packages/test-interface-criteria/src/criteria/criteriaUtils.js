@@ -360,10 +360,14 @@ function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
 /**
 * @type {OfferConstraint}
 */
-function mustHaveBookableOffer(offer, opportunity, options) {
-  if (offer.openBookingInAdvance === 'https://openactive.io/Unavailable') {
-    return false;
-  }
+function mustNotBeOpenBookingInAdvanceUnavailable(offer, opportunity, options) {
+  return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable';
+}
+
+/**
+* @type {OfferConstraint}
+*/
+function mustHaveBeInsideValidFromBeforeStartDateWindow(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
   if (dateAfterWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
   return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
@@ -391,9 +395,9 @@ function mustAllowFullRefund(offer) {
 * @param {Opportunity} opportunity
 */
 function getOrganizerOrProvider(opportunity) {
-  if (isObject(opportunity.superEvent)) {
+  if (isObject(opportunity.superEvent?.organizer)) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
-    return /** @type {any} */(opportunity.superEvent).organizer;
+    return /** @type {any} */(opportunity.superEvent?.organizer);
   }
   if (isObject(opportunity.facilityUse)) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
@@ -403,6 +407,10 @@ function getOrganizerOrProvider(opportunity) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
     return /** @type {any} */(opportunity.organizer);
   }
+  if (isObject(opportunity.superEvent?.superEvent?.organizer)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.superEvent?.superEvent?.organizer);
+  }
   throw new Error(`Opportunity does not have organizer/provider. Opportunity fields: ${Object.keys(opportunity).join(', ')}`);
 }
 
@@ -411,7 +419,7 @@ function getOrganizerOrProvider(opportunity) {
  */
 function sellerMustAllowOpenBooking(opportunity) {
   const organizerOrProvider = getOrganizerOrProvider(opportunity);
-  return organizerOrProvider.isOpenBookingAllowed === true;
+  return organizerOrProvider?.isOpenBookingAllowed === true;
 }
 
 module.exports = {
@@ -428,7 +436,8 @@ module.exports = {
   mustAllowProposalAmendment,
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
-  mustHaveBookableOffer,
+  mustNotBeOpenBookingInAdvanceUnavailable,
+  mustHaveBeInsideValidFromBeforeStartDateWindow,
   getOrganizerOrProvider,
   mustNotAllowFullRefund,
   mustAllowFullRefund,

@@ -24,7 +24,7 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   name: '_InternalCriteriaFutureScheduledOpportunity',
   opportunityConstraints: [
     [
-      'Start date must be 2hrs in advance for random tests to use',
+      'startDate must be 2hrs in advance for random tests to use',
       startDateMustBe2HrsInAdvance,
     ],
     [

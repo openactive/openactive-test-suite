@@ -104,7 +104,11 @@ export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("..
 /**
 * @type {OfferConstraint}
 */
-export function mustHaveBookableOffer(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+/**
+* @type {OfferConstraint}
+*/
+export function mustHaveBeInsideValidFromBeforeStartDateWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
 /**
 * For a session, get `organizer`. For a facility, get `provider`.
 * These can be used interchangeably as `organizer` is either a Person or an Organization

@@ -417,8 +417,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         setFeedIsUpToDate(feedIdentifier);
       }
       if (error instanceof FatalError) {
-        // If a fatal error, just rethrow
-        throw error;
+        // If a fatal error, quit the application immediately
+        if (multibar) multibar.stop();
+        logError(`\nFATAL ERROR: ${error.message}\n`);
+        process.exit(1);
       } else if (!error.response) {
         logError(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
         // Force retry, after a delay, up to 12 times
@@ -522,9 +524,12 @@ function getOpportunityById(opportunityId) {
   if (!opportunity) {
     return null;
   }
+  if (!jsonLdHasReferencedParent(opportunity)) {
+    return opportunity;
+  }
   const superEvent = parentOpportunityMap.get(opportunity.superEvent);
   const facilityUse = parentOpportunityMap.get(opportunity.facilityUse);
-  if (opportunity && (superEvent || facilityUse)) {
+  if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     delete opportunity['@context'];
     const returnObj = {
@@ -598,15 +603,15 @@ async function setFeedIsUpToDate(feedIdentifier) {
         if (multibar) multibar.stop();
 
         log('Harvesting is up-to-date');
-        const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
+        const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
 
         let validationPassed = true;
 
-        if (totalChildren === 0) {
+        if (totalOpportunities === 0) {
           logError(`\n${VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES ? 'FATAL ERROR' : 'NOTE'}: Zero opportunities could be harvested from the opportunities feeds.`);
           logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
           if (VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES) validationPassed = false;
-        } else if (childOrphans === totalChildren && totalChildren !== 0) {
+        } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
@@ -771,13 +776,13 @@ function millisToMinutesAndSeconds(millis) {
 }
 
 function getOrphanJson() {
-  const rows = Array.from(rowStoreMap.values());
+  const rows = Array.from(rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
   return {
     children: {
-      matched: rows.filter((x) => x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length,
-      orphaned: rows.filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length,
+      matched: rows.filter((x) => !x.waitingForParentToBeIngested).length,
+      orphaned: rows.filter((x) => x.waitingForParentToBeIngested).length,
       total: rows.length,
-      orphanedList: rows.filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
+      orphanedList: rows.filter((x) => x.waitingForParentToBeIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
         jsonLdType,
         id,
         modified,
@@ -798,24 +803,28 @@ app.get('/orphans', function (req, res) {
  * @property {number} childOrphans
  * @property {number} totalChildren
  * @property {string} percentageChildOrphans
+ * @property {number} totalOpportunities
  */
 
 /**
  * @returns {OrphanStats}
  */
 function getOrphanStats() {
-  const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested && !jsonLdTypeDoesNotHaveParent(x.jsonLdType)).length;
-  const totalChildren = rowStoreMap.size;
+  const childRows = Array.from(rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
+  const childOrphans = childRows.filter((x) => x.waitingForParentToBeIngested).length;
+  const totalChildren = childRows.length;
+  const totalOpportunities = Array.from(rowStoreMap.values()).filter((x) => !x.waitingForParentToBeIngested).length;
   const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
   return {
     childOrphans,
     totalChildren,
     percentageChildOrphans,
+    totalOpportunities,
   };
 }
 
 app.get('/status', function (req, res) {
-  const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     harvestingStatus: pauseResume.pauseHarvestingStatus,
@@ -823,6 +832,8 @@ app.get('/status', function (req, res) {
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
+    totalOpportunitiesHarvested: totalOpportunities,
+    testOpportunityBookableCriteriaErrors: testOpportunityBookableFound ? undefined : Object.fromEntries(testOpportunityBookableCriteriaErrors),
     buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(opportunityIdCache),
   });
 });
@@ -1029,9 +1040,9 @@ function getTypeFromOpportunityType(opportunityType) {
 
 function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
-    || (opportunity.superEvent
-      && (opportunity.superEvent.organizer || (opportunity.superEvent.superEvent && opportunity.superEvent.superEvent.organizer)))
-    || (opportunity.facilityUse && opportunity.facilityUse.provider);
+    || opportunity.superEvent?.organizer
+    || opportunity.superEvent?.superEvent?.organizer
+    || opportunity?.facilityUse.provider;
 
   return organizer['@id'] || organizer.id;
 }
@@ -1256,7 +1267,7 @@ async function touchOpportunityItems(parentIds) {
     if (rowStoreMap.has(jsonLdId)) {
       const row = rowStoreMap.get(jsonLdId);
       row.feedModified = Date.now() + 1000; // 1 second in the future
-      row.parentIngested = true;
+      row.waitingForParentToBeIngested = false;
       await processRow(row);
     }
   }));
@@ -1274,28 +1285,38 @@ function deleteOpportunityItem(jsonLdId) {
 }
 
 async function storeOpportunityItem(item) {
+  if (item.state === 'deleted') throw new Error('Not expected to be called for deleted items');
+
   const row = {
     id: item.id,
     modified: item.modified,
-    deleted: item.state === 'deleted',
+    deleted: false,
     feedModified: Date.now() + 1000, // 1 second in the future,
-    jsonLdId: item.state === 'deleted' ? null : item.data['@id'] || item.data.id,
-    jsonLd: item.state === 'deleted' ? null : item.data,
-    jsonLdType: item.state === 'deleted' ? null : item.data['@type'] || item.data.type,
-    jsonLdParentId: item.state === 'deleted' ? null : item.data.superEvent || item.data.facilityUse,
-    parentIngested: item.state === 'deleted' ? false : parentOpportunityMap.has(item.data.superEvent) || parentOpportunityMap.has(item.data.facilityUse),
+    jsonLdId: item.data['@id'] || item.data.id || null,
+    jsonLd: item.data,
+    jsonLdType: item.data['@type'] || item.data.type,
+    jsonLdParentId: !jsonLdHasReferencedParent(item.data) ? null : item.data.superEvent || item.data.facilityUse,
+    waitingForParentToBeIngested: jsonLdHasReferencedParent(item.data) && !(parentOpportunityMap.has(item.data.superEvent) || parentOpportunityMap.has(item.data.facilityUse)),
   };
 
-  if (row.jsonLdParentId != null && row.jsonLdId != null) {
-    if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
-    parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
-  }
+  if (row.jsonLdId != null) {
+    if (row.jsonLdParentId != null) {
+      if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
+      parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
+    }
 
-  rowStoreMap.set(row.jsonLdId, row);
+    rowStoreMap.set(row.jsonLdId, row);
 
-  if (row.parentIngested || jsonLdTypeDoesNotHaveParent(row.jsonLdType)) {
-    await processRow(row);
+    if (!row.waitingForParentToBeIngested) {
+      await processRow(row);
+    }
+  } else {
+    throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
   }
+}
+
+function jsonLdHasReferencedParent(data) {
+  return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
 }
 
 function sortWithOpenActiveOnTop(arr) {
@@ -1310,14 +1331,10 @@ function getMergedJsonLdContext(...contexts) {
   return sortWithOpenActiveOnTop([...new Set(contexts.map((x) => x && x['@context']).filter((x) => x).flat())]);
 }
 
-function jsonLdTypeDoesNotHaveParent(jsonLdType) {
-  return jsonLdType === 'Event' || jsonLdType === 'OnDemandEvent';
-}
-
 async function processRow(row) {
   let newItem;
   // No need for processing for items without parents
-  if (jsonLdTypeDoesNotHaveParent(row.jsonLdType)) {
+  if (row.jsonLdParentId === null) {
     newItem = {
       state: row.deleted ? 'deleted' : 'updated',
       id: row.jsonLdId,
@@ -1370,6 +1387,9 @@ async function processRow(row) {
   await processOpportunityItem(newItem);
 }
 
+const testOpportunityBookableCriteriaErrors = new Map();
+let testOpportunityBookableFound = false;
+
 async function processOpportunityItem(item) {
   if (item.data) {
     const id = item.data['@id'] || item.data.id;
@@ -1398,23 +1418,33 @@ async function processOpportunityItem(item) {
           if (criteriaResult.matchesCriteria) {
             sellerCompartment.add(id);
             matchingCriteria.push(criteriaName);
+            if (criteriaName === 'TestOpportunityBookable') testOpportunityBookableFound = true;
           } else {
             sellerCompartment.delete(id);
             unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
+            if (criteriaName === 'TestOpportunityBookable' && !testOpportunityBookableFound) {
+              for (const error of criteriaResult.unmetCriteriaDetails) {
+                if (!testOpportunityBookableCriteriaErrors.has(error)) testOpportunityBookableCriteriaErrors.set(error, 0);
+                testOpportunityBookableCriteriaErrors.set(error, testOpportunityBookableCriteriaErrors.get(error) + 1);
+              }
+            }
           }
         }
       }
     }
 
-    const bookableIssueList = unmetCriteriaDetails.length > 0
-      ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
-
     if (responses[id]) {
       responses[id].send(item);
+    }
 
-      if (VERBOSE) log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
-    } else if (VERBOSE) {
-      log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+    if (VERBOSE) {
+      const bookableIssueList = unmetCriteriaDetails.length > 0
+        ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
+      if (responses[id]) {
+        log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
+      } else {
+        log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+      }
     }
 
     handleListeners('opportunities', id, item);
