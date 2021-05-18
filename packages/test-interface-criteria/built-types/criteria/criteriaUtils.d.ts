@@ -104,7 +104,7 @@ export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("..
 /**
 * @type {OfferConstraint}
 */
-export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer): boolean;
 /**
 * @type {OfferConstraint}
 */

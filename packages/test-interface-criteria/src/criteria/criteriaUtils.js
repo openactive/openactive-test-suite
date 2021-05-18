@@ -360,7 +360,7 @@ function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
 /**
 * @type {OfferConstraint}
 */
-function mustNotBeOpenBookingInAdvanceUnavailable(offer, opportunity, options) {
+function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
   return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable';
 }
 
