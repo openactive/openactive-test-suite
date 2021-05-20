@@ -342,7 +342,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
       if (getBasePath(json.next) !== getBasePath(url)) {
         if (multibar) multibar.stop();
-        logError(`\nFATAL ERROR: Base path of RPDE 'next' property ("${getBasePath(json.next)}") does not match base path of RPDE page "${url}"\n`);
+        logError(`\nFATAL ERROR: Base path of RPDE \`next\` property ("${getBasePath(json.next)}") does not match the base path of the RPDE page "${url}". Please ensure that the \`next\` url on each page in the feed is correctly referencing the appropriate feed.\n`);
         process.exit(1);
       }
 
