@@ -32,7 +32,7 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
-const OPEN_BOOKING_API_REQUEST_TIMEOUT = 20000; // Allow 20 seconds for booking systems under load
+const OPEN_BOOKING_API_REQUEST_TIMEOUT = 30000; // Allow 20 seconds for booking systems under load
 const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = 60000; // Allow extra time for feed updates
 
 class RequestHelper {
