@@ -35,7 +35,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [lease-opportunity-capacity-update](./implemented/lease-opportunity-capacity-update-test.js) | Leased spaces are unavailable for purchase by other users | When an opportunity is leased, the capacity is decremented | [TestOpportunityBookableFiveSpaces](https://openactive.io/test-interface#TestOpportunityBookableFiveSpaces) x2 |
+| [lease-opportunity-capacity-update](./implemented/lease-opportunity-capacity-update-test.js) | Leased spaces are unavailable for purchase by other users | For an opportunity with 2 spaces: Check the opportunity has 2 spaces in the feed. Run C1 and C2 to book one item (creating an named lease) - during this run call C2 twice, and check that both times there are still 2 remaining spaces from this UUID's perspective. Check the opportunity has 1 space in the feed. Run C1 and C2 again for a new Order UUID for the same opportunity attempting to book 3 spaces, expecting OrderItems to be returned with 1 having no errors, 1 having an OpportunityCapacityIsReservedByLeaseError, and 1 having an OpportunityHasInsufficientCapacityError. | [TestOpportunityBookableFiveSpaces](https://openactive.io/test-interface#TestOpportunityBookableFiveSpaces) x2 |
 | [lease-response](./implemented/lease-response-test.js) | Response at C2 includes a "lease" with a "leaseExpires" in the future | Named lease returned at C2 reserves the OrderItems for a specified length of time | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
