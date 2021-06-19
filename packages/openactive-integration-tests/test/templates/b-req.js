@@ -9,6 +9,7 @@
 // Alternatively, could we have it so that the template only works for some criteria..?
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
+const faker = require('faker');
 const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
@@ -41,7 +42,8 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   orderProposalVersion?: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole?: string | null,
- *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm},
+ *   uuid: string
  * }} BReqTemplateData
  *
  * @typedef {Omit<BReqTemplateData, 'orderProposalVersion'>} PReqTemplateData P accepts the same sort of requests as B.
@@ -86,6 +88,8 @@ function createAfterPBReq(data) {
  * @returns {BReq}
  */
 function createNonPaymentRelatedCoreBReq(data) {
+  // Seed with the UUID to ensure the same random data is supplied for all requests within the UUID
+  faker.seed(data.uuid);
   return {
     '@context': 'https://openactive.io/',
     '@type': data.orderType,
@@ -111,11 +115,11 @@ function createNonPaymentRelatedCoreBReq(data) {
     seller: data.sellerId,
     customer: {
       '@type': 'Person',
-      email: 'geoffcapesStageB@example.com',
-      telephone: '020 811 8003',
-      givenName: 'GeoffB',
-      familyName: 'CapesB',
-      identifier: 'CustomerIdentifierB',
+      email: faker.internet.email(),
+      telephone: faker.phone.phoneNumber(),
+      givenName: faker.name.lastName(),
+      familyName: faker.name.firstName(),
+      identifier: faker.random.uuid(),
     },
     orderedItem: data.orderItems.map((orderItem) => {
       const result = {

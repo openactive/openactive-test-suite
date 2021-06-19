@@ -29,7 +29,7 @@ FeatureHelper.describeFeature(module, {
       testName: 'Simulate Seller Cancellation (Test Interface Action)',
       prerequisite,
       createActionFn: () => ({
-        type: 'test:SellerRequestedCancellationWithMessageSimulateAction',
+        type: 'test:SellerRequestedCancellationSimulateAction',
         objectType: 'Order',
         objectId: bookRecipe.b.getOutput().orderId,
       }),

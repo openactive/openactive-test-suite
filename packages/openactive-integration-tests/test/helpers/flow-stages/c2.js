@@ -35,6 +35,7 @@ async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, 
     orderItems,
     brokerRole,
     positionOrderIntakeFormMap,
+    uuid,
   };
   const response = await requestHelper.putOrderQuote(uuid, params, templateRef);
   const bookingSystemOrder = response.body;

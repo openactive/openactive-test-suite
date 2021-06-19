@@ -20,7 +20,7 @@
     "common-error-conditions": {
       "primary": {
         "TestOpportunityBookable": 29,
-        "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
+        "TestOpportunityBookableInPast": 3
       }
     },
     "dataset-site": {},
@@ -106,9 +106,9 @@
     },
     "customer-requested-cancellation": {
       "primary": {
-        "TestOpportunityBookableCancellable": 12,
+        "TestOpportunityBookableCancellable": 18,
         "TestOpportunityBookableNotCancellable": 1,
-        "TestOpportunityBookable": 2
+        "TestOpportunityBookable": 4
       }
     },
     "seller-requested-cancellation": {

@@ -1,5 +1,6 @@
 const { dissocPath, dissoc, pipe, omit } = require('ramda');
 const shortid = require('shortid');
+const faker = require('faker');
 const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common');
 
 /**
@@ -17,7 +18,8 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *     'test:control': boolean,
  *   }[],
  *   brokerRole: string | null,
- *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm},
+ *   uuid: string
  * }} C2ReqTemplateData
  */
 
@@ -74,6 +76,8 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  * @returns {C2Req}
  */
 function createStandardC2Req(data) {
+  // Seed with the UUID to ensure the same random data is supplied for all requests within the UUID
+  faker.seed(data.uuid);
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderQuote',
@@ -99,11 +103,11 @@ function createStandardC2Req(data) {
     seller: data.sellerId,
     customer: {
       '@type': 'Person',
-      email: 'geoffcapesStageC2@example.com',
-      telephone: '020 811 8002',
-      givenName: 'GeoffC2',
-      familyName: 'CapesC2',
-      identifier: 'CustomerIdentifierC2',
+      email: faker.internet.email(),
+      telephone: faker.phone.phoneNumber(),
+      givenName: faker.name.lastName(),
+      familyName: faker.name.firstName(),
+      identifier: faker.random.uuid(),
     },
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',

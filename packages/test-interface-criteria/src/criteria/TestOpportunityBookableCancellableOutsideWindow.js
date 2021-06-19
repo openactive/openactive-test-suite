@@ -1,22 +1,10 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria, getDateBeforeWhichCancellationsCanBeMade } = require('./criteriaUtils');
+const { createCriteria, mustBeOutsideCancellationWindow } = require('./criteriaUtils');
 const { dateRange } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
  */
-
-/**
- * @type {OfferConstraint}
- */
-function mustBeOutsideCancellationWindow(offer, opportunity, options) {
-  const dateBeforeWhichCancellationsCanBeMade = getDateBeforeWhichCancellationsCanBeMade(offer, opportunity);
-  if (dateBeforeWhichCancellationsCanBeMade == null) {
-    return false; // has no cancellation window
-  }
-  // it has to be too late to cancel
-  return options.harvestStartTime > dateBeforeWhichCancellationsCanBeMade;
-}
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableCancellableOutsideWindow

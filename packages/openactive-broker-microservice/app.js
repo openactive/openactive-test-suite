@@ -467,22 +467,34 @@ function getBasePath(url) {
  * @param {string} args.opportunityType
  * @param {string} args.criteriaName
  * @param {string} args.testDatasetIdentifier
+ * @returns {any}
  */
 function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
   const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
     criteriaName, bookingFlow, opportunityType,
   });
-  const sellerCompartment = typeBucket.get(sellerId);
-  if (!sellerCompartment) {
+  const sellerCompartment = typeBucket.contents.get(sellerId);
+  if (!sellerCompartment || sellerCompartment.size === 0) {
+    const availableSellers = mapToObjectSummary(typeBucket.contents);
+    const noCriteriaErrors = bookingFlow === 'OpenBookingApprovalFlow'
+      ? "Ensure that some Offers have an 'openBookingFlowRequirement' property that includes the value 'https://openactive.io/OpenBookingApproval'"
+      : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
+    const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
     return {
-      sellers: Array.from(typeBucket.keys()),
+      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why items in your feed are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors.size !== 0 ? ' The number represents the number of items that do not match.' : ''}`,
+      availableSellers,
+      criteriaErrors: typeBucket.criteriaErrors ? criteriaErrors : undefined,
     };
   } // Seller has no items
 
   const allTestDatasets = getAllDatasets();
   const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allTestDatasets.has(x));
 
-  if (unusedBucketItems.length === 0) return null;
+  if (unusedBucketItems.length === 0) {
+    return {
+      suggestion: `No enough items matching criteria '${criteriaName}' were included in your feeds to run all tests. Try adding more test data to your system, or consider using 'Controlled Mode'.`,
+    };
+  }
 
   const id = unusedBucketItems[Math.floor(Math.random() * unusedBucketItems.length)];
 
@@ -510,7 +522,7 @@ function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, book
   });
 
   // Check that all sellerCompartments are empty
-  return Array.from(typeBucket).every(([, items]) => (items.size === 0));
+  return Array.from(typeBucket.contents).every(([, items]) => (items.size === 0));
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
@@ -611,8 +623,8 @@ async function setFeedIsUpToDate(feedIdentifier) {
           logError(`\n${VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES ? 'FATAL ERROR' : 'NOTE'}: Zero opportunities could be harvested from the opportunities feeds.`);
           logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
           if (VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES) validationPassed = false;
-        } else if (childOrphans === totalChildren) {
-          logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
+        } else if (totalChildren !== 0 && childOrphans === totalChildren) {
+          logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities that reference a parent do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
           if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
@@ -622,7 +634,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
           }
           validationPassed = false;
         } else if (childOrphans > 0) {
-          logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+          logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities that reference a parent (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
           await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
           if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
@@ -756,15 +768,36 @@ app.get('/dataset-site', function (req, res) {
 function mapToObjectSummary(map) {
   if (map instanceof Map) {
     // Return a object representation of a Map
-    return Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0
+    const obj = Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0
       ? {}
       : {
         [v[0]]: mapToObjectSummary(v[1]),
       })));
+    if (JSON.stringify(obj) === JSON.stringify({})) {
+      return undefined;
+    }
+    return obj;
   } if (map instanceof Set) {
     // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
     // instead of outputting the whole set contents. This reduces the size of the output for display.
     return map.size;
+  }
+  // @ts-ignore
+  if (map.contents) {
+    // @ts-ignore
+    const result = mapToObjectSummary(map.contents);
+    if (result && Object.keys(result).length > 0) {
+      // @ts-ignore
+      return result;
+    }
+    // @ts-ignore
+    if (map.criteriaErrors && map.criteriaErrors.size > 0) {
+      return {
+        // @ts-ignore
+        criteriaErrors: Object.fromEntries(map.criteriaErrors),
+      };
+    }
+    return undefined;
   }
   return map;
 }
@@ -833,7 +866,6 @@ app.get('/status', function (req, res) {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
     totalOpportunitiesHarvested: totalOpportunities,
-    testOpportunityBookableCriteriaErrors: testOpportunityBookableFound ? undefined : Object.fromEntries(testOpportunityBookableCriteriaErrors),
     buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(opportunityIdCache),
   });
 });
@@ -1136,13 +1168,14 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
     if (CONSOLE_OUTPUT_LEVEL === 'dot') {
       logCharacter('.');
     } else {
-      log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+      log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
     }
     res.json(result.opportunity);
   } else {
-    logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} (${opportunityType}) call failed: No matching opportunities found`);
+    logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${opportunityType}) call failed: No matching opportunities found`);
     res.status(404).json({
-      error: `Opportunity Type '${opportunityType}' Not found from seller ${sellerId} for ${criteriaName}.\n\nSellers available:\n${result && result.sellers && result.sellers.length > 0 ? result.sellers.join('\n') : 'none'}.`,
+      error: `Opportunity Type '${opportunityType}' not found for seller '${sellerId}' matching '${criteriaName}' within '${bookingFlow}'.`,
+      ...result,
     });
   }
 });
@@ -1387,9 +1420,6 @@ async function processRow(row) {
   await processOpportunityItem(newItem);
 }
 
-const testOpportunityBookableCriteriaErrors = new Map();
-let testOpportunityBookableFound = false;
-
 async function processOpportunityItem(item) {
   if (item.data) {
     const id = item.data['@id'] || item.data.id;
@@ -1413,19 +1443,21 @@ async function processOpportunityItem(item) {
           const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
             criteriaName, opportunityType, bookingFlow,
           });
-          if (!typeBucket.has(sellerId)) typeBucket.set(sellerId, new Set());
-          const sellerCompartment = typeBucket.get(sellerId);
+          if (!typeBucket.contents.has(sellerId)) typeBucket.contents.set(sellerId, new Set());
+          const sellerCompartment = typeBucket.contents.get(sellerId);
           if (criteriaResult.matchesCriteria) {
             sellerCompartment.add(id);
             matchingCriteria.push(criteriaName);
-            if (criteriaName === 'TestOpportunityBookable') testOpportunityBookableFound = true;
+            // Hide criteriaErrors if at least one matching item is found
+            typeBucket.criteriaErrors = undefined;
           } else {
             sellerCompartment.delete(id);
             unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
-            if (criteriaName === 'TestOpportunityBookable' && !testOpportunityBookableFound) {
+            // Ignore errors if criteriaErrors is already hidden
+            if (typeBucket.criteriaErrors) {
               for (const error of criteriaResult.unmetCriteriaDetails) {
-                if (!testOpportunityBookableCriteriaErrors.has(error)) testOpportunityBookableCriteriaErrors.set(error, 0);
-                testOpportunityBookableCriteriaErrors.set(error, testOpportunityBookableCriteriaErrors.get(error) + 1);
+                if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
+                typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
               }
             }
           }

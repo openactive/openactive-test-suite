@@ -94,7 +94,7 @@
       "notImplementedTestFiles": 1
     },
     "customer-requested-cancellation": {
-      "implementedTestFiles": 5,
+      "implementedTestFiles": 6,
       "notImplementedTestFiles": 0
     },
     "seller-requested-cancellation": {

@@ -2,7 +2,7 @@ const { criteria } = require('@openactive/test-interface-criteria');
 
 /**
  * @typedef {Set<string>} OpportunityIdCacheSellerCompartment
- * @typedef {Map<string, OpportunityIdCacheSellerCompartment>} OpportunityIdCacheTypeBucket
+ * @typedef {{contents: Map<string, OpportunityIdCacheSellerCompartment>, criteriaErrors: Map<string, number> }} OpportunityIdCacheTypeBucket
  * @typedef {Map<string, OpportunityIdCacheTypeBucket>} OpportunityIdCacheBookingFlowBucket
  * @typedef {Map<string, OpportunityIdCacheBookingFlowBucket>} OpportunityIdCacheCriteriaBucket
  * @typedef {Map<string, OpportunityIdCacheCriteriaBucket>} OpportunityIdCacheType
@@ -46,7 +46,10 @@ const OpportunityIdCache = {
             'OnDemandEvent',
           ].map((opportunityType) => (
             // .. -> Opportunity Type -> ...
-            [opportunityType, /** @type {OpportunityIdCacheTypeBucket} */(new Map())]
+            [opportunityType, /** @type {OpportunityIdCacheTypeBucket} */{
+              contents: new Map(),
+              criteriaErrors: new Map(),
+            }]
           )))]
         )))])),
     );

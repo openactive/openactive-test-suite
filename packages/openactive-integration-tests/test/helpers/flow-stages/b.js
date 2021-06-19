@@ -49,6 +49,7 @@ async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, o
     accessPass,
     brokerRole,
     positionOrderIntakeFormMap,
+    uuid,
   };
   const response = await requestHelper.putOrder(uuid, params, templateRef);
   const bookingSystemOrder = response.body;

@@ -10,8 +10,9 @@ const { BOOKING_API_BASE } = global;
 /**
  *
  * @param {UReqTemplateData} data
+ * @param {string} [orderItemStatus]
  */
-function createStandardUReq(data) {
+function createStandardUReq(data, orderItemStatus = 'https://openactive.io/CustomerCancelled') {
   const req = {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
@@ -21,7 +22,7 @@ function createStandardUReq(data) {
     req.orderedItem.push({
       '@type': 'OrderItem',
       '@id': `${orderItemId}`,
-      orderItemStatus: 'https://openactive.io/CustomerCancelled',
+      orderItemStatus,
     });
   }
 
@@ -31,35 +32,8 @@ function createStandardUReq(data) {
 /**
  * @param {UReqTemplateData} data
  */
-function createNonExistantOrderUReq(data) {
-  return {
-    '@context': 'https://openactive.io/',
-    '@type': 'Order',
-    orderedItem: [
-      {
-        '@type': 'OrderItem',
-        '@id': `${BOOKING_API_BASE}/orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
-        orderItemStatus: 'https://openactive.io/CustomerCancelled',
-      },
-    ],
-  };
-}
-
-/**
- * @param {UReqTemplateData} data
- */
-function createnonCustomerCancelledOrderItemStatus(data) {
-  return {
-    '@context': 'https://openactive.io/',
-    '@type': 'Order',
-    orderedItem: [
-      {
-        '@type': 'OrderItem',
-        '@id': `${BOOKING_API_BASE}/orders/${data._uuid}#/orderedItems/1`, // non existant OrderItem on non existant Order
-        orderItemStatus: 'https://openactive.io/OrderItemConfirmed',
-      },
-    ],
-  };
+function createNonCustomerCancelledOrderItemStatus(data) {
+  return createStandardUReq(data, 'https://openactive.io/OrderItemConfirmed');
 }
 
 /**
@@ -74,8 +48,7 @@ function createUReqWithExcessiveProperties(data) {
 
 const uReqTemplates = {
   standard: createStandardUReq,
-  nonExistantOrder: createNonExistantOrderUReq,
-  nonCustomerCancelledOrderItemStatus: createnonCustomerCancelledOrderItemStatus,
+  nonCustomerCancelledOrderItemStatus: createNonCustomerCancelledOrderItemStatus,
   excessiveProperties: createUReqWithExcessiveProperties,
 };
 

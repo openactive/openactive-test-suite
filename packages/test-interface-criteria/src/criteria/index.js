@@ -6,8 +6,9 @@ const { TestOpportunityBookableNoSpaces } = require('./TestOpportunityBookableNo
 const { TestOpportunityBookableFiveSpaces } = require('./TestOpportunityBookableFiveSpaces');
 const { TestOpportunityBookableWithinValidFromBeforeStartDate } = require('./TestOpportunityBookableWithinValidFromBeforeStartDate');
 const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookableCancellable');
-const { TestOpportunitySellerOpenBookingNotAllowed } = require('./TestOpportunitySellerOpenBookingNotAllowed');
+const { TestOpportunityBookableInPast } = require('./TestOpportunityBookableInPast');
 const { TestOpportunityBookableOutsideValidFromBeforeStartDate } = require('./TestOpportunityBookableOutsideValidFromBeforeStartDate');
+const { TestOpportunityBookableCancellableNoWindow } = require('./TestOpportunityBookableCancellableNoWindow');
 const { TestOpportunityBookableCancellableWithinWindow } = require('./TestOpportunityBookableCancellableWithinWindow');
 const { TestOpportunityBookableCancellableOutsideWindow } = require('./TestOpportunityBookableCancellableOutsideWindow');
 const { TestOpportunityBookableNotCancellable } = require('./TestOpportunityBookableNotCancellable');
@@ -36,8 +37,9 @@ module.exports = {
     TestOpportunityBookableWithinValidFromBeforeStartDate,
     TestOpportunityBookableCancellable,
     TestOpportunityBookableNotCancellable,
-    TestOpportunitySellerOpenBookingNotAllowed,
+    TestOpportunityBookableInPast,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
+    TestOpportunityBookableCancellableNoWindow,
     TestOpportunityBookableCancellableWithinWindow,
     TestOpportunityBookableCancellableOutsideWindow,
     TestOpportunityBookableNonFreeTaxNet,
