@@ -342,7 +342,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         url,
         json,
         pageIndex: context.pages,
-        contentType: response.headers.get('content-type'),
+        contentType: response.headers['content-type'],
         status: response.status,
       });
 

@@ -1,5 +1,5 @@
 const {
-  createCriteria, 
+  createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
   mustHaveBeInsideValidFromBeforeStartDateWindow,
@@ -9,7 +9,6 @@ const {
   mustNotRequireAttendeeDetails,
   mustNotRequireAdditionalDetails,
 } = require('./criteriaUtils');
-const { FALSE_BOOLEAN_CONSTRAINT } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint

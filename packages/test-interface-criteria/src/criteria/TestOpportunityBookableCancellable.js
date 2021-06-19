@@ -9,7 +9,7 @@ const { BLOCKED_FIELD, shapeConstraintRecipes } = require('../testDataShape');
 /**
  * @type {import('../types/Criteria').OfferConstraint}
  */
- function mustBeWithinCancellationWindowOrHaveNoWindow(offer, opportunity, options) {
+function mustBeWithinCancellationWindowOrHaveNoWindow(offer, opportunity, options) {
   const dateBeforeWhichCancellationsCanBeMade = getDateBeforeWhichCancellationsCanBeMade(offer, opportunity);
   if (dateBeforeWhichCancellationsCanBeMade == null) {
     return true; // has no cancellation window

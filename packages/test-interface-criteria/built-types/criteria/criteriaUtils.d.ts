@@ -100,7 +100,7 @@ export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Oppor
 /**
 * @type {OpportunityConstraint}
 */
-export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity): boolean;
 /**
 * @type {OpportunityConstraint}
 */

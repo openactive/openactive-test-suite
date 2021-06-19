@@ -353,7 +353,7 @@ function startDateMustBe2HrsInAdvance(opportunity, options) {
 /**
 * @type {OpportunityConstraint}
 */
-function endDateMustBeInThePast(opportunity, options) {
+function endDateMustBeInThePast(opportunity) {
   return DateTime.fromISO(opportunity.endDate) < DateTime.now();
 }
 
@@ -398,7 +398,7 @@ function mustAllowFullRefund(offer) {
 /**
  * @type {OfferConstraint}
  */
- function mustBeOutsideCancellationWindow(offer, opportunity, options) {
+function mustBeOutsideCancellationWindow(offer, opportunity, options) {
   const dateBeforeWhichCancellationsCanBeMade = getDateBeforeWhichCancellationsCanBeMade(offer, opportunity);
   if (dateBeforeWhichCancellationsCanBeMade == null) {
     return false; // has no cancellation window
