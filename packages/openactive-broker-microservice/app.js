@@ -18,6 +18,7 @@ const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
+const { FeedPageChecker } = require('@openactive/rpde-validator');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -315,6 +316,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   }
   feedContextMap.set(feedIdentifier, context);
   let url = baseUrl;
+
+  // One instance of FeedPageChecker per feed, as it maintains state relating to the feed
+  const feedChecker = new FeedPageChecker();
+
   // Harvest forever, until a 404 is encountered
   for (;;) {
     // If harvesting is paused, block using the mutex
@@ -332,17 +337,18 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
       const json = response.data;
 
-      // Validate RPDE base URL
-      // TODO: add full RPDE validation here
-      if (!json.next) {
-        if (multibar) multibar.stop();
-        logError(`\nRPDE page does not have 'next' property: ${url}`);
-        process.exit(1);
-      }
+      // Validate RPDE page using RPDE Validator, noting that for non-200 responses axios will have already thrown an error above
+      const rpdeValidationErrors = feedChecker.validateRpdePage({
+        url,
+        json,
+        pageIndex: context.pages,
+        contentType: response.headers.get('content-type'),
+        status: response.status,
+      });
 
-      if (getBasePath(json.next) !== getBasePath(url)) {
+      if (rpdeValidationErrors.length > 0) {
         if (multibar) multibar.stop();
-        logError(`\nFATAL ERROR: Base path of RPDE 'next' property ("${getBasePath(json.next)}") does not match base path of RPDE page "${url}"\n`);
+        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on page ${url}:\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
         process.exit(1);
       }
 
@@ -451,13 +457,6 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       }
     }
   }
-}
-
-function getBasePath(url) {
-  if (url.indexOf('//') > -1) {
-    return url.split('?')[0];
-  }
-  throw new Error("RPDE 'next' property MUST be an absolute URL");
 }
 
 /**
