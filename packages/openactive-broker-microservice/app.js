@@ -282,7 +282,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, startTime, validatorTimeout);
   validatorThreadArray.push(validator);
 
-  let initialHarvestComplete = false;
+  let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
 
   /** @type {FeedContext} */
@@ -344,6 +344,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         pageIndex: context.pages,
         contentType: response.headers['content-type'],
         status: response.status,
+        isInitialHarvestComplete,
       });
 
       if (rpdeValidationErrors.length > 0) {
@@ -354,7 +355,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
-        if (!initialHarvestComplete && progressbar) {
+        if (!isInitialHarvestComplete && progressbar) {
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
@@ -362,7 +363,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
             status: 'Harvesting Complete, Validating...',
           });
           progressbar.setTotal(context.totalItemsQueuedForValidation);
-          initialHarvestComplete = true;
+          isInitialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
           await setFeedIsUpToDate(feedIdentifier);
@@ -387,7 +388,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         }
         // eslint-disable-next-line no-loop-func
         await processPage(json, feedIdentifier, (item) => {
-          if (!initialHarvestComplete) {
+          if (!isInitialHarvestComplete) {
             context.totalItemsQueuedForValidation += 1;
             validateAndStoreValidationResults(item, validator).then(() => {
               context.validatedItems += 1;
@@ -406,7 +407,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
             });
           }
         });
-        if (!initialHarvestComplete && progressbar) {
+        if (!isInitialHarvestComplete && progressbar) {
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
