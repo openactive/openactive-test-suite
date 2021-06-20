@@ -43,19 +43,19 @@ function itShouldReturnAnOpenBookingError(errorType, statusCode, getChakramRespo
 }
 
 /**
-   * Run a check against each OrderItem in an API response to ensure that the specified error is only returned for the primary OrderItems.
-   *
-   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
-   *
-   * @param {string} orderItemErrorType OrderItem error expected for testOpportunityCriteria, and not for controlOpportunityCriteria.
-   * @param {object} args
-   * @param {OpportunityCriteria[]} args.orderItemCriteriaList List of Order Item Criteria as provided by
-   *   FeatureHelper.
-   * @param {() => OrderItem[]} args.getFeedOrderItems OrderItems as received from the feed (e.g. using the
-   *   FetchOpportunitiesFlowStage)
-   * @param {() => ChakramResponse} args.getOrdersApiResponse HTTP response from an Orders API that includes
-   *   OrderItems in the `.orderedItem` field. e.g. C1, C2 or B.
-   */
+ * Run a check against each OrderItem in an API response to ensure that the specified error is only returned for the primary OrderItems.
+ *
+ * Note: This generates an it() block. Therefore, this must be run within a describe() block.
+ *
+ * @param {string} orderItemErrorType OrderItem error expected for testOpportunityCriteria, and not for controlOpportunityCriteria.
+ * @param {object} args
+ * @param {OpportunityCriteria[]} args.orderItemCriteriaList List of Order Item Criteria as provided by
+ *   FeatureHelper.
+ * @param {() => OrderItem[]} args.getFeedOrderItems OrderItems as received from the feed (e.g. using the
+ *   FetchOpportunitiesFlowStage)
+ * @param {() => ChakramResponse} args.getOrdersApiResponse HTTP response from an Orders API that includes
+ *   OrderItems in the `.orderedItem` field. e.g. C1, C2 or B.
+ */
 function itShouldIncludeErrorForOnlyPrimaryOrderItems(orderItemErrorType, {
   orderItemCriteriaList,
   getFeedOrderItems,

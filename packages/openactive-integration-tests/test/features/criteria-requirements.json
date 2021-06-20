@@ -217,6 +217,12 @@
         "TestOpportunityBookableNonFreePrepaymentRequired": 8
       }
     },
+    "prepayment-required-unavailable": {
+      "primary": {
+        "TestOpportunityBookableNonFreePrepaymentRequired": 1,
+        "TestOpportunityBookableNonFreePrepaymentUnavailable": 1
+      }
+    },
     "prepayment-unavailable": {
       "primary": {
         "TestOpportunityBookableNonFreePrepaymentUnavailable": 9,
