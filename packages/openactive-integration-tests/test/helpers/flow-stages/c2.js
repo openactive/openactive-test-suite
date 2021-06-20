@@ -10,6 +10,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('../sellers').SellerConfig} SellerConfig
+ * @typedef {import('./flow-stage-utils').Customer} Customer
  * @typedef {import('./flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
@@ -27,15 +28,16 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {OrderItem[]} args.orderItems
  * @param {RequestHelperType} args.requestHelper
  * @param {{[k:string]: OrderItemIntakeForm}} args.positionOrderIntakeFormMap
+ * @param {Customer} [args.customer]
  * @returns {Promise<Output>}
  */
-async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, requestHelper, positionOrderIntakeFormMap }) {
+async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, requestHelper, positionOrderIntakeFormMap, customer }) {
   const params = {
     sellerId: sellerConfig['@id'],
     orderItems,
     brokerRole,
     positionOrderIntakeFormMap,
-    uuid,
+    customer,
   };
   const response = await requestHelper.putOrderQuote(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -62,8 +64,9 @@ class C2FlowStage extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
+   * @param {Customer} [args.customer]
    */
-  constructor({ templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig }) {
+  constructor({ templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig, customer }) {
     super({
       prerequisite,
       testName: 'C2',
@@ -78,6 +81,7 @@ class C2FlowStage extends FlowStage {
           orderItems,
           requestHelper,
           positionOrderIntakeFormMap,
+          customer,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),

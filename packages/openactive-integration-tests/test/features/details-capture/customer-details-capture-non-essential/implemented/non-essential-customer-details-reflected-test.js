@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -24,17 +24,17 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected customer details', () => {
       const apiResponseJson = c2.getOutput().httpResponse.body;
-      expect(apiResponseJson).to.have.nested.property('customer.telephone', '020 811 8002');
-      expect(apiResponseJson).to.have.nested.property('customer.givenName', 'GeoffC2');
-      expect(apiResponseJson).to.have.nested.property('customer.familyName', 'CapesC2');
+      expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
+      expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);
+      expect(apiResponseJson).to.have.nested.property('customer.familyName', defaultFlowStageParams.customer.familyName);
     });
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include expected customer details', () => {
       const apiResponseJson = bookRecipe.b.getOutput().httpResponse.body;
-      expect(apiResponseJson).to.have.nested.property('customer.telephone', '020 811 8003');
-      expect(apiResponseJson).to.have.nested.property('customer.givenName', 'GeoffB');
-      expect(apiResponseJson).to.have.nested.property('customer.familyName', 'CapesB');
+      expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
+      expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);
+      expect(apiResponseJson).to.have.nested.property('customer.familyName', defaultFlowStageParams.customer.familyName);
     });
   });
 });

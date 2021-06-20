@@ -1,9 +1,21 @@
 const chakram = require('chakram');
+const faker = require('faker');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
 const { getSellerConfigWithTaxMode } = require('../sellers');
 const { BookRecipe } = require('./book-recipe');
+
+/**
+ * @typedef {{
+ *  '@type': 'Person' | 'Organization',
+ *  identifier: string
+ *  telephone: string,
+ *  givenName: string,
+ *  familyName: string,
+ *  email: string,
+ *  }} Customer
+ */
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -100,13 +112,22 @@ const FlowStageUtils = {
    * @param {BaseLoggerType} args.logger
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
+   * @param {Customer} [args.customer]
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig }) {
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
+      customer: customer || {
+        '@type': 'Person',
+        email: faker.internet.email(),
+        telephone: faker.phone.phoneNumber(),
+        givenName: faker.name.lastName(),
+        familyName: faker.name.firstName(),
+        identifier: faker.random.uuid(),
+      },
     };
   },
 
