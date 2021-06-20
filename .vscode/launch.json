@@ -145,7 +145,7 @@
             "autoAttachChildProcesses": true,
             "program": "${workspaceFolder}/start.js",
             "env": {
-              "NODE_ENV": "default"
+                "NODE_APP_INSTANCE": "dev"
             },
         }
     ]

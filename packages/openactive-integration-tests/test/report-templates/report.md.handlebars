@@ -46,6 +46,13 @@ npm start -- --runInBand {{{ testFileName }}}
     {{/if}}
         {{#if isPending}}
 **Response still pending**
+        {{#if requestMetadata.feedExtract}}
+
+> This response is still pending because the Broker Microservice at `http://localhost:3000/` is still waiting for the `@id` `{{{ requestMetadata.feedExtract.id }}}` to appear in the {{{ requestMetadata.feedExtract.type }}} feed(s).
+> 
+> To troubleshoot this, try opening the last pages of the relevant {{{ requestMetadata.feedExtract.type }}} feed(s) (which will be empty) in Postman or similar, then refreshing that page after this test has run. Check that the `@id` exactly matches `{{{ requestMetadata.feedExtract.id }}}`. If the item does not appear at the end of the feed check that the `modified` timestamp of the RPDE item is being updated.
+
+        {{/if}}
         {{/if}}
         {{#if response.status}}
 

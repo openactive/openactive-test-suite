@@ -50,6 +50,9 @@ const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
 const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarvestCompletion');
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
+const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
+// TODO: move this property to the root of the config
+const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
 
 const HARVEST_START_TIME = (new Date()).toISOString();
 const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
@@ -330,11 +333,17 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       const json = response.data;
 
       // Validate RPDE base URL
+      // TODO: add full RPDE validation here
       if (!json.next) {
-        throw new Error("RPDE does not have 'next' property");
+        if (multibar) multibar.stop();
+        logError(`\nRPDE page does not have 'next' property: ${url}`);
+        process.exit(1);
       }
-      if (getBaseUrl(json.next) !== getBaseUrl(url)) {
-        throw new Error(`(Base URL of RPDE 'next' property ("${getBaseUrl(json.next)}") does not match base URL of RPDE page ("${url}")`);
+
+      if (getBasePath(json.next) !== getBasePath(url)) {
+        if (multibar) multibar.stop();
+        logError(`\nFATAL ERROR: Base path of RPDE 'next' property ("${getBasePath(json.next)}") does not match base path of RPDE page "${url}"\n`);
+        process.exit(1);
       }
 
       context.currentPage = url;
@@ -408,8 +417,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         setFeedIsUpToDate(feedIdentifier);
       }
       if (error instanceof FatalError) {
-        // If a fatal error, just rethrow
-        throw error;
+        // If a fatal error, quit the application immediately
+        if (multibar) multibar.stop();
+        logError(`\nFATAL ERROR: ${error.message}\n`);
+        process.exit(1);
       } else if (!error.response) {
         logError(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
         // Force retry, after a delay, up to 12 times
@@ -442,9 +453,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
   }
 }
 
-function getBaseUrl(url) {
+function getBasePath(url) {
   if (url.indexOf('//') > -1) {
-    return url.substring(0, url.indexOf('/', url.indexOf('//') + 2));
+    return url.split('?')[0];
   }
   throw new Error("RPDE 'next' property MUST be an absolute URL");
 }
@@ -513,9 +524,12 @@ function getOpportunityById(opportunityId) {
   if (!opportunity) {
     return null;
   }
+  if (!jsonLdHasReferencedParent(opportunity)) {
+    return opportunity;
+  }
   const superEvent = parentOpportunityMap.get(opportunity.superEvent);
   const facilityUse = parentOpportunityMap.get(opportunity.facilityUse);
-  if (opportunity && (superEvent || facilityUse)) {
+  if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     delete opportunity['@context'];
     const returnObj = {
@@ -589,44 +603,63 @@ async function setFeedIsUpToDate(feedIdentifier) {
         if (multibar) multibar.stop();
 
         log('Harvesting is up-to-date');
-        const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
+        const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
 
-        if (totalChildren === 0) {
-          logError('\nFATAL ERROR: Zero opportunities could be harvested from the opportunities feeds.');
+        let validationPassed = true;
+
+        if (totalOpportunities === 0) {
+          logError(`\n${VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES ? 'FATAL ERROR' : 'NOTE'}: Zero opportunities could be harvested from the opportunities feeds.`);
           logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
-          throw new FatalError('Zero opportunities could be harvested from the opportunities feeds');
+          if (VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES) validationPassed = false;
         } else if (childOrphans === totalChildren) {
           logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities do not have a matching parent item from the parent feed, so all integration tests will fail.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          if (!VALIDATE_ONLY) logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
-          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-          // User interaction is not required to exit, for compatibility with CI
-          if (!VALIDATE_ONLY) await sleep(60000);
-          throw new FatalError('100% of the harvested opportunities do not have a matching parent item from the parent feed');
+          await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
+          } else {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
+          }
+          validationPassed = false;
         } else if (childOrphans > 0) {
-          logError(`\nWARNING: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+          logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
           logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          logError(`Visit http://localhost:${PORT}/orphans for more information\n`);
+          await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
+          } else {
+            logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
+          }
+          validationPassed = false;
         }
 
         if (validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
-          if (VALIDATE_ONLY) {
-            logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
-          } else {
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
             logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
+          } else {
+            logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
           }
-          // Sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-          // User interaction is not required to exit, for compatibility with CI
-          if (!VALIDATE_ONLY) await sleep(60000);
-          throw new FatalError(`Validation errors found in opportunity feeds (${occurrenceCount} of which ${validationResults.size} were unique)`);
+          validationPassed = false;
         }
 
-        if (VALIDATE_ONLY) {
-          log(chalk.bold.green('\nFeed validation passed'));
-          process.exit(0);
+        if (validationPassed) {
+          if (VALIDATE_ONLY) {
+            log(chalk.bold.green('\nFeed validation passed'));
+            process.exit(0);
+          }
+        } else {
+          log(chalk.bold.red('\nFeed validation failed\n'));
+          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+            log(chalk.red('(press ctrl+c to close or wait 60 seconds)\n'));
+            // Pause harvester and sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+            // User interaction is not required to exit, for compatibility with CI
+            await pauseResume.pause();
+            await sleep(60000);
+          }
+          process.exit(1);
         }
 
         unlockHealthCheck();
@@ -742,14 +775,14 @@ function millisToMinutesAndSeconds(millis) {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
 }
 
-app.get('/orphans', function (req, res) {
-  const rows = Array.from(rowStoreMap.values());
-  res.send({
+function getOrphanJson() {
+  const rows = Array.from(rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
+  return {
     children: {
-      matched: rows.filter((x) => x.parentIngested).length,
-      orphaned: rows.filter((x) => !x.parentIngested).length,
+      matched: rows.filter((x) => !x.waitingForParentToBeIngested).length,
+      orphaned: rows.filter((x) => x.waitingForParentToBeIngested).length,
       total: rows.length,
-      orphanedList: rows.filter((x) => !x.parentIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
+      orphanedList: rows.filter((x) => x.waitingForParentToBeIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
         jsonLdType,
         id,
         modified,
@@ -758,7 +791,11 @@ app.get('/orphans', function (req, res) {
         jsonLdParentId,
       }))),
     },
-  });
+  };
+}
+
+app.get('/orphans', function (req, res) {
+  res.send(getOrphanJson());
 });
 
 /**
@@ -766,24 +803,28 @@ app.get('/orphans', function (req, res) {
  * @property {number} childOrphans
  * @property {number} totalChildren
  * @property {string} percentageChildOrphans
+ * @property {number} totalOpportunities
  */
 
 /**
  * @returns {OrphanStats}
  */
 function getOrphanStats() {
-  const childOrphans = Array.from(rowStoreMap.values()).filter((x) => !x.parentIngested).length;
-  const totalChildren = rowStoreMap.size;
+  const childRows = Array.from(rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
+  const childOrphans = childRows.filter((x) => x.waitingForParentToBeIngested).length;
+  const totalChildren = childRows.length;
+  const totalOpportunities = Array.from(rowStoreMap.values()).filter((x) => !x.waitingForParentToBeIngested).length;
   const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
   return {
     childOrphans,
     totalChildren,
     percentageChildOrphans,
+    totalOpportunities,
   };
 }
 
 app.get('/status', function (req, res) {
-  const { childOrphans, totalChildren, percentageChildOrphans } = getOrphanStats();
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
   res.send({
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
     harvestingStatus: pauseResume.pauseHarvestingStatus,
@@ -791,6 +832,8 @@ app.get('/status', function (req, res) {
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
+    totalOpportunitiesHarvested: totalOpportunities,
+    testOpportunityBookableCriteriaErrors: testOpportunityBookableFound ? undefined : Object.fromEntries(testOpportunityBookableCriteriaErrors),
     buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(opportunityIdCache),
   });
 });
@@ -997,9 +1040,9 @@ function getTypeFromOpportunityType(opportunityType) {
 
 function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
-    || (opportunity.superEvent
-      && (opportunity.superEvent.organizer || (opportunity.superEvent.superEvent && opportunity.superEvent.superEvent.organizer)))
-    || (opportunity.facilityUse && opportunity.facilityUse.provider);
+    || opportunity.superEvent?.organizer
+    || opportunity.superEvent?.superEvent?.organizer
+    || opportunity?.facilityUse.provider;
 
   return organizer['@id'] || organizer.id;
 }
@@ -1036,6 +1079,7 @@ function detectOpportunityType(opportunity) {
           return 'CourseInstanceSubEvent';
         case 'EventSeries':
         case null:
+        case undefined:
           return 'Event';
         default:
           throw new Error('Event has unrecognised @type of superEvent');
@@ -1223,7 +1267,7 @@ async function touchOpportunityItems(parentIds) {
     if (rowStoreMap.has(jsonLdId)) {
       const row = rowStoreMap.get(jsonLdId);
       row.feedModified = Date.now() + 1000; // 1 second in the future
-      row.parentIngested = true;
+      row.waitingForParentToBeIngested = false;
       await processRow(row);
     }
   }));
@@ -1241,28 +1285,38 @@ function deleteOpportunityItem(jsonLdId) {
 }
 
 async function storeOpportunityItem(item) {
+  if (item.state === 'deleted') throw new Error('Not expected to be called for deleted items');
+
   const row = {
     id: item.id,
     modified: item.modified,
-    deleted: item.state === 'deleted',
+    deleted: false,
     feedModified: Date.now() + 1000, // 1 second in the future,
-    jsonLdId: item.state === 'deleted' ? null : item.data['@id'] || item.data.id,
-    jsonLd: item.state === 'deleted' ? null : item.data,
-    jsonLdType: item.state === 'deleted' ? null : item.data['@type'] || item.data.type,
-    jsonLdParentId: item.state === 'deleted' ? null : item.data.superEvent || item.data.facilityUse,
-    parentIngested: item.state === 'deleted' ? false : parentOpportunityMap.has(item.data.superEvent) || parentOpportunityMap.has(item.data.facilityUse),
+    jsonLdId: item.data['@id'] || item.data.id || null,
+    jsonLd: item.data,
+    jsonLdType: item.data['@type'] || item.data.type,
+    jsonLdParentId: !jsonLdHasReferencedParent(item.data) ? null : item.data.superEvent || item.data.facilityUse,
+    waitingForParentToBeIngested: jsonLdHasReferencedParent(item.data) && !(parentOpportunityMap.has(item.data.superEvent) || parentOpportunityMap.has(item.data.facilityUse)),
   };
 
-  if (row.jsonLdParentId != null && row.jsonLdId != null) {
-    if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
-    parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
-  }
+  if (row.jsonLdId != null) {
+    if (row.jsonLdParentId != null) {
+      if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
+      parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
+    }
 
-  rowStoreMap.set(row.jsonLdId, row);
+    rowStoreMap.set(row.jsonLdId, row);
 
-  if (row.parentIngested) {
-    await processRow(row);
+    if (!row.waitingForParentToBeIngested) {
+      await processRow(row);
+    }
+  } else {
+    throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
   }
+}
+
+function jsonLdHasReferencedParent(data) {
+  return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
 }
 
 function sortWithOpenActiveOnTop(arr) {
@@ -1278,49 +1332,63 @@ function getMergedJsonLdContext(...contexts) {
 }
 
 async function processRow(row) {
-  const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
-  const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
-
-  const parentOpportunityWithoutContext = {
-    ...parentOpportunity,
-  };
-  delete parentOpportunityWithoutContext['@context'];
-
-  const rowJsonLdWithoutContext = {
-    ...row.jsonLd,
-  };
-  delete rowJsonLdWithoutContext['@context'];
-
-  let newItem = {
-    state: row.deleted ? 'deleted' : 'updated',
-    id: row.jsonLdId,
-    modified: row.feedModified,
-    data: {
-      '@context': mergedContexts,
-      ...rowJsonLdWithoutContext,
-    },
-  };
-
-  if (row.jsonLdType === 'Slot') {
+  let newItem;
+  // No need for processing for items without parents
+  if (row.jsonLdParentId === null) {
     newItem = {
-      ...newItem,
-      data: {
-        ...newItem.data,
-        facilityUse: parentOpportunityWithoutContext,
-      },
+      state: row.deleted ? 'deleted' : 'updated',
+      id: row.jsonLdId,
+      modified: row.feedModified,
+      data: row.jsonLd,
     };
   } else {
+    const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
+    const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
+
+    const parentOpportunityWithoutContext = {
+      ...parentOpportunity,
+    };
+    delete parentOpportunityWithoutContext['@context'];
+
+    const rowJsonLdWithoutContext = {
+      ...row.jsonLd,
+    };
+    delete rowJsonLdWithoutContext['@context'];
+
     newItem = {
-      ...newItem,
+      state: row.deleted ? 'deleted' : 'updated',
+      id: row.jsonLdId,
+      modified: row.feedModified,
       data: {
-        ...newItem.data,
-        superEvent: parentOpportunityWithoutContext,
+        '@context': mergedContexts,
+        ...rowJsonLdWithoutContext,
       },
     };
+
+    if (row.jsonLdType === 'Slot') {
+      newItem = {
+        ...newItem,
+        data: {
+          ...newItem.data,
+          facilityUse: parentOpportunityWithoutContext,
+        },
+      };
+    } else {
+      newItem = {
+        ...newItem,
+        data: {
+          ...newItem.data,
+          superEvent: parentOpportunityWithoutContext,
+        },
+      };
+    }
   }
 
   await processOpportunityItem(newItem);
 }
+
+const testOpportunityBookableCriteriaErrors = new Map();
+let testOpportunityBookableFound = false;
 
 async function processOpportunityItem(item) {
   if (item.data) {
@@ -1350,23 +1418,33 @@ async function processOpportunityItem(item) {
           if (criteriaResult.matchesCriteria) {
             sellerCompartment.add(id);
             matchingCriteria.push(criteriaName);
+            if (criteriaName === 'TestOpportunityBookable') testOpportunityBookableFound = true;
           } else {
             sellerCompartment.delete(id);
             unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
+            if (criteriaName === 'TestOpportunityBookable' && !testOpportunityBookableFound) {
+              for (const error of criteriaResult.unmetCriteriaDetails) {
+                if (!testOpportunityBookableCriteriaErrors.has(error)) testOpportunityBookableCriteriaErrors.set(error, 0);
+                testOpportunityBookableCriteriaErrors.set(error, testOpportunityBookableCriteriaErrors.get(error) + 1);
+              }
+            }
           }
         }
       }
     }
 
-    const bookableIssueList = unmetCriteriaDetails.length > 0
-      ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
-
     if (responses[id]) {
       responses[id].send(item);
+    }
 
-      if (VERBOSE) log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
-    } else if (VERBOSE) {
-      log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+    if (VERBOSE) {
+      const bookableIssueList = unmetCriteriaDetails.length > 0
+        ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
+      if (responses[id]) {
+        log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
+      } else {
+        log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+      }
     }
 
     handleListeners('opportunities', id, item);

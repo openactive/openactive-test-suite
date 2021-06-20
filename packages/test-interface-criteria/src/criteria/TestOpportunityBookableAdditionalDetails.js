@@ -6,7 +6,8 @@ const {
   createCriteria,
   mustRequireAdditionalDetails,
   remainingCapacityMustBeAtLeastTwo,
-  mustHaveBookableOffer,
+  mustNotBeOpenBookingInAdvanceUnavailable,
+  mustHaveBeInsideValidFromBeforeStartDateWindow,
   mustNotRequireAttendeeDetails,
   sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
@@ -20,14 +21,18 @@ const TestOpportunityBookableAdditionalDetails = createCriteria({
       remainingCapacityMustBeAtLeastTwo,
     ],
     [
-      'Seller must allow Open Booking',
+      'organizer or provider must include isOpenBookingAllowed = true',
       sellerMustAllowOpenBooking,
     ],
   ],
   offerConstraints: [
     [
-      'Must have "bookable" offer',
-      mustHaveBookableOffer,
+      'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
+      mustNotBeOpenBookingInAdvanceUnavailable,
+    ],
+    [
+      'Must be within validFromBeforeStartDate window',
+      mustHaveBeInsideValidFromBeforeStartDateWindow,
     ],
     [
       'Must require additional details',

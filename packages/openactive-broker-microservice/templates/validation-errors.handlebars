@@ -15,7 +15,8 @@
   <section class="text-center">
     <div class="container">
       <h1>Opportunity Feed Validation Results</h1>
-      <p class="lead text-muted">The validator found errors within items in the opportunity feeds. These are listed below with examples of each.</p><p>Note that validation occurs after splits feeds are combined (e.g. after a <code>SessionSeries</code> has been embedded in a <code>ScheduledSession</code>).</p>
+      <p class="lead text-muted">The validator found errors within items in the opportunity feeds. These are listed below with examples of each.</p>
+      <!--<p>Note that validation occurs after splits feeds are combined (e.g. after a <code>SessionSeries</code> has been embedded in a <code>ScheduledSession</code>).</p>-->
     </div>
   </section>
 
@@ -38,6 +39,15 @@
               <li class="list-group-item"><code>{{{ . }}}</code><a href="{{{renderOpenValidatorHref . }}}" target="_blank" class="float-right"><button type="button" class="btn btn-sm btn-outline-secondary">Open Validator</button></a></li>
               {{/each}}
             </ul>
+          </div>
+        </div>
+        {{else}}
+        <div class="col-md-12">
+          <div class="card shadow-sm" style="margin-bottom: 16px;">
+            <div class="card-body">
+              <h6 class="card-title">No validation errors found</h6>
+              <p class="card-text">There are no validation errors to display</p>
+            </div>
           </div>
         </div>
         {{/each}}
