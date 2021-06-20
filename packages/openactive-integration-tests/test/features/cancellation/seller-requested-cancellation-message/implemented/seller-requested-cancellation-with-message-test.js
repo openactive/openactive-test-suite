@@ -38,7 +38,7 @@ FeatureHelper.describeFeature(module, {
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: bookRecipe.b,
+      prerequisite: bookRecipe.lastStage,
       testName: 'Orders Feed (after Simulate Seller Cancellation)',
     },
   });

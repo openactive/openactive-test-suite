@@ -154,6 +154,82 @@ const FlowStageRecipes = {
     };
   },
   /**
+   * A flow which skips C1 & C2 (which are optional in certain circumstances) and proceeds straight to book.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {BaseLoggerType} logger
+   */
+  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger) {
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+    const fetchOpportunities = new FetchOpportunitiesFlowStage({
+      ...defaultFlowStageParams,
+      orderItemCriteriaList,
+    });
+    /** @returns {import('./p').Input}  */
+    const bookRecipeGetFirstStageInput = () => {
+      const { totalPaymentDue, doPrepay } = (() => {
+        const result = { totalPaymentDue: 0, doPrepay: true };
+        for (const orderItem of fetchOpportunities.getOutput().orderItems) {
+          const { openBookingPrepayment, price } = orderItem.acceptedOffer;
+          /* If there are any non-zero unavailable items, there should be no prepayment on the entire Order.
+          In fact, non-zero Unavailable items and Required items should not be mixed in the same Order (https://github.com/openactive/open-booking-api/issues/171)
+          but this is tested separately */
+          if (openBookingPrepayment === 'https://openactive.io/Unavailable' && price > 0) {
+            result.doPrepay = false;
+          }
+          result.totalPaymentDue += price;
+        }
+        return result;
+      })();
+      return {
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        // Because we're not using C2, we've gotta calculate the price ourselves
+        totalPaymentDue,
+        prepayment: doPrepay
+          ? 'https://openactive.io/Required'
+          : 'https://openactive.io/Unavailable',
+        // excluding `positionOrderIntakeFormMap` because book-only flow cannot be used in conjunction with the
+        // intake form flow, which requires C2
+      };
+    };
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+      prerequisite: fetchOpportunities,
+      getFirstStageInput: bookRecipeGetFirstStageInput,
+    });
+    return {
+      fetchOpportunities,
+      bookRecipe,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
+      // This can be used to create an idempotent second B stage.
+      bookRecipeGetFirstStageInput,
+    };
+  },
+  /**
+   * B requests should be idempotent. A repeat B request with the exact same input as a previous one should
+   * obtain the same results.
+   *
+   * This recipe returns a BFlowStage which should be an exact repeat of the last B stage in a given BookRecipe.
+   * Use this to test that a Booking System is idempotent at B.
+   *
+   * @param {BookRecipe} bookRecipe
+   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {Omit<BookRecipeArgs, 'prerequisite'>} bookRecipeArgs
+   */
+  idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, bookRecipeArgs) {
+    if (bookRecipe.p) {
+      return bAfterP({
+        p: bookRecipe.p,
+        bookRecipeGetFirstStageInput: bookRecipeArgs.getFirstStageInput,
+        defaultFlowStageParams,
+        prerequisite: bookRecipe.lastStage,
+      });
+    }
+    const bookRecipeArgsWithPrerequisite = { ...bookRecipeArgs, prerequisite: bookRecipe.lastStage };
+    return FlowStageRecipes.bookSimple(defaultFlowStageParams, bookRecipeArgsWithPrerequisite).b;
+  },
+  /**
    * A Recipe to either run B or P -> Approve -> B depending on the flow.
    *
    * - If in Simple Booking Flow, the recipe will just return B
@@ -182,21 +258,20 @@ const FlowStageRecipes = {
     const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
       orderItemCriteria.bookingFlow === 'OpenBookingApprovalFlow'));
     if (doUseApprovalFlow) {
-      return FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
+      return FlowStageRecipes.bookApproval(defaultFlowStageParams, bookRecipeArgs);
     }
-    return FlowStageRecipes.bookSimple(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
+    return FlowStageRecipes.bookSimple(defaultFlowStageParams, bookRecipeArgs);
   },
   /**
    * Create a BookRecipe explicitly for the Simple Booking Flow.
    *
    * See: FlowStageRecipes.book for more info
    *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
-  bookSimple(orderItemCriteriaList, defaultFlowStageParams, {
+  bookSimple(defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
@@ -213,6 +288,7 @@ const FlowStageRecipes = {
     });
     return new BookRecipe({
       firstStage: b,
+      lastStage: b,
       b,
     });
   },
@@ -221,12 +297,11 @@ const FlowStageRecipes = {
    *
    * See: FlowStageRecipes.book for more info
    *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
-  bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
+  bookApproval(defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
@@ -262,22 +337,12 @@ const FlowStageRecipes = {
     });
 
     const [b, orderFeedUpdateAfterDeleteProposal] = OrderFeedUpdateFlowStageUtils.wrap({
-      wrappedStageFn: orderFeedUpdateListener => (new BFlowStage({
-        ...defaultFlowStageParams,
+      wrappedStageFn: orderFeedUpdateListener => bAfterP({
+        p,
+        defaultFlowStageParams,
         prerequisite: orderFeedUpdateListener,
-        templateRef: 'afterP',
-        /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
-        just presents `orderProposalVersion` and optional payment details */
-        getInput() {
-          const firstStageInput = getFirstStageInput();
-          return {
-            orderItems: firstStageInput.orderItems,
-            totalPaymentDue: p.getOutput().totalPaymentDue,
-            orderProposalVersion: p.getOutput().orderProposalVersion,
-            prepayment: p.getOutput().prepayment,
-          };
-        },
-      })),
+        bookRecipeGetFirstStageInput: getFirstStageInput,
+      }),
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
         prerequisite: orderFeedUpdateCollector,
@@ -288,6 +353,7 @@ const FlowStageRecipes = {
 
     return new BookRecipe({
       firstStage: p,
+      lastStage: orderFeedUpdateAfterDeleteProposal,
       p,
       simulateSellerApproval,
       orderFeedUpdateCollector,
@@ -296,6 +362,34 @@ const FlowStageRecipes = {
     });
   },
 };
+
+/**
+ * BFlowStage that succeeds a PFlowStage
+ *
+ * @param {object} args
+ * @param {PFlowStageType} args.p
+ * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} args.defaultFlowStageParams
+ * @param {UnknownFlowStageType} args.prerequisite
+ * @param {() => import('./p').Input} args.bookRecipeGetFirstStageInput
+ */
+function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstStageInput }) {
+  return new BFlowStage({
+    ...defaultFlowStageParams,
+    prerequisite,
+    templateRef: 'afterP',
+    getInput: () => {
+      /* note that brokerRole & accessPass don't need to be passed. This is the minimal "B after P" call which
+      just presents `orderProposalVersion` and optional payment details */
+      const firstStageInput = bookRecipeGetFirstStageInput();
+      return {
+        orderItems: firstStageInput.orderItems,
+        totalPaymentDue: p.getOutput().totalPaymentDue,
+        orderProposalVersion: p.getOutput().orderProposalVersion,
+        prepayment: p.getOutput().prepayment,
+      };
+    },
+  });
+}
 
 module.exports = {
   FlowStageRecipes,

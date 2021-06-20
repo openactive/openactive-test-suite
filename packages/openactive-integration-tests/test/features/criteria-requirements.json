@@ -191,13 +191,13 @@
     },
     "free-opportunities": {
       "primary": {
-        "TestOpportunityBookableFree": 6
+        "TestOpportunityBookableFree": 10
       }
     },
     "non-free-opportunities": {
       "primary": {
-        "TestOpportunityBookableNonFree": 3,
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookableNonFree": 6,
+        "TestOpportunityBookable": 2
       }
     },
     "payment-reconciliation-detail-validation": {
@@ -243,7 +243,7 @@
     },
     "business-to-consumer-tax-calculation-gross": {
       "primary": {
-        "TestOpportunityBookableNonFreeTaxGross": 4
+        "TestOpportunityBookableNonFreeTaxGross": 8
       }
     },
     "business-to-consumer-tax-calculation-net": {

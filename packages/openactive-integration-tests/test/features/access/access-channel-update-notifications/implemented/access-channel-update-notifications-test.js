@@ -32,7 +32,7 @@ FeatureHelper.describeFeature(module, {
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: bookRecipe.b,
+      prerequisite: bookRecipe.lastStage,
       testName: 'Orders Feed (after test:AccessChannelUpdateSimulateAction)',
     },
   });

@@ -158,11 +158,11 @@
       "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTestFiles": 4,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {
@@ -198,7 +198,7 @@
       "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-gross": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-net": {

@@ -20,7 +20,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const cancelOrder = new CancelOrderFlowStage({
     ...defaultFlowStageParams,
     getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-    prerequisite: bookRecipe.b,
+    prerequisite: bookRecipe.lastStage,
     testName: 'Attempt to Cancel OrderItem at Position 0',
     templateRef: 'excessiveProperties',
   });

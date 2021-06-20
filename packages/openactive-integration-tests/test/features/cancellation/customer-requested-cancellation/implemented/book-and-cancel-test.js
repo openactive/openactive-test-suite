@@ -31,7 +31,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
-      prerequisite: bookRecipe.b,
+      prerequisite: bookRecipe.lastStage,
       testName: 'Orders Feed (after Order Cancellation)',
     },
   });
