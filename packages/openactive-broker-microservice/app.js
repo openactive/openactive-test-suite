@@ -355,14 +355,16 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
-        if (!isInitialHarvestComplete && progressbar) {
-          progressbar.update(context.validatedItems, {
-            pages: context.pages,
-            responseTime: Math.round(responseTime),
-            ...progressFromContext(context),
-            status: 'Harvesting Complete, Validating...',
-          });
-          progressbar.setTotal(context.totalItemsQueuedForValidation);
+        if (!isInitialHarvestComplete) {
+          if (progressbar) {
+            progressbar.update(context.validatedItems, {
+              pages: context.pages,
+              responseTime: Math.round(responseTime),
+              ...progressFromContext(context),
+              status: 'Harvesting Complete, Validating...',
+            });
+            progressbar.setTotal(context.totalItemsQueuedForValidation);
+          }
           isInitialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
