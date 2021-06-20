@@ -1,5 +1,3 @@
-const { BOOKING_API_BASE } = global;
-
 /**
  * @typedef {{
  *    _uuid: string,
