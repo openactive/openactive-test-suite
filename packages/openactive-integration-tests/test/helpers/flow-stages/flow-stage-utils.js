@@ -120,14 +120,22 @@ const FlowStageUtils = {
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: customer || {
-        '@type': 'Person',
-        email: faker.internet.email(),
-        telephone: faker.phone.phoneNumber(),
-        givenName: faker.name.lastName(),
-        familyName: faker.name.firstName(),
-        identifier: faker.random.uuid(),
-      },
+      customer: customer || this.createRandomCustomerDetails(),
+    };
+  },
+
+  /**
+   * Randomly generate customer details
+   * @returns {Customer}
+   */
+  createRandomCustomerDetails() {
+    return {
+      '@type': 'Person',
+      email: faker.internet.email(),
+      telephone: faker.phone.phoneNumber(),
+      givenName: faker.name.lastName(),
+      familyName: faker.name.firstName(),
+      identifier: faker.random.uuid(),
     };
   },
 

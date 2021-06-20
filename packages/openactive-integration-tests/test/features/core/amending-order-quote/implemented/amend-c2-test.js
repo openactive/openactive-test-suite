@@ -1,3 +1,4 @@
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageRecipes,
@@ -13,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'amend-c2',
   testName: 'Amend, at C2, an existing OrderQuote',
-  testDescription: 'Run C1,C2 with X opportunities, then - with the same Order UUID - run C2 with Y opportunities, then runs B. The resulting Order should include confirmed bookings for only Y opportunities',
+  testDescription: 'Run C1,C2 with X opportunities, then - with the same Order UUID - run C2 with Y opportunities and different customer details, then runs B. The resulting Order should include confirmed bookings for only Y opportunities',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -30,6 +31,9 @@ FeatureHelper.describeFeature(module, {
     c2: firstAttemptC2,
     defaultFlowStageParams,
   } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+
+  const secondAttemptCustomerDetails = FlowStageUtils.createRandomCustomerDetails();
+
   // Flow stages for second attempt: C2 -> B
   const secondAttemptFetchOpportunities = new FetchOpportunitiesFlowStage({
     /* Note that we use the same default flow stage params, which also means that the 2nd attempt
@@ -42,11 +46,15 @@ FeatureHelper.describeFeature(module, {
   const secondAttemptC2 = new C2FlowStage({
     ...defaultFlowStageParams,
     prerequisite: secondAttemptFetchOpportunities,
+    customer: secondAttemptCustomerDetails,
     getInput: () => ({
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
     }),
   });
-  const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+  const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, {
+    ...defaultFlowStageParams,
+    customer: secondAttemptCustomerDetails,
+  }, {
     prerequisite: secondAttemptC2,
     getFirstStageInput: () => ({
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
@@ -71,6 +79,10 @@ FeatureHelper.describeFeature(module, {
         fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
         apiFlowStage: secondAttemptC2,
       });
+      it('should include expected email address', () => {
+        const apiResponseJson = secondAttemptC2.getOutput().httpResponse.body;
+        expect(apiResponseJson).to.have.nested.property('customer.email', secondAttemptCustomerDetails.email);
+      });
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptBook, () => {
       itEachOrderItemIdShouldMatchThoseFromFeed({
@@ -78,6 +90,10 @@ FeatureHelper.describeFeature(module, {
         fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
         apiFlowStage: secondAttemptBook.b,
         bookRecipe: secondAttemptBook,
+      });
+      it('should include expected email address', () => {
+        const apiResponseJson = secondAttemptBook.b.getOutput().httpResponse.body;
+        expect(apiResponseJson).to.have.nested.property('customer.email', secondAttemptCustomerDetails.email);
       });
     });
   });
