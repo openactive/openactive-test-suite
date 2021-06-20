@@ -38,7 +38,7 @@
       "CourseInstanceSubEvent": false,
       "HeadlineEvent": false,
       "HeadlineEventSubEvent": false,
-      "Event": false,
+      "Event": true,
       "OnDemandEvent": false
     },
     "bookingFlowsInScope": {
