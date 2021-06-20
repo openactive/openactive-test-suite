@@ -65,7 +65,6 @@ FeatureHelper.describeFeature(module, {
       expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
       for (const orderItem of orderItems) {
         expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
-        expect(orderItem).to.have.property('cancellationMessage').which.is.a('string');
       }
     });
   });
