@@ -442,6 +442,13 @@ function sellerMustAllowOpenBooking(opportunity) {
   return organizerOrProvider?.isOpenBookingAllowed === true;
 }
 
+/**
+ * @type {OfferConstraint}
+ */
+ function excludePaidBookableOffersWithPrepaymentUnavailable(offer) {
+  return !(offer.price > 0 && offer.openBookingPrepayment === 'https://openactive.io/Unavailable');
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -466,5 +473,6 @@ module.exports = {
   mustRequireAdditionalDetails,
   mustNotRequireAdditionalDetails,
   sellerMustAllowOpenBooking,
+  excludePaidBookableOffersWithPrepaymentUnavailable,
   extendTestDataShape,
 };

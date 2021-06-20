@@ -8,6 +8,7 @@ const {
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotRequireAttendeeDetails,
   mustNotRequireAdditionalDetails,
+  excludePaidBookableOffersWithPrepaymentUnavailable
 } = require('./criteriaUtils');
 
 /**
@@ -35,6 +36,10 @@ const TestOpportunityBookableInPast = createCriteria({
     [
       'eventStatus must not be Cancelled or Postponed',
       eventStatusMustNotBeCancelledOrPostponed,
+    ],
+    [
+      'Offer must not be non-free with openBookingPrepayment unavailable',
+      excludePaidBookableOffersWithPrepaymentUnavailable,
     ],
   ],
   offerConstraints: [

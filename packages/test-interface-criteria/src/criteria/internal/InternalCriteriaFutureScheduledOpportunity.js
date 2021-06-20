@@ -12,6 +12,7 @@ const {
   createCriteria,
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
+  excludePaidBookableOffersWithPrepaymentUnavailable,
 } = require('../criteriaUtils');
 
 /**
@@ -30,6 +31,10 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
     [
       'eventStatus must not be Cancelled or Postponed',
       eventStatusMustNotBeCancelledOrPostponed,
+    ],
+    [
+      'Offer must not be non-free with openBookingPrepayment unavailable',
+      excludePaidBookableOffersWithPrepaymentUnavailable,
     ],
   ],
   offerConstraints: [],
