@@ -337,7 +337,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
 
       const json = response.data;
 
-      // Validate RPDE page using RPDE Validator, noting that for non-200 responses axios will have already thrown an error above
+      // Validate RPDE page using RPDE Validator, noting that for non-2xx responses that we want to retry axios will have already thrown an error above
       const rpdeValidationErrors = feedChecker.validateRpdePage({
         url,
         json,
