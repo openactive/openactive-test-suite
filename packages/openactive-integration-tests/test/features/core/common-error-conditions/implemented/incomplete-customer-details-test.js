@@ -13,8 +13,8 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'common-error-conditions',
   testFeatureImplemented: true,
   testIdentifier: 'incomplete-customer-details',
-  testName: 'Expect an IncompleteCustomerDetailsError when customer details are incomplete',
-  testDescription: 'Run each of C2 and B for a valid opportunity, with customer details incomplete, expecting an IncompleteCustomerDetailsError to be returned (C1 is ignored because customer details are not accepted for C1)',
+  testName: 'Expect an IncompleteCustomerDetailsError when customer details are missing the required email property',
+  testDescription: 'Run each of C2 and B for a valid opportunity, with customer details missing the required email property, expecting an IncompleteCustomerDetailsError to be returned (C1 is ignored because customer details are not accepted for C1)',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -28,7 +28,7 @@ FeatureHelper.describeFeature(module, {
   const itShouldReturnAnIncompleteCustomerDetailsError = flowStage => (
     itShouldReturnAnOpenBookingError('IncompleteCustomerDetailsError', 400, () => flowStage.getOutput().httpResponse));
 
-  describe('Incomplete Customer Details at C2', () => {
+  describe('Missing customer email property at C2', () => {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
       c2ReqTemplateRef: 'noCustomerEmail',
@@ -42,7 +42,7 @@ FeatureHelper.describeFeature(module, {
     });
   });
 
-  describe('Incomplete Customer Details at B', () => {
+  describe('Missing customer email property at B', () => {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
       bookReqTemplateRef: 'noCustomerEmail',

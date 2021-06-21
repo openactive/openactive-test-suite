@@ -20,7 +20,7 @@
     "common-error-conditions": {
       "primary": {
         "TestOpportunityBookable": 29,
-        "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
+        "TestOpportunityBookableInPast": 3
       }
     },
     "dataset-site": {},
@@ -106,9 +106,9 @@
     },
     "customer-requested-cancellation": {
       "primary": {
-        "TestOpportunityBookableCancellable": 12,
+        "TestOpportunityBookableCancellable": 18,
         "TestOpportunityBookableNotCancellable": 1,
-        "TestOpportunityBookable": 2
+        "TestOpportunityBookable": 4
       }
     },
     "seller-requested-cancellation": {
@@ -191,13 +191,13 @@
     },
     "free-opportunities": {
       "primary": {
-        "TestOpportunityBookableFree": 6
+        "TestOpportunityBookableFree": 10
       }
     },
     "non-free-opportunities": {
       "primary": {
-        "TestOpportunityBookableNonFree": 3,
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookableNonFree": 6,
+        "TestOpportunityBookable": 2
       }
     },
     "payment-reconciliation-detail-validation": {
@@ -215,6 +215,12 @@
     "prepayment-required": {
       "primary": {
         "TestOpportunityBookableNonFreePrepaymentRequired": 8
+      }
+    },
+    "prepayment-required-unavailable": {
+      "primary": {
+        "TestOpportunityBookableNonFreePrepaymentRequired": 1,
+        "TestOpportunityBookableNonFreePrepaymentUnavailable": 1
       }
     },
     "prepayment-unavailable": {
@@ -243,7 +249,7 @@
     },
     "business-to-consumer-tax-calculation-gross": {
       "primary": {
-        "TestOpportunityBookableNonFreeTaxGross": 4
+        "TestOpportunityBookableNonFreeTaxGross": 8
       }
     },
     "business-to-consumer-tax-calculation-net": {

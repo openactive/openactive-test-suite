@@ -35,7 +35,7 @@ FeatureHelper.describeFeature(module, {
       })),
       opportunityFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: bookRecipe.b,
+        prerequisite: bookRecipe.lastStage,
         getInput: () => ({
           testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
         }),
@@ -74,7 +74,7 @@ FeatureHelper.describeFeature(module, {
       })),
       opportunityFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: bookRecipe.b,
+        prerequisite: bookRecipe.lastStage,
         getInput: () => ({
           testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
         }),
@@ -113,7 +113,7 @@ FeatureHelper.describeFeature(module, {
       })),
       opportunityFeedUpdateParams: {
         ...defaultFlowStageParams,
-        prerequisite: bookRecipe.b,
+        prerequisite: bookRecipe.lastStage,
         getInput: () => ({
           testInterfaceOpportunities: fetchOpportunities.getOutput().testInterfaceOpportunities,
         }),

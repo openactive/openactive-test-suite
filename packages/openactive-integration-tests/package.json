@@ -18,7 +18,7 @@
   "eslintConfig": {},
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.52",
-    "@openactive/data-models": "^2.0.218",
+    "@openactive/data-models": "^2.0.234",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "async-mutex": "^0.3.1",
@@ -32,6 +32,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
+    "faker": "^5.5.3",
     "fast-glob": "^3.2.2",
     "fs-extra": "^7.0.1",
     "handlebars": "^4.7.3",
@@ -85,7 +86,7 @@
     "globalSetup": "<rootDir>test/global-setup.js",
     "globalTeardown": "<rootDir>test/global-teardown.js",
     "maxWorkers": 4,
-    "testTimeout": 30000,
+    "testTimeout": 360000,
     "transform": {},
     "testEnvironment": "<rootDir>test/testEnvironment.js"
   },

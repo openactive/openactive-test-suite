@@ -11,11 +11,11 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'common-error-conditions',
   testFeatureImplemented: true,
-  testIdentifier: 'not-bookable',
-  testName: 'Expect an OpportunityOfferPairNotBookableError when booking not bookable opportunity',
-  testDescription: 'Runs C1, C2 and B for an opportunity that is not bookable, expecting an OpportunityOfferPairNotBookableError to be returned at C1 and C2, and an UnableToProcessOrderItemError to be returned at B',
+  testIdentifier: 'opportunity-in-past',
+  testName: 'Expect an OpportunityOfferPairNotBookableError when opportunity is in the past',
+  testDescription: 'Runs C1, C2 and B for an opportunity in the past, expecting an OpportunityOfferPairNotBookableError to be returned at C1 and C2, and an UnableToProcessOrderItemError to be returned at B',
   // The primary opportunity criteria to use for the primary OrderItem under test
-  testOpportunityCriteria: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
+  testOpportunityCriteria: 'TestOpportunityBookableInPast',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },

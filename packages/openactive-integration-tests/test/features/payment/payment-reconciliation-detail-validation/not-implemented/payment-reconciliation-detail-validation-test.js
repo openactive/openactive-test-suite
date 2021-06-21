@@ -1,6 +1,8 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { notImplementedTest } = require('../common');
 
+const { IMPLEMENTED_FEATURES } = global;
+
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'payment-reconciliation-detail-validation',
@@ -10,5 +12,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'C1, C2 and B - including reconciliation details - should succeed, ignoring these values',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  runOnlyIf: IMPLEMENTED_FEATURES['non-free-opportunities'],
 },
 notImplementedTest());

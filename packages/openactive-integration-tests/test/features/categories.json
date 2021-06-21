@@ -66,6 +66,7 @@
       "payment-reconciliation-detail-validation": true,
       "prepayment-optional": true,
       "prepayment-required": true,
+      "prepayment-required-unavailable": true,
       "prepayment-unavailable": true
     },
     "restrictions": {

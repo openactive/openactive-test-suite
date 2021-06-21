@@ -13,6 +13,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./flow-stage').Prepayment} Prepayment
  * @typedef {import('../sellers').SellerConfig} SellerConfig
+ * @typedef {import('./flow-stage-utils').Customer} Customer
  * @typedef {import('./flow-stage').PositionOrderIntakeFormMap} PositionOrderIntakeFormMap
  */
 
@@ -27,6 +28,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {PReqTemplateRef} [args.templateRef]
  * @param {string} args.uuid
  * @param {SellerConfig} args.sellerConfig
+ * @param {Customer} [args.customer]
  * @param {OrderItem[]} args.orderItems
  * @param {number} args.totalPaymentDue
  * @param {Prepayment} args.prepayment
@@ -40,6 +42,7 @@ async function runP({
   templateRef,
   uuid,
   sellerConfig,
+  customer,
   orderItems,
   totalPaymentDue,
   prepayment,
@@ -58,6 +61,7 @@ async function runP({
     accessPass,
     brokerRole,
     positionOrderIntakeFormMap,
+    customer,
   };
   const response = await requestHelper.putOrderProposal(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -87,8 +91,9 @@ class PFlowStage extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
+   * @param {Customer} [args.customer]
    */
-  constructor({ templateRef, accessPass, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig }) {
+  constructor({ templateRef, accessPass, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig, customer }) {
     super({
       prerequisite,
       getInput,
@@ -101,6 +106,7 @@ class PFlowStage extends FlowStage {
           brokerRole,
           uuid,
           sellerConfig,
+          customer,
           orderItems,
           totalPaymentDue,
           prepayment,

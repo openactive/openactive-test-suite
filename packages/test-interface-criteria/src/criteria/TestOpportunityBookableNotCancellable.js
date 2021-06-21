@@ -10,7 +10,7 @@ const TestOpportunityBookableNotCancellable = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Must not allow customer cancellation full refund',
+      'Must not allow customer cancellation full refund via `"allowCustomerCancellationFullRefund": false` or being outside the cancellation window',
       mustNotAllowFullRefund,
     ],
   ],

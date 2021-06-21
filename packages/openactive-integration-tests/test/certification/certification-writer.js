@@ -36,10 +36,14 @@ class CertificationWriter {
       }
 
       // Reduced set of baseUrls
-      this.baseUrlRegexes = Array.from(new Set(referencedUrls.map(url => (new URL(url)).origin)))
-        // Include a negative lookahead to ensure that any instances of conformanceCertificateId are not redacted,
-        // as conformanceCertificateId is used for validation
-        .map(url => new RegExp(`(?!${escapeRegExp(conformanceCertificateId)})${escapeRegExp(url)}`, 'g'));
+      const origins = Array.from(new Set(referencedUrls.map(url => (new URL(url)).origin)));
+
+      // Include a negative lookahead to ensure that any instances of conformanceCertificateId are not redacted,
+      // as conformanceCertificateId is used for validation
+      this.baseUrlRegexes = origins.map(url => new RegExp(`(?!${escapeRegExp(conformanceCertificateId)})${escapeRegExp(url)}`, 'g'));
+
+      // Ensure that escaped versions of the URLs are also redacted
+      this.escapedBaseUrlRegexes = origins.map(url => new RegExp(`${escapeRegExp(encodeURIComponent(url))}`, 'g'));
     }
   }
 
@@ -135,6 +139,9 @@ class CertificationWriter {
     this.baseUrlRegexes.forEach((urlRegex) => {
       data = data.replace(urlRegex, 'https://origin-redacted');
     });
+    this.escapedBaseUrlRegexes.forEach((urlRegex) => {
+      data = data.replace(urlRegex, encodeURIComponent('https://origin-redacted'));
+    });
     zip.file(zipPath, data);
   }
 
@@ -143,7 +150,7 @@ class CertificationWriter {
       loggers.map(logger => ({ path: logger.metaPath, zipPath: `json/${logger.metaLocalPath}` })),
       loggers.map(logger => ({ path: logger.markdownPath, zipPath: `markdown/${logger.markdownLocalPath}` })),
       { path: generator.summaryMetaPath, zipPath: 'json/index.json' },
-      { path: generator.reportMarkdownPath, zipPath: 'markdown/index.md' },
+      { path: generator.reportMarkdownPath, zipPath: 'markdown/summary.md' },
     );
 
     const zip = new JSZip();

@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -24,13 +24,13 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected Customer identifier', () => {
       // CustomerIdentifierC2 is set in the standard C2 request template.
-      expect(c2.getOutput().httpResponse.body.customer.identifier).to.equal('CustomerIdentifierC2');
+      expect(c2.getOutput().httpResponse.body.customer.identifier).to.equal(defaultFlowStageParams.customer.identifier);
     });
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include expected Customer identifier', () => {
       // CustomerIdentifierB is set in the standard B request template.
-      expect(bookRecipe.b.getOutput().httpResponse.body.customer.identifier).to.equal('CustomerIdentifierB');
+      expect(bookRecipe.b.getOutput().httpResponse.body.customer.identifier).to.equal(defaultFlowStageParams.customer.identifier);
     });
   });
 });

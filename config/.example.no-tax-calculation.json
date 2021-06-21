@@ -1,0 +1,10 @@
+{
+  "integrationTests": {
+    "implementedFeatures": {
+      "business-to-consumer-tax-calculation-net": false,
+      "business-to-consumer-tax-calculation-gross": false,
+      "business-to-business-tax-calculation-net": false,
+      "business-to-business-tax-calculation-gross": false
+    }
+  }
+}

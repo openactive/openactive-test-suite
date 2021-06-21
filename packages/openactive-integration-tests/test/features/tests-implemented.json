@@ -94,7 +94,7 @@
       "notImplementedTestFiles": 1
     },
     "customer-requested-cancellation": {
-      "implementedTestFiles": 5,
+      "implementedTestFiles": 6,
       "notImplementedTestFiles": 0
     },
     "seller-requested-cancellation": {
@@ -158,11 +158,11 @@
       "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTestFiles": 4,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {
@@ -175,6 +175,10 @@
     },
     "prepayment-required": {
       "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
+    },
+    "prepayment-required-unavailable": {
+      "implementedTestFiles": 1,
       "notImplementedTestFiles": 1
     },
     "prepayment-unavailable": {
@@ -198,7 +202,7 @@
       "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-gross": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 0
     },
     "business-to-consumer-tax-calculation-net": {

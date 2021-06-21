@@ -100,6 +100,10 @@ export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Oppor
 /**
 * @type {OpportunityConstraint}
 */
+export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+* @type {OpportunityConstraint}
+*/
 export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity): boolean;
 /**
 * @type {OfferConstraint}
@@ -118,9 +122,13 @@ export function mustHaveBeInsideValidFromBeforeStartDateWindow(offer: import("..
 */
 export function getOrganizerOrProvider(opportunity: Opportunity): any;
 /**
+ * @type {OfferConstraint}
+ */
+export function mustBeOutsideCancellationWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+/**
 * @type {OfferConstraint}
 */
-export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer): boolean;
+export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
 /**
 * @type {OfferConstraint}
 */
@@ -137,6 +145,10 @@ export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").
  * @type {OpportunityConstraint}
  */
 export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity): boolean;
+/**
+ * @type {OfferConstraint}
+ */
+export function excludePaidBookableOffersWithPrepaymentUnavailable(offer: import("../types/Offer").Offer): boolean;
 /**
  * Merge constraints so that the result has the simplest representation of the combination of all constraints.
  *

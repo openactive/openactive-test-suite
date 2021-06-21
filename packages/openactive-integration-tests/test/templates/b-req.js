@@ -41,7 +41,8 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   orderProposalVersion?: string | null,
  *   accessPass?: AccessPassItem[],
  *   brokerRole?: string | null,
- *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm},
+ *   customer: import('../helpers/flow-stages/flow-stage-utils').Customer,
  * }} BReqTemplateData
  *
  * @typedef {Omit<BReqTemplateData, 'orderProposalVersion'>} PReqTemplateData P accepts the same sort of requests as B.
@@ -109,14 +110,7 @@ function createNonPaymentRelatedCoreBReq(data) {
       },
     },
     seller: data.sellerId,
-    customer: {
-      '@type': 'Person',
-      email: 'geoffcapesStageB@example.com',
-      telephone: '020 811 8003',
-      givenName: 'GeoffB',
-      familyName: 'CapesB',
-      identifier: 'CustomerIdentifierB',
-    },
+    customer: data.customer,
     orderedItem: data.orderItems.map((orderItem) => {
       const result = {
         '@type': 'OrderItem',
@@ -355,7 +349,7 @@ function createBReqWithBusinessCustomer(data) {
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',
-    identifier: 'CustomerIdentifierC2',
+    identifier: data.customer.identifier,
     url: 'https://corporate.client.com',
     description: 'A corporate client using fitness services',
     logo: {

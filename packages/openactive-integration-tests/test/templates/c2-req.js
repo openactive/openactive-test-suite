@@ -17,7 +17,8 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *     'test:control': boolean,
  *   }[],
  *   brokerRole: string | null,
- *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm}
+ *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm},
+ *   customer: import('../helpers/flow-stages/flow-stage-utils').Customer,
  * }} C2ReqTemplateData
  */
 
@@ -97,14 +98,7 @@ function createStandardC2Req(data) {
       },
     },
     seller: data.sellerId,
-    customer: {
-      '@type': 'Person',
-      email: 'geoffcapesStageC2@example.com',
-      telephone: '020 811 8002',
-      givenName: 'GeoffC2',
-      familyName: 'CapesC2',
-      identifier: 'CustomerIdentifierC2',
-    },
+    customer: data.customer,
     orderedItem: data.orderItems.map(orderItem => ({
       '@type': 'OrderItem',
       position: orderItem.position,
@@ -222,7 +216,7 @@ function createBusinessCustomerC2Req(data) {
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',
-    identifier: 'CustomerIdentifierC2',
+    identifier: data.customer.identifier,
     url: 'https://corporate.client.com',
     description: 'A corporate client using fitness services',
     logo: {

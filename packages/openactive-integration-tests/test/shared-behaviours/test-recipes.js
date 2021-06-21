@@ -49,7 +49,7 @@ const TestRecipes = {
         })),
         orderFeedUpdateParams: {
           ...defaultFlowStageParams,
-          prerequisite: bookRecipe.b,
+          prerequisite: bookRecipe.lastStage,
           testName: `Orders Feed (after ${testInterfaceActionParams.actionType})`,
         },
       });

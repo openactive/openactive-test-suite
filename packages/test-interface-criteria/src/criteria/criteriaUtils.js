@@ -353,6 +353,13 @@ function startDateMustBe2HrsInAdvance(opportunity, options) {
 /**
 * @type {OpportunityConstraint}
 */
+function endDateMustBeInThePast(opportunity) {
+  return DateTime.fromISO(opportunity.endDate) < DateTime.now();
+}
+
+/**
+* @type {OpportunityConstraint}
+*/
 function eventStatusMustNotBeCancelledOrPostponed(opportunity) {
   return !(opportunity.eventStatus === 'https://schema.org/EventCancelled' || opportunity.eventStatus === 'https://schema.org/EventPostponed');
 }
@@ -376,8 +383,9 @@ function mustHaveBeInsideValidFromBeforeStartDateWindow(offer, opportunity, opti
 /**
 * @type {OfferConstraint}
 */
-function mustNotAllowFullRefund(offer) {
-  return offer.allowCustomerCancellationFullRefund === false;
+function mustNotAllowFullRefund(offer, opportunity, options) {
+  return offer.allowCustomerCancellationFullRefund === false
+    || mustBeOutsideCancellationWindow(offer, opportunity, options);
 }
 
 /**
@@ -385,6 +393,18 @@ function mustNotAllowFullRefund(offer) {
 */
 function mustAllowFullRefund(offer) {
   return offer.allowCustomerCancellationFullRefund === true;
+}
+
+/**
+ * @type {OfferConstraint}
+ */
+function mustBeOutsideCancellationWindow(offer, opportunity, options) {
+  const dateBeforeWhichCancellationsCanBeMade = getDateBeforeWhichCancellationsCanBeMade(offer, opportunity);
+  if (dateBeforeWhichCancellationsCanBeMade == null) {
+    return false; // has no cancellation window
+  }
+  // it has to be too late to cancel
+  return options.harvestStartTime > dateBeforeWhichCancellationsCanBeMade;
 }
 
 /**
@@ -422,6 +442,13 @@ function sellerMustAllowOpenBooking(opportunity) {
   return organizerOrProvider?.isOpenBookingAllowed === true;
 }
 
+/**
+ * @type {OfferConstraint}
+ */
+function excludePaidBookableOffersWithPrepaymentUnavailable(offer) {
+  return !(offer.price > 0 && offer.openBookingPrepayment === 'https://openactive.io/Unavailable');
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -435,14 +462,17 @@ module.exports = {
   mustNotRequireAttendeeDetails,
   mustAllowProposalAmendment,
   startDateMustBe2HrsInAdvance,
+  endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotBeOpenBookingInAdvanceUnavailable,
   mustHaveBeInsideValidFromBeforeStartDateWindow,
   getOrganizerOrProvider,
+  mustBeOutsideCancellationWindow,
   mustNotAllowFullRefund,
   mustAllowFullRefund,
   mustRequireAdditionalDetails,
   mustNotRequireAdditionalDetails,
   sellerMustAllowOpenBooking,
+  excludePaidBookableOffersWithPrepaymentUnavailable,
   extendTestDataShape,
 };
