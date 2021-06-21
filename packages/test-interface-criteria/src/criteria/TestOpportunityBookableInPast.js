@@ -37,10 +37,6 @@ const TestOpportunityBookableInPast = createCriteria({
       'eventStatus must not be Cancelled or Postponed',
       eventStatusMustNotBeCancelledOrPostponed,
     ],
-    [
-      'Offer must not be non-free with openBookingPrepayment unavailable',
-      excludePaidBookableOffersWithPrepaymentUnavailable,
-    ],
   ],
   offerConstraints: [
     [
@@ -58,6 +54,10 @@ const TestOpportunityBookableInPast = createCriteria({
     [
       'Must not require additional details',
       mustNotRequireAdditionalDetails,
+    ],
+    [
+      'Offer must not be non-free with openBookingPrepayment unavailable',
+      excludePaidBookableOffersWithPrepaymentUnavailable,
     ],
   ],
   testDataShape: () => ({

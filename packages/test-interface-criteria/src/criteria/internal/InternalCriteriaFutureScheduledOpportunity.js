@@ -32,12 +32,13 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
       'eventStatus must not be Cancelled or Postponed',
       eventStatusMustNotBeCancelledOrPostponed,
     ],
+  ],
+  offerConstraints: [
     [
       'Offer must not be non-free with openBookingPrepayment unavailable',
       excludePaidBookableOffersWithPrepaymentUnavailable,
     ],
   ],
-  offerConstraints: [],
   testDataShape: (options) => ({
     opportunityConstraints: ({
       // startDateMustBe2HrsInAdvance

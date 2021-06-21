@@ -1,9 +1,9 @@
 [< Return to Overview](../../README.md)
 # prepayment required and unavailable (prepayment-required-unavailable)
 
-Support for bookings with prepayment required and bookings with prepayment unavailable
+Booking systems that allow BOTH prepayment required and prepayment unavailable
 
-This feature must be implemented if prepayment-required and prepayment-unavailable are both required.
+This feature must be implemented if prepayment-required and prepayment-unavailable are both implemented.
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#booking-without-payment
 
