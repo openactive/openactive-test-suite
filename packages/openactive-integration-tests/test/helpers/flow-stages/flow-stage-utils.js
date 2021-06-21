@@ -96,6 +96,16 @@ const FlowStageUtils = {
 
   /**
    * Create itSuccessChecksFn that will just check that a FlowStage's result
+   * has an HTTP 200 status.
+   *
+   * This only works for FlowStages whose result is just an HTTP response.
+   */
+  simpleHttp201SuccessChecks() {
+    return FlowStageUtils.simpleHttpXXXSuccessChecks(201);
+  },
+
+  /**
+   * Create itSuccessChecksFn that will just check that a FlowStage's result
    * has an HTTP 204 status.
    *
    * This only works for FlowStages whose result is just an HTTP response.

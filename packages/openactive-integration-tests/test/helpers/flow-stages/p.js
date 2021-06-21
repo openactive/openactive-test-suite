@@ -114,7 +114,7 @@ class PFlowStage extends FlowStage {
           requestHelper,
         });
       },
-      itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
+      itSuccessChecksFn: FlowStageUtils.simpleHttp201SuccessChecks(),
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
         name: 'P',
         validationMode: 'PResponse',

@@ -272,11 +272,12 @@ function withOrdersRpdeHeaders(getHeadersFn) {
  * @param {string} feedIdentifier
  * @param {() => Promise<Object.<string, string>>} headers
  * @param {RpdePageProcessor} processPage
+ * @param {boolean} isOrdersFeed
  * @param {import('cli-progress').MultiBar} [bar]
  * @param {number} [totalItems]
  * @param {boolean} [waitForValidation]
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotStallForThisFeed, bar, totalItems, waitForValidation) {
+async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrdersFeed, bar, totalItems, waitForValidation) {
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
   const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
   const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, startTime, validatorTimeout);
@@ -345,6 +346,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
         contentType: response.headers['content-type'],
         status: response.status,
         isInitialHarvestComplete,
+        isOrdersFeed,
       });
 
       if (rpdeValidationErrors.length > 0) {
@@ -422,7 +424,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, doNotS
       numberOfRetries = 0;
     } catch (error) {
       // Do not wait for the Orders feed if failing (as it might be an auth error)
-      if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && doNotStallForThisFeed) {
+      if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && isOrdersFeed) {
         setFeedIsUpToDate(feedIdentifier);
       }
       if (error instanceof FatalError) {
