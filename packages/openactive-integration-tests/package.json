@@ -35,7 +35,7 @@
     "faker": "^5.5.3",
     "fast-glob": "^3.2.2",
     "fs-extra": "^7.0.1",
-    "handlebars": "^4.7.3",
+    "handlebars": "^4.7.7",
     "htmlmetaparser": "^2.0.3",
     "htmlparser2": "^4.1.0",
     "import-fresh": "^3.2.1",
