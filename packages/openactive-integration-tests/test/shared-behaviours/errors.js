@@ -34,7 +34,7 @@ function itShouldReturnHttpStatus(statusCode, getChakramResponse) {
  *   asynchronous before() block has completed.
  */
 function itShouldReturnAnOpenBookingError(errorType, statusCode, getChakramResponse) {
-  it(`should return a(n) ${errorType}`, () => {
+  it(`should return a response containing \`"@type": "${errorType}"\` with status code \`${statusCode}\``, () => {
     const chakramResponse = getChakramResponse();
     expect(chakramResponse.response).to.have.property('statusCode', statusCode);
     expect(chakramResponse.body).to.have.property('@type', errorType);

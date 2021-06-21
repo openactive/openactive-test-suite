@@ -36,7 +36,7 @@
     "git-add-newly-generated-openid-client-types": "git add packages/openactive-openid-test-client/built-types",
     "gen-and-git-add-everything": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run gen-openid-client-types && npm run git-add-newly-generated-openid-client-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs",
     "clean-install": "npx rimraf ./**/node_modules",
-    "update-test-suite": "npm run clean-install && git pull && npm install"
+    "update-test-suite": "npm run clean-install && git fetch --all && git reset --hard origin/master && git clean -f -d && npm install"
   },
   "dependencies": {
     "config": "^3.3.6",

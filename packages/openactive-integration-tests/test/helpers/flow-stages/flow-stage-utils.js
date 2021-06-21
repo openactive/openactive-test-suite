@@ -145,7 +145,7 @@ const FlowStageUtils = {
       telephone: faker.phone.phoneNumber(),
       givenName: faker.name.lastName(),
       familyName: faker.name.firstName(),
-      identifier: faker.random.uuid(),
+      identifier: faker.datatype.uuid(),
     };
   },
 
