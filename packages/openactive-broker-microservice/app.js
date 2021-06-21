@@ -36,7 +36,7 @@ process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
  */
 
 const config = require('config');
-const AsyncValidatorWorker = require('./validator/async-validator');
+const AsyncValidatorWorker = require('./src/validator/async-validator');
 const PauseResume = require('./src/util/pause-resume');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');

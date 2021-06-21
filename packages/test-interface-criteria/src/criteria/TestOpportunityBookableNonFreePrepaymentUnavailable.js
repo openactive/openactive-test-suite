@@ -1,4 +1,3 @@
-const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,

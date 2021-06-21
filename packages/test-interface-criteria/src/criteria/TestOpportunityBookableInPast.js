@@ -8,7 +8,7 @@ const {
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotRequireAttendeeDetails,
   mustNotRequireAdditionalDetails,
-  excludePaidBookableOffersWithPrepaymentUnavailable
+  excludePaidBookableOffersWithPrepaymentUnavailable,
 } = require('./criteriaUtils');
 
 /**

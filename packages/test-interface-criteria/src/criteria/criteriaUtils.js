@@ -445,7 +445,7 @@ function sellerMustAllowOpenBooking(opportunity) {
 /**
  * @type {OfferConstraint}
  */
- function excludePaidBookableOffersWithPrepaymentUnavailable(offer) {
+function excludePaidBookableOffersWithPrepaymentUnavailable(offer) {
   return !(offer.price > 0 && offer.openBookingPrepayment === 'https://openactive.io/Unavailable');
 }
 

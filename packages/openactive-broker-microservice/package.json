@@ -35,7 +35,7 @@
     "p-memoize": "^3.1.0",
     "remarkable": "^2.0.1",
     "request": "^2.88.0",
-    "threads": "^1.6.5"
+    "threads": "^1.6.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.9",
