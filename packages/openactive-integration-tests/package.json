@@ -43,7 +43,7 @@
     "jest-environment-node": "^26.6.2",
     "jest-spec-reporter": "^1.0.10",
     "jszip": "^3.5.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "luxon": "^1.26.0",
     "mkdirp": "^1.0.3",
     "moment": "^2.24.0",
