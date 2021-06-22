@@ -72,24 +72,6 @@
     "eslint-plugin-import": "^2.22.1",
     "typescript": "^3.9.6"
   },
-  "jest": {
-    "verbose": false,
-    "testMatch": [
-      "**/test/features/**/*-test.[tj]s?(x)"
-    ],
-    "reporters": [
-      "<rootDir>test/reporter.js"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>test/setup.js"
-    ],
-    "globalSetup": "<rootDir>test/global-setup.js",
-    "globalTeardown": "<rootDir>test/global-teardown.js",
-    "maxWorkers": 4,
-    "testTimeout": 360000,
-    "transform": {},
-    "testEnvironment": "<rootDir>test/testEnvironment.js"
-  },
   "engines": {
     "node": "14.16.0"
   }

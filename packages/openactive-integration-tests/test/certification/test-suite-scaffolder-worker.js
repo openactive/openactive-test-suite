@@ -3,7 +3,7 @@ const fg = require('fast-glob');
 const importFresh = require('import-fresh');
 const path = require('path');
 const { isMainThread, parentPort, workerData } = require('worker_threads');
-const pkg = require('../../package.json');
+const jestConfig = require('../../jest.config.js');
 
 const rootDirectory = path.join(__dirname, '../../');
 
@@ -68,7 +68,7 @@ Object.entries(globalMocks).forEach(([key, value]) => {
 });
 
 // Load all test suites using the mocks defined above, to populate the suiteRegistry
-fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).forEach(function (file) {
+fg.sync(jestConfig.testMatch, { cwd: rootDirectory }).forEach(function (file) {
   importFresh(`${rootDirectory}${file}`);
 });
 

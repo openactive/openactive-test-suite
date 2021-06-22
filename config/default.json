@@ -30,6 +30,11 @@
     "conformanceCertificateId": "https://www.example.com/",
     "conformanceCertificatePath": "./conformance/",
     "requestHeaderLogging": true,
+    "openBookingApiRequestTimeout": 20000,
+    "waitForItemToUpdateInFeedTimeout": 60000,
+    "testTimeout": 360000,
+    "maximumNumberOfSimultaneousBookings": 4,
+    "additionalReporters": [],
     "bookableOpportunityTypesInScope": {
       "ScheduledSession": true,
       "FacilityUseSlot": true,

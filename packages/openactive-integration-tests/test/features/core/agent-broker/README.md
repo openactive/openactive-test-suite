@@ -36,7 +36,7 @@ This feature is **required** by the Open Booking API specification, and so must 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
 | [customer-included](./implemented/customer-included-test.js) | Successful request when customer is included in Order in AgentBroker mode | Successful request when customer is included in Order in AgentBroker mode | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
-| [customer-not-included](./implemented/customer-not-included-test.js) | Customer not included in Order in AgentBroker mode | If customer is not included in Order in AgentBroker mode for B request, request shoud fail, returning 400 status code and IncompleteCustomerDetailsError. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [customer-not-included](./implemented/customer-not-included-test.js) | Customer not included in Order in AgentBroker mode | If customer is not included in Order in AgentBroker mode for C2 or B request, request should fail, returning 400 status code and IncompleteCustomerDetailsError. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
 
