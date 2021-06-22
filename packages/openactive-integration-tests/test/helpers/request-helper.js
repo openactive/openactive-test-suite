@@ -1,4 +1,5 @@
 const chakram = require('chakram');
+const config = require('config');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
@@ -32,8 +33,8 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
 
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
-const OPEN_BOOKING_API_REQUEST_TIMEOUT = 20000; // Allow 20 seconds for booking systems under load
-const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = 60000; // Allow extra time for feed updates
+const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
+const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
 
 class RequestHelper {
   /**

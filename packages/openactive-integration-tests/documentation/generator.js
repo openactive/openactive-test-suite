@@ -7,7 +7,7 @@ const fg = require('fast-glob');
 const fs = require('fs');
 const chai = require('chai');
 const path = require('path');
-const pkg = require('../package.json');
+const jestConfig = require('../jest.config.js');
 const defaultConfig = require('../../../config/default.json');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
 const { DefaultMap } = require('../test/helpers/map-utils');
@@ -90,7 +90,7 @@ global.afterEach = () => {};
 global.documentationGenerationMode = true;
 
 // Load metadata from all tests
-const testMetadata = fg.sync(pkg.jest.testMatch, { cwd: rootDirectory }).map(function (file) {
+const testMetadata = fg.sync(jestConfig.testMatch, { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
   // TODO: Verify that the data actually conforms to the type.
   // ## Load the test
