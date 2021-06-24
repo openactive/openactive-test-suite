@@ -216,6 +216,7 @@ function createBusinessCustomerC2Req(data) {
   req.customer = {
     '@type': 'Organization',
     name: 'SomeCorporateClient',
+    email: 'mybooking@corporate-client.com',
     identifier: data.customer.identifier,
     url: 'https://corporate.client.com',
     description: 'A corporate client using fitness services',
