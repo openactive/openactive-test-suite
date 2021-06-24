@@ -186,9 +186,9 @@ function termsOfServiceArrayConstraint(minLength) {
 
 /** Constraints that match the criteriaUtils functions */
 const shapeConstraintRecipes = {
-  remainingCapacityMustBeAtLeastTwo: () => ({
+  remainingCapacityMustBeAtLeast: (mininclusive) => ({
     'placeholder:remainingCapacity': quantitativeValue({
-      mininclusive: 2,
+      mininclusive,
     }),
   }),
   /**

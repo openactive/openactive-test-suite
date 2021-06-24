@@ -9,7 +9,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'atomic-cancel',
   testName: 'Successful booking and successful cancellation after atomic failed cancellation request',
-  testDescription: 'After a successful booking, and an unsuccessful but atomic cancellation request, successfully cancel, including checking the Orders feed.',
+  testDescription: 'After a successful booking, and an unsuccessful but atomic cancellation request, successfully cancel, including checking the Orders feed. Atomic means that the cancellation request either entirely succeeds (all OrderItems items are cancelled) or entirely fails (no OrderItems are cancelled), which is generally best achieved by wrapping code in a database transaction.',
   // Single Opportunity Criteria is overridden here as this test must have three Order Items
   singleOpportunityCriteriaTemplate: (opportunityType, bookingFlow) => [
     {

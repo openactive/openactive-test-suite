@@ -101,7 +101,7 @@ export function termsOfServiceArrayConstraint(minLength: number): import('./type
 export const TRUE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export namespace shapeConstraintRecipes {
-    export function remainingCapacityMustBeAtLeastTwo(): {
+    export function remainingCapacityMustBeAtLeast(mininclusive: any): {
         'placeholder:remainingCapacity': import("./types/TestDataShape").NumericNodeConstraint;
     };
     export function mustHaveBookableOffer(options: import("./types/Options").Options): {

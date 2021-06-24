@@ -42,7 +42,7 @@ const TestOpportunityBookableAttendeeDetails = createCriteria({
   ],
   testDataShape: (options) => ({
     opportunityConstraints: {
-      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
       ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
     },
     offerConstraints: {

@@ -85,6 +85,7 @@ setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
 
 // eslint-disable-next-line no-console
 const logError = (x) => console.error(chalk.cyanBright(x));
+const logErrorDuringHarvest = (x) => console.error(chalk.cyanBright(`\n\n${x}\n\n\n\n\n\n\n\n\n`));
 // eslint-disable-next-line no-console
 const log = (x) => console.log(chalk.cyan(x));
 const logCharacter = (x) => process.stdout.write(chalk.cyan(x));
@@ -363,7 +364,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
               pages: context.pages,
               responseTime: Math.round(responseTime),
               ...progressFromContext(context),
-              status: 'Harvesting Complete, Validating...',
+              status: context.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
             });
             progressbar.setTotal(context.totalItemsQueuedForValidation);
           }
@@ -432,32 +433,27 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
         if (multibar) multibar.stop();
         logError(`\nFATAL ERROR: ${error.message}\n`);
         process.exit(1);
-      } else if (!error.response) {
-        logError(`\nError for RPDE feed "${url}" (attempt ${numberOfRetries}): ${error.message}.\n${error.stack}`);
-        // Force retry, after a delay, up to 12 times
-        if (numberOfRetries < 12) {
-          numberOfRetries += 1;
-          await sleep(5000);
-        } else {
-          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
-          // just rethrow
-          throw error;
-        }
-      } else if (error.response.status === 404) {
+      } else if (!error.isAxiosError) {
+        // If a non-axios error, quit the application immediately
+        if (multibar) multibar.stop();
+        logErrorDuringHarvest(`FATAL ERROR: ${error.message}\n${error.stack}`);
+        process.exit(1);
+      } else if (error.response?.status === 404) {
+        // If 404, simply stop polling feed
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
-        logError(`\n\nNot Found error for RPDE feed "${url}", feed will be ignored.\n\n\n\n\n\n\n\n\n`);
-        // Stop polling feed
+        multibar.remove(progressbar);
+        if (feedIdentifier !== ORDER_PROPOSALS_FEED_IDENTIFIER) logErrorDuringHarvest(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
         return;
       } else {
-        logError(`\nError ${error.response.status} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
+        logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
+          if (multibar) multibar.stop();
           logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
-          // just rethrow
-          throw error;
+          process.exit(1);
         }
       }
     }
@@ -496,7 +492,7 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
 
   if (unusedBucketItems.length === 0) {
     return {
-      suggestion: `All items that match the criteria '${criteriaName}' have already been used by the test suite for other tests that have already run. Therefore there are not enough items matching criteria '${criteriaName}' included in your feeds to run all tests. Try adding more test data to your system, or consider using 'Controlled Mode'.`,
+      suggestion: `No enough items matching criteria '${criteriaName}' were included in your feeds to run all tests. Try adding more test data to your system, or consider using 'Controlled Mode'.`,
     };
   }
 
@@ -1698,6 +1694,7 @@ Validation errors found in Dataset Site JSON-LD:
         withOrdersRpdeHeaders(getOrdersFeedHeader),
         monitorOrdersPage(type),
         true,
+        multibar,
       ));
     }
   }
