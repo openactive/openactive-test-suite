@@ -46,7 +46,7 @@ const TestOpportunityBookableOneSpace = createCriteria({
       mustHaveBeInsideValidFromBeforeStartDateWindow,
     ],
   ],
-  testDataShape: options => ({
+  testDataShape: (options) => ({
     opportunityConstraints: {
       ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(1),
       ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
