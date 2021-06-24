@@ -43,7 +43,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateAccessChannelUpdate);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
-    it('should have a new access channel value', () => {
+    it('should have updated accessChannel value in Orders Feed to be different from accessChannel at B', () => {
       // original = before the AccessChannelUpdateSimulationAction was invoked
       const originalOnlineOrderItem = bookRecipe.b.getOutput().httpResponse.body.orderedItem[0];
       const orderItemId = originalOnlineOrderItem.id;

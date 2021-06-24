@@ -38,9 +38,9 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     ],
   ],
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
-  testDataShape: (options) => ({
+  testDataShape: options => ({
     opportunityConstraints: {
-      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeastTwo(),
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
     },
     offerConstraints: {
       // mustHaveBookingWindowAndBeOutsideOfIt

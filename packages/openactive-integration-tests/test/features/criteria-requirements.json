@@ -165,12 +165,14 @@
     "anonymous-leasing": {
       "primary": {
         "TestOpportunityBookableFiveSpaces": 2,
+        "TestOpportunityBookableOneSpace": 2,
         "TestOpportunityBookable": 4
       }
     },
     "named-leasing": {
       "primary": {
         "TestOpportunityBookableFiveSpaces": 2,
+        "TestOpportunityBookableOneSpace": 2,
         "TestOpportunityBookable": 4
       }
     },
@@ -186,7 +188,7 @@
     },
     "opportunity-attendance-updates": {
       "primary": {
-        "TestOpportunityBookable": 4
+        "TestOpportunityBookable": 8
       }
     },
     "free-opportunities": {

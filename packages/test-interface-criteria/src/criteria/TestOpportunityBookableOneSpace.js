@@ -1,6 +1,6 @@
 const {
   createCriteria,
-  remainingCapacityMustBeAtLeastTwo,
+  getRemainingCapacity,
   mustNotBeOpenBookingInAdvanceUnavailable,
   mustHaveBeInsideValidFromBeforeStartDateWindow,
   sellerMustAllowOpenBooking,
@@ -11,14 +11,25 @@ const {
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
- * Implements https://openactive.io/test-interface#TestOpportunityBookable.
+ * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
  */
-const TestOpportunityBookable = createCriteria({
-  name: 'TestOpportunityBookable',
+
+/**
+ * @type {OpportunityConstraint}
+ */
+function remainingCapacityMustBeOne(opportunity) {
+  return getRemainingCapacity(opportunity) === 1;
+}
+
+/**
+ * Implements https://openactive.io/test-interface#TestOpportunityBookableOneSpace
+ */
+const TestOpportunityBookableOneSpace = createCriteria({
+  name: 'TestOpportunityBookableOneSpace',
   opportunityConstraints: [
     [
-      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
-      remainingCapacityMustBeAtLeastTwo,
+      'Remaining capacity must be 1',
+      remainingCapacityMustBeOne,
     ],
     [
       'organizer or provider must include isOpenBookingAllowed = true',
@@ -35,9 +46,9 @@ const TestOpportunityBookable = createCriteria({
       mustHaveBeInsideValidFromBeforeStartDateWindow,
     ],
   ],
-  testDataShape: (options) => ({
+  testDataShape: options => ({
     opportunityConstraints: {
-      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(1),
       ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
     },
     offerConstraints: {
@@ -48,5 +59,5 @@ const TestOpportunityBookable = createCriteria({
 });
 
 module.exports = {
-  TestOpportunityBookable,
+  TestOpportunityBookableOneSpace,
 };

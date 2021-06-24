@@ -25,7 +25,7 @@ const TestOpportunityOnlineBookable = createCriteria({
   name: 'TestOpportunityOnlineBookable',
   opportunityConstraints: [
     [
-      'eventAttendanceMode must be equal to MixedEventAttendanceMode or OnlineEventAttendanceMode',
+      '`eventAttendanceMode` must be equal to `MixedEventAttendanceMode` or `OnlineEventAttendanceMode`',
       isOpportunityEventAttendanceModeEqualToMixedOrOnline,
     ],
   ],

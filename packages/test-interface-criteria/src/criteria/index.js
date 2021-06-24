@@ -3,6 +3,7 @@ const { TestOpportunityBookableFree } = require('./TestOpportunityBookableFree')
 const { TestOpportunityBookableNonFree } = require('./TestOpportunityBookableNonFree');
 const { TestOpportunityBookableUsingPayment } = require('./TestOpportunityBookableUsingPayment');
 const { TestOpportunityBookableNoSpaces } = require('./TestOpportunityBookableNoSpaces');
+const { TestOpportunityBookableOneSpace } = require('./TestOpportunityBookableOneSpace');
 const { TestOpportunityBookableFiveSpaces } = require('./TestOpportunityBookableFiveSpaces');
 const { TestOpportunityBookableWithinValidFromBeforeStartDate } = require('./TestOpportunityBookableWithinValidFromBeforeStartDate');
 const { TestOpportunityBookableCancellable } = require('./TestOpportunityBookableCancellable');
@@ -33,6 +34,7 @@ module.exports = {
     TestOpportunityBookableNonFree,
     TestOpportunityBookableUsingPayment,
     TestOpportunityBookableNoSpaces,
+    TestOpportunityBookableOneSpace,
     TestOpportunityBookableFiveSpaces,
     TestOpportunityBookableWithinValidFromBeforeStartDate,
     TestOpportunityBookableCancellable,
