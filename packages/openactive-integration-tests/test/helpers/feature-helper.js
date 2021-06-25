@@ -318,6 +318,33 @@ class FeatureHelper {
   }
 
   /**
+   * Use this for an `implemented` test for a feature that should ONLY be implemented if another given
+   * set of features are.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+   *   requiredFeatures: string[];
+   * }} configuration
+   */
+  static describeFeatureShouldOnlyBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
+    const otherFeaturesSummary = configuration.requiredFeatures.map(f => `'${f}'`).join(' and ');
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`can only be implemented if other features: ${otherFeaturesSummary} are`, () => {
+          expect(IMPLEMENTED_FEATURES).to.include(
+            Object.fromEntries(configuration.requiredFeatures.map(f => [f, true])),
+          );
+        });
+      });
+    });
+  }
+
+  /**
    * @param {NodeModule} documentationModule
    * @param {DescribeFeatureConfiguration & {
    *   unmatchedOpportunityCriteria: string[],

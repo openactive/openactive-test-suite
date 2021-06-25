@@ -1,8 +1,8 @@
 {
   "category": "authentication",
-  "identifier": "booking-partner-authentication",
-  "name": "Booking Partner Authentication for Multiple Seller Systems",
-  "description": "OAuth based authentication for Sellers",
+  "identifier": "booking-partner-openid-authentication",
+  "name": "Booking Partner OpenID Authentication",
+  "description": "Booking Partner Authentication using OpenID Connect",
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems",
   "required": false,

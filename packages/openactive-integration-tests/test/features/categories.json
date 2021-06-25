@@ -30,7 +30,8 @@
       "proposal-amendment": true
     },
     "authentication": {
-      "booking-partner-authentication": true,
+      "booking-partner-openid-authentication": true,
+      "booking-partner-openid-authentication-for-multiple-sellers": true,
       "dynamic-client-registration": true
     },
     "broker-role": {

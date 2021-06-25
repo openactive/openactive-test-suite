@@ -84,7 +84,8 @@
         "TestOpportunityBookable": 1
       }
     },
-    "booking-partner-authentication": {},
+    "booking-partner-openid-authentication": {},
+    "booking-partner-openid-authentication-for-multiple-sellers": {},
     "dynamic-client-registration": {},
     "no-broker": {
       "primary": {
