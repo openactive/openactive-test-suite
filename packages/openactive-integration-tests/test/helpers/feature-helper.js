@@ -329,7 +329,7 @@ class FeatureHelper {
   static describeFeatureShouldOnlyBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
     const otherFeaturesSummary = configuration.requiredFeatures.map(f => `'${f}'`).join(' and ');
     this.describeFeature(documentationModule, {
-      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are implemented`,
+      testDescription: `This feature can only be implemented if features: ${otherFeaturesSummary} are implemented`,
       skipMultiple: true,
       doesNotUseOpportunitiesMode: true,
       ...configuration,
