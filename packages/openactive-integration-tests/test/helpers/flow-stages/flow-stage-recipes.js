@@ -10,6 +10,7 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../request-helper').BookingPartnerIdentifier} BookingPartnerIdentifier
  * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
  * @typedef {import('../../templates/c2-req').C2ReqTemplateRef} C2ReqTemplateRef
  * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
@@ -31,6 +32,8 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   brokerRole?: string | null,
  *   taxMode?: string | null,
  *   accessPass?: AccessPassItem[] | null,
+ *   bookingPartnerIdentifier?: BookingPartnerIdentifier | null,
+ *   uuid?: string | null,
  * }} InitialiseSimpleC1C2BookFlowOptions
  */
 
@@ -64,22 +67,22 @@ const FlowStageRecipes = {
    * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
    */
   initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
-    c1ReqTemplateRef = null,
-    c2ReqTemplateRef = null,
+    // c1ReqTemplateRef = null,
+    // c2ReqTemplateRef = null,
     bookReqTemplateRef = null,
     brokerRole = null,
-    taxMode = null,
+    // taxMode = null,
     accessPass = null,
+    // bookingPartnerIdentifier = null,
+    ...c1c2Options
   } = {}) {
     // ## Initiate Flow Stages
     const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
       logger,
       {
-        c1ReqTemplateRef,
-        c2ReqTemplateRef,
+        ...c1c2Options,
         brokerRole,
-        taxMode,
       },
     );
     const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
@@ -119,8 +122,20 @@ const FlowStageRecipes = {
    * @param {BaseLoggerType} logger
    * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef'>} [options]
    */
-  initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, { c1ReqTemplateRef = null, c2ReqTemplateRef = null, brokerRole = null, taxMode = null } = {}) {
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
+  initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+    c1ReqTemplateRef = null,
+    c2ReqTemplateRef = null,
+    brokerRole = null,
+    taxMode = null,
+    bookingPartnerIdentifier = null,
+    uuid = null,
+  } = {}) {
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
+      logger,
+      taxMode,
+      bookingPartnerIdentifier,
+      uuid,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
       orderItemCriteriaList,

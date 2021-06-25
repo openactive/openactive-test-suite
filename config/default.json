@@ -102,6 +102,7 @@
       "terms-of-service": true,
       "terms-of-service-with-consent": null,
       "terms-of-service-with-consent-with-date-modified": null,
+      "booking-partner-authentication": true,
       "booking-partner-openid-authentication": true,
       "booking-partner-openid-authentication-for-multiple-sellers": true,
       "dynamic-client-registration": true,

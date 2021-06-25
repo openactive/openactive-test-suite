@@ -128,7 +128,7 @@ const FlowStageUtils = {
     return {
       requestHelper,
       logger,
-      uuid: uuid || generateUuid(),
+      uuid: uuid ?? generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
       customer: customer || this.createRandomCustomerDetails(),
     };
@@ -157,12 +157,14 @@ const FlowStageUtils = {
    * @param {object} args
    * @param {BaseLoggerType} args.logger
    * @param {string | null} [args.taxMode]
+   * @param {import('../request-helper').BookingPartnerIdentifier} [args.bookingPartnerIdentifier]
+   * @param {string | null} [args.uuid]
    */
-  createSimpleDefaultFlowStageParams({ logger, taxMode = null }) {
+  createSimpleDefaultFlowStageParams({ logger, taxMode = null, bookingPartnerIdentifier = null, uuid }) {
     const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : SELLER_CONFIG.primary;
-    const requestHelper = new RequestHelper(logger, sellerConfig);
+    const requestHelper = new RequestHelper(logger, sellerConfig, bookingPartnerIdentifier);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig,
+      requestHelper, logger, sellerConfig, uuid,
     });
   },
 

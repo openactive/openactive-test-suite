@@ -31,6 +31,10 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  * }} TestInterfaceRequestArgs
  */
 
+/**
+ * @typedef {'primary' | 'secondary'} BookingPartnerIdentifier
+ */
+
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
 const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
@@ -40,10 +44,12 @@ class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
    * @param {SellerConfig | null} [sellerConfig]
+   * @param {BookingPartnerIdentifier} [bookingPartnerIdentifier]
    */
-  constructor(logger, sellerConfig) {
+  constructor(logger, sellerConfig, bookingPartnerIdentifier) {
     this.logger = logger;
     this._sellerConfig = sellerConfig ?? SELLER_CONFIG.primary;
+    this._bookingPartnerIdentifier = bookingPartnerIdentifier ?? 'primary';
   }
 
   /**
@@ -133,7 +139,7 @@ class RequestHelper {
 
   _getSellerRequestHeaders() {
     // If broker microservice authentication fails, no accessToken will be supplied
-    const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.primary?.access_token;
+    const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.[this._bookingPartnerIdentifier]?.access_token;
     const requestHeaders = this._sellerConfig?.authentication?.requestHeaders;
     return {
       ...(!accessToken ? undefined : {
