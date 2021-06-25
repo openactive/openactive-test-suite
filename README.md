@@ -129,6 +129,8 @@ npm install
 npm start
 ```
 
+`"ci": true` must be included in the supplied `NODE_CONFIG` to ensure correct console logging output within a CI environment.
+
 Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
 ## Test Data Requirements
