@@ -8,7 +8,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'additional-details-capture',
   testFeatureImplemented: true,
   testIdentifier: 'additional-details-required-invalid-details-supplied',
-  testName: 'Booking opportunity with additional details supplied but not supplied',
+  testName: 'Booking opportunity with additional details supplied but invalid details supplied',
   testDescription: 'Should error',
   testOpportunityCriteria: 'TestOpportunityBookableAdditionalDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
