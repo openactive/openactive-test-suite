@@ -976,6 +976,7 @@ function handleListeners(type, id, item) {
 
 app.post('/listeners/:type/:id', async function (req, res) {
   const { type, id } = req.params;
+  const bookingPartnerIdentifier = 'primary'; // TODO: Allow listening to the feed of either booking partner
   const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
   if (!id) {
     return res.status(400).json({
@@ -996,7 +997,7 @@ app.post('/listeners/:type/:id', async function (req, res) {
     item: null, collectRes: null,
   });
   if (isForOrdersFeed) {
-    const feedContext = feedContextMap.get(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER);
+    const feedContext = feedContextMap.get(orderFeedIdentifier(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier));
     return res.status(200).send({
       headers: await withOrdersRpdeHeaders(getOrdersFeedHeader('primary'))(),
       startingFeedPage: feedContext?.currentPage,
@@ -1570,6 +1571,10 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
   }
 }
 
+function orderFeedIdentifier(feedIdentifier, bookingPartnerIdentifier) {
+  return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
+}
+
 async function startPolling() {
   await mkdirp(VALIDATOR_TMP_DIR);
   await mkdirp(OUTPUT_PATH);
@@ -1705,13 +1710,13 @@ Validation errors found in Dataset Site JSON-LD:
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
-        feedContextIdentifier: `${ORDERS_FEED_IDENTIFIER} (auth:${bookingPartnerIdentifier})`,
+        feedContextIdentifier: orderFeedIdentifier(ORDERS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
       {
         feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
         type: /** @type {OrderFeedType} */('order-proposals'),
-        feedContextIdentifier: `${ORDER_PROPOSALS_FEED_IDENTIFIER} (auth:${bookingPartnerIdentifier})`,
+        feedContextIdentifier: orderFeedIdentifier(ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
     ])) {
