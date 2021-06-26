@@ -1,8 +1,9 @@
 [< Return to Overview](../../README.md)
 # Additional Details capture (additional-details-capture)
 
-Support for capturing additional details 
+Support for capturing additional details with required set to true
 
+Note the test suite does not yet support testing of optional additional details
 
 https://www.openactive.io/open-booking-api/EditorsDraft/#additional-details-capture
 
@@ -37,6 +38,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 |------------|------|-------------|---------------|
 | [additional-details-required-and-supplied](./implemented/additional-details-required-and-supplied-test.js) | Booking opportunity with additional details supplied | Should pass | [TestOpportunityBookableAdditionalDetails](https://openactive.io/test-interface#TestOpportunityBookableAdditionalDetails) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 | [additional-details-required-but-not-supplied](./implemented/additional-details-required-but-not-supplied-test.js) | Booking opportunity with additional details required but not supplied | Should error | [TestOpportunityBookableAdditionalDetails](https://openactive.io/test-interface#TestOpportunityBookableAdditionalDetails) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
-| [additional-details-required-invalid-details-supplied](./implemented/additional-details-required-invalid-details-supplied-test.js) | Booking opportunity with additional details supplied but not supplied | Should error | [TestOpportunityBookableAdditionalDetails](https://openactive.io/test-interface#TestOpportunityBookableAdditionalDetails) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [additional-details-required-invalid-details-supplied](./implemented/additional-details-required-invalid-details-supplied-test.js) | Booking opportunity with additional details supplied but invalid details supplied | Should error | [TestOpportunityBookableAdditionalDetails](https://openactive.io/test-interface#TestOpportunityBookableAdditionalDetails) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
 
 

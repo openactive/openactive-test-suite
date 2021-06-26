@@ -259,9 +259,13 @@
         "TestOpportunityBookableNonFreeTaxNet": 4
       }
     },
-    "terms-of-service": {
+    "terms-of-service-for-booking-system": {
       "primary": {
-        "TestOpportunityBookable": 4,
+        "TestOpportunityBookable": 4
+      }
+    },
+    "terms-of-service-for-seller": {
+      "primary": {
         "TestOpportunityBookableSellerTermsOfService": 4
       }
     },

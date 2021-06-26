@@ -94,7 +94,7 @@ function createPositionOrderIntakeFormMap(order) {
   const map = {};
   if (Array.isArray(order.orderedItem)) {
     for (const orderItem of order.orderedItem) {
-      if (!isNil(orderItem.orderItemIntakeForm)) {
+      if (!isNil(orderItem.orderItemIntakeForm) && orderItem.orderItemIntakeForm.some(x => x.valueRequired || x['@type'] === 'BooleanFormFieldSpecification')) {
         map[String(orderItem.position)] = orderItem.orderItemIntakeForm;
       }
     }

@@ -209,8 +209,12 @@
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
     },
-    "terms-of-service": {
-      "implementedTestFiles": 2,
+    "terms-of-service-for-booking-system": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "terms-of-service-for-seller": {
+      "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
     },
     "terms-of-service-with-consent": {

@@ -14,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookableCancellable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger) {
+function (configuration, orderItemCriteria, featureIsImplemented, logger, opportunityType, bookingFlow) {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteria, logger);
 
@@ -55,7 +55,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     it('should include all OrderItems', () => {
       expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
     });
-    it('should have orderItemStatus CustomerCancelled for each cancelled item', () => {
+    it(`should have orderItemStatus CustomerCancelled for each cancelled item, based on the @ids of the OrderItems at ${bookingFlow === 'OpenBookingApprovalFlow' ? 'P' : 'B'}`, () => {
       const cancelledOrderItemIds = getArrayOfAllOrderItemIds();
       for (const orderItem of orderItemsAccessor()) {
         expect(orderItem['@id']).to.be.oneOf(cancelledOrderItemIds);

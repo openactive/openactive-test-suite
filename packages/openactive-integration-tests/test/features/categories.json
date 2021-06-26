@@ -80,7 +80,8 @@
       "business-to-consumer-tax-calculation-net": true
     },
     "terms": {
-      "terms-of-service": true,
+      "terms-of-service-for-booking-system": true,
+      "terms-of-service-for-seller": true,
       "terms-of-service-with-consent": true,
       "terms-of-service-with-consent-with-date-modified": true
     }
