@@ -1,4 +1,8 @@
-export const setupBrowserAutomationRoutes: (app: import("express").Application, buttonSelector: string) => void;
+export const setupBrowserAutomationRoutes: (app: import("express").Application, buttonSelectors: {
+    username: string;
+    password: string;
+    button: string;
+}) => void;
 export const recordWithIntercept: <TActionFnResult>(recordLogEntry: (Entry: any) => {
     type: "request";
     stage: string;
