@@ -37,7 +37,18 @@ async function getEndpointUrl() {
 async function deleteTestDataset(testInterfaceBaseUrl) {
   const response = await axios.delete(`${testInterfaceBaseUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
     {
-      timeout: 30000,
+      timeout: 60000,
+    });
+
+  assert.strictEqual(response.status, 204);
+
+  return true;
+}
+
+async function purgeCache() {
+  const response = await axios.delete(`${MICROSERVICE_BASE}/opportunity-cache`,
+    {
+      timeout: 10000,
     });
 
   assert.strictEqual(response.status, 204);
@@ -83,13 +94,28 @@ module.exports = async () => {
     throw new Error(`The broker microservice is unreachable. This is a pre-requisite for the test suite. \n${error}`);
   }
 
-  const endpointUrl = await getEndpointUrl();
-  const testInterfaceBaseUrl = USE_RANDOM_OPPORTUNITIES ? MICROSERVICE_BASE : endpointUrl;
+  if (USE_RANDOM_OPPORTUNITIES) {
+    try {
+      console.log(`Releasing opportunity locks for '${TEST_DATASET_IDENTIFIER}' within local broker microservice...`);
+      await deleteTestDataset(MICROSERVICE_BASE);
+    } catch (error) {
+      throw new Error(`The broker microservice is unreachable. This is a pre-requisite for the test suite. \n${error}`);
+    }
+  } else {
+    const endpointUrl = await getEndpointUrl();
 
-  try {
-    console.log(`Deleting test dataset '${TEST_DATASET_IDENTIFIER}' within ${USE_RANDOM_OPPORTUNITIES ? 'local broker microservice' : 'booking system'}...`);
-    await deleteTestDataset(testInterfaceBaseUrl);
-  } catch (error) {
-    throw new Error(`The test interface is unreachable. This is a pre-requisite for the test suite. \n${error}`);
+    try {
+      console.log(`Calling "DELETE ${endpointUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}" to delete test dataset '${TEST_DATASET_IDENTIFIER}' within booking system (see https://openactive.io/test-interface/)...`);
+      await deleteTestDataset(endpointUrl);
+    } catch (error) {
+      throw new Error(`The test interface within the booking system is unreachable. This is a pre-requisite for the test suite. \n${error}`);
+    }
+
+    try {
+      console.log('Purging test dataset cache within local broker microservice...');
+      await purgeCache();
+    } catch (error) {
+      throw new Error(`The broker microservice is unreachable. This is a pre-requisite for the test suite. \n${error}`);
+    }
   }
 };

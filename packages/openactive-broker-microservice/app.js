@@ -208,7 +208,7 @@ async function renderTemplate(templateName, data) {
   });
 }
 
-const opportunityIdCache = OpportunityIdCache.create();
+let opportunityIdCache = OpportunityIdCache.create();
 
 /**
  * @typedef FeedContext
@@ -352,7 +352,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
 
       if (rpdeValidationErrors.length > 0) {
         if (multibar) multibar.stop();
-        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on page ${url}:\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
+        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
         process.exit(1);
       }
 
@@ -375,7 +375,8 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
-        await sleep(500);
+        // Slow down sleep polling while waiting for harvesting of other feeds to complete
+        await sleep(WAIT_FOR_HARVEST && incompleteFeeds.length !== 0 ? 5000 : 500);
       } else {
         context.responseTimes.push(responseTime);
         // Maintain a buffer of the last 5 items
@@ -431,28 +432,28 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
       if (error instanceof FatalError) {
         // If a fatal error, quit the application immediately
         if (multibar) multibar.stop();
-        logError(`\nFATAL ERROR: ${error.message}\n`);
+        logError(`\nFATAL ERROR for RPDE feed ${feedIdentifier} page "${url}": ${error.message}\n`);
         process.exit(1);
       } else if (!error.isAxiosError) {
         // If a non-axios error, quit the application immediately
         if (multibar) multibar.stop();
-        logErrorDuringHarvest(`FATAL ERROR: ${error.message}\n${error.stack}`);
+        logErrorDuringHarvest(`FATAL ERROR for RPDE feed ${feedIdentifier} page "${url}": ${error.message}\n${error.stack}`);
         process.exit(1);
       } else if (error.response?.status === 404) {
         // If 404, simply stop polling feed
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
         multibar.remove(progressbar);
-        if (feedIdentifier !== ORDER_PROPOSALS_FEED_IDENTIFIER) logErrorDuringHarvest(`Not Found error for RPDE feed "${url}", feed will be ignored.`);
+        if (feedIdentifier !== ORDER_PROPOSALS_FEED_IDENTIFIER) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedIdentifier} page "${url}", feed will be ignored.`);
         return;
       } else {
-        logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
+        logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE feed ${feedIdentifier} page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
           if (multibar) multibar.stop();
-          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed ${feedIdentifier} page "${url}"\n`);
           process.exit(1);
         }
       }
@@ -739,15 +740,17 @@ function getConfig() {
   };
 }
 
-async function getOrdersFeedHeader() {
-  await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
-  const accessToken = getConfig()?.bookingPartnersConfig?.primary?.authentication?.orderFeedTokenSet?.access_token;
-  const requestHeaders = getConfig()?.bookingPartnersConfig?.primary?.authentication?.ordersFeedRequestHeaders;
-  return {
-    ...(!accessToken ? undefined : {
-      Authorization: `Bearer ${accessToken}`,
-    }),
-    ...requestHeaders,
+function getOrdersFeedHeader(bookingPartnerIdentifier) {
+  return async () => {
+    await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
+    const accessToken = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.orderFeedTokenSet?.access_token;
+    const requestHeaders = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.ordersFeedRequestHeaders;
+    return {
+      ...(!accessToken ? undefined : {
+        Authorization: `Bearer ${accessToken}`,
+      }),
+      ...requestHeaders,
+    };
   };
 }
 
@@ -874,6 +877,19 @@ app.get('/validation-errors', async function (req, res) {
   res.send(await renderValidationErrorsHtml());
 });
 
+app.delete('/opportunity-cache', function (req, res) {
+  parentOpportunityMap.clear();
+  parentOpportunityRpdeMap.clear();
+  opportunityMap.clear();
+  opportunityRpdeMap.clear();
+  rowStoreMap.clear();
+  parentIdIndex.clear();
+
+  opportunityIdCache = OpportunityIdCache.create();
+
+  res.status(204).send();
+});
+
 app.get('/opportunity-cache/:id', function (req, res) {
   if (req.params.id) {
     const { id } = req.params;
@@ -976,7 +992,7 @@ app.post('/listeners/:type/:id', async function (req, res) {
   if (isForOrdersFeed) {
     const feedContext = feedContextMap.get(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER);
     return res.status(200).send({
-      headers: await withOrdersRpdeHeaders(getOrdersFeedHeader)(),
+      headers: await withOrdersRpdeHeaders(getOrdersFeedHeader('primary'))(),
       startingFeedPage: feedContext?.currentPage,
       message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
     });
@@ -1674,24 +1690,26 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
-    for (const { feedUrl, type, feedContextIdentifier } of [
+    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of ['primary', 'secondary'].flatMap(bookingPartnerIdentifier => [
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
-        feedContextIdentifier: ORDERS_FEED_IDENTIFIER,
+        feedContextIdentifier: `${ORDERS_FEED_IDENTIFIER} (auth:${bookingPartnerIdentifier})`,
+        bookingPartnerIdentifier,
       },
       {
         feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
         type: /** @type {OrderFeedType} */('order-proposals'),
-        feedContextIdentifier: ORDER_PROPOSALS_FEED_IDENTIFIER,
+        feedContextIdentifier: `${ORDER_PROPOSALS_FEED_IDENTIFIER} (auth:${bookingPartnerIdentifier})`,
+        bookingPartnerIdentifier,
       },
-    ]) {
+    ])) {
       log(`Found ${type} feed: ${feedUrl}`);
       addFeed(feedContextIdentifier);
       harvesters.push(harvestRPDE(
         feedUrl,
         feedContextIdentifier,
-        withOrdersRpdeHeaders(getOrdersFeedHeader),
+        withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
         monitorOrdersPage(type),
         true,
         multibar,
