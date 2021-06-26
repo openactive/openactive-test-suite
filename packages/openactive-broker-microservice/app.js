@@ -1690,7 +1690,7 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
-    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of ['primary', 'secondary'].flatMap(bookingPartnerIdentifier => [
+    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of ['primary', 'secondary'].flatMap((bookingPartnerIdentifier) => [
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
