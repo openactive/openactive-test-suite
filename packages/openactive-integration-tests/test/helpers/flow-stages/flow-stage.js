@@ -14,7 +14,7 @@ const pMemoize = require('p-memoize');
 
 /**
  * @typedef {{
- *  '@type': 'ShortAnswerFormFieldSpecification'|'DropdownFormFieldSpecification'| 'ParagraphFormFieldSpecification' | 'BooleanFormFieldSpecification',
+ *  '@type': 'ShortAnswerFormFieldSpecification'|'DropdownFormFieldSpecification'|'ParagraphFormFieldSpecification'|'BooleanFormFieldSpecification'|'FileUploadFormFieldSpecification',
  *  '@id': string,
  *  valueOption? : string[],
  *  [k:string]: any

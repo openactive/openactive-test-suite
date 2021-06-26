@@ -1,7 +1,7 @@
 const { utils: { getOrganizerOrProvider } } = require('@openactive/test-interface-criteria');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { expectTermsOfServiceToExistAndBeValid } = require('../common');
+const { expectTermsOfServiceToExistAndBeValid } = require('../../common');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -19,7 +19,7 @@ function itShouldContainSellerWithValidTermsOfService(getHttpResponse) {
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'terms',
-  testFeature: 'terms-of-service',
+  testFeature: 'terms-of-service-for-seller',
   testFeatureImplemented: true,
   testIdentifier: 'seller-terms-of-service',
   testName: 'Terms of service defined by seller in opportunity feed, C1, C2 and B',
