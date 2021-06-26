@@ -33,6 +33,7 @@ process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
 /**
  * @typedef {'orders' | 'order-proposals'} OrderFeedType
+ * @typedef {'primary' | 'secondary'} BookingPartnerIdentifier
  */
 
 const config = require('config');
@@ -1688,9 +1689,14 @@ Validation errors found in Dataset Site JSON-LD:
     }
   });
 
+  /**
+   *  @type {BookingPartnerIdentifier[]}
+   */
+  const bookingPartnerIdentifiers = ['primary', 'secondary'];
+
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
-    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of ['primary', 'secondary'].flatMap((bookingPartnerIdentifier) => [
+    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of bookingPartnerIdentifiers.flatMap((bookingPartnerIdentifier) => [
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
@@ -1710,7 +1716,7 @@ Validation errors found in Dataset Site JSON-LD:
         feedUrl,
         feedContextIdentifier,
         withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-        monitorOrdersPage(type),
+        feedBookingPartnerIdentifier === 'primary' ? monitorOrdersPage(type) : () => null, // TODO: Allow monitorOrdersPage to handle multiple feedBookingPartnerIdentifier
         true,
         multibar,
       ));
