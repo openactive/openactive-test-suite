@@ -11,6 +11,14 @@ const { generators } = require('openid-client');
  */
 
 /**
+ * @typedef {{
+ *  username: string,
+ *  password: string,
+ *  button: string
+ * }} ButtonSelectors
+ */
+
+/**
  * Adds routes to Express that facilitate browser automation of the Authorization Code Flow
  */
 
@@ -38,12 +46,12 @@ async function addScreenshot(page, title, context) {
  * @param {string} args.sessionKey
  * @param {string} args.authorizationUrl
  * @param {boolean} [args.headless]
- * @param {string} args.buttonSelector
+ * @param {ButtonSelectors} args.buttonSelectors
  * @param {string} args.username
  * @param {string} args.password
  * @param {Context} args.context
  */
-async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelector, username, password, context }) {
+async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelectors, username, password, context }) {
   const browser = await puppeteer.launch({
     headless,
     ignoreHTTPSErrors: true,
@@ -52,7 +60,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   try {
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
     try {
-      await page.type("[name='username' i]", username);
+      await page.type(buttonSelectors.username, username);
     } catch (e) {
       await addScreenshot(page, 'Error encountered trying to enter username', context);
       return {
@@ -60,7 +68,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
       };
     }
     try {
-      await page.type("[name='password' i]", password);
+      await page.type(buttonSelectors.password, password);
     } catch (e) {
       await addScreenshot(page, 'Error encountered trying to enter password', context);
       return {
@@ -68,36 +76,36 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
       };
     }
     await addScreenshot(page, 'Login page', context);
-    const hasButtonOnLoginPage = await page.$(buttonSelector);
+    const hasButtonOnLoginPage = await page.$(buttonSelectors.button);
     if (hasButtonOnLoginPage) {
       // As far as we can tell, consent does not seem to be required yet.
       context.requiredConsent = false;
       await Promise.all([
         page.waitForNavigation(), // The promise resolves after navigation has finished
-        page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
+        page.click(buttonSelectors.button), // Clicking the link will indirectly cause a navigation
       ]);
     } else {
       await addScreenshot(page, 'Error encountered', context);
       return {
-        success: false, message: `Login button matching selector '${buttonSelector}' not found`,
+        success: false, message: `Login button matching selector '${buttonSelectors.button}' not found`,
       };
     }
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
     if (!isSuccessfulFollowingLogin) {
       // If we do not see the callback page, then it is likely we're being asked for consent to authorize access
       await addScreenshot(page, 'Authorization page', context);
-      const hasButtonOnAuthorizationPage = await page.$(buttonSelector);
+      const hasButtonOnAuthorizationPage = await page.$(buttonSelectors.button);
       if (hasButtonOnAuthorizationPage) {
         context.requiredConsent = true;
         // Click "Accept", if it is presented
         await Promise.all([
           page.waitForNavigation(), // The promise resolves after navigation has finished
-          page.click(buttonSelector), // Clicking the link will indirectly cause a navigation
+          page.click(buttonSelectors.button), // Clicking the link will indirectly cause a navigation
         ]);
       } else {
         await addScreenshot(page, 'Error encountered', context);
         return {
-          success: false, message: `Accept button matching selector '${buttonSelector}' not found`,
+          success: false, message: `Accept button matching selector '${buttonSelectors.button}' not found`,
         };
       }
     }
@@ -131,9 +139,9 @@ const requestStore = new Map();
 
 /**
  * @param {import('express').Application} app
- * @param {string} buttonSelector
+ * @param {ButtonSelectors} buttonSelectors
  */
-function setupBrowserAutomationRoutes(app, buttonSelector) {
+function setupBrowserAutomationRoutes(app, buttonSelectors) {
   app.use(cookieSession({
     name: 'session',
     keys: [generators.codeVerifier()], // Random string as key
@@ -166,7 +174,7 @@ function setupBrowserAutomationRoutes(app, buttonSelector) {
       const result = await authorizeInteractive({
         sessionKey,
         context,
-        buttonSelector,
+        buttonSelectors,
         ...req.body,
       });
       if (!result.success) {

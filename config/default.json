@@ -7,6 +7,11 @@
     "requestLogging": false,
     "waitForHarvestCompletion": true,
     "verbose": false,
+    "loginPagesSelectors": {
+      "username": "[name='username' i]",
+      "password": "[name='password' i]",
+      "button": ".btn-primary"
+    },
     "bookingPartners": {
       "primary": {
         "authentication": {
@@ -71,6 +76,7 @@
       "payment-reconciliation-detail-validation": true,
       "booking-window": true,
       "customer-requested-cancellation": true,
+      "customer-requested-cancellation-always-allowed": false,
       "cancellation-window": true,
       "seller-requested-cancellation": true,
       "seller-requested-cancellation-message": true,

@@ -7,8 +7,13 @@ export type Context = {
     }[];
     requiredConsent?: boolean;
 };
+export type ButtonSelectors = {
+    username: string;
+    password: string;
+    button: string;
+};
 /**
  * @param {import('express').Application} app
- * @param {string} buttonSelector
+ * @param {ButtonSelectors} buttonSelectors
  */
-export function setupBrowserAutomationRoutes(app: import('express').Application, buttonSelector: string): void;
+export function setupBrowserAutomationRoutes(app: import('express').Application, buttonSelectors: ButtonSelectors): void;

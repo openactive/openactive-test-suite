@@ -67,7 +67,12 @@ const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? confi
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
 const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
-const BUTTON_SELECTOR = config.has('broker.loginPageButtonSelector') ? config.get('broker.loginPageButtonSelector') : '.btn-primary';
+
+const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('broker.loginPagesSelectors') : {
+  username: "[name='username' i]",
+  password: "[name='password' i]",
+  button: '.btn-primary',
+};
 const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
 
 const PORT = normalizePort(process.env.PORT || '3000');
@@ -82,7 +87,7 @@ silentlyAllowInsecureConnections();
 
 const app = express();
 app.use(express.json());
-setupBrowserAutomationRoutes(app, BUTTON_SELECTOR);
+setupBrowserAutomationRoutes(app, BUTTON_SELECTORS);
 
 // eslint-disable-next-line no-console
 const logError = (x) => console.error(chalk.cyanBright(x));

@@ -111,6 +111,7 @@
         "TestOpportunityBookable": 4
       }
     },
+    "customer-requested-cancellation-always-allowed": {},
     "seller-requested-cancellation": {
       "primary": {
         "TestOpportunityBookable": 4
@@ -178,7 +179,7 @@
     },
     "change-of-logistics-notifications": {
       "primary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 3
       }
     },
     "customer-notice-notifications": {
