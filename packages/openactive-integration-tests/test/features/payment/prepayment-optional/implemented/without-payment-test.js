@@ -10,8 +10,8 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'prepayment-optional',
   testFeatureImplemented: true,
   testIdentifier: 'without-payment',
-  testName: 'Prepayment optional, without payment supplied, is successful',
-  testDescription: 'Opportunity paid, prepayment optional, no payment (error)',
+  testName: 'Prepayment optional, without `payment` supplied, is successful',
+  testDescription: 'Opportunity paid, prepayment optional, no `payment` (error)',
   testOpportunityCriteria,
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // temporarily disable control in multiple mode until refactoring complete

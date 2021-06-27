@@ -17,9 +17,8 @@ function runChangeOfLogisticsTests({ actionType }) {
           || accessor(opportunity?.superEvent?.superEvent)
           || accessor(opportunity?.facilityUse);
 
-      const accessorAggregator = (obj, inheritanceAccessor, accessors) => accessors.map(accessor => inheritanceAccessor(obj, accessor)).join('||');
-
-      const orderItemAccessorAggregator = (orderItem, accessors) => accessorAggregator(orderItem?.orderedItem, opportunityInheritanceAccessor, accessors);
+      const accessorAggregator = (inheritanceAccessor, accessors) => accessors.map(accessor => (x => accessor(inheritanceAccessor(x))));
+      const orderItemAccessorAggregator = (orderItem, accessors) => accessors.map(accessor => opportunityInheritanceAccessor(orderItem?.orderedItem, accessor)).join('|');
 
       // These comparators ensure that we ignore other properties within each JSON object,
       // and also ignore the ordering of the properties within each JSON object
@@ -45,13 +44,13 @@ function runChangeOfLogisticsTests({ actionType }) {
           propertyDescription: '`name`, `address` or `geo` properties within location, or `meetingPoint`',
           comparatorItemAccessor: orderItem => orderItemAccessorAggregator(orderItem, [
             x => x?.meetingPoint,
-            x => accessorAggregator(x, x => opportunityInheritanceAccessor(x, x => x?.location), [
+            ...accessorAggregator(x => x?.location, [
               x => x?.name,
-              x => accessorAggregator(x, x => x?.geo, [
+              ...accessorAggregator(x => x?.geo, [
                 x => x?.latitude,
                 x => x?.longitude,
               ]),
-              x => accessorAggregator(x, x => x?.address, [
+              ...accessorAggregator(x => x?.address, [
                 x => x?.streetAddress,
                 x => x?.addressLocality,
                 x => x?.addressRegion,
