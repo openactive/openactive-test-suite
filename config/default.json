@@ -7,6 +7,11 @@
     "requestLogging": false,
     "waitForHarvestCompletion": true,
     "verbose": false,
+    "loginPagesSelectors": {
+      "username": "[name='username' i]",
+      "password": "[name='password' i]",
+      "button": ".btn-primary"
+    },
     "bookingPartners": {
       "primary": {
         "authentication": {
@@ -71,6 +76,7 @@
       "payment-reconciliation-detail-validation": true,
       "booking-window": true,
       "customer-requested-cancellation": true,
+      "customer-requested-cancellation-always-allowed": false,
       "cancellation-window": true,
       "seller-requested-cancellation": true,
       "seller-requested-cancellation-message": true,
@@ -99,7 +105,8 @@
       "access-code-update-notifications": true,
       "access-pass-update-notifications": true,
       "opportunity-attendance-updates": true,
-      "terms-of-service": true,
+      "terms-of-service-for-booking-system": true,
+      "terms-of-service-for-seller": true,
       "terms-of-service-with-consent": null,
       "terms-of-service-with-consent-with-date-modified": null,
       "booking-partner-openid-authentication": true,

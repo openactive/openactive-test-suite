@@ -1,8 +1,8 @@
 {
   "category": "terms",
-  "identifier": "terms-of-service",
+  "identifier": "terms-of-service-for-booking-system",
   "name": "termsOfService without requiresExplicitConsent",
-  "description": "Displaying terms of service, without requiring consent",
+  "description": "Displaying terms of service of the Booking System, without requiring consent",
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#delivery-of-terms-and-conditions-and-privacy-policy",
   "required": false,

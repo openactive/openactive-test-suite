@@ -5,11 +5,18 @@
         "authentication": {
           "initialAccessToken": null,
           "ordersFeedRequestHeaders": {
-            "X-OpenActive-Test-Client-Id": "test"
+            "X-OpenActive-Test-Client-Id": "booking-partner-1"
           }
         }
       },
-      "secondary": null
+      "secondary": {
+        "authentication": {
+          "initialAccessToken": null,
+          "ordersFeedRequestHeaders": {
+            "X-OpenActive-Test-Client-Id": "booking-partner-2"
+          }
+        }
+      }
     }
   },
   "integrationTests": {
@@ -29,7 +36,7 @@
       "authentication": {
         "loginCredentials": null,
         "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
+          "X-OpenActive-Test-Client-Id": "booking-partner-1",
           "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/seller"
         }
       }

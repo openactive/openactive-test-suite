@@ -12,7 +12,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-paid',
   testName: 'Successful booking with payment property',
-  testDescription: 'A successful end to end booking with the `payment` property included.',
+  testDescription: 'A successful end to end booking with the `payment` property included. If features `prepayment-optional` or `prepayment-unavailable` have been implemented then `openBookingPrepayment` in `totalPaymentDue` should be `https://openactive.io/Required` in this test, otherwise it should not be included in the `totalPaymentDue` (as it is required by default).',
   testOpportunityCriteria,
   controlOpportunityCriteria: 'TestOpportunityBookable',
   // temporarily disable control in multiple mode until refactoring complete

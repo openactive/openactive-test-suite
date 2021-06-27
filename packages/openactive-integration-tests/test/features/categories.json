@@ -42,6 +42,7 @@
     "cancellation": {
       "cancellation-window": true,
       "customer-requested-cancellation": true,
+      "customer-requested-cancellation-always-allowed": true,
       "seller-requested-cancellation": true,
       "seller-requested-cancellation-message": true,
       "seller-requested-replacement": true
@@ -81,7 +82,8 @@
       "business-to-consumer-tax-calculation-net": true
     },
     "terms": {
-      "terms-of-service": true,
+      "terms-of-service-for-booking-system": true,
+      "terms-of-service-for-seller": true,
       "terms-of-service-with-consent": true,
       "terms-of-service-with-consent-with-date-modified": true
     }

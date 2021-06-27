@@ -101,6 +101,10 @@
       "implementedTestFiles": 6,
       "notImplementedTestFiles": 0
     },
+    "customer-requested-cancellation-always-allowed": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
     "seller-requested-cancellation": {
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
@@ -150,7 +154,7 @@
       "notImplementedTestFiles": 0
     },
     "change-of-logistics-notifications": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 0
     },
     "customer-notice-notifications": {
@@ -213,8 +217,12 @@
       "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
     },
-    "terms-of-service": {
-      "implementedTestFiles": 2,
+    "terms-of-service-for-booking-system": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "terms-of-service-for-seller": {
+      "implementedTestFiles": 1,
       "notImplementedTestFiles": 0
     },
     "terms-of-service-with-consent": {

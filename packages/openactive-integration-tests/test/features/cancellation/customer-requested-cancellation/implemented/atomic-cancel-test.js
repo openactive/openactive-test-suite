@@ -3,6 +3,8 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
+const { IMPLEMENTED_FEATURES } = global;
+
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
   testFeature: 'customer-requested-cancellation',
@@ -10,6 +12,8 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'atomic-cancel',
   testName: 'Successful booking and successful cancellation after atomic failed cancellation request',
   testDescription: 'After a successful booking, and an unsuccessful but atomic cancellation request, successfully cancel, including checking the Orders feed. Atomic means that the cancellation request either entirely succeeds (all OrderItems items are cancelled) or entirely fails (no OrderItems are cancelled), which is generally best achieved by wrapping code in a database transaction.',
+  // Note TestOpportunityBookableNotCancellable is unavailable if Customer Requested Cancellation is always available
+  runOnlyIf: !IMPLEMENTED_FEATURES['customer-requested-cancellation-always-allowed'],
   // Single Opportunity Criteria is overridden here as this test must have three Order Items
   singleOpportunityCriteriaTemplate: (opportunityType, bookingFlow) => [
     {

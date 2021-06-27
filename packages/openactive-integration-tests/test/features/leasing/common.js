@@ -130,7 +130,7 @@ function itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientC
   numIsReservedByLeaseError,
   numHasInsufficientCapacityError,
 }) {
-  it('should return correct numbers of OpportunityCapacityIsReservedByLeaseError and OpportunityHasInsufficientCapacityError', () => {
+  it(numIsReservedByLeaseError === 1 && numHasInsufficientCapacityError === 0 ? 'should include an OpportunityCapacityIsReservedByLeaseError in the OrderItems' : 'should include correct numbers of OpportunityCapacityIsReservedByLeaseError and OpportunityHasInsufficientCapacityError in the OrderItems', () => {
     const errors = flowStage.getOutput().httpResponse.body.orderedItem.map(oi => (
       oi.error && oi.error[0] && oi.error[0]['@type']));
     const factor = errors.length / batchMultiplier;

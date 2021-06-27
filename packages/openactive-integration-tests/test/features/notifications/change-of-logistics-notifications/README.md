@@ -11,7 +11,7 @@ Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x12
 
 
 ### Running tests for only this feature
@@ -36,6 +36,8 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [change-of-logistics-notifications](./implemented/change-of-logistics-notifications-test.js) | Updating logistics information in after B request. | ChangeOfLogisticsSimulateAction triggered after B request to update name, time, or location properties of Opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [change-of-logistics-notifications-location](./implemented/change-of-logistics-notifications-location-test.js) | Updating location information after B request. | ChangeOfLogisticsLocationSimulateAction triggered after B request to update the `location` property of the Opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [change-of-logistics-notifications-name](./implemented/change-of-logistics-notifications-name-test.js) | Updating name information after B request. | ChangeOfLogisticsNameSimulateAction triggered after B request to update the `name` property of the Opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [change-of-logistics-notifications-time](./implemented/change-of-logistics-notifications-time-test.js) | Updating time information after B request. | ChangeOfLogisticsTimeSimulateAction triggered after B request to update the time properties of the Opportunity (e.g. `startDate`). | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 

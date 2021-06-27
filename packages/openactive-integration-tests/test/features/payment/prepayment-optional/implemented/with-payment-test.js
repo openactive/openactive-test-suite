@@ -10,7 +10,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'prepayment-optional',
   testFeatureImplemented: true,
   testIdentifier: 'with-payment',
-  testName: 'Prepayment optional, with payment supplied, is successful',
+  testName: 'Prepayment optional, with `payment` supplied, is successful',
   testDescription: 'Opportunity paid, prepayment optional',
   testOpportunityCriteria,
   controlOpportunityCriteria: 'TestOpportunityBookable',
