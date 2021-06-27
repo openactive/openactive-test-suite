@@ -48,15 +48,15 @@ function runChangeOfLogisticsTests({ actionType }) {
             x => accessorAggregator(x, x => opportunityInheritanceAccessor(x, x => x?.location), [
               x => x?.name,
               x => accessorAggregator(x, x => x?.geo, [
-                x => x.latitude,
-                x => x.longitude,
+                x => x?.latitude,
+                x => x?.longitude,
               ]),
               x => accessorAggregator(x, x => x?.address, [
-                x => x.streetAddress,
-                x => x.addressLocality,
-                x => x.addressRegion,
-                x => x.postalCode,
-                x => x.addressCountry,
+                x => x?.streetAddress,
+                x => x?.addressLocality,
+                x => x?.addressRegion,
+                x => x?.postalCode,
+                x => x?.addressCountry,
               ]),
             ]),
           ]),
