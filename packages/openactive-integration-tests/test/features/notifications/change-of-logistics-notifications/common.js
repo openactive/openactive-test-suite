@@ -9,7 +9,7 @@ const { TestRecipes } = require('../../../shared-behaviours/test-recipes');
  * }} runChangeOfLogisticsTestsParams
  */
 function runChangeOfLogisticsTests({ actionType }) {
-  return TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
+  return TestRecipes.simulateChangeOfLogisticsActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
     { actionType },
     ({ b, orderFeedUpdate, orderItemCriteriaList }) => {
       const opportunityInheritanceAccessor = (opportunity, accessor) => accessor(opportunity)
