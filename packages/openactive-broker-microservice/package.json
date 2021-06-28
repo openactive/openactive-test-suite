@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.52",
-    "@openactive/data-models": "^2.0.236",
+    "@openactive/data-models": "^2.0.240",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
     "@openactive/rpde-validator": "^2.0.9",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",

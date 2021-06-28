@@ -91,6 +91,18 @@ const argv = yargs(process.argv.slice(2))
       description: 'Password of the Seller',
       default: 'test',
     },
+    usernameFieldSelector: {
+      type: 'string',
+      alias: 'l',
+      description: 'CSS selector for the username field',
+      default: "[name='username' i]",
+    },
+    passwordFieldSelector: {
+      type: 'string',
+      alias: 'l',
+      description: 'CSS selector for the password field',
+      default: "[name='password' i]",
+    },
     loginPageButtonSelector: {
       type: 'string',
       alias: 'l',
@@ -105,7 +117,11 @@ const argv = yargs(process.argv.slice(2))
     // Set up brower automation service
     const app = express();
     app.use(express.json());
-    setupBrowserAutomationRoutes(app, argv.loginPageButtonSelector);
+    setupBrowserAutomationRoutes(app, {
+      username: argv.usernameFieldSelector,
+      password: argv.passwordFieldSelector,
+      button: argv.loginPageButtonSelector,
+    });
 
     const server = http.createServer(app);
     server.on('error', onError);

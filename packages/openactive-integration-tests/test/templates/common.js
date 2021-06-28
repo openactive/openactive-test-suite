@@ -128,6 +128,18 @@ function createOrderIntakeFormResponse(orderIntakeForm, isResponseValid) {
           value: 'An appropriate answer to the question asked.',
         };
       }
+      case 'FileUploadFormFieldSpecification': {
+        if (!isResponseValid) {
+          return {
+            ...propertyValue,
+            value: true, // value not being a string is the invalid response for these types
+          };
+        }
+        return {
+          ...propertyValue,
+          value: 'https://www.example.com/file/url',
+        };
+      }
       default: return propertyValue;
     }
   });

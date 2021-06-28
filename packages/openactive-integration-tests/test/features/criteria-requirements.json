@@ -112,6 +112,7 @@
         "TestOpportunityBookable": 4
       }
     },
+    "customer-requested-cancellation-always-allowed": {},
     "seller-requested-cancellation": {
       "primary": {
         "TestOpportunityBookable": 4
@@ -179,7 +180,7 @@
     },
     "change-of-logistics-notifications": {
       "primary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 12
       }
     },
     "customer-notice-notifications": {
@@ -260,9 +261,13 @@
         "TestOpportunityBookableNonFreeTaxNet": 4
       }
     },
-    "terms-of-service": {
+    "terms-of-service-for-booking-system": {
       "primary": {
-        "TestOpportunityBookable": 4,
+        "TestOpportunityBookable": 4
+      }
+    },
+    "terms-of-service-for-seller": {
+      "primary": {
         "TestOpportunityBookableSellerTermsOfService": 4
       }
     },
