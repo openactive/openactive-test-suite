@@ -70,8 +70,11 @@ FeatureHelper.describeFeature(module, {
   });
 
   describe('with secondary booking partner', () => {
-    // TODO TODO TODO also need to check uuid is not currently in orders feed
-
+    // TODO implement this mf
+    const ensureUuidNotInFeed = new EnsureUuidNotInFeed({
+      ...defaultFlowStageParams,
+      uuid,
+    });
     // ## Flow Stages
     const {
       fetchOpportunities,
@@ -83,6 +86,7 @@ FeatureHelper.describeFeature(module, {
     } = createBookAndCancelFlowStages('primary');
 
     // ## Tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(ensureUuidNotInFeed);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
