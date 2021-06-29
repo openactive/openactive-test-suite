@@ -15,6 +15,9 @@ const { MICROSERVICE_BASE_URL } = require('./apiConfig');
  * @property {() => void} cancel
  */
 
+/**
+ * Broker's internal state.
+ */
 const state = {
   // MISC
   startTime: new Date(),
