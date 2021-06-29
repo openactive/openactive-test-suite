@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 const express = require('express');
 const http = require('http');
 const logger = require('morgan');
@@ -1683,25 +1682,6 @@ setTimeout(() => {
     throw new Error(message);
   }
 }, 3600000); // 3600000 ms = 1 hour
-
-/**
- * Normalize a port into a number, string, or false.
- */
-function normalizePort(val) {
-  const integerPort = parseInt(val, 10);
-
-  if (Number.isNaN(integerPort)) {
-    // named pipe
-    return val;
-  }
-
-  if (integerPort >= 0) {
-    // port number
-    return integerPort;
-  }
-
-  return false;
-}
 
 /**
  * Event listener for HTTP server "error" event.
