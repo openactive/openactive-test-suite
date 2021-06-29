@@ -449,7 +449,8 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
         // If 404, simply stop polling feed
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
         multibar.remove(progressbar);
-        if (feedIdentifier !== ORDER_PROPOSALS_FEED_IDENTIFIER) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedIdentifier} page "${url}", feed will be ignored.`);
+        feedContextMap.delete(feedIdentifier);
+        if (feedIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedIdentifier} page "${url}", feed will be ignored.`);
         return;
       } else {
         logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE feed ${feedIdentifier} page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
