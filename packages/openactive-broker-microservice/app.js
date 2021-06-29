@@ -525,7 +525,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
       // Remove the feed from the list
       state.incompleteFeeds.splice(index, 1);
 
-      // If the list is now empty, trigger state.pendingGetOpportunityResponses to healthcheck
+      // If all feeds are now completed, trigger responses to healthcheck
       if (state.incompleteFeeds.length === 0) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
