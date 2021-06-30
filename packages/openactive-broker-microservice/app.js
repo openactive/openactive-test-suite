@@ -30,57 +30,47 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
-const config = require('config');
 const AsyncValidatorWorker = require('./src/validator/async-validator');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./src/util/log');
-const { PORT, MICROSERVICE_BASE_URL } = require('./src/apiConfig');
-const { state, getTestDataset, getAllDatasets, addFeed } = require('./src/state');
+const {
+  PORT,
+  MICROSERVICE_BASE_URL,
+  VALIDATE_ONLY,
+  ITEM_VALIDATION_MODE,
+  DATASET_SITE_URL,
+  REQUEST_LOGGING_ENABLED,
+  WAIT_FOR_HARVEST,
+  VERBOSE,
+  OUTPUT_PATH,
+  IS_RUNNING_IN_CI,
+  USE_RANDOM_OPPORTUNITIES,
+  HARVEST_START_TIME,
+  ORDERS_FEED_IDENTIFIER,
+  ORDER_PROPOSALS_FEED_IDENTIFIER,
+  OPPORTUNITY_FEED_REQUEST_HEADERS,
+  DATASET_DISTRIBUTION_OVERRIDE,
+  DO_NOT_FILL_BUCKETS,
+  DO_NOT_HARVEST_ORDERS_FEED,
+  DISABLE_BROKER_TIMEOUT,
+  LOG_AUTH_CONFIG,
+  BUTTON_SELECTORS,
+  CONSOLE_OUTPUT_LEVEL,
+  HEADLESS_AUTH,
+  VALIDATOR_TMP_DIR,
+} = require('./src/broker-config');
+const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners-api');
+const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
+const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 
 /**
- * @typedef {'orders' | 'order-proposals'} OrderFeedType
- * @typedef {'primary' | 'secondary'} BookingPartnerIdentifier
- * @typedef {import('./src/models/FeedContext').FeedContext} FeedContext
+ * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
+ * @typedef {import('./src/models/core').BookingPartnerIdentifier} BookingPartnerIdentifier
+ * @typedef {import('./src/models/core').FeedContext} FeedContext
  */
 
 const markdown = new Remarkable();
-
-const VALIDATE_ONLY = process.argv.includes('--validate-only');
-const ITEM_VALIDATION_MODE = VALIDATE_ONLY ? 'RPDEFeed' : 'BookableRPDEFeed';
-
-const DATASET_SITE_URL = VALIDATE_ONLY ? process.argv[3] : config.get('broker.datasetSiteUrl');
-const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
-const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarvestCompletion');
-const VERBOSE = config.get('broker.verbose');
-const OUTPUT_PATH = config.get('broker.outputPath');
-const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
-// TODO: move this property to the root of the config
-const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
-
-const HARVEST_START_TIME = (new Date()).toISOString();
-const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
-const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
-
-// These options are not recommended for general use, but are available for specific test environment configuration and debugging
-const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
-const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
-const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
-const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
-const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
-const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
-
-const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('broker.loginPagesSelectors') : {
-  username: "[name='username' i]",
-  password: "[name='password' i]",
-  button: '.btn-primary',
-};
-const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
-
-const HEADLESS_AUTH = true;
-
-// Note this is duplicated between app.js and validator.js, for efficiency
-const VALIDATOR_TMP_DIR = './tmp';
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
@@ -190,18 +180,6 @@ async function renderTemplate(templateName, data) {
  * @returns {() => Promise<Object.<string, string>>}
  */
 function withOpportunityRpdeHeaders(getHeadersFn) {
-  return async () => ({
-    Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
-    'Cache-Control': 'max-age=0',
-    ...await getHeadersFn() || {},
-  });
-}
-
-/**
- * @param {() => Promise<Object.<string, string>>} getHeadersFn
- * @returns {() => Promise<Object.<string, string>>}
- */
-function withOrdersRpdeHeaders(getHeadersFn) {
   return async () => ({
     Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
@@ -658,22 +636,22 @@ function getConfig() {
   };
 }
 
-/**
- * @param {string} bookingPartnerIdentifier
- */
-function getOrdersFeedHeader(bookingPartnerIdentifier) {
-  return async () => {
-    await state.globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
-    const accessToken = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.orderFeedTokenSet?.access_token;
-    const requestHeaders = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.ordersFeedRequestHeaders;
-    return {
-      ...(!accessToken ? undefined : {
-        Authorization: `Bearer ${accessToken}`,
-      }),
-      ...requestHeaders,
-    };
-  };
-}
+// /**
+//  * @param {string} bookingPartnerIdentifier
+//  */
+// function getOrdersFeedHeader(bookingPartnerIdentifier) {
+//   return async () => {
+//     await state.globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
+//     const accessToken = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.orderFeedTokenSet?.access_token;
+//     const requestHeaders = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.ordersFeedRequestHeaders;
+//     return {
+//       ...(!accessToken ? undefined : {
+//         Authorization: `Bearer ${accessToken}`,
+//       }),
+//       ...requestHeaders,
+//     };
+//   };
+// }
 
 // Config endpoint used to get global variables within the integration tests
 app.get('/config', async function (req, res) {
@@ -879,62 +857,67 @@ function handleListeners(type, id, item) {
   }
 }
 
-app.post('/listeners/:type/:id', async function (req, res) {
-  const { type, id } = req.params;
-  const bookingPartnerIdentifier = 'primary'; // TODO: Allow listening to the feed of either booking partner
-  const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
-  if (!id) {
-    return res.status(400).json({
-      error: 'id is required',
-    });
-  }
-  if (DO_NOT_HARVEST_ORDERS_FEED && isForOrdersFeed) {
-    return res.status(403).json({
-      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in the test suite configuration.',
-    });
-  }
-  if (state.orderUuidListeners.has(listenerId)) {
-    return res.status(409).send({
-      error: `The ${idName} "${id}" already has a listener registered. The same ${idName} must not be used across multiple tests, or listened for multiple times concurrently within the same test.`,
-    });
-  }
-  state.orderUuidListeners.set(listenerId, {
-    item: null, collectRes: null,
-  });
-  if (isForOrdersFeed) {
-    const feedContext = state.feedContextMap.get(orderFeedIdentifier(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier));
-    return res.status(200).send({
-      headers: await withOrdersRpdeHeaders(getOrdersFeedHeader('primary'))(),
-      startingFeedPage: feedContext?.currentPage,
-      message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
-    });
-  }
-  return res.status(204).send();
-});
+// app.post('/listeners/:type/:id', async function (req, res) {
+//   const { type, id } = req.params;
+//   const bookingPartnerIdentifier = 'primary'; // TODO: Allow listening to the feed of either booking partner
+//   const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
+//   if (!id) {
+//     return res.status(400).json({
+//       error: 'id is required',
+//     });
+//   }
+//   if (DO_NOT_HARVEST_ORDERS_FEED && isForOrdersFeed) {
+//     return res.status(403).json({
+//       error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in the test suite configuration.',
+//     });
+//   }
+//   if (state.orderUuidListeners.has(listenerId)) {
+//     return res.status(409).send({
+//       error: `The ${idName} "${id}" already has a listener registered. The same ${idName} must not be used across multiple tests, or listened for multiple times concurrently within the same test.`,
+//     });
+//   }
+//   state.orderUuidListeners.set(listenerId, {
+//     item: null, collectRes: null,
+//   });
+//   if (isForOrdersFeed) {
+//     const feedContext = state.feedContextMap.get(orderFeedContextIdentifier(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier));
+//     return res.status(200).send({
+//       headers: await withOrdersRpdeHeaders(getOrdersFeedHeader('primary'))(),
+//       startingFeedPage: feedContext?.currentPage,
+//       message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
+//     });
+//   }
+//   return res.status(204).send();
+// });
 
-app.get('/listeners/:type/:id', function (req, res) {
-  const { type, id } = req.params;
-  const { listenerId, idName } = getListenerInfo(type, id);
-  if (!id) {
-    res.status(400).json({
-      error: 'id is required',
-    });
-  } else if (state.orderUuidListeners.get(listenerId)) {
-    const { item } = state.orderUuidListeners.get(listenerId);
-    if (!item) {
-      state.orderUuidListeners.set(listenerId, {
-        item: null, collectRes: res,
-      });
-    } else {
-      res.json(item);
-      state.orderUuidListeners.delete(listenerId);
-    }
-  } else {
-    res.status(404).json({
-      error: `Listener for ${idName} "${id}" not found`,
-    });
-  }
-});
+app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
+app.get('/opportunity-listeners/:id', getOpportunityListenerApi);
+app.post('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', createOrderListenerApi);
+app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListenerApi);
+
+// app.get('/listeners/:type/:id', function (req, res) {
+//   const { type, id } = req.params;
+//   const { listenerId, idName } = getListenerInfo(type, id);
+//   if (!id) {
+//     res.status(400).json({
+//       error: 'id is required',
+//     });
+//   } else if (state.orderUuidListeners.get(listenerId)) {
+//     const { item } = state.orderUuidListeners.get(listenerId);
+//     if (!item) {
+//       state.orderUuidListeners.set(listenerId, {
+//         item: null, collectRes: res,
+//       });
+//     } else {
+//       res.json(item);
+//       state.orderUuidListeners.delete(listenerId);
+//     }
+//   } else {
+//     res.status(404).json({
+//       error: `Listener for ${idName} "${id}" not found`,
+//     });
+//   }
+// });
 
 app.get('/opportunity/:id', function (req, res) {
   const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
@@ -1476,10 +1459,6 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
   }
 }
 
-function orderFeedIdentifier(feedIdentifier, bookingPartnerIdentifier) {
-  return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
-}
-
 async function startPolling() {
   await mkdirp(VALIDATOR_TMP_DIR);
   await mkdirp(OUTPUT_PATH);
@@ -1615,13 +1594,13 @@ Validation errors found in Dataset Site JSON-LD:
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
-        feedContextIdentifier: orderFeedIdentifier(ORDERS_FEED_IDENTIFIER, bookingPartnerIdentifier),
+        feedContextIdentifier: orderFeedContextIdentifier(ORDERS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
       {
         feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
         type: /** @type {OrderFeedType} */('order-proposals'),
-        feedContextIdentifier: orderFeedIdentifier(ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier),
+        feedContextIdentifier: orderFeedContextIdentifier(ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
     ])) {

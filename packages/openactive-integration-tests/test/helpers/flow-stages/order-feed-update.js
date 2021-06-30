@@ -54,7 +54,9 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
-  await requestHelper.postFeedChangeListener(orderFeedType, uuid);
+  // TODO allow specification of bookingPartnerIdentifier
+  await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid);
+  // await requestHelper.postFeedChangeListener(orderFeedType, uuid);
   return {};
 }
 
@@ -70,7 +72,9 @@ async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failE
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
-  const response = await requestHelper.getFeedChangeCollection(orderFeedType, uuid);
+  // TODO allow specification of bookingPartnerIdentifier
+  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
+  // const response = await requestHelper.getFeedChangeCollection(orderFeedType, uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {

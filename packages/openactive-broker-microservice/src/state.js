@@ -3,16 +3,22 @@ const config = require('config');
 const PauseResume = require('./util/pause-resume');
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { log } = require('./util/log');
-const { MICROSERVICE_BASE_URL } = require('./apiConfig');
+const { MICROSERVICE_BASE_URL } = require('./broker-config');
 
 /**
- * @typedef {import('./models/FeedContext').FeedContext} FeedContext
+ * @typedef {import('./models/core').FeedContext} FeedContext
  * @typedef {import('./validator/async-validator')} AsyncValidatorWorker
  */
 /**
  * @typedef {object} PendingResponse
  * @property {(json: any) => void} send
  * @property {() => void} cancel
+ */
+/**
+ * @typedef {{
+ *   item: any | null,
+ *   collectRes: import('express').Response | null,
+ * }} Listener
  */
 
 /**
@@ -63,14 +69,37 @@ const state = {
    * Maps Order UUIDs to a "Listener" object, which can be used to return an API response to the client which is
    * requesting this Order UUID.
    *
-   * @typedef {{
-   *   item: any,
-   *   collectRes: import('express').Response | null,
-   * }} Listener
+   * When Broker gets a request to listen for a particular Opportunity or Order, it creates a "Listener" object,
+   * which can later be used to return an API response to the client which is listening for this item.
    *
-   * @type {Map<string, Listener>}
+   * `listeners` maps Listener ID => a "Listener" object, which can be used to return an API response to the client
+   * which is listening for this item.
+   *
+   * A "Listener ID" takes either of the forms:
+   *
+   * - `opportunities::{opportunityID}`
+   * - `orders::{bookingPartnerIdentifier}::{orderUuid}` e.g. `orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7`
+   * - `order-proposals::{bookingPartnerIdentifier}::{orderUuid}`
    */
-  orderUuidListeners: new Map(),
+  // listeners: new Map(),
+  // // orderUuidListeners: new Map(),
+  listeners: {
+    /**
+     * Maps `{type}::{bookingPartnerIdentifier}::{orderUuid}` to a "Listener" where `type` is one of `orders` or
+     * `order-proposals`.
+     *
+     * e.g. `Map { 'orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7' => { item: ... }, ... }`
+     *
+     * @type {Map<string, Listener>}
+     */
+    byOrderUuid: new Map(),
+    /**
+     * Maps Opportunity ID to a "Listener"
+     *
+     * @type {Map<string, Listener>}
+     */
+    byOpportunityId: new Map(),
+  },
   // VALIDATION
   /**
    * Workers which perform the validation. Validation is quite expensive, so we do it with a parallel work queue.
@@ -128,9 +157,55 @@ function addFeed(feedIdentifier) {
   state.incompleteFeeds.push(feedIdentifier);
 }
 
+/**
+ * Identifier for an Order Feed in feedContextMap. Each Booking Partner has a separate Orders Feed
+ *
+ * @param {string} feedIdentifier
+ * @param {string} bookingPartnerIdentifier
+ */
+function orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier) {
+  return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
+}
+
+const Listeners = {
+  /**
+   * @param {import('../app').OrderFeedType} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   */
+  getOrderListenerId(type, bookingPartnerIdentifier, uuid) {
+    return `${type}::${bookingPartnerIdentifier}::${uuid}`;
+  },
+  /**
+   * Listener that has just been created.
+   *
+   * @returns {Listener}
+   */
+  createNewListener() {
+    return {
+      item: null,
+      collectRes: null,
+    };
+  },
+  /**
+   * Listener which is awaiting response from a Broker API client.
+   *
+   * @param {import('express').Response} res
+   * @returns {Listener}
+   */
+  createPendingListener(res) {
+    return {
+      item: null,
+      collectRes: res,
+    };
+  },
+};
+
 module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
   addFeed,
+  orderFeedContextIdentifier,
+  Listeners,
 };
