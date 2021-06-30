@@ -248,47 +248,6 @@ class RequestHelper {
     );
   }
 
-  // /**
-  //  * @param {'opportunities' | 'orders' | 'order-proposals'} type
-  //  * @param {string} id
-  //  * @param {number} [orderItemPosition]
-  //  */
-  // async postFeedChangeListener(type, id, orderItemPosition) {
-  //   const respObj = await this.post(
-  //     (type === 'orders' || type === 'order-proposals')
-  //       ? `Orders Feed listen for '${id}' change`
-  //       : `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
-  //     `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
-  //     null,
-  //     BROKER_CHAKRAM_REQUEST_OPTIONS,
-  //   );
-
-  //   return respObj;
-  // }
-
-  // /**
-  //  * @param {'opportunities' | 'orders' | 'order-proposals'} type
-  //  * @param {string} id
-  //  * @param {number} [orderItemPosition]
-  //  */
-  // async getFeedChangeCollection(type, id, orderItemPosition) {
-  //   const respObj = await this.get(
-  //     (type === 'orders' || type === 'order-proposals')
-  //       ? `Orders Feed collect for '${id}' change`
-  //       : `Opportunity Feed collect for OrderItem ${orderItemPosition} change`,
-  //     `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
-  //     BROKER_CHAKRAM_REQUEST_OPTIONS,
-  //     {
-  //       feedExtract: {
-  //         id,
-  //         type,
-  //       },
-  //     },
-  //   );
-
-  //   return respObj;
-  // }
-
   async getDatasetSite() {
     const respObj = await this.get(
       'Dataset Site Cached Proxy',

@@ -637,23 +637,6 @@ function getConfig() {
   };
 }
 
-// /**
-//  * @param {string} bookingPartnerIdentifier
-//  */
-// function getOrdersFeedHeader(bookingPartnerIdentifier) {
-//   return async () => {
-//     await state.globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
-//     const accessToken = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.orderFeedTokenSet?.access_token;
-//     const requestHeaders = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.ordersFeedRequestHeaders;
-//     return {
-//       ...(!accessToken ? undefined : {
-//         Authorization: `Bearer ${accessToken}`,
-//       }),
-//       ...requestHeaders,
-//     };
-//   };
-// }
-
 // Config endpoint used to get global variables within the integration tests
 app.get('/config', async function (req, res) {
   await state.globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
@@ -1321,7 +1304,6 @@ async function processOpportunityItem(item) {
     }
 
     doNotifyOpportunityListener(id, item);
-    // handleListeners('opportunities', id, item);
   }
 }
 
@@ -1335,7 +1317,6 @@ function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
     for (const item of rpdePage.items) {
       if (item.id) {
         doNotifyOrderListener(orderFeedType, bookingPartnerIdentifier, item.id, item);
-        // handleListeners(orderFeedType, item.id, item);
       }
     }
   };

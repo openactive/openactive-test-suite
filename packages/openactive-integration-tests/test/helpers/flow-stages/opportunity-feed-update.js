@@ -98,7 +98,6 @@ async function runOpportunityFeedUpdateCollector({ testInterfaceOpportunities, r
     // Only attempt getMatch if test interface response was successful
     if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
       return await requestHelper.getOpportunityFeedChangeCollection(testInterfaceOpportunity.body['@id'], i);
-      // return await requestHelper.getFeedChangeCollection('opportunities', testInterfaceOpportunity.body['@id'], i);
     }
     return null;
   }));
@@ -138,7 +137,6 @@ async function setupListenersForOpportunities({ testInterfaceOpportunities, requ
     // Only attempt getMatch if test interface response was successful
     if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
       await requestHelper.postOpportunityFeedChangeListener(testInterfaceOpportunity.body['@id'], i);
-      // await requestHelper.postFeedChangeListener('opportunities', testInterfaceOpportunity.body['@id'], i);
     }
   }
 

@@ -56,7 +56,6 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
   }
   // TODO allow specification of bookingPartnerIdentifier
   await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid);
-  // await requestHelper.postFeedChangeListener(orderFeedType, uuid);
   return {};
 }
 
@@ -74,7 +73,6 @@ async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failE
   }
   // TODO allow specification of bookingPartnerIdentifier
   const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
-  // const response = await requestHelper.getFeedChangeCollection(orderFeedType, uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {
