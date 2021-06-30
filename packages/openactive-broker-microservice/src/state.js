@@ -1,12 +1,13 @@
 const { OpenActiveTestAuthKeyManager } = require('@openactive/openactive-openid-test-client');
 const config = require('config');
+const { Listeners } = require('./listeners/listeners');
 const PauseResume = require('./util/pause-resume');
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { log } = require('./util/log');
-const { MICROSERVICE_BASE_URL } = require('./apiConfig');
+const { MICROSERVICE_BASE_URL } = require('./broker-config');
 
 /**
- * @typedef {import('./models/FeedContext').FeedContext} FeedContext
+ * @typedef {import('./models/core').FeedContext} FeedContext
  * @typedef {import('./validator/async-validator')} AsyncValidatorWorker
  */
 /**
@@ -63,14 +64,31 @@ const state = {
    * Maps Order UUIDs to a "Listener" object, which can be used to return an API response to the client which is
    * requesting this Order UUID.
    *
-   * @typedef {{
-   *   item: any,
-   *   collectRes: import('express').Response | null,
-   * }} Listener
+   * When Broker gets a request to listen for a particular Opportunity or Order, it creates a "Listener" object,
+   * which can later be used to return an API response to the client which is listening for this item.
    *
-   * @type {Map<string, Listener>}
+   * `listeners` maps Listener ID => a "Listener" object, which can be used to return an API response to the client
+   * which is listening for this item.
+   *
+   * A "Listener ID" takes either of the forms:
+   *
+   * - `opportunities::{opportunityID}`
+   * - `orders::{bookingPartnerIdentifier}::{orderUuid}` e.g. `orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7`
+   * - `order-proposals::{bookingPartnerIdentifier}::{orderUuid}`
    */
-  orderUuidListeners: new Map(),
+  listeners: {
+    /**
+     * Maps `{type}::{bookingPartnerIdentifier}::{orderUuid}` to a "Listener" where `type` is one of `orders` or
+     * `order-proposals`.
+     *
+     * e.g. `Map { 'orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7' => { item: ... }, ... }`
+     */
+    byOrderUuid: Listeners.createListenersMap(),
+    /**
+     * Maps Opportunity ID to a "Listener"
+     */
+    byOpportunityId: Listeners.createListenersMap(),
+  },
   // VALIDATION
   /**
    * Workers which perform the validation. Validation is quite expensive, so we do it with a parallel work queue.
@@ -128,9 +146,20 @@ function addFeed(feedIdentifier) {
   state.incompleteFeeds.push(feedIdentifier);
 }
 
+/**
+ * Identifier for an Order Feed in feedContextMap. Each Booking Partner has a separate Orders Feed
+ *
+ * @param {string} feedIdentifier
+ * @param {string} bookingPartnerIdentifier
+ */
+function orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier) {
+  return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
+}
+
 module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
   addFeed,
+  orderFeedContextIdentifier,
 };

@@ -1,3 +1,6 @@
+export type OrderFeedType = 'orders' | 'order-proposals';
+export type BookingPartnerIdentifier = 'primary' | 'secondary';
+
 export type FeedContext = {
   currentPage: string;
   pages: number;
