@@ -1,11 +1,12 @@
-const { DO_NOT_HARVEST_ORDERS_FEED, ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('./broker-config');
-const { state, Listeners, orderFeedContextIdentifier } = require('./state');
-const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./util/request-utils');
+const { DO_NOT_HARVEST_ORDERS_FEED, ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../broker-config');
+const { state, orderFeedContextIdentifier } = require('../state');
+const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('../util/request-utils');
+const { Listeners } = require('./listeners');
 
 /**
  * @typedef {import('express').Handler} ExpressHandler
- * @typedef {import('./models/core').OrderFeedType} OrderFeedType
- * @typedef {import('./state').Listener} Listener
+ * @typedef {import('../models/core').OrderFeedType} OrderFeedType
+ * @typedef {import('./listeners').Listener} Listener
  */
 
 /**
@@ -65,9 +66,7 @@ function doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId) {
   if (!item) {
     listenersMap.set(listenerId, Listeners.createPendingListener(res));
   } else {
-    // TODO TODO TODO This can use the same function that handleListeners uses with { collectRes: res, item }
-    res.json(item);
-    listenersMap.delete(listenerId);
+    Listeners.doRespondToAndDeleteListener(listenersMap, listenerId, res, item);
   }
   return true;
 }

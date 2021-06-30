@@ -1,5 +1,6 @@
 const { OpenActiveTestAuthKeyManager } = require('@openactive/openactive-openid-test-client');
 const config = require('config');
+const { Listeners } = require('./listeners/listeners');
 const PauseResume = require('./util/pause-resume');
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { log } = require('./util/log');
@@ -13,12 +14,6 @@ const { MICROSERVICE_BASE_URL } = require('./broker-config');
  * @typedef {object} PendingResponse
  * @property {(json: any) => void} send
  * @property {() => void} cancel
- */
-/**
- * @typedef {{
- *   item: any | null,
- *   collectRes: import('express').Response | null,
- * }} Listener
  */
 
 /**
@@ -81,24 +76,18 @@ const state = {
    * - `orders::{bookingPartnerIdentifier}::{orderUuid}` e.g. `orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7`
    * - `order-proposals::{bookingPartnerIdentifier}::{orderUuid}`
    */
-  // listeners: new Map(),
-  // // orderUuidListeners: new Map(),
   listeners: {
     /**
      * Maps `{type}::{bookingPartnerIdentifier}::{orderUuid}` to a "Listener" where `type` is one of `orders` or
      * `order-proposals`.
      *
      * e.g. `Map { 'orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7' => { item: ... }, ... }`
-     *
-     * @type {Map<string, Listener>}
      */
-    byOrderUuid: new Map(),
+    byOrderUuid: Listeners.createListenersMap(),
     /**
      * Maps Opportunity ID to a "Listener"
-     *
-     * @type {Map<string, Listener>}
      */
-    byOpportunityId: new Map(),
+    byOpportunityId: Listeners.createListenersMap(),
   },
   // VALIDATION
   /**
@@ -167,57 +156,10 @@ function orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier) {
   return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
 }
 
-const Listeners = {
-  /**
-   * @param {import('../app').OrderFeedType} type
-   * @param {string} bookingPartnerIdentifier
-   * @param {string} uuid
-   */
-  getOrderListenerId(type, bookingPartnerIdentifier, uuid) {
-    return `${type}::${bookingPartnerIdentifier}::${uuid}`;
-  },
-  /**
-   * Listener that has just been created.
-   *
-   * @returns {Listener}
-   */
-  createNewListener() {
-    return {
-      item: null,
-      collectRes: null,
-    };
-  },
-  /**
-   * Listener which is awaiting response from a Broker API client.
-   *
-   * @param {import('express').Response} res
-   * @returns {Listener}
-   */
-  createPendingListener(res) {
-    return {
-      item: null,
-      collectRes: res,
-    };
-  },
-  /**
-   * Listener whose item has been found but it is not yet awaiting response from a Broker API client.
-   *
-   * @param {Listener['item']} item
-   * @returns {Listener}
-   */
-  createResolvedButNotPendingListener(item) {
-    return {
-      item,
-      collectRes: null,
-    };
-  },
-};
-
 module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
   addFeed,
   orderFeedContextIdentifier,
-  Listeners,
 };

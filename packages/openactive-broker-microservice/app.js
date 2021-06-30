@@ -60,8 +60,9 @@ const {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
 } = require('./src/broker-config');
-const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners-api');
-const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier, Listeners } = require('./src/state');
+const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners/api');
+const { Listeners } = require('./src/listeners/listeners');
+const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 
 /**
@@ -816,19 +817,6 @@ app.get('/opportunity-cache/:id', function (req, res) {
   }
 });
 
-// /**
-//  * @param {string} type
-//  * @param {string} id
-//  */
-// function getListenerInfo(type, id) {
-//   const isForOrdersFeed = (type === 'orders' || type === 'order-proposals');
-//   return {
-//     listenerId: `${type}::${id}`,
-//     isForOrdersFeed,
-//     idName: isForOrdersFeed ? 'UUID' : '@id',
-//   };
-// }
-
 /**
  * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
  *
@@ -838,7 +826,7 @@ app.get('/opportunity-cache/:id', function (req, res) {
  * @param {any} item
  */
 function doNotifyOpportunityListener(id, item) {
-  doNotifyListener(state.listeners.byOpportunityId, id, item);
+  Listeners.doNotifyListener(state.listeners.byOpportunityId, id, item);
 }
 
 /**
@@ -853,124 +841,13 @@ function doNotifyOpportunityListener(id, item) {
  */
 function doNotifyOrderListener(type, bookingPartnerIdentifier, uuid, item) {
   const listenerId = Listeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
-  doNotifyListener(state.listeners.byOrderUuid, listenerId, item);
+  Listeners.doNotifyListener(state.listeners.byOrderUuid, listenerId, item);
 }
-
-/**
- * For an item being harvested from RPDE, check if there is a listeners listening for it.
- *
- * If so, respond to that listener.
- *
- * @param {Map<string, import('./src/state').Listener>} listenersMap
- * @param {string} listenerId
- * @param {any} item
- */
-function doNotifyListener(listenersMap, listenerId, item) {
-  // If there is a listener for this ID, either the listener map needs to be populated with the item or
-  // the collection request must be fulfilled
-  if (listenersMap.has(listenerId)) {
-    const { collectRes } = listenersMap.get(listenerId);
-    // If there's already a collection request, fulfill it
-    if (collectRes) {
-      // TODO TODO TODO This can use the same function that doPendOrRespondToGetListenerRequest uses with { collectRes: res, item }
-      collectRes.json(item);
-      listenersMap.delete(listenerId);
-    } else {
-      // If not, set the opportunity so that it can returned when the collection call arrives
-      listenersMap.set(listenerId, Listeners.createResolvedButNotPendingListener(item));
-    }
-  }
-}
-
-// /**
-//  * For an item being harvested from RPDE, check if there are any listeners listening for it.
-//  *
-//  * If so, respond to those listeners.
-//  *
-//  * @param {'opportunities' | OrderFeedType} type
-//  * @param {string} id
-//  * @param {any} item
-//  */
-// function handleListeners(type, id, item) {
-//   // If there is a listener for this ID, the listener map needs to be populated with either the item or
-//   // the collection request must be fulfilled
-//   const { listenerId } = getListenerInfo(type, id);
-//   if (state.orderUuidListeners.get(listenerId)) {
-//     const { collectRes } = state.orderUuidListeners.get(listenerId);
-//     // If there's already a collection request, fulfill it
-//     if (collectRes) {
-//       collectRes.json(item);
-//       state.orderUuidListeners.delete(listenerId);
-//     } else {
-//       // If not, set the opportunity so that it can returned when the collection call arrives
-//       state.orderUuidListeners.set(listenerId, {
-//         item, collectRes: null,
-//       });
-//     }
-//   }
-// }
-
-// app.post('/listeners/:type/:id', async function (req, res) {
-//   const { type, id } = req.params;
-//   const bookingPartnerIdentifier = 'primary'; // TODO: Allow listening to the feed of either booking partner
-//   const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
-//   if (!id) {
-//     return res.status(400).json({
-//       error: 'id is required',
-//     });
-//   }
-//   if (DO_NOT_HARVEST_ORDERS_FEED && isForOrdersFeed) {
-//     return res.status(403).json({
-//       error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in the test suite configuration.',
-//     });
-//   }
-//   if (state.orderUuidListeners.has(listenerId)) {
-//     return res.status(409).send({
-//       error: `The ${idName} "${id}" already has a listener registered. The same ${idName} must not be used across multiple tests, or listened for multiple times concurrently within the same test.`,
-//     });
-//   }
-//   state.orderUuidListeners.set(listenerId, {
-//     item: null, collectRes: null,
-//   });
-//   if (isForOrdersFeed) {
-//     const feedContext = state.feedContextMap.get(orderFeedContextIdentifier(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier));
-//     return res.status(200).send({
-//       headers: await withOrdersRpdeHeaders(getOrdersFeedHeader('primary'))(),
-//       startingFeedPage: feedContext?.currentPage,
-//       message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
-//     });
-//   }
-//   return res.status(204).send();
-// });
 
 app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
 app.get('/opportunity-listeners/:id', getOpportunityListenerApi);
 app.post('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', createOrderListenerApi);
 app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListenerApi);
-
-// app.get('/listeners/:type/:id', function (req, res) {
-//   const { type, id } = req.params;
-//   const { listenerId, idName } = getListenerInfo(type, id);
-//   if (!id) {
-//     res.status(400).json({
-//       error: 'id is required',
-//     });
-//   } else if (state.orderUuidListeners.get(listenerId)) {
-//     const { item } = state.orderUuidListeners.get(listenerId);
-//     if (!item) {
-//       state.orderUuidListeners.set(listenerId, {
-//         item: null, collectRes: res,
-//       });
-//     } else {
-//       res.json(item);
-//       state.orderUuidListeners.delete(listenerId);
-//     }
-//   } else {
-//     res.status(404).json({
-//       error: `Listener for ${idName} "${id}" not found`,
-//     });
-//   }
-// });
 
 app.get('/opportunity/:id', function (req, res) {
   const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
