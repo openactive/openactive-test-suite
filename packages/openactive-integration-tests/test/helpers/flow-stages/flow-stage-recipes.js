@@ -123,15 +123,15 @@ const FlowStageRecipes = {
     c2ReqTemplateRef = null,
     brokerRole = null,
     taxMode = null,
-    defaultFlowStageParams = null,
+    ...options
   } = {}) {
-    const actualDefaultFlowStageParams = defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
+    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...actualDefaultFlowStageParams,
+      ...defaultFlowStageParams,
       orderItemCriteriaList,
     });
     const c1 = new C1FlowStage({
-      ...actualDefaultFlowStageParams,
+      ...defaultFlowStageParams,
       templateRef: c1ReqTemplateRef,
       brokerRole,
       prerequisite: fetchOpportunities,
@@ -140,7 +140,7 @@ const FlowStageRecipes = {
       }),
     });
     const c2 = new C2FlowStage({
-      ...actualDefaultFlowStageParams,
+      ...defaultFlowStageParams,
       templateRef: c2ReqTemplateRef,
       brokerRole,
       prerequisite: c1,
@@ -155,7 +155,7 @@ const FlowStageRecipes = {
       c2,
       // This is included in the result so that additional stages can be added using
       // these params.
-      defaultFlowStageParams: actualDefaultFlowStageParams,
+      defaultFlowStageParams,
     };
   },
   /**
