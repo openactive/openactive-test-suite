@@ -10,7 +10,7 @@
   },
   "include": [
     "app.js",
-    "src/util/**/*.js",
-    "src/*.js"
+    "src/**/*.js",
+    "src/**/*.d.ts"
   ]
 }
