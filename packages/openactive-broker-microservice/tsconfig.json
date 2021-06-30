@@ -10,9 +10,7 @@
   },
   "include": [
     "app.js",
-    "src/listeners/**/*.js",
-    "src/models/**/*.d.ts",
-    "src/util/**/*.js",
-    "src/*.js"
+    "src/**/*.js",
+    "src/**/*.d.ts"
   ]
 }
