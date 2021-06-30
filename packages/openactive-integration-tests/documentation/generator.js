@@ -99,7 +99,7 @@ const testMetadata = fg.sync(jestConfig.testMatch, { cwd: rootDirectory }).map(f
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
   chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
   // All features in default.json should be true except for customer-requested-cancellation-always-allowed
-  const expectedValue = data.testFeature !== 'customer-requested-cancellation-always-allowed';
+  const expectedValue = data.testFeature !== 'customer-requested-cancellation-always-allowed' && data.testFeature !== 'change-of-logistics-notifications';
   chai.expect(defaultConfig.integrationTests.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "${expectedValue}"'`).to.have.property(data.testFeature).to.equal(expectedValue);
   return data;
 });
