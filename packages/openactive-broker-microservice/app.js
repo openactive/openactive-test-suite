@@ -61,7 +61,7 @@ const {
   VALIDATOR_TMP_DIR,
 } = require('./src/broker-config');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners-api');
-const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
+const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier, Listeners } = require('./src/state');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 
 /**
@@ -816,46 +816,99 @@ app.get('/opportunity-cache/:id', function (req, res) {
   }
 });
 
-/**
- * @param {string} type
- * @param {string} id
- */
-function getListenerInfo(type, id) {
-  const isForOrdersFeed = (type === 'orders' || type === 'order-proposals');
-  return {
-    listenerId: `${type}::${id}`,
-    isForOrdersFeed,
-    idName: isForOrdersFeed ? 'UUID' : '@id',
-  };
-}
+// /**
+//  * @param {string} type
+//  * @param {string} id
+//  */
+// function getListenerInfo(type, id) {
+//   const isForOrdersFeed = (type === 'orders' || type === 'order-proposals');
+//   return {
+//     listenerId: `${type}::${id}`,
+//     isForOrdersFeed,
+//     idName: isForOrdersFeed ? 'UUID' : '@id',
+//   };
+// }
 
 /**
- * For an item being harvested from RPDE, check if there are any listeners listening for it.
+ * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
  *
- * If so, respond to those listeners.
+ * If so, respond to that listener.
  *
- * @param {'opportunities' | OrderFeedType} type
  * @param {string} id
  * @param {any} item
  */
-function handleListeners(type, id, item) {
-  // If there is a listener for this ID, the listener map needs to be populated with either the item or
+function doNotifyOpportunityListener(id, item) {
+  doNotifyListener(state.listeners.byOpportunityId, id, item);
+}
+
+/**
+ * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
+ *
+ * If so, respond to that listener.
+ *
+ * @param {OrderFeedType} type
+ * @param {string} bookingPartnerIdentifier
+ * @param {string} uuid
+ * @param {any} item
+ */
+function doNotifyOrderListener(type, bookingPartnerIdentifier, uuid, item) {
+  const listenerId = Listeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
+  doNotifyListener(state.listeners.byOrderUuid, listenerId, item);
+}
+
+/**
+ * For an item being harvested from RPDE, check if there is a listeners listening for it.
+ *
+ * If so, respond to that listener.
+ *
+ * @param {Map<string, import('./src/state').Listener>} listenersMap
+ * @param {string} listenerId
+ * @param {any} item
+ */
+function doNotifyListener(listenersMap, listenerId, item) {
+  // If there is a listener for this ID, either the listener map needs to be populated with the item or
   // the collection request must be fulfilled
-  const { listenerId } = getListenerInfo(type, id);
-  if (state.orderUuidListeners.get(listenerId)) {
-    const { collectRes } = state.orderUuidListeners.get(listenerId);
+  if (listenersMap.has(listenerId)) {
+    const { collectRes } = listenersMap.get(listenerId);
     // If there's already a collection request, fulfill it
     if (collectRes) {
+      // TODO TODO TODO This can use the same function that doPendOrRespondToGetListenerRequest uses with { collectRes: res, item }
       collectRes.json(item);
-      state.orderUuidListeners.delete(listenerId);
+      listenersMap.delete(listenerId);
     } else {
       // If not, set the opportunity so that it can returned when the collection call arrives
-      state.orderUuidListeners.set(listenerId, {
-        item, collectRes: null,
-      });
+      listenersMap.set(listenerId, Listeners.createResolvedButNotPendingListener(item));
     }
   }
 }
+
+// /**
+//  * For an item being harvested from RPDE, check if there are any listeners listening for it.
+//  *
+//  * If so, respond to those listeners.
+//  *
+//  * @param {'opportunities' | OrderFeedType} type
+//  * @param {string} id
+//  * @param {any} item
+//  */
+// function handleListeners(type, id, item) {
+//   // If there is a listener for this ID, the listener map needs to be populated with either the item or
+//   // the collection request must be fulfilled
+//   const { listenerId } = getListenerInfo(type, id);
+//   if (state.orderUuidListeners.get(listenerId)) {
+//     const { collectRes } = state.orderUuidListeners.get(listenerId);
+//     // If there's already a collection request, fulfill it
+//     if (collectRes) {
+//       collectRes.json(item);
+//       state.orderUuidListeners.delete(listenerId);
+//     } else {
+//       // If not, set the opportunity so that it can returned when the collection call arrives
+//       state.orderUuidListeners.set(listenerId, {
+//         item, collectRes: null,
+//       });
+//     }
+//   }
+// }
 
 // app.post('/listeners/:type/:id', async function (req, res) {
 //   const { type, id } = req.params;
@@ -1390,19 +1443,22 @@ async function processOpportunityItem(item) {
       }
     }
 
-    handleListeners('opportunities', id, item);
+    doNotifyOpportunityListener(id, item);
+    // handleListeners('opportunities', id, item);
   }
 }
 
 /**
  * @param {OrderFeedType} orderFeedType
+ * @param {string} bookingPartnerIdentifier
  * @returns {RpdePageProcessor}
  */
-function monitorOrdersPage(orderFeedType) {
+function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
   return (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
-        handleListeners(orderFeedType, item.id, item);
+        doNotifyOrderListener(orderFeedType, bookingPartnerIdentifier, item.id, item);
+        // handleListeners(orderFeedType, item.id, item);
       }
     }
   };
@@ -1610,7 +1666,9 @@ Validation errors found in Dataset Site JSON-LD:
         feedUrl,
         feedContextIdentifier,
         withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-        feedBookingPartnerIdentifier === 'primary' ? monitorOrdersPage(type) : () => null, // TODO: Allow monitorOrdersPage to handle multiple feedBookingPartnerIdentifier
+        feedBookingPartnerIdentifier === 'primary'
+          ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
+          : () => null,
         true,
         state.multibar,
       ));

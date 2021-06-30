@@ -86,7 +86,7 @@ async function createOrderListenerApi(req, res) {
   const { type, bookingPartnerIdentifier, uuid } = req.params;
   const listenerId = Listeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
   if (!error409IfListenerAlreadyExists(res, state.listeners.byOpportunityId, type, listenerId)) { return; }
-  state.orderUuidListeners.set(listenerId, Listeners.createNewListener());
+  state.listeners.byOrderUuid.set(listenerId, Listeners.createNewListener());
   const feedContext = state.feedContextMap.get(
     orderFeedContextIdentifier(
       type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER,

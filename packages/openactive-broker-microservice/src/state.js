@@ -199,6 +199,18 @@ const Listeners = {
       collectRes: res,
     };
   },
+  /**
+   * Listener whose item has been found but it is not yet awaiting response from a Broker API client.
+   *
+   * @param {Listener['item']} item
+   * @returns {Listener}
+   */
+  createResolvedButNotPendingListener(item) {
+    return {
+      item,
+      collectRes: null,
+    };
+  },
 };
 
 module.exports = {
