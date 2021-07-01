@@ -314,7 +314,6 @@ async function harvestRPDE(
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
           await onFeedEnd();
-          // await setFeedIsUpToDate(feedContextIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
@@ -371,7 +370,6 @@ async function harvestRPDE(
       // Do not wait for the Orders feed if failing (as it might be an auth error)
       if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && isOrdersFeed) {
         onFeedEnd();
-        // setFeedIsUpToDate(feedContextIdentifier);
       }
       if (error instanceof FatalError) {
         // If a fatal error, quit the application immediately
@@ -385,7 +383,7 @@ async function harvestRPDE(
         process.exit(1);
       } else if (error.response?.status === 404) {
         // If 404, simply stop polling feed
-        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) { await onFeedEnd(); } // await setFeedIsUpToDate(feedContextIdentifier);
+        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) { await onFeedEnd(); }
         state.multibar.remove(progressbar);
         state.feedContextMap.delete(feedContextIdentifier);
         if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedContextIdentifier} page "${url}", feed will be ignored.`);

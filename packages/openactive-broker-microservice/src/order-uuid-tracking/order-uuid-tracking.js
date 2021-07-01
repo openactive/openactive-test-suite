@@ -6,25 +6,6 @@ const { orderFeedContextIdentifier } = require('../util/feed-context-identifier'
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType
  */
 
-/**
- * - "Is Order UUID present?"
- *  - state:
- *      - uuidsInOrderFeeds: Map { {feedContextIdentifier} => Set<string> }
- *      - "has reached end of feed?": Map { {feedContextIdentifier} => boolean }
- *  - API:
- *      - GET /is-order-uuid-present/:type/:bpi/:uuid
- *      - If in uuidsInOrderFeeds: return true
- *      - else if "has reached end of feed?": return false
- *      - Set up an "Is Order UUID present?" listener
- *  - On order feed harvest item:
- *      - doNotify (item=true) on "Is Order UUID present?" listeners map
- *  - On end of order feed (setFeedIsUpToDate):
- *      - doNotify (item=false) on any pending "Is Order UUID present?" listeners for this feed (pseudo: `keys().filter(k => k.split('::')[0:2] == ['orders-feed', 'primary'])`)
- *  - As a listener..
- *      - item = boolean
- *      - If item is found, return `true`. If not found and end of feed is reached, return `false`.
- */
-
 const OrderUuidTracking = {
   createState,
   /**
