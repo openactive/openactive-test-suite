@@ -132,7 +132,7 @@
         "TestOpportunityBookable": 1
       },
       "secondary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 5
       }
     },
     "opportunity-feed": {},

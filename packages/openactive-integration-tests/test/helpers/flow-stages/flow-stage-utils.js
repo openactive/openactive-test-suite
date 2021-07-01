@@ -156,10 +156,14 @@ const FlowStageUtils = {
    *
    * @param {object} args
    * @param {BaseLoggerType} args.logger
-   * @param {string | null} [args.taxMode]
+   * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
+   * @param {SellerConfig} [args.sellerConfig]
    */
-  createSimpleDefaultFlowStageParams({ logger, taxMode = null }) {
-    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : SELLER_CONFIG.primary;
+  createSimpleDefaultFlowStageParams({ logger, taxMode = null, ...args }) {
+    const sellerConfig = args.sellerConfig ?? (
+      taxMode
+        ? getSellerConfigWithTaxMode(taxMode)
+        : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
       requestHelper, logger, sellerConfig,

@@ -111,30 +111,12 @@ class FeatureHelper {
      * @type {CreateMultipleOportunityCriteriaTemplateFn}
      */
     const multipleOpportunityCriteriaTemplate = configuration.multipleOpportunityCriteriaTemplate
-    || (configuration.testOpportunityCriteria ? (opportunityType, bookingFlow, i) => [{
-      opportunityType,
-      opportunityCriteria: configuration.testOpportunityCriteria,
-      primary: true,
-      control: false,
-      opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
-      bookingFlow,
-    },
-    {
-      opportunityType,
-      opportunityCriteria: configuration.testOpportunityCriteria,
-      primary: false,
-      control: false,
-      opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
-      bookingFlow,
-    },
-    {
-      opportunityType,
-      opportunityCriteria: configuration.controlOpportunityCriteria,
-      primary: false,
-      control: true,
-      usedInOrderItems: 1,
-      bookingFlow,
-    }] : null);
+      || (configuration.testOpportunityCriteria
+        ? createDefaultMultipleOpportunityCriteriaTemplateFn({
+          testOpportunityCriteria: configuration.testOpportunityCriteria,
+          controlOpportunityCriteria: configuration.controlOpportunityCriteria,
+        })
+        : null);
 
     // Documentation generation
 
@@ -361,6 +343,52 @@ function getEnabledFeaturesFromObj(featuresObj, featuresToSkip) {
     .map(([key]) => key);
 }
 
+/**
+ * @param {object} args
+ * @param {string} args.testOpportunityCriteria
+ * @param {string} args.controlOpportunityCriteria
+ * @param {SellerCriteria} [args.sellerCriteria] Identifier of Seller Config e.g. 'primary'
+ * @returns {CreateMultipleOportunityCriteriaTemplateFn}
+ */
+function createDefaultMultipleOpportunityCriteriaTemplateFn({ testOpportunityCriteria, controlOpportunityCriteria, sellerCriteria }) {
+  return (opportunityType, bookingFlow, i) => {
+    /** @type {OpportunityCriteria[]} */
+    const result = [
+      {
+        opportunityType,
+        opportunityCriteria: testOpportunityCriteria,
+        primary: true,
+        control: false,
+        opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
+        bookingFlow,
+      },
+      {
+        opportunityType,
+        opportunityCriteria: testOpportunityCriteria,
+        primary: false,
+        control: false,
+        opportunityReuseKey: opportunityType === 'IndividualFacilityUseSlot' ? null : i, // IndividualFacilityUseSlot has a capacity limit of 1
+        bookingFlow,
+      },
+      {
+        opportunityType,
+        opportunityCriteria: controlOpportunityCriteria,
+        primary: false,
+        control: true,
+        usedInOrderItems: 1,
+        bookingFlow,
+      },
+    ];
+    if (sellerCriteria) {
+      for (const resultItem of result) {
+        resultItem.sellerCriteria = sellerCriteria;
+      }
+    }
+    return result;
+  };
+}
+
 module.exports = {
   FeatureHelper,
+  createDefaultMultipleOpportunityCriteriaTemplateFn,
 };
