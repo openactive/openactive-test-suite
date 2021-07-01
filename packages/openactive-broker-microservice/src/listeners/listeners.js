@@ -18,6 +18,16 @@ const Listeners = {
   getOrderListenerId(type, bookingPartnerIdentifier, uuid) {
     return `${type}::${bookingPartnerIdentifier}::${uuid}`;
   },
+  /**
+   * Is this Order listener ID from this feed with this booking partner identifier?
+   *
+   * @param {string} listenerId
+   * @param {OrderFeedType} feedType
+   * @param {string} bookingPartnerIdentifier
+   */
+  isOrderListenerIdFromSameFeed(listenerId, feedType, bookingPartnerIdentifier) {
+    return listenerId.startsWith(`${feedType}::${bookingPartnerIdentifier}`);
+  },
   /** @returns {ListenersMap} */
   createListenersMap() {
     return new Map();

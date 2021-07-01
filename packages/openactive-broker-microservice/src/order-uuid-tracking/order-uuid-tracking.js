@@ -39,6 +39,8 @@ const OrderUuidTracking = {
   doTrackOrderUuidAndUpdateListeners(orderUuidTrackingState, type, bookingPartnerIdentifier, uuid) {
     const feedIdentifier = orderFeedTypeToIdentifier(type);
     const feedContextIdentifier = orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier);
+    // Since this is a newly harvested Order, the feed must still be being harvested
+    orderUuidTrackingState.hasReachedEndOfFeedMap.set(feedContextIdentifier, false);
     // Record that this UUID has been seen in this feed
     const uuidsInOrderFeed = (() => {
       if (!orderUuidTrackingState.uuidsInOrderMap.has(feedContextIdentifier)) {
@@ -50,6 +52,27 @@ const OrderUuidTracking = {
     // Notify listener if there is one
     const listenerId = Listeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
     Listeners.doNotifyListener(orderUuidTrackingState.isPresentListeners, listenerId, true);
+  },
+  /**
+   * Track that an order feed has been harvested to completion. This will also resolve UUID tracking listeners -
+   * as their UUID hasn't been spotted yet, that UUID must not exist in the feed.
+   *
+   * @param {OrderUuidTrackingState} orderUuidTrackingState
+   * @param {OrderFeedType} type
+   * @param {string} bookingPartnerIdentifier
+   */
+  doTrackEndOfFeed(orderUuidTrackingState, type, bookingPartnerIdentifier) {
+    const feedIdentifier = orderFeedTypeToIdentifier(type);
+    const feedContextIdentifier = orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier);
+    // Feed has reached the end.
+    orderUuidTrackingState.hasReachedEndOfFeedMap.set(feedContextIdentifier, true);
+    /* Notify any listeners for this feed. If they are still pending and the feed has ended, this must mean
+    that these UUIDs have not been found */
+    for (const listenerId of orderUuidTrackingState.isPresentListeners.keys()) {
+      if (Listeners.isOrderListenerIdFromSameFeed(listenerId, type, bookingPartnerIdentifier)) {
+        Listeners.doNotifyListener(orderUuidTrackingState.isPresentListeners, listenerId, false);
+      }
+    }
   },
 };
 

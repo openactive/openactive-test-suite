@@ -192,18 +192,37 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
 
 /**
  * @param {string} baseUrl
- * @param {string} feedIdentifier
+ * @param {string} feedContextIdentifier
  * @param {() => Promise<Object.<string, string>>} headers
  * @param {RpdePageProcessor} processPage
  * @param {boolean} isOrdersFeed
- * @param {import('cli-progress').MultiBar} [bar]
- * @param {number} [totalItems]
- * @param {boolean} [waitForValidation]
+ * @param {object} [options]
+ * @param {import('cli-progress').MultiBar} [options.bar]
+ * @param {boolean} [options.waitForValidation]
+ * @param {(feedContextIdentifier: string) => void} [options.processEndOfFeed] Callback which will be called when the feed has
+ *   reached its end - when all items have been harvested.
  */
-async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrdersFeed, bar, totalItems, waitForValidation) {
+async function harvestRPDE(
+  baseUrl,
+  feedContextIdentifier,
+  headers,
+  processPage,
+  isOrdersFeed,
+  {
+    bar,
+    waitForValidation,
+    processEndOfFeed,
+  } = {},
+) {
+  const onFeedEnd = async () => {
+    if (processEndOfFeed) {
+      processEndOfFeed(feedContextIdentifier);
+    }
+    await setFeedIsUpToDate(feedContextIdentifier);
+  };
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
   const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
-  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, state.startTime, validatorTimeout);
+  const validator = new AsyncValidatorWorker(feedContextIdentifier, waitForValidation, state.startTime, validatorTimeout);
   state.validatorThreadArray.push(validator);
 
   let isInitialHarvestComplete = false;
@@ -228,17 +247,17 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
     items: c.items,
   });
   const progressbar = !bar ? null : bar.create(0, 0, {
-    feedIdentifier,
+    feedIdentifier: feedContextIdentifier,
     pages: 0,
     responseTime: '-',
     status: 'Harvesting...',
     ...progressFromContext(context),
   });
 
-  if (state.feedContextMap.has(feedIdentifier)) {
+  if (state.feedContextMap.has(feedContextIdentifier)) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
-  state.feedContextMap.set(feedIdentifier, context);
+  state.feedContextMap.set(feedContextIdentifier, context);
   let url = baseUrl;
 
   // One instance of FeedPageChecker per feed, as it maintains state relating to the feed
@@ -274,7 +293,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
 
       if (rpdeValidationErrors.length > 0) {
         if (state.multibar) state.multibar.stop();
-        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
+        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
         process.exit(1);
       }
 
@@ -293,7 +312,8 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
           isInitialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
-          await setFeedIsUpToDate(feedIdentifier);
+          await onFeedEnd();
+          // await setFeedIsUpToDate(feedContextIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
@@ -315,7 +335,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
           );
         }
         // eslint-disable-next-line no-loop-func
-        await processPage(json, feedIdentifier, (item) => {
+        await processPage(json, feedContextIdentifier, (item) => {
           if (!isInitialHarvestComplete) {
             context.totalItemsQueuedForValidation += 1;
             validateAndStoreValidationResults(item, validator).then(() => {
@@ -349,34 +369,35 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
     } catch (error) {
       // Do not wait for the Orders feed if failing (as it might be an auth error)
       if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && isOrdersFeed) {
-        setFeedIsUpToDate(feedIdentifier);
+        onFeedEnd();
+        // setFeedIsUpToDate(feedContextIdentifier);
       }
       if (error instanceof FatalError) {
         // If a fatal error, quit the application immediately
         if (state.multibar) state.multibar.stop();
-        logError(`\nFATAL ERROR for RPDE feed ${feedIdentifier} page "${url}": ${error.message}\n`);
+        logError(`\nFATAL ERROR for RPDE feed ${feedContextIdentifier} page "${url}": ${error.message}\n`);
         process.exit(1);
       } else if (!error.isAxiosError) {
         // If a non-axios error, quit the application immediately
         if (state.multibar) state.multibar.stop();
-        logErrorDuringHarvest(`FATAL ERROR for RPDE feed ${feedIdentifier} page "${url}": ${error.message}\n${error.stack}`);
+        logErrorDuringHarvest(`FATAL ERROR for RPDE feed ${feedContextIdentifier} page "${url}": ${error.message}\n${error.stack}`);
         process.exit(1);
       } else if (error.response?.status === 404) {
         // If 404, simply stop polling feed
-        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
+        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) { await onFeedEnd(); } // await setFeedIsUpToDate(feedContextIdentifier);
         state.multibar.remove(progressbar);
-        state.feedContextMap.delete(feedIdentifier);
-        if (feedIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedIdentifier} page "${url}", feed will be ignored.`);
+        state.feedContextMap.delete(feedContextIdentifier);
+        if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedContextIdentifier} page "${url}", feed will be ignored.`);
         return;
       } else {
-        logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE feed ${feedIdentifier} page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
+        logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE feed ${feedContextIdentifier} page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
         // Force retry, after a delay, up to 12 times
         if (numberOfRetries < 12) {
           numberOfRetries += 1;
           await sleep(5000);
         } else {
           if (state.multibar) state.multibar.stop();
-          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed ${feedIdentifier} page "${url}"\n`);
+          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed ${feedContextIdentifier} page "${url}"\n`);
           process.exit(1);
         }
       }
@@ -511,6 +532,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
         await Promise.all(state.validatorThreadArray.map(async (validator) => validator.terminate));
+        // TODO surely this doesn't work ^ needs to actually call terminate()
 
         if (state.multibar) state.multibar.stop();
 
@@ -1496,11 +1518,35 @@ Validation errors found in Dataset Site JSON-LD:
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestParentOpportunityPage, false, state.multibar, dataDownload.totalItems, true));
+      harvesters.push(
+        harvestRPDE(
+          dataDownload.contentUrl,
+          feedIdentifier,
+          withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+          ingestParentOpportunityPage,
+          false,
+          {
+            bar: state.multibar,
+            waitForValidation: true,
+          },
+        ),
+      );
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestOpportunityPage, false, state.multibar, dataDownload.totalItems, false));
+      harvesters.push(
+        harvestRPDE(
+          dataDownload.contentUrl,
+          feedIdentifier,
+          withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+          ingestOpportunityPage,
+          false,
+          {
+            bar: state.multibar,
+            waitForValidation: false,
+          },
+        ),
+      );
     } else {
       logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
       logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
@@ -1538,7 +1584,12 @@ Validation errors found in Dataset Site JSON-LD:
           ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
           : () => null,
         true,
-        state.multibar,
+        {
+          bar: state.multibar,
+          processEndOfFeed: () => {
+            OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
+          },
+        },
       ));
     }
   }
