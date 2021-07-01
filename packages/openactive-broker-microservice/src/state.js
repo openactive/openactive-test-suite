@@ -5,6 +5,7 @@ const PauseResume = require('./util/pause-resume');
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { log } = require('./util/log');
 const { MICROSERVICE_BASE_URL } = require('./broker-config');
+const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 
 /**
  * @typedef {import('./models/core').FeedContext} FeedContext
@@ -89,6 +90,7 @@ const state = {
      */
     byOpportunityId: Listeners.createListenersMap(),
   },
+  orderUuidTracking: OrderUuidTracking.createState(),
   // VALIDATION
   /**
    * Workers which perform the validation. Validation is quite expensive, so we do it with a parallel work queue.
@@ -146,20 +148,9 @@ function addFeed(feedIdentifier) {
   state.incompleteFeeds.push(feedIdentifier);
 }
 
-/**
- * Identifier for an Order Feed in feedContextMap. Each Booking Partner has a separate Orders Feed
- *
- * @param {string} feedIdentifier
- * @param {string} bookingPartnerIdentifier
- */
-function orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier) {
-  return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
-}
-
 module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
   addFeed,
-  orderFeedContextIdentifier,
 };
