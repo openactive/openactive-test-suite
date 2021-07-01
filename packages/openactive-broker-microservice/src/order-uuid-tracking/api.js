@@ -1,7 +1,8 @@
 const { error409IfListenerAlreadyExists } = require('../listeners/api');
 const { Listeners } = require('../listeners/listeners');
-const { state, orderFeedContextIdentifier } = require('../state');
+const { state } = require('../state');
 const { error400IfExpressParamsAreMissing } = require('../util/api-utils');
+const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
 const { orderFeedTypeToIdentifier } = require('./order-uuid-tracking');
 
 /**
@@ -22,16 +23,12 @@ function getIsOrderUuidPresentApi(req, res) {
   // If the UUID has been seen already, then we can answer immediately - it's present
   const isOrderUuidPresentSoFar = state.orderUuidTracking.uuidsInOrderMap.get(feedContextIdentifier)?.has(uuid);
   if (isOrderUuidPresentSoFar) {
-    res.json({
-      isOrderUuidPresent: true,
-    });
+    res.json(true);
     return;
   }
   // Otherwise, if the end of the feed has already been reached, we know that the UUID is NOT present
   if (state.orderUuidTracking.hasReachedEndOfFeedMap.get(feedContextIdentifier)) {
-    res.json({
-      isOrderUuidPresent: false,
-    });
+    res.json(false);
     return;
   }
   // Otherwise, we do not yet have sufficient information. Wait until we do.

@@ -63,7 +63,8 @@ const {
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners/api');
 const { Listeners } = require('./src/listeners/listeners');
-const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
+const { state, getTestDataset, getAllDatasets, addFeed } = require('./src/state');
+const { orderFeedContextIdentifier } = require('./src/util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
 

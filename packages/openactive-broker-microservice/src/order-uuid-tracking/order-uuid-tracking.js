@@ -1,6 +1,6 @@
 const { ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../broker-config');
 const { Listeners } = require('../listeners/listeners');
-const { orderFeedContextIdentifier } = require('../state');
+const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
 
 /**
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType
