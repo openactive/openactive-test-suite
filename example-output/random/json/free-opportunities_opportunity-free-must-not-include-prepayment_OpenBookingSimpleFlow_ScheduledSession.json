@@ -1,0 +1,668 @@
+{
+  "flow": {
+    "Assert Unmatched Criteria 'TestOpportunityBookableFreePrepaymentOptional' for 'ScheduledSession'": {
+      "request": {
+        "@type": "ScheduledSession",
+        "superEvent": {
+          "@type": "SessionSeries"
+        },
+        "@context": [
+          "https://openactive.io/",
+          "https://openactive.io/test-interface"
+        ],
+        "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional",
+        "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
+        "test:testOpportunityDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/remainingAttendeeCapacity",
+            "valueExpr": {
+              "@type": "NumericNodeConstraint",
+              "mininclusive": 2
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/isOpenBookingAllowed",
+            "valueExpr": {
+              "@type": "test:BooleanNodeConstraint",
+              "value": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/startDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "minDate": "2021-07-01T20:34:26.489+00:00"
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/eventStatus",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "schema:EventStatusType",
+              "blocklist": [
+                "https://schema.org/EventCancelled",
+                "https://schema.org/EventPostponed"
+              ]
+            }
+          }
+        ],
+        "test:testOfferDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingFlowRequirement",
+            "valueExpr": {
+              "@type": "test:ArrayConstraint",
+              "datatype": "oa:OpenBookingFlowRequirement",
+              "excludesAll": [
+                "https://openactive.io/OpenBookingAttendeeDetails",
+                "https://openactive.io/OpenBookingIntakeForm",
+                "https://openactive.io/OpenBookingApproval"
+              ]
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/price",
+            "valueExpr": {
+              "@type": "NumericNodeConstraint",
+              "maxinclusive": 0
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingPrepayment",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "oa:RequiredStatusType",
+              "allowlist": [
+                "https://openactive.io/Optional"
+              ]
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/validFromBeforeStartDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "maxDate": "2021-07-01T18:34:26.489+00:00",
+              "allowNull": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingInAdvance",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "oa:RequiredStatusType",
+              "blocklist": [
+                "https://openactive.io/Unavailable"
+              ]
+            }
+          }
+        ]
+      },
+      "response": {
+        "responseTime": 70.784559,
+        "status": 204,
+        "statusMessage": "No Content",
+        "headers": {
+          "x-powered-by": "Express",
+          "date": "Thu, 01 Jul 2021 18:55:33 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    "Assert Unmatched Criteria 'TestOpportunityBookableFreePrepaymentRequired' for 'ScheduledSession'": {
+      "request": {
+        "@type": "ScheduledSession",
+        "superEvent": {
+          "@type": "SessionSeries"
+        },
+        "@context": [
+          "https://openactive.io/",
+          "https://openactive.io/test-interface"
+        ],
+        "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired",
+        "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
+        "test:testOpportunityDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/remainingAttendeeCapacity",
+            "valueExpr": {
+              "@type": "NumericNodeConstraint",
+              "mininclusive": 2
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/isOpenBookingAllowed",
+            "valueExpr": {
+              "@type": "test:BooleanNodeConstraint",
+              "value": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/startDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "minDate": "2021-07-01T20:34:26.489+00:00"
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/eventStatus",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "schema:EventStatusType",
+              "blocklist": [
+                "https://schema.org/EventCancelled",
+                "https://schema.org/EventPostponed"
+              ]
+            }
+          }
+        ],
+        "test:testOfferDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingFlowRequirement",
+            "valueExpr": {
+              "@type": "test:ArrayConstraint",
+              "datatype": "oa:OpenBookingFlowRequirement",
+              "excludesAll": [
+                "https://openactive.io/OpenBookingAttendeeDetails",
+                "https://openactive.io/OpenBookingIntakeForm",
+                "https://openactive.io/OpenBookingApproval"
+              ]
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/price",
+            "valueExpr": {
+              "@type": "NumericNodeConstraint",
+              "maxinclusive": 0
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingPrepayment",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "oa:RequiredStatusType",
+              "allowlist": [
+                "https://openactive.io/Required"
+              ]
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/validFromBeforeStartDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "maxDate": "2021-07-01T18:34:26.489+00:00",
+              "allowNull": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingInAdvance",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "oa:RequiredStatusType",
+              "blocklist": [
+                "https://openactive.io/Unavailable"
+              ]
+            }
+          }
+        ]
+      },
+      "response": {
+        "responseTime": 38.866711,
+        "status": 204,
+        "statusMessage": "No Content",
+        "headers": {
+          "x-powered-by": "Express",
+          "date": "Thu, 01 Jul 2021 18:55:33 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    "TestOpportunityBookableFreePrepaymentOptional opportunity feed items": {
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "free-opportunities",
+              "opportunity-free-must-not-include-prepayment",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "TestOpportunityBookableFreePrepaymentOptional opportunity feed items"
+            ],
+            "duration": 80,
+            "failureMessages": [],
+            "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentOptional opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)"
+          }
+        ]
+      }
+    },
+    "TestOpportunityBookableFreePrepaymentRequired opportunity feed items": {
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "free-opportunities",
+              "opportunity-free-must-not-include-prepayment",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "TestOpportunityBookableFreePrepaymentRequired opportunity feed items"
+            ],
+            "duration": 40,
+            "failureMessages": [],
+            "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentRequired opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)"
+          }
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "ancestorTitles": [
+        "free-opportunities",
+        "opportunity-free-must-not-include-prepayment",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "TestOpportunityBookableFreePrepaymentOptional opportunity feed items"
+      ],
+      "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)",
+      "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentOptional opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)",
+      "type": "request",
+      "stage": "Assert Unmatched Criteria 'TestOpportunityBookableFreePrepaymentOptional' for 'ScheduledSession'",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/assert-unmatched-criteria",
+        "jsonBody": {
+          "@type": "ScheduledSession",
+          "superEvent": {
+            "@type": "SessionSeries"
+          },
+          "@context": [
+            "https://openactive.io/",
+            "https://openactive.io/test-interface"
+          ],
+          "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional",
+          "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
+          "test:testOpportunityDataShapeExpression": [
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/remainingAttendeeCapacity",
+              "valueExpr": {
+                "@type": "NumericNodeConstraint",
+                "mininclusive": 2
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/isOpenBookingAllowed",
+              "valueExpr": {
+                "@type": "test:BooleanNodeConstraint",
+                "value": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/startDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "minDate": "2021-07-01T20:34:26.489+00:00"
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/eventStatus",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "schema:EventStatusType",
+                "blocklist": [
+                  "https://schema.org/EventCancelled",
+                  "https://schema.org/EventPostponed"
+                ]
+              }
+            }
+          ],
+          "test:testOfferDataShapeExpression": [
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingFlowRequirement",
+              "valueExpr": {
+                "@type": "test:ArrayConstraint",
+                "datatype": "oa:OpenBookingFlowRequirement",
+                "excludesAll": [
+                  "https://openactive.io/OpenBookingAttendeeDetails",
+                  "https://openactive.io/OpenBookingIntakeForm",
+                  "https://openactive.io/OpenBookingApproval"
+                ]
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/price",
+              "valueExpr": {
+                "@type": "NumericNodeConstraint",
+                "maxinclusive": 0
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingPrepayment",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "oa:RequiredStatusType",
+                "allowlist": [
+                  "https://openactive.io/Optional"
+                ]
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/validFromBeforeStartDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "maxDate": "2021-07-01T18:34:26.489+00:00",
+                "allowNull": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingInAdvance",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "oa:RequiredStatusType",
+                "blocklist": [
+                  "https://openactive.io/Unavailable"
+                ]
+              }
+            }
+          ]
+        },
+        "requestOptions": {
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "responseTime": 70.784559,
+        "status": 204,
+        "statusMessage": "No Content",
+        "headers": {
+          "x-powered-by": "Express",
+          "date": "Thu, 01 Jul 2021 18:55:33 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "free-opportunities",
+        "opportunity-free-must-not-include-prepayment",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "TestOpportunityBookableFreePrepaymentRequired opportunity feed items"
+      ],
+      "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)",
+      "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentRequired opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)",
+      "type": "request",
+      "stage": "Assert Unmatched Criteria 'TestOpportunityBookableFreePrepaymentRequired' for 'ScheduledSession'",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/assert-unmatched-criteria",
+        "jsonBody": {
+          "@type": "ScheduledSession",
+          "superEvent": {
+            "@type": "SessionSeries"
+          },
+          "@context": [
+            "https://openactive.io/",
+            "https://openactive.io/test-interface"
+          ],
+          "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired",
+          "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
+          "test:testOpportunityDataShapeExpression": [
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/remainingAttendeeCapacity",
+              "valueExpr": {
+                "@type": "NumericNodeConstraint",
+                "mininclusive": 2
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/isOpenBookingAllowed",
+              "valueExpr": {
+                "@type": "test:BooleanNodeConstraint",
+                "value": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/startDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "minDate": "2021-07-01T20:34:26.489+00:00"
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/eventStatus",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "schema:EventStatusType",
+                "blocklist": [
+                  "https://schema.org/EventCancelled",
+                  "https://schema.org/EventPostponed"
+                ]
+              }
+            }
+          ],
+          "test:testOfferDataShapeExpression": [
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingFlowRequirement",
+              "valueExpr": {
+                "@type": "test:ArrayConstraint",
+                "datatype": "oa:OpenBookingFlowRequirement",
+                "excludesAll": [
+                  "https://openactive.io/OpenBookingAttendeeDetails",
+                  "https://openactive.io/OpenBookingIntakeForm",
+                  "https://openactive.io/OpenBookingApproval"
+                ]
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/price",
+              "valueExpr": {
+                "@type": "NumericNodeConstraint",
+                "maxinclusive": 0
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingPrepayment",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "oa:RequiredStatusType",
+                "allowlist": [
+                  "https://openactive.io/Required"
+                ]
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/validFromBeforeStartDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "maxDate": "2021-07-01T18:34:26.489+00:00",
+                "allowNull": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingInAdvance",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "oa:RequiredStatusType",
+                "blocklist": [
+                  "https://openactive.io/Unavailable"
+                ]
+              }
+            }
+          ]
+        },
+        "requestOptions": {
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "responseTime": 38.866711,
+        "status": 204,
+        "statusMessage": "No Content",
+        "headers": {
+          "x-powered-by": "Express",
+          "date": "Thu, 01 Jul 2021 18:55:33 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "free-opportunities",
+        "opportunity-free-must-not-include-prepayment",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "TestOpportunityBookableFreePrepaymentOptional opportunity feed items"
+      ],
+      "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)",
+      "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentOptional opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)",
+      "spec": {
+        "ancestorTitles": [
+          "free-opportunities",
+          "opportunity-free-must-not-include-prepayment",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "TestOpportunityBookableFreePrepaymentOptional opportunity feed items"
+        ],
+        "duration": 80,
+        "failureMessages": [],
+        "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentOptional opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "free-opportunities",
+        "opportunity-free-must-not-include-prepayment",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "TestOpportunityBookableFreePrepaymentRequired opportunity feed items"
+      ],
+      "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)",
+      "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentRequired opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)",
+      "spec": {
+        "ancestorTitles": [
+          "free-opportunities",
+          "opportunity-free-must-not-include-prepayment",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "TestOpportunityBookableFreePrepaymentRequired opportunity feed items"
+        ],
+        "duration": 40,
+        "failureMessages": [],
+        "fullName": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession TestOpportunityBookableFreePrepaymentRequired opportunity feed items should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)"
+      }
+    }
+  ],
+  "timestamp": "Thu Jul 01 2021 18:55:33 GMT+0000 (Coordinated Universal Time)",
+  "config": {
+    "testDescription": "Assert that no opportunities that match criteria 'TestOpportunityBookableFreePrepaymentOptional' or 'TestOpportunityBookableFreePrepaymentRequired' are available in the opportunity feeds.",
+    "skipMultiple": true,
+    "doesNotUseOpportunitiesMode": false,
+    "testCategory": "payment",
+    "testFeature": "free-opportunities",
+    "testFeatureImplemented": true,
+    "testIdentifier": "opportunity-free-must-not-include-prepayment",
+    "testName": "Free opportunities must have either a `openBookingPrepayment` value of Unspecified, or have no `openBookingPrepayment` specified",
+    "unmatchedOpportunityCriteria": [
+      "TestOpportunityBookableFreePrepaymentOptional",
+      "TestOpportunityBookableFreePrepaymentRequired"
+    ]
+  },
+  "implemented": true,
+  "testFileIdentifier": "free-opportunities opportunity-free-must-not-include-prepayment OpenBookingSimpleFlow ScheduledSession",
+  "suites": [
+    [
+      "free-opportunities",
+      "opportunity-free-must-not-include-prepayment",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession"
+    ],
+    [
+      "free-opportunities",
+      "opportunity-free-must-not-include-prepayment",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "TestOpportunityBookableFreePrepaymentOptional opportunity feed items"
+    ],
+    [
+      "free-opportunities",
+      "opportunity-free-must-not-include-prepayment",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "TestOpportunityBookableFreePrepaymentRequired opportunity feed items"
+    ]
+  ],
+  "title": "free-opportunities >> opportunity-free-must-not-include-prepayment (OpenBookingSimpleFlow >> ScheduledSession)",
+  "workingLog": "",
+  "specs": {
+    "free-opportunities,opportunity-free-must-not-include-prepayment,OpenBookingSimpleFlow,ScheduledSession,TestOpportunityBookableFreePrepaymentOptional opportunity feed items": [
+      "should be no events matching the [TestOpportunityBookableFreePrepaymentOptional](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentOptional) criteria in the 'ScheduledSession' feed(s)"
+    ],
+    "free-opportunities,opportunity-free-must-not-include-prepayment,OpenBookingSimpleFlow,ScheduledSession,TestOpportunityBookableFreePrepaymentRequired opportunity feed items": [
+      "should be no events matching the [TestOpportunityBookableFreePrepaymentRequired](https://openactive.io/test-interface#TestOpportunityBookableFreePrepaymentRequired) criteria in the 'ScheduledSession' feed(s)"
+    ]
+  },
+  "description": "Assert that no opportunities that match criteria 'TestOpportunityBookableFreePrepaymentOptional' or 'TestOpportunityBookableFreePrepaymentRequired' are available in the opportunity feeds.",
+  "bookingFlow": "OpenBookingSimpleFlow",
+  "opportunityType": "ScheduledSession",
+  "baseAncestorTitles": [
+    "free-opportunities",
+    "opportunity-free-must-not-include-prepayment",
+    "OpenBookingSimpleFlow",
+    "ScheduledSession"
+  ]
+}

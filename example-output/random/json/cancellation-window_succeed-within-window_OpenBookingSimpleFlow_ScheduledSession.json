@@ -1,0 +1,4043 @@
+{
+  "flow": {
+    "Local Microservice Test Interface for OrderItem 0": {
+      "request": {
+        "@type": "ScheduledSession",
+        "superEvent": {
+          "@type": "SessionSeries",
+          "organizer": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1"
+          }
+        },
+        "@context": [
+          "https://openactive.io/",
+          "https://openactive.io/test-interface"
+        ],
+        "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableCancellableWithinWindow",
+        "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
+        "test:testOpportunityDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/remainingAttendeeCapacity",
+            "valueExpr": {
+              "@type": "NumericNodeConstraint",
+              "mininclusive": 2
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/isOpenBookingAllowed",
+            "valueExpr": {
+              "@type": "test:BooleanNodeConstraint",
+              "value": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/startDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "minDate": "2021-07-01T20:34:26.489+00:00"
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://schema.org/eventStatus",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "schema:EventStatusType",
+              "blocklist": [
+                "https://schema.org/EventCancelled",
+                "https://schema.org/EventPostponed"
+              ]
+            }
+          }
+        ],
+        "test:testOfferDataShapeExpression": [
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingFlowRequirement",
+            "valueExpr": {
+              "@type": "test:ArrayConstraint",
+              "datatype": "oa:OpenBookingFlowRequirement",
+              "excludesAll": [
+                "https://openactive.io/OpenBookingAttendeeDetails",
+                "https://openactive.io/OpenBookingIntakeForm",
+                "https://openactive.io/OpenBookingApproval"
+              ]
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/allowCustomerCancellationFullRefund",
+            "valueExpr": {
+              "@type": "test:BooleanNodeConstraint",
+              "value": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/latestCancellationBeforeStartDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "minDate": "2021-07-01T20:34:26.489+00:00"
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/validFromBeforeStartDate",
+            "valueExpr": {
+              "@type": "test:DateRangeNodeConstraint",
+              "maxDate": "2021-07-01T18:34:26.489+00:00",
+              "allowNull": true
+            }
+          },
+          {
+            "@type": "test:TripleConstraint",
+            "predicate": "https://openactive.io/openBookingInAdvance",
+            "valueExpr": {
+              "@type": "test:OptionNodeConstraint",
+              "datatype": "oa:RequiredStatusType",
+              "blocklist": [
+                "https://openactive.io/Unavailable"
+              ]
+            }
+          }
+        ]
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "ScheduledSession",
+          "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+        },
+        "responseTime": 233.16684,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "146",
+          "etag": "W/\"92-dXgTfcJGQOqf/1xX0Y0CKhwvRSY\"",
+          "date": "Thu, 01 Jul 2021 18:48:16 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    "Opportunity Feed extract for OrderItem 0": {
+      "response": {
+        "body": {
+          "data": {
+            "@context": [
+              "https://openactive.io/",
+              "https://openactive.io/ns-beta"
+            ],
+            "@type": "ScheduledSession",
+            "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+            "startDate": "2021-07-06T11:36:09+00:00",
+            "endDate": "2021-07-06T13:18:09+00:00",
+            "superEvent": {
+              "@type": "SessionSeries",
+              "@id": "https://localhost:5001/api/identifiers/session-series/204",
+              "name": "Rubber Running",
+              "activity": [
+                {
+                  "@type": "Concept",
+                  "@id": "https://openactive.io/activity-list#c07d63a0-8eb9-4602-8bcc-23be6deb8f83",
+                  "inScheme": "https://openactive.io/activity-list",
+                  "prefLabel": "Jet Skiing"
+                }
+              ],
+              "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+              "offers": [
+                {
+                  "@type": "Offer",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                  "allowCustomerCancellationFullRefund": true,
+                  "latestCancellationBeforeStartDate": "P1DT16H",
+                  "price": 0,
+                  "priceCurrency": "GBP"
+                }
+              ],
+              "organizer": {
+                "@type": "Organization",
+                "@id": "https://localhost:5001/api/identifiers/sellers/1",
+                "name": "Acme Fitness Ltd",
+                "isOpenBookingAllowed": true,
+                "taxMode": "https://openactive.io/TaxGross",
+                "termsOfService": [
+                  {
+                    "@type": "PrivacyPolicy",
+                    "name": "Privacy Policy",
+                    "requiresExplicitConsent": false,
+                    "url": "https://example.com/privacy.html"
+                  }
+                ]
+              },
+              "url": "https://www.example.com/a-session-age",
+              "beta:affiliatedLocation": {
+                "@type": "Place",
+                "name": "Fake Pond",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressCountry": "GB",
+                  "addressLocality": "Another town",
+                  "addressRegion": "Oxfordshire",
+                  "postalCode": "OX1 1AA",
+                  "streetAddress": "1 Fake Park"
+                },
+                "geo": {
+                  "@type": "GeoCoordinates",
+                  "latitude": 0,
+                  "longitude": 0
+                }
+              }
+            },
+            "duration": "PT1H42M",
+            "maximumAttendeeCapacity": 42,
+            "remainingAttendeeCapacity": 42
+          }
+        },
+        "responseTime": 105.587826,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "1636",
+          "etag": "W/\"664-ddJFmZMfgrMEwaJMr7afFuHZv/E\"",
+          "date": "Thu, 01 Jul 2021 18:48:17 GMT",
+          "connection": "close"
+        },
+        "validations": [
+          {
+            "path": "$.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.leader",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `leader` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"leader\": [\n  {\n    \"@type\": \"Person\",\n    \"familyName\": \"Smith\",\n    \"givenName\": \"Nicole\",\n    \"gender\": \"https://schema.org/Male\",\n    \"@id\": \"https://example.com/locations/1234ABCD/leaders/89\",\n    \"identifier\": 89\n  }\n]\n```"
+          },
+          {
+            "path": "$.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"url\": \"https://example.com/event/1234\"\n```"
+          },
+          {
+            "path": "$.isAccessibleForFree",
+            "rule": "IsAccessibleForFreeRule",
+            "category": "data-quality",
+            "type": "missing_is_accessible_for_free",
+            "severity": "warning",
+            "message": "Where a `ScheduledSession` has at least one `Offer` with `price` set to `0`, it should also have a property named `isAccessibleForFree` set to `true`.\n\nFor example:\n\n```\n{\n  \"@type\": \"ScheduledSession\",\n  \"offers\": [\n    {\n      \"@type\": \"Offer\",\n      \"price\": 0\n    }\n  ],\n  \"isAccessibleForFree\": true\n}\n```"
+          },
+          {
+            "path": "$.superEvent.description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"description\": \"A fast paced game that incorporates netball, handball and football.\"\n```"
+          },
+          {
+            "path": "$.superEvent.image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\",\n    \"thumbnail\": [\n      {\n        \"@type\": \"ImageObject\",\n        \"url\": \"http://example.com/static/image/speedball_thumbnail.jpg\"\n      }\n    ]\n  }\n]\n```"
+          },
+          {
+            "path": "$.superEvent.ageRange",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.superEvent.genderRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+          },
+          {
+            "path": "$.superEvent.leader",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `leader` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"leader\": [\n  {\n    \"@type\": \"Person\",\n    \"familyName\": \"Smith\",\n    \"givenName\": \"Nicole\",\n    \"gender\": \"https://schema.org/Male\",\n    \"@id\": \"https://example.com/locations/1234ABCD/leaders/89\",\n    \"identifier\": 89\n  }\n]\n```"
+          },
+          {
+            "path": "$.superEvent.level",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `level` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"level\": [\n  \"Beginner\"\n]\n```"
+          },
+          {
+            "path": "$.superEvent.isAccessibleForFree",
+            "rule": "IsAccessibleForFreeRule",
+            "category": "data-quality",
+            "type": "missing_is_accessible_for_free",
+            "severity": "warning",
+            "message": "Where a `SessionSeries` has at least one `Offer` with `price` set to `0`, it should also have a property named `isAccessibleForFree` set to `true`.\n\nFor example:\n\n```\n{\n  \"@type\": \"SessionSeries\",\n  \"offers\": [\n    {\n      \"@type\": \"Offer\",\n      \"price\": 0\n    }\n  ],\n  \"isAccessibleForFree\": true\n}\n```"
+          },
+          {
+            "path": "$.superEvent.offers[0].name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.superEvent.offers[0].ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.superEvent.organizer.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+          },
+          {
+            "path": "$.superEvent.organizer.telephone",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `telephone` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01234 567890\"\n```"
+          },
+          {
+            "path": "$.superEvent.organizer.sameAs",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `sameAs` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"sameAs\": [\n  \"https://www.facebook.com/everyoneactive/\",\n  \"https://twitter.com/everyoneactive\"\n]\n```"
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].id",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `@id` is missing from `Place`."
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].telephone",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].openingHoursSpecification",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+          },
+          {
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].amenityFeature",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+          },
+          {
+            "path": "$.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.superEvent.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+          },
+          {
+            "path": "$.superEvent.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.superEvent.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "value": 0,
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].geo.latitude",
+            "rule": "PrecisionRule",
+            "category": "data-quality",
+            "type": "invalid_precision",
+            "severity": "suggestion",
+            "message": "The value of this property should have at least 3 decimal places. Note that this notice will also appear when trailing zeros have been truncated."
+          },
+          {
+            "value": 0,
+            "path": "$.superEvent[\"beta:affiliatedLocation\"].geo.longitude",
+            "rule": "PrecisionRule",
+            "category": "data-quality",
+            "type": "invalid_precision",
+            "severity": "suggestion",
+            "message": "The value of this property should have at least 3 decimal places. Note that this notice will also appear when trailing zeros have been truncated."
+          }
+        ]
+      }
+    },
+    "C1": {
+      "request": {
+        "@context": "https://openactive.io/",
+        "@type": "OrderQuote",
+        "brokerRole": "https://openactive.io/AgentBroker",
+        "broker": {
+          "@type": "Organization",
+          "name": "MyFitnessApp",
+          "url": "https://myfitnessapp.example.com",
+          "description": "A fitness app for all the community",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Alan Peacock Way",
+            "addressLocality": "Village East",
+            "addressRegion": "Middlesbrough",
+            "postalCode": "TS4 3AE",
+            "addressCountry": "GB"
+          }
+        },
+        "seller": "https://localhost:5001/api/identifiers/sellers/1",
+        "orderedItem": [
+          {
+            "@type": "OrderItem",
+            "position": 0,
+            "acceptedOffer": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+            "orderedItem": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+          }
+        ],
+        "payment": {
+          "@type": "Payment",
+          "name": "AcmeBroker Points",
+          "accountId": "SN1593",
+          "paymentProviderId": "STRIPE"
+        }
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "@id": "https://localhost:5001/api/openbooking/order-quotes/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+          "lease": {
+            "@type": "Lease",
+            "leaseExpires": "2021-07-01T18:53:18+00:00"
+          },
+          "orderRequiresApproval": false,
+          "bookingService": {
+            "@type": "BookingService",
+            "name": "Acme booking system",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ],
+            "url": "https://example.com"
+          },
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com"
+          },
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "acceptedOffer": {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                "allowCustomerCancellationFullRefund": true,
+                "latestCancellationBeforeStartDate": "P1DT16H",
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              "orderedItem": {
+                "@type": "ScheduledSession",
+                "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+                "startDate": "2021-07-06T11:36:09+00:00",
+                "endDate": "2021-07-06T13:18:09+00:00",
+                "superEvent": {
+                  "@type": "SessionSeries",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204",
+                  "name": "Rubber Running",
+                  "activity": [
+                    {
+                      "@type": "Concept",
+                      "@id": "https://openactive.io/activity-list#6bdea630-ad22-4e58-98a3-bca26ee3f1da",
+                      "inScheme": "https://openactive.io/activity-list",
+                      "prefLabel": "Rave Fitness"
+                    }
+                  ],
+                  "location": {
+                    "@type": "Place",
+                    "name": "Fake fitness studio",
+                    "geo": {
+                      "@type": "GeoCoordinates",
+                      "latitude": 51.6201,
+                      "longitude": 0.302396
+                    }
+                  },
+                  "url": "https://example.com/events/204"
+                },
+                "maximumAttendeeCapacity": 42,
+                "remainingAttendeeCapacity": 42
+              },
+              "position": 0,
+              "unitTaxSpecification": [
+                {
+                  "@type": "TaxChargeSpecification",
+                  "name": "VAT at 20%",
+                  "price": 0,
+                  "priceCurrency": "GBP",
+                  "rate": 0.2
+                }
+              ]
+            }
+          ],
+          "seller": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1",
+            "name": "Acme Fitness Ltd",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GB",
+              "addressLocality": "Another town",
+              "addressRegion": "Oxfordshire",
+              "postalCode": "OX1 1AA",
+              "streetAddress": "1 Hidden Gem"
+            },
+            "isOpenBookingAllowed": true,
+            "legalName": "Acme Fitness Ltd",
+            "taxMode": "https://openactive.io/TaxGross",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ]
+          },
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "openBookingPrepayment": "https://openactive.io/Unavailable",
+            "price": 0,
+            "priceCurrency": "GBP"
+          },
+          "totalPaymentTax": [
+            {
+              "@type": "TaxChargeSpecification",
+              "name": "VAT at 20%",
+              "price": 0,
+              "priceCurrency": "GBP",
+              "rate": 0.2
+            }
+          ]
+        },
+        "responseTime": 398.767464,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:18 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "2595"
+        },
+        "validations": [
+          {
+            "path": "$.orderedItem[0].acceptedOffer.name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].acceptedOffer.ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.id",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `@id` is missing from `Place`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.telephone",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.openingHoursSpecification",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.amenityFeature",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.seller.email",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `email` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"email\": \"info@example.com\"\n```"
+          },
+          {
+            "path": "$.seller.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+          },
+          {
+            "path": "$.seller.logo",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `logo` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"logo\": {\n  \"@type\": \"ImageObject\",\n  \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n}\n```"
+          },
+          {
+            "path": "$.seller.vatID",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `vatID` is missing from `Organization`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          }
+        ],
+        "specs": [
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "C1"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 should return 200 on success",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 200 on success"
+          },
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "C1",
+              "validation of C1"
+            ],
+            "duration": 281,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 validation of C1 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          }
+        ]
+      }
+    },
+    "C2": {
+      "request": {
+        "@context": "https://openactive.io/",
+        "@type": "OrderQuote",
+        "brokerRole": "https://openactive.io/AgentBroker",
+        "broker": {
+          "@type": "Organization",
+          "name": "MyFitnessApp",
+          "url": "https://myfitnessapp.example.com",
+          "description": "A fitness app for all the community",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Alan Peacock Way",
+            "addressLocality": "Village East",
+            "addressRegion": "Middlesbrough",
+            "postalCode": "TS4 3AE",
+            "addressCountry": "GB"
+          }
+        },
+        "seller": "https://localhost:5001/api/identifiers/sellers/1",
+        "customer": {
+          "@type": "Person",
+          "email": "Casper.Swift59@yahoo.com",
+          "telephone": "753-420-4810 x2005",
+          "givenName": "Gorczany",
+          "familyName": "Ambrose",
+          "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342"
+        },
+        "orderedItem": [
+          {
+            "@type": "OrderItem",
+            "position": 0,
+            "acceptedOffer": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+            "orderedItem": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+          }
+        ],
+        "payment": {
+          "@type": "Payment",
+          "name": "AcmeBroker Points",
+          "accountId": "SN1593",
+          "paymentProviderId": "STRIPE"
+        }
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "@id": "https://localhost:5001/api/openbooking/order-quotes/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+          "lease": {
+            "@type": "Lease",
+            "leaseExpires": "2021-07-01T18:53:18+00:00"
+          },
+          "orderRequiresApproval": false,
+          "bookingService": {
+            "@type": "BookingService",
+            "name": "Acme booking system",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ],
+            "url": "https://example.com"
+          },
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com"
+          },
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "customer": {
+            "@type": "Person",
+            "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342",
+            "email": "Casper.Swift59@yahoo.com",
+            "familyName": "Ambrose",
+            "givenName": "Gorczany",
+            "telephone": "753-420-4810 x2005"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "acceptedOffer": {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                "allowCustomerCancellationFullRefund": true,
+                "latestCancellationBeforeStartDate": "P1DT16H",
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              "orderedItem": {
+                "@type": "ScheduledSession",
+                "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+                "startDate": "2021-07-06T11:36:09+00:00",
+                "endDate": "2021-07-06T13:18:09+00:00",
+                "superEvent": {
+                  "@type": "SessionSeries",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204",
+                  "name": "Rubber Running",
+                  "activity": [
+                    {
+                      "@type": "Concept",
+                      "@id": "https://openactive.io/activity-list#6bdea630-ad22-4e58-98a3-bca26ee3f1da",
+                      "inScheme": "https://openactive.io/activity-list",
+                      "prefLabel": "Rave Fitness"
+                    }
+                  ],
+                  "location": {
+                    "@type": "Place",
+                    "name": "Fake fitness studio",
+                    "geo": {
+                      "@type": "GeoCoordinates",
+                      "latitude": 51.6201,
+                      "longitude": 0.302396
+                    }
+                  },
+                  "url": "https://example.com/events/204"
+                },
+                "maximumAttendeeCapacity": 42,
+                "remainingAttendeeCapacity": 42
+              },
+              "position": 0,
+              "unitTaxSpecification": [
+                {
+                  "@type": "TaxChargeSpecification",
+                  "name": "VAT at 20%",
+                  "price": 0,
+                  "priceCurrency": "GBP",
+                  "rate": 0.2
+                }
+              ]
+            }
+          ],
+          "seller": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1",
+            "name": "Acme Fitness Ltd",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GB",
+              "addressLocality": "Another town",
+              "addressRegion": "Oxfordshire",
+              "postalCode": "OX1 1AA",
+              "streetAddress": "1 Hidden Gem"
+            },
+            "isOpenBookingAllowed": true,
+            "legalName": "Acme Fitness Ltd",
+            "taxMode": "https://openactive.io/TaxGross",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ]
+          },
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "openBookingPrepayment": "https://openactive.io/Unavailable",
+            "price": 0,
+            "priceCurrency": "GBP"
+          },
+          "totalPaymentTax": [
+            {
+              "@type": "TaxChargeSpecification",
+              "name": "VAT at 20%",
+              "price": 0,
+              "priceCurrency": "GBP",
+              "rate": 0.2
+            }
+          ]
+        },
+        "responseTime": 175.841396,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:18 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "2791"
+        },
+        "validations": [
+          {
+            "path": "$.orderedItem[0].acceptedOffer.name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].acceptedOffer.ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.id",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `@id` is missing from `Place`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.telephone",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.openingHoursSpecification",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.amenityFeature",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.seller.email",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `email` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"email\": \"info@example.com\"\n```"
+          },
+          {
+            "path": "$.seller.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+          },
+          {
+            "path": "$.seller.logo",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `logo` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"logo\": {\n  \"@type\": \"ImageObject\",\n  \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n}\n```"
+          },
+          {
+            "path": "$.seller.vatID",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `vatID` is missing from `Organization`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          }
+        ],
+        "specs": [
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "C2"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 should return 200 on success",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 200 on success"
+          },
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "C2",
+              "validation of C2"
+            ],
+            "duration": 273,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 validation of C2 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          }
+        ]
+      }
+    },
+    "B": {
+      "request": {
+        "@context": "https://openactive.io/",
+        "@type": "Order",
+        "brokerRole": "https://openactive.io/AgentBroker",
+        "broker": {
+          "@type": "Organization",
+          "name": "MyFitnessApp",
+          "url": "https://myfitnessapp.example.com",
+          "description": "A fitness app for all the community",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Alan Peacock Way",
+            "addressLocality": "Village East",
+            "addressRegion": "Middlesbrough",
+            "postalCode": "TS4 3AE",
+            "addressCountry": "GB"
+          }
+        },
+        "seller": "https://localhost:5001/api/identifiers/sellers/1",
+        "customer": {
+          "@type": "Person",
+          "email": "Casper.Swift59@yahoo.com",
+          "telephone": "753-420-4810 x2005",
+          "givenName": "Gorczany",
+          "familyName": "Ambrose",
+          "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342"
+        },
+        "orderedItem": [
+          {
+            "@type": "OrderItem",
+            "position": 0,
+            "acceptedOffer": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+            "orderedItem": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+          }
+        ],
+        "totalPaymentDue": {
+          "@type": "PriceSpecification",
+          "price": 0,
+          "priceCurrency": "GBP"
+        }
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "Order",
+          "@id": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+          "bookingService": {
+            "@type": "BookingService",
+            "name": "Acme booking system",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ],
+            "url": "https://example.com"
+          },
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com"
+          },
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "customer": {
+            "@type": "Person",
+            "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342",
+            "email": "Casper.Swift59@yahoo.com",
+            "familyName": "Ambrose",
+            "givenName": "Gorczany",
+            "telephone": "753-420-4810 x2005"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "@id": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5#/orderedItems/2131",
+              "acceptedOffer": {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                "allowCustomerCancellationFullRefund": true,
+                "latestCancellationBeforeStartDate": "P1DT16H",
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              "accessChannel": {
+                "@type": "VirtualLocation",
+                "name": "Zoom Video Chat",
+                "description": "Please log into Zoom a few minutes before the event",
+                "accessCode": "7277578606",
+                "accessId": "6471490750"
+              },
+              "orderedItem": {
+                "@type": "ScheduledSession",
+                "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+                "startDate": "2021-07-06T11:36:09+00:00",
+                "endDate": "2021-07-06T13:18:09+00:00",
+                "superEvent": {
+                  "@type": "SessionSeries",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204",
+                  "name": "Rubber Running",
+                  "activity": [
+                    {
+                      "@type": "Concept",
+                      "@id": "https://openactive.io/activity-list#6bdea630-ad22-4e58-98a3-bca26ee3f1da",
+                      "inScheme": "https://openactive.io/activity-list",
+                      "prefLabel": "Rave Fitness"
+                    }
+                  ],
+                  "location": {
+                    "@type": "Place",
+                    "name": "Fake fitness studio",
+                    "geo": {
+                      "@type": "GeoCoordinates",
+                      "latitude": 51.6201,
+                      "longitude": 0.302396
+                    }
+                  },
+                  "url": "https://example.com/events/204"
+                },
+                "maximumAttendeeCapacity": 42,
+                "remainingAttendeeCapacity": 42
+              },
+              "orderItemStatus": "https://openactive.io/OrderItemConfirmed",
+              "position": 0,
+              "unitTaxSpecification": [
+                {
+                  "@type": "TaxChargeSpecification",
+                  "name": "VAT at 20%",
+                  "price": 0,
+                  "priceCurrency": "GBP",
+                  "rate": 0.2
+                }
+              ]
+            }
+          ],
+          "seller": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1",
+            "name": "Acme Fitness Ltd",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GB",
+              "addressLocality": "Another town",
+              "addressRegion": "Oxfordshire",
+              "postalCode": "OX1 1AA",
+              "streetAddress": "1 Hidden Gem"
+            },
+            "isOpenBookingAllowed": true,
+            "legalName": "Acme Fitness Ltd",
+            "taxMode": "https://openactive.io/TaxGross",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ]
+          },
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "openBookingPrepayment": "https://openactive.io/Unavailable",
+            "price": 0,
+            "priceCurrency": "GBP"
+          },
+          "totalPaymentTax": [
+            {
+              "@type": "TaxChargeSpecification",
+              "name": "VAT at 20%",
+              "price": 0,
+              "priceCurrency": "GBP",
+              "rate": 0.2
+            }
+          ]
+        },
+        "responseTime": 289.208261,
+        "status": 201,
+        "statusMessage": "Created",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:19 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "3039"
+        },
+        "validations": [
+          {
+            "path": "$.orderedItem[0].accessCode",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `accessCode` is missing from `OrderItem`."
+          },
+          {
+            "path": "$.orderedItem[0].accessPass",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `accessPass` is missing from `OrderItem`."
+          },
+          {
+            "path": "$.orderedItem[0].acceptedOffer.name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].acceptedOffer.ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `eventStatus` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.id",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `@id` is missing from `Place`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.telephone",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.openingHoursSpecification",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.location.amenityFeature",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.seller.email",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `email` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"email\": \"info@example.com\"\n```"
+          },
+          {
+            "path": "$.seller.url",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+          },
+          {
+            "path": "$.seller.logo",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `logo` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"logo\": {\n  \"@type\": \"ImageObject\",\n  \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n}\n```"
+          },
+          {
+            "path": "$.seller.vatID",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `vatID` is missing from `Organization`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+            "rule": "AssumeNoGenderRestrictionRule",
+            "category": "data-quality",
+            "type": "consumer_assume_no_gender_restriction",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+            "rule": "AssumeAgeRangeRule",
+            "category": "data-quality",
+            "type": "consumer_assume_age_range",
+            "severity": "suggestion",
+            "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+          },
+          {
+            "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+            "rule": "AssumeEventStatusRule",
+            "category": "data-quality",
+            "type": "consumer_assume_event_status",
+            "severity": "suggestion",
+            "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+          }
+        ],
+        "specs": [
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "B"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B should return 201 on success",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 201 on success"
+          },
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "B",
+              "validation of B"
+            ],
+            "duration": 230,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B validation of B passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          }
+        ]
+      }
+    },
+    "U": {
+      "request": {
+        "@context": "https://openactive.io/",
+        "@type": "Order",
+        "orderedItem": [
+          {
+            "@type": "OrderItem",
+            "@id": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5#/orderedItems/2131",
+            "orderItemStatus": "https://openactive.io/CustomerCancelled"
+          }
+        ]
+      },
+      "response": {
+        "responseTime": 118.068911,
+        "status": 204,
+        "statusMessage": "No Content",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:19 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel"
+        }
+      }
+    },
+    "Fetch Opportunities": {
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "Fetch Opportunities"
+            ],
+            "duration": 19,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities should return 200 on success for request relevant to OrderItem 0",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 200 on success for request relevant to OrderItem 0"
+          },
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "Fetch Opportunities",
+              "validation of Opportunity Feed extract for OrderItem 0"
+            ],
+            "duration": 996,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          },
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "Fetch Opportunities",
+              "validation of Opportunity Feed extract for OrderItem 0"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test"
+          }
+        ]
+      }
+    },
+    "Cancel OrderItem at Position 0": {
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "cancellation-window",
+              "succeed-within-window",
+              "OpenBookingSimpleFlow",
+              "ScheduledSession",
+              "Cancel OrderItem at Position 0"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Cancel OrderItem at Position 0 should return 204 on success",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 204 on success"
+          }
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Fetch Opportunities"
+      ],
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities",
+      "type": "request",
+      "stage": "Local Microservice Test Interface for OrderItem 0",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/test-interface/datasets/uat-ci/opportunities",
+        "jsonBody": {
+          "@type": "ScheduledSession",
+          "superEvent": {
+            "@type": "SessionSeries",
+            "organizer": {
+              "@type": "Organization",
+              "@id": "https://localhost:5001/api/identifiers/sellers/1"
+            }
+          },
+          "@context": [
+            "https://openactive.io/",
+            "https://openactive.io/test-interface"
+          ],
+          "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableCancellableWithinWindow",
+          "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
+          "test:testOpportunityDataShapeExpression": [
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/remainingAttendeeCapacity",
+              "valueExpr": {
+                "@type": "NumericNodeConstraint",
+                "mininclusive": 2
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/isOpenBookingAllowed",
+              "valueExpr": {
+                "@type": "test:BooleanNodeConstraint",
+                "value": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/startDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "minDate": "2021-07-01T20:34:26.489+00:00"
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://schema.org/eventStatus",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "schema:EventStatusType",
+                "blocklist": [
+                  "https://schema.org/EventCancelled",
+                  "https://schema.org/EventPostponed"
+                ]
+              }
+            }
+          ],
+          "test:testOfferDataShapeExpression": [
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingFlowRequirement",
+              "valueExpr": {
+                "@type": "test:ArrayConstraint",
+                "datatype": "oa:OpenBookingFlowRequirement",
+                "excludesAll": [
+                  "https://openactive.io/OpenBookingAttendeeDetails",
+                  "https://openactive.io/OpenBookingIntakeForm",
+                  "https://openactive.io/OpenBookingApproval"
+                ]
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/allowCustomerCancellationFullRefund",
+              "valueExpr": {
+                "@type": "test:BooleanNodeConstraint",
+                "value": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/latestCancellationBeforeStartDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "minDate": "2021-07-01T20:34:26.489+00:00"
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/validFromBeforeStartDate",
+              "valueExpr": {
+                "@type": "test:DateRangeNodeConstraint",
+                "maxDate": "2021-07-01T18:34:26.489+00:00",
+                "allowNull": true
+              }
+            },
+            {
+              "@type": "test:TripleConstraint",
+              "predicate": "https://openactive.io/openBookingInAdvance",
+              "valueExpr": {
+                "@type": "test:OptionNodeConstraint",
+                "datatype": "oa:RequiredStatusType",
+                "blocklist": [
+                  "https://openactive.io/Unavailable"
+                ]
+              }
+            }
+          ]
+        },
+        "requestOptions": {
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 100,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "ScheduledSession",
+          "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+        },
+        "responseTime": 233.16684,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "146",
+          "etag": "W/\"92-dXgTfcJGQOqf/1xX0Y0CKhwvRSY\"",
+          "date": "Thu, 01 Jul 2021 18:48:16 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Fetch Opportunities"
+      ],
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities",
+      "type": "request",
+      "stage": "Opportunity Feed extract for OrderItem 0",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/opportunity/https%3A%2F%2Flocalhost%3A5001%2Fapi%2Fidentifiers%2Fscheduled-sessions%2F204%2Fevents%2F2031?useCacheIfAvailable=true",
+        "jsonBody": null,
+        "requestOptions": {
+          "timeout": 60000
+        }
+      },
+      "isPending": false,
+      "requestMetadata": {
+        "feedExtract": {
+          "id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+          "type": "opportunities"
+        }
+      },
+      "duration": 100,
+      "response": {
+        "body": {
+          "data": {
+            "@context": [
+              "https://openactive.io/",
+              "https://openactive.io/ns-beta"
+            ],
+            "@type": "ScheduledSession",
+            "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+            "startDate": "2021-07-06T11:36:09+00:00",
+            "endDate": "2021-07-06T13:18:09+00:00",
+            "superEvent": {
+              "@type": "SessionSeries",
+              "@id": "https://localhost:5001/api/identifiers/session-series/204",
+              "name": "Rubber Running",
+              "activity": [
+                {
+                  "@type": "Concept",
+                  "@id": "https://openactive.io/activity-list#c07d63a0-8eb9-4602-8bcc-23be6deb8f83",
+                  "inScheme": "https://openactive.io/activity-list",
+                  "prefLabel": "Jet Skiing"
+                }
+              ],
+              "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+              "offers": [
+                {
+                  "@type": "Offer",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                  "allowCustomerCancellationFullRefund": true,
+                  "latestCancellationBeforeStartDate": "P1DT16H",
+                  "price": 0,
+                  "priceCurrency": "GBP"
+                }
+              ],
+              "organizer": {
+                "@type": "Organization",
+                "@id": "https://localhost:5001/api/identifiers/sellers/1",
+                "name": "Acme Fitness Ltd",
+                "isOpenBookingAllowed": true,
+                "taxMode": "https://openactive.io/TaxGross",
+                "termsOfService": [
+                  {
+                    "@type": "PrivacyPolicy",
+                    "name": "Privacy Policy",
+                    "requiresExplicitConsent": false,
+                    "url": "https://example.com/privacy.html"
+                  }
+                ]
+              },
+              "url": "https://www.example.com/a-session-age",
+              "beta:affiliatedLocation": {
+                "@type": "Place",
+                "name": "Fake Pond",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressCountry": "GB",
+                  "addressLocality": "Another town",
+                  "addressRegion": "Oxfordshire",
+                  "postalCode": "OX1 1AA",
+                  "streetAddress": "1 Fake Park"
+                },
+                "geo": {
+                  "@type": "GeoCoordinates",
+                  "latitude": 0,
+                  "longitude": 0
+                }
+              }
+            },
+            "duration": "PT1H42M",
+            "maximumAttendeeCapacity": 42,
+            "remainingAttendeeCapacity": 42
+          }
+        },
+        "responseTime": 105.587826,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "1636",
+          "etag": "W/\"664-ddJFmZMfgrMEwaJMr7afFuHZv/E\"",
+          "date": "Thu, 01 Jul 2021 18:48:17 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Fetch Opportunities",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "type": "validations",
+      "stage": "Opportunity Feed extract for OrderItem 0",
+      "validations": [
+        {
+          "path": "$.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.leader",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `leader` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"leader\": [\n  {\n    \"@type\": \"Person\",\n    \"familyName\": \"Smith\",\n    \"givenName\": \"Nicole\",\n    \"gender\": \"https://schema.org/Male\",\n    \"@id\": \"https://example.com/locations/1234ABCD/leaders/89\",\n    \"identifier\": 89\n  }\n]\n```"
+        },
+        {
+          "path": "$.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"url\": \"https://example.com/event/1234\"\n```"
+        },
+        {
+          "path": "$.isAccessibleForFree",
+          "rule": "IsAccessibleForFreeRule",
+          "category": "data-quality",
+          "type": "missing_is_accessible_for_free",
+          "severity": "warning",
+          "message": "Where a `ScheduledSession` has at least one `Offer` with `price` set to `0`, it should also have a property named `isAccessibleForFree` set to `true`.\n\nFor example:\n\n```\n{\n  \"@type\": \"ScheduledSession\",\n  \"offers\": [\n    {\n      \"@type\": \"Offer\",\n      \"price\": 0\n    }\n  ],\n  \"isAccessibleForFree\": true\n}\n```"
+        },
+        {
+          "path": "$.superEvent.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"description\": \"A fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.superEvent.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\",\n    \"thumbnail\": [\n      {\n        \"@type\": \"ImageObject\",\n        \"url\": \"http://example.com/static/image/speedball_thumbnail.jpg\"\n      }\n    ]\n  }\n]\n```"
+        },
+        {
+          "path": "$.superEvent.ageRange",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.superEvent.genderRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+        },
+        {
+          "path": "$.superEvent.leader",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `leader` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"leader\": [\n  {\n    \"@type\": \"Person\",\n    \"familyName\": \"Smith\",\n    \"givenName\": \"Nicole\",\n    \"gender\": \"https://schema.org/Male\",\n    \"@id\": \"https://example.com/locations/1234ABCD/leaders/89\",\n    \"identifier\": 89\n  }\n]\n```"
+        },
+        {
+          "path": "$.superEvent.level",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `level` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"level\": [\n  \"Beginner\"\n]\n```"
+        },
+        {
+          "path": "$.superEvent.isAccessibleForFree",
+          "rule": "IsAccessibleForFreeRule",
+          "category": "data-quality",
+          "type": "missing_is_accessible_for_free",
+          "severity": "warning",
+          "message": "Where a `SessionSeries` has at least one `Offer` with `price` set to `0`, it should also have a property named `isAccessibleForFree` set to `true`.\n\nFor example:\n\n```\n{\n  \"@type\": \"SessionSeries\",\n  \"offers\": [\n    {\n      \"@type\": \"Offer\",\n      \"price\": 0\n    }\n  ],\n  \"isAccessibleForFree\": true\n}\n```"
+        },
+        {
+          "path": "$.superEvent.offers[0].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.superEvent.offers[0].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.superEvent.organizer.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+        },
+        {
+          "path": "$.superEvent.organizer.telephone",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `telephone` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01234 567890\"\n```"
+        },
+        {
+          "path": "$.superEvent.organizer.sameAs",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `sameAs` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"sameAs\": [\n  \"https://www.facebook.com/everyoneactive/\",\n  \"https://twitter.com/everyoneactive\"\n]\n```"
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].id",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `@id` is missing from `Place`."
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].telephone",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].openingHoursSpecification",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+        },
+        {
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].amenityFeature",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+        },
+        {
+          "path": "$.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.superEvent.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+        },
+        {
+          "path": "$.superEvent.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.superEvent.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "value": 0,
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].geo.latitude",
+          "rule": "PrecisionRule",
+          "category": "data-quality",
+          "type": "invalid_precision",
+          "severity": "suggestion",
+          "message": "The value of this property should have at least 3 decimal places. Note that this notice will also appear when trailing zeros have been truncated."
+        },
+        {
+          "value": 0,
+          "path": "$.superEvent[\"beta:affiliatedLocation\"].geo.longitude",
+          "rule": "PrecisionRule",
+          "category": "data-quality",
+          "type": "invalid_precision",
+          "severity": "suggestion",
+          "message": "The value of this property should have at least 3 decimal places. Note that this notice will also appear when trailing zeros have been truncated."
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C1"
+      ],
+      "title": "matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test",
+      "type": "request",
+      "stage": "C1",
+      "request": {
+        "method": "PUT",
+        "url": "https://localhost:5001/api/openbooking/order-quote-templates/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+        "jsonBody": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com",
+            "description": "A fitness app for all the community",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Alan Peacock Way",
+              "addressLocality": "Village East",
+              "addressRegion": "Middlesbrough",
+              "postalCode": "TS4 3AE",
+              "addressCountry": "GB"
+            }
+          },
+          "seller": "https://localhost:5001/api/identifiers/sellers/1",
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "position": 0,
+              "acceptedOffer": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+              "orderedItem": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+            }
+          ],
+          "payment": {
+            "@type": "Payment",
+            "name": "AcmeBroker Points",
+            "accountId": "SN1593",
+            "paymentProviderId": "STRIPE"
+          }
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InJrWWlDeV9OWkVDemJ5TGpyUGFTZkEiLCJ0eXAiOiJhdCtqd3QifQ.eyJuYmYiOjE2MjUxNjQ0NzEsImV4cCI6MTYyNTE2ODA3MSwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5IiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5Iiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNjI1MTY0NDcwLCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtaWRlbnRpdHkiLCJvcGVuYWN0aXZlLW9wZW5ib29raW5nIiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.mPvoqm7aAVdo-8aOS4SmSFEqCcAQKJj7cAFUt9wWyfuMsAXRV_ntJ05gyar1fc_WodEc3OoARdczKQaDcaZfRJzpkeyhewAIsYzfQXQiCkYQ6RkMb5tw0f3fHdO7Z6ns0Rxr6AHoWQuFCx-gFhEUx85E2LZeyO7nkhA_RVr-AKjIzwVzydDYxNeIBO2q8UsJ_ush8saz9i5rMT-mZUc8o_5lsDEIyMgHs48M9XQScCPRMldsgfU-4x-4sEWE1Nu2c7pSh03TmHHu1lukB27k84le9qSxh9ZkQbqwJbqHx1Pg5_yTp9St4vM4Nsz3b-0bTEEm5Pv_6H89mO1rcVKKmg"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 300,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "@id": "https://localhost:5001/api/openbooking/order-quotes/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+          "lease": {
+            "@type": "Lease",
+            "leaseExpires": "2021-07-01T18:53:18+00:00"
+          },
+          "orderRequiresApproval": false,
+          "bookingService": {
+            "@type": "BookingService",
+            "name": "Acme booking system",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ],
+            "url": "https://example.com"
+          },
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com"
+          },
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "acceptedOffer": {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                "allowCustomerCancellationFullRefund": true,
+                "latestCancellationBeforeStartDate": "P1DT16H",
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              "orderedItem": {
+                "@type": "ScheduledSession",
+                "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+                "startDate": "2021-07-06T11:36:09+00:00",
+                "endDate": "2021-07-06T13:18:09+00:00",
+                "superEvent": {
+                  "@type": "SessionSeries",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204",
+                  "name": "Rubber Running",
+                  "activity": [
+                    {
+                      "@type": "Concept",
+                      "@id": "https://openactive.io/activity-list#6bdea630-ad22-4e58-98a3-bca26ee3f1da",
+                      "inScheme": "https://openactive.io/activity-list",
+                      "prefLabel": "Rave Fitness"
+                    }
+                  ],
+                  "location": {
+                    "@type": "Place",
+                    "name": "Fake fitness studio",
+                    "geo": {
+                      "@type": "GeoCoordinates",
+                      "latitude": 51.6201,
+                      "longitude": 0.302396
+                    }
+                  },
+                  "url": "https://example.com/events/204"
+                },
+                "maximumAttendeeCapacity": 42,
+                "remainingAttendeeCapacity": 42
+              },
+              "position": 0,
+              "unitTaxSpecification": [
+                {
+                  "@type": "TaxChargeSpecification",
+                  "name": "VAT at 20%",
+                  "price": 0,
+                  "priceCurrency": "GBP",
+                  "rate": 0.2
+                }
+              ]
+            }
+          ],
+          "seller": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1",
+            "name": "Acme Fitness Ltd",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GB",
+              "addressLocality": "Another town",
+              "addressRegion": "Oxfordshire",
+              "postalCode": "OX1 1AA",
+              "streetAddress": "1 Hidden Gem"
+            },
+            "isOpenBookingAllowed": true,
+            "legalName": "Acme Fitness Ltd",
+            "taxMode": "https://openactive.io/TaxGross",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ]
+          },
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "openBookingPrepayment": "https://openactive.io/Unavailable",
+            "price": 0,
+            "priceCurrency": "GBP"
+          },
+          "totalPaymentTax": [
+            {
+              "@type": "TaxChargeSpecification",
+              "name": "VAT at 20%",
+              "price": 0,
+              "priceCurrency": "GBP",
+              "rate": 0.2
+            }
+          ]
+        },
+        "responseTime": 398.767464,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:18 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "2595"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C1",
+        "validation of C1"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 validation of C1 passes validation checks",
+      "type": "validations",
+      "stage": "C1",
+      "validations": [
+        {
+          "path": "$.orderedItem[0].acceptedOffer.name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].acceptedOffer.ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.id",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `@id` is missing from `Place`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.telephone",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.openingHoursSpecification",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.amenityFeature",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.seller.email",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `email` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"email\": \"info@example.com\"\n```"
+        },
+        {
+          "path": "$.seller.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+        },
+        {
+          "path": "$.seller.logo",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `logo` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"logo\": {\n  \"@type\": \"ImageObject\",\n  \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n}\n```"
+        },
+        {
+          "path": "$.seller.vatID",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `vatID` is missing from `Organization`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C2"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 validation of C1 passes validation checks",
+      "type": "request",
+      "stage": "C2",
+      "request": {
+        "method": "PUT",
+        "url": "https://localhost:5001/api/openbooking/order-quotes/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+        "jsonBody": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com",
+            "description": "A fitness app for all the community",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Alan Peacock Way",
+              "addressLocality": "Village East",
+              "addressRegion": "Middlesbrough",
+              "postalCode": "TS4 3AE",
+              "addressCountry": "GB"
+            }
+          },
+          "seller": "https://localhost:5001/api/identifiers/sellers/1",
+          "customer": {
+            "@type": "Person",
+            "email": "Casper.Swift59@yahoo.com",
+            "telephone": "753-420-4810 x2005",
+            "givenName": "Gorczany",
+            "familyName": "Ambrose",
+            "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "position": 0,
+              "acceptedOffer": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+              "orderedItem": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+            }
+          ],
+          "payment": {
+            "@type": "Payment",
+            "name": "AcmeBroker Points",
+            "accountId": "SN1593",
+            "paymentProviderId": "STRIPE"
+          }
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InJrWWlDeV9OWkVDemJ5TGpyUGFTZkEiLCJ0eXAiOiJhdCtqd3QifQ.eyJuYmYiOjE2MjUxNjQ0NzEsImV4cCI6MTYyNTE2ODA3MSwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5IiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5Iiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNjI1MTY0NDcwLCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtaWRlbnRpdHkiLCJvcGVuYWN0aXZlLW9wZW5ib29raW5nIiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.mPvoqm7aAVdo-8aOS4SmSFEqCcAQKJj7cAFUt9wWyfuMsAXRV_ntJ05gyar1fc_WodEc3OoARdczKQaDcaZfRJzpkeyhewAIsYzfQXQiCkYQ6RkMb5tw0f3fHdO7Z6ns0Rxr6AHoWQuFCx-gFhEUx85E2LZeyO7nkhA_RVr-AKjIzwVzydDYxNeIBO2q8UsJ_ush8saz9i5rMT-mZUc8o_5lsDEIyMgHs48M9XQScCPRMldsgfU-4x-4sEWE1Nu2c7pSh03TmHHu1lukB27k84le9qSxh9ZkQbqwJbqHx1Pg5_yTp9St4vM4Nsz3b-0bTEEm5Pv_6H89mO1rcVKKmg"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 100,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "@id": "https://localhost:5001/api/openbooking/order-quotes/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+          "lease": {
+            "@type": "Lease",
+            "leaseExpires": "2021-07-01T18:53:18+00:00"
+          },
+          "orderRequiresApproval": false,
+          "bookingService": {
+            "@type": "BookingService",
+            "name": "Acme booking system",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ],
+            "url": "https://example.com"
+          },
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com"
+          },
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "customer": {
+            "@type": "Person",
+            "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342",
+            "email": "Casper.Swift59@yahoo.com",
+            "familyName": "Ambrose",
+            "givenName": "Gorczany",
+            "telephone": "753-420-4810 x2005"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "acceptedOffer": {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                "allowCustomerCancellationFullRefund": true,
+                "latestCancellationBeforeStartDate": "P1DT16H",
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              "orderedItem": {
+                "@type": "ScheduledSession",
+                "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+                "startDate": "2021-07-06T11:36:09+00:00",
+                "endDate": "2021-07-06T13:18:09+00:00",
+                "superEvent": {
+                  "@type": "SessionSeries",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204",
+                  "name": "Rubber Running",
+                  "activity": [
+                    {
+                      "@type": "Concept",
+                      "@id": "https://openactive.io/activity-list#6bdea630-ad22-4e58-98a3-bca26ee3f1da",
+                      "inScheme": "https://openactive.io/activity-list",
+                      "prefLabel": "Rave Fitness"
+                    }
+                  ],
+                  "location": {
+                    "@type": "Place",
+                    "name": "Fake fitness studio",
+                    "geo": {
+                      "@type": "GeoCoordinates",
+                      "latitude": 51.6201,
+                      "longitude": 0.302396
+                    }
+                  },
+                  "url": "https://example.com/events/204"
+                },
+                "maximumAttendeeCapacity": 42,
+                "remainingAttendeeCapacity": 42
+              },
+              "position": 0,
+              "unitTaxSpecification": [
+                {
+                  "@type": "TaxChargeSpecification",
+                  "name": "VAT at 20%",
+                  "price": 0,
+                  "priceCurrency": "GBP",
+                  "rate": 0.2
+                }
+              ]
+            }
+          ],
+          "seller": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1",
+            "name": "Acme Fitness Ltd",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GB",
+              "addressLocality": "Another town",
+              "addressRegion": "Oxfordshire",
+              "postalCode": "OX1 1AA",
+              "streetAddress": "1 Hidden Gem"
+            },
+            "isOpenBookingAllowed": true,
+            "legalName": "Acme Fitness Ltd",
+            "taxMode": "https://openactive.io/TaxGross",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ]
+          },
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "openBookingPrepayment": "https://openactive.io/Unavailable",
+            "price": 0,
+            "priceCurrency": "GBP"
+          },
+          "totalPaymentTax": [
+            {
+              "@type": "TaxChargeSpecification",
+              "name": "VAT at 20%",
+              "price": 0,
+              "priceCurrency": "GBP",
+              "rate": 0.2
+            }
+          ]
+        },
+        "responseTime": 175.841396,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:18 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "2791"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C2",
+        "validation of C2"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 validation of C2 passes validation checks",
+      "type": "validations",
+      "stage": "C2",
+      "validations": [
+        {
+          "path": "$.orderedItem[0].acceptedOffer.name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].acceptedOffer.ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.id",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `@id` is missing from `Place`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.telephone",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.openingHoursSpecification",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.amenityFeature",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.seller.email",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `email` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"email\": \"info@example.com\"\n```"
+        },
+        {
+          "path": "$.seller.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+        },
+        {
+          "path": "$.seller.logo",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `logo` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"logo\": {\n  \"@type\": \"ImageObject\",\n  \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n}\n```"
+        },
+        {
+          "path": "$.seller.vatID",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `vatID` is missing from `Organization`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "B"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 validation of C2 passes validation checks",
+      "type": "request",
+      "stage": "B",
+      "request": {
+        "method": "PUT",
+        "url": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+        "jsonBody": {
+          "@context": "https://openactive.io/",
+          "@type": "Order",
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com",
+            "description": "A fitness app for all the community",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Alan Peacock Way",
+              "addressLocality": "Village East",
+              "addressRegion": "Middlesbrough",
+              "postalCode": "TS4 3AE",
+              "addressCountry": "GB"
+            }
+          },
+          "seller": "https://localhost:5001/api/identifiers/sellers/1",
+          "customer": {
+            "@type": "Person",
+            "email": "Casper.Swift59@yahoo.com",
+            "telephone": "753-420-4810 x2005",
+            "givenName": "Gorczany",
+            "familyName": "Ambrose",
+            "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "position": 0,
+              "acceptedOffer": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+              "orderedItem": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031"
+            }
+          ],
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "price": 0,
+            "priceCurrency": "GBP"
+          }
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InJrWWlDeV9OWkVDemJ5TGpyUGFTZkEiLCJ0eXAiOiJhdCtqd3QifQ.eyJuYmYiOjE2MjUxNjQ0NzEsImV4cCI6MTYyNTE2ODA3MSwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5IiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5Iiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNjI1MTY0NDcwLCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtaWRlbnRpdHkiLCJvcGVuYWN0aXZlLW9wZW5ib29raW5nIiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.mPvoqm7aAVdo-8aOS4SmSFEqCcAQKJj7cAFUt9wWyfuMsAXRV_ntJ05gyar1fc_WodEc3OoARdczKQaDcaZfRJzpkeyhewAIsYzfQXQiCkYQ6RkMb5tw0f3fHdO7Z6ns0Rxr6AHoWQuFCx-gFhEUx85E2LZeyO7nkhA_RVr-AKjIzwVzydDYxNeIBO2q8UsJ_ush8saz9i5rMT-mZUc8o_5lsDEIyMgHs48M9XQScCPRMldsgfU-4x-4sEWE1Nu2c7pSh03TmHHu1lukB27k84le9qSxh9ZkQbqwJbqHx1Pg5_yTp9St4vM4Nsz3b-0bTEEm5Pv_6H89mO1rcVKKmg"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 200,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "Order",
+          "@id": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+          "bookingService": {
+            "@type": "BookingService",
+            "name": "Acme booking system",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ],
+            "url": "https://example.com"
+          },
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com"
+          },
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "customer": {
+            "@type": "Person",
+            "identifier": "f2e685bc-354b-4c14-af10-bedbd68c7342",
+            "email": "Casper.Swift59@yahoo.com",
+            "familyName": "Ambrose",
+            "givenName": "Gorczany",
+            "telephone": "753-420-4810 x2005"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "@id": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5#/orderedItems/2131",
+              "acceptedOffer": {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/session-series/204#/offers/0",
+                "allowCustomerCancellationFullRefund": true,
+                "latestCancellationBeforeStartDate": "P1DT16H",
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              "accessChannel": {
+                "@type": "VirtualLocation",
+                "name": "Zoom Video Chat",
+                "description": "Please log into Zoom a few minutes before the event",
+                "accessCode": "7277578606",
+                "accessId": "6471490750"
+              },
+              "orderedItem": {
+                "@type": "ScheduledSession",
+                "@id": "https://localhost:5001/api/identifiers/scheduled-sessions/204/events/2031",
+                "startDate": "2021-07-06T11:36:09+00:00",
+                "endDate": "2021-07-06T13:18:09+00:00",
+                "superEvent": {
+                  "@type": "SessionSeries",
+                  "@id": "https://localhost:5001/api/identifiers/session-series/204",
+                  "name": "Rubber Running",
+                  "activity": [
+                    {
+                      "@type": "Concept",
+                      "@id": "https://openactive.io/activity-list#6bdea630-ad22-4e58-98a3-bca26ee3f1da",
+                      "inScheme": "https://openactive.io/activity-list",
+                      "prefLabel": "Rave Fitness"
+                    }
+                  ],
+                  "location": {
+                    "@type": "Place",
+                    "name": "Fake fitness studio",
+                    "geo": {
+                      "@type": "GeoCoordinates",
+                      "latitude": 51.6201,
+                      "longitude": 0.302396
+                    }
+                  },
+                  "url": "https://example.com/events/204"
+                },
+                "maximumAttendeeCapacity": 42,
+                "remainingAttendeeCapacity": 42
+              },
+              "orderItemStatus": "https://openactive.io/OrderItemConfirmed",
+              "position": 0,
+              "unitTaxSpecification": [
+                {
+                  "@type": "TaxChargeSpecification",
+                  "name": "VAT at 20%",
+                  "price": 0,
+                  "priceCurrency": "GBP",
+                  "rate": 0.2
+                }
+              ]
+            }
+          ],
+          "seller": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1",
+            "name": "Acme Fitness Ltd",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GB",
+              "addressLocality": "Another town",
+              "addressRegion": "Oxfordshire",
+              "postalCode": "OX1 1AA",
+              "streetAddress": "1 Hidden Gem"
+            },
+            "isOpenBookingAllowed": true,
+            "legalName": "Acme Fitness Ltd",
+            "taxMode": "https://openactive.io/TaxGross",
+            "termsOfService": [
+              {
+                "@type": "PrivacyPolicy",
+                "name": "Privacy Policy",
+                "requiresExplicitConsent": false,
+                "url": "https://example.com/privacy.html"
+              }
+            ]
+          },
+          "totalPaymentDue": {
+            "@type": "PriceSpecification",
+            "openBookingPrepayment": "https://openactive.io/Unavailable",
+            "price": 0,
+            "priceCurrency": "GBP"
+          },
+          "totalPaymentTax": [
+            {
+              "@type": "TaxChargeSpecification",
+              "name": "VAT at 20%",
+              "price": 0,
+              "priceCurrency": "GBP",
+              "rate": 0.2
+            }
+          ]
+        },
+        "responseTime": 289.208261,
+        "status": 201,
+        "statusMessage": "Created",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:19 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "3039"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "B",
+        "validation of B"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B validation of B passes validation checks",
+      "type": "validations",
+      "stage": "B",
+      "validations": [
+        {
+          "path": "$.orderedItem[0].accessCode",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `accessCode` is missing from `OrderItem`."
+        },
+        {
+          "path": "$.orderedItem[0].accessPass",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `accessPass` is missing from `OrderItem`."
+        },
+        {
+          "path": "$.orderedItem[0].acceptedOffer.name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].acceptedOffer.ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `ScheduledSession`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRange` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"ageRange\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 50,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `genderRestriction` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"genderRestriction\": \"https://openactive.io/FemaleOnly\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `eventStatus` is missing from `SessionSeries`.\n\nA full example looks like this:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.id",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `@id` is missing from `Place`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.rphs.org.uk/\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"description\": \"Raynes Park High School in London\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.telephone",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `telephone` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"telephone\": \"01253 473934\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.openingHoursSpecification",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `openingHoursSpecification` is missing from `Place`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.location.amenityFeature",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `amenityFeature` is missing from `Place`.\n\nA full example looks like this:\n\n```\n\"amenityFeature\": [\n  {\n    \"name\": \"Changing Facilities\",\n    \"value\": true,\n    \"@type\": \"ChangingFacilities\"\n  },\n  {\n    \"name\": \"Showers\",\n    \"value\": false,\n    \"@type\": \"Showers\"\n  },\n  {\n    \"name\": \"Lockers\",\n    \"value\": true,\n    \"@type\": \"Lockers\"\n  },\n  {\n    \"name\": \"Towels\",\n    \"value\": false,\n    \"@type\": \"Towels\"\n  },\n  {\n    \"name\": \"Creche\",\n    \"value\": false,\n    \"@type\": \"Creche\"\n  },\n  {\n    \"name\": \"Parking\",\n    \"value\": true,\n    \"@type\": \"Parking\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.seller.email",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `email` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"email\": \"info@example.com\"\n```"
+        },
+        {
+          "path": "$.seller.url",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `url` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"url\": \"http://www.speedball-world.com\"\n```"
+        },
+        {
+          "path": "$.seller.logo",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `logo` is missing from `Organization`.\n\nA full example looks like this:\n\n```\n\"logo\": {\n  \"@type\": \"ImageObject\",\n  \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n}\n```"
+        },
+        {
+          "path": "$.seller.vatID",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `vatID` is missing from `Organization`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `ScheduledSession`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `ScheduledSession` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.genderRestriction",
+          "rule": "AssumeNoGenderRestrictionRule",
+          "category": "data-quality",
+          "type": "consumer_assume_no_gender_restriction",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that there is no gender restriction when no valid `genderRestriction` is supplied on a `SessionSeries`."
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.ageRange",
+          "rule": "AssumeAgeRangeRule",
+          "category": "data-quality",
+          "type": "consumer_assume_age_range",
+          "severity": "suggestion",
+          "message": "Data consumers will assume that the `ageRange` is 18+ when not specified.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"ageRange\": {\n  \"minValue\": 18\n}```"
+        },
+        {
+          "path": "$.orderedItem[0].orderedItem.superEvent.eventStatus",
+          "rule": "AssumeEventStatusRule",
+          "category": "data-quality",
+          "type": "consumer_assume_event_status",
+          "severity": "suggestion",
+          "message": "Data consumers will assume the `eventStatus` is scheduled if not specified or invalid.\n\nThis `SessionSeries` is currently assumed to have the equivalent of:\n\n```\n\"eventStatus\": \"https://schema.org/EventScheduled\"\n```"
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Cancel OrderItem at Position 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B validation of B passes validation checks",
+      "type": "request",
+      "stage": "U",
+      "request": {
+        "method": "PATCH",
+        "url": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5",
+        "jsonBody": {
+          "@context": "https://openactive.io/",
+          "@type": "Order",
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "@id": "https://localhost:5001/api/openbooking/orders/f0c8bd49-f88a-44a9-88f3-ab6ccfa05df5#/orderedItems/2131",
+              "orderItemStatus": "https://openactive.io/CustomerCancelled"
+            }
+          ]
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InJrWWlDeV9OWkVDemJ5TGpyUGFTZkEiLCJ0eXAiOiJhdCtqd3QifQ.eyJuYmYiOjE2MjUxNjQ0NzEsImV4cCI6MTYyNTE2ODA3MSwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5IiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiZWIwODI4NTUtODcwNy00YjZjLTk0M2EtNjQ1OWNjYmViMjE5Iiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNjI1MTY0NDcwLCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtaWRlbnRpdHkiLCJvcGVuYWN0aXZlLW9wZW5ib29raW5nIiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.mPvoqm7aAVdo-8aOS4SmSFEqCcAQKJj7cAFUt9wWyfuMsAXRV_ntJ05gyar1fc_WodEc3OoARdczKQaDcaZfRJzpkeyhewAIsYzfQXQiCkYQ6RkMb5tw0f3fHdO7Z6ns0Rxr6AHoWQuFCx-gFhEUx85E2LZeyO7nkhA_RVr-AKjIzwVzydDYxNeIBO2q8UsJ_ush8saz9i5rMT-mZUc8o_5lsDEIyMgHs48M9XQScCPRMldsgfU-4x-4sEWE1Nu2c7pSh03TmHHu1lukB27k84le9qSxh9ZkQbqwJbqHx1Pg5_yTp9St4vM4Nsz3b-0bTEEm5Pv_6H89mO1rcVKKmg"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 100,
+      "response": {
+        "responseTime": 118.068911,
+        "status": 204,
+        "statusMessage": "No Content",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 01 Jul 2021 18:48:19 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel"
+        }
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Fetch Opportunities"
+      ],
+      "title": "should return 200 on success for request relevant to OrderItem 0",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities should return 200 on success for request relevant to OrderItem 0",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "Fetch Opportunities"
+        ],
+        "duration": 19,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities should return 200 on success for request relevant to OrderItem 0",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 200 on success for request relevant to OrderItem 0"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Fetch Opportunities",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "Fetch Opportunities",
+          "validation of Opportunity Feed extract for OrderItem 0"
+        ],
+        "duration": 996,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Fetch Opportunities",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "Fetch Opportunities",
+          "validation of Opportunity Feed extract for OrderItem 0"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C1"
+      ],
+      "title": "should return 200 on success",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 should return 200 on success",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "C1"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 should return 200 on success",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 200 on success"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C1",
+        "validation of C1"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 validation of C1 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "C1",
+          "validation of C1"
+        ],
+        "duration": 281,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C1 validation of C1 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C2"
+      ],
+      "title": "should return 200 on success",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 should return 200 on success",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "C2"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 should return 200 on success",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 200 on success"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "C2",
+        "validation of C2"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 validation of C2 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "C2",
+          "validation of C2"
+        ],
+        "duration": 273,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession C2 validation of C2 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "B"
+      ],
+      "title": "should return 201 on success",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B should return 201 on success",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "B"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B should return 201 on success",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 201 on success"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "B",
+        "validation of B"
+      ],
+      "title": "passes validation checks",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B validation of B passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "B",
+          "validation of B"
+        ],
+        "duration": 230,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession B validation of B passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "cancellation-window",
+        "succeed-within-window",
+        "OpenBookingSimpleFlow",
+        "ScheduledSession",
+        "Cancel OrderItem at Position 0"
+      ],
+      "title": "should return 204 on success",
+      "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Cancel OrderItem at Position 0 should return 204 on success",
+      "spec": {
+        "ancestorTitles": [
+          "cancellation-window",
+          "succeed-within-window",
+          "OpenBookingSimpleFlow",
+          "ScheduledSession",
+          "Cancel OrderItem at Position 0"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession Cancel OrderItem at Position 0 should return 204 on success",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 204 on success"
+      }
+    }
+  ],
+  "timestamp": "Thu Jul 01 2021 18:48:16 GMT+0000 (Coordinated Universal Time)",
+  "config": {
+    "testCategory": "cancellation",
+    "testFeature": "cancellation-window",
+    "testFeatureImplemented": true,
+    "testIdentifier": "succeed-within-window",
+    "testName": "Successful booking and cancellation within window.",
+    "testDescription": "A successful end to end booking including cancellation within the cancellation window.",
+    "testOpportunityCriteria": "TestOpportunityBookableCancellableWithinWindow",
+    "controlOpportunityCriteria": "TestOpportunityBookable"
+  },
+  "implemented": true,
+  "testFileIdentifier": "cancellation-window succeed-within-window OpenBookingSimpleFlow ScheduledSession",
+  "suites": [
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "Fetch Opportunities"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "Fetch Opportunities",
+      "validation of Opportunity Feed extract for OrderItem 0"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "C1"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "C1",
+      "validation of C1"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "C2"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "C2",
+      "validation of C2"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "B"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "B",
+      "validation of B"
+    ],
+    [
+      "cancellation-window",
+      "succeed-within-window",
+      "OpenBookingSimpleFlow",
+      "ScheduledSession",
+      "Cancel OrderItem at Position 0"
+    ]
+  ],
+  "title": "cancellation-window >> succeed-within-window (OpenBookingSimpleFlow >> ScheduledSession)",
+  "workingLog": "",
+  "specs": {
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,Fetch Opportunities": [
+      "should return 200 on success for request relevant to OrderItem 0"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,Fetch Opportunities,validation of Opportunity Feed extract for OrderItem 0": [
+      "passes validation checks",
+      "matches the criteria 'TestOpportunityBookableCancellableWithinWindow' required for this test"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,C1": [
+      "should return 200 on success"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,C1,validation of C1": [
+      "passes validation checks"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,C2": [
+      "should return 200 on success"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,C2,validation of C2": [
+      "passes validation checks"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,B": [
+      "should return 201 on success"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,B,validation of B": [
+      "passes validation checks"
+    ],
+    "cancellation-window,succeed-within-window,OpenBookingSimpleFlow,ScheduledSession,Cancel OrderItem at Position 0": [
+      "should return 204 on success"
+    ]
+  },
+  "description": "A successful end to end booking including cancellation within the cancellation window.",
+  "bookingFlow": "OpenBookingSimpleFlow",
+  "opportunityType": "ScheduledSession",
+  "baseAncestorTitles": [
+    "cancellation-window",
+    "succeed-within-window",
+    "OpenBookingSimpleFlow",
+    "ScheduledSession"
+  ]
+}
