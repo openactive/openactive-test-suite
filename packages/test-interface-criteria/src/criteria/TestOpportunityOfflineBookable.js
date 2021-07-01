@@ -6,7 +6,7 @@ const { TestOpportunityBookable } = require('./TestOpportunityBookable');
  * Check if event is offline without checking its `superEvent`
  */
 function isEventIndependentlyOffline(event) {
-  return event.eventAttendanceMode === 'https://schema.org/OfflineEventAttendanceMode';
+  return !event.eventAttendanceMode || event.eventAttendanceMode === 'https://schema.org/OfflineEventAttendanceMode';
 }
 
 function isOpportunityEventAttendanceModeEqualToMixedOrOffline(opportunity) {
@@ -19,6 +19,9 @@ function isOpportunityEventAttendanceModeEqualToMixedOrOffline(opportunity) {
   }
   if (opportunity.superEvent) {
     return isEventIndependentlyOffline(opportunity.superEvent);
+  }
+  if (opportunity.superEvent.superEvent) {
+    return isEventIndependentlyOffline(opportunity.superEvent.superEvent);
   }
   return false;
 }
