@@ -25,6 +25,8 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  */
 
 /**
+ * @typedef {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} DefaultFlowStageParams
+ *
  * @typedef {{
  *   c1ReqTemplateRef?: C1ReqTemplateRef | null,
  *   c2ReqTemplateRef?: C2ReqTemplateRef | null,
@@ -34,6 +36,7 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   accessPass?: AccessPassItem[] | null,
  *   bookingPartnerIdentifier?: BookingPartnerIdentifier | null,
  *   uuid?: string | null,
+ *   defaultFlowStageParams?: DefaultFlowStageParams | null;
  * }} InitialiseSimpleC1C2BookFlowOptions
  */
 
@@ -67,21 +70,17 @@ const FlowStageRecipes = {
    * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
    */
   initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
-    // c1ReqTemplateRef = null,
-    // c2ReqTemplateRef = null,
     bookReqTemplateRef = null,
     brokerRole = null,
-    // taxMode = null,
     accessPass = null,
-    // bookingPartnerIdentifier = null,
-    ...c1c2Options
+    ...options
   } = {}) {
     // ## Initiate Flow Stages
     const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
       logger,
       {
-        ...c1c2Options,
+        ...options,
         brokerRole,
       },
     );
@@ -129,8 +128,9 @@ const FlowStageRecipes = {
     taxMode = null,
     bookingPartnerIdentifier = null,
     uuid = null,
+    ...options
   } = {}) {
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
+    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({
       logger,
       taxMode,
       bookingPartnerIdentifier,
@@ -229,7 +229,7 @@ const FlowStageRecipes = {
    * Use this to test that a Booking System is idempotent at B.
    *
    * @param {BookRecipe} bookRecipe
-   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {Omit<BookRecipeArgs, 'prerequisite'>} bookRecipeArgs
    */
   idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, bookRecipeArgs) {
@@ -265,7 +265,7 @@ const FlowStageRecipes = {
    * Flows.
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
-   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {BookRecipeArgs} bookRecipeArgs
    * @returns {BookRecipe}
    */
@@ -282,7 +282,7 @@ const FlowStageRecipes = {
    *
    * See: FlowStageRecipes.book for more info
    *
-   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
@@ -312,7 +312,7 @@ const FlowStageRecipes = {
    *
    * See: FlowStageRecipes.book for more info
    *
-   * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} defaultFlowStageParams
+   * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
@@ -383,7 +383,7 @@ const FlowStageRecipes = {
  *
  * @param {object} args
  * @param {PFlowStageType} args.p
- * @param {ReturnType<typeof FlowStageUtils.createDefaultFlowStageParams>} args.defaultFlowStageParams
+ * @param {DefaultFlowStageParams} args.defaultFlowStageParams
  * @param {UnknownFlowStageType} args.prerequisite
  * @param {() => import('./p').Input} args.bookRecipeGetFirstStageInput
  */

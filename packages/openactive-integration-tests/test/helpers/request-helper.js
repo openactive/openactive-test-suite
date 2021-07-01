@@ -40,6 +40,10 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CON
 const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
 const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
 
+const BROKER_CHAKRAM_REQUEST_OPTIONS = {
+  timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
+};
+
 class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
@@ -174,9 +178,7 @@ class RequestHelper {
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
       `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
-      {
-        timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
-      },
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {
           id: eventId,
@@ -189,49 +191,67 @@ class RequestHelper {
   }
 
   /**
-   * @param {'opportunities' | 'orders' | 'order-proposals'} type
    * @param {string} id
-   * @param {number} [orderItemPosition]
+   * @param {number} orderItemPosition
    */
-  async postFeedChangeListener(type, id, orderItemPosition) {
-    const respObj = await this.post(
-      (type === 'orders' || type === 'order-proposals')
-        ? `Orders Feed listen for '${id}' change`
-        : `Opportunity Feed listen for OrderItem ${orderItemPosition} change`,
-      `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
+  async postOpportunityFeedChangeListener(id, orderItemPosition) {
+    return await this.post(
+      `Opportunity Feed listen for OrderItem ${orderItemPosition} (id: ${id}) change`,
+      `${MICROSERVICE_BASE}/opportunity-listeners/${encodeURIComponent(id)}`,
       null,
-      {
-        timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
-      },
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
     );
-
-    return respObj;
   }
 
   /**
-   * @param {'opportunities' | 'orders' | 'order-proposals'} type
    * @param {string} id
-   * @param {number} [orderItemPosition]
-
+   * @param {number} orderItemPosition
    */
-  async getFeedChangeCollection(type, id, orderItemPosition) {
-    const respObj = await this.get(
-      (type === 'orders' || type === 'order-proposals')
-        ? `Orders Feed collect for '${id}' change`
-        : `Opportunity Feed collect for OrderItem ${orderItemPosition} change`,
-      `${MICROSERVICE_BASE}/listeners/${type}/${encodeURIComponent(id)}`,
-      {
-        timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
-      },
+  async getOpportunityFeedChangeCollection(id, orderItemPosition) {
+    return await this.get(
+      `Opportunity Feed collect for OrderItem ${orderItemPosition} (id: ${id}) change`,
+      `${MICROSERVICE_BASE}/opportunity-listeners/${encodeURIComponent(id)}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {
           id,
+          type: 'opportunities',
+        },
+      },
+    );
+  }
+
+  /**
+   * @param {'orders' | 'order-proposals'} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   */
+  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid) {
+    return await this.post(
+      `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
+      `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
+      null,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+    );
+  }
+
+  /**
+   * @param {'orders' | 'order-proposals'} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   */
+  async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid) {
+    return await this.get(
+      `Orders (${type}) Feed collect for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
+      `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+      {
+        feedExtract: {
+          id: uuid,
           type,
         },
       },
     );
-
-    return respObj;
   }
 
   async getDatasetSite() {

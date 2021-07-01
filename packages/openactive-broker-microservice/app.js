@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 const express = require('express');
 const http = require('http');
 const logger = require('morgan');
@@ -11,7 +10,7 @@ const path = require('path');
 const { performance } = require('perf_hooks');
 const { Base64 } = require('js-base64');
 const sleep = require('util').promisify(setTimeout);
-const { OpenActiveTestAuthKeyManager, setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
+const { setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 const Handlebars = require('handlebars');
 const fs = require('fs').promises;
 const { Remarkable } = require('remarkable');
@@ -31,56 +30,48 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
-/**
- * @typedef {'orders' | 'order-proposals'} OrderFeedType
- * @typedef {'primary' | 'secondary'} BookingPartnerIdentifier
- */
-
-const config = require('config');
 const AsyncValidatorWorker = require('./src/validator/async-validator');
-const PauseResume = require('./src/util/pause-resume');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');
+const { logError, logErrorDuringHarvest, log, logCharacter } = require('./src/util/log');
+const {
+  PORT,
+  MICROSERVICE_BASE_URL,
+  VALIDATE_ONLY,
+  ITEM_VALIDATION_MODE,
+  DATASET_SITE_URL,
+  REQUEST_LOGGING_ENABLED,
+  WAIT_FOR_HARVEST,
+  VERBOSE,
+  OUTPUT_PATH,
+  IS_RUNNING_IN_CI,
+  USE_RANDOM_OPPORTUNITIES,
+  HARVEST_START_TIME,
+  ORDERS_FEED_IDENTIFIER,
+  ORDER_PROPOSALS_FEED_IDENTIFIER,
+  OPPORTUNITY_FEED_REQUEST_HEADERS,
+  DATASET_DISTRIBUTION_OVERRIDE,
+  DO_NOT_FILL_BUCKETS,
+  DO_NOT_HARVEST_ORDERS_FEED,
+  DISABLE_BROKER_TIMEOUT,
+  LOG_AUTH_CONFIG,
+  BUTTON_SELECTORS,
+  CONSOLE_OUTPUT_LEVEL,
+  HEADLESS_AUTH,
+  VALIDATOR_TMP_DIR,
+} = require('./src/broker-config');
+const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners/api');
+const { Listeners } = require('./src/listeners/listeners');
+const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
+const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
+
+/**
+ * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
+ * @typedef {import('./src/models/core').BookingPartnerIdentifier} BookingPartnerIdentifier
+ * @typedef {import('./src/models/core').FeedContext} FeedContext
+ */
 
 const markdown = new Remarkable();
-
-const VALIDATE_ONLY = process.argv.includes('--validate-only');
-const ITEM_VALIDATION_MODE = VALIDATE_ONLY ? 'RPDEFeed' : 'BookableRPDEFeed';
-
-const DATASET_SITE_URL = VALIDATE_ONLY ? process.argv[3] : config.get('broker.datasetSiteUrl');
-const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
-const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarvestCompletion');
-const VERBOSE = config.get('broker.verbose');
-const OUTPUT_PATH = config.get('broker.outputPath');
-const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
-// TODO: move this property to the root of the config
-const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
-
-const HARVEST_START_TIME = (new Date()).toISOString();
-const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
-const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
-
-// These options are not recommended for general use, but are available for specific test environment configuration and debugging
-const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
-const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
-const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
-const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
-const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
-const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
-
-const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('broker.loginPagesSelectors') : {
-  username: "[name='username' i]",
-  password: "[name='password' i]",
-  button: '.btn-primary',
-};
-const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
-
-const PORT = normalizePort(process.env.PORT || '3000');
-const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
-const HEADLESS_AUTH = true;
-
-// Note this is duplicated between app.js and validator.js, for efficiency
-const VALIDATOR_TMP_DIR = './tmp';
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
@@ -89,38 +80,9 @@ const app = express();
 app.use(express.json());
 setupBrowserAutomationRoutes(app, BUTTON_SELECTORS);
 
-// eslint-disable-next-line no-console
-const logError = (x) => console.error(chalk.cyanBright(x));
-const logErrorDuringHarvest = (x) => console.error(chalk.cyanBright(`\n\n${x}\n\n\n\n\n\n\n\n\n`));
-// eslint-disable-next-line no-console
-const log = (x) => console.log(chalk.cyan(x));
-const logCharacter = (x) => process.stdout.write(chalk.cyan(x));
-
-const pauseResume = new PauseResume();
-
-const globalAuthKeyManager = new OpenActiveTestAuthKeyManager(log, MICROSERVICE_BASE_URL, config.get('sellers'), config.get('broker.bookingPartners'));
-
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
 }
-
-// nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
-const parentOpportunityMap = new Map();
-const parentOpportunityRpdeMap = new Map();
-const opportunityMap = new Map();
-const opportunityRpdeMap = new Map();
-const rowStoreMap = new Map();
-const parentIdIndex = new Map();
-
-const startTime = new Date();
-
-// create new progress bar container
-let multibar = null;
-
-let datasetSiteJson = {};
-
-const validatorThreadArray = [];
-const validationResults = new Map();
 
 /**
  * Use OpenActive validator to validate the opportunity
@@ -144,7 +106,7 @@ async function validateAndStoreValidationResults(data, validator) {
     }
 
     // Create a new entry if this is a new error
-    let currentValidationResults = validationResults.get(errorKey);
+    let currentValidationResults = state.validationResults.get(errorKey);
     if (!currentValidationResults) {
       currentValidationResults = {
         path: error.path,
@@ -152,7 +114,7 @@ async function validateAndStoreValidationResults(data, validator) {
         occurrences: 0,
         examples: [],
       };
-      validationResults.set(errorKey, currentValidationResults);
+      state.validationResults.set(errorKey, currentValidationResults);
     }
 
     // Keep track of examples of each error, with a preference for newer ones (later in the feed)
@@ -169,7 +131,7 @@ async function validateAndStoreValidationResults(data, validator) {
  */
 async function renderValidationErrorsHtml() {
   return renderTemplate('validation-errors', {
-    validationErrors: [...validationResults.entries()].map(([errorKey, obj]) => ({
+    validationErrors: [...state.validationResults.entries()].map(([errorKey, obj]) => ({
       errorKey,
       ...obj,
     })),
@@ -182,7 +144,7 @@ async function renderValidationErrorsHtml() {
  * @param {string} id The `@id` of the JSON-LD object
  */
 function renderOpenValidatorHref(id) {
-  const cachedResponse = opportunityMap.get(id) || parentOpportunityMap.get(id);
+  const cachedResponse = state.opportunityMap.get(id) || state.parentOpportunityMap.get(id);
   if (cachedResponse) {
     const jsonString = JSON.stringify(cachedResponse, null, 2);
     return `https://validator.openactive.io/?validationMode=${ITEM_VALIDATION_MODE}#/json/${Base64.encodeURI(jsonString)}`;
@@ -214,59 +176,11 @@ async function renderTemplate(templateName, data) {
   });
 }
 
-let opportunityIdCache = OpportunityIdCache.create();
-
-/**
- * @typedef FeedContext
- * @property {string} currentPage
- * @property {number} pages
- * @property {number} items
- * @property {number[]} responseTimes
- * @property {number} totalItemsQueuedForValidation
- * @property {number} validatedItems
- * @property {boolean} [sleepMode]
- * @property {string} [timeToHarvestCompletion]
- */
-/**
- * Harvesting state for each RPDE feed.
- *
- * Key = Either:
- *   - 'OrdersFeed' - it's the Orders Feed
- *   - 'OrderProposalsFeed' - it's the OrderProposalsFeed
- *   - 'ScheduledSession'|'SessionSeries'|'FacilityUseSlot'|..etc - It's one of the Oportunity feeds.
- * @type {Map<string, FeedContext>}
- */
-const feedContextMap = new Map();
-
-const testDatasets = new Map();
-function getTestDataset(testDatasetIdentifier) {
-  if (!testDatasets.has(testDatasetIdentifier)) {
-    testDatasets.set(testDatasetIdentifier, new Set());
-  }
-  return testDatasets.get(testDatasetIdentifier);
-}
-
-function getAllDatasets() {
-  return new Set(Array.from(testDatasets.values()).flatMap((x) => Array.from(x.values())));
-}
-
 /**
  * @param {() => Promise<Object.<string, string>>} getHeadersFn
  * @returns {() => Promise<Object.<string, string>>}
  */
 function withOpportunityRpdeHeaders(getHeadersFn) {
-  return async () => ({
-    Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
-    'Cache-Control': 'max-age=0',
-    ...await getHeadersFn() || {},
-  });
-}
-
-/**
- * @param {() => Promise<Object.<string, string>>} getHeadersFn
- * @returns {() => Promise<Object.<string, string>>}
- */
-function withOrdersRpdeHeaders(getHeadersFn) {
   return async () => ({
     Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
@@ -287,8 +201,8 @@ function withOrdersRpdeHeaders(getHeadersFn) {
 async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrdersFeed, bar, totalItems, waitForValidation) {
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
   const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
-  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, startTime, validatorTimeout);
-  validatorThreadArray.push(validator);
+  const validator = new AsyncValidatorWorker(feedIdentifier, waitForValidation, state.startTime, validatorTimeout);
+  state.validatorThreadArray.push(validator);
 
   let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
@@ -319,10 +233,10 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
     ...progressFromContext(context),
   });
 
-  if (feedContextMap.has(feedIdentifier)) {
+  if (state.feedContextMap.has(feedIdentifier)) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
   }
-  feedContextMap.set(feedIdentifier, context);
+  state.feedContextMap.set(feedIdentifier, context);
   let url = baseUrl;
 
   // One instance of FeedPageChecker per feed, as it maintains state relating to the feed
@@ -331,7 +245,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
   // Harvest forever, until a 404 is encountered
   for (;;) {
     // If harvesting is paused, block using the mutex
-    await pauseResume.waitIfPaused();
+    await state.pauseResume.waitIfPaused();
 
     try {
       const options = {
@@ -345,7 +259,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
 
       const json = response.data;
 
-      // Validate RPDE page using RPDE Validator, noting that for non-2xx responses that we want to retry axios will have already thrown an error above
+      // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
       const rpdeValidationErrors = feedChecker.validateRpdePage({
         url,
         json,
@@ -357,7 +271,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
       });
 
       if (rpdeValidationErrors.length > 0) {
-        if (multibar) multibar.stop();
+        if (state.multibar) state.multibar.stop();
         logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
         process.exit(1);
       }
@@ -380,9 +294,9 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
           await setFeedIsUpToDate(feedIdentifier);
         } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
-        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime());
+        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
         // Slow down sleep polling while waiting for harvesting of other feeds to complete
-        await sleep(WAIT_FOR_HARVEST && incompleteFeeds.length !== 0 ? 5000 : 500);
+        await sleep(WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0 ? 5000 : 500);
       } else {
         context.responseTimes.push(responseTime);
         // Maintain a buffer of the last 5 items
@@ -437,19 +351,20 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
       }
       if (error instanceof FatalError) {
         // If a fatal error, quit the application immediately
-        if (multibar) multibar.stop();
+        if (state.multibar) state.multibar.stop();
         logError(`\nFATAL ERROR for RPDE feed ${feedIdentifier} page "${url}": ${error.message}\n`);
         process.exit(1);
       } else if (!error.isAxiosError) {
         // If a non-axios error, quit the application immediately
-        if (multibar) multibar.stop();
+        if (state.multibar) state.multibar.stop();
         logErrorDuringHarvest(`FATAL ERROR for RPDE feed ${feedIdentifier} page "${url}": ${error.message}\n${error.stack}`);
         process.exit(1);
       } else if (error.response?.status === 404) {
         // If 404, simply stop polling feed
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) await setFeedIsUpToDate(feedIdentifier);
-        multibar.remove(progressbar);
-        if (feedIdentifier !== ORDER_PROPOSALS_FEED_IDENTIFIER) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedIdentifier} page "${url}", feed will be ignored.`);
+        state.multibar.remove(progressbar);
+        state.feedContextMap.delete(feedIdentifier);
+        if (feedIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedIdentifier} page "${url}", feed will be ignored.`);
         return;
       } else {
         logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE feed ${feedIdentifier} page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
@@ -458,7 +373,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
           numberOfRetries += 1;
           await sleep(5000);
         } else {
-          if (multibar) multibar.stop();
+          if (state.multibar) state.multibar.stop();
           logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed ${feedIdentifier} page "${url}"\n`);
           process.exit(1);
         }
@@ -477,7 +392,7 @@ async function harvestRPDE(baseUrl, feedIdentifier, headers, processPage, isOrde
  * @returns {any}
  */
 function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
-  const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+  const typeBucket = OpportunityIdCache.getTypeBucket(state.opportunityIdCache, {
     criteriaName, bookingFlow, opportunityType,
   });
   const sellerCompartment = typeBucket.contents.get(sellerId);
@@ -524,7 +439,7 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
  * @param {string} args.bookingFlow
  */
 function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, bookingFlow }) {
-  const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+  const typeBucket = OpportunityIdCache.getTypeBucket(state.opportunityIdCache, {
     criteriaName, opportunityType, bookingFlow,
   });
 
@@ -539,15 +454,15 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
 }
 
 function getOpportunityById(opportunityId) {
-  const opportunity = opportunityMap.get(opportunityId);
+  const opportunity = state.opportunityMap.get(opportunityId);
   if (!opportunity) {
     return null;
   }
   if (!jsonLdHasReferencedParent(opportunity)) {
     return opportunity;
   }
-  const superEvent = parentOpportunityMap.get(opportunity.superEvent);
-  const facilityUse = parentOpportunityMap.get(opportunity.facilityUse);
+  const superEvent = state.parentOpportunityMap.get(opportunity.superEvent);
+  const facilityUse = state.parentOpportunityMap.get(opportunity.facilityUse);
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     delete opportunity['@context'];
@@ -580,46 +495,22 @@ function getOpportunityById(opportunityId) {
 }
 
 /**
- * @typedef {object} PendingResponse
- * @property {(json: any) => void} send
- * @property {() => void} cancel
- */
-
-/** @type {{[id: string]: PendingResponse}} */
-const responses = {};
-
-const healthCheckResponsesWaitingForHarvest = [];
-/**
- * List of Feed identifiers which have not yet completed harvesting.
- *
- * @type {string[]}
- */
-const incompleteFeeds = [];
-
-/**
- * @param {string} feedIdentifier
- */
-function addFeed(feedIdentifier) {
-  incompleteFeeds.push(feedIdentifier);
-}
-
-/**
  * @param {string} feedIdentifier
  */
 async function setFeedIsUpToDate(feedIdentifier) {
-  if (incompleteFeeds.length !== 0) {
-    const index = incompleteFeeds.indexOf(feedIdentifier);
+  if (state.incompleteFeeds.length !== 0) {
+    const index = state.incompleteFeeds.indexOf(feedIdentifier);
     if (index > -1) {
       // Remove the feed from the list
-      incompleteFeeds.splice(index, 1);
+      state.incompleteFeeds.splice(index, 1);
 
-      // If the list is now empty, trigger responses to healthcheck
-      if (incompleteFeeds.length === 0) {
+      // If all feeds are now completed, trigger responses to healthcheck
+      if (state.incompleteFeeds.length === 0) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
-        await Promise.all(validatorThreadArray.map(async (validator) => validator.terminate));
+        await Promise.all(state.validatorThreadArray.map(async (validator) => validator.terminate));
 
-        if (multibar) multibar.stop();
+        if (state.multibar) state.multibar.stop();
 
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
@@ -652,10 +543,10 @@ async function setFeedIsUpToDate(feedIdentifier) {
           validationPassed = false;
         }
 
-        if (validationResults.size > 0) {
+        if (state.validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
-          const occurrenceCount = [...validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
-          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validationResults.size} were unique.`);
+          const occurrenceCount = [...state.validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
+          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${state.validationResults.size} were unique.`);
           if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
             logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
           } else {
@@ -675,7 +566,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
             log(chalk.red('(press ctrl+c to close or wait 60 seconds)\n'));
             // Pause harvester and sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
             // User interaction is not required to exit, for compatibility with CI
-            await pauseResume.pause();
+            await state.pauseResume.pause();
             await sleep(60000);
           }
           process.exit(1);
@@ -688,11 +579,11 @@ async function setFeedIsUpToDate(feedIdentifier) {
 }
 
 function unlockHealthCheck() {
-  healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
+  state.healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
   // Clear response array
-  healthCheckResponsesWaitingForHarvest.splice(0, healthCheckResponsesWaitingForHarvest.length);
-  // Clear incompleteFeeds array
-  incompleteFeeds.splice(0, incompleteFeeds.length);
+  state.healthCheckResponsesWaitingForHarvest.splice(0, state.healthCheckResponsesWaitingForHarvest.length);
+  // Clear state.incompleteFeeds array
+  state.incompleteFeeds.splice(0, state.incompleteFeeds.length);
 }
 
 // Provide helpful homepage as binding for root to allow the service to run in a container
@@ -717,18 +608,18 @@ app.get('/health-check', async function (req, res) {
   // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
   // to ensure that the tests will not run until the feeds have been fully consumed
   // Allow blocking for up to 10 minutes to fully harvest the feed
-  const wasPaused = pauseResume.resume();
+  const wasPaused = state.pauseResume.resume();
   if (wasPaused) log('Harvesting resumed');
   req.setTimeout(1000 * 60 * 10);
-  if (WAIT_FOR_HARVEST && incompleteFeeds.length !== 0) {
-    healthCheckResponsesWaitingForHarvest.push(res);
+  if (WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0) {
+    state.healthCheckResponsesWaitingForHarvest.push(res);
   } else {
     res.send('openactive-broker');
   }
 });
 
 app.post('/pause', async function (req, res) {
-  await pauseResume.pause();
+  await state.pauseResume.pause();
   log('Harvesting paused');
   res.send();
 });
@@ -738,36 +629,22 @@ function getConfig() {
     // Allow a consistent startDate to be used when calling test-interface-criteria
     harvestStartTime: HARVEST_START_TIME,
     // Base URL used by the integration tests
-    bookingApiBaseUrl: datasetSiteJson.accessService?.endpointURL,
+    bookingApiBaseUrl: state.datasetSiteJson.accessService?.endpointURL,
     // Base URL used by the authentication tests
-    authenticationAuthority: datasetSiteJson.accessService?.authenticationAuthority,
-    ...globalAuthKeyManager.config,
+    authenticationAuthority: state.datasetSiteJson.accessService?.authenticationAuthority,
+    ...state.globalAuthKeyManager.config,
     headlessAuth: HEADLESS_AUTH,
-  };
-}
-
-function getOrdersFeedHeader(bookingPartnerIdentifier) {
-  return async () => {
-    await globalAuthKeyManager.refreshClientCredentialsAccessTokensIfNeeded();
-    const accessToken = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.orderFeedTokenSet?.access_token;
-    const requestHeaders = getConfig()?.bookingPartnersConfig?.[bookingPartnerIdentifier]?.authentication?.ordersFeedRequestHeaders;
-    return {
-      ...(!accessToken ? undefined : {
-        Authorization: `Bearer ${accessToken}`,
-      }),
-      ...requestHeaders,
-    };
   };
 }
 
 // Config endpoint used to get global variables within the integration tests
 app.get('/config', async function (req, res) {
-  await globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
+  await state.globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
   res.json(getConfig());
 });
 
 app.get('/dataset-site', function (req, res) {
-  res.json(datasetSiteJson);
+  res.json(state.datasetSiteJson);
 });
 
 /**
@@ -818,7 +695,7 @@ function millisToMinutesAndSeconds(millis) {
 }
 
 function getOrphanJson() {
-  const rows = Array.from(rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
+  const rows = Array.from(state.rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
   return {
     children: {
       matched: rows.filter((x) => !x.waitingForParentToBeIngested).length,
@@ -852,10 +729,10 @@ app.get('/orphans', function (req, res) {
  * @returns {OrphanStats}
  */
 function getOrphanStats() {
-  const childRows = Array.from(rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
+  const childRows = Array.from(state.rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
   const childOrphans = childRows.filter((x) => x.waitingForParentToBeIngested).length;
   const totalChildren = childRows.length;
-  const totalOpportunities = Array.from(rowStoreMap.values()).filter((x) => !x.waitingForParentToBeIngested).length;
+  const totalOpportunities = Array.from(state.rowStoreMap.values()).filter((x) => !x.waitingForParentToBeIngested).length;
   const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
   return {
     childOrphans,
@@ -868,14 +745,14 @@ function getOrphanStats() {
 app.get('/status', function (req, res) {
   const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
   res.send({
-    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - startTime.getTime()),
-    harvestingStatus: pauseResume.pauseHarvestingStatus,
-    feeds: mapToObjectSummary(feedContextMap),
+    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime()),
+    harvestingStatus: state.pauseResume.pauseHarvestingStatus,
+    feeds: mapToObjectSummary(state.feedContextMap),
     orphans: {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
     totalOpportunitiesHarvested: totalOpportunities,
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(opportunityIdCache),
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.opportunityIdCache),
   });
 });
 
@@ -884,14 +761,14 @@ app.get('/validation-errors', async function (req, res) {
 });
 
 app.delete('/opportunity-cache', function (req, res) {
-  parentOpportunityMap.clear();
-  parentOpportunityRpdeMap.clear();
-  opportunityMap.clear();
-  opportunityRpdeMap.clear();
-  rowStoreMap.clear();
-  parentIdIndex.clear();
+  state.parentOpportunityMap.clear();
+  state.parentOpportunityRpdeMap.clear();
+  state.opportunityMap.clear();
+  state.opportunityRpdeMap.clear();
+  state.rowStoreMap.clear();
+  state.parentIdIndex.clear();
 
-  opportunityIdCache = OpportunityIdCache.create();
+  state.opportunityIdCache = OpportunityIdCache.create();
 
   res.status(204).send();
 });
@@ -924,112 +801,36 @@ app.get('/opportunity-cache/:id', function (req, res) {
 });
 
 /**
- * @typedef {{
- *   item: any,
- *   collectRes: import('express').Response | null,
- * }} Listener
+ * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
  *
- * @type {Map<string, Listener>}
- */
-const listeners = new Map();
-
-/**
- * @param {string} type
- * @param {string} id
- */
-function getListenerInfo(type, id) {
-  const isForOrdersFeed = (type === 'orders' || type === 'order-proposals');
-  return {
-    listenerId: `${type}::${id}`,
-    isForOrdersFeed,
-    idName: isForOrdersFeed ? 'UUID' : '@id',
-  };
-}
-
-/**
- * For an item being harvested from RPDE, check if there are any listeners listening for it.
+ * If so, respond to that listener.
  *
- * If so, respond to those listeners.
- *
- * @param {'opportunities' | OrderFeedType} type
  * @param {string} id
  * @param {any} item
  */
-function handleListeners(type, id, item) {
-  // If there is a listener for this ID, the listener map needs to be populated with either the item or
-  // the collection request must be fulfilled
-  const { listenerId } = getListenerInfo(type, id);
-  if (listeners.get(listenerId)) {
-    const { collectRes } = listeners.get(listenerId);
-    // If there's already a collection request, fulfill it
-    if (collectRes) {
-      collectRes.json(item);
-      listeners.delete(listenerId);
-    } else {
-      // If not, set the opportunity so that it can returned when the collection call arrives
-      listeners.set(listenerId, {
-        item, collectRes: null,
-      });
-    }
-  }
+function doNotifyOpportunityListener(id, item) {
+  Listeners.doNotifyListener(state.listeners.byOpportunityId, id, item);
 }
 
-app.post('/listeners/:type/:id', async function (req, res) {
-  const { type, id } = req.params;
-  const bookingPartnerIdentifier = 'primary'; // TODO: Allow listening to the feed of either booking partner
-  const { listenerId, idName, isForOrdersFeed } = getListenerInfo(type, id);
-  if (!id) {
-    return res.status(400).json({
-      error: 'id is required',
-    });
-  }
-  if (DO_NOT_HARVEST_ORDERS_FEED && isForOrdersFeed) {
-    return res.status(403).json({
-      error: 'Order feed items are not available as \'disableOrdersFeedHarvesting\' is set to \'true\' in the test suite configuration.',
-    });
-  }
-  if (listeners.has(listenerId)) {
-    return res.status(409).send({
-      error: `The ${idName} "${id}" already has a listener registered. The same ${idName} must not be used across multiple tests, or listened for multiple times concurrently within the same test.`,
-    });
-  }
-  listeners.set(listenerId, {
-    item: null, collectRes: null,
-  });
-  if (isForOrdersFeed) {
-    const feedContext = feedContextMap.get(orderFeedIdentifier(type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier));
-    return res.status(200).send({
-      headers: await withOrdersRpdeHeaders(getOrdersFeedHeader('primary'))(),
-      startingFeedPage: feedContext?.currentPage,
-      message: `Listening for '${id}' in ${type} feed from startingFeedPage using headers`,
-    });
-  }
-  return res.status(204).send();
-});
+/**
+ * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
+ *
+ * If so, respond to that listener.
+ *
+ * @param {OrderFeedType} type
+ * @param {string} bookingPartnerIdentifier
+ * @param {string} uuid
+ * @param {any} item
+ */
+function doNotifyOrderListener(type, bookingPartnerIdentifier, uuid, item) {
+  const listenerId = Listeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
+  Listeners.doNotifyListener(state.listeners.byOrderUuid, listenerId, item);
+}
 
-app.get('/listeners/:type/:id', function (req, res) {
-  const { type, id } = req.params;
-  const { listenerId, idName } = getListenerInfo(type, id);
-  if (!id) {
-    res.status(400).json({
-      error: 'id is required',
-    });
-  } else if (listeners.get(listenerId)) {
-    const { item } = listeners.get(listenerId);
-    if (!item) {
-      listeners.set(listenerId, {
-        item: null, collectRes: res,
-      });
-    } else {
-      res.json(item);
-      listeners.delete(listenerId);
-    }
-  } else {
-    res.status(404).json({
-      error: `Listener for ${idName} "${id}" not found`,
-    });
-  }
-});
+app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
+app.get('/opportunity-listeners/:id', getOpportunityListenerApi);
+app.post('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', createOrderListenerApi);
+app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListenerApi);
 
 app.get('/opportunity/:id', function (req, res) {
   const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
@@ -1057,10 +858,10 @@ app.get('/opportunity/:id', function (req, res) {
       }
 
       // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (responses[id] && responses[id] !== null) responses[id].cancel();
-      responses[id] = {
+      if (state.pendingGetOpportunityResponses[id] && state.pendingGetOpportunityResponses[id] !== null) state.pendingGetOpportunityResponses[id].cancel();
+      state.pendingGetOpportunityResponses[id] = {
         send(json) {
-          responses[id] = null;
+          state.pendingGetOpportunityResponses[id] = null;
           res.json(json);
         },
         cancel() {
@@ -1265,16 +1066,16 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      const jsonLdId = parentOpportunityRpdeMap.get(feedItemIdentifier);
-      parentOpportunityMap.delete(jsonLdId);
-      parentOpportunityRpdeMap.delete(feedItemIdentifier);
+      const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
+      state.parentOpportunityMap.delete(jsonLdId);
+      state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
     } else {
       // Run any validation logic for this item
       await validateItemFn(item.data);
 
       const jsonLdId = item.data['@id'] || item.data.id;
-      parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-      parentOpportunityMap.set(jsonLdId, item.data);
+      state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
+      state.parentOpportunityMap.set(jsonLdId, item.data);
     }
   }
 
@@ -1290,9 +1091,9 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      const jsonLdId = opportunityRpdeMap.get(feedItemIdentifier);
-      opportunityMap.delete(jsonLdId);
-      opportunityRpdeMap.delete(feedItemIdentifier);
+      const jsonLdId = state.opportunityRpdeMap.get(feedItemIdentifier);
+      state.opportunityMap.delete(jsonLdId);
+      state.opportunityRpdeMap.delete(feedItemIdentifier);
 
       deleteOpportunityItem(jsonLdId);
     } else {
@@ -1300,8 +1101,8 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
       await validateItemFn(item.data);
 
       const jsonLdId = item.data['@id'] || item.data.id;
-      opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-      opportunityMap.set(jsonLdId, item.data);
+      state.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
+      state.opportunityMap.set(jsonLdId, item.data);
 
       await storeOpportunityItem(item);
     }
@@ -1312,16 +1113,16 @@ async function touchOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
   parentIds.forEach((parentId) => {
-    if (parentIdIndex.has(parentId)) {
-      parentIdIndex.get(parentId).forEach((jsonLdId) => {
+    if (state.parentIdIndex.has(parentId)) {
+      state.parentIdIndex.get(parentId).forEach((jsonLdId) => {
         opportunitiesToUpdate.add(jsonLdId);
       });
     }
   });
 
   await Promise.all([...opportunitiesToUpdate].map(async (jsonLdId) => {
-    if (rowStoreMap.has(jsonLdId)) {
-      const row = rowStoreMap.get(jsonLdId);
+    if (state.rowStoreMap.has(jsonLdId)) {
+      const row = state.rowStoreMap.get(jsonLdId);
       row.feedModified = Date.now() + 1000; // 1 second in the future
       row.waitingForParentToBeIngested = false;
       await processRow(row);
@@ -1330,13 +1131,13 @@ async function touchOpportunityItems(parentIds) {
 }
 
 function deleteOpportunityItem(jsonLdId) {
-  const row = rowStoreMap.get(jsonLdId);
+  const row = state.rowStoreMap.get(jsonLdId);
   if (row) {
-    const idx = parentIdIndex.get(row.jsonLdParentId);
+    const idx = state.parentIdIndex.get(row.jsonLdParentId);
     if (idx) {
       idx.delete(jsonLdId);
     }
-    rowStoreMap.delete(jsonLdId);
+    state.rowStoreMap.delete(jsonLdId);
   }
 }
 
@@ -1352,16 +1153,16 @@ async function storeOpportunityItem(item) {
     jsonLd: item.data,
     jsonLdType: item.data['@type'] || item.data.type,
     jsonLdParentId: !jsonLdHasReferencedParent(item.data) ? null : item.data.superEvent || item.data.facilityUse,
-    waitingForParentToBeIngested: jsonLdHasReferencedParent(item.data) && !(parentOpportunityMap.has(item.data.superEvent) || parentOpportunityMap.has(item.data.facilityUse)),
+    waitingForParentToBeIngested: jsonLdHasReferencedParent(item.data) && !(state.parentOpportunityMap.has(item.data.superEvent) || state.parentOpportunityMap.has(item.data.facilityUse)),
   };
 
   if (row.jsonLdId != null) {
     if (row.jsonLdParentId != null) {
-      if (!parentIdIndex.has(row.jsonLdParentId)) parentIdIndex.set(row.jsonLdParentId, new Set());
-      parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
+      if (!state.parentIdIndex.has(row.jsonLdParentId)) state.parentIdIndex.set(row.jsonLdParentId, new Set());
+      state.parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
     }
 
-    rowStoreMap.set(row.jsonLdId, row);
+    state.rowStoreMap.set(row.jsonLdId, row);
 
     if (!row.waitingForParentToBeIngested) {
       await processRow(row);
@@ -1398,7 +1199,7 @@ async function processRow(row) {
       data: row.jsonLd,
     };
   } else {
-    const parentOpportunity = parentOpportunityMap.get(row.jsonLdParentId);
+    const parentOpportunity = state.parentOpportunityMap.get(row.jsonLdParentId);
     const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
 
     const parentOpportunityWithoutContext = {
@@ -1463,7 +1264,7 @@ async function processOpportunityItem(item) {
         }),
       }))) {
         for (const bookingFlow of bookingFlows) {
-          const typeBucket = OpportunityIdCache.getTypeBucket(opportunityIdCache, {
+          const typeBucket = OpportunityIdCache.getTypeBucket(state.opportunityIdCache, {
             criteriaName, opportunityType, bookingFlow,
           });
           if (!typeBucket.contents.has(sellerId)) typeBucket.contents.set(sellerId, new Set());
@@ -1488,33 +1289,34 @@ async function processOpportunityItem(item) {
       }
     }
 
-    if (responses[id]) {
-      responses[id].send(item);
+    if (state.pendingGetOpportunityResponses[id]) {
+      state.pendingGetOpportunityResponses[id].send(item);
     }
 
     if (VERBOSE) {
       const bookableIssueList = unmetCriteriaDetails.length > 0
         ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
-      if (responses[id]) {
+      if (state.pendingGetOpportunityResponses[id]) {
         log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
       } else {
         log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
       }
     }
 
-    handleListeners('opportunities', id, item);
+    doNotifyOpportunityListener(id, item);
   }
 }
 
 /**
  * @param {OrderFeedType} orderFeedType
+ * @param {string} bookingPartnerIdentifier
  * @returns {RpdePageProcessor}
  */
-function monitorOrdersPage(orderFeedType) {
+function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
   return (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
-        handleListeners(orderFeedType, item.id, item);
+        doNotifyOrderListener(orderFeedType, bookingPartnerIdentifier, item.id, item);
       }
     }
   };
@@ -1571,10 +1373,6 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
   }
 }
 
-function orderFeedIdentifier(feedIdentifier, bookingPartnerIdentifier) {
-  return `${feedIdentifier} (auth:${bookingPartnerIdentifier})`;
-}
-
 async function startPolling() {
   await mkdirp(VALIDATOR_TMP_DIR);
   await mkdirp(OUTPUT_PATH);
@@ -1618,12 +1416,12 @@ Validation errors found in Dataset Site JSON-LD:
   }
 
   // Set global based on data result
-  datasetSiteJson = dataset;
+  state.datasetSiteJson = dataset;
 
   if (!VALIDATE_ONLY) {
     if (dataset.accessService?.authenticationAuthority) {
       try {
-        await globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
+        await state.globalAuthKeyManager.initialise(dataset.accessService.authenticationAuthority, HEADLESS_AUTH);
       } catch (error) {
         if (error instanceof FatalError) {
           // If a fatal error, just rethrow
@@ -1672,7 +1470,7 @@ Validation errors found in Dataset Site JSON-LD:
   };
 
   const hasTotalItems = dataset.distribution.filter((x) => x.totalItems).length > 0;
-  multibar = new cliProgress.MultiBar({
+  state.multibar = new cliProgress.MultiBar({
     clearOnComplete: false,
     hideCursor: false,
     noTTYOutput: true,
@@ -1688,11 +1486,11 @@ Validation errors found in Dataset Site JSON-LD:
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestParentOpportunityPage, false, multibar, dataDownload.totalItems, true));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestParentOpportunityPage, false, state.multibar, dataDownload.totalItems, true));
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedIdentifier);
-      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestOpportunityPage, false, multibar, dataDownload.totalItems, false));
+      harvesters.push(harvestRPDE(dataDownload.contentUrl, feedIdentifier, withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS), ingestOpportunityPage, false, state.multibar, dataDownload.totalItems, false));
     } else {
       logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
       logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
@@ -1710,13 +1508,13 @@ Validation errors found in Dataset Site JSON-LD:
       {
         feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
-        feedContextIdentifier: orderFeedIdentifier(ORDERS_FEED_IDENTIFIER, bookingPartnerIdentifier),
+        feedContextIdentifier: orderFeedContextIdentifier(ORDERS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
       {
         feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
         type: /** @type {OrderFeedType} */('order-proposals'),
-        feedContextIdentifier: orderFeedIdentifier(ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier),
+        feedContextIdentifier: orderFeedContextIdentifier(ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
     ])) {
@@ -1726,9 +1524,11 @@ Validation errors found in Dataset Site JSON-LD:
         feedUrl,
         feedContextIdentifier,
         withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-        feedBookingPartnerIdentifier === 'primary' ? monitorOrdersPage(type) : () => null, // TODO: Allow monitorOrdersPage to handle multiple feedBookingPartnerIdentifier
+        feedBookingPartnerIdentifier === 'primary'
+          ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
+          : () => null,
         true,
-        multibar,
+        state.multibar,
       ));
     }
   }
@@ -1778,26 +1578,6 @@ setTimeout(() => {
     throw new Error(message);
   }
 }, 3600000); // 3600000 ms = 1 hour
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  const integerPort = parseInt(val, 10);
-
-  if (Number.isNaN(integerPort)) {
-    // named pipe
-    return val;
-  }
-
-  if (integerPort >= 0) {
-    // port number
-    return integerPort;
-  }
-
-  return false;
-}
 
 /**
  * Event listener for HTTP server "error" event.

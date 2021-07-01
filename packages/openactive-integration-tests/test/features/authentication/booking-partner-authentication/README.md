@@ -1,0 +1,37 @@
+[< Return to Overview](../../README.md)
+# Booking Partner Authentication (booking-partner-authentication)
+
+Separate Booking Partners should not be able to access/update each others' data
+
+
+https://openactive.io/open-booking-api/EditorsDraft/#api-level-authentication-and-data-security
+
+Coverage Status: **complete**
+
+
+
+### Running tests for only this feature
+
+```bash
+npm start -- --runInBand test/features/authentication/booking-partner-authentication/
+```
+
+
+
+## 'Implemented' tests
+
+This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:
+
+```json
+"implementedFeatures": {
+  ...
+  "booking-partner-authentication": true,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [booking-partner-partitioning-for-orders](./implemented/booking-partner-partitioning-for-orders-test.js) | Booking Partners' Orders are Partitioned | Orders from two different bookings partners must not be visible to each other, and UUID must be unique within each booking partner |  |
+
+

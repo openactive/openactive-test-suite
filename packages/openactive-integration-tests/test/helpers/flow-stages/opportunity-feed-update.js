@@ -97,7 +97,7 @@ async function runOpportunityFeedUpdateCollector({ testInterfaceOpportunities, r
   const opportunityFeedExtractResponses = await Promise.all(testInterfaceOpportunities.map(async (testInterfaceOpportunity, i) => {
     // Only attempt getMatch if test interface response was successful
     if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
-      return await requestHelper.getFeedChangeCollection('opportunities', testInterfaceOpportunity.body['@id'], i);
+      return await requestHelper.getOpportunityFeedChangeCollection(testInterfaceOpportunity.body['@id'], i);
     }
     return null;
   }));
@@ -136,7 +136,7 @@ async function setupListenersForOpportunities({ testInterfaceOpportunities, requ
   for (const [i, testInterfaceOpportunity] of testInterfaceOpportunities.entries()) {
     // Only attempt getMatch if test interface response was successful
     if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
-      await requestHelper.postFeedChangeListener('opportunities', testInterfaceOpportunity.body['@id'], i);
+      await requestHelper.postOpportunityFeedChangeListener(testInterfaceOpportunity.body['@id'], i);
     }
   }
 

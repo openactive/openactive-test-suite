@@ -1,6 +1,10 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "features": {
+    "booking-partner-authentication": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
     "agent-broker": {
       "implementedTestFiles": 2,
       "notImplementedTestFiles": 1
@@ -118,7 +122,7 @@
       "notImplementedTestFiles": 0
     },
     "multiple-sellers": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 0
     },
     "opportunity-feed": {

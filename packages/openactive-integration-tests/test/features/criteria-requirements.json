@@ -1,6 +1,7 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "criteriaRequirements": {
+    "booking-partner-authentication": {},
     "agent-broker": {
       "primary": {
         "TestOpportunityBookable": 8
@@ -133,7 +134,7 @@
         "TestOpportunityBookable": 1
       },
       "secondary": {
-        "TestOpportunityBookable": 1
+        "TestOpportunityBookable": 5
       }
     },
     "opportunity-feed": {},

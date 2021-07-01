@@ -156,12 +156,16 @@ const FlowStageUtils = {
    *
    * @param {object} args
    * @param {BaseLoggerType} args.logger
-   * @param {string | null} [args.taxMode]
+   * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
+   * @param {SellerConfig} [args.sellerConfig]
    * @param {import('../request-helper').BookingPartnerIdentifier} [args.bookingPartnerIdentifier]
    * @param {string | null} [args.uuid]
    */
-  createSimpleDefaultFlowStageParams({ logger, taxMode = null, bookingPartnerIdentifier = null, uuid }) {
-    const sellerConfig = taxMode ? getSellerConfigWithTaxMode(taxMode) : SELLER_CONFIG.primary;
+  createSimpleDefaultFlowStageParams({ logger, taxMode = null, bookingPartnerIdentifier = null, uuid = null, ...args }) {
+    const sellerConfig = args.sellerConfig ?? (
+      taxMode
+        ? getSellerConfigWithTaxMode(taxMode)
+        : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig, bookingPartnerIdentifier);
     return FlowStageUtils.createDefaultFlowStageParams({
       requestHelper, logger, sellerConfig, uuid,
