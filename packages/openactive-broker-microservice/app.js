@@ -60,6 +60,7 @@ const {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
 } = require('./src/broker-config');
+const { getIsOrderUuidPresentApi } = require('./src/is-order-uuid-present/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners/api');
 const { Listeners } = require('./src/listeners/listeners');
 const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
@@ -831,6 +832,8 @@ app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
 app.get('/opportunity-listeners/:id', getOpportunityListenerApi);
 app.post('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', createOrderListenerApi);
 app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListenerApi);
+
+app.get('/is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid', getIsOrderUuidPresentApi);
 
 app.get('/opportunity/:id', function (req, res) {
   const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
