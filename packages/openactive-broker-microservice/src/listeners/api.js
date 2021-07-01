@@ -1,5 +1,6 @@
 const { DO_NOT_HARVEST_ORDERS_FEED, ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../broker-config');
 const { state, orderFeedContextIdentifier } = require('../state');
+const { error400IfExpressParamsAreMissing } = require('../util/api-utils');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('../util/request-utils');
 const { Listeners } = require('./listeners');
 
@@ -100,24 +101,6 @@ async function createOrderListenerApi(req, res) {
 }
 
 /**
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {string[]} requiredParamNames
- * @returns {boolean} If true, the required params are included
- */
-function error400IfExpressParamsAreMissing(req, res, requiredParamNames) {
-  for (const paramName of requiredParamNames) {
-    if (!req.params[paramName]) {
-      res.status(400).json({
-        error: `${paramName} is required`,
-      });
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
  * @param {import('express').Response} res
  * @param {Map<string, Listener>} listenersMap
  * @param {string} type e.g. "opportunities"
@@ -141,4 +124,5 @@ module.exports = {
   getOpportunityListenerApi,
   createOrderListenerApi,
   getOrderListenerApi,
+  error409IfListenerAlreadyExists,
 };

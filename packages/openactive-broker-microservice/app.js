@@ -60,11 +60,12 @@ const {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
 } = require('./src/broker-config');
-const { getIsOrderUuidPresentApi } = require('./src/is-order-uuid-present/api');
+const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners/api');
 const { Listeners } = require('./src/listeners/listeners');
 const { state, getTestDataset, getAllDatasets, addFeed, orderFeedContextIdentifier } = require('./src/state');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
+const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -814,7 +815,7 @@ function doNotifyOpportunityListener(id, item) {
 }
 
 /**
- * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
+ * For an Order being harvested from RPDE, check if there is a listener listening for it.
  *
  * If so, respond to that listener.
  *
@@ -1319,6 +1320,12 @@ function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
   return (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
+        OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(
+          state.orderUuidTracking,
+          orderFeedType,
+          bookingPartnerIdentifier,
+          item.id,
+        );
         doNotifyOrderListener(orderFeedType, bookingPartnerIdentifier, item.id, item);
       }
     }

@@ -71,7 +71,7 @@ const Listeners = {
     listenersMap.delete(listenerId);
   },
   /**
-   * For an item being harvested from RPDE, check if there is a listeners listening for it.
+   * For an item being harvested from RPDE, check if there is a listener listening for it.
    *
    * If so, respond to that listener.
    *
