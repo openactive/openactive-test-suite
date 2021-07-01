@@ -19,7 +19,9 @@ const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
 const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
 
 const HARVEST_START_TIME = (new Date()).toISOString();
+/** @type {import('./models/core').OrderFeedIdentifier} */
 const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
+/** @type {import('./models/core').OrderFeedIdentifier} */
 const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging

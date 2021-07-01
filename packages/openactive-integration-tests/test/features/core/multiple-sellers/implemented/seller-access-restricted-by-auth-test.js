@@ -53,7 +53,6 @@ FeatureHelper.describeFeature(module, {
 
   // TESTS
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  // By default, auth is set up for primary seller, so these calls will fail
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
     itShouldReturnInvalidAuthorizationDetailsError(c1);
   });

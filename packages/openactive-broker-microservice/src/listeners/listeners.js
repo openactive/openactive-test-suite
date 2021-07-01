@@ -18,6 +18,16 @@ const Listeners = {
   getOrderListenerId(type, bookingPartnerIdentifier, uuid) {
     return `${type}::${bookingPartnerIdentifier}::${uuid}`;
   },
+  /**
+   * Is this Order listener ID from this feed with this booking partner identifier?
+   *
+   * @param {string} listenerId
+   * @param {OrderFeedType} feedType
+   * @param {string} bookingPartnerIdentifier
+   */
+  isOrderListenerIdFromSameFeed(listenerId, feedType, bookingPartnerIdentifier) {
+    return listenerId.startsWith(`${feedType}::${bookingPartnerIdentifier}`);
+  },
   /** @returns {ListenersMap} */
   createListenersMap() {
     return new Map();
@@ -71,7 +81,7 @@ const Listeners = {
     listenersMap.delete(listenerId);
   },
   /**
-   * For an item being harvested from RPDE, check if there is a listeners listening for it.
+   * For an item being harvested from RPDE, check if there is a listener listening for it.
    *
    * If so, respond to that listener.
    *
