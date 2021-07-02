@@ -5,7 +5,7 @@ const { SELLER_CONFIG } = global;
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'authentication',
-  testFeature: 'booking-partner-authentication',
+  testFeature: 'booking-partner-openid-authentication-for-multiple-sellers',
   testFeatureImplemented: true,
   testIdentifier: 'authorization-persisted',
   testName: 'Authorization persists when not requesting offline access',

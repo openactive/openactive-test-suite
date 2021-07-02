@@ -1,14 +1,9 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { OpenIDConnectFlow } = require('../../../../shared-behaviours');
 
-/* eslint-enable no-unused-vars */
-
 FeatureHelper.describeFeature(module, {
   testCategory: 'authentication',
-  testFeature: 'booking-partner-authentication',
+  testFeature: 'booking-partner-openid-authentication',
   testFeatureImplemented: true,
   testIdentifier: 'client-credentials-flow',
   testName: 'Client Credentials Flow and Access Orders Feed',

@@ -692,7 +692,7 @@ function mapToObjectSummary(map) {
     return map.size;
   }
   // @ts-ignore
-  if (map.contents) {
+  if (map?.contents) {
     // @ts-ignore
     const result = mapToObjectSummary(map.contents);
     if (result && Object.keys(result).length > 0) {
@@ -776,6 +776,11 @@ app.get('/status', function (req, res) {
     },
     totalOpportunitiesHarvested: totalOpportunities,
     buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.opportunityIdCache),
+    orderUuidTracking: {
+      uuidsInOrderMap: mapToObjectSummary(state.orderUuidTracking.uuidsInOrderMap),
+      hasReachedEndOfFeedMap: mapToObjectSummary(state.orderUuidTracking.hasReachedEndOfFeedMap),
+      isPresentListeners: mapToObjectSummary(state.orderUuidTracking.isPresentListeners),
+    },
   });
 });
 

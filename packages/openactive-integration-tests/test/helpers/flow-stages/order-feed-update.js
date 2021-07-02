@@ -28,12 +28,11 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('../request-helper').OrderFeedType} OrderFeedType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
 
 /**
- * @typedef {'orders' | 'order-proposals'} OrderFeedType
- *
  * @typedef {{}} ListenerInput
  * @typedef {{}} ListenerOutput
  *
@@ -46,16 +45,17 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
+ * @param {string} args.bookingPartnerIdentifier
  * @param {() => boolean} args.failEarlyIf
  * @returns {Promise<ListenerOutput>}
  */
-async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, bookingPartnerIdentifier, failEarlyIf }) {
   // If a previous stage has failed, don't bother listening for the expected feed update.
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
   // TODO allow specification of bookingPartnerIdentifier
-  await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid);
+  await requestHelper.postOrderFeedChangeListener(orderFeedType, bookingPartnerIdentifier, uuid);
   return {};
 }
 
@@ -64,15 +64,16 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
+ * @param {string} args.bookingPartnerIdentifier
  * @param {() => boolean} args.failEarlyIf
  * @returns {Promise<CollectorOutput>}
  */
-async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, bookingPartnerIdentifier, failEarlyIf }) {
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
   // TODO allow specification of bookingPartnerIdentifier
-  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
+  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, bookingPartnerIdentifier, uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {
@@ -96,9 +97,10 @@ class OrderFeedUpdateListener extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
+   * @param {string} args.bookingPartnerIdentifier
    * @param {() => boolean} args.failEarlyIf
    */
-  constructor({ prerequisite, uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  constructor({ prerequisite, uuid, requestHelper, orderFeedType, bookingPartnerIdentifier, failEarlyIf }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -109,6 +111,7 @@ class OrderFeedUpdateListener extends FlowStage {
           uuid,
           requestHelper,
           orderFeedType,
+          bookingPartnerIdentifier,
           failEarlyIf,
         });
       },
@@ -135,9 +138,10 @@ class OrderFeedUpdateCollector extends FlowStage {
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
+   * @param {string} args.bookingPartnerIdentifier
    * @param {() => boolean} args.failEarlyIf
    */
-  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, bookingPartnerIdentifier, failEarlyIf }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -147,6 +151,7 @@ class OrderFeedUpdateCollector extends FlowStage {
           uuid,
           requestHelper,
           orderFeedType,
+          bookingPartnerIdentifier,
           failEarlyIf,
         });
       },
@@ -200,6 +205,7 @@ const OrderFeedUpdateFlowStageUtils = {
    * @param {RequestHelperType} args.orderFeedUpdateParams.requestHelper
    * @param {BaseLoggerType} args.orderFeedUpdateParams.logger
    * @param {string} args.orderFeedUpdateParams.uuid
+   * @param {string} [args.orderFeedUpdateParams.bookingPartnerIdentifier]
    * @param {() => boolean} [args.orderFeedUpdateParams.failEarlyIf] There's no point waiting for an Order Feed update that's never going
    *   to come. If a previous stage, which is supposed to have prompted an Order Feed update (e.g. a cancellation)
    *   then we want the Order Feed update to immediately fail. Otherwise it will wait and wait, which will last until
@@ -217,11 +223,13 @@ const OrderFeedUpdateFlowStageUtils = {
   wrap({ wrappedStageFn, orderFeedUpdateParams }) {
     const failEarlyIf = orderFeedUpdateParams.failEarlyIf ?? (() => false);
     const orderFeedType = orderFeedUpdateParams.orderFeedType ?? 'orders';
+    const bookingPartnerIdentifier = orderFeedUpdateParams.bookingPartnerIdentifier ?? 'primary';
     const listenForOrderFeedUpdate = new OrderFeedUpdateListener({
       requestHelper: orderFeedUpdateParams.requestHelper,
       uuid: orderFeedUpdateParams.uuid,
       prerequisite: orderFeedUpdateParams.prerequisite,
       orderFeedType,
+      bookingPartnerIdentifier,
       failEarlyIf,
     });
     const wrappedStage = wrappedStageFn(listenForOrderFeedUpdate);
@@ -231,6 +239,7 @@ const OrderFeedUpdateFlowStageUtils = {
       requestHelper: orderFeedUpdateParams.requestHelper,
       uuid: orderFeedUpdateParams.uuid,
       logger: orderFeedUpdateParams.logger,
+      bookingPartnerIdentifier,
       orderFeedType,
       failEarlyIf: () => {
         if (failEarlyIf()) { return true; }

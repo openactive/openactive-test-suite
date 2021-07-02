@@ -1,0 +1,10 @@
+{
+  "category": "authentication",
+  "identifier": "booking-partner-openid-authentication-for-multiple-sellers",
+  "name": "Booking Partner OpenID Authentication for Multiple Seller Systems",
+  "description": "Booking Partner Authentication, using OpenID Connect, for Multiple Seller Systems",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems",
+  "required": false,
+  "coverageStatus": "complete"
+}

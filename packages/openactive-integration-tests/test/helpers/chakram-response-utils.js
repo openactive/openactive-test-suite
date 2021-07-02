@@ -5,7 +5,7 @@
 /**
  * @param {ChakramResponse | null | undefined} response
  */
-function isResponse20x(response) {
+function isResponse2xx(response) {
   if (!response || !response.response) return false;
 
   const { statusCode } = response.response;
@@ -25,6 +25,6 @@ function isResponse(response) {
 }
 
 module.exports = {
-  isResponse20x,
+  isResponse2xx,
   isResponse,
 };

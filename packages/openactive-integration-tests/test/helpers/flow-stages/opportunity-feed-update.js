@@ -22,7 +22,7 @@
  */
 const chakram = require('chakram');
 const sharedValidationTests = require('../../shared-behaviours/validation');
-const { isResponse20x } = require('../chakram-response-utils');
+const { isResponse2xx } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
 
 /**
@@ -72,7 +72,7 @@ async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities
    */
   const opportunityFeedExtractResponses = await Promise.all(testInterfaceOpportunities.map(async (testInterfaceOpportunity, i) => {
     // Only attempt getMatch if test interface response was successful
-    if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
+    if (isResponse2xx(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
       const opportunityId = testInterfaceOpportunity.body['@id'];
       // If a match for this @id is already being requested, just reuse the same response
       if (reusableMatchPromises.has(opportunityId)) {
@@ -96,7 +96,7 @@ async function fetchOpportunityFeedExtractResponses({ testInterfaceOpportunities
 async function runOpportunityFeedUpdateCollector({ testInterfaceOpportunities, requestHelper }) {
   const opportunityFeedExtractResponses = await Promise.all(testInterfaceOpportunities.map(async (testInterfaceOpportunity, i) => {
     // Only attempt getMatch if test interface response was successful
-    if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
+    if (isResponse2xx(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
       return await requestHelper.getOpportunityFeedChangeCollection(testInterfaceOpportunity.body['@id'], i);
     }
     return null;
@@ -135,7 +135,7 @@ function itSuccessChecksOpportunityFeedUpdateCollector({ orderItemCriteriaList, 
 async function setupListenersForOpportunities({ testInterfaceOpportunities, requestHelper }) {
   for (const [i, testInterfaceOpportunity] of testInterfaceOpportunities.entries()) {
     // Only attempt getMatch if test interface response was successful
-    if (isResponse20x(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
+    if (isResponse2xx(testInterfaceOpportunity) && testInterfaceOpportunity.body['@id']) {
       await requestHelper.postOpportunityFeedChangeListener(testInterfaceOpportunity.body['@id'], i);
     }
   }

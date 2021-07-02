@@ -117,24 +117,6 @@ const FlowStageUtils = {
   // # Utilities for test specs
 
   /**
-   * @param {object} args
-   * @param {RequestHelperType} args.requestHelper
-   * @param {BaseLoggerType} args.logger
-   * @param {string} [args.uuid]
-   * @param {SellerConfig} [args.sellerConfig]
-   * @param {Customer} [args.customer]
-   */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer }) {
-    return {
-      requestHelper,
-      logger,
-      uuid: uuid || generateUuid(),
-      sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: customer || this.createRandomCustomerDetails(),
-    };
-  },
-
-  /**
    * Randomly generate customer details
    * @returns {Customer}
    */
@@ -150,6 +132,26 @@ const FlowStageUtils = {
   },
 
   /**
+   * @param {object} args
+   * @param {RequestHelperType} args.requestHelper
+   * @param {BaseLoggerType} args.logger
+   * @param {string} [args.uuid]
+   * @param {SellerConfig} [args.sellerConfig]
+   * @param {Customer} [args.customer]
+   * @param {string} [args.bookingPartnerIdentifier]
+   */
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer, bookingPartnerIdentifier }) {
+    return {
+      requestHelper,
+      logger,
+      uuid: uuid ?? generateUuid(),
+      sellerConfig: sellerConfig || SELLER_CONFIG.primary,
+      customer: customer || this.createRandomCustomerDetails(),
+      bookingPartnerIdentifier: bookingPartnerIdentifier ?? 'primary',
+    };
+  },
+
+  /**
    * Uses reasonable values for:
    * - sellerConfig: derived from tax mode (if provided) - otherwise, primary seller
    * - requestHelper: A new one is created using the data present
@@ -158,15 +160,17 @@ const FlowStageUtils = {
    * @param {BaseLoggerType} args.logger
    * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
    * @param {SellerConfig} [args.sellerConfig]
+   * @param {import('../request-helper').BookingPartnerIdentifier} [args.bookingPartnerIdentifier]
+   * @param {string | null} [args.uuid]
    */
-  createSimpleDefaultFlowStageParams({ logger, taxMode = null, ...args }) {
+  createSimpleDefaultFlowStageParams({ logger, taxMode = null, bookingPartnerIdentifier = null, uuid = null, ...args }) {
     const sellerConfig = args.sellerConfig ?? (
       taxMode
         ? getSellerConfigWithTaxMode(taxMode)
         : SELLER_CONFIG.primary);
-    const requestHelper = new RequestHelper(logger, sellerConfig);
+    const requestHelper = new RequestHelper(logger, sellerConfig, bookingPartnerIdentifier);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig,
+      requestHelper, logger, sellerConfig, uuid, bookingPartnerIdentifier,
     });
   },
 
