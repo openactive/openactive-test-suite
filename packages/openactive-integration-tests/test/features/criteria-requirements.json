@@ -3,7 +3,7 @@
   "criteriaRequirements": {
     "booking-partner-authentication": {
       "primary": {
-        "TestOpportunityBookable": 4
+        "TestOpportunityBookable": 8
       }
     },
     "agent-broker": {

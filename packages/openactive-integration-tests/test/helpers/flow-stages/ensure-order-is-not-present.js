@@ -19,9 +19,11 @@ const { FlowStage } = require('./flow-stage');
  * @param {string} args.bookingPartnerIdentifier
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
+ * @param {number} args.initialWaitSecs
  * @returns {Promise<Output>}
  */
-async function runEnsureOrderIsNotPresent({ orderFeedType, bookingPartnerIdentifier, uuid, requestHelper }) {
+async function runEnsureOrderIsNotPresent({ orderFeedType, bookingPartnerIdentifier, uuid, requestHelper, initialWaitSecs }) {
+  await new Promise(resolve => setTimeout(() => { resolve(); }, initialWaitSecs * 1000));
   const response = await requestHelper.getIsOrderUuidPresent(orderFeedType, bookingPartnerIdentifier, uuid);
   const isOrderUuidPresent = isResponse2xx(response) ? response.body : null;
   return { isOrderUuidPresent };
@@ -38,8 +40,10 @@ class EnsureOrderIsNotPresentFlowStage extends FlowStage {
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
    * @param {string} args.bookingPartnerIdentifier
+   * @param {number} args.initialWaitSecs Give Broker some time to check the feeds. Number of seconds to wait before
+   *   asking Broker if the UUID is present.
    */
-  constructor({ prerequisite, requestHelper, uuid, orderFeedType, bookingPartnerIdentifier }) {
+  constructor({ prerequisite, requestHelper, uuid, orderFeedType, bookingPartnerIdentifier, initialWaitSecs }) {
     super({
       prerequisite,
       getInput: () => ({}),
@@ -51,6 +55,7 @@ class EnsureOrderIsNotPresentFlowStage extends FlowStage {
           bookingPartnerIdentifier,
           uuid,
           requestHelper,
+          initialWaitSecs,
         });
       },
       itSuccessChecksFn(flowStage) {

@@ -68,6 +68,7 @@ FeatureHelper.describeFeature(module, {
     const ensureOrderIsNotPresent = new EnsureOrderIsNotPresentFlowStage({
       ...defaultFlowStageParams,
       orderFeedType: 'orders',
+      initialWaitSecs: 6, // As Broker can wait up to 5 seconds before re-polling a feed.
     });
     const {
       fetchOpportunities,

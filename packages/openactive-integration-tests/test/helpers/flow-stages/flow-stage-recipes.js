@@ -90,12 +90,7 @@ const FlowStageRecipes = {
       accessPass,
       brokerRole,
       firstStageReqTemplateRef: bookReqTemplateRef,
-      getFirstStageInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        totalPaymentDue: c2.getOutput().totalPaymentDue,
-        prepayment: c2.getOutput().prepayment,
-        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
-      }),
+      getFirstStageInput: FlowStageRecipes.getSimpleBookFirstStageInput(fetchOpportunities, c1, c2),
     });
 
     return {
@@ -326,6 +321,53 @@ const FlowStageRecipes = {
     firstStageReqTemplateRef = null,
     getFirstStageInput,
   }) {
+    const { p, simulateSellerApproval, orderFeedUpdateCollector } = FlowStageRecipes.proposeAndSimulateSellerApproval(defaultFlowStageParams, {
+      prerequisite,
+      brokerRole,
+      accessPass,
+      firstStageReqTemplateRef,
+      getFirstStageInput,
+    });
+
+    const [b, orderFeedUpdateAfterDeleteProposal] = OrderFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: orderFeedUpdateListener => bAfterP({
+        p,
+        defaultFlowStageParams,
+        prerequisite: orderFeedUpdateListener,
+        bookRecipeGetFirstStageInput: getFirstStageInput,
+      }),
+      orderFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        prerequisite: orderFeedUpdateCollector,
+        testName: 'OrderProposal Feed Deletion (after B)',
+        orderFeedType: 'order-proposals',
+      },
+    });
+
+    return new BookRecipe({
+      firstStage: p,
+      lastStage: orderFeedUpdateAfterDeleteProposal,
+      p,
+      simulateSellerApproval,
+      orderFeedUpdateCollector,
+      b,
+      orderFeedUpdateAfterDeleteProposal,
+    });
+  },
+
+  /**
+   * P -> Simulate Seller Approval -> Wait for it to appear in the OrderProposals feed.
+   *
+   * @param {DefaultFlowStageParams} defaultFlowStageParams
+   * @param {BookRecipeArgs} args
+   */
+  proposeAndSimulateSellerApproval(defaultFlowStageParams, {
+    prerequisite,
+    brokerRole = null,
+    accessPass = null,
+    firstStageReqTemplateRef = null,
+    getFirstStageInput,
+  }) {
     const p = new PFlowStage({
       ...defaultFlowStageParams,
       prerequisite,
@@ -353,30 +395,30 @@ const FlowStageRecipes = {
         orderFeedType: 'order-proposals',
       },
     });
-
-    const [b, orderFeedUpdateAfterDeleteProposal] = OrderFeedUpdateFlowStageUtils.wrap({
-      wrappedStageFn: orderFeedUpdateListener => bAfterP({
-        p,
-        defaultFlowStageParams,
-        prerequisite: orderFeedUpdateListener,
-        bookRecipeGetFirstStageInput: getFirstStageInput,
-      }),
-      orderFeedUpdateParams: {
-        ...defaultFlowStageParams,
-        prerequisite: orderFeedUpdateCollector,
-        testName: 'OrderProposal Feed Deletion (after B)',
-        orderFeedType: 'order-proposals',
-      },
-    });
-
-    return new BookRecipe({
-      firstStage: p,
-      lastStage: orderFeedUpdateAfterDeleteProposal,
+    return {
       p,
       simulateSellerApproval,
       orderFeedUpdateCollector,
-      b,
-      orderFeedUpdateAfterDeleteProposal,
+    };
+  },
+  /**
+   * Create a getInput function for a Book first stage (which will be either P or B).
+   *
+   * This is the simple version which just assumes piping the data directly in from previous stages.
+   *
+   * Don't use this if creating a bespoke scenario in which e.g. an erroneous totalPaymentDue is supplied.
+   *
+   * @param {FetchOpportunitiesFlowStage} fetchOpportunities
+   * @param {C1FlowStage} c1
+   * @param {C2FlowStage} c2
+   * @returns {() => import('../flow-stages/p').Input}
+   */
+  getSimpleBookFirstStageInput(fetchOpportunities, c1, c2) {
+    return () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
+      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
     });
   },
 };
