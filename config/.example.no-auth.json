@@ -21,6 +21,7 @@
   },
   "integrationTests": {
     "implementedFeatures": {
+      "booking-partner-authentication": false,
       "booking-partner-openid-authentication": false,
       "booking-partner-openid-authentication-for-multiple-sellers": false,
       "dynamic-client-registration": false
