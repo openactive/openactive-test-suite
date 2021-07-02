@@ -47,7 +47,7 @@ class EnsureOrderIsNotPresentFlowStage extends FlowStage {
     super({
       prerequisite,
       getInput: () => ({}),
-      testName: `Ensure Order (${uuid}) Is Not Present`,
+      testName: 'Ensure Order Is Not Present',
       async runFn() {
         // actually the result does need to go into output so that it can be accessed in checks fn.
         return await runEnsureOrderIsNotPresent({
