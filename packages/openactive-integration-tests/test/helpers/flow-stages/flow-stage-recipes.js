@@ -3,7 +3,6 @@ const { BookRecipe } = require('./book-recipe');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
-const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
@@ -38,7 +37,7 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   bookingPartnerIdentifier?: BookingPartnerIdentifier | null,
  *   uuid?: string | null,
  *   defaultFlowStageParams?: DefaultFlowStageParams | null;
- *   prerequisite?: FlowStage<unknown, unknown> | null;
+ *   prerequisite?: UnknownFlowStageType | null;
  * }} InitialiseSimpleC1C2BookFlowOptions
  */
 

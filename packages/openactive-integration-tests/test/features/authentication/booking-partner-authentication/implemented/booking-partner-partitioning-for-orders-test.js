@@ -1,6 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, CancelOrderFlowStage, OrderFeedUpdateFlowStageUtils, FlowStageUtils, EnsureOrderIsNotPresentFlowStage } = require('../../../../helpers/flow-stages');
-// const { BookRecipe } = require('../../../../helpers/flow-stages/book-recipe');
 const { generateUuid } = require('../../../../helpers/generate-uuid');
 
 FeatureHelper.describeFeature(module, {
@@ -18,7 +17,7 @@ FeatureHelper.describeFeature(module, {
 
   /**
    * @param {import('../../../../helpers/flow-stages/flow-stage-recipes').DefaultFlowStageParams} defaultFlowStageParams
-   * @param {import('../../../../helpers/flow-stages/book-recipe').BookRecipe} bookRecipe
+   * @param {import('../../../../helpers/flow-stages/book-recipe').BookRecipeType} bookRecipe
    */
   function createCancelAndListenForFeedUpdateFlowStages(defaultFlowStageParams, bookRecipe) {
     return OrderFeedUpdateFlowStageUtils.wrap({
@@ -35,42 +34,6 @@ FeatureHelper.describeFeature(module, {
     });
   }
 
-  // /**
-  //  * @param {import('../../../../helpers/request-helper').BookingPartnerIdentifier} bookingPartnerIdentifier
-  //  */
-  // function createBookAndCancelFlowStages(bookingPartnerIdentifier) {
-  //   const {
-  //     fetchOpportunities,
-  //     c1,
-  //     c2,
-  //     bookRecipe,
-  //     defaultFlowStageParams,
-  //   } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
-  //     bookingPartnerIdentifier,
-  //     uuid,
-  //   });
-  //   const [cancel, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-  //     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
-  //       ...defaultFlowStageParams,
-  //       prerequisite,
-  //       getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-  //     })),
-  //     orderFeedUpdateParams: {
-  //       ...defaultFlowStageParams,
-  //       prerequisite: bookRecipe.lastStage,
-  //       testName: 'Orders Feed (after cancellation)',
-  //     },
-  //   });
-  //   return {
-  //     fetchOpportunities,
-  //     c1,
-  //     c2,
-  //     bookRecipe,
-  //     cancel,
-  //     orderFeedUpdate,
-  //   };
-  // }
-
   describe('with primary booking partner', () => {
     // ## Flow Stages
     const {
@@ -84,14 +47,6 @@ FeatureHelper.describeFeature(module, {
       uuid,
     });
     const [cancel, orderFeedUpdate] = createCancelAndListenForFeedUpdateFlowStages(defaultFlowStageParams, bookRecipe);
-    // const {
-    //   fetchOpportunities,
-    //   c1,
-    //   c2,
-    //   bookRecipe,
-    //   cancel,
-    //   orderFeedUpdate,
-    // } = createBookAndCancelFlowStages('primary');
 
     // ## Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -103,11 +58,6 @@ FeatureHelper.describeFeature(module, {
   });
 
   describe('with secondary booking partner', () => {
-    // TODO implement this mf
-    // const ensureUuidNotInFeed = new EnsureUuidNotInFeed({
-    //   ...defaultFlowStageParams,
-    //   uuid,
-    // });
     // ## Flow Stages
     const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
       bookingPartnerIdentifier: 'secondary',
@@ -129,14 +79,6 @@ FeatureHelper.describeFeature(module, {
       prerequisite: ensureOrderIsNotPresent,
     });
     const [cancel, orderFeedUpdate] = createCancelAndListenForFeedUpdateFlowStages(defaultFlowStageParams, bookRecipe);
-    // const {
-    //   fetchOpportunities,
-    //   c1,
-    //   c2,
-    //   bookRecipe,
-    //   cancel,
-    //   orderFeedUpdate,
-    // } = createBookAndCancelFlowStages('secondary');
 
     // ## Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(ensureOrderIsNotPresent);

@@ -45,6 +45,10 @@ class BookRecipe {
   }
 }
 
+/**
+ * @typedef {InstanceType<typeof BookRecipe>} BookRecipeType
+ */
+
 module.exports = {
   BookRecipe,
 };
