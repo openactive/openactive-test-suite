@@ -2,7 +2,7 @@
   "_createdByDocumentationGeneratorScript": true,
   "features": {
     "booking-partner-authentication": {
-      "implementedTestFiles": 1,
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 0
     },
     "agent-broker": {
