@@ -1,10 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "features": {
-    "booking-partner-authentication": {
-      "implementedTestFiles": 2,
-      "notImplementedTestFiles": 0
-    },
     "agent-broker": {
       "implementedTestFiles": 2,
       "notImplementedTestFiles": 1
@@ -71,6 +67,10 @@
     },
     "proposal-amendment": {
       "implementedTestFiles": 1,
+      "notImplementedTestFiles": 0
+    },
+    "booking-partner-authentication": {
+      "implementedTestFiles": 2,
       "notImplementedTestFiles": 0
     },
     "booking-partner-openid-authentication": {

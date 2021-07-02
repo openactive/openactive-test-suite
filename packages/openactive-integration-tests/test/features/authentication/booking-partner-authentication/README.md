@@ -23,7 +23,7 @@ npm start -- --runInBand test/features/authentication/booking-partner-authentica
 
 ## 'Implemented' tests
 
-This feature is **required** by the Open Booking API specification, and so must always be set to `true` by `default.json` within `packages/openactive-integration-tests/config/`:
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:
 
 ```json
 "implementedFeatures": {

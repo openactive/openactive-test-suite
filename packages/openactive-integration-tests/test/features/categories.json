@@ -1,12 +1,6 @@
 {
   "_createdByDocumentationGeneratorScript": true,
   "categories": {
-    "authentication": {
-      "booking-partner-authentication": true,
-      "booking-partner-openid-authentication": true,
-      "booking-partner-openid-authentication-for-multiple-sellers": true,
-      "dynamic-client-registration": true
-    },
     "core": {
       "agent-broker": true,
       "amending-order-quote": true,
@@ -34,6 +28,12 @@
     "approval": {
       "minimal-proposal": true,
       "proposal-amendment": true
+    },
+    "authentication": {
+      "booking-partner-authentication": true,
+      "booking-partner-openid-authentication": true,
+      "booking-partner-openid-authentication-for-multiple-sellers": true,
+      "dynamic-client-registration": true
     },
     "broker-role": {
       "no-broker": true,
