@@ -68,6 +68,7 @@ class RequestHelper {
    * @param {any} [requestMetadata]
    */
   async _request(stage, method, url, jsonBody, requestOptions, requestMetadata) {
+    // console.log('\nREQUEST', { method, url });
     const params = { ...requestOptions };
     if (jsonBody) {
       params.body = jsonBody;
