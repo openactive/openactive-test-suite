@@ -14,6 +14,7 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Order Proposals from two different bookings partners must not be visible to each other, and UUID must be unique within each booking partner',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   /* TODO uncomment the below and use a single shared UUID for both primary and secondary tests once that is supported

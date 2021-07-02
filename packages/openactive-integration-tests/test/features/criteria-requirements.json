@@ -86,7 +86,8 @@
     },
     "booking-partner-authentication": {
       "primary": {
-        "TestOpportunityBookable": 8
+        "TestOpportunityBookable": 4,
+        "TestOpportunityBookableCancellable": 1
       }
     },
     "booking-partner-openid-authentication": {},
