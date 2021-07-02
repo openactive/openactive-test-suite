@@ -21,6 +21,8 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  */
 
 /**
+ * @typedef {'orders' | 'order-proposals'} OrderFeedType
+ *
  * @typedef {{
  *   opportunityType: string,
  *   testOpportunityCriteria: string,
@@ -222,7 +224,7 @@ class RequestHelper {
   }
 
   /**
-   * @param {'orders' | 'order-proposals'} type
+   * @param {OrderFeedType} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
    */
@@ -236,7 +238,7 @@ class RequestHelper {
   }
 
   /**
-   * @param {'orders' | 'order-proposals'} type
+   * @param {OrderFeedType} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
    */
@@ -244,6 +246,25 @@ class RequestHelper {
     return await this.get(
       `Orders (${type}) Feed collect for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+      {
+        feedExtract: {
+          id: uuid,
+          type,
+        },
+      },
+    );
+  }
+
+  /**
+   * @param {OrderFeedType} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   */
+  async getIsOrderUuidPresent(type, bookingPartnerIdentifier, uuid) {
+    return await this.get(
+      `Is Order UUID '${uuid}' Present in feed: ${type} (auth: ${bookingPartnerIdentifier})?`,
+      `${MICROSERVICE_BASE}/is-order-uuid-present/${type}/${bookingPartnerIdentifier}/${uuid}`,
       BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {

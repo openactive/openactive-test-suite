@@ -1,7 +1,7 @@
 const { getRelevantOffers } = require('@openactive/test-interface-criteria');
 const _ = require('lodash');
 const sharedValidationTests = require('../../shared-behaviours/validation');
-const { isResponse20x } = require('../chakram-response-utils');
+const { isResponse2xx } = require('../chakram-response-utils');
 const { FlowStage } = require('./flow-stage');
 const { fetchOpportunityFeedExtractResponses, itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 const { FlowStageUtils } = require('./flow-stage-utils');
@@ -143,7 +143,7 @@ async function runFetchOpportunities({ orderItemCriteriaList, sellerConfig, requ
 
   // ## Create OrderItem for each Opportunity
   const orderItems = opportunityFeedExtractResponses.map((opportunityFeedExtractResponse, i) => {
-    if (opportunityFeedExtractResponse && isResponse20x(opportunityFeedExtractResponse)) {
+    if (opportunityFeedExtractResponse && isResponse2xx(opportunityFeedExtractResponse)) {
       const acceptedOffer = getRandomRelevantOffer(opportunityFeedExtractResponse.body.data, orderItemCriteriaList[i].opportunityCriteria);
       if (acceptedOffer === null) {
         throw new Error(`Opportunity for OrderItem ${i} did not have a relevant offer for the specified testOpportunityCriteria: ${orderItemCriteriaList[i].opportunityCriteria}`);

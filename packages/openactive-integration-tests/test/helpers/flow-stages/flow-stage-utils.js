@@ -117,24 +117,6 @@ const FlowStageUtils = {
   // # Utilities for test specs
 
   /**
-   * @param {object} args
-   * @param {RequestHelperType} args.requestHelper
-   * @param {BaseLoggerType} args.logger
-   * @param {string} [args.uuid]
-   * @param {SellerConfig} [args.sellerConfig]
-   * @param {Customer} [args.customer]
-   */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer }) {
-    return {
-      requestHelper,
-      logger,
-      uuid: uuid ?? generateUuid(),
-      sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: customer || this.createRandomCustomerDetails(),
-    };
-  },
-
-  /**
    * Randomly generate customer details
    * @returns {Customer}
    */
@@ -146,6 +128,26 @@ const FlowStageUtils = {
       givenName: faker.name.lastName(),
       familyName: faker.name.firstName(),
       identifier: faker.datatype.uuid(),
+    };
+  },
+
+  /**
+   * @param {object} args
+   * @param {RequestHelperType} args.requestHelper
+   * @param {BaseLoggerType} args.logger
+   * @param {string} [args.uuid]
+   * @param {SellerConfig} [args.sellerConfig]
+   * @param {Customer} [args.customer]
+   * @param {string} [args.bookingPartnerIdentifier]
+   */
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer, bookingPartnerIdentifier }) {
+    return {
+      requestHelper,
+      logger,
+      uuid: uuid ?? generateUuid(),
+      sellerConfig: sellerConfig || SELLER_CONFIG.primary,
+      customer: customer || this.createRandomCustomerDetails(),
+      bookingPartnerIdentifier: bookingPartnerIdentifier ?? 'primary',
     };
   },
 
@@ -168,7 +170,7 @@ const FlowStageUtils = {
         : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig, bookingPartnerIdentifier);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig, uuid,
+      requestHelper, logger, sellerConfig, uuid, bookingPartnerIdentifier,
     });
   },
 

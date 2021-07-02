@@ -11,6 +11,8 @@ const { OrderFeedUpdateFlowStageUtils, OrderFeedUpdateListener, OrderFeedUpdateC
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 const { OrderQuoteDeletionFlowStage } = require('./order-quote-deletion');
+const { EnsureOrderIsNotPresentFlowStage } = require('./ensure-order-is-not-present');
+
 
 module.exports = {
   FetchOpportunitiesFlowStage,
@@ -26,6 +28,7 @@ module.exports = {
   OrderFeedUpdateFlowStageUtils,
   OrderFeedUpdateListener,
   OrderFeedUpdateCollector,
+  EnsureOrderIsNotPresentFlowStage,
   OrderQuoteDeletionFlowStage,
   TestInterfaceActionFlowStage,
   FlowStageRecipes,
