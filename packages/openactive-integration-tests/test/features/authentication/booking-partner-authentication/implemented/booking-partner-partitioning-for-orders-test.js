@@ -10,7 +10,6 @@ FeatureHelper.describeFeature(module, {
   testName: "Booking Partners' Orders are Partitioned",
   testDescription: 'Orders from two different bookings partners must not be visible to each other, and UUID must be unique within each booking partner',
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
-  controlOpportunityCriteria: 'TestOpportunityBookable',
   skipMultiple: true,
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
