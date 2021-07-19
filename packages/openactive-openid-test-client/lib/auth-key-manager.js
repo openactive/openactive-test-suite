@@ -77,7 +77,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
       await this.refreshClientCredentialsAccessTokensIfNeeded();
 
       // Authenticate sellers
-      const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s.authentication && s.authentication.loginCredentials);
+      const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s?.authentication?.loginCredentials);
       if (sellers.length === 0) {
         return;
       }
@@ -155,7 +155,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
     // Only run the update if initialise ran successfully
     if (!this.client.issuer) return;
 
-    const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s.authentication && s.authentication.bookingPartnerTokenSets);
+    const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s?.authentication?.bookingPartnerTokenSets);
     await Promise.all(sellers.map(async ([sellerIdentifier, seller]) => {
       await Promise.all(Object.entries(seller.authentication.bookingPartnerTokenSets).map(async ([bookingPartnerIdentifier, tokenSet]) => {
         // Do not refresh tokens that have at least 10 minutes remaining

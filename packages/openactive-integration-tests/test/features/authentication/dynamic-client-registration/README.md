@@ -32,7 +32,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow and Book | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |
+| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |
 | [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow and Access Orders Feed | ... |  |
 
 

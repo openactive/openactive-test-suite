@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'booking-partner-authentication',
   testFeatureImplemented: true,
   testIdentifier: 'authorization-code-flow',
-  testName: 'Authorization Code Flow and Book',
+  testName: 'Authorization Code Flow',
   testDescription: 'The Authorization Code Flow allows Sellers to authenticate with Booking Partners',
   doesNotUseOpportunitiesMode: true,
   surviveAuthenticationFailure: true,
