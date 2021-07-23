@@ -101,6 +101,10 @@ const argv = yargs(process.argv.slice(2))
       description: 'Password of the Seller',
       default: 'test',
     },
+    selectIdentityProviderButton: {
+      type: 'string',
+      description: 'CSS selector for the select identity provider button',
+    },
     usernameFieldSelector: {
       type: 'string',
       description: 'CSS selector for the username field',
@@ -125,6 +129,7 @@ const argv = yargs(process.argv.slice(2))
     const app = express();
     app.use(express.json());
     setupBrowserAutomationRoutes(app, {
+      selectIdentityProviderButton: argv.selectIdentityProviderButton,
       username: argv.usernameFieldSelector,
       password: argv.passwordFieldSelector,
       button: argv.loginPageButtonSelector,
