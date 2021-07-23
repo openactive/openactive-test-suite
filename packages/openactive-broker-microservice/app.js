@@ -52,6 +52,7 @@ const {
   OPPORTUNITY_FEED_REQUEST_HEADERS,
   DATASET_DISTRIBUTION_OVERRIDE,
   DO_NOT_FILL_BUCKETS,
+  LOCATION_IDENTIFIER_FILTER,
   DO_NOT_HARVEST_ORDERS_FEED,
   DISABLE_BROKER_TIMEOUT,
   LOG_AUTH_CONFIG,
@@ -281,21 +282,23 @@ async function harvestRPDE(
 
       const json = response.data;
 
-      // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
-      const rpdeValidationErrors = feedChecker.validateRpdePage({
-        url,
-        json,
-        pageIndex: context.pages,
-        contentType: response.headers['content-type'],
-        status: response.status,
-        isInitialHarvestComplete,
-        isOrdersFeed,
-      });
+      if (process.env.DEBUG_BROKER_NO_VALIDATE !== 'true') {
+        // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
+        const rpdeValidationErrors = feedChecker.validateRpdePage({
+          url,
+          json,
+          pageIndex: context.pages,
+          contentType: response.headers['content-type'],
+          status: response.status,
+          isInitialHarvestComplete,
+          isOrdersFeed,
+        });
 
-      if (rpdeValidationErrors.length > 0) {
-        if (state.multibar) state.multibar.stop();
-        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
-        process.exit(1);
+        if (rpdeValidationErrors.length > 0) {
+          if (state.multibar) state.multibar.stop();
+          logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
+          process.exit(1);
+        }
       }
 
       context.currentPage = url;
@@ -1277,7 +1280,9 @@ async function processOpportunityItem(item) {
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
 
-    if (!DO_NOT_FILL_BUCKETS) {
+    const locationIdentifier = item?.data?.location?.identifier ?? item?.data?.superEvent?.location?.identifier ?? item?.data?.facilityUse?.location?.identifier;
+
+    if (!DO_NOT_FILL_BUCKETS && (!LOCATION_IDENTIFIER_FILTER || LOCATION_IDENTIFIER_FILTER.includes(locationIdentifier))) {
       const opportunityType = detectOpportunityType(item.data);
       const bookingFlows = detectOpportunityBookingFlows(item.data);
       const sellerId = detectSellerId(item.data);

@@ -7,7 +7,7 @@
   "scripts": {
     "check-types": "tsc --project tsconfig.check.json",
     "gen-types": "tsc --project tsconfig.gen.json",
-    "start": "node cli.js",
+    "start": "node lib/cli.js",
     "test": "npm run lint && npm run check-types",
     "debug": "node --inspect lib/cli.js",
     "lint": "eslint \"lib/*.js\"",
@@ -16,6 +16,7 @@
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
+    "async-lock": "^1.3.0",
     "axios": "^0.19.2",
     "chalk": "^4.1.0",
     "cookie-session": "^1.4.0",
