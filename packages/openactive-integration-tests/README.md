@@ -125,7 +125,7 @@ Test results are written to `*.md` within the directory specified by `outputPath
 
 The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
 
-The `primary` Seller `requestHeaders` are used for calls to the booking system for all tests, and can be used to configure authentication specific to that Seller.
+An example, using OpenID Connect Authentication:
 
 ```json
   "sellers": {
@@ -133,17 +133,85 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
       "@type": "Organization",
       "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
       "authentication": {
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
+        "loginCredentials": {
+          "username": "test1",
+          "password": "test1"
         }
       },
+      "taxMode": "https://openactive.io/TaxGross",
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
+      }
     },
     "secondary": {
       "@type": "Person",
-      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1"
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1",
+      "authentication": {
+        "loginCredentials": {
+          "username": "test2",
+          "password": "test2"
+        }
+      },
+      "taxMode": "https://openactive.io/TaxNet"
     }
   }
+```
+
+Description of each field:
+
+* `authentication`: Check out the **Configuration for Seller Authentication** section.
+* `taxMode`: Which [Tax Mode](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#tax-mode) is used for this Seller.
+
+  **Note: If testing both Tax Modes, make sure that there is at least one Seller with each**. Alternatively, if not supporting multiple Sellers, you can run the Test Suite once with `"taxMode": "https://openactive.io/TaxNet"` and once with `"taxMode": "https://openactive.io/TaxGross"`.
+* `paymentReconciliationDetails`: If testing [Payment Reconciliation Detail Validation](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation), include the required payment reconciliation details here.
+
+### Configuration for Seller Authentication
+
+In order to make bookings for a specific Seller's Opportunity data, some kind of authentication is required to ensure that the caller is authorized to make bookings for that Seller.
+
+Test Suite allows for a few different options for Seller Authentication. This determines the data to put in the `authentication` field for each Seller:
+
+**OpenID Connect**
+
+[View Spec](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)
+
+You'll need the username/password that the Seller can use to log in to your OpenID Connect Provider.
+
+Example:
+
+```json
+  "sellers": {
+    "primary": {
+      // ...
+      "authentication": {
+        "loginCredentials": {
+          "username": "test1",
+          "password": "test1"
+        }
+      }
+    },
+```
+
+**Request Headers**
+
+Just a set of request HTTP headers which will be used to make booking requests.
+
+Example:
+
+```json
+  "sellers": {
+    "primary": {
+      // ...
+      "authentication": {
+        "loginCredentials": null,
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "booking-partner-1",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
+        }
+      }
+    },
 ```
 
 ## Reading test results
