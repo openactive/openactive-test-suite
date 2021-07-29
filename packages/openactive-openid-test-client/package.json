@@ -7,7 +7,7 @@
   "scripts": {
     "check-types": "tsc --project tsconfig.check.json",
     "gen-types": "tsc --project tsconfig.gen.json",
-    "start": "node cli.js",
+    "start": "node lib/cli.js",
     "test": "npm run lint && npm run check-types",
     "debug": "node --inspect lib/cli.js",
     "lint": "eslint \"lib/*.js\"",
