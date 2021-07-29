@@ -8,6 +8,10 @@ The test client can be run stand-alone, to aid debugging of an OpenID Connect im
 1. `npm install`
 2. `npm start -- --help`
 
+## Redirect URI
+
+The OAuth Redirect URI defaults to `http://localhost:3000/cb`, so make sure that your OpenID Connect Server is configured to allow this Redirect URI.
+
 ## Developing
 
 ### TypeScript
