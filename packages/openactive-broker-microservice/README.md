@@ -152,3 +152,51 @@ While debugging authentication it can be useful to log the configuration that th
 ```json
   "logAuthConfig": true,
 ```
+
+### `bookingPartners`
+
+Config for [Booking Partners](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-booking-partner) that the Test Suite will use to connect to your Booking System.
+
+Broker uses two Booking Partners, named `primary` and `secondary`.
+
+```json
+  "bookingPartners": {
+    "primary": {
+      "authentication": {
+        "initialAccessToken": "openactive_test_suite_client_12345xaq"
+      }
+    },
+    "secondary": {
+      "authentication": {
+        "clientCredentials": {
+          "clientId": "clientid_800",
+          "clientSecret": "secret"
+        }
+      }
+    }
+  }
+```
+
+The `authentication` field can contain one of several different authentication strategies for authenticating as the Booking Partner for Order and Order Proposal RPDE Feed requests. Set only one of these strategies. The different authentication strategies are documented in the below subsections.
+
+#### `bookingPartners[bookingPartnerIdentifier].authentication.ordersFeedRequestHeaders`
+
+Use this authentication strategy when accessing the Orders Feed just requires a fixed set of HTTP Headers (e.g. `X-Api-Key: abcdef`).
+These headers are used when accessing the Orders Feed. Note that such authentication [must not be specific to any particular seller](https://openactive.io/open-booking-api/EditorsDraft/#authentication).
+
+```json
+  "ordersFeedRequestHeaders": {
+    "X-OpenActive-Test-Client-Id": "test"
+  }
+```
+
+#### `bookingPartners[bookingPartnerIdentifier].authentication.clientCredentials`
+
+Use this authentication strategy when using [Client Credentials Flow](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-client-credentials-flow) for accessing Order feeds.
+
+```json
+  "clientCredentials": {
+    "clientId": "clientid_800",
+    "clientSecret": "secret"
+  }
+```
