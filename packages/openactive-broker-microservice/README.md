@@ -64,16 +64,31 @@ If `true` will block the `openactive-integration-tests` starting until the last 
   "waitForHarvestCompletion": true,
 ```
 
+### `loginPagesSelectors`
 
-### `ordersFeedRequestHeaders`
+[CSS Selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) which are used to find, in the Booking System's login page the following HTML elements:
 
-The headers used when accessing the Orders Feed, useful to configure authentication. Note such authentication [must not be specific to any particular seller](https://openactive.io/open-booking-api/EditorsDraft/#authentication).
+* Username text input
+* Password text input
+* Submit button
 
 ```json
-  "ordersFeedRequestHeaders": {
-    "X-OpenActive-Test-Client-Id": "test"
-  }
+  "loginPagesSelectors": {
+    "username": "[name='username' i]",
+    "password": "[name='password' i]",
+    "button": ".btn-primary"
+  },
 ```
+
+These selectors would work for a login page whose HTML looks like:
+
+```html
+<input type="text" name="username" placeholder="Username" />
+<input type="password" name="password" placeholder="Password" />
+<input type="submit" class="btn-primary" value="Submit" />
+```
+
+**Context**: For Sellers which use OpenID Connect for authorization, Broker needs to acquire these Sellers' tokens in order to authenticate as each of these Sellers. Broker does this by going through [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/), loading the Booking System's login page in a headless browser and entering username/password details therein.
 
 ### `opportunityFeedRequestHeaders`
 
