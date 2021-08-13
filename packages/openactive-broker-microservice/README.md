@@ -201,7 +201,7 @@ Use this authentication strategy when using [Client Credentials Flow](https://op
   }
 ```
 
-#### `bookingPartners[bookingPartnerIdentifier].authentication.initialAccessToken
+#### `bookingPartners[bookingPartnerIdentifier].authentication.initialAccessToken`
 
 Use this authentication strategy when using [Client Credentials Flow](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-client-credentials-flow) but, rather than using an existing client, Broker will register a new client with your Authorization Server using Dynamic Client Registration. For this, your Authorization Server must support [Dynamic Client Registration](https://openid.net/specs/openid-connect-registration-1_0.html).
 
