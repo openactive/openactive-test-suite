@@ -1093,7 +1093,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
   const feedPrefix = `${feedIdentifier}---`;
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
-    if (item.state === 'deleted') {
+    if (item.state === 'deleted' || !item.data) {
       const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
       state.parentOpportunityMap.delete(jsonLdId);
       state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
@@ -1109,7 +1109,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
   await touchOpportunityItems(rpdePage.items
-    .filter((item) => item.state !== 'deleted')
+    .filter((item) => item.state !== 'deleted' && item.data)
     .map((item) => item.data['@id'] || item.data.id));
 }
 
