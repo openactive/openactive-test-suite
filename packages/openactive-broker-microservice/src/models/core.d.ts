@@ -10,5 +10,6 @@ export type FeedContext = {
   totalItemsQueuedForValidation: number;
   validatedItems: number;
   sleepMode?: boolean;
+  isInitialHarvestComplete?: boolean;
   timeToHarvestCompletion?: string;
 };

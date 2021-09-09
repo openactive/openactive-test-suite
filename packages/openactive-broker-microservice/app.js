@@ -227,7 +227,6 @@ async function harvestRPDE(
   const validator = new AsyncValidatorWorker(feedContextIdentifier, waitForValidation, state.startTime, validatorTimeout);
   state.validatorThreadArray.push(validator);
 
-  let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
 
   /** @type {FeedContext} */
@@ -238,6 +237,7 @@ async function harvestRPDE(
     responseTimes: [],
     totalItemsQueuedForValidation: 0,
     validatedItems: 0,
+    isInitialHarvestComplete: false,
   };
   /**
    * @param {FeedContext} c
@@ -247,6 +247,8 @@ async function harvestRPDE(
     validatedItems: c.validatedItems,
     validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
     items: c.items,
+    status: context.items === 0 ? 'Harvesting Complete (No items to validate)'
+      : `${context.isInitialHarvestComplete ? 'Harvesting Complete' : 'Harvesting...'}, ${context.totalItemsQueuedForValidation - context.validatedItems === 0 ? 'Validation Complete' : 'Validating...'}`,
   });
   const progressbar = !bar ? null : bar.create(0, 0, {
     feedIdentifier: feedContextIdentifier,
@@ -290,7 +292,7 @@ async function harvestRPDE(
           pageIndex: context.pages,
           contentType: response.headers['content-type'],
           status: response.status,
-          isInitialHarvestComplete,
+          isInitialHarvestComplete: context.isInitialHarvestComplete,
           isOrdersFeed,
         });
 
@@ -303,17 +305,19 @@ async function harvestRPDE(
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
-        if (!isInitialHarvestComplete) {
+        if (!context.isInitialHarvestComplete) {
+          context.isInitialHarvestComplete = true;
           if (progressbar) {
             progressbar.update(context.validatedItems, {
               pages: context.pages,
               responseTime: Math.round(responseTime),
               ...progressFromContext(context),
-              status: context.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
             });
             progressbar.setTotal(context.totalItemsQueuedForValidation);
+            if (context.isInitialHarvestComplete && context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+              progressbar.stop();
+            }
           }
-          isInitialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
           await onFeedEnd();
@@ -339,26 +343,21 @@ async function harvestRPDE(
         }
         // eslint-disable-next-line no-loop-func
         await processPage(json, feedContextIdentifier, (item) => {
-          if (!isInitialHarvestComplete) {
+          if (!context.isInitialHarvestComplete) {
             context.totalItemsQueuedForValidation += 1;
             validateAndStoreValidationResults(item, validator).then(() => {
               context.validatedItems += 1;
               if (progressbar) {
                 progressbar.setTotal(context.totalItemsQueuedForValidation);
-                if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-                  progressbar.update(context.validatedItems, {
-                    ...progressFromContext(context),
-                    status: 'Validation Complete',
-                  });
+                progressbar.update(context.validatedItems, progressFromContext(context));
+                if (context.isInitialHarvestComplete && context.totalItemsQueuedForValidation - context.validatedItems === 0) {
                   progressbar.stop();
-                } else {
-                  progressbar.update(context.validatedItems, progressFromContext(context));
                 }
               }
             });
           }
         });
-        if (!isInitialHarvestComplete && progressbar) {
+        if (!context.isInitialHarvestComplete && progressbar) {
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
