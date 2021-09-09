@@ -64,16 +64,31 @@ If `true` will block the `openactive-integration-tests` starting until the last 
   "waitForHarvestCompletion": true,
 ```
 
+### `loginPagesSelectors`
 
-### `ordersFeedRequestHeaders`
+[CSS Selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) which are used to find, in the Booking System's login page the following HTML elements:
 
-The headers used when accessing the Orders Feed, useful to configure authentication. Note such authentication [must not be specific to any particular seller](https://openactive.io/open-booking-api/EditorsDraft/#authentication).
+* Username text input
+* Password text input
+* Submit button
 
 ```json
-  "ordersFeedRequestHeaders": {
-    "X-OpenActive-Test-Client-Id": "test"
-  }
+  "loginPagesSelectors": {
+    "username": "[name='username' i]",
+    "password": "[name='password' i]",
+    "button": ".btn-primary"
+  },
 ```
+
+These selectors would work for a login page whose HTML looks like:
+
+```html
+<input type="text" name="username" placeholder="Username" />
+<input type="password" name="password" placeholder="Password" />
+<input type="submit" class="btn-primary" value="Submit" />
+```
+
+**Context**: For Sellers which use OpenID Connect for authorization, Broker needs to acquire these Sellers' tokens in order to authenticate as each of these Sellers. Broker does this by going through [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/), loading the Booking System's login page in a headless browser and entering username/password details therein.
 
 ### `opportunityFeedRequestHeaders`
 
@@ -136,4 +151,62 @@ While debugging authentication it can be useful to log the configuration that th
 
 ```json
   "logAuthConfig": true,
+```
+
+### `bookingPartners`
+
+Config for [Booking Partners](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-booking-partner) that the Test Suite will use to connect to your Booking System.
+
+Broker uses two Booking Partners, named `primary` and `secondary`.
+
+```json
+  "bookingPartners": {
+    "primary": {
+      "authentication": {
+        "initialAccessToken": "openactive_test_suite_client_12345xaq"
+      }
+    },
+    "secondary": {
+      "authentication": {
+        "clientCredentials": {
+          "clientId": "clientid_800",
+          "clientSecret": "secret"
+        }
+      }
+    }
+  }
+```
+
+The `authentication` field can contain one of several different authentication strategies for authenticating as the Booking Partner for Order and Order Proposal RPDE Feed requests. Set only one of these strategies. The different authentication strategies are documented in the below subsections.
+
+#### `bookingPartners[bookingPartnerIdentifier].authentication.ordersFeedRequestHeaders`
+
+Use this authentication strategy when accessing the Orders Feed just requires a fixed set of HTTP Headers (e.g. `X-Api-Key: abcdef`).
+These headers are used when accessing the Orders Feed. Note that such authentication [must not be specific to any particular seller](https://openactive.io/open-booking-api/EditorsDraft/#authentication).
+
+```json
+  "ordersFeedRequestHeaders": {
+    "X-OpenActive-Test-Client-Id": "test"
+  }
+```
+
+#### `bookingPartners[bookingPartnerIdentifier].authentication.clientCredentials`
+
+Use this authentication strategy when using [Client Credentials Flow](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-client-credentials-flow) for accessing Order feeds.
+
+```json
+  "clientCredentials": {
+    "clientId": "clientid_800",
+    "clientSecret": "secret"
+  }
+```
+
+#### `bookingPartners[bookingPartnerIdentifier].authentication.initialAccessToken`
+
+Use this authentication strategy when using [Client Credentials Flow](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-client-credentials-flow) but, rather than using an existing client, Broker will register a new client with your Authorization Server using Dynamic Client Registration. For this, your Authorization Server must support [Dynamic Client Registration](https://openid.net/specs/openid-connect-registration-1_0.html).
+
+`initialAccessToken` is the ["Initial Access Token"](https://openid.net/specs/openid-connect-registration-1_0.html#rfc.section.1.2) which can grant access to your Authorization Server's Client Registration Endpoint.
+
+```json
+  "initialAccessToken": "openactive_test_suite_client_12345xaq"
 ```
