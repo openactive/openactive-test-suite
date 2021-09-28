@@ -1337,11 +1337,6 @@ async function processOpportunityItem(item) {
 
     const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(id, item);
 
-    // if (didRespond) {
-    //   console.log('\nYOWZA didRespond 2');
-    // } else {
-    //   console.log('nosir didNotRespond 2');
-    // }
     if (VERBOSE) {
       const bookableIssueList = unmetCriteriaDetails.length > 0
         ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
