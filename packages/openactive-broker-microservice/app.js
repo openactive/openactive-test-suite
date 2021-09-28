@@ -1332,14 +1332,12 @@ async function processOpportunityItem(item) {
       }
     }
 
-    if (state.pendingGetOpportunityResponses[id]) {
-      state.pendingGetOpportunityResponses[id].send(item);
-    }
+    const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(id, item);
 
     if (VERBOSE) {
       const bookableIssueList = unmetCriteriaDetails.length > 0
         ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
-      if (state.pendingGetOpportunityResponses[id]) {
+      if (didRespond) {
         log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
       } else {
         log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);

@@ -56,13 +56,6 @@ const state = {
   incompleteFeeds: [],
   // API RESPONSES
   /**
-   * Call `.send()` on one of these reponses in order to respond to an as-yet unanswered request to get an Opportunity
-   * with a given ID.
-   *
-   * @type {{ [opportunityId: string]: PendingResponse }}
-   */
-  pendingGetOpportunityResponses: {},
-  /**
    * Maps Listener ID => a "Listener" object, which can be used to return an API response to the client
    * which is listening for this item.
    *
