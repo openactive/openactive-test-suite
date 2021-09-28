@@ -91,7 +91,11 @@ const state = {
    * item (e.g. an Opportunity), and an HTTP response is triggered if the item is found.
    */
   onePhaseListeners: {
-    /** Uses Opportunity ID as Listener ID */
+    /**
+     * One-phase Listeners for Opportunities.
+     * - Listener ID: Opportunity ID
+     * - Item: Opportunity RPDE Item (e.g. `{ data: { '@type': 'Slot', ...} }`)
+     */
     opportunity: new OnePhaseListeners(),
   },
   orderUuidTracking: OrderUuidTracking.createState(),

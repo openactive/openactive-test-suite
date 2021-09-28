@@ -883,7 +883,10 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
       } else {
         log(`used cached response for "${opportunityId}"`);
       }
-      const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(opportunityId, cachedResponse);
+      const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(opportunityId, {
+        // Make it into an RPDE item-ish - as these are the items that onePhaseListeners.opportunity deals with.
+        data: cachedResponse,
+      });
       if (didRespond) {
         return;
       }
@@ -916,8 +919,8 @@ app.get('/opportunity/:id', function (req, res) {
   })();
   const doesItemMatchCriteria = isNil(expectedCapacity)
     ? (() => true)
-    : ((opportunity) => (
-      criteriaUtils.getRemainingCapacity(opportunity) === expectedCapacity
+    : ((rpdeItem) => (
+      criteriaUtils.getRemainingCapacity(rpdeItem.data) === expectedCapacity
     ));
   doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
 });
@@ -1334,6 +1337,11 @@ async function processOpportunityItem(item) {
 
     const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(id, item);
 
+    // if (didRespond) {
+    //   console.log('\nYOWZA didRespond 2');
+    // } else {
+    //   console.log('nosir didNotRespond 2');
+    // }
     if (VERBOSE) {
       const bookableIssueList = unmetCriteriaDetails.length > 0
         ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
