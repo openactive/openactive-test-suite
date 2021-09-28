@@ -9,7 +9,7 @@
  * @typedef {Map<string, Listener>} ListenersMap
  */
 
-const Listeners = {
+const TwoPhaseListeners = {
   /**
    * @param {OrderFeedType} type
    * @param {string} bookingPartnerIdentifier
@@ -96,15 +96,15 @@ const Listeners = {
       const { collectRes } = listenersMap.get(listenerId);
       // If there's already a collection request, fulfill it
       if (collectRes) {
-        Listeners.doRespondToAndDeleteListener(listenersMap, listenerId, collectRes, item);
+        TwoPhaseListeners.doRespondToAndDeleteListener(listenersMap, listenerId, collectRes, item);
       } else {
         // If not, set the opportunity so that it can returned when the collection call arrives
-        listenersMap.set(listenerId, Listeners.createResolvedButNotPendingListener(item));
+        listenersMap.set(listenerId, TwoPhaseListeners.createResolvedButNotPendingListener(item));
       }
     }
   },
 };
 
 module.exports = {
-  Listeners,
+  TwoPhaseListeners,
 };

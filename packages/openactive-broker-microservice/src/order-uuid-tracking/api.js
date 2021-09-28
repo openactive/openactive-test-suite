@@ -1,5 +1,5 @@
-const { error409IfListenerAlreadyExists } = require('../listeners/api');
-const { Listeners } = require('../listeners/listeners');
+const { error409IfListenerAlreadyExists } = require('../twoPhaseListeners/api');
+const { TwoPhaseListeners: Listeners } = require('../twoPhaseListeners/twoPhaseListeners');
 const { state } = require('../state');
 const { error400IfExpressParamsAreMissing } = require('../util/api-utils');
 const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');

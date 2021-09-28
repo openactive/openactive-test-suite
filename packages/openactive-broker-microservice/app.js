@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const logger = require('morgan');
 const { default: axios } = require('axios');
-const { criteria, testMatch } = require('@openactive/test-interface-criteria');
+const { criteria, testMatch, utils: criteriaUtils } = require('@openactive/test-interface-criteria');
 const { Handler } = require('htmlmetaparser');
 const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
@@ -18,6 +18,8 @@ const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
+const { expect } = require('chai');
+const { isNil } = require('lodash');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -61,12 +63,13 @@ const {
   VALIDATOR_TMP_DIR,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
-const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/listeners/api');
-const { Listeners } = require('./src/listeners/listeners');
+const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
+const { TwoPhaseListeners } = require('./src/twoPhaseListeners/twoPhaseListeners');
 const { state, getTestDataset, getAllDatasets, addFeed } = require('./src/state');
 const { orderFeedContextIdentifier } = require('./src/util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
+const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -475,7 +478,10 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
   testDataset.clear();
 }
 
-function getOpportunityById(opportunityId) {
+/**
+ * @param {string} opportunityId
+ */
+function getOpportunityMergedWithParentById(opportunityId) {
   const opportunity = state.opportunityMap.get(opportunityId);
   if (!opportunity) {
     return null;
@@ -800,7 +806,7 @@ app.get('/opportunity-cache/:id', function (req, res) {
   if (req.params.id) {
     const { id } = req.params;
 
-    const cachedResponse = getOpportunityById(id);
+    const cachedResponse = getOpportunityMergedWithParentById(id);
 
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
@@ -832,7 +838,7 @@ app.get('/opportunity-cache/:id', function (req, res) {
  * @param {any} item
  */
 function doNotifyOpportunityListener(id, item) {
-  Listeners.doNotifyListener(state.listeners.byOpportunityId, id, item);
+  TwoPhaseListeners.doNotifyListener(state.twoPhaseListeners.byOpportunityId, id, item);
 }
 
 /**
@@ -846,8 +852,8 @@ function doNotifyOpportunityListener(id, item) {
  * @param {any} item
  */
 function doNotifyOrderListener(type, bookingPartnerIdentifier, uuid, item) {
-  const listenerId = Listeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
-  Listeners.doNotifyListener(state.listeners.byOrderUuid, listenerId, item);
+  const listenerId = TwoPhaseListeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
+  TwoPhaseListeners.doNotifyListener(state.twoPhaseListeners.byOrderUuid, listenerId, item);
 }
 
 app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
@@ -857,51 +863,63 @@ app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListen
 
 app.get('/is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid', getIsOrderUuidPresentApi);
 
-app.get('/opportunity/:id', function (req, res) {
-  const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
+/**
+ * @param {string} opportunityId
+ * @param {boolean} useCacheIfAvailable If true, the Opportunity will be searched for in the cache. If it's already in
+ *   there and matches the `doesItemMatchCriteria` spec, this will be returned.
+ *   If false, the Opportunity will only be searched for in coming RPDE updates.
+ * @param {(opportunity: unknown) => boolean} doesItemMatchCriteria
+ * @param {import('express').Response} res If/when Opportunity is found, it will be passed to `res`. This will happen asynchronously if
+ *   the Opportunity is not found in the cache.
+ */
+function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, doesItemMatchCriteria, res) {
+  state.onePhaseListeners.opportunity.createListener(opportunityId, doesItemMatchCriteria, res);
 
-  // respond with json
-  if (req.params.id) {
-    const { id } = req.params;
-
-    const cachedResponse = getOpportunityById(id);
-
-    if (useCacheIfAvailable && cachedResponse) {
+  if (useCacheIfAvailable) {
+    const cachedResponse = getOpportunityMergedWithParentById(opportunityId);
+    if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
         logCharacter('.');
       } else {
-        log(`used cached response for "${id}"`);
+        log(`used cached response for "${opportunityId}"`);
       }
-      res.json({
-        data: cachedResponse,
-      });
-    } else {
-      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
-        logCharacter('.');
-      } else {
-        log(`listening for "${id}"`);
+      const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(opportunityId, cachedResponse);
+      if (didRespond) {
+        return;
       }
-
-      // Stash the response and reply later when an event comes through (kill any existing id still waiting)
-      if (state.pendingGetOpportunityResponses[id] && state.pendingGetOpportunityResponses[id] !== null) state.pendingGetOpportunityResponses[id].cancel();
-      state.pendingGetOpportunityResponses[id] = {
-        send(json) {
-          state.pendingGetOpportunityResponses[id] = null;
-          res.json(json);
-        },
-        cancel() {
-          log(`Ignoring previous request for "${id}"`);
-          res.status(400).json({
-            error: `A newer request to wait for "${id}" has been received, so this request has been cancelled.`,
-          });
-        },
-      };
     }
-  } else {
-    res.status(400).json({
-      error: 'id is required',
-    });
   }
+  // It hasn't been found
+  if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+    logCharacter('.');
+  } else {
+    log(`listening for "${opportunityId}"`);
+  }
+}
+
+app.get('/opportunity/:id', function (req, res) {
+  if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
+  const { id } = req.params;
+
+  const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
+  /* Use ?expectedCapacity=2 for the Opportunity to appear with this capacity. If it is found with a different
+  capacity, this route will wait until it times out or the Opportunity is updated again with the expected
+  capacity. */
+  const expectedCapacity = (() => {
+    if ('expectedCapacity' in req.query) {
+      const asNum = Number(req.query.expectedCapacity);
+      // eslint-disable-next-line no-unused-expressions
+      expect(asNum).to.not.be.NaN;
+      return asNum;
+    }
+    return null;
+  })();
+  const doesItemMatchCriteria = isNil(expectedCapacity)
+    ? (() => true)
+    : ((opportunity) => (
+      criteriaUtils.getRemainingCapacity(opportunity) === expectedCapacity
+    ));
+  doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
 });
 
 function getTypeFromOpportunityType(opportunityType) {
