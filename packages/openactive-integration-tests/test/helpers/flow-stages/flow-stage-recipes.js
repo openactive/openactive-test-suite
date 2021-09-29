@@ -1,3 +1,4 @@
+const { AssertOpportunityCapacityFlowStage } = require('./assert-opportunity-capacity');
 const { BFlowStage } = require('./b');
 const { BookRecipe } = require('./book-recipe');
 const { C1FlowStage } = require('./c1');
@@ -7,6 +8,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
+
+const { IMPLEMENTED_FEATURES } = global;
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -73,7 +76,14 @@ const FlowStageRecipes = {
     ...options
   } = {}) {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
+    const {
+      fetchOpportunities,
+      c1,
+      assertOpportunityCapacityAfterC1,
+      c2,
+      assertOpportunityCapacityAfterC2,
+      defaultFlowStageParams,
+    } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
       logger,
       {
@@ -82,7 +92,7 @@ const FlowStageRecipes = {
       },
     );
     const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
-      prerequisite: c2,
+      prerequisite: assertOpportunityCapacityAfterC2,
       accessPass,
       brokerRole,
       firstStageReqTemplateRef: bookReqTemplateRef,
@@ -93,11 +103,14 @@ const FlowStageRecipes = {
         positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
       }),
     });
+    // TODO TODO TODO do a capacity assertion after book.
 
     return {
       fetchOpportunities,
       c1,
+      assertOpportunityCapacityAfterC1,
       c2,
+      assertOpportunityCapacityAfterC2,
       bookRecipe,
       // This is included in the result so that additional stages can be added using
       // these params.
@@ -139,20 +152,48 @@ const FlowStageRecipes = {
         orderItems: fetchOpportunities.getOutput().orderItems,
       }),
     });
+    const assertOpportunityCapacityAfterC1 = new AssertOpportunityCapacityFlowStage({
+      getOpportunityExpectedCapacity: IMPLEMENTED_FEATURES['anonymous-leasing']
+        // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
+        ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+        : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+      getInput: () => ({
+        opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      prerequisite: c1,
+      orderItemCriteriaList,
+      ...defaultFlowStageParams,
+    });
     const c2 = new C2FlowStage({
       ...defaultFlowStageParams,
       templateRef: c2ReqTemplateRef,
       brokerRole,
-      prerequisite: c1,
+      prerequisite: assertOpportunityCapacityAfterC1,
       getInput: () => ({
         orderItems: fetchOpportunities.getOutput().orderItems,
         positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
       }),
     });
+    const assertOpportunityCapacityAfterC2 = new AssertOpportunityCapacityFlowStage({
+      getOpportunityExpectedCapacity: (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing'])
+        // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
+        ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+        : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+      getInput: () => ({
+        opportunityFeedExtractResponses: assertOpportunityCapacityAfterC1.getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      prerequisite: c2,
+      orderItemCriteriaList,
+      ...defaultFlowStageParams,
+    });
     return {
       fetchOpportunities,
       c1,
+      assertOpportunityCapacityAfterC1,
       c2,
+      assertOpportunityCapacityAfterC2,
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,
