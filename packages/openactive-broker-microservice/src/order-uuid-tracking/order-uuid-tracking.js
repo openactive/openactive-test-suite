@@ -1,5 +1,5 @@
 const { ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../broker-config');
-const { Listeners } = require('../listeners/listeners');
+const { TwoPhaseListeners: Listeners } = require('../twoPhaseListeners/twoPhaseListeners');
 const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
 
 /**

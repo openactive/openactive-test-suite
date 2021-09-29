@@ -5,7 +5,7 @@
 const { memoize } = require('lodash');
 const { DateTime } = require('luxon');
 const { allCriteria } = require('./criteria');
-const { getOrganizerOrProvider, extendTestDataShape } = require('./criteria/criteriaUtils');
+const { getOrganizerOrProvider, extendTestDataShape, getRemainingCapacity } = require('./criteria/criteriaUtils');
 const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape');
 
 /**
@@ -176,5 +176,6 @@ module.exports = {
   // Utils
   utils: {
     getOrganizerOrProvider,
+    getRemainingCapacity,
   },
 };

@@ -3,12 +3,12 @@ const { state } = require('../state');
 const { error400IfExpressParamsAreMissing } = require('../util/api-utils');
 const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('../util/request-utils');
-const { Listeners } = require('./listeners');
+const { TwoPhaseListeners } = require('./twoPhaseListeners');
 
 /**
  * @typedef {import('express').Handler} ExpressHandler
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType
- * @typedef {import('./listeners').Listener} Listener
+ * @typedef {import('./twoPhaseListeners').Listener} Listener
  */
 
 /**
@@ -17,14 +17,8 @@ const { Listeners } = require('./listeners');
 function createOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
-  if (!error409IfListenerAlreadyExists(res, state.listeners.byOpportunityId, 'opportunities', id)) { return; }
-  if (state.listeners.byOpportunityId.has(id)) {
-    res.status(409).send({
-      error: `The @id "${id}" already has a listener registered. The same @id must not be used across multiple tests, or listened for multiple times concurrently within the same test.`,
-    });
-    return;
-  }
-  state.listeners.byOpportunityId.set(id, Listeners.createNewListener());
+  if (!error409IfListenerAlreadyExists(res, state.twoPhaseListeners.byOpportunityId, 'opportunities', id)) { return; }
+  state.twoPhaseListeners.byOpportunityId.set(id, TwoPhaseListeners.createNewListener());
   res.status(204).send();
 }
 
@@ -34,7 +28,7 @@ function createOpportunityListenerApi(req, res) {
 function getOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
-  if (!doPendOrRespondToGetListenerRequest(res, state.listeners.byOpportunityId, id)) {
+  if (!doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOpportunityId, id)) {
     res.status(404).json({
       error: `Listener for Opportunity with @id "${id}" not found`,
     });
@@ -47,8 +41,8 @@ function getOpportunityListenerApi(req, res) {
 function getOrderListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['type', 'bookingPartnerIdentifier', 'uuid'])) { return; }
   const { type, bookingPartnerIdentifier, uuid } = req.params;
-  const listenerId = Listeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
-  if (!doPendOrRespondToGetListenerRequest(res, state.listeners.byOrderUuid, listenerId)) {
+  const listenerId = TwoPhaseListeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
+  if (!doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOrderUuid, listenerId)) {
     res.status(404).json({
       error: `Listener for Order with Listener ID "${listenerId}" not found`,
     });
@@ -61,14 +55,14 @@ function getOrderListenerApi(req, res) {
  * @returns {boolean} `true` if it was found. `false` if no listener was found.
  */
 function doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId) {
-  if (!state.listeners.byOrderUuid.has(listenerId)) {
+  if (!listenersMap.has(listenerId)) {
     return false;
   }
   const { item } = listenersMap.get(listenerId);
   if (!item) {
-    listenersMap.set(listenerId, Listeners.createPendingListener(res));
+    listenersMap.set(listenerId, TwoPhaseListeners.createPendingListener(res));
   } else {
-    Listeners.doRespondToAndDeleteListener(listenersMap, listenerId, res, item);
+    TwoPhaseListeners.doRespondToAndDeleteListener(listenersMap, listenerId, res, item);
   }
   return true;
 }
@@ -85,9 +79,9 @@ async function createOrderListenerApi(req, res) {
   }
   if (!error400IfExpressParamsAreMissing(req, res, ['type', 'bookingPartnerIdentifier', 'uuid'])) { return; }
   const { type, bookingPartnerIdentifier, uuid } = req.params;
-  const listenerId = Listeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
-  if (!error409IfListenerAlreadyExists(res, state.listeners.byOpportunityId, type, listenerId)) { return; }
-  state.listeners.byOrderUuid.set(listenerId, Listeners.createNewListener());
+  const listenerId = TwoPhaseListeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
+  if (!error409IfListenerAlreadyExists(res, state.twoPhaseListeners.byOrderUuid, type, listenerId)) { return; }
+  state.twoPhaseListeners.byOrderUuid.set(listenerId, TwoPhaseListeners.createNewListener());
   const feedContext = state.feedContextMap.get(
     orderFeedContextIdentifier(
       type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER,

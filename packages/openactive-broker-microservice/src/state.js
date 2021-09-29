@@ -1,11 +1,12 @@
 const { OpenActiveTestAuthKeyManager } = require('@openactive/openactive-openid-test-client');
 const config = require('config');
-const { Listeners } = require('./listeners/listeners');
+const { TwoPhaseListeners: Listeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const PauseResume = require('./util/pause-resume');
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { log } = require('./util/log');
 const { MICROSERVICE_BASE_URL } = require('./broker-config');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
+const { OnePhaseListeners } = require('./onePhaseListeners');
 
 /**
  * @typedef {import('./models/core').FeedContext} FeedContext
@@ -55,21 +56,14 @@ const state = {
   incompleteFeeds: [],
   // API RESPONSES
   /**
-   * Call `.send()` on one of these reponses in order to respond to an as-yet unanswered request to get an Opportunity
-   * with a given ID.
+   * Maps Listener ID => a "Listener" object, which can be used to return an API response to the client
+   * which is listening for this item.
    *
-   * @type {{ [opportunityId: string]: PendingResponse }}
-   */
-  pendingGetOpportunityResponses: {},
-  /**
-   * Maps Order UUIDs to a "Listener" object, which can be used to return an API response to the client which is
-   * requesting this Order UUID.
+   * These are called 2-phase listeners because the listening and collection happen as two separate API calls (a POST
+   * to set up the listener and a GET to retrieve the found item).
    *
    * When Broker gets a request to listen for a particular Opportunity or Order, it creates a "Listener" object,
    * which can later be used to return an API response to the client which is listening for this item.
-   *
-   * `listeners` maps Listener ID => a "Listener" object, which can be used to return an API response to the client
-   * which is listening for this item.
    *
    * A "Listener ID" takes either of the forms:
    *
@@ -77,7 +71,7 @@ const state = {
    * - `orders::{bookingPartnerIdentifier}::{orderUuid}` e.g. `orders::primary::4324d932-a326-4cc7-bcc0-05fb491744c7`
    * - `order-proposals::{bookingPartnerIdentifier}::{orderUuid}`
    */
-  listeners: {
+  twoPhaseListeners: {
     /**
      * Maps `{type}::{bookingPartnerIdentifier}::{orderUuid}` to a "Listener" where `type` is one of `orders` or
      * `order-proposals`.
@@ -89,6 +83,20 @@ const state = {
      * Maps Opportunity ID to a "Listener"
      */
     byOpportunityId: Listeners.createListenersMap(),
+  },
+  /**
+   * These are called 1-phase listeners because the listening and collection happen as one API call.
+   *
+   * Otherwise, though, it is very similar to the twoPhaseListeners. A "Listener" is set up to listen for a particular
+   * item (e.g. an Opportunity), and an HTTP response is triggered if the item is found.
+   */
+  onePhaseListeners: {
+    /**
+     * One-phase Listeners for Opportunities.
+     * - Listener ID: Opportunity ID
+     * - Item: Opportunity RPDE Item (e.g. `{ data: { '@type': 'Slot', ...} }`)
+     */
+    opportunity: new OnePhaseListeners(),
   },
   orderUuidTracking: OrderUuidTracking.createState(),
   // VALIDATION
