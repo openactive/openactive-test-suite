@@ -1,22 +1,13 @@
 const chakram = require('chakram');
 const faker = require('faker');
+const { last } = require('lodash');
 const uuidParse = require('uuid').parse;
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
 const { getSellerConfigWithTaxMode } = require('../sellers');
 const { BookRecipe } = require('./book-recipe');
-
-/**
- * @typedef {{
- *  '@type': 'Person' | 'Organization',
- *  identifier: string
- *  telephone: string,
- *  givenName: string,
- *  familyName: string,
- *  email: string,
- *  }} Customer
- */
+const { FlowStageRun } = require('./flow-stage-run');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -30,7 +21,21 @@ const { BookRecipe } = require('./book-recipe');
  *   unknown,
  *   Required<Pick<FlowStageOutput, 'httpResponse'>>,
  * >} FlowStageTypeWithHttpResponseOutput
+ * @typedef {import('./flow-stage-run').AnyFlowStageRun} AnyFlowStageRun
  * @typedef {import('../../types/SellerConfig').SellerConfig} SellerConfig
+ */
+
+/**
+ * @typedef {{
+ *  '@type': 'Person' | 'Organization',
+ *  identifier: string
+ *  telephone: string,
+ *  givenName: string,
+ *  familyName: string,
+ *  email: string,
+ *  }} Customer
+ *
+ * @typedef {UnknownFlowStageType | BookRecipe | AnyFlowStageRun} FlowStageRunnable Something that can be run by the `describeRunAnd-` functions
  */
 
 const { SELLER_CONFIG } = global;
@@ -192,7 +197,7 @@ const FlowStageUtils = {
    * @param {object} checks
    * @param {boolean} checks.doCheckSuccess If true, success checks will be run
    * @param {boolean} checks.doCheckIsValid If true, validation will be run
-   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   * @param {FlowStageRunnable} flowStageRunnable If this is a BookRecipe, or FlowStageRun
    *   all stages within will be checked for validity/success.
    *
    *   NOTE It is recommended to only use a BookRecipe when expecting success. If expecting failure,
@@ -204,9 +209,19 @@ const FlowStageUtils = {
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndRunChecks(checks, flowStageOrBookRecipe, itAdditionalTests) {
-    if (flowStageOrBookRecipe instanceof BookRecipe) {
-      const stagesBeforeLastStage = flowStageOrBookRecipe.getStagesSequenceBeforeLastStage();
+  describeRunAndRunChecks(checks, flowStageRunnable, itAdditionalTests) {
+    if (flowStageRunnable instanceof FlowStageRun) {
+      const allStages = flowStageRunnable.getFlattenedStages();
+      for (const stage of allStages.slice(0, -1)) {
+        FlowStageUtils.describeRunAndRunChecks(checks, stage);
+      }
+      /* Only run additional tests on the last stage, so that all of the run will have occurred by the time
+      the additional tests are run */
+      FlowStageUtils.describeRunAndRunChecks(checks, last(allStages), itAdditionalTests);
+      return;
+    }
+    if (flowStageRunnable instanceof BookRecipe) {
+      const stagesBeforeLastStage = flowStageRunnable.getStagesSequenceBeforeLastStage();
       /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
       approved items appearing in the feed - which means that the tests will time out */
       for (const stage of stagesBeforeLastStage) {
@@ -214,7 +229,7 @@ const FlowStageUtils = {
       }
       /* Only run additional tests on the last stage, so that all of the booking will have occurred by the time
       the additional tests are run */
-      FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.lastStage, itAdditionalTests);
+      FlowStageUtils.describeRunAndRunChecks(checks, flowStageRunnable.lastStage, itAdditionalTests);
       // if (flowStageOrBookRecipe.p) {
       //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
       //   /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
@@ -232,17 +247,18 @@ const FlowStageUtils = {
       // }
       return;
     }
-    if (!flowStageOrBookRecipe.shouldDescribeFlowStage) {
-      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageOrBookRecipe.getLoggableStageName()} as shouldDescribeFlowStage is false`);
+    // It's a FlowStage
+    if (!flowStageRunnable.shouldDescribeFlowStage) {
+      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageRunnable.getLoggableStageName()} as shouldDescribeFlowStage is false`);
     }
-    describe(flowStageOrBookRecipe.testName, () => {
-      flowStageOrBookRecipe.beforeSetup();
+    describe(flowStageRunnable.testName, () => {
+      flowStageRunnable.beforeSetup();
 
       if (checks.doCheckSuccess) {
-        flowStageOrBookRecipe.itSuccessChecks();
+        flowStageRunnable.itSuccessChecks();
       }
       if (checks.doCheckIsValid) {
-        flowStageOrBookRecipe.itValidationTests();
+        flowStageRunnable.itValidationTests();
       }
 
       if (itAdditionalTests) {
@@ -258,7 +274,7 @@ const FlowStageUtils = {
    * 2. Runs success checks and validation checks of the response in `it(..)` blocks.
    * 3. Optionally runs extra tests.
    *
-   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   * @param {FlowStageRunnable} flowStageOrBookRecipe If this is a BookRecipe or FlowStageRun,
    *   all stages within will be checked for validity/success.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
@@ -280,7 +296,7 @@ const FlowStageUtils = {
    *   NOTE: Success checks are not run
    * 3. Optionally runs extra tests.
    *
-   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   * @param {FlowStageRunnable} flowStageOrBookRecipe If this is a BookRecipe or FlowStageRun,
    *   all stages within will be checked for validity.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.

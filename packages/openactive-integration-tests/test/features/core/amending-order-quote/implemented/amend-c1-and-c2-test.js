@@ -63,6 +63,9 @@ FeatureHelper.describeFeature(module, {
       prepayment: secondAttemptC2.getOutput().prepayment,
       positionOrderIntakeFormMap: secondAttemptC1.getOutput().positionOrderIntakeFormMap,
     }),
+    // getAssertOpportunityCapacityInput: () => ({
+    //   opportunityFeedExtractResponses: 
+    // })
   });
 
   // # Set up Tests

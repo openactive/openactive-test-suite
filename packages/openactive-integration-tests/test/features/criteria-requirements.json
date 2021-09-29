@@ -100,8 +100,8 @@
     "cancellation-window": {
       "primary": {
         "TestOpportunityBookableCancellableOutsideWindow": 3,
-        "TestOpportunityBookable": 2,
-        "TestOpportunityBookableCancellableWithinWindow": 3
+        "TestOpportunityBookable": 1,
+        "TestOpportunityBookableCancellableWithinWindow": 1
       }
     },
     "customer-requested-cancellation": {

@@ -3,7 +3,9 @@ const { BFlowStage } = require('./b');
 const { BookRecipe } = require('./book-recipe');
 const { C1FlowStage } = require('./c1');
 const { C2FlowStage } = require('./c2');
+const { CancelOrderFlowStage } = require('./cancel-order');
 const { FetchOpportunitiesFlowStage } = require('./fetch-opportunities');
+const { FlowStageRun } = require('./flow-stage-run');
 const { FlowStageUtils } = require('./flow-stage-utils');
 const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
@@ -445,6 +447,35 @@ const FlowStageRecipes = {
       orderFeedUpdateAfterDeleteProposal,
       assertOpportunityCapacityAfterBook,
     });
+  },
+
+  runs: {
+    cancellation: {
+      /**
+       * @param {UnknownFlowStageType} prerequisite
+       * @param {DefaultFlowStageParams} defaultFlowStageParams
+       * @param {object} args
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
+       */
+      successfulStandaloneCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+        const cancel = new CancelOrderFlowStage({
+          ...defaultFlowStageParams,
+          prerequisite,
+          ...cancelArgs,
+        });
+        const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
+          ...defaultFlowStageParams,
+          nameOfPreviousStage: 'Cancel',
+          prerequisite: cancel,
+          ...assertOpportunityCapacityArgs,
+        });
+        return new FlowStageRun({
+          cancel,
+          assertOpportunityCapacityAfterCancel,
+        }, ['cancel', 'assertOpportunityCapacityAfterCancel']);
+      },
+    },
   },
 };
 
