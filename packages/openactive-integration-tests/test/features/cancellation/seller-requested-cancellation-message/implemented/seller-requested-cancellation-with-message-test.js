@@ -60,9 +60,10 @@ FeatureHelper.describeFeature(module, {
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
       chai.expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
-      orderItems.should.include.something.that
-        .has.property('orderItemStatus', 'https://openactive.io/SellerCancelled')
-        .and.has.property('cancellationMessage').which.is.a('string');
+      orderItems
+        .should.include.something.that.has.property('orderItemStatus', 'https://openactive.io/SellerCancelled')
+        .and
+        .should.include.something.that.has.property('cancellationMessage').which.is.a('string');
     });
   });
 });
