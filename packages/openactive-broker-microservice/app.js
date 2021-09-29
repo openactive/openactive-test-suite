@@ -235,6 +235,7 @@ async function harvestRPDE(
     pages: 0,
     items: 0,
     responseTimes: [],
+    sleepPages: 0,
     totalItemsQueuedForValidation: 0,
     validatedItems: 0,
     isInitialHarvestComplete: false,
@@ -247,8 +248,7 @@ async function harvestRPDE(
     validatedItems: c.validatedItems,
     validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
     items: c.items,
-    status: context.items === 0 ? 'Harvesting Complete (No items to validate)'
-      : `${context.isInitialHarvestComplete ? 'Harvesting Complete' : 'Harvesting...'}, ${context.totalItemsQueuedForValidation - context.validatedItems === 0 ? 'Validation Complete' : 'Validating...'}`,
+    status: `${context.isInitialHarvestComplete ? 'Harvesting Complete' : 'Harvesting...'}, ${context.totalItemsQueuedForValidation - context.validatedItems === 0 ? 'Validation Complete' : 'Validating...'}`,
   });
   const progressbar = !bar ? null : bar.create(0, 0, {
     feedIdentifier: feedContextIdentifier,
@@ -321,8 +321,11 @@ async function harvestRPDE(
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
           await onFeedEnd();
-        } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
+        } else if (VERBOSE) {
+          log(`Sleep mode poll for RPDE feed "${url}"`);
+        }
         context.sleepMode = true;
+        context.sleepPages += 1;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
         // Slow down sleep polling while waiting for harvesting of other feeds to complete
         await sleep(WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0 ? 5000 : 500);
@@ -331,6 +334,7 @@ async function harvestRPDE(
         // Maintain a buffer of the last 5 items
         if (context.responseTimes.length > 5) context.responseTimes.shift();
         context.pages += 1;
+        context.sleepPages = 0;
         context.items += json.items.length;
         delete context.sleepMode;
         if (REQUEST_LOGGING_ENABLED) {
