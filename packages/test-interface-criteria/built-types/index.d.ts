@@ -93,7 +93,9 @@ export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: '
     }[];
 };
 declare const getOrganizerOrProvider: (opportunity: import("./types/Opportunity").Opportunity) => any;
+declare const getRemainingCapacity: (opportunity: import("./types/Opportunity").Opportunity) => number;
 export declare namespace utils {
     export { getOrganizerOrProvider };
+    export { getRemainingCapacity };
 }
 export { allCriteria as criteria };
