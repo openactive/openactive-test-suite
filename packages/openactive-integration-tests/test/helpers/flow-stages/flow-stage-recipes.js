@@ -22,8 +22,10 @@ const { IMPLEMENTED_FEATURES } = global;
  * @typedef {import('./p').PFlowStageType} PFlowStageType
  * @typedef {import('./order-feed-update').OrderFeedUpdateCollectorType} OrderFeedUpdateCollectorType
  * @typedef {import('./test-interface-action').TestInterfaceActionFlowStageType} TestInterfaceActionFlowStageType
+ * @typedef {import('./flow-stage').FlowStageOutput}  FlowStageOutput
  * @typedef {import('./flow-stage').UnknownFlowStageType} UnknownFlowStageType
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('./flow-stage').FlowStageType<unknown, Required<Pick<FlowStageOutput, 'opportunityFeedExtractResponses'>>>} FlowStageWhichOutputsOpportunityFeedExtractResponses
  */
 
 /**
@@ -51,6 +53,8 @@ const { IMPLEMENTED_FEATURES } = global;
  *   and `BReqTemplateRef` is that the latter includes the `afterP` template which is exclusively used for the B at
  *   the end of approval flow. Therefore, regardless of flow, the first stage will never use `afterP`.
  * @property {() => import('./p').Input} getFirstStageInput Input for the first flow stage - B or P.
+ * @property {() => import('./assert-opportunity-capacity').Input} getAssertOpportunityCapacityInput Input for the
+ *   AssertOpportunityCapacity flow stage, which runs after the booking is complete
  */
 
 const FlowStageRecipes = {
@@ -102,8 +106,11 @@ const FlowStageRecipes = {
         prepayment: c2.getOutput().prepayment,
         positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
       }),
+      getAssertOpportunityCapacityInput: () => ({
+        opportunityFeedExtractResponses: assertOpportunityCapacityAfterC2.getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
     });
-    // TODO TODO TODO do a capacity assertion after book.
 
     return {
       fetchOpportunities,
@@ -153,6 +160,7 @@ const FlowStageRecipes = {
       }),
     });
     const assertOpportunityCapacityAfterC1 = new AssertOpportunityCapacityFlowStage({
+      nameOfPreviousStage: 'C1',
       getOpportunityExpectedCapacity: IMPLEMENTED_FEATURES['anonymous-leasing']
         // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
         ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
@@ -176,6 +184,7 @@ const FlowStageRecipes = {
       }),
     });
     const assertOpportunityCapacityAfterC2 = new AssertOpportunityCapacityFlowStage({
+      nameOfPreviousStage: 'C2',
       getOpportunityExpectedCapacity: (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing'])
         // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
         ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
@@ -238,9 +247,14 @@ const FlowStageRecipes = {
         // intake form flow, which requires C2
       };
     };
+    const bookRecipeGetAssertOpportunityCapacityInput = () => ({
+      opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    });
     const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
       prerequisite: fetchOpportunities,
       getFirstStageInput: bookRecipeGetFirstStageInput,
+      getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
     });
     return {
       fetchOpportunities,
@@ -248,10 +262,12 @@ const FlowStageRecipes = {
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,
-      // This can be used to create an idempotent second B stage.
+      // These can be used to create an idempotent second B stage.
       bookRecipeGetFirstStageInput,
+      bookRecipeGetAssertOpportunityCapacityInput,
     };
   },
+  // TODO TODO TODO what to do here
   /**
    * B requests should be idempotent. A repeat B request with the exact same input as a previous one should
    * obtain the same results.
@@ -259,12 +275,13 @@ const FlowStageRecipes = {
    * This recipe returns a BFlowStage which should be an exact repeat of the last B stage in a given BookRecipe.
    * Use this to test that a Booking System is idempotent at B.
    *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BookRecipe} bookRecipe
    * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {Omit<BookRecipeArgs, 'prerequisite'>} bookRecipeArgs
    */
-  idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, bookRecipeArgs) {
-    if (bookRecipe.p) {
+  idempotentRepeatBAfterBook(orderItemCriteriaList, bookRecipe, defaultFlowStageParams, bookRecipeArgs) {
+    if (bookRecipe.isApproval()) {
       return bAfterP({
         p: bookRecipe.p,
         bookRecipeGetFirstStageInput: bookRecipeArgs.getFirstStageInput,
@@ -273,7 +290,7 @@ const FlowStageRecipes = {
       });
     }
     const bookRecipeArgsWithPrerequisite = { ...bookRecipeArgs, prerequisite: bookRecipe.lastStage };
-    return FlowStageRecipes.bookSimple(defaultFlowStageParams, bookRecipeArgsWithPrerequisite).b;
+    return FlowStageRecipes.bookSimple(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgsWithPrerequisite);
   },
   /**
    * A Recipe to either run B or P -> Approve -> B depending on the flow.
@@ -304,25 +321,27 @@ const FlowStageRecipes = {
     const doUseApprovalFlow = orderItemCriteriaList.some(orderItemCriteria => (
       orderItemCriteria.bookingFlow === 'OpenBookingApprovalFlow'));
     if (doUseApprovalFlow) {
-      return FlowStageRecipes.bookApproval(defaultFlowStageParams, bookRecipeArgs);
+      return FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
     }
-    return FlowStageRecipes.bookSimple(defaultFlowStageParams, bookRecipeArgs);
+    return FlowStageRecipes.bookSimple(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
   },
   /**
    * Create a BookRecipe explicitly for the Simple Booking Flow.
    *
    * See: FlowStageRecipes.book for more info
    *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
-  bookSimple(defaultFlowStageParams, {
+  bookSimple(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
     firstStageReqTemplateRef = null,
     getFirstStageInput,
+    getAssertOpportunityCapacityInput,
   }) {
     const b = new BFlowStage({
       ...defaultFlowStageParams,
@@ -332,10 +351,19 @@ const FlowStageRecipes = {
       accessPass,
       getInput: getFirstStageInput,
     });
+    const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
+      nameOfPreviousStage: 'B',
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(),
+      getInput: getAssertOpportunityCapacityInput,
+      prerequisite: b,
+      orderItemCriteriaList,
+      ...defaultFlowStageParams,
+    });
     return new BookRecipe({
-      firstStage: b,
-      lastStage: b,
+      // firstStage: b,
+      // lastStage: b,
       b,
+      assertOpportunityCapacityAfterBook,
     });
   },
   /**
@@ -343,16 +371,18 @@ const FlowStageRecipes = {
    *
    * See: FlowStageRecipes.book for more info
    *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {DefaultFlowStageParams} defaultFlowStageParams
    * @param {BookRecipeArgs} args
    * @returns {BookRecipe}
    */
-  bookApproval(defaultFlowStageParams, {
+  bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite,
     brokerRole = null,
     accessPass = null,
     firstStageReqTemplateRef = null,
     getFirstStageInput,
+    getAssertOpportunityCapacityInput,
   }) {
     const p = new PFlowStage({
       ...defaultFlowStageParams,
@@ -396,15 +426,24 @@ const FlowStageRecipes = {
         orderFeedType: 'order-proposals',
       },
     });
+    const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
+      nameOfPreviousStage: 'OrderProposal Feed Deletion (after B)',
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(),
+      getInput: getAssertOpportunityCapacityInput,
+      prerequisite: orderFeedUpdateAfterDeleteProposal,
+      orderItemCriteriaList,
+      ...defaultFlowStageParams,
+    });
 
     return new BookRecipe({
-      firstStage: p,
-      lastStage: orderFeedUpdateAfterDeleteProposal,
+      // firstStage: p,
+      // lastStage: orderFeedUpdateAfterDeleteProposal,
       p,
       simulateSellerApproval,
       orderFeedUpdateCollector,
       b,
       orderFeedUpdateAfterDeleteProposal,
+      assertOpportunityCapacityAfterBook,
     });
   },
 };

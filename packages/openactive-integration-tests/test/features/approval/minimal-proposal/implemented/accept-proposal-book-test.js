@@ -35,17 +35,27 @@ FeatureHelper.describeFeature(module, {
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
+  const {
+    fetchOpportunities,
+    c1,
+    c2,
+    assertOpportunityCapacityAfterC2,
+    defaultFlowStageParams,
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow(
     orderItemCriteriaList,
     logger,
   );
-  const bookRecipe = FlowStageRecipes.bookApproval(defaultFlowStageParams, {
+  const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite: c2,
     getFirstStageInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
       totalPaymentDue: c2.getOutput().totalPaymentDue,
       prepayment: c2.getOutput().prepayment,
       positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
+    }),
+    getAssertOpportunityCapacityInput: () => ({
+      opportunityFeedExtractResponses: assertOpportunityCapacityAfterC2.getOutput().opportunityFeedExtractResponses,
+      orderItems: fetchOpportunities.getOutput().orderItems,
     }),
   });
 

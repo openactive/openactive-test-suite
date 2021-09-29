@@ -21,14 +21,17 @@ const { itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity
  * @typedef {(opportunity: OrderItem['orderedItem'], count: number) => number} GetOpportunityExpectedCapacity
  */
 
-// TODO TODO TODO doc and better name
+const { IMPLEMENTED_FEATURES } = global;
+
 /**
+ * Info needed to make GetMatch request for each unique Opportunity
+ *
  * @param {GetOpportunityExpectedCapacity} getOpportunityExpectedCapacity
  * @param {ChakramResponse[]} opportunityFeedExtractResponses
  * @param {OrderItem[]} orderItems
  * @returns Opportunity ID -> { ... }
  */
-function getExpectedCapacityForEachUniqueOpportunity(getOpportunityExpectedCapacity, opportunityFeedExtractResponses, orderItems) {
+function getGetMatchRequestInfoByOpportunityId(getOpportunityExpectedCapacity, opportunityFeedExtractResponses, orderItems) {
   const uniqueOpportunities = uniqBy(opportunityFeedExtractResponses,
     response => getAndAssertOpportunityFromOpportunityFeedExtractResponse(response)['@id'])
     .map(response => getAndAssertOpportunityFromOpportunityFeedExtractResponse(response));
@@ -60,10 +63,11 @@ async function runAssertOpportunityCapacity({
   orderItems,
   requestHelper,
 }) {
-  const expectedCapacityForEachUniqueOpportunity = getExpectedCapacityForEachUniqueOpportunity(
+  const expectedCapacityForEachUniqueOpportunity = getGetMatchRequestInfoByOpportunityId(
     getOpportunityExpectedCapacity, initialOpportunityFeedExtractResponses, orderItems,
   );
-  // TODO TODO TODO put this pattern into a function
+  // TODO TODO put this pattern into a function
+  // TODO TODO TODO doc why this needed here - not just as optimization
   /** @type {Map<string, Promise<ChakramResponse>>} */
   const reusableGetMatchPromises = new Map();
   const opportunityFeedExtractResponsePromises = initialOpportunityFeedExtractResponses.map((opportunityFeedExtractResponse) => {
@@ -79,6 +83,10 @@ async function runAssertOpportunityCapacity({
     return matchPromise;
   });
   const opportunityFeedExtractResponses = await Promise.all(opportunityFeedExtractResponsePromises);
+  /* This is output from this FlowStage so that a future AssertOpportunityCapacityFlowStage can use it
+  e.g. if C1 is supposed to change capacity, then an Assert.. FlowStage after C2 can be set to expect that capacity
+  has not changed since it was checked in C1 by using the opportunityFeedExtractResponses that are output from the
+  Assert.. FlowStage after C1 */
   return {
     opportunityFeedExtractResponses,
   };
@@ -90,6 +98,7 @@ async function runAssertOpportunityCapacity({
 class AssertOpportunityCapacityFlowStage extends FlowStage {
   /**
    * @param {object} args
+   * @param {string} args.nameOfPreviousStage
    * @param {GetOpportunityExpectedCapacity} args.getOpportunityExpectedCapacity Function which, when given an
    *   Opportunity, returns the expected capacity for that Opportunity. e.g. it might be
    *   `(opportunity) => getRemainingCapacity(opportunity) - 1` to indicate that the capacity should have
@@ -106,13 +115,12 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
    * @param {FlowStage<unknown, unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    */
-  constructor({ getOpportunityExpectedCapacity, getInput, orderItemCriteriaList, prerequisite, requestHelper }) {
+  constructor({ nameOfPreviousStage, getOpportunityExpectedCapacity, getInput, orderItemCriteriaList, prerequisite, requestHelper }) {
     super({
-      testName: 'Assert Opportunity Capacity',
+      testName: `Assert Opportunity Capacity (after ${nameOfPreviousStage})`,
       getInput,
       prerequisite,
       async runFn(input) {
-        // const { orderItems } = input;
         const { opportunityFeedExtractResponses, orderItems } = input;
         return await runAssertOpportunityCapacity({
           getOpportunityExpectedCapacity,
@@ -154,6 +162,27 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
     // the Order. If it's used twice, its capacity should have decreased by 2 rather than 1.
     return getRemainingCapacity(opportunity) - count;
   }
+
+  static getOpportunityExpectedCapacityAfterC1() {
+    return IMPLEMENTED_FEATURES['anonymous-leasing']
+      // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
+
+  static getOpportunityExpectedCapacityAfterC2() {
+    return (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing'])
+      // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
+
+  static getOpportunityExpectedCapacityAfterBook() {
+    return (!IMPLEMENTED_FEATURES['anonymous-leasing'] && !IMPLEMENTED_FEATURES['named-leasing'])
+      // B should decrement capacity if leasing is not supported (as it won't have happened at C1 or C2)
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
 }
 
 /**
@@ -165,6 +194,10 @@ function getAndAssertOpportunityFromOpportunityFeedExtractResponse(opportunityFe
   assertIsNotNullish(opportunity);
   return opportunity;
 }
+
+/**
+ * @typedef {InstanceType<typeof AssertOpportunityCapacityFlowStage>} AssertOpportunityCapacityFlowStageType
+ */
 
 module.exports = {
   AssertOpportunityCapacityFlowStage,

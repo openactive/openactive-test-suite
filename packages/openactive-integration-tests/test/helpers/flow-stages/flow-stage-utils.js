@@ -206,21 +206,30 @@ const FlowStageUtils = {
    */
   describeRunAndRunChecks(checks, flowStageOrBookRecipe, itAdditionalTests) {
     if (flowStageOrBookRecipe instanceof BookRecipe) {
-      if (flowStageOrBookRecipe.p) {
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
-        /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
-        approved items appearing in the feed - which means that the tests will time out */
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b);
-        FlowStageUtils.describeRunAndRunChecks(
-          checks,
-          flowStageOrBookRecipe.orderFeedUpdateAfterDeleteProposal,
-          itAdditionalTests,
-        );
-      } else {
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
+      const stagesBeforeLastStage = flowStageOrBookRecipe.getStagesSequenceBeforeLastStage();
+      /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
+      approved items appearing in the feed - which means that the tests will time out */
+      for (const stage of stagesBeforeLastStage) {
+        FlowStageUtils.describeRunAndRunChecks(checks, stage);
       }
+      /* Only run additional tests on the last stage, so that all of the booking will have occurred by the time
+      the additional tests are run */
+      FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.lastStage, itAdditionalTests);
+      // if (flowStageOrBookRecipe.p) {
+      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
+      //   /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
+      //   approved items appearing in the feed - which means that the tests will time out */
+      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
+      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
+      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b);
+      //   FlowStageUtils.describeRunAndRunChecks(
+      //     checks,
+      //     flowStageOrBookRecipe.orderFeedUpdateAfterDeleteProposal,
+      //     itAdditionalTests,
+      //   );
+      // } else {
+      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
+      // }
       return;
     }
     if (!flowStageOrBookRecipe.shouldDescribeFlowStage) {

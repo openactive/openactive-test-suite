@@ -71,7 +71,7 @@ function successTests(expectedPrepayment, bookReqTemplateRef) {
     // ## Set up tests
     commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
-      if (bookRecipe.p) {
+      if (bookRecipe.isApproval()) {
         itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.p.getOutput().httpResponse.body);
       }
       itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.b.getOutput().httpResponse.body);
