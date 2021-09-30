@@ -222,8 +222,13 @@ const FlowStageUtils = {
     }
     if (flowStageRunnable instanceof BookRecipe) {
       const stagesBeforeLastStage = flowStageRunnable.getStagesSequenceBeforeLastStage();
-      /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
-      approved items appearing in the feed - which means that the tests will time out */
+      /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any
+      approved items appearing in the feed - which means that the tests will time out.
+      One option for achieving that:
+      - Give OrderFeedUpdateAfterP's Flow Stage (which is an OrderFeedUpdateCollector) an optional `breakIf`
+        arg. e.g. if you provide `breakIf: () => !isHttp2xxResponse(p.getOutput().httpResponse)`, then this stage
+        can have some code in its run function like `if (breakIf()) { throw new Error('..'); }`
+      */
       for (const stage of stagesBeforeLastStage) {
         FlowStageUtils.describeRunAndRunChecks(checks, stage);
       }

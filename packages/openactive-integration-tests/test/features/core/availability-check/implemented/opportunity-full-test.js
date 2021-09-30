@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { Common } = require('../../../../shared-behaviours');
-const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { FlowStageUtils, FetchOpportunitiesFlowStage, C1FlowStage, C2FlowStage } = require('../../../../helpers/flow-stages');
 const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -23,7 +23,28 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  /* Note that we don't use FlowStageRecipes.initialiseSimpleC1C2Flow, because this includes capacity assertions, which
+  won't work here as C1 & C2 are expected to fail */
+  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+  const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    ...defaultFlowStageParams,
+    orderItemCriteriaList,
+  });
+  const c1 = new C1FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: fetchOpportunities,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+    }),
+  });
+  const c2 = new C2FlowStage({
+    ...defaultFlowStageParams,
+    prerequisite: c1,
+    getInput: () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
+    }),
+  });
 
   // # Set up Tests
 

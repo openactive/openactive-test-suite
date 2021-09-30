@@ -20,6 +20,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
+  // TODO TODO TODO use flowstageRecipes.c1c2 & maybe assertion after order quote deletion?
   const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,

@@ -46,6 +46,7 @@ FeatureHelper.describeFeature(module, {
   const requestHelper = new RequestHelper(logger);
 
   // ## Initiate Flow Stages
+  // TODO TODO TODO use flowstageRecipes.c1c2 & then add manual assertion after book
   const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,

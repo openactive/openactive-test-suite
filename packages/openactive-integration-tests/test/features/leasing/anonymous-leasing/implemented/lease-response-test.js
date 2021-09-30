@@ -34,6 +34,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  // TODO TODO TODO use flowstageRecipes.c1c2
   const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,

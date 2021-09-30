@@ -1,6 +1,4 @@
 // Remaining TODOs (TODO TODO TODO)
-// - [x] Cancellation for at least one test
-// - Ensure capacities don't change in C1/C2 response
 // - Make work with all other tests (e.g. accept-proposal-book seems not to work)
 // - How to make Assert C1/C2 stage output show in logs (maybe genericise BookRecipe similar to below draft)
 // - Validation tests for Assert stages
@@ -8,13 +6,9 @@
 const { assertIsNotNullish } = require('@tool-belt/type-predicates');
 const { last } = require('lodash');
 
-// TODO just a draft idea
 /**
  * @typedef {import('./flow-stage').UnknownFlowStageType} UnknownFlowStageType
  */
-
-// const { expect } = require('chai');
-// const { intersection } = require('lodash');
 
 /**
  * @template {{ [stageName: string]: UnknownFlowStageType | FlowStageRun<any> }} TStages
