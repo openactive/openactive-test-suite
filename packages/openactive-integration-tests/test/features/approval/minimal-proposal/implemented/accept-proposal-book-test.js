@@ -46,7 +46,7 @@ FeatureHelper.describeFeature(module, {
     logger,
   );
   const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
-    prerequisite: c2,
+    prerequisite: assertOpportunityCapacityAfterC2,
     getFirstStageInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
       totalPaymentDue: c2.getOutput().totalPaymentDue,
