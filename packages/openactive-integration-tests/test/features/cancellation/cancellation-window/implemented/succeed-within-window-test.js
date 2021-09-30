@@ -11,31 +11,26 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking including cancellation within the cancellation window.',
   testOpportunityCriteria: 'TestOpportunityBookableCancellableWithinWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  // TODO TODO TODO remove
-  skipMultiple: true,
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
   const { defaultFlowStageParams, fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-  const cancel = FlowStageRecipes.runs.cancellation.successfulStandaloneCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+  const cancel = FlowStageRecipes.runs.cancellation.successfulCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
     cancelArgs: {
       getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
       testName: 'Cancel OrderItem at Position 0',
     },
     assertOpportunityCapacityArgs: {
       orderItemCriteriaList,
-      /* Opportunity capacity should be unchanged since the initial fetch as the reduced capacity should be increased
-      now that the cancellation is complete. */
-      getInput: () => fetchOpportunities.getOutput(),
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+      // Opportunity capacity should have incremented for the Opportunity at Order Item position 0
+      getInput: () => ({
+        opportunityFeedExtractResponses: bookRecipe.getAssertOpportunityCapacityAfterBook().getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions([0]),
+      // getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
     },
   });
-  // const cancelOrder = new CancelOrderFlowStage({
-  //   ...defaultFlowStageParams,
-  //   getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-  //   prerequisite: bookRecipe.lastStage,
-  //   testName: 'Cancel OrderItem at Position 0',
-  // });
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

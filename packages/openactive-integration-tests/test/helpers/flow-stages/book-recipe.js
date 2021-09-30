@@ -53,6 +53,8 @@ class BookRecipe {
   isApproval() { return this._isApproval; }
 
   getStagesSequenceBeforeLastStage() { return this._stagesSequenceBeforeLastStage; }
+
+  getAssertOpportunityCapacityAfterBook() { return this._assertOpportunityCapacityAfterBook; }
   // /**
   //  * @param {object} args
   //  * @param {BFlowStageType} args.b

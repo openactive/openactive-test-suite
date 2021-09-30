@@ -1,6 +1,6 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { assertIsNotNullish } = require('@tool-belt/type-predicates');
-const { uniqBy } = require('lodash');
+const { uniqBy, intersection } = require('lodash');
 const { FlowStage } = require('./flow-stage');
 const { itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 
@@ -17,8 +17,8 @@ const { itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity
  * @typedef {Required<Pick<FlowStageOutput, 'opportunityFeedExtractResponses' | 'orderItems'>>} Input
  * @typedef {Required<Pick<FlowStageOutput, 'opportunityFeedExtractResponses'>>} Output
  *
- * @typedef {{ opportunity: OrderItem['orderedItem'], count: number }} ArgsToGetExpectedCapacity
- * @typedef {(opportunity: OrderItem['orderedItem'], count: number) => number} GetOpportunityExpectedCapacity
+ * @typedef {{ count: number, orderItems: OrderItem[] }} GetOpportunityExpectedCapacityExtraArgs
+ * @typedef {(opportunity: OrderItem['orderedItem'], extra: GetOpportunityExpectedCapacityExtraArgs) => number} GetOpportunityExpectedCapacity
  */
 
 const { IMPLEMENTED_FEATURES } = global;
@@ -38,12 +38,13 @@ function getGetMatchRequestInfoByOpportunityId(getOpportunityExpectedCapacity, o
   return new Map(uniqueOpportunities.map((opportunity) => {
     const count = opportunityFeedExtractResponses.filter(response => (
       getAndAssertOpportunityFromOpportunityFeedExtractResponse(response)['@id'] === opportunity['@id'])).length;
-    const orderItem = orderItems.find(item => item.orderedItem['@id'] === opportunity['@id']);
-    assertIsNotNullish(orderItem);
-    const expectedCapacity = getOpportunityExpectedCapacity(opportunity, count);
+    const orderItemsForThisOpportunity = orderItems.filter(item => item.orderedItem['@id'] === opportunity['@id']);
+    const firstOrderItem = orderItemsForThisOpportunity[0];
+    assertIsNotNullish(firstOrderItem);
+    const expectedCapacity = getOpportunityExpectedCapacity(opportunity, { count, orderItems: orderItemsForThisOpportunity });
     return [opportunity['@id'], {
       opportunity,
-      orderItem,
+      orderItem: firstOrderItem,
       expectedCapacity,
     }];
   }));
@@ -155,12 +156,33 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
    * OrderItems were first constructed i.e. because they've been leased or booked.
    *
    * @param {OrderItem['orderedItem']} opportunity
-   * @param {number} count
+   * @param {object} args
+   * @param {number} args.count
    */
-  static getOpportunityDecrementedCapacity(opportunity, count) {
+  static getOpportunityDecrementedCapacity(opportunity, { count }) {
     // We use -count rather than -1 because the Opportunity may have been included multiple times in
     // the Order. If it's used twice, its capacity should have decreased by 2 rather than 1.
     return getRemainingCapacity(opportunity) - count;
+  }
+
+  /**
+   * TODO TODO TODO doc - use this for cancellation
+   *
+   * @param {number[]} orderItemPositions
+   */
+  static getOpportunityCapacityIncrementedForOrderItemPositions(orderItemPositions) {
+    /**
+     * @param {OrderItem['orderedItem']} opportunity
+     * @param {object} args
+     * @param {OrderItem[]} args.orderItems
+     */
+    const getOpportunityExpectedCapacity = (opportunity, { orderItems }) => {
+      const initialCapacity = getRemainingCapacity(opportunity);
+      const intersectingPositions = intersection(orderItemPositions, orderItems.map(item => item.position));
+      const numOrderItemsForThisOpportunityThatRequireAnIncrement = intersectingPositions.length;
+      return initialCapacity + numOrderItemsForThisOpportunityThatRequireAnIncrement;
+    };
+    return getOpportunityExpectedCapacity;
   }
 
   static getOpportunityExpectedCapacityAfterC1() {

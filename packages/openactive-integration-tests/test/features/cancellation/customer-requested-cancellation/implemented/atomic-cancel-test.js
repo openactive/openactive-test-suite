@@ -47,6 +47,15 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   });
 
   // ### Cancel 1st Order Item which is cancellable
+  // TODO TODO TODO
+  // const cancelCancellableOrderItem = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems, defaultFlowStageParams, {
+  //   cancelArgs: {
+  //     getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
+  //     testName: 'Cancel Order for cancellable item',
+  //   },
+  //   assertOpportunityCapacityArgs: {
+  //   }
+  // });
   const [cancelCancellableOrderItem, orderFeedUpdateAfter2ndCancel] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
       ...defaultFlowStageParams,

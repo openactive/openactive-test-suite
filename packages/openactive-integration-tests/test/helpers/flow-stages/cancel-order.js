@@ -38,16 +38,16 @@ class CancelOrderFlowStage extends FlowStage {
    * @param {UReqTemplateRef} [args.templateRef]
    * @param {() => string[]} args.getOrderItemIdArray Cancellation must be run against
    *   a specific OrderItem. The function passed here should return the ID of the OrderItem
-   *   to cancel. For convenience, use the CancelOrderFlowStage.getFirstOrderItemId
+   *   to cancel. For convenience, use the CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage
    *   function for this value e.g.:
    *
    *   ```js
    *   const b = new BFlowStage({ ... });
    *   const cancelOrder = new CancelOrderFlowStage({
-   *     getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
+   *     getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(b),
    *   ```
    *
-   *  or, for a preceding B stage, just use `CancelOrderFlowStage.getOrderItemIdForPosition0FromB(b)`
+   *  which will cancel the OrderItem at position 0.
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid

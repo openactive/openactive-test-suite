@@ -458,7 +458,8 @@ const FlowStageRecipes = {
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
        * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
        */
-      successfulStandaloneCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+      successfulCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+        const cancelTestName = cancelArgs.testName ?? 'Cancel';
         const cancel = new CancelOrderFlowStage({
           ...defaultFlowStageParams,
           prerequisite,
@@ -466,7 +467,7 @@ const FlowStageRecipes = {
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
           ...defaultFlowStageParams,
-          nameOfPreviousStage: 'Cancel',
+          nameOfPreviousStage: cancelTestName,
           prerequisite: cancel,
           ...assertOpportunityCapacityArgs,
         });
@@ -474,6 +475,39 @@ const FlowStageRecipes = {
           cancel,
           assertOpportunityCapacityAfterCancel,
         }, ['cancel', 'assertOpportunityCapacityAfterCancel']);
+      },
+      /**
+       * @param {UnknownFlowStageType} prerequisite
+       * @param {DefaultFlowStageParams} defaultFlowStageParams
+       * @param {object} args
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
+       */
+      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+        const cancelTestName = cancelArgs.testName ?? 'Cancel';
+        const [cancel, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+          wrappedStageFn: orderFeedListener => (new CancelOrderFlowStage({
+            ...defaultFlowStageParams,
+            prerequisite: orderFeedListener,
+            ...cancelArgs,
+          })),
+          orderFeedUpdateParams: {
+            ...defaultFlowStageParams,
+            prerequisite,
+            testName: `Orders Feed (after ${cancelTestName})`,
+          },
+        });
+        const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
+          ...defaultFlowStageParams,
+          nameOfPreviousStage: cancelTestName,
+          prerequisite: orderFeedUpdate,
+          ...assertOpportunityCapacityArgs,
+        });
+        return new FlowStageRun({
+          cancel,
+          orderFeedUpdate,
+          assertOpportunityCapacityAfterCancel,
+        }, ['cancel', 'orderFeedUpdate', 'assertOpportunityCapacityAfterCancel']);
       },
     },
   },
