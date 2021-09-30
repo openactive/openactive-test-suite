@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 const { IMPLEMENTED_FEATURES } = global;
@@ -34,9 +35,9 @@ FeatureHelper.describeFeature(module, {
   ],
   skipMultiple: true,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteria, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
   const cancelNotCancellableOrderItems = new CancelOrderFlowStage({
@@ -47,26 +48,19 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   });
 
   // ### Cancel 1st Order Item which is cancellable
-  // TODO TODO TODO
-  // const cancelCancellableOrderItem = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems, defaultFlowStageParams, {
-  //   cancelArgs: {
-  //     getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
-  //     testName: 'Cancel Order for cancellable item',
-  //   },
-  //   assertOpportunityCapacityArgs: {
-  //   }
-  // });
-  const [cancelCancellableOrderItem, orderFeedUpdateAfter2ndCancel] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
-      ...defaultFlowStageParams,
-      prerequisite,
+  const cancelCancellableOrderItem = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems, defaultFlowStageParams, {
+    cancelArgs: {
       getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
       testName: 'Cancel Order for cancellable item',
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: cancelNotCancellableOrderItems,
-      testName: 'Orders Feed (after successful OrderCancellation)',
+    },
+    assertOpportunityCapacityArgs: {
+      orderItemCriteriaList,
+      // Opportunity capacity should have incremented for the Opportunity at Order Item position 0
+      getInput: () => ({
+        opportunityFeedExtractResponses: bookRecipe.getAssertOpportunityCapacityAfterBook().getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions([0]),
     },
   });
 
@@ -78,12 +72,12 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsValid(cancelNotCancellableOrderItems, () => {
     itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancelNotCancellableOrderItems.getOutput().httpResponse);
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter2ndCancel, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem, () => {
     const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage)()[0];
+    const orderFeedUpdateAfter2ndCancel = cancelCancellableOrderItem.getStage('orderFeedUpdate');
     const orderItemsAccessor = () => orderFeedUpdateAfter2ndCancel.getOutput().httpResponse.body.data.orderedItem;
     it('should include all OrderItems', () => {
-      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
+      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
     });
     it('should have orderItemStatus CustomerCancelled for cancelled item', () => {
       const cancelledOrderItemId = cancelledOrderItemIdAccessor();
