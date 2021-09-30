@@ -147,6 +147,7 @@ const FlowStageRecipes = {
     taxMode = null,
     ...options
   } = {}) {
+    // TODO TODO TODO use initialiseSimpleSuccessfulC1Flow(..)
     const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
@@ -205,6 +206,63 @@ const FlowStageRecipes = {
       assertOpportunityCapacityAfterC1,
       c2,
       assertOpportunityCapacityAfterC2,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
+    };
+  },
+  /**
+   * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> (assert capacity after C1) flow
+   * where C1 is expected to pass.
+   *
+   * Rather than setting custom input for each stage, the input is just fed automatically
+   * from the output of previous stages.
+   *
+   * DO NOT USE THIS FUNCTION if you want to use custom inputs for each stage (e.g.
+   * to create erroneous requests).
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {BaseLoggerType} logger
+   * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef' | 'c2ReqTemplateRef'>} [options]
+   */
+  initialiseSimpleSuccessfulC1Flow(orderItemCriteriaList, logger, {
+    c1ReqTemplateRef = null,
+    taxMode = null,
+    brokerRole = null,
+    ...options
+  } = {}) {
+    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
+    const fetchOpportunities = new FetchOpportunitiesFlowStage({
+      ...defaultFlowStageParams,
+      orderItemCriteriaList,
+    });
+    const c1 = new C1FlowStage({
+      ...defaultFlowStageParams,
+      templateRef: c1ReqTemplateRef,
+      brokerRole,
+      prerequisite: fetchOpportunities,
+      getInput: () => ({
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+    });
+    const assertOpportunityCapacityAfterC1 = new AssertOpportunityCapacityFlowStage({
+      nameOfPreviousStage: 'C1',
+      getOpportunityExpectedCapacity: IMPLEMENTED_FEATURES['anonymous-leasing']
+        // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
+        ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+        : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+      getInput: () => ({
+        opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      prerequisite: c1,
+      orderItemCriteriaList,
+      ...defaultFlowStageParams,
+    });
+    return {
+      fetchOpportunities,
+      c1,
+      assertOpportunityCapacityAfterC1,
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,

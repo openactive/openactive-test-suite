@@ -24,7 +24,7 @@ FeatureHelper.describeFeature(module, {
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
   /* Note that we don't use FlowStageRecipes.initialiseSimpleC1C2Flow, because this includes capacity assertions, which
-  won't work here as C1 & C2 are expected to fail */
+  won't work here as C1 is expected to fail */
   const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,
