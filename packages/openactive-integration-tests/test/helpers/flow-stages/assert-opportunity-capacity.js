@@ -121,6 +121,8 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
       testName: `Assert Opportunity Capacity (after ${nameOfPreviousStage})`,
       getInput,
       prerequisite,
+      // TODO TODO TODO doc
+      alwaysDoSuccessChecks: true,
       async runFn(input) {
         const { opportunityFeedExtractResponses, orderItems } = input;
         return await runAssertOpportunityCapacity({
@@ -137,7 +139,8 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
         });
       },
       // TODO validation
-      itValidationTestsFn: () => { },
+      itValidationTestsFn: () => {
+      },
     });
   }
 

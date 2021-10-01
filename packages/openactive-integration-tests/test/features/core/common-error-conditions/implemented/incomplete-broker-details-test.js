@@ -1,5 +1,5 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageUtils, FlowStageRecipes, FetchOpportunitiesFlowStage, C1FlowStage, C2FlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -31,47 +31,28 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at C1', () => {
     // # Initialise Flow Stages
-    /* Note that we don't use FlowStageRecipes.initialiseSimpleC1C2Flow, because this includes capacity assertions, which
-    won't work here as C1 is expected to fail */
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-    const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...defaultFlowStageParams,
-      orderItemCriteriaList,
-    });
-    const c1 = new C1FlowStage({
-      ...defaultFlowStageParams,
-      templateRef: 'noBrokerName',
-      prerequisite: fetchOpportunities,
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
+    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+      c1ExpectToFail: true,
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-      itShouldReturnAnIncompleteBrokerDetailsError(c1);
+      itShouldReturnAnIncompleteBrokerDetailsError(c1.getStage('c1'));
     });
   });
 
   describe('Incomplete Broker Details at C2', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, assertOpportunityCapacityAfterC1, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleSuccessfulC1Flow(orderItemCriteriaList, logger);
-    const c2 = new C2FlowStage({
-      ...defaultFlowStageParams,
-      prerequisite: assertOpportunityCapacityAfterC1,
-      templateRef: 'noBrokerName',
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
-      }),
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, {
+      c2ExpectToFail: true,
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-      itShouldReturnAnIncompleteBrokerDetailsError(c2);
+      itShouldReturnAnIncompleteBrokerDetailsError(c2.getStage('c2'));
     });
   });
 

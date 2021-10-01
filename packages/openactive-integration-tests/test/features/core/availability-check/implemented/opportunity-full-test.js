@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { Common } = require('../../../../shared-behaviours');
-const { FlowStageUtils, FetchOpportunitiesFlowStage, C1FlowStage, C2FlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -22,29 +22,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  // # Initialise Flow Stages
-  /* Note that we don't use FlowStageRecipes.initialiseSimpleC1C2Flow, because this includes capacity assertions, which
-  won't work here as C1 is expected to fail */
-  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
-    }),
-  });
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, { c1ExpectToFail: true, c2ExpectToFail: true });
 
   // # Set up Tests
 
@@ -93,9 +71,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldReturnOpportunityIsFullError(c1);
+    itShouldReturnOpportunityIsFullError(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldReturnOpportunityIsFullError(c2);
+    itShouldReturnOpportunityIsFullError(c2.getStage('c2'));
   });
 });

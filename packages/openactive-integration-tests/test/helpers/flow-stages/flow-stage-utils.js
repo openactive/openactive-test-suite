@@ -253,13 +253,13 @@ const FlowStageUtils = {
       return;
     }
     // It's a FlowStage
-    if (!flowStageRunnable.shouldDescribeFlowStage) {
+    if (!flowStageRunnable.shouldDescribeFlowStage()) {
       throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageRunnable.getLoggableStageName()} as shouldDescribeFlowStage is false`);
     }
     describe(flowStageRunnable.testName, () => {
       flowStageRunnable.beforeSetup();
 
-      if (checks.doCheckSuccess) {
+      if (checks.doCheckSuccess || flowStageRunnable.alwaysDoSuccessChecks()) {
         flowStageRunnable.itSuccessChecks();
       }
       if (checks.doCheckIsValid) {
