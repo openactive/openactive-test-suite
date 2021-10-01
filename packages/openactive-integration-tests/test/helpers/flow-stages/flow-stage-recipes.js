@@ -565,7 +565,7 @@ const FlowStageRecipes = {
     });
     const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
       nameOfPreviousStage: 'B',
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToFail ?? false),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false)),
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: b,
       ...defaultFlowStageParams,
@@ -640,7 +640,7 @@ const FlowStageRecipes = {
     });
     const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
       nameOfPreviousStage: 'OrderProposal Feed Deletion (after B)',
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToFail ?? false),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false)),
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: orderFeedUpdateAfterDeleteProposal,
       ...defaultFlowStageParams,

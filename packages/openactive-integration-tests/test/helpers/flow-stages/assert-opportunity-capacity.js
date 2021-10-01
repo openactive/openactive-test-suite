@@ -188,27 +188,35 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
     return getOpportunityExpectedCapacity;
   }
 
-  // TODO TODO TODO use these
-  // static getOpportunityExpectedCapacityAfterC1() {
-  //   return IMPLEMENTED_FEATURES['anonymous-leasing']
-  //     // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
-  //     ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-  //     : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
-  // }
-
-  // static getOpportunityExpectedCapacityAfterC2() {
-  //   return (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing'])
-  //     // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
-  //     ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-  //     : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
-  // }
+  // TODO TODO TODO use C1 & C2 funcs in recipes
+  /**
+   * @param {boolean} isExpectedToSucceed Is C1 expected to succeed or fail? If fail, then, capacity will be expected
+   * to not have changed.
+   */
+  static getOpportunityExpectedCapacityAfterC1(isExpectedToSucceed) {
+    return (isExpectedToSucceed && IMPLEMENTED_FEATURES['anonymous-leasing'])
+      // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
 
   /**
-   * @param {boolean} isExpectedToFail Is Book expected to fail? If yes, then, capacity will be expected to not have
-   * changed.
+   * @param {boolean} isExpectedToSucceed Is C2 expected to succeed or fail? If fail, then, capacity will be expected
+   * to not have changed.
    */
-  static getOpportunityExpectedCapacityAfterBook(isExpectedToFail) {
-    return (!isExpectedToFail && (!IMPLEMENTED_FEATURES['anonymous-leasing'] && !IMPLEMENTED_FEATURES['named-leasing']))
+  static getOpportunityExpectedCapacityAfterC2(isExpectedToSucceed) {
+    return (isExpectedToSucceed && (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing']))
+      // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
+
+  /**
+   * @param {boolean} isExpectedToSucceed Is Book expected to succeed or fail? If fail, then, capacity will be expected
+   * to not have changed.
+   */
+  static getOpportunityExpectedCapacityAfterBook(isExpectedToSucceed) {
+    return (isExpectedToSucceed && (!IMPLEMENTED_FEATURES['anonymous-leasing'] && !IMPLEMENTED_FEATURES['named-leasing']))
       // B should decrement capacity if leasing is not supported (as it won't have happened at C1 or C2)
       ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
       : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
