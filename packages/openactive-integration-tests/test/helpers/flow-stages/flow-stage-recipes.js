@@ -659,7 +659,7 @@ const FlowStageRecipes = {
   },
 
   runs: {
-    cancellation: {
+    customerCancel: {
       /**
        * @param {UnknownFlowStageType} prerequisite
        * @param {DefaultFlowStageParams} defaultFlowStageParams
@@ -734,7 +734,7 @@ const FlowStageRecipes = {
         cancelArgs,
         assertOpportunityCapacityArgs,
       }) {
-        return FlowStageRecipes.runs.cancellation.cancelAndAssertCapacity(prerequisite, defaultFlowStageParams, {
+        return FlowStageRecipes.runs.customerCancel.cancelAndAssertCapacity(prerequisite, defaultFlowStageParams, {
           cancelArgs,
           assertOpportunityCapacityArgs: {
             getInput: () => ({

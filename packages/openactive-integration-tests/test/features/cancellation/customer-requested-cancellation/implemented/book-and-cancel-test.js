@@ -24,7 +24,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger, op
   const getArrayOfAllOrderItemIds = CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, allOrderItemPositions);
 
   // ### Cancel all order items
-  const cancelOrderItems = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+  const cancelOrderItems = FlowStageRecipes.runs.customerCancel.successfulCancelAssertOrderUpdateAndCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
     cancelArgs: {
       getOrderItemIdArray: getArrayOfAllOrderItemIds,
     },
@@ -40,7 +40,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger, op
   });
 
   // ### Cancel order items again to test for idempotency
-  const cancelOrderItemsAgain = FlowStageRecipes.runs.cancellation.cancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+  const cancelOrderItemsAgain = FlowStageRecipes.runs.customerCancel.cancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
     cancelArgs: {
       getOrderItemIdArray: getArrayOfAllOrderItemIds,
     },

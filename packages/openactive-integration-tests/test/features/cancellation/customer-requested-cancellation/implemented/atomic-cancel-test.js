@@ -40,7 +40,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
-  const cancelNotCancellableOrderItems = FlowStageRecipes.runs.cancellation.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+  const cancelNotCancellableOrderItems = FlowStageRecipes.runs.customerCancel.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
     fetchOpportunitiesFlowStage: fetchOpportunities,
     lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
     cancelArgs: {
@@ -51,7 +51,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   });
 
   // ### Cancel 1st Order Item which is cancellable
-  const cancelCancellableOrderItem = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems.getLastStage(), defaultFlowStageParams, {
+  const cancelCancellableOrderItem = FlowStageRecipes.runs.customerCancel.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems.getLastStage(), defaultFlowStageParams, {
     cancelArgs: {
       getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
       testName: 'Cancel Order for cancellable item',
