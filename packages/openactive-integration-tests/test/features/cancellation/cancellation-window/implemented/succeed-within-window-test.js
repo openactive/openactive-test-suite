@@ -28,7 +28,6 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
         orderItems: fetchOpportunities.getOutput().orderItems,
       }),
       getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions([0]),
-      // getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
     },
   });
 

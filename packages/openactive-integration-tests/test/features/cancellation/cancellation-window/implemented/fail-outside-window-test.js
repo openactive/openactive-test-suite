@@ -2,6 +2,9 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
+// TODO TODO TODO why doesn't the describe(..) header show for the cancellation stage itself..?
+// Is it describeRunAndCheckIsValid vs describeRunAndCheckIsSuccessfulAndValid somehow..?
+// As it works fine for c1/c2 & cancel in succeed-within-window test
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
   testFeature: 'cancellation-window',
