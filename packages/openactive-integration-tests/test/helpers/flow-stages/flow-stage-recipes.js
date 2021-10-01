@@ -43,6 +43,7 @@ const { IMPLEMENTED_FEATURES } = global;
  *   defaultFlowStageParams?: DefaultFlowStageParams | null,
  *   c1ExpectToFail?: boolean,
  *   c2ExpectToFail?: boolean,
+ *   bookExpectToFail?: boolean,
  * }} InitialiseSimpleC1C2BookFlowOptions
  */
 
@@ -56,12 +57,76 @@ const { IMPLEMENTED_FEATURES } = global;
  *   Note that the template ref is a `PReqTemplateRef`. That's because the only difference between `PReqTemplateRef`
  *   and `BReqTemplateRef` is that the latter includes the `afterP` template which is exclusively used for the B at
  *   the end of approval flow. Therefore, regardless of flow, the first stage will never use `afterP`.
+ * @property {boolean | null} [isExpectedToFail] is Book expected to fail?
  * @property {() => import('./p').Input} getFirstStageInput Input for the first flow stage - B or P.
  * @property {() => import('./assert-opportunity-capacity').Input} getAssertOpportunityCapacityInput Input for the
  *   AssertOpportunityCapacity flow stage, which runs after the booking is complete
  */
 
 const FlowStageRecipes = {
+  /**
+   * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> Book (*) flow.
+   *
+   * Rather than setting custom input for each stage, the input is just fed automatically
+   * from the output of previous stages.
+   *
+   * DO NOT USE THIS FUNCTION if you want to use custom inputs for each stage (e.g.
+   * to create erroneous requests).
+   *
+   * (*) Book = B or P -> A -> B. See FlowStageRecipes.book(..) for more info.
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {BaseLoggerType} logger
+   * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
+   */
+  initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+    bookReqTemplateRef = null,
+    brokerRole = null,
+    accessPass = null,
+    ...options
+  } = {}) {
+    const bookExpectToFail = options.bookExpectToFail ?? false;
+    const {
+      fetchOpportunities,
+      c1,
+      c2,
+      defaultFlowStageParams,
+    } = FlowStageRecipes.initialiseSimpleC1C2Flow2(
+      orderItemCriteriaList,
+      logger,
+      {
+        ...options,
+        brokerRole,
+      },
+    );
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+      prerequisite: c2.getLastStage(),
+      accessPass,
+      brokerRole,
+      firstStageReqTemplateRef: bookReqTemplateRef,
+      getFirstStageInput: () => ({
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
+        prepayment: c2.getStage('c2').getOutput().prepayment,
+        positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
+      }),
+      getAssertOpportunityCapacityInput: () => ({
+        opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      isExpectedToFail: bookExpectToFail,
+    });
+
+    return {
+      fetchOpportunities,
+      c1,
+      c2,
+      bookRecipe,
+      // This is included in the result so that additional stages can be added using
+      // these params.
+      defaultFlowStageParams,
+    };
+  },
   /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> Book (*) flow.
    *
@@ -149,7 +214,6 @@ const FlowStageRecipes = {
     taxMode = null,
     ...options
   } = {}) {
-    // TODO TODO TODO use initialiseSimpleSuccessfulC1Flow(..)
     const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
@@ -213,6 +277,7 @@ const FlowStageRecipes = {
       defaultFlowStageParams,
     };
   },
+  // TODO TODO TODO replace all instances of initialiseSimpleC1C2Flow with this func.
   /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 flow
    *
@@ -483,6 +548,7 @@ const FlowStageRecipes = {
     firstStageReqTemplateRef = null,
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
+    isExpectedToFail = null,
   }) {
     const b = new BFlowStage({
       ...defaultFlowStageParams,
@@ -494,7 +560,7 @@ const FlowStageRecipes = {
     });
     const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
       nameOfPreviousStage: 'B',
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToFail ?? false),
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: b,
       orderItemCriteriaList,
@@ -524,6 +590,7 @@ const FlowStageRecipes = {
     firstStageReqTemplateRef = null,
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
+    isExpectedToFail = null,
   }) {
     const p = new PFlowStage({
       ...defaultFlowStageParams,
@@ -569,7 +636,7 @@ const FlowStageRecipes = {
     });
     const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
       nameOfPreviousStage: 'OrderProposal Feed Deletion (after B)',
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToFail ?? false),
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: orderFeedUpdateAfterDeleteProposal,
       orderItemCriteriaList,
