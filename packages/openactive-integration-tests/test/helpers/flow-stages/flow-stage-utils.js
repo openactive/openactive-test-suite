@@ -13,6 +13,7 @@ const { FlowStageRun } = require('./flow-stage-run');
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../helpers/request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
+ * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  *
  * @typedef {import('./flow-stage').FlowStageType<unknown, unknown>} UnknownFlowStageType
@@ -125,17 +126,19 @@ const FlowStageUtils = {
    * @param {object} args
    * @param {RequestHelperType} args.requestHelper
    * @param {BaseLoggerType} args.logger
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
    * @param {Customer} [args.customer]
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer }) {
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer, orderItemCriteriaList }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
       customer: customer || this.createRandomCustomerDetails(),
+      orderItemCriteriaList,
     };
   },
 
@@ -161,17 +164,18 @@ const FlowStageUtils = {
    *
    * @param {object} args
    * @param {BaseLoggerType} args.logger
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
    * @param {SellerConfig} [args.sellerConfig]
    */
-  createSimpleDefaultFlowStageParams({ logger, taxMode = null, ...args }) {
+  createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList, taxMode = null, ...args }) {
     const sellerConfig = args.sellerConfig ?? (
       taxMode
         ? getSellerConfigWithTaxMode(taxMode)
         : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig,
+      requestHelper, logger, sellerConfig, orderItemCriteriaList,
     });
   },
 

@@ -214,10 +214,11 @@ const FlowStageRecipes = {
     taxMode = null,
     ...options
   } = {}) {
-    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
+    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({
+      orderItemCriteriaList, logger, taxMode,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
-      orderItemCriteriaList,
     });
     const c1 = new C1FlowStage({
       ...defaultFlowStageParams,
@@ -239,7 +240,6 @@ const FlowStageRecipes = {
         orderItems: fetchOpportunities.getOutput().orderItems,
       }),
       prerequisite: c1,
-      orderItemCriteriaList,
       ...defaultFlowStageParams,
     });
     const c2 = new C2FlowStage({
@@ -263,7 +263,6 @@ const FlowStageRecipes = {
         orderItems: fetchOpportunities.getOutput().orderItems,
       }),
       prerequisite: c2,
-      orderItemCriteriaList,
       ...defaultFlowStageParams,
     });
     return {
@@ -421,10 +420,9 @@ const FlowStageRecipes = {
    * @param {BaseLoggerType} logger
    */
   initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger) {
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ orderItemCriteriaList, logger });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
-      orderItemCriteriaList,
     });
     /** @returns {import('./p').Input}  */
     const bookRecipeGetFirstStageInput = () => {
@@ -563,7 +561,6 @@ const FlowStageRecipes = {
       getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToFail ?? false),
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: b,
-      orderItemCriteriaList,
       ...defaultFlowStageParams,
     });
     return new BookRecipe({
@@ -639,7 +636,6 @@ const FlowStageRecipes = {
       getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToFail ?? false),
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: orderFeedUpdateAfterDeleteProposal,
-      orderItemCriteriaList,
       ...defaultFlowStageParams,
     });
 
