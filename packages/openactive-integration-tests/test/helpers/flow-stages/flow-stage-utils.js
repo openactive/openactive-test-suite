@@ -1,7 +1,6 @@
 const chakram = require('chakram');
 const faker = require('faker');
 const { last } = require('lodash');
-const uuidParse = require('uuid').parse;
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
@@ -136,7 +135,7 @@ const FlowStageUtils = {
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: customer || this.createRandomCustomerDetails(uuid),
+      customer: customer || this.createRandomCustomerDetails(),
     };
   },
 
@@ -144,18 +143,7 @@ const FlowStageUtils = {
    * Randomly generate customer details
    * @returns {Customer}
    */
-  createRandomCustomerDetails(uuid) {
-    const convertGuidToInt = (uuidString) => {
-      // parse uuid into Uint8Array[16] variable
-      const parsedUuid = uuidParse(uuidString);
-      // convert to integer - see answers to https://stackoverflow.com/q/39346517/2860309
-      const buffer = Buffer.from(parsedUuid);
-      const result = buffer.readUInt32BE(0);
-      return result;
-    };
-    // Faker's random number generator is not very random
-    // So use the Order UUID as a seed
-    faker.seed(convertGuidToInt(uuid || generateUuid()));
+  createRandomCustomerDetails() {
     return {
       '@type': 'Person',
       email: faker.internet.email(),

@@ -1,8 +1,4 @@
-const chai = require('chai');
-
-chai.should();
-chai.use(require('chai-things'));
-
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
@@ -59,11 +55,11 @@ FeatureHelper.describeFeature(module, {
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      chai.expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
-      orderItems
-        .should.include.something.that.has.property('orderItemStatus', 'https://openactive.io/SellerCancelled')
-        .and
-        .should.include.something.that.has.property('cancellationMessage').which.is.a('string');
+      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
+      for (const orderItem of orderItems) {
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
+        expect(orderItem).to.have.property('cancellationMessage').which.is.a('string');
+      }
     });
   });
 });
