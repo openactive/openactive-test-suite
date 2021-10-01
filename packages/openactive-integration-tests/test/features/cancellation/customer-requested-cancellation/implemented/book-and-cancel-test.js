@@ -40,7 +40,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger, op
   });
 
   // ### Cancel order items again to test for idempotency
-  const cancelOrderItemsAgain = FlowStageRecipes.runs.cancellation.successfulCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+  const cancelOrderItemsAgain = FlowStageRecipes.runs.cancellation.cancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
     cancelArgs: {
       getOrderItemIdArray: getArrayOfAllOrderItemIds,
     },

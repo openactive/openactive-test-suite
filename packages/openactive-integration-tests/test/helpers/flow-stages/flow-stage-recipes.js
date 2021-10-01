@@ -667,7 +667,7 @@ const FlowStageRecipes = {
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
        * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
-      successfulCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+      cancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
         const cancel = new CancelOrderFlowStage({
           ...defaultFlowStageParams,
@@ -717,6 +717,34 @@ const FlowStageRecipes = {
           orderFeedUpdate,
           assertOpportunityCapacityAfterCancel,
         }, ['cancel', 'orderFeedUpdate', 'assertOpportunityCapacityAfterCancel']);
+      },
+      /**
+       * @param {UnknownFlowStageType} prerequisite
+       * @param {DefaultFlowStageParams} defaultFlowStageParams
+       * @param {object} args
+       * @param {import('./flow-stage').FlowStageType<unknown, Required<Pick<FlowStageOutput, 'orderItems'>>>} args.fetchOpportunitiesFlowStage
+       * @param {import('./flow-stage').FlowStageType<unknown, Required<Pick<FlowStageOutput, 'opportunityFeedExtractResponses'>>>} args.lastOpportunityFeedExtractFlowStage
+       *   If this cancellation happens after C1/C2/B, use the AssertOpportunityCapacity stage that followed that.
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList' | 'getOpportunityExpectedCapacity' | 'getInput'>} args.assertOpportunityCapacityArgs
+       */
+      failedCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, {
+        fetchOpportunitiesFlowStage,
+        lastOpportunityFeedExtractFlowStage,
+        cancelArgs,
+        assertOpportunityCapacityArgs,
+      }) {
+        return FlowStageRecipes.runs.cancellation.cancelAndAssertCapacity(prerequisite, defaultFlowStageParams, {
+          cancelArgs,
+          assertOpportunityCapacityArgs: {
+            getInput: () => ({
+              orderItems: fetchOpportunitiesFlowStage.getOutput().orderItems,
+              opportunityFeedExtractResponses: lastOpportunityFeedExtractFlowStage.getOutput().opportunityFeedExtractResponses,
+            }),
+            getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+            ...assertOpportunityCapacityArgs,
+          },
+        });
       },
     },
     book: {
