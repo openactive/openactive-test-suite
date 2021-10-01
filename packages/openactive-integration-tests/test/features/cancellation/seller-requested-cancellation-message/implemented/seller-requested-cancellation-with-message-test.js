@@ -1,13 +1,7 @@
-const chai = require('chai');
-
-chai.should();
-chai.use(require('chai-things'));
-
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
-  TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 
@@ -25,26 +19,17 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  // TODO TODO TODO remove me
+  skipMultiple: true,
+  skipBookingFlows: ['OpenBookingApprovalFlow'],
+  skipOpportunityTypes: ['FacilityUseSlot'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-  const [simulateSellerCancellation, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'Simulate Seller Cancellation (Test Interface Action)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:SellerRequestedCancellationWithMessageSimulateAction',
-        objectType: 'Order',
-        objectId: bookRecipe.b.getOutput().orderId,
-      }),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: bookRecipe.lastStage,
-      testName: 'Orders Feed (after Simulate Seller Cancellation)',
-    },
+  const simulateSellerCancellation = FlowStageRecipes.runs.sellerCancel.successfulCancelAssertOrderUpdateAndCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunities,
+    getOrderId: () => bookRecipe.b.getOutput().orderId,
   });
 
   // ## Set up tests
@@ -52,18 +37,24 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation, () => {
+  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
     it('should have orderItemStatus: SellerCancelled', () => {
-      const orderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
+      const orderFeedUpdateAfterCancel = simulateSellerCancellation.getStage('orderFeedUpdate');
+      const orderItems = orderFeedUpdateAfterCancel.getOutput().httpResponse.body.data.orderedItem;
       // As we'll be setting out expectations in an iteration, this test would
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
-      chai.expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
-      orderItems
-        .should.include.something.that.has.property('orderItemStatus', 'https://openactive.io/SellerCancelled')
-        .and
-        .should.include.something.that.has.property('cancellationMessage').which.is.a('string');
+      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
+      console.log('\n\n\n', JSON.stringify(orderItems, null, 2));
+      const aCancelledOrderItem = orderItems.find(orderItem => orderItem.orderItemStatus === 'https://openactive.io/SellerCancelled');
+      // TODO TODO TODO why does this not include a cancellation message?
+      expect(aCancelledOrderItem).to.have.property('cancellationMessage').which.is.a('string');
+      // TODO TODO TODO this
+      // orderItems
+      //   .should.include.something.that.has.property('orderItemStatus', 'https://openactive.io/SellerCancelled')
+      //   .and
+      //   .should.include.something.that.has.property('cancellationMessage').which.is.a('string');
     });
   });
 });

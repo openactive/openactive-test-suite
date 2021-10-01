@@ -747,6 +747,60 @@ const FlowStageRecipes = {
         });
       },
     },
+    sellerCancel: {
+      //  * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+      /**
+       * This will:
+       * - Simulate a Seller Requested Cancellation
+       * - Check for an update to the Order to appear in the feed.
+       * - Check that the Opportunity feed will be updated so that capacity is reverted to its initial values
+       *
+       * @param {UnknownFlowStageType} prerequisite
+       * @param {DefaultFlowStageParams} defaultFlowStageParams
+       * @param {object} args
+       * @param {string} [args.cancelTestName]
+       * @param {FetchOpportunitiesFlowStage} args.fetchOpportunities
+       * @param {() => string} args.getOrderId
+       */
+      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, {
+        cancelTestName = 'Simulate Seller Cancellation (Test Interface Action)',
+        fetchOpportunities,
+        getOrderId,
+        // assertOpportunityCapacityArgs,
+      }) {
+        const [simulateSellerCancellation, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+          wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
+            ...defaultFlowStageParams,
+            testName: cancelTestName,
+            prerequisite: orderFeedUpdateListener,
+            createActionFn: () => ({
+              type: 'test:SellerRequestedCancellationSimulateAction',
+              objectType: 'Order',
+              objectId: getOrderId(),
+            }),
+          })),
+          orderFeedUpdateParams: {
+            ...defaultFlowStageParams,
+            prerequisite,
+            testName: `Orders Feed (after ${cancelTestName})`,
+          },
+        });
+        const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
+          ...defaultFlowStageParams,
+          nameOfPreviousStage: cancelTestName,
+          prerequisite: orderFeedUpdate,
+          // Capacity should be the same as it was when initially fetched from feed.
+          getInput: () => fetchOpportunities.getOutput(),
+          getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+          // ...assertOpportunityCapacityArgs,
+        });
+        return new FlowStageRun({
+          simulateSellerCancellation,
+          orderFeedUpdate,
+          assertOpportunityCapacityAfterCancel,
+        }, ['simulateSellerCancellation', 'orderFeedUpdate', 'assertOpportunityCapacityAfterCancel']);
+      },
+    },
     book: {
       /**
        * @param {UnknownFlowStageType} prerequisite
