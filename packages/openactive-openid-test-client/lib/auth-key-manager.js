@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-const AsyncLock = require('async-lock');
 const FatalError = require('./fatal-error');
 const OpenActiveOpenIdTestClient = require('./client');
 /**
  * Auth key manager for use by tests
  */
+
 module.exports = class OpenActiveTestAuthKeyManager {
   constructor(log, baseUrl, sellersConfig, bookingPartnerConfig) {
     this.log = log;
@@ -14,7 +14,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
     this.client = new OpenActiveOpenIdTestClient(baseUrl);
     this.authenticationFailure = false;
     this.dynamicRegistrationFailure = false;
-    this.refreshTokenUpdateLock = new AsyncLock();
   }
 
   get config() {
@@ -143,7 +142,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
         this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.orderFeedTokenSet = tokenSet;
         this.log(`Retrieved Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
       } catch (error) {
-        this.log(`ERROR: Error retrieving Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'\n\n\n\n\n\n\n`);
+        this.log(`Error retrieving Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
         throw error;
       }
     }));
@@ -156,25 +155,17 @@ module.exports = class OpenActiveTestAuthKeyManager {
     // Only run the update if initialise ran successfully
     if (!this.client.issuer) return;
 
-    // Ensure that only one token refresh cycle is running at once, for cases where refresh tokens are restricted to be "used once" by the Booking System
-    // If multiple refreshes are queued on this lock they will block for the current refresh, and then use the tokens from this refresh
-    this.refreshTokenUpdateLock.acquire('refreshTokenUpdateLock', async () => {
-      const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s?.authentication?.bookingPartnerTokenSets);
-      await Promise.all(sellers.map(async ([sellerIdentifier, seller]) => {
-        await Promise.all(Object.entries(seller.authentication.bookingPartnerTokenSets).map(async ([bookingPartnerIdentifier, tokenSet]) => {
-          // Do not refresh tokens that have at least 10 minutes remaining
-          if (tokenSet?.expires_in && tokenSet.expires_in > 10 * 60) {
-            return;
-          }
-          try {
-            const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;
-            this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets[bookingPartnerIdentifier] = await this.client.refresh(tokenSet.refresh_token, clientId, clientSecret);
-            this.log(`Refreshed access token for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
-          } catch (ex) {
-            this.log(`ERROR: Exception thrown while refreshing access token for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}':\n${ex.stack}\n\n\n\n\n\n\n`);
-          }
-        }));
+    const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s?.authentication?.bookingPartnerTokenSets);
+    await Promise.all(sellers.map(async ([sellerIdentifier, seller]) => {
+      await Promise.all(Object.entries(seller.authentication.bookingPartnerTokenSets).map(async ([bookingPartnerIdentifier, tokenSet]) => {
+        // Do not refresh tokens that have at least 10 minutes remaining
+        if (tokenSet?.expires_in && tokenSet.expires_in > 10 * 60) {
+          return;
+        }
+        const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;
+        this.log(`Refreshed access token for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
+        this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets[bookingPartnerIdentifier] = await this.client.refresh(tokenSet.refresh_token, clientId, clientSecret);
       }));
-    });
+    }));
   }
 };

@@ -1,8 +1,4 @@
-const chai = require('chai');
-
-chai.should();
-chai.use(require('chai-things'));
-
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
@@ -54,8 +50,10 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfterCancel, () => {
     it('should have orderItemStatus: SellerCancelled', () => {
       const orderItems = orderFeedUpdateAfterCancel.getOutput().httpResponse.body.data.orderedItem;
-      chai.expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
-      orderItems.should.include.something.that.has.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
+      expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
+      for (const orderItem of orderItems) {
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
+      }
     });
   });
 });
