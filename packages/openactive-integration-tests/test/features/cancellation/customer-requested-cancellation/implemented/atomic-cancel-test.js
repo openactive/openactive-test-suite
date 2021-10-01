@@ -40,15 +40,18 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
-  const cancelNotCancellableOrderItems = new CancelOrderFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: bookRecipe.lastStage,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [1, 2]),
-    testName: 'Cancel Order for non-cancellable items',
+  const cancelNotCancellableOrderItems = FlowStageRecipes.runs.cancellation.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunitiesFlowStage: fetchOpportunities,
+    lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
+    cancelArgs: {
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [1, 2]),
+      testName: 'Cancel Order for non-cancellable items',
+    },
+    assertOpportunityCapacityArgs: {},
   });
 
   // ### Cancel 1st Order Item which is cancellable
-  const cancelCancellableOrderItem = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems, defaultFlowStageParams, {
+  const cancelCancellableOrderItem = FlowStageRecipes.runs.cancellation.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems.getLastStage(), defaultFlowStageParams, {
     cancelArgs: {
       getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
       testName: 'Cancel Order for cancellable item',
@@ -70,7 +73,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsValid(cancelNotCancellableOrderItems, () => {
-    itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancelNotCancellableOrderItems.getOutput().httpResponse);
+    itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancelNotCancellableOrderItems.getStage('cancel').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelCancellableOrderItem, () => {
     const cancelledOrderItemIdAccessor = () => CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage)()[0];

@@ -17,12 +17,15 @@ FeatureHelper.describeFeature(module, {
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-  const cancelOrder = new CancelOrderFlowStage({
-    ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-    prerequisite: bookRecipe.lastStage,
-    testName: 'Attempt to Cancel OrderItem at Position 0',
-    templateRef: 'nonCustomerCancelledOrderItemStatus',
+  const cancelOrder = FlowStageRecipes.runs.cancellation.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunitiesFlowStage: fetchOpportunities,
+    lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
+    cancelArgs: {
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
+      testName: 'Attempt to Cancel OrderItem at Position 0',
+      templateRef: 'nonCustomerCancelledOrderItemStatus',
+    },
+    assertOpportunityCapacityArgs: {},
   });
 
   // # Set up Tests
@@ -31,6 +34,6 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsValid(cancelOrder, () => {
-    itShouldReturnAnOpenBookingError('PatchNotAllowedOnPropertyError', 400, () => cancelOrder.getOutput().httpResponse);
+    itShouldReturnAnOpenBookingError('PatchNotAllowedOnPropertyError', 400, () => cancelOrder.getStage('cancel').getOutput().httpResponse);
   });
 });

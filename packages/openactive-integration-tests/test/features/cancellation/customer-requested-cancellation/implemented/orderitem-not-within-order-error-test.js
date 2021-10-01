@@ -18,12 +18,15 @@ FeatureHelper.describeFeature(module, {
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-  const cancelUnknownOrder = new CancelOrderFlowStage({
-    ...defaultFlowStageParams,
-    uuid: generateUuid(), // Random unknown Order GUID
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-    prerequisite: bookRecipe.b,
-    testName: 'Attempt to Cancel OrderItem at Position 0 using random Order UUID',
+  const cancelUnknownOrder = FlowStageRecipes.runs.cancellation.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunitiesFlowStage: fetchOpportunities,
+    lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
+    cancelArgs: {
+      uuid: generateUuid(), // Random unknown Order GUID
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
+      testName: 'Attempt to Cancel OrderItem at Position 0 using random Order UUID',
+    },
+    assertOpportunityCapacityArgs: {},
   });
 
   // # Set up Tests
@@ -32,6 +35,6 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsValid(cancelUnknownOrder, () => {
-    itShouldReturnAnOpenBookingError('OrderItemNotWithinOrderError', 500, () => cancelUnknownOrder.getOutput().httpResponse);
+    itShouldReturnAnOpenBookingError('OrderItemNotWithinOrderError', 500, () => cancelUnknownOrder.getStage('cancel').getOutput().httpResponse);
   });
 });
