@@ -1,5 +1,3 @@
-const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
-const { expect } = require('chai');
 const { Common } = require('../../shared-behaviours');
 const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder, createPositionOrderIntakeFormMap } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
@@ -83,16 +81,10 @@ class C1FlowStage extends FlowStage {
       },
       itSuccessChecksFn: (flowStage) => {
         FlowStageUtils.simpleHttp200SuccessChecks()(flowStage);
-        Common.itForEachOrderItem({
+        Common.itForEachOrderItemShouldHaveUnchangedCapacity({
           orderItemCriteriaList,
           getFeedOrderItems: () => getInput().orderItems,
           getOrdersApiResponse: () => this.getOutput().httpResponse,
-        },
-        'capacities should not have changed from their initial values (regardless of leasing)',
-        (feedOrderItem, apiResponseOrderItem) => {
-          const feedCapacity = getRemainingCapacity(feedOrderItem.orderedItem);
-          const apiResponseCapacity = getRemainingCapacity(apiResponseOrderItem.orderedItem);
-          expect(apiResponseCapacity).to.equal(feedCapacity);
         });
       },
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, { name: 'C1', validationMode: 'C1Response' }),

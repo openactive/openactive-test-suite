@@ -297,6 +297,7 @@ const FlowStageRecipes = {
     ...options
   } = {}) {
     const c2ExpectToFail = options.c2ExpectToFail ?? false;
+
     const { fetchOpportunities, c1, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
       brokerRole,
       taxMode,
@@ -354,12 +355,18 @@ const FlowStageRecipes = {
     brokerRole = null,
     ...options
   } = {}) {
-    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
-    const c1ExpectToFail = options.c1ExpectToFail ?? false;
+    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({
+      orderItemCriteriaList, logger, taxMode,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
-      orderItemCriteriaList,
     });
+    // const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
+    const c1ExpectToFail = options.c1ExpectToFail ?? false;
+    // const fetchOpportunities = new FetchOpportunitiesFlowStage({
+    //   ...defaultFlowStageParams,
+    //   orderItemCriteriaList,
+    // });
     // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
     // ...unless C1 is expected to fail
     const shouldCapacityDecrement = !c1ExpectToFail && IMPLEMENTED_FEATURES['anonymous-leasing'];
@@ -658,7 +665,7 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       successfulCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
@@ -683,7 +690,7 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
@@ -717,8 +724,8 @@ const FlowStageRecipes = {
        * @param {UnknownFlowStageType} prerequisite
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof C1FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid'>} args.c1Args
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof C1FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid' | 'orderItemCriteriaList'>} args.c1Args
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       c1AssertCapacity(prerequisite, defaultFlowStageParams, { c1Args, assertOpportunityCapacityArgs }) {
         const c1 = new C1FlowStage({
@@ -741,8 +748,8 @@ const FlowStageRecipes = {
        * @param {UnknownFlowStageType} prerequisite
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof C2FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid'>} args.c2Args
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof C2FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid' | 'orderItemCriteriaList'>} args.c2Args
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       c2AssertCapacity(prerequisite, defaultFlowStageParams, { c2Args, assertOpportunityCapacityArgs }) {
         const c2 = new C2FlowStage({

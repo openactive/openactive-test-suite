@@ -1,3 +1,4 @@
+const { Common } = require('../../shared-behaviours');
 const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
@@ -5,6 +6,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../templates/c2-req').C2ReqTemplateRef} C2ReqTemplateRef
+ * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
@@ -56,6 +58,7 @@ async function runC2({ templateRef, uuid, brokerRole, sellerConfig, orderItems, 
 class C2FlowStage extends FlowStage {
   /**
    * @param {object} args
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {C2ReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown>} [args.prerequisite]
    * @param {() => Input} args.getInput
@@ -66,7 +69,7 @@ class C2FlowStage extends FlowStage {
    * @param {SellerConfig} args.sellerConfig
    * @param {Customer} [args.customer]
    */
-  constructor({ templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig, customer }) {
+  constructor({ orderItemCriteriaList, templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig, customer }) {
     super({
       prerequisite,
       testName: 'C2',
@@ -84,7 +87,14 @@ class C2FlowStage extends FlowStage {
           customer,
         });
       },
-      itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
+      itSuccessChecksFn: (flowStage) => {
+        FlowStageUtils.simpleHttp200SuccessChecks()(flowStage);
+        Common.itForEachOrderItemShouldHaveUnchangedCapacity({
+          orderItemCriteriaList,
+          getFeedOrderItems: () => getInput().orderItems,
+          getOrdersApiResponse: () => this.getOutput().httpResponse,
+        });
+      },
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
         name: 'C2',
         validationMode: 'C2Response',
