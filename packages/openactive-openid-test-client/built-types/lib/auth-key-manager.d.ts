@@ -7,6 +7,7 @@ declare class OpenActiveTestAuthKeyManager {
     client: import("./client");
     authenticationFailure: boolean;
     dynamicRegistrationFailure: boolean;
+    refreshTokenUpdateLock: any;
     get config(): {
         sellersConfig: any;
         bookingPartnersConfig: any;

@@ -79,6 +79,16 @@ const argv = yargs(process.argv.slice(2))
       description: 'Initial Access Token for Dynamic Client Registration',
       default: 'openactive_test_suite_client_12345xaq',
     },
+    clientId: {
+      type: 'string',
+      alias: 'c',
+      description: 'Client ID',
+    },
+    clientSecret: {
+      type: 'string',
+      alias: 's',
+      description: 'Client Secret',
+    },
     username: {
       type: 'string',
       alias: 'u',
@@ -91,21 +101,22 @@ const argv = yargs(process.argv.slice(2))
       description: 'Password of the Seller',
       default: 'test',
     },
+    selectIdentityProviderButton: {
+      type: 'string',
+      description: 'CSS selector for the select identity provider button',
+    },
     usernameFieldSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the username field',
       default: "[name='username' i]",
     },
     passwordFieldSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the password field',
       default: "[name='password' i]",
     },
     loginPageButtonSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the login button',
       default: '.btn-primary',
     },
@@ -118,6 +129,7 @@ const argv = yargs(process.argv.slice(2))
     const app = express();
     app.use(express.json());
     setupBrowserAutomationRoutes(app, {
+      selectIdentityProviderButton: argv.selectIdentityProviderButton,
       username: argv.usernameFieldSelector,
       password: argv.passwordFieldSelector,
       button: argv.loginPageButtonSelector,
@@ -133,8 +145,8 @@ const argv = yargs(process.argv.slice(2))
     console.log('Discovered issuer %s %O\n\n', issuer.issuer, issuer.metadata);
 
     // Dynamic Client Registration
-    const { registration, clientId, clientSecret } = await logWithIntercept('Dynamic Client Registration', () => client.register(argv.initialAccessToken));
-    console.log('Dynamic Client Registration: %O\n\n', registration);
+    const { registration, clientId, clientSecret } = argv.clientId && argv.clientSecret ? argv : await logWithIntercept('Dynamic Client Registration', () => client.register(argv.initialAccessToken));
+    if (registration) console.log('Dynamic Client Registration: %O\n\n', registration);
 
     // Client Credentials Flow
     const { tokenSet: clientCredentialsTokenSet } = await logWithIntercept('Client Credentials Flow', () => client.authorizeClientCredentialsFlow(clientId, clientSecret));
