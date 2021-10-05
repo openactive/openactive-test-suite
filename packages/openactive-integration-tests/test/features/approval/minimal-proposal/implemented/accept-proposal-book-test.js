@@ -39,22 +39,21 @@ FeatureHelper.describeFeature(module, {
     fetchOpportunities,
     c1,
     c2,
-    assertOpportunityCapacityAfterC2,
     defaultFlowStageParams,
-  } = FlowStageRecipes.initialiseSimpleC1C2Flow(
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow2(
     orderItemCriteriaList,
     logger,
   );
   const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
-    prerequisite: assertOpportunityCapacityAfterC2,
+    prerequisite: c2.getLastStage(),
     getFirstStageInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-      prepayment: c2.getOutput().prepayment,
-      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
+      totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
+      prepayment: c2.getStage('c2').getOutput().prepayment,
+      positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
     }),
     getAssertOpportunityCapacityInput: () => ({
-      opportunityFeedExtractResponses: assertOpportunityCapacityAfterC2.getOutput().opportunityFeedExtractResponses,
+      opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
       orderItems: fetchOpportunities.getOutput().orderItems,
     }),
   });
@@ -63,10 +62,10 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c1.getStage('c1').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getStage('c2').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
