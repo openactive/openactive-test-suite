@@ -44,20 +44,26 @@ FeatureHelper.describeFeature(module, {
     requestHelper: new RequestHelper(logger, global.SELLER_CONFIG.primary), // primary seller is used for request auth
     logger,
     sellerConfig: global.SELLER_CONFIG.secondary, // secondary seller is used to build request data.
+    orderItemCriteriaList,
   });
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(
     orderItemCriteriaList,
     logger,
-    { defaultFlowStageParams },
+    {
+      defaultFlowStageParams,
+      c1ExpectToFail: true,
+      c2ExpectToFail: true,
+      bookExpectToFail: true,
+    },
   );
 
   // TESTS
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldReturnInvalidAuthorizationDetailsError(c1);
+    itShouldReturnInvalidAuthorizationDetailsError(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldReturnInvalidAuthorizationDetailsError(c2);
+    itShouldReturnInvalidAuthorizationDetailsError(c2.getStage('c2'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
     itShouldReturnInvalidAuthorizationDetailsError(bookRecipe.firstStage);
