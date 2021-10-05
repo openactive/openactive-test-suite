@@ -32,6 +32,7 @@ FeatureHelper.describeFeature(module, {
   describe('Incomplete Broker Details at C1', () => {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+      c1ReqTemplateRef: 'noBrokerName',
       c1ExpectToFail: true,
     });
 
@@ -45,6 +46,7 @@ FeatureHelper.describeFeature(module, {
   describe('Incomplete Broker Details at C2', () => {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, {
+      c2ReqTemplateRef: 'noBrokerName',
       c2ExpectToFail: true,
     });
 
@@ -58,8 +60,9 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at B', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
       bookReqTemplateRef: 'noBrokerName',
+      bookExpectToFail: true,
     });
 
     // # Set up Tests
