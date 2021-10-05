@@ -104,7 +104,7 @@ const TestRecipes = {
     /** @type {RunTestsFn} */
     const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger);
       const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
         wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
           ...defaultFlowStageParams,

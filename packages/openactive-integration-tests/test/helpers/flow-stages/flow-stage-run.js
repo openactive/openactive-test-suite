@@ -1,5 +1,6 @@
 // Remaining TODOs (TODO TODO TODO)
 // - Make work with all other tests (e.g. accept-proposal-book seems not to work)
+//   * Leasing
 // - book-and-seller-replace-items: Test switched out OrderItems
 // - amending-order-quote tests: Test switched out OrderItems
 // - order-deletion tests: Assert capacity goes up after deletion.
