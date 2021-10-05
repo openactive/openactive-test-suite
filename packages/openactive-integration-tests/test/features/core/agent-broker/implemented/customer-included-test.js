@@ -15,7 +15,7 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
     brokerRole: 'https://openactive.io/AgentBroker',
   });
 
