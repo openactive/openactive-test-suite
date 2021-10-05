@@ -14,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
     // Note that we haven't included a noCustomer template for C1 because C1 never has a customer property
     c2ReqTemplateRef: 'noCustomer', bookReqTemplateRef: 'noCustomer', brokerRole: 'https://openactive.io/ResellerBroker',
   });

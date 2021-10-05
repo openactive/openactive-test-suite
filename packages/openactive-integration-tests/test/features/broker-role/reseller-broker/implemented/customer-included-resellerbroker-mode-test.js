@@ -14,7 +14,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { brokerRole: 'https://openactive.io/ResellerBroker' });
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, { brokerRole: 'https://openactive.io/ResellerBroker' });
 
   describe('Booking should succeed if Broker and Customer are included in Order, because we are in ResellerBroker mode', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
