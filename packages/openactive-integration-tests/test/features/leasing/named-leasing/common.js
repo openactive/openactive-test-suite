@@ -13,7 +13,7 @@ function runNamedLeasingCapacityTests(unit) {
   return (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // # First, get the Opportunity Feed Items which will be used in subsequent tests
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger }),
+      ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList }),
       orderItemCriteriaList,
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -38,7 +38,7 @@ function runNamedLeasingCapacityTests(unit) {
     }, itAdditionalTests) => {
       /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
       rather than an amendment of the previous one */
-      const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+      const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList });
       const newBatchC1 = new C1FlowStage({
         ...defaultFlowStageParams,
         prerequisite: prerequisiteFlowStage,

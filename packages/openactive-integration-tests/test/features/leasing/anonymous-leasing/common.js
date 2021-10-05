@@ -3,6 +3,7 @@ const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage } = require('..
 const { itShouldHaveCapacityForBatchedItems, multiplyFetchedOrderItemsIntoBatches, itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError } = require('../common');
 
 /**
+ * @typedef {import('../../../helpers/feature-helper').RunTestsFn} RunTestsFn
  * @typedef {import('../../../helpers/flow-stages/flow-stage').UnknownFlowStageType} UnknownFlowStageType
  * @typedef {import('../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
  * @typedef {import('../../../helpers/flow-stages/fetch-opportunities').FetchOpportunitiesFlowStageType} FetchOpportunitiesFlowStageType
@@ -10,11 +11,14 @@ const { itShouldHaveCapacityForBatchedItems, multiplyFetchedOrderItemsIntoBatche
  */
 
 // TODO TODO TODO manual feed capacity assertions here
+/**
+ * @param {boolean} unit True for `unit` tests
+ */
 function runAnonymousLeasingCapacityTests(unit) {
-  return (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  return /** @type {RunTestsFn} */((configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // # First, get the Opportunity Feed Items which will be used in subsequent tests
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger }),
+      ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList }),
       orderItemCriteriaList,
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -37,7 +41,7 @@ function runAnonymousLeasingCapacityTests(unit) {
       const newBatchC1 = new C1FlowStage({
         /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
         rather than an amendment of the previous one */
-        ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger }),
+        ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList }),
         prerequisite: prerequisiteFlowStage,
         getInput: () => ({
           orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
@@ -100,7 +104,7 @@ function runAnonymousLeasingCapacityTests(unit) {
         expectedCapacityFromPreviousSuccessfulLeases: 0,
       });
     }
-  };
+  });
 }
 
 module.exports = {
