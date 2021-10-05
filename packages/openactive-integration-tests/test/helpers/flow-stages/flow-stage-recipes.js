@@ -991,6 +991,11 @@ function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstSt
   });
 }
 
+/**
+ * @typedef {ReturnType<typeof FlowStageRecipes.runs.book.c1AssertCapacity>} C1AssertCapacityRun
+ * @typedef {ReturnType<typeof FlowStageRecipes.runs.book.c2AssertCapacity>} C2AssertCapacityRun
+ */
+
 module.exports = {
   FlowStageRecipes,
 };

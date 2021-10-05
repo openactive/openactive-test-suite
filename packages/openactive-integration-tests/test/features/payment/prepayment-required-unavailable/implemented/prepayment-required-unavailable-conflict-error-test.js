@@ -48,7 +48,11 @@ FeatureHelper.describeFeature(module, {
   skipMultiple: !canDoTestWithControl,
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // Iniitate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+    c1ExpectToFail: true,
+    c2ExpectToFail: true,
+    bookExpectToFail: true,
+  });
 
   /**
    * @param {C1FlowStageType | C2FlowStageType} flowStage
@@ -64,10 +68,10 @@ FeatureHelper.describeFeature(module, {
   // Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldIncludeOpportunityIsInConflictErrorWhereRelevant(c1);
+    itShouldIncludeOpportunityIsInConflictErrorWhereRelevant(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldIncludeOpportunityIsInConflictErrorWhereRelevant(c2);
+    itShouldIncludeOpportunityIsInConflictErrorWhereRelevant(c2.getStage('c2'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
     itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
