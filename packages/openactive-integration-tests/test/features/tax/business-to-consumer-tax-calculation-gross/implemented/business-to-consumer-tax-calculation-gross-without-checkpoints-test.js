@@ -14,6 +14,7 @@ FeatureHelper.describeFeature(module, {
   // the simple tests can only work if all OrderItems have the same tax mode
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
+  // TODO TODO TODO skipB assert capacity yeeee
   const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput, bookRecipeGetAssertOpportunityCapacityInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
   const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(orderItemCriteriaList, bookRecipe, defaultFlowStageParams, {
     getFirstStageInput: bookRecipeGetFirstStageInput,

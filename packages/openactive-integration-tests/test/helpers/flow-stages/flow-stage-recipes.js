@@ -20,6 +20,7 @@ const { IMPLEMENTED_FEATURES } = global;
  * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
  * @typedef {import('../../templates/b-req').BReqTemplateRef} BReqTemplateRef
  * @typedef {import('../../templates/b-req').PReqTemplateRef} PReqTemplateRef
+ * @typedef {import('./assert-opportunity-capacity').GetOpportunityExpectedCapacity} GetOpportunityExpectedCapacity
  * @typedef {import('./b').BFlowStageType} BFlowStageType
  * @typedef {import('./p').PFlowStageType} PFlowStageType
  * @typedef {import('./order-feed-update').OrderFeedUpdateCollectorType} OrderFeedUpdateCollectorType
@@ -62,6 +63,8 @@ const { IMPLEMENTED_FEATURES } = global;
  * @property {() => import('./p').Input} getFirstStageInput Input for the first flow stage - B or P.
  * @property {() => import('./assert-opportunity-capacity').Input} getAssertOpportunityCapacityInput Input for the
  *   AssertOpportunityCapacity flow stage, which runs after the booking is complete
+ * @property {GetOpportunityExpectedCapacity} [getOpportunityExpectedCapacity] If not provided, this will
+ *   default to using getOpportunityExpectedCapacityAfterBook(..)
  */
 
 const FlowStageRecipes = {
@@ -426,8 +429,11 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {object} [args]
+   * @param {boolean} [args.isExpectedToSucceed]
    */
-  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger) {
+  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, args = {}) {
+    const isExpectedToSucceed = args.isExpectedToSucceed ?? true;
     const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ orderItemCriteriaList, logger });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
@@ -465,8 +471,10 @@ const FlowStageRecipes = {
     });
     const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
       prerequisite: fetchOpportunities,
+      isExpectedToFail: !isExpectedToSucceed,
       getFirstStageInput: bookRecipeGetFirstStageInput,
       getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBookOnly(isExpectedToSucceed),
     });
     return {
       fetchOpportunities,
@@ -599,6 +607,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
     isExpectedToFail = null,
+    ...args
   }) {
     const b = new BFlowStage({
       ...defaultFlowStageParams,
@@ -608,9 +617,11 @@ const FlowStageRecipes = {
       accessPass,
       getInput: getFirstStageInput,
     });
+    const getOpportunityExpectedCapacity = args.getOpportunityExpectedCapacity
+      ?? AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false));
     const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
       nameOfPreviousStage: 'B',
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false)),
+      getOpportunityExpectedCapacity,
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: b,
       ...defaultFlowStageParams,
@@ -640,6 +651,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
     isExpectedToFail = null,
+    ...args
   }) {
     const p = new PFlowStage({
       ...defaultFlowStageParams,
@@ -683,9 +695,11 @@ const FlowStageRecipes = {
         orderFeedType: 'order-proposals',
       },
     });
+    const getOpportunityExpectedCapacity = args.getOpportunityExpectedCapacity
+      ?? AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false));
     const assertOpportunityCapacityAfterBook = new AssertOpportunityCapacityFlowStage({
       nameOfPreviousStage: 'OrderProposal Feed Deletion (after B)',
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false)),
+      getOpportunityExpectedCapacity,
       getInput: getAssertOpportunityCapacityInput,
       prerequisite: orderFeedUpdateAfterDeleteProposal,
       ...defaultFlowStageParams,

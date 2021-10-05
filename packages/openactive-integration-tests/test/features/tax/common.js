@@ -91,7 +91,7 @@ function grossTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(
       orderItemCriteriaList,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxGross' },
@@ -100,10 +100,10 @@ function grossTest(options) {
     // ## Run Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldCalculateGrossTaxCorrectly(() => c1.getOutput().httpResponse);
+      itShouldCalculateGrossTaxCorrectly(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldCalculateGrossTaxCorrectly(() => c2.getOutput().httpResponse);
+      itShouldCalculateGrossTaxCorrectly(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       itShouldCalculateGrossTaxCorrectly(() => bookRecipe.b.getOutput().httpResponse);
@@ -123,7 +123,7 @@ function netTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(
       orderItemCriteriaList,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxNet' },
@@ -132,10 +132,10 @@ function netTest(options) {
     // ## Run Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldCalculateNetTaxCorrectly(() => c1.getOutput().httpResponse);
+      itShouldCalculateNetTaxCorrectly(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldCalculateNetTaxCorrectly(() => c2.getOutput().httpResponse);
+      itShouldCalculateNetTaxCorrectly(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       itShouldCalculateNetTaxCorrectly(() => bookRecipe.b.getOutput().httpResponse);

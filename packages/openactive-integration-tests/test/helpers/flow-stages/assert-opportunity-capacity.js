@@ -237,6 +237,18 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
       ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
       : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
   }
+
+  /**
+   * For use after a Book-only flow (i.e. with no C1 -> C2)
+   *
+   * @param {boolean} isExpectedToSucceed Is Book expected to succeed or fail? If fail, then, capacity will be expected
+   * to not have changed.
+   */
+  static getOpportunityExpectedCapacityAfterBookOnly(isExpectedToSucceed) {
+    return isExpectedToSucceed
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
 }
 
 /**
