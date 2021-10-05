@@ -21,7 +21,7 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
+  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ orderItemCriteriaList, logger });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,
     orderItemCriteriaList,
