@@ -3,6 +3,7 @@
 // - book-and-seller-replace-items: Test switched out OrderItems
 // - amending-order-quote tests: Test switched out OrderItems
 // - order-deletion tests: Assert capacity goes up after deletion.
+// - leasing: Assert Capacity changes in batched tests. Might be complicated..
 // - [x] How to make Assert C1/C2 stage output show in logs (maybe genericise BookRecipe similar to below draft)
 // - Validation tests for Assert stages
 // - Couple remaining TODOs

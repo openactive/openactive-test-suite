@@ -871,6 +871,26 @@ const FlowStageRecipes = {
           assertOpportunityCapacityAfterC1,
         }, ['c1', 'assertOpportunityCapacityAfterC1']);
       },
+      // /**
+      //  * @param {UnknownFlowStageType} prerequisite
+      //  * @param {DefaultFlowStageParams} defaultFlowStageParams
+      //  * @param {object} args
+      //  * @param {boolean} args.isExpectedToSucceed
+      //  * @param {import('utility-types').Optional<ConstructorParameters<typeof C1FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid' | 'orderItemCriteriaList'>} args.c1Args
+      //  * @param {FetchOpportunitiesFlowStage} args.fetchOpportunities
+      //  */
+      // simpleC1AssertCapacity(prerequisite, defaultFlowStageParams, { c1Args, isExpectedToSucceed, fetchOpportunities }) {
+      //   return FlowStageRecipes.runs.book.c1AssertCapacity(prerequisite, defaultFlowStageParams, {
+      //     c1Args,
+      //     assertOpportunityCapacityArgs: {
+      //       getInput: () => ({
+      //         orderItems: fetchOpportunities.getOutput().orderItems,
+      //         opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
+      //       }),
+      //       getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC1(isExpectedToSucceed),
+      //     },
+      //   });
+      // },
       /**
        * @param {UnknownFlowStageType} prerequisite
        * @param {DefaultFlowStageParams} defaultFlowStageParams
