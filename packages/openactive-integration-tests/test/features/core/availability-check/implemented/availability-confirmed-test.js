@@ -23,7 +23,7 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
 
   // # Set up Tests
 
@@ -59,9 +59,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-    itShouldMatchOccupancy(c1);
+    itShouldMatchOccupancy(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldMatchOccupancy(c2);
+    itShouldMatchOccupancy(c2.getStage('c2'));
   });
 });
