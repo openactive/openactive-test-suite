@@ -18,7 +18,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger);
 
   const deleteStage1 = new OrderDeletionFlowStage({
     ...defaultFlowStageParams,
@@ -29,6 +29,7 @@ FeatureHelper.describeFeature(module, {
     ...defaultFlowStageParams,
     prerequisite: deleteStage1,
   });
+  // TODO TODO TODO assert capacity goes back up after Order deletion
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
