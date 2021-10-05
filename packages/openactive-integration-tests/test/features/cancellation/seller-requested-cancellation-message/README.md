@@ -10,7 +10,7 @@ Coverage Status: **complete**
 ### Test prerequisites
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
-[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4
 
 
 ### Running tests for only this feature
@@ -35,6 +35,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [seller-requested-cancellation-with-message](./implemented/seller-requested-cancellation-with-message-test.js) | Seller cancellation with message of order request. | A successful cancellation of order by seller, Order in feed should have status SellerCancelled and cancellation message | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1 |
+| [seller-requested-cancellation-with-message](./implemented/seller-requested-cancellation-with-message-test.js) | Seller cancellation with message of order request. | A successful cancellation of order by seller, Order in feed should have status SellerCancelled and cancellation message | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 

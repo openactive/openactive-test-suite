@@ -19,10 +19,6 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  // TODO TODO TODO remove me
-  skipMultiple: true,
-  skipBookingFlows: ['OpenBookingApprovalFlow'],
-  skipOpportunityTypes: ['FacilityUseSlot'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
@@ -46,15 +42,8 @@ FeatureHelper.describeFeature(module, {
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
       expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
-      console.log('\n\n\n', JSON.stringify(orderItems, null, 2));
       const aCancelledOrderItem = orderItems.find(orderItem => orderItem.orderItemStatus === 'https://openactive.io/SellerCancelled');
-      // TODO TODO TODO why does this not include a cancellation message?
       expect(aCancelledOrderItem).to.have.property('cancellationMessage').which.is.a('string');
-      // TODO TODO TODO this
-      // orderItems
-      //   .should.include.something.that.has.property('orderItemStatus', 'https://openactive.io/SellerCancelled')
-      //   .and
-      //   .should.include.something.that.has.property('cancellationMessage').which.is.a('string');
     });
   });
 });

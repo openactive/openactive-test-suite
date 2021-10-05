@@ -28,6 +28,7 @@ const { IMPLEMENTED_FEATURES } = global;
  * @typedef {import('./flow-stage').UnknownFlowStageType} UnknownFlowStageType
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./flow-stage').FlowStageType<unknown, Required<Pick<FlowStageOutput, 'opportunityFeedExtractResponses'>>>} FlowStageWhichOutputsOpportunityFeedExtractResponses
+ * @typedef {import('./test-interface-action').TestInterfaceActionType} TestInterfaceActionType
  */
 
 /**
@@ -476,6 +477,50 @@ const FlowStageRecipes = {
       // These can be used to create an idempotent second B stage.
       bookRecipeGetFirstStageInput,
       bookRecipeGetAssertOpportunityCapacityInput,
+    };
+  },
+  /**
+   * Flow: FetchOpportunities -> C1 -> C2 -> Book -> TestInterfaceAction -> OrderFeedUpdate
+   *
+   * 1. Make an Order (FetchOpportunities -> C1 -> C2 -> Book)
+   * 2. Use a TestInterfaceAction to trigger some kind of update to the Order (e.g. access pass update)
+   * 3. Expect an update in the Order Feed
+   *
+   * @param {OpportunityCriteria[]} orderItemCriteriaList
+   * @param {BaseLoggerType} logger
+   * @param {{
+   *   actionType: TestInterfaceActionType,
+   * }} testInterfaceActionParams
+   */
+  successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, testInterfaceActionParams) {
+    // ## Initiate Flow Stages
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+    const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+        ...defaultFlowStageParams,
+        testName: `Test Interface Action (${testInterfaceActionParams.actionType})`,
+        prerequisite,
+        createActionFn: () => ({
+          type: testInterfaceActionParams.actionType,
+          // Note that these 2 fields may need to be configurable in future:
+          objectType: 'Order',
+          objectId: bookRecipe.b.getOutput().orderId,
+        }),
+      })),
+      orderFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        prerequisite: bookRecipe.lastStage,
+        testName: `Orders Feed (after ${testInterfaceActionParams.actionType})`,
+      },
+    });
+    return {
+      fetchOpportunities,
+      c1,
+      c2,
+      bookRecipe,
+      testInterfaceAction,
+      orderFeedUpdate,
+      defaultFlowStageParams,
     };
   },
   // TODO TODO TODO what to do here

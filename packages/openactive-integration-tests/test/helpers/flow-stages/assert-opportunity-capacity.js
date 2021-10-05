@@ -105,12 +105,14 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
    *   `(opportunity) => getRemainingCapacity(opportunity) - 1` to indicate that the capacity should have
    *   gone down by one.
    *
-   *   This function is given two args:
-   *   - opportunity: The Opportunity
-   *   - orderItems[]: An array of OrderItems. An Opportunity can be included in an Order multiple times to represent
-   *     purchasing space at the Opportunity for multiple people. So this array contains all OrderItems which contain
-   *     this Opportunity. You can therefore use `orderItems.length` to determine how many times the Opportunity is
-   *     used in the Order.
+   *   This function is given these args:
+   *   - opportunity: The Opportunity (as it was in getInput().opportunityFeedExtractResponses)
+   *   - extra:
+   *     - count: The number of times this opportunity appeared in getInput().opportunityFeedExtractResponses.
+   *     - orderItems[]: An array of OrderItems. An Opportunity can be included in an Order multiple times to represent
+   *       purchasing space at the Opportunity for multiple people. So this array contains all OrderItems which contain
+   *       this Opportunity. You can therefore use `orderItems.length` to determine how many times the Opportunity is
+   *       used in the Order.
    * @param {() => Input} args.getInput
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {FlowStage<unknown, unknown>} args.prerequisite
