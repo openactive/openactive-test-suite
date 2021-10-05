@@ -16,14 +16,14 @@ FeatureHelper.describeFeature(module, {
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger);
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected customer details', () => {
-      const apiResponseJson = c2.getOutput().httpResponse.body;
+      const apiResponseJson = c2.getStage('c2').getOutput().httpResponse.body;
       expect(apiResponseJson).to.have.nested.property('customer.email', defaultFlowStageParams.customer.email);
       expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
       expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);

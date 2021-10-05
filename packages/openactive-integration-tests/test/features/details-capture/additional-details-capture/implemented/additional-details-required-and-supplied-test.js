@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initialize Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
     c2ReqTemplateRef: 'additionalDetailsSupplied',
     bookReqTemplateRef: 'additionalDetailsSupplied',
   });
