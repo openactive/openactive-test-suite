@@ -145,7 +145,8 @@ const FlowStageUtils = {
 
   /**
    * Randomly generate customer details
-   * @param {string} uuid
+   * @param {string} uuid Used as a seed to random number generation. This is just to improve the distribution
+   *   of random test data throughout tests.
    * @returns {Customer}
    */
   createRandomCustomerDetails(uuid) {

@@ -4,8 +4,8 @@ const {
   FlowStageRecipes,
   FlowStageUtils,
   FetchOpportunitiesFlowStage,
-  C2FlowStage,
 } = require('../../../../helpers/flow-stages');
+const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
 const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
 
 FeatureHelper.describeFeature(module, {
@@ -29,37 +29,45 @@ FeatureHelper.describeFeature(module, {
     fetchOpportunities: firstAttemptFetchOpportunities,
     c1: firstAttemptC1,
     c2: firstAttemptC2,
-    defaultFlowStageParams,
-  } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+    defaultFlowStageParams: firstAttemptDefaultFlowStageParams,
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
 
-  const secondAttemptCustomerDetails = FlowStageUtils.createRandomCustomerDetails();
+  const secondAttemptCustomerDetails = FlowStageUtils.createRandomCustomerDetails(firstAttemptDefaultFlowStageParams.uuid);
+  const secondAttemptDefaultFlowStageParams = {
+    ...firstAttemptDefaultFlowStageParams,
+    customer: secondAttemptCustomerDetails,
+  };
 
   // Flow stages for second attempt: C2 -> B
   const secondAttemptFetchOpportunities = new FetchOpportunitiesFlowStage({
     /* Note that we use the same default flow stage params, which also means that the 2nd attempt
     uses the same UUID as the 1st attempt.
     This is correct as the 2nd attempt is an amendment of the 1st OrderQuote */
-    ...defaultFlowStageParams,
-    prerequisite: firstAttemptC2,
+    ...secondAttemptDefaultFlowStageParams,
+    prerequisite: firstAttemptC2.getLastStage(),
     orderItemCriteriaList,
   });
-  const secondAttemptC2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: secondAttemptFetchOpportunities,
-    customer: secondAttemptCustomerDetails,
-    getInput: () => ({
-      orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
-    }),
+  const secondAttemptC2 = FlowStageRecipes.runs.book.c2AssertCapacity(secondAttemptFetchOpportunities, secondAttemptDefaultFlowStageParams, {
+    c2Args: {
+      getInput: () => ({
+        orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+      }),
+    },
+    assertOpportunityCapacityArgs: {
+      getInput: () => secondAttemptFetchOpportunities.getOutput(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC2SkippingC1(true),
+    },
   });
-  const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, {
-    ...defaultFlowStageParams,
-    customer: secondAttemptCustomerDetails,
-  }, {
-    prerequisite: secondAttemptC2,
+  const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, secondAttemptDefaultFlowStageParams, {
+    prerequisite: secondAttemptC2.getLastStage(),
     getFirstStageInput: () => ({
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: secondAttemptC2.getOutput().totalPaymentDue,
-      prepayment: secondAttemptC2.getOutput().prepayment,
+      totalPaymentDue: secondAttemptC2.getStage('c2').getOutput().totalPaymentDue,
+      prepayment: secondAttemptC2.getStage('c2').getOutput().prepayment,
+    }),
+    getAssertOpportunityCapacityInput: () => ({
+      orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+      opportunityFeedExtractResponses: secondAttemptC2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
     }),
   });
 
@@ -77,10 +85,10 @@ FeatureHelper.describeFeature(module, {
       itEachOrderItemIdShouldMatchThoseFromFeed({
         orderItemCriteriaList,
         fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
-        apiFlowStage: secondAttemptC2,
+        apiFlowStage: secondAttemptC2.getStage('c2'),
       });
       it('should include expected email address', () => {
-        const apiResponseJson = secondAttemptC2.getOutput().httpResponse.body;
+        const apiResponseJson = secondAttemptC2.getStage('c2').getOutput().httpResponse.body;
         expect(apiResponseJson).to.have.nested.property('customer.email', secondAttemptCustomerDetails.email);
       });
     });

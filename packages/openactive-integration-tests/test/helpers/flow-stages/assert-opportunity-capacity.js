@@ -214,6 +214,20 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
   }
 
   /**
+   * Similar to getOpportunityExpectedCapacityAfterC2(..) but for tests which skip C1. This means that the capacity
+   * will be expected to have changed if either anon- or named-leasing are enabled.
+   *
+   * @param {boolean} isExpectedToSucceed Is C2 expected to succeed or fail? If fail, then, capacity will be expected
+   * to not have changed.
+   */
+  static getOpportunityExpectedCapacityAfterC2SkippingC1(isExpectedToSucceed) {
+    return (isExpectedToSucceed && (IMPLEMENTED_FEATURES['anonymous-leasing'] || IMPLEMENTED_FEATURES['named-leasing']))
+      // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
+      ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
+      : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity;
+  }
+
+  /**
    * @param {boolean} isExpectedToSucceed Is Book expected to succeed or fail? If fail, then, capacity will be expected
    * to not have changed.
    */

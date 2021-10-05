@@ -6,6 +6,8 @@ const {
 } = require('../../../../helpers/flow-stages');
 const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
 const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
+// TODO TODO TODO for these amend tests, they should also test that the switched out OrderItems have their capacity
+// increased.
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
