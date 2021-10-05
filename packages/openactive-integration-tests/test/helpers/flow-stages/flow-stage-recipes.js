@@ -895,6 +895,36 @@ const FlowStageRecipes = {
           assertOpportunityCapacityAfterC2,
         }, ['c2', 'assertOpportunityCapacityAfterC2']);
       },
+      /**
+       * @param {UnknownFlowStageType} prerequisite
+       * @param {DefaultFlowStageParams} defaultFlowStageParams
+       * @param {object} args
+       * @param {boolean} args.isExpectedToSucceed
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof BFlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid'>} args.bArgs
+       * @param {FetchOpportunitiesFlowStage} args.fetchOpportunities
+       * @param {AssertOpportunityCapacityFlowStage} args.previousAssertOpportunityCapacity
+       */
+      simpleBAssertCapacity(prerequisite, defaultFlowStageParams, { isExpectedToSucceed, bArgs, fetchOpportunities, previousAssertOpportunityCapacity }) {
+        const b = new BFlowStage({
+          ...defaultFlowStageParams,
+          prerequisite,
+          ...bArgs,
+        });
+        const assertOpportunityCapacityAfterB = new AssertOpportunityCapacityFlowStage({
+          ...defaultFlowStageParams,
+          nameOfPreviousStage: 'B',
+          prerequisite: b,
+          getInput: () => ({
+            orderItems: fetchOpportunities.getOutput().orderItems,
+            opportunityFeedExtractResponses: previousAssertOpportunityCapacity.getOutput().opportunityFeedExtractResponses,
+          }),
+          getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(isExpectedToSucceed),
+        });
+        return new FlowStageRun({
+          b,
+          assertOpportunityCapacityAfterB,
+        }, ['b', 'assertOpportunityCapacityAfterB']);
+      },
     },
   },
 };

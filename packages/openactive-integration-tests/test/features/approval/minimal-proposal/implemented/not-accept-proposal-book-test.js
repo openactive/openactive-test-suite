@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils, PFlowStage, BFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils, PFlowStage } = require('../../../../helpers/flow-stages');
+// const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -43,17 +44,42 @@ FeatureHelper.describeFeature(module, {
       prepayment: c2.getStage('c2').getOutput().prepayment,
     }),
   });
-  const b = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: p,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
-      prepayment: c2.getStage('c2').getOutput().prepayment,
-      orderProposalVersion: p.getOutput().orderProposalVersion,
-      positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
-    }),
+  const b = FlowStageRecipes.runs.book.simpleBAssertCapacity(p, defaultFlowStageParams, {
+    isExpectedToSucceed: false,
+    fetchOpportunities,
+    previousAssertOpportunityCapacity: c2.getStage('assertOpportunityCapacityAfterC2'),
+    bArgs: {
+      getInput: () => ({
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
+        prepayment: c2.getStage('c2').getOutput().prepayment,
+        orderProposalVersion: p.getOutput().orderProposalVersion,
+        positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
+      }),
+    },
   });
+  // const b = new BFlowStage({
+  //   ...defaultFlowStageParams,
+  //   prerequisite: p,
+  //   getInput: () => ({
+  //     orderItems: fetchOpportunities.getOutput().orderItems,
+  //     totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
+  //     prepayment: c2.getStage('c2').getOutput().prepayment,
+  //     orderProposalVersion: p.getOutput().orderProposalVersion,
+  //     positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
+  //   }),
+  // });
+  // // Capacity should not be decreased by B (as it failed)
+  // const assertOpportunityCapacityAfterB = new AssertOpportunityCapacityFlowStage({
+  //   ...defaultFlowStageParams,
+  //   nameOfPreviousStage: 'B',
+  //   prerequisite: b,
+  //   getInput: () => ({
+  //     orderItems: fetchOpportunities.getOutput().orderItems,
+  //     opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
+  //   }),
+  //   getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(false),
+  // });
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
@@ -71,6 +97,6 @@ FeatureHelper.describeFeature(module, {
     // TODO does validator check that full Seller details are included in the seller response?
   });
   FlowStageUtils.describeRunAndCheckIsValid(b, () => {
-    itShouldReturnAnOpenBookingError('OrderCreationFailedError', 500, () => b.getOutput().httpResponse);
+    itShouldReturnAnOpenBookingError('OrderCreationFailedError', 500, () => b.getStage('b').getOutput().httpResponse);
   });
 });
