@@ -27,7 +27,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
     });
     describe('at C2', () => {
       // broker is included, by default, in C2 request
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
         brokerRole: 'https://openactive.io/NoBroker',
         c1ReqTemplateRef: 'noBroker',
         c2ExpectToFail: true,
@@ -38,7 +38,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
     });
     describe('at B or P', () => {
       // broker is included, by default, in B or P request
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
         brokerRole: 'https://openactive.io/NoBroker',
         c1ReqTemplateRef: 'noBroker',
         c2ReqTemplateRef: 'noBroker',

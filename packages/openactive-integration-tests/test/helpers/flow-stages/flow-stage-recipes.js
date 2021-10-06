@@ -11,8 +11,6 @@ const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 
-const { IMPLEMENTED_FEATURES } = global;
-
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
@@ -83,7 +81,7 @@ const FlowStageRecipes = {
    * @param {BaseLoggerType} logger
    * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
    */
-  initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
     bookReqTemplateRef = null,
     brokerRole = null,
     accessPass = null,
@@ -95,7 +93,7 @@ const FlowStageRecipes = {
       c1,
       c2,
       defaultFlowStageParams,
-    } = FlowStageRecipes.initialiseSimpleC1C2Flow2(
+    } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
       logger,
       {
@@ -132,73 +130,6 @@ const FlowStageRecipes = {
     };
   },
   /**
-   * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> Book (*) flow.
-   *
-   * Rather than setting custom input for each stage, the input is just fed automatically
-   * from the output of previous stages.
-   *
-   * DO NOT USE THIS FUNCTION if you want to use custom inputs for each stage (e.g.
-   * to create erroneous requests).
-   *
-   * (*) Book = B or P -> A -> B. See FlowStageRecipes.book(..) for more info.
-   *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
-   * @param {BaseLoggerType} logger
-   * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
-   */
-  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
-    bookReqTemplateRef = null,
-    brokerRole = null,
-    accessPass = null,
-    ...options
-  } = {}) {
-    // ## Initiate Flow Stages
-    const {
-      fetchOpportunities,
-      c1,
-      assertOpportunityCapacityAfterC1,
-      c2,
-      assertOpportunityCapacityAfterC2,
-      defaultFlowStageParams,
-    } = FlowStageRecipes.initialiseSimpleC1C2Flow(
-      orderItemCriteriaList,
-      logger,
-      {
-        ...options,
-        brokerRole,
-      },
-    );
-    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
-      prerequisite: assertOpportunityCapacityAfterC2,
-      accessPass,
-      brokerRole,
-      firstStageReqTemplateRef: bookReqTemplateRef,
-      getFirstStageInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        totalPaymentDue: c2.getOutput().totalPaymentDue,
-        prepayment: c2.getOutput().prepayment,
-        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
-      }),
-      getAssertOpportunityCapacityInput: () => ({
-        opportunityFeedExtractResponses: assertOpportunityCapacityAfterC2.getOutput().opportunityFeedExtractResponses,
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
-    });
-
-    return {
-      fetchOpportunities,
-      c1,
-      assertOpportunityCapacityAfterC1,
-      c2,
-      assertOpportunityCapacityAfterC2,
-      bookRecipe,
-      // This is included in the result so that additional stages can be added using
-      // these params.
-      defaultFlowStageParams,
-    };
-  },
-
-  /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 flow
    *
    * Rather than setting custom input for each stage, the input is just fed automatically
@@ -212,89 +143,6 @@ const FlowStageRecipes = {
    * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef'>} [options]
    */
   initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
-    c1ReqTemplateRef = null,
-    c2ReqTemplateRef = null,
-    brokerRole = null,
-    taxMode = null,
-    ...options
-  } = {}) {
-    const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({
-      orderItemCriteriaList, logger, taxMode,
-    });
-    const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...defaultFlowStageParams,
-    });
-    const c1 = new C1FlowStage({
-      ...defaultFlowStageParams,
-      templateRef: c1ReqTemplateRef,
-      brokerRole,
-      prerequisite: fetchOpportunities,
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
-    });
-    const assertOpportunityCapacityAfterC1 = new AssertOpportunityCapacityFlowStage({
-      nameOfPreviousStage: 'C1',
-      getOpportunityExpectedCapacity: IMPLEMENTED_FEATURES['anonymous-leasing']
-        // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
-        ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-        : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
-      getInput: () => ({
-        opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
-      prerequisite: c1,
-      ...defaultFlowStageParams,
-    });
-    const c2 = new C2FlowStage({
-      ...defaultFlowStageParams,
-      templateRef: c2ReqTemplateRef,
-      brokerRole,
-      prerequisite: assertOpportunityCapacityAfterC1,
-      getInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
-      }),
-    });
-    const assertOpportunityCapacityAfterC2 = new AssertOpportunityCapacityFlowStage({
-      nameOfPreviousStage: 'C2',
-      getOpportunityExpectedCapacity: (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing'])
-        // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
-        ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-        : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
-      getInput: () => ({
-        opportunityFeedExtractResponses: assertOpportunityCapacityAfterC1.getOutput().opportunityFeedExtractResponses,
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
-      prerequisite: c2,
-      ...defaultFlowStageParams,
-    });
-    return {
-      fetchOpportunities,
-      c1,
-      assertOpportunityCapacityAfterC1,
-      c2,
-      assertOpportunityCapacityAfterC2,
-      // This is included in the result so that additional stages can be added using
-      // these params.
-      defaultFlowStageParams,
-    };
-  },
-  // TODO TODO TODO replace all instances of initialiseSimpleC1C2Flow with this func.
-  /**
-   * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 flow
-   *
-   * Rather than setting custom input for each stage, the input is just fed automatically
-   * from the output of previous stages.
-   *
-   * DO NOT USE THIS FUNCTION if you want to use custom inputs for each stage (e.g.
-   * to create erroneous requests).
-   *
-   * @param {OpportunityCriteria[]} orderItemCriteriaList
-   * @param {BaseLoggerType} logger
-   * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef'>} [options]
-   */
-  initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, {
     c2ReqTemplateRef = null,
     brokerRole = null,
     taxMode = null,
@@ -307,9 +155,6 @@ const FlowStageRecipes = {
       taxMode,
       ...options,
     });
-    // C2 should decrement capacity when named-leasing is supported as C2 will do a lease
-    // ...unless C2 is expected to fail
-    const shouldCapacityDecrement = !c2ExpectToFail && (!IMPLEMENTED_FEATURES['anonymous-leasing'] && IMPLEMENTED_FEATURES['named-leasing']);
     const c2 = FlowStageRecipes.runs.book.c2AssertCapacity(c1.getLastStage(), defaultFlowStageParams, {
       c2Args: {
         templateRef: c2ReqTemplateRef,
@@ -320,9 +165,7 @@ const FlowStageRecipes = {
         }),
       },
       assertOpportunityCapacityArgs: {
-        getOpportunityExpectedCapacity: shouldCapacityDecrement
-          ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-          : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+        getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC2(!c2ExpectToFail),
         getInput: () => ({
           opportunityFeedExtractResponses: c1.getStage('assertOpportunityCapacityAfterC1').getOutput().opportunityFeedExtractResponses,
           orderItems: fetchOpportunities.getOutput().orderItems,
@@ -365,15 +208,7 @@ const FlowStageRecipes = {
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
     });
-    // const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, taxMode });
     const c1ExpectToFail = options.c1ExpectToFail ?? false;
-    // const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    //   ...defaultFlowStageParams,
-    //   orderItemCriteriaList,
-    // });
-    // C1 should decrement capacity when anonymous-leasing is supported as C1 will do a lease
-    // ...unless C1 is expected to fail
-    const shouldCapacityDecrement = !c1ExpectToFail && IMPLEMENTED_FEATURES['anonymous-leasing'];
     const c1 = FlowStageRecipes.runs.book.c1AssertCapacity(fetchOpportunities, defaultFlowStageParams, {
       c1Args: {
         templateRef: c1ReqTemplateRef,
@@ -384,9 +219,7 @@ const FlowStageRecipes = {
         }),
       },
       assertOpportunityCapacityArgs: {
-        getOpportunityExpectedCapacity: shouldCapacityDecrement
-          ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-          : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+        getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC1(!c1ExpectToFail),
         getInput: () => ({
           opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
           orderItems: fetchOpportunities.getOutput().orderItems,
@@ -394,28 +227,6 @@ const FlowStageRecipes = {
         orderItemCriteriaList,
       },
     });
-    // const c1 = new C1FlowStage({
-    //   ...defaultFlowStageParams,
-    //   templateRef: c1ReqTemplateRef,
-    //   brokerRole,
-    //   prerequisite: fetchOpportunities,
-    //   getInput: () => ({
-    //     orderItems: fetchOpportunities.getOutput().orderItems,
-    //   }),
-    // });
-    // const assertOpportunityCapacityAfterC1 = new AssertOpportunityCapacityFlowStage({
-    //   nameOfPreviousStage: 'C1',
-    //   getOpportunityExpectedCapacity: shouldCapacityDecrement
-    //     ? AssertOpportunityCapacityFlowStage.getOpportunityDecrementedCapacity
-    //     : AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
-    //   getInput: () => ({
-    //     opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
-    //     orderItems: fetchOpportunities.getOutput().orderItems,
-    //   }),
-    //   prerequisite: c1,
-    //   orderItemCriteriaList,
-    //   ...defaultFlowStageParams,
-    // });
     return {
       fetchOpportunities,
       c1,
@@ -502,7 +313,7 @@ const FlowStageRecipes = {
    */
   successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, testInterfaceActionParams) {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
     const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
@@ -724,7 +535,7 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       cancelAndAssertCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
@@ -749,7 +560,7 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
@@ -785,7 +596,7 @@ const FlowStageRecipes = {
        * @param {import('./flow-stage').FlowStageType<unknown, Required<Pick<FlowStageOutput, 'opportunityFeedExtractResponses'>>>} args.lastOpportunityFeedExtractFlowStage
        *   If this cancellation happens after C1/C2/B, use the AssertOpportunityCapacity stage that followed that.
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList' | 'getOpportunityExpectedCapacity' | 'getInput'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList' | 'getOpportunityExpectedCapacity' | 'getInput'>} args.assertOpportunityCapacityArgs
        */
       failedCancelAndAssertCapacity(prerequisite, defaultFlowStageParams, {
         fetchOpportunitiesFlowStage,
@@ -866,7 +677,7 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof C1FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid' | 'orderItemCriteriaList'>} args.c1Args
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       c1AssertCapacity(prerequisite, defaultFlowStageParams, { c1Args, assertOpportunityCapacityArgs }) {
         const c1 = new C1FlowStage({
@@ -910,7 +721,7 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof C2FlowStage>[0], 'prerequisite' | 'logger' | 'requestHelper' | 'sellerConfig' | 'uuid' | 'orderItemCriteriaList'>} args.c2Args
-       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+       * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
       c2AssertCapacity(prerequisite, defaultFlowStageParams, { c2Args, assertOpportunityCapacityArgs }) {
         const c2 = new C2FlowStage({

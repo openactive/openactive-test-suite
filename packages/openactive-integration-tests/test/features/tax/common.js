@@ -91,7 +91,7 @@ function grossTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
       orderItemCriteriaList,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxGross' },
@@ -123,7 +123,7 @@ function netTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Init Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
       orderItemCriteriaList,
       logger,
       { ...options, taxMode: 'https://openactive.io/TaxNet' },

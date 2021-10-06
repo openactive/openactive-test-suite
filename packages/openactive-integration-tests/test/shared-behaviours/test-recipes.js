@@ -42,25 +42,6 @@ const TestRecipes = {
         testInterfaceAction,
         orderFeedUpdate,
       } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, testInterfaceActionParams);
-      // const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-      // const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-      //   wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      //     ...defaultFlowStageParams,
-      //     testName: `Test Interface Action (${testInterfaceActionParams.actionType})`,
-      //     prerequisite,
-      //     createActionFn: () => ({
-      //       type: testInterfaceActionParams.actionType,
-      //       // Note that these 2 fields may need to be configurable in future:
-      //       objectType: 'Order',
-      //       objectId: bookRecipe.b.getOutput().orderId,
-      //     }),
-      //   })),
-      //   orderFeedUpdateParams: {
-      //     ...defaultFlowStageParams,
-      //     prerequisite: bookRecipe.lastStage,
-      //     testName: `Orders Feed (after ${testInterfaceActionParams.actionType})`,
-      //   },
-      // });
 
       // ## Set up tests
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -104,7 +85,7 @@ const TestRecipes = {
     /** @type {RunTestsFn} */
     const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger);
+      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
       const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
         wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
           ...defaultFlowStageParams,

@@ -1,6 +1,7 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { assertIsNotNullish } = require('@tool-belt/type-predicates');
 const { uniqBy, intersection } = require('lodash');
+const sharedValidationTests = require('../../shared-behaviours/validation');
 const { pMapWithCache } = require('../utils');
 const { FlowStage } = require('./flow-stage');
 const { itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
@@ -115,13 +116,16 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {FlowStage<unknown, unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
+   * @param {BaseLoggerType} args.logger
    */
-  constructor({ nameOfPreviousStage, getOpportunityExpectedCapacity, getInput, orderItemCriteriaList, prerequisite, requestHelper }) {
+  constructor({ nameOfPreviousStage, getOpportunityExpectedCapacity, getInput, orderItemCriteriaList, prerequisite, requestHelper, logger }) {
     super({
       testName: `Assert Opportunity Capacity (after ${nameOfPreviousStage})`,
       getInput,
       prerequisite,
-      // TODO TODO TODO doc
+      /* Capacity Checks should occur even if the FlowStage that precedes it is expected to fail. This is because the
+      check should be calibrated to detect that - as it has failed - the capacity has not changed as it would have done
+      had it succeeded */
       alwaysDoSuccessChecks: true,
       async runFn(input) {
         const { opportunityFeedExtractResponses, orderItems } = input;
@@ -138,8 +142,18 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
           getterFn: () => flowStage.getOutput(),
         });
       },
-      // TODO validation
-      itValidationTestsFn: () => {
+      itValidationTestsFn: (flowStage) => {
+        orderItemCriteriaList.forEach((orderItemCriteriaItem, i) => {
+          sharedValidationTests.shouldBeValidResponse(
+            () => flowStage.getOutput().opportunityFeedExtractResponses[i],
+            `Opportunity Feed extract for OrderItem ${i}`,
+            logger,
+            {
+              validationMode: 'BookableRPDEFeed',
+            },
+            orderItemCriteriaItem.opportunityCriteria,
+          );
+        });
       },
     });
   }
@@ -169,7 +183,9 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
   }
 
   /**
-   * TODO TODO TODO doc - use this for cancellation
+   * Use this for an capacity assertion that occurs after a successful cancellation. The cancellation will have been
+   * configured to cancel specific OrderItems by position. So, the OrderItems with those cancelled positions should
+   * have had their capacity incremented.
    *
    * @param {number[]} orderItemPositions
    */
@@ -188,7 +204,6 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
     return getOpportunityExpectedCapacity;
   }
 
-  // TODO TODO TODO use C1 & C2 funcs in recipes
   /**
    * @param {boolean} isExpectedToSucceed Is C1 expected to succeed or fail? If fail, then, capacity will be expected
    * to not have changed.

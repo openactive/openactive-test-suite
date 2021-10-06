@@ -68,7 +68,7 @@ function successTests(expectedPrepayment, bookReqTemplateRef) {
   /** @type {RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, { bookReqTemplateRef });
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef });
 
     // ## Set up tests
     commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
@@ -96,7 +96,7 @@ function errorTests(expectedPrepayment, expectedError, bookReqTemplateRef) {
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
     describe(`${missingOrUnnecessary} payment property at B`, () => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
         bookReqTemplateRef,
         bookExpectToFail: true,
       });

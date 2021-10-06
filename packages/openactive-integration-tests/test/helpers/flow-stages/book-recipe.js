@@ -47,7 +47,6 @@ class BookRecipe {
       this._stagesSequenceBeforeLastStage = [this.b];
       this._isApproval = false;
     }
-    // TODO TODO TODO next step = have an assert be the last stage here.
   }
 
   isApproval() { return this._isApproval; }

@@ -34,7 +34,7 @@ FeatureHelper.describeFeature(module, {
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
   const p = new PFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),

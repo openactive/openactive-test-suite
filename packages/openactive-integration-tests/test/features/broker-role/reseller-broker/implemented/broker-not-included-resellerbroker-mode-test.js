@@ -26,7 +26,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       runFlowStageAndExpectIncompleteBrokerDetailsError(c1.getStage('c1'), c1);
     });
     describe('at C2', () => {
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
         c2ReqTemplateRef: 'noBroker',
         brokerRole: 'https://openactive.io/ResellerBroker',
         c2ExpectToFail: true,
@@ -36,7 +36,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       runFlowStageAndExpectIncompleteBrokerDetailsError(c2.getStage('c2'), c2);
     });
     describe('at B or P', () => {
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
         bookReqTemplateRef: 'noBroker',
         brokerRole: 'https://openactive.io/ResellerBroker',
         bookExpectToFail: true,

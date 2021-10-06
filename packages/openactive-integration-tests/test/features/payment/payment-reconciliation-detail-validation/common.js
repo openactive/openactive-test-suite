@@ -15,7 +15,7 @@ const { itShouldReturnAnOpenBookingError } = require('../../../shared-behaviours
 function notImplementedTest(reqTemplateRefs) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, reqTemplateRefs);
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, reqTemplateRefs);
 
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
@@ -33,7 +33,7 @@ function notImplementedTest(reqTemplateRefs) {
 function invalidDetailsTest(templateRef) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger,
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger,
       {
         c1ReqTemplateRef: templateRef,
         c2ReqTemplateRef: templateRef,
@@ -89,7 +89,7 @@ function paymentReconciliationSuccessTest(freeOpportunities) {
       });
     });
 
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {

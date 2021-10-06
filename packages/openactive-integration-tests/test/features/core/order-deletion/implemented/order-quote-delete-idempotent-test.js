@@ -18,7 +18,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
   const deleteOrderQuote1 = new OrderQuoteDeletionFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),

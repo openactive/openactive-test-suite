@@ -30,7 +30,7 @@ FeatureHelper.describeFeature(module, {
     c1: firstAttemptC1,
     c2: firstAttemptC2,
     defaultFlowStageParams: firstAttemptDefaultFlowStageParams,
-  } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
 
   const secondAttemptCustomerDetails = FlowStageUtils.createRandomCustomerDetails(firstAttemptDefaultFlowStageParams.uuid);
   const secondAttemptDefaultFlowStageParams = {

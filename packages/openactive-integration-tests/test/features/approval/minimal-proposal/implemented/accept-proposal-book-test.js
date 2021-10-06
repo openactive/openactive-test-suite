@@ -40,7 +40,7 @@ FeatureHelper.describeFeature(module, {
     c1,
     c2,
     defaultFlowStageParams,
-  } = FlowStageRecipes.initialiseSimpleC1C2Flow2(
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow(
     orderItemCriteriaList,
     logger,
   );

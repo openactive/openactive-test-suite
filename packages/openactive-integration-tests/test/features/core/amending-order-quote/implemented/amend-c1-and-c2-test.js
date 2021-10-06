@@ -31,7 +31,7 @@ FeatureHelper.describeFeature(module, {
     c1: firstAttemptC1,
     c2: firstAttemptC2,
     defaultFlowStageParams,
-  } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
   // Flow stages for second attempt: C1 -> B
   const secondAttemptFetchOpportunities = new FetchOpportunitiesFlowStage({
     /* Note that we use the same default flow stage params, which also means that the 2nd attempt

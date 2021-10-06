@@ -48,7 +48,7 @@ FeatureHelper.describeFeature(module, {
   // const requestHelper = new RequestHelper(logger);
 
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
   const p = new PFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),

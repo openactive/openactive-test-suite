@@ -46,7 +46,7 @@ FeatureHelper.describeFeature(module, {
     sellerConfig: global.SELLER_CONFIG.secondary, // secondary seller is used to build request data.
     orderItemCriteriaList,
   });
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
     orderItemCriteriaList,
     logger,
     {

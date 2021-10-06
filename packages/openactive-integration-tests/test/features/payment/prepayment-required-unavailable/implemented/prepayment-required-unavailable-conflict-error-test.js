@@ -48,7 +48,7 @@ FeatureHelper.describeFeature(module, {
   skipMultiple: !canDoTestWithControl,
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // Iniitate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow2(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
     c1ExpectToFail: true,
     c2ExpectToFail: true,
     bookExpectToFail: true,

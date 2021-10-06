@@ -18,7 +18,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   describe('Booking should fail if Customer is not included in Order, because we are in AgentBroker mode', () => {
     // Note that we ignore testing at C1 because C1 has no customer anyway
     describe('at C2', () => {
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
         c2ReqTemplateRef: 'noCustomer',
         c2ExpectToFail: true,
       });
