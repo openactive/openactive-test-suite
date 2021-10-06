@@ -25,8 +25,4 @@ FeatureHelper.describeFeature(module, {
     control: false,
     bookingFlow,
   }],
-  // TODO TODO TODO remove me
-  skipMultiple: true,
-  skipBookingFlows: ['OpenBookingApprovalFlow'],
-  skipOpportunityTypes: ['IndividualFacilityUseSlot', 'FacilityUseSlot'],
 }, runAnonymousLeasingCapacityTests(false));

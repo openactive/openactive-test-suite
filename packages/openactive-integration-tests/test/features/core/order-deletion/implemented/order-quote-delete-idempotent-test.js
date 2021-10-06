@@ -19,26 +19,6 @@ FeatureHelper.describeFeature(module, {
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
-  // // TODO TODO TODO use flowstageRecipes.c1c2 & maybe assertion after order quote deletion?
-  // const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-  // const fetchOpportunities = new FetchOpportunitiesFlowStage({
-  //   ...defaultFlowStageParams,
-  //   orderItemCriteriaList,
-  // });
-  // const c1 = new C1FlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: fetchOpportunities,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //   }),
-  // });
-  // const c2 = new C2FlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: c1,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //   }),
-  // });
   const deleteOrderQuote1 = new OrderQuoteDeletionFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),

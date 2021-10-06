@@ -1,6 +1,7 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { assertIsNotNullish } = require('@tool-belt/type-predicates');
 const { uniqBy, intersection } = require('lodash');
+const { pMapWithCache } = require('../utils');
 const { FlowStage } = require('./flow-stage');
 const { itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
 
@@ -67,23 +68,20 @@ async function runAssertOpportunityCapacity({
   const expectedCapacityForEachUniqueOpportunity = getGetMatchRequestInfoByOpportunityId(
     getOpportunityExpectedCapacity, initialOpportunityFeedExtractResponses, orderItems,
   );
-  // TODO TODO put this pattern into a function
-  // TODO TODO TODO doc why this needed here - not just as optimization
-  /** @type {Map<string, Promise<ChakramResponse>>} */
-  const reusableGetMatchPromises = new Map();
-  const opportunityFeedExtractResponsePromises = initialOpportunityFeedExtractResponses.map((opportunityFeedExtractResponse) => {
-    const opportunityId = getAndAssertOpportunityFromOpportunityFeedExtractResponse(opportunityFeedExtractResponse)['@id'];
-    if (reusableGetMatchPromises.has(opportunityId)) {
-      return reusableGetMatchPromises.get(opportunityId);
-    }
-    const getMatchDetails = expectedCapacityForEachUniqueOpportunity.get(opportunityId);
-    assertIsNotNullish(getMatchDetails);
-    const { opportunity, orderItem, expectedCapacity } = getMatchDetails;
-    const matchPromise = requestHelper.getMatch(opportunity['@id'], orderItem.position, true, { expectedCapacity });
-    reusableGetMatchPromises.set(opportunityId, matchPromise);
-    return matchPromise;
-  });
-  const opportunityFeedExtractResponses = await Promise.all(opportunityFeedExtractResponsePromises);
+  // TODO TODO TODO how to use a same pattern here as with other `reusable-`s..?
+  /* This cache is not just an optimization but a necessity. Broker rejects old GetMatch requests if it gets a new
+  request for the same Opportunity ID. So, this cache means that there will only be one request per Opportunity ID */
+  const opportunityFeedExtractResponses = await pMapWithCache(
+    initialOpportunityFeedExtractResponses,
+    opportunityFeedExtractResponse => (
+      getAndAssertOpportunityFromOpportunityFeedExtractResponse(opportunityFeedExtractResponse)['@id']),
+    (opportunityFeedExtractResponse, opportunityId) => {
+      const getMatchDetails = expectedCapacityForEachUniqueOpportunity.get(opportunityId);
+      assertIsNotNullish(getMatchDetails);
+      const { opportunity, orderItem, expectedCapacity } = getMatchDetails;
+      return requestHelper.getMatch(opportunity['@id'], orderItem.position, true, { expectedCapacity });
+    },
+  );
   /* This is output from this FlowStage so that a future AssertOpportunityCapacityFlowStage can use it
   e.g. if C1 is supposed to change capacity, then an Assert.. FlowStage after C2 can be set to expect that capacity
   has not changed since it was checked in C1 by using the opportunityFeedExtractResponses that are output from the

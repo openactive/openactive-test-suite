@@ -48,27 +48,7 @@ FeatureHelper.describeFeature(module, {
   // const requestHelper = new RequestHelper(logger);
 
   // ## Initiate Flow Stages
-  // TODO TODO TODO use flowstageRecipes.c1c2 & then add manual assertion after book
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow2(orderItemCriteriaList, logger);
-  // const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  // const fetchOpportunities = new FetchOpportunitiesFlowStage({
-  //   ...defaultFlowStageParams,
-  //   orderItemCriteriaList,
-  // });
-  // const c1 = new C1FlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: fetchOpportunities,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //   }),
-  // });
-  // const c2 = new C2FlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: c1,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //   }),
-  // });
   const p = new PFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),
@@ -132,16 +112,6 @@ FeatureHelper.describeFeature(module, {
       }),
     },
   });
-  // const bOldProposalVersion = new BFlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: orderFeedUpdate,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //     totalPaymentDue: p.getOutput().totalPaymentDue,
-  //     orderProposalVersion: p.getOutput().orderProposalVersion,
-  //     prepayment: p.getOutput().prepayment,
-  //   }),
-  // });
   // Using the new proposal version should fail
   const bNewProposalVersion = FlowStageRecipes.runs.book.simpleBAssertCapacity(bOldProposalVersion.getLastStage(), defaultFlowStageParams, {
     isExpectedToSucceed: true,
@@ -156,26 +126,6 @@ FeatureHelper.describeFeature(module, {
       }),
     },
   });
-  // const bNewProposalVersion = new BFlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: orderFeedUpdate,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //     totalPaymentDue: sellerAmendmentOrderFeedUpdate.getOutput().totalPaymentDue,
-  //     orderProposalVersion: sellerAmendmentOrderFeedUpdate.getOutput().orderProposalVersion,
-  //     prepayment: sellerAmendmentOrderFeedUpdate.getOutput().prepayment,
-  //   }),
-  // });
-  // const assertOpportunityCapacityAfterB = new AssertOpportunityCapacityFlowStage({
-  //   ...defaultFlowStageParams,
-  //   nameOfPreviousStage: 'B',
-  //   prerequisite: bNewProposalVersion,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //     opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
-  //   }),
-  //   getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(true),
-  // });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

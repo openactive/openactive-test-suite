@@ -165,7 +165,7 @@
     },
     "anonymous-leasing": {
       "primary": {
-        "TestOpportunityBookableFiveSpaces": 1,
+        "TestOpportunityBookableFiveSpaces": 2,
         "TestOpportunityBookableOneSpace": 2,
         "TestOpportunityBookable": 4
       }

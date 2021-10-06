@@ -27,23 +27,6 @@ FeatureHelper.describeFeature(module, {
     fetchOpportunities,
     getOrderId: () => bookRecipe.b.getOutput().orderId,
   });
-  // const [simulateSellerCancellation, orderFeedUpdateAfterCancel] = OrderFeedUpdateFlowStageUtils.wrap({
-  //   wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-  //     ...defaultFlowStageParams,
-  //     testName: 'Simulate Seller Cancellation (Test Interface Action)',
-  //     prerequisite,
-  //     createActionFn: () => ({
-  //       type: 'test:SellerRequestedCancellationSimulateAction',
-  //       objectType: 'Order',
-  //       objectId: bookRecipe.b.getOutput().orderId,
-  //     }),
-  //   })),
-  //   orderFeedUpdateParams: {
-  //     ...defaultFlowStageParams,
-  //     prerequisite: bookRecipe.lastStage,
-  //     testName: 'Orders Feed (after Simulate Seller Cancellation)',
-  //   },
-  // });
 
   const [deleteOrder, orderFeedUpdateAfterDelete] = OrderFeedUpdateFlowStageUtils.wrap({
     wrappedStageFn: prerequisite => (new OrderDeletionFlowStage({

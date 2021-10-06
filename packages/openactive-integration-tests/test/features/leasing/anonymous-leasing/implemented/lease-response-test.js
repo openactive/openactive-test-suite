@@ -34,20 +34,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  // TODO TODO TODO use flowstageRecipes.c1c2
   const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger);
-  // const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-  // const fetchOpportunities = new FetchOpportunitiesFlowStage({
-  //   ...defaultFlowStageParams,
-  //   orderItemCriteriaList,
-  // });
-  // const c1 = new C1FlowStage({
-  //   ...defaultFlowStageParams,
-  //   prerequisite: fetchOpportunities,
-  //   getInput: () => ({
-  //     orderItems: fetchOpportunities.getOutput().orderItems,
-  //   }),
-  // });
 
   it('should implement named leasing as well', () => {
     // eslint-disable-next-line no-unused-expressions
