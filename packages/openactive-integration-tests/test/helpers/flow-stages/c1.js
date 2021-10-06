@@ -58,12 +58,18 @@ class C1FlowStage extends FlowStage {
    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
    * @param {() => Input} args.getInput
    * @param {string | null} [args.brokerRole]
+   * @param {boolean} [args.doSimpleAutomaticCapacityCheck] Defaults to true.
+   *   If false, C1FlowStage will NOT automatically check that the items in the C1 response have unchanged capacity.
+   *
+   *   Since these capacity checks just compare the response with the OrderItems in getInput(), they work well for a
+   *   simple Fetch -> C1 setup - but they may not work for more complicated set-ups e.g. where C1 is called multiple
+   *   times in a row with anonymous leasing.
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ orderItemCriteriaList, templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig }) {
+  constructor({ orderItemCriteriaList, templateRef, prerequisite, getInput, brokerRole, doSimpleAutomaticCapacityCheck = true, logger, requestHelper, uuid, sellerConfig }) {
     super({
       prerequisite,
       getInput,
@@ -81,11 +87,13 @@ class C1FlowStage extends FlowStage {
       },
       itSuccessChecksFn: (flowStage) => {
         FlowStageUtils.simpleHttp200SuccessChecks()(flowStage);
-        Common.itForEachOrderItemShouldHaveUnchangedCapacity({
-          orderItemCriteriaList,
-          getFeedOrderItems: () => getInput().orderItems,
-          getOrdersApiResponse: () => this.getOutput().httpResponse,
-        });
+        if (doSimpleAutomaticCapacityCheck) {
+          Common.itForEachOrderItemShouldHaveUnchangedCapacity({
+            orderItemCriteriaList,
+            getFeedOrderItems: () => getInput().orderItems,
+            getOrdersApiResponse: () => this.getOutput().httpResponse,
+          });
+        }
       },
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, { name: 'C1', validationMode: 'C1Response' }),
     });

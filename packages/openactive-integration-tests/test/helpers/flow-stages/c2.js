@@ -63,13 +63,19 @@ class C2FlowStage extends FlowStage {
    * @param {FlowStage<unknown>} [args.prerequisite]
    * @param {() => Input} args.getInput
    * @param {string | null} [args.brokerRole]
+   * @param {boolean} [args.doSimpleAutomaticCapacityCheck] Defaults to true.
+   *   If false, C2FlowStage will NOT automatically check that the items in the C2 response have unchanged capacity.
+   *
+   *   Since these capacity checks just compare the response with the OrderItems in getInput(), they work well for a
+   *   simple Fetch -> C1 -> C2 setup - but they may not work for more complicated set-ups e.g. where C2 is called
+   *   multiple times in a row with named leasing.
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
    * @param {Customer} [args.customer]
    */
-  constructor({ orderItemCriteriaList, templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig, customer }) {
+  constructor({ orderItemCriteriaList, templateRef, prerequisite, getInput, brokerRole, doSimpleAutomaticCapacityCheck = true, logger, requestHelper, uuid, sellerConfig, customer }) {
     super({
       prerequisite,
       testName: 'C2',
@@ -89,11 +95,13 @@ class C2FlowStage extends FlowStage {
       },
       itSuccessChecksFn: (flowStage) => {
         FlowStageUtils.simpleHttp200SuccessChecks()(flowStage);
-        Common.itForEachOrderItemShouldHaveUnchangedCapacity({
-          orderItemCriteriaList,
-          getFeedOrderItems: () => getInput().orderItems,
-          getOrdersApiResponse: () => this.getOutput().httpResponse,
-        });
+        if (doSimpleAutomaticCapacityCheck) {
+          Common.itForEachOrderItemShouldHaveUnchangedCapacity({
+            orderItemCriteriaList,
+            getFeedOrderItems: () => getInput().orderItems,
+            getOrdersApiResponse: () => this.getOutput().httpResponse,
+          });
+        }
       },
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, {
         name: 'C2',

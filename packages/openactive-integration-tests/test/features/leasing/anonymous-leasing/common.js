@@ -38,10 +38,13 @@ function runAnonymousLeasingCapacityTests(unit) {
       expectedCapacityFromPreviousSuccessfulLeases,
       shouldSucceed,
     }, itAdditionalTests) => {
+      // const orderItemCriteriaListMultipliedIntoBatches = multiplyObjectsIntoBatches(orderItemCriteriaList, numberOfItems);
       const newBatchC1 = new C1FlowStage({
         /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
         rather than an amendment of the previous one */
         ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList }),
+        // This test does its own more complicated capacity checks
+        doSimpleAutomaticCapacityCheck: false,
         prerequisite: prerequisiteFlowStage,
         getInput: () => ({
           orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),

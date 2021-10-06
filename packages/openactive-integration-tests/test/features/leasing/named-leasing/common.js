@@ -42,13 +42,18 @@ function runNamedLeasingCapacityTests(unit) {
       const newBatchC1 = new C1FlowStage({
         ...defaultFlowStageParams,
         prerequisite: prerequisiteFlowStage,
+        // This test does its own more complicated capacity checks
+        doSimpleAutomaticCapacityCheck: false,
         getInput: () => ({
           orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
         }),
       });
+      /** @type {ConstructorParameters<typeof C2FlowStage>[0]} */
       const newBatchC2ConstructionArgs = {
         ...defaultFlowStageParams,
         prerequisite: newBatchC1,
+        // This test does its own more complicated capacity checks
+        doSimpleAutomaticCapacityCheck: false,
         getInput: () => ({
           orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
           positionOrderIntakeFormMap: newBatchC1.getOutput().positionOrderIntakeFormMap,
