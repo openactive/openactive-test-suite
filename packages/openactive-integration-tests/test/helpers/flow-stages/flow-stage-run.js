@@ -1,15 +1,17 @@
 // Remaining TODOs (TODO TODO TODO)
-// - Make work with all other tests (e.g. accept-proposal-book seems not to work)
-//   * Leasing
-// - book-and-seller-replace-items: Test switched out OrderItems
-// - amending-order-quote tests: Test switched out OrderItems
-// - order-deletion tests: Assert capacity goes up after deletion.
-// - leasing: Assert Capacity changes in batched tests. Might be complicated..
+// - [x] Make work with all other tests (e.g. accept-proposal-book seems not to work)
+//   * [x] Leasing
 // - [x] How to make Assert C1/C2 stage output show in logs (maybe genericise BookRecipe similar to below draft)
-// - Validation tests for Assert stages
+// - [x] Pass lint/TS
+// - [x] Validation tests for Assert stages
 // - Couple remaining TODOs
-const { assertIsNotNullish } = require('@tool-belt/type-predicates');
+// - more complicated use cases:
+//   * book-and-seller-replace-items: Test switched out OrderItems
+//   * amending-order-quote tests: Test switched out OrderItems
+//   * order-deletion tests: Assert capacity goes up after deletion.
+//   * leasing: Assert Capacity changes in batched tests. Might be complicated..
 const { last } = require('lodash');
+const { assertIsNotNullish } = require('../asserts');
 
 /**
  * @typedef {import('./flow-stage').UnknownFlowStageType} UnknownFlowStageType

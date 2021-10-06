@@ -1,7 +1,7 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
-const { assertIsNotNullish } = require('@tool-belt/type-predicates');
 const { uniqBy, intersection } = require('lodash');
 const sharedValidationTests = require('../../shared-behaviours/validation');
+const { assertIsNotNullish } = require('../asserts');
 const { pMapWithCache } = require('../utils');
 const { FlowStage } = require('./flow-stage');
 const { itSuccessChecksOpportunityFeedUpdateCollector } = require('./opportunity-feed-update');
