@@ -6,7 +6,7 @@ const {
   FetchOpportunitiesFlowStage,
 } = require('../../../../helpers/flow-stages');
 const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
-const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
+const { itEachOrderItemIdShouldMatchThoseFromFeed, AmendingOrderQuoteFlowStageRecipes } = require('../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -104,5 +104,17 @@ FeatureHelper.describeFeature(module, {
         expect(apiResponseJson).to.have.nested.property('customer.email', secondAttemptCustomerDetails.email);
       });
     });
+  });
+
+  // Test that capacity goes back up for the Opportunities that have now been switched out from the OrderQuote
+  const assertFirstAttemptOpportunitiesHaveRegainedCapacity = AmendingOrderQuoteFlowStageRecipes.assertFirstAttemptOpportunitiesHaveRegainedCapacity(
+    'Second Attempt - B',
+    secondAttemptBook.lastStage,
+    firstAttemptDefaultFlowStageParams,
+    firstAttemptFetchOpportunities,
+  );
+
+  describe('After Second Attempt, should restore capacity for Opportunities from First Attempt', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(assertFirstAttemptOpportunitiesHaveRegainedCapacity);
   });
 });

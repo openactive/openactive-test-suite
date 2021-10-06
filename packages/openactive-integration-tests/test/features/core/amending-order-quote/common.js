@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const { AssertOpportunityCapacityFlowStage } = require('../../../helpers/flow-stages/assert-opportunity-capacity');
 const { Common } = require('../../../shared-behaviours');
 
 /**
@@ -36,6 +37,26 @@ function itEachOrderItemIdShouldMatchThoseFromFeed({
   });
 }
 
+const AmendingOrderQuoteFlowStageRecipes = {
+  /**
+   * @param {string} nameOfPreviousStage
+   * @param {import('../../../helpers/flow-stages/flow-stage').UnknownFlowStageType} prerequisite
+   * @param {import('../../../helpers/flow-stages/flow-stage-recipes').DefaultFlowStageParams} defaultFlowStageParams
+   * @param {FetchOpportunitiesFlowStageType} firstAttemptFetchOpportunities
+   */
+  assertFirstAttemptOpportunitiesHaveRegainedCapacity(nameOfPreviousStage, prerequisite, defaultFlowStageParams, firstAttemptFetchOpportunities) {
+    return new AssertOpportunityCapacityFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      nameOfPreviousStage,
+      // Capacity for the first Order should have reverted to how it started
+      getInput: () => firstAttemptFetchOpportunities.getOutput(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+    });
+  },
+};
+
 module.exports = {
   itEachOrderItemIdShouldMatchThoseFromFeed,
+  AmendingOrderQuoteFlowStageRecipes,
 };

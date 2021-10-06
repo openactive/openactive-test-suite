@@ -5,9 +5,7 @@ const {
   FetchOpportunitiesFlowStage,
 } = require('../../../../helpers/flow-stages');
 const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
-const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
-// TODO TODO TODO for these amend tests, they should also test that the switched out OrderItems have their capacity
-// increased.
+const { itEachOrderItemIdShouldMatchThoseFromFeed, AmendingOrderQuoteFlowStageRecipes } = require('../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -102,5 +100,17 @@ FeatureHelper.describeFeature(module, {
         bookRecipe: secondAttemptBook,
       });
     });
+  });
+
+  // Test that capacity goes back up for the Opportunities that have now been switched out from the OrderQuote
+  const assertFirstAttemptOpportunitiesHaveRegainedCapacity = AmendingOrderQuoteFlowStageRecipes.assertFirstAttemptOpportunitiesHaveRegainedCapacity(
+    'Second Attempt - B',
+    secondAttemptBook.lastStage,
+    defaultFlowStageParams,
+    firstAttemptFetchOpportunities,
+  );
+
+  describe('After Second Attempt, should restore capacity for Opportunities from First Attempt', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(assertFirstAttemptOpportunitiesHaveRegainedCapacity);
   });
 });
