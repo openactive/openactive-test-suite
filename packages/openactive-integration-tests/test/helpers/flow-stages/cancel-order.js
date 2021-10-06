@@ -69,7 +69,7 @@ class CancelOrderFlowStage extends FlowStage {
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttpXXXSuccessChecks(204),
       // no validation tests needed for CancelOrder, as the response is empty
-      itValidationTestsFn: () => { },
+      itValidationTestsFn: FlowStageUtils.createNoOpTest(),
     });
   }
 

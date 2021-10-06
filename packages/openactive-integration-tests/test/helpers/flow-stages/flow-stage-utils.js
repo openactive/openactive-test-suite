@@ -76,6 +76,17 @@ const FlowStageUtils = {
   },
 
   /**
+   * No-op test to use for validation tests or success checks if there are none. This is preferable to including no
+   * tests because jest will not include describe(..) blocks in its report when there are no inner it(..) blocks,
+   * which leads to confusing test logs.
+   */
+  createNoOpTest() {
+    return () => {
+      it('noop', () => { });
+    };
+  },
+
+  /**
    * Create itSuccessChecksFn that will just check that a FlowStage's result
    * has an HTTP XXX status (e.g. 204).
    *
@@ -235,6 +246,7 @@ const FlowStageUtils = {
         arg. e.g. if you provide `breakIf: () => !isHttp2xxResponse(p.getOutput().httpResponse)`, then this stage
         can have some code in its run function like `if (breakIf()) { throw new Error('..'); }`
       */
+      // TODO TODO TODO make use same pattern as with FlowStageRun
       for (const stage of stagesBeforeLastStage) {
         FlowStageUtils.describeRunAndRunChecks(checks, stage);
       }
