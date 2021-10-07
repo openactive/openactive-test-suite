@@ -637,11 +637,13 @@ const FlowStageRecipes = {
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
        * @param {string} [args.cancelTestName]
+       * @param {TestInterfaceActionType} [args.cancellationActionType]
        * @param {FetchOpportunitiesFlowStage} args.fetchOpportunities
        * @param {() => string} args.getOrderId
        */
       successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, {
         cancelTestName = 'Simulate Seller Cancellation (Test Interface Action)',
+        cancellationActionType = 'test:SellerRequestedCancellationSimulateAction',
         fetchOpportunities,
         getOrderId,
       }) {
@@ -651,7 +653,7 @@ const FlowStageRecipes = {
             testName: cancelTestName,
             prerequisite: orderFeedUpdateListener,
             createActionFn: () => ({
-              type: 'test:SellerRequestedCancellationSimulateAction',
+              type: cancellationActionType,
               objectType: 'Order',
               objectId: getOrderId(),
             }),
