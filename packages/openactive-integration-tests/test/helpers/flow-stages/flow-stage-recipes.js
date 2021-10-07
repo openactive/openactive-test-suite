@@ -65,6 +65,8 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   default to using getOpportunityExpectedCapacityAfterBook(..)
  */
 
+const RUN_TESTS_WHICH_FAIL_REFIMPL = process.env.RUN_TESTS_WHICH_FAIL_REFIMPL === 'true';
+
 const FlowStageRecipes = {
   /**
    * Initialise Flow Stages for a simple FetchOpportunities -> C1 -> C2 -> Book (*) flow.
@@ -545,6 +547,8 @@ const FlowStageRecipes = {
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
           ...defaultFlowStageParams,
+          // Capacity is not correctly restored after cancellation in RefImpl: https://github.com/openactive/OpenActive.Server.NET/issues/166
+          doSkip: !RUN_TESTS_WHICH_FAIL_REFIMPL,
           nameOfPreviousStage: cancelTestName,
           prerequisite: cancel,
           ...assertOpportunityCapacityArgs,
@@ -555,6 +559,9 @@ const FlowStageRecipes = {
         }, ['cancel', 'assertOpportunityCapacityAfterCancel']);
       },
       /**
+       * Only use for Cancellations which are expected to succeed, as these FlowStages will wait for the Order feed to
+       * update with the successfully processed cancellation.
+       *
        * @param {UnknownFlowStageType} prerequisite
        * @param {DefaultFlowStageParams} defaultFlowStageParams
        * @param {object} args
@@ -577,6 +584,8 @@ const FlowStageRecipes = {
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
           ...defaultFlowStageParams,
+          // Capacity is not correctly restored after cancellation in RefImpl: https://github.com/openactive/OpenActive.Server.NET/issues/166
+          doSkip: !RUN_TESTS_WHICH_FAIL_REFIMPL,
           nameOfPreviousStage: cancelTestName,
           prerequisite: orderFeedUpdate,
           ...assertOpportunityCapacityArgs,
@@ -655,6 +664,8 @@ const FlowStageRecipes = {
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
           ...defaultFlowStageParams,
+          // Capacity is not correctly restored after cancellation in RefImpl: https://github.com/openactive/OpenActive.Server.NET/issues/166
+          doSkip: !RUN_TESTS_WHICH_FAIL_REFIMPL,
           nameOfPreviousStage: cancelTestName,
           prerequisite: orderFeedUpdate,
           // Capacity should be the same as it was when initially fetched from feed.
