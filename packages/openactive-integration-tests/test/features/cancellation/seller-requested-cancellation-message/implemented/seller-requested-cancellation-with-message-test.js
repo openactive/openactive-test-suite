@@ -24,6 +24,7 @@ FeatureHelper.describeFeature(module, {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const simulateSellerCancellation = FlowStageRecipes.runs.sellerCancel.successfulCancelAssertOrderUpdateAndCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    cancellationActionType: 'test:SellerRequestedCancellationWithMessageSimulateAction',
     fetchOpportunities,
     getOrderId: () => bookRecipe.b.getOutput().orderId,
   });
