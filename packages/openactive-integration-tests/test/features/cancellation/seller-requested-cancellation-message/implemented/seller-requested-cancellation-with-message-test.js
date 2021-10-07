@@ -34,7 +34,6 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation, () => {
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
     it('should have orderItemStatus: SellerCancelled', () => {
       const orderFeedUpdateAfterCancel = simulateSellerCancellation.getStage('orderFeedUpdate');
       const orderItems = orderFeedUpdateAfterCancel.getOutput().httpResponse.body.data.orderedItem;

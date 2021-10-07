@@ -56,30 +56,6 @@ class FlowStageRun {
   }
 }
 
-//   /**
-//    * Create a new FlowStageRun which runs all the stages in `firstFlowStageRun` followed by all the stages in
-//    * `nextFlowStageRun`
-//    *
-//    * @template {{ [stageName: string]: UnknownFlowStageType }} TFirstStages
-//    * @template {{ [stageName: string]: UnknownFlowStageType }} TNextStages
-//    * @param {FlowStageRun<TFirstStages>} firstFlowStageRun
-//    * @param {FlowStageRun<TNextStages>} nextFlowStageRun
-//    * @returns {FlowStageRun<TFirstStages & TNextStages>}
-//    */
-//   static concat(firstFlowStageRun, nextFlowStageRun) {
-//     // @ts-expect-error
-//     expect(intersection(firstFlowStageRun._stageSequence, nextFlowStageRun._stageSequence))
-//       .to.have.lengthOf(0, 'Cannot concat FlowStageRuns which have the same stage names');
-//     // TODO also assert that next.firstStage.prereq is first.lastStage
-//     const concatedStagesByName = {
-//       ...firstFlowStageRun._stagesByName,
-//       ...nextFlowStageRun._stagesByName,
-//     };
-//     const concatedStageSequence = [...firstFlowStageRun._stageSequence, ...nextFlowStageRun._stageSequence];
-//     return new FlowStageRun(concatedStagesByName, concatedStageSequence);
-//   }
-// }
-
 /**
  * @typedef {FlowStageRun<any>} AnyFlowStageRun
  */

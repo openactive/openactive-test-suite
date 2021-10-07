@@ -25,8 +25,6 @@ const _ = require('lodash');
  */
 function multiplyObjectsIntoBatches(objects, multiple) {
   return objects.flatMap(obj => _.times(multiple, () => _.cloneDeep(obj)));
-  // const batches = _.times(multiple, () => ([...objects.map(obj => _.cloneDeep(obj))]));
-  // return _.flatten(batches);
 }
 
 /**
@@ -48,15 +46,6 @@ function multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, multiple) {
     position: i,
   }));
 }
-//   multipliedOrderItems.forEach((orderItem, i) => {
-//     // eslint-disable-next-line no-param-reassign
-//     orderItem.position = i;
-//   });
-//   for (let i = 0; i < multipliedOrderItems.length; i += 1) {
-//     multipliedOrderItems[i].position = i;
-//   }
-//   return multipliedOrderItems;
-// }
 
 /**
  * Similar to Common.itForEachOrderItem. Though, this is used for when lease capacity tests
@@ -165,7 +154,6 @@ function itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientC
 }
 
 module.exports = {
-  multiplyObjectsIntoBatches,
   multiplyFetchedOrderItemsIntoBatches,
   itForEachOrderItemWhereOrderItemsAreBatched,
   itShouldHaveCapacityForBatchedItems,

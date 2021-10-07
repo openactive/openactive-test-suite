@@ -38,23 +38,6 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
       getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
     });
-    // Common.itForEachOrderItem({
-    //   orderItemCriteriaList,
-    //   getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
-    //   getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
-    // },
-    // 'availability should match open data feed',
-    // (feedOrderItem, apiResponseOrderItem) => {
-    //   if (feedOrderItem.orderedItem['@type'] === 'Slot') {
-    //     expect(apiResponseOrderItem).to.nested.include({
-    //       'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
-    //     });
-    //   } else {
-    //     expect(apiResponseOrderItem).to.nested.include({
-    //       'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
-    //     });
-    //   }
-    // });
   }
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

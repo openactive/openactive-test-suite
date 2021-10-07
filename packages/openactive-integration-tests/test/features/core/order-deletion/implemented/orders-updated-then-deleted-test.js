@@ -2,7 +2,6 @@ const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
-  // TestInterfaceActionFlowStage,
   OrderFeedUpdateFlowStageUtils,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
@@ -46,7 +45,6 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation, () => {
-  // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfterCancel, () => {
     const orderFeedUpdateAfterCancel = simulateSellerCancellation.getStage('orderFeedUpdate');
     it('should have orderItemStatus: SellerCancelled', () => {
       const orderItems = orderFeedUpdateAfterCancel.getOutput().httpResponse.body.data.orderedItem;

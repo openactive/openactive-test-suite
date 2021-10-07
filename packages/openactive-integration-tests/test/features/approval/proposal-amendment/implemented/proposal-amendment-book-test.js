@@ -1,18 +1,12 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
-  // FetchOpportunitiesFlowStage,
-  // C1FlowStage,
-  // C2FlowStage,
   FlowStageUtils,
   PFlowStage,
   TestInterfaceActionFlowStage,
   OrderFeedUpdateFlowStageUtils,
-  // BFlowStage,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
-// const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
-// const RequestHelper = require('../../../../helpers/request-helper');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -45,8 +39,6 @@ FeatureHelper.describeFeature(module, {
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  // const requestHelper = new RequestHelper(logger);
-
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
   const p = new PFlowStage({
