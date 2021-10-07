@@ -1,8 +1,7 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { itShouldReturnHttpStatus } = require('../../../shared-behaviours/errors');
-const { FetchOpportunitiesFlowStage, FlowStageUtils, C1FlowStage } = require('../../../helpers/flow-stages');
-const { itShouldHaveCapacityForBatchedItems, multiplyFetchedOrderItemsIntoBatches, itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError, multiplyObjectsIntoBatches } = require('../common');
-const { AssertOpportunityCapacityFlowStage } = require('../../../helpers/flow-stages/assert-opportunity-capacity');
+const { FetchOpportunitiesFlowStage, FlowStageUtils, FlowStageRecipes } = require('../../../helpers/flow-stages');
+const { itShouldHaveCapacityForBatchedItems, multiplyFetchedOrderItemsIntoBatches, itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError } = require('../common');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -25,8 +24,6 @@ function runAnonymousLeasingCapacityTests(unit) {
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
-    //  * @param {number} args.expectedCapacityInFeedFromThisAndPreviousSuccessfulLeases What do we expect the capacity of
-    //  *   this Opportunity to be in the feed after this lease is performed?
     /**
      * @param {object} args
      * @param {UnknownFlowStageType} args.prerequisiteFlowStage
@@ -41,82 +38,73 @@ function runAnonymousLeasingCapacityTests(unit) {
       prerequisiteFlowStage,
       numberOfItems,
       expectedCapacityInResponseFromPreviousSuccessfulLeases,
-      // expectedCapacityInFeedFromThisAndPreviousSuccessfulLeases,
       shouldSucceed,
       getLatestOpportunityFeedExtractResponses,
     }, itAdditionalTests) => {
-      // const orderItemCriteriaListMultipliedIntoBatches = multiplyObjectsIntoBatches(orderItemCriteriaList, numberOfItems);
+      /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
+      rather than an amendment of the previous one */
       const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList });
-      const newBatchC1 = new C1FlowStage({
-        /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
-        rather than an amendment of the previous one */
-        ...defaultFlowStageParams,
-        // This test does its own more complicated capacity checks
-        doSimpleAutomaticCapacityCheck: false,
-        prerequisite: prerequisiteFlowStage,
-        getInput: () => ({
-          orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
-        }),
-      });
-      const assertOpportunityCapacity = new AssertOpportunityCapacityFlowStage({
-        ...defaultFlowStageParams,
-        prerequisite: newBatchC1,
-        nameOfPreviousStage: `C1 (${numberOfItems} items)`,
-        getInput: () => ({
-          orderItems: fetchOpportunities.getOutput().orderItems,
-          opportunityFeedExtractResponses: getLatestOpportunityFeedExtractResponses(),
-          // orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
-          // opportunityFeedExtractResponses: multiplyObjectsIntoBatches(fetchOpportunities.getOutput().opportunityFeedExtractResponses, numberOfItems),
-        }),
-        getOpportunityExpectedCapacity: (opportunity) => {
-          const capacity = getRemainingCapacity(opportunity);
-          return shouldSucceed
-            ? capacity - numberOfItems
-            : capacity;
+      const newBatchC1 = FlowStageRecipes.runs.book.c1AssertCapacity(prerequisiteFlowStage, defaultFlowStageParams, {
+        c1Args: {
+          // This test does its own more complicated capacity checks
+          doSimpleAutomaticCapacityCheck: false,
+          getInput: () => ({
+            orderItems: multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, numberOfItems),
+          }),
         },
-        // getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC1(shouldSucceed),
+        // Capacity is expected to have gone down after a successful C1 as anonymous-leasing is enabled
+        assertOpportunityCapacityArgs: {
+          getInput: () => ({
+            orderItems: fetchOpportunities.getOutput().orderItems,
+            opportunityFeedExtractResponses: getLatestOpportunityFeedExtractResponses(),
+          }),
+          getOpportunityExpectedCapacity: (opportunity) => {
+            /* This logic will fail if this is run for "multiple" tests, which would require more complex logic to
+            ascertain the correct expected capacity for each Opportunity */
+            const capacity = getRemainingCapacity(opportunity);
+            return shouldSucceed
+              ? capacity - numberOfItems
+              : capacity;
+          },
+        },
       });
 
       describe(`Lease ${numberOfItems} item(s) (${shouldSucceed ? 'success' : 'fail'})`, () => {
         FlowStageUtils.describeRunAndRunChecks({ doCheckSuccess: shouldSucceed, doCheckIsValid: true }, newBatchC1, () => {
           itShouldHaveCapacityForBatchedItems({
             orderItemCriteriaList,
-            flowStage: newBatchC1,
+            flowStage: newBatchC1.getStage('c1'),
             batchMultiplier: numberOfItems,
             expectedCapacity: expectedCapacityInResponseFromPreviousSuccessfulLeases,
           });
           if (!shouldSucceed) {
-            itShouldReturnHttpStatus(409, () => newBatchC1.getOutput().httpResponse);
+            itShouldReturnHttpStatus(409, () => newBatchC1.getStage('c1').getOutput().httpResponse);
           }
           if (itAdditionalTests) {
-            itAdditionalTests(newBatchC1);
+            itAdditionalTests(newBatchC1.getStage('c1'));
           }
         });
-        FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(assertOpportunityCapacity);
       });
 
-      return {
-        c1: newBatchC1,
-        assertOpportunityCapacity,
-      };
+      return newBatchC1;
     };
 
     // # Check that repeated batch anonymous leases update the capacity
-    const { c1: batchOneC1, assertOpportunityCapacity: batchOneAssertCapacity } = describeNewLeaseOfXItems({
+    const batchOneC1 = describeNewLeaseOfXItems({
       prerequisiteFlowStage: fetchOpportunities,
       numberOfItems: unit ? 1 : 3,
       shouldSucceed: true,
       // it should not take into account leased opportunities on this order
       expectedCapacityInResponseFromPreviousSuccessfulLeases: unit ? 1 : 5,
       getLatestOpportunityFeedExtractResponses: () => fetchOpportunities.getOutput().opportunityFeedExtractResponses,
-      // expectedCapacityInFeedFromThisAndPreviousSuccessfulLeases: unit ? 0 : 2,
     });
-    const { c1: batchTwoC1, assertOpportunityCapacity: batchTwoAssertCapacity } = describeNewLeaseOfXItems({
-      prerequisiteFlowStage: batchOneC1,
+    const batchTwoC1 = describeNewLeaseOfXItems({
+      prerequisiteFlowStage: batchOneC1.getLastStage(),
       numberOfItems: unit ? 1 : 10,
       shouldSucceed: false,
       expectedCapacityInResponseFromPreviousSuccessfulLeases: unit ? 0 : 2,
-      getLatestOpportunityFeedExtractResponses: () => batchOneAssertCapacity.getOutput().opportunityFeedExtractResponses,
+      getLatestOpportunityFeedExtractResponses: () => (
+        batchOneC1.getStage('assertOpportunityCapacityAfterC1').getOutput().opportunityFeedExtractResponses),
     }, (c1) => {
       itShouldReturnCorrectNumbersOfIsReservedByLeaseErrorAndHasInsufficientCapacityError({
         flowStage: c1,
@@ -127,19 +115,21 @@ function runAnonymousLeasingCapacityTests(unit) {
       });
     });
     if (!unit) {
-      const { c1: batchThreeC1, assertOpportunityCapacity: batchThreeAssertCapacity } = describeNewLeaseOfXItems({
-        prerequisiteFlowStage: batchTwoC1,
+      const batchThreeC1 = describeNewLeaseOfXItems({
+        prerequisiteFlowStage: batchTwoC1.getLastStage(),
         numberOfItems: 2,
         shouldSucceed: true,
         expectedCapacityInResponseFromPreviousSuccessfulLeases: 2,
-        getLatestOpportunityFeedExtractResponses: () => batchTwoAssertCapacity.getOutput().opportunityFeedExtractResponses,
+        getLatestOpportunityFeedExtractResponses: () => (
+          batchTwoC1.getStage('assertOpportunityCapacityAfterC1').getOutput().opportunityFeedExtractResponses),
       });
       describeNewLeaseOfXItems({
-        prerequisiteFlowStage: batchThreeC1,
+        prerequisiteFlowStage: batchThreeC1.getLastStage(),
         numberOfItems: 1,
         shouldSucceed: false,
         expectedCapacityInResponseFromPreviousSuccessfulLeases: 0,
-        getLatestOpportunityFeedExtractResponses: () => batchThreeAssertCapacity.getOutput().opportunityFeedExtractResponses,
+        getLatestOpportunityFeedExtractResponses: () => (
+          batchThreeC1.getStage('assertOpportunityCapacityAfterC1').getOutput().opportunityFeedExtractResponses),
       });
     }
   });
