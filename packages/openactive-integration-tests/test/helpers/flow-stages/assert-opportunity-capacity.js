@@ -114,12 +114,14 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
    *       this Opportunity. You can therefore use `orderItems.length` to determine how many times the Opportunity is
    *       used in the Order.
    * @param {() => Input} args.getInput
+   * @param {boolean} [args.doSkip] If true, just skip this check. Defaults to `false`.
+   *   If skipping, this stage will just output the same opportunityFeedExtractResponses that it received.
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {FlowStage<unknown, unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {BaseLoggerType} args.logger
    */
-  constructor({ nameOfPreviousStage, getOpportunityExpectedCapacity, getInput, orderItemCriteriaList, prerequisite, requestHelper, logger }) {
+  constructor({ nameOfPreviousStage, getOpportunityExpectedCapacity, getInput, doSkip = false, orderItemCriteriaList, prerequisite, requestHelper, logger }) {
     super({
       testName: `Assert Opportunity Capacity (after ${nameOfPreviousStage})`,
       getInput,
@@ -129,6 +131,9 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
       had it succeeded */
       alwaysDoSuccessChecks: true,
       async runFn(input) {
+        if (doSkip) {
+          return { opportunityFeedExtractResponses: input.opportunityFeedExtractResponses };
+        }
         const { opportunityFeedExtractResponses, orderItems } = input;
         return await runAssertOpportunityCapacity({
           getOpportunityExpectedCapacity,
