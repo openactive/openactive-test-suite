@@ -92,6 +92,8 @@ async function runAssertOpportunityCapacity({
 }
 
 /**
+ * Use this to Assert that all the Opportunities in an Order have the correct capacity in the Opportunity feed.
+ *
  * @extends {FlowStage<Input, Output>}
  */
 class AssertOpportunityCapacityFlowStage extends FlowStage {
