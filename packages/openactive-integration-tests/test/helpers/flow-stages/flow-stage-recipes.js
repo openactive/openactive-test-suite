@@ -167,6 +167,8 @@ const FlowStageRecipes = {
         }),
       },
       assertOpportunityCapacityArgs: {
+        // Capacity can be incorrectly reduced after a failed lease in RefImpl: https://github.com/openactive/OpenActive.Server.NET/issues/169
+        doSkip: !RUN_TESTS_WHICH_FAIL_REFIMPL && c2ExpectToFail,
         getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC2(!c2ExpectToFail),
         getInput: () => ({
           opportunityFeedExtractResponses: c1.getStage('assertOpportunityCapacityAfterC1').getOutput().opportunityFeedExtractResponses,
@@ -221,6 +223,8 @@ const FlowStageRecipes = {
         }),
       },
       assertOpportunityCapacityArgs: {
+        // Capacity can be incorrectly reduced after a failed lease in RefImpl: https://github.com/openactive/OpenActive.Server.NET/issues/169
+        doSkip: !RUN_TESTS_WHICH_FAIL_REFIMPL && c1ExpectToFail,
         getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC1(!c1ExpectToFail),
         getInput: () => ({
           opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
