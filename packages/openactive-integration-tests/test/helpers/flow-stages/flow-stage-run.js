@@ -1,17 +1,3 @@
-// Remaining TODOs (TODO TODO TODO)
-// - [x] Make work with all other tests (e.g. accept-proposal-book seems not to work)
-//   * [x] Leasing
-// - [x] How to make Assert C1/C2 stage output show in logs (maybe genericise BookRecipe similar to below draft)
-// - [x] Pass lint/TS
-// - [x] Validation tests for Assert stages
-// - Couple remaining TODOs
-// - more complicated use cases:
-//   * book-and-seller-replace-items: Test switched out OrderItems
-//   * [x] amending-order-quote tests: Test switched out OrderItems
-//   * order-deletion tests: Assert capacity goes up after deletion.
-//   * [x] leasing: Assert Capacity changes in batched tests. Might be complicated..
-// - Feature toggles
-//   * in one revertable commit/PR
 const { last } = require('lodash');
 const { assertIsNotNullish } = require('../asserts');
 
