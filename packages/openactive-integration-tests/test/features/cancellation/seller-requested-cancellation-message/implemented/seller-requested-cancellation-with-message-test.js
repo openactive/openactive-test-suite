@@ -42,8 +42,10 @@ FeatureHelper.describeFeature(module, {
       // give a false positive if there were no items in `orderedItem`, so we
       // explicitly test that the OrderItems are present.
       expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
-      const aCancelledOrderItem = orderItems.find(orderItem => orderItem.orderItemStatus === 'https://openactive.io/SellerCancelled');
-      expect(aCancelledOrderItem).to.have.property('cancellationMessage').which.is.a('string');
+      for (const orderItem of orderItems) {
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/SellerCancelled');
+        expect(orderItem).to.have.property('cancellationMessage').which.is.a('string');
+      }
     });
   });
 });

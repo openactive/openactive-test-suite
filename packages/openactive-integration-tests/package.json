@@ -25,7 +25,6 @@
     "axios": "^0.19.0",
     "chai": "^4.2.0",
     "chai-arrays": "^2.2.0",
-    "chai-things": "^0.2.0",
     "chai-url": "^1.0.4",
     "chakram": "^1.5.0",
     "chalk": "^3.0.0",
@@ -53,7 +52,7 @@
     "rmfr": "^2.0.0",
     "shortid": "^2.2.16",
     "strip-ansi": "^6.0.0",
-    "uuid": "^8.3.2",
+    "uuid": "^8.3.0",
     "yargs": "^16.2.0"
   },
   "devDependencies": {

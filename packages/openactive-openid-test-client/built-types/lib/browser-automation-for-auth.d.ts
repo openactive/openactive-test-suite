@@ -8,7 +8,6 @@ export type Context = {
     requiredConsent?: boolean;
 };
 export type ButtonSelectors = {
-    selectIdentityProviderButton: string;
     username: string;
     password: string;
     button: string;

@@ -54,7 +54,6 @@ const {
   OPPORTUNITY_FEED_REQUEST_HEADERS,
   DATASET_DISTRIBUTION_OVERRIDE,
   DO_NOT_FILL_BUCKETS,
-  LOCATION_IDENTIFIER_FILTER,
   DO_NOT_HARVEST_ORDERS_FEED,
   DISABLE_BROKER_TIMEOUT,
   LOG_AUTH_CONFIG,
@@ -230,6 +229,7 @@ async function harvestRPDE(
   const validator = new AsyncValidatorWorker(feedContextIdentifier, waitForValidation, state.startTime, validatorTimeout);
   state.validatorThreadArray.push(validator);
 
+  let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
 
   /** @type {FeedContext} */
@@ -238,10 +238,8 @@ async function harvestRPDE(
     pages: 0,
     items: 0,
     responseTimes: [],
-    sleepPages: 0,
     totalItemsQueuedForValidation: 0,
     validatedItems: 0,
-    isInitialHarvestComplete: false,
   };
   /**
    * @param {FeedContext} c
@@ -251,7 +249,6 @@ async function harvestRPDE(
     validatedItems: c.validatedItems,
     validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
     items: c.items,
-    status: `${context.isInitialHarvestComplete ? 'Harvesting Complete' : 'Harvesting...'}, ${context.totalItemsQueuedForValidation - context.validatedItems === 0 ? 'Validation Complete' : 'Validating...'}`,
   });
   const progressbar = !bar ? null : bar.create(0, 0, {
     feedIdentifier: feedContextIdentifier,
@@ -287,48 +284,41 @@ async function harvestRPDE(
 
       const json = response.data;
 
-      if (process.env.DEBUG_BROKER_NO_VALIDATE !== 'true') {
-        // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
-        const rpdeValidationErrors = feedChecker.validateRpdePage({
-          url,
-          json,
-          pageIndex: context.pages,
-          contentType: response.headers['content-type'],
-          status: response.status,
-          isInitialHarvestComplete: context.isInitialHarvestComplete,
-          isOrdersFeed,
-        });
+      // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
+      const rpdeValidationErrors = feedChecker.validateRpdePage({
+        url,
+        json,
+        pageIndex: context.pages,
+        contentType: response.headers['content-type'],
+        status: response.status,
+        isInitialHarvestComplete,
+        isOrdersFeed,
+      });
 
-        if (rpdeValidationErrors.length > 0) {
-          if (state.multibar) state.multibar.stop();
-          logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
-          process.exit(1);
-        }
+      if (rpdeValidationErrors.length > 0) {
+        if (state.multibar) state.multibar.stop();
+        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
+        process.exit(1);
       }
 
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
-        if (!context.isInitialHarvestComplete) {
-          context.isInitialHarvestComplete = true;
+        if (!isInitialHarvestComplete) {
           if (progressbar) {
             progressbar.update(context.validatedItems, {
               pages: context.pages,
               responseTime: Math.round(responseTime),
               ...progressFromContext(context),
+              status: context.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
             });
             progressbar.setTotal(context.totalItemsQueuedForValidation);
-            if (context.isInitialHarvestComplete && context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-              progressbar.stop();
-            }
           }
+          isInitialHarvestComplete = true;
         }
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
           await onFeedEnd();
-        } else if (VERBOSE) {
-          log(`Sleep mode poll for RPDE feed "${url}"`);
-        }
+        } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
         context.sleepMode = true;
-        context.sleepPages += 1;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
         // Slow down sleep polling while waiting for harvesting of other feeds to complete
         await sleep(WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0 ? 5000 : 500);
@@ -337,7 +327,6 @@ async function harvestRPDE(
         // Maintain a buffer of the last 5 items
         if (context.responseTimes.length > 5) context.responseTimes.shift();
         context.pages += 1;
-        context.sleepPages = 0;
         context.items += json.items.length;
         delete context.sleepMode;
         if (REQUEST_LOGGING_ENABLED) {
@@ -350,21 +339,26 @@ async function harvestRPDE(
         }
         // eslint-disable-next-line no-loop-func
         await processPage(json, feedContextIdentifier, (item) => {
-          if (!context.isInitialHarvestComplete) {
+          if (!isInitialHarvestComplete) {
             context.totalItemsQueuedForValidation += 1;
             validateAndStoreValidationResults(item, validator).then(() => {
               context.validatedItems += 1;
               if (progressbar) {
                 progressbar.setTotal(context.totalItemsQueuedForValidation);
-                progressbar.update(context.validatedItems, progressFromContext(context));
-                if (context.isInitialHarvestComplete && context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+                if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+                  progressbar.update(context.validatedItems, {
+                    ...progressFromContext(context),
+                    status: 'Validation Complete',
+                  });
                   progressbar.stop();
+                } else {
+                  progressbar.update(context.validatedItems, progressFromContext(context));
                 }
               }
             });
           }
         });
-        if (!context.isInitialHarvestComplete && progressbar) {
+        if (!isInitialHarvestComplete && progressbar) {
           progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
@@ -1117,7 +1111,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
   const feedPrefix = `${feedIdentifier}---`;
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
-    if (item.state === 'deleted' || !item.data) {
+    if (item.state === 'deleted') {
       const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
       state.parentOpportunityMap.delete(jsonLdId);
       state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
@@ -1133,7 +1127,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
   await touchOpportunityItems(rpdePage.items
-    .filter((item) => item.state !== 'deleted' && item.data)
+    .filter((item) => item.state !== 'deleted')
     .map((item) => item.data['@id'] || item.data.id));
 }
 
@@ -1304,9 +1298,7 @@ async function processOpportunityItem(item) {
     const matchingCriteria = [];
     let unmetCriteriaDetails = [];
 
-    const locationIdentifier = item?.data?.location?.identifier ?? item?.data?.superEvent?.location?.identifier ?? item?.data?.facilityUse?.location?.identifier;
-
-    if (!DO_NOT_FILL_BUCKETS && (!LOCATION_IDENTIFIER_FILTER || LOCATION_IDENTIFIER_FILTER.includes(locationIdentifier))) {
+    if (!DO_NOT_FILL_BUCKETS) {
       const opportunityType = detectOpportunityType(item.data);
       const bookingFlows = detectOpportunityBookingFlows(item.data);
       const sellerId = detectSellerId(item.data);

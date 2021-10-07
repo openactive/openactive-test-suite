@@ -1,5 +1,4 @@
 export const setupBrowserAutomationRoutes: (app: import("express").Application, buttonSelectors: {
-    selectIdentityProviderButton: string;
     username: string;
     password: string;
     button: string;

@@ -12,7 +12,6 @@ const { generators } = require('openid-client');
 
 /**
  * @typedef {{
- *  selectIdentityProviderButton: string
  *  username: string,
  *  password: string,
  *  button: string
@@ -60,23 +59,6 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   const page = await browser.newPage();
   try {
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
-
-    if (buttonSelectors.selectIdentityProviderButton) {
-      const hasselectIdentityProviderButtonOnLoginPage = await page.$(buttonSelectors.selectIdentityProviderButton);
-      if (hasselectIdentityProviderButtonOnLoginPage) {
-        await addScreenshot(page, 'Identity Provider Selection Page', context);
-        await Promise.all([
-          page.waitForNavigation(), // The promise resolves after navigation has finished
-          page.click(buttonSelectors.selectIdentityProviderButton), // Clicking the button will indirectly cause a navigation
-        ]);
-      } else {
-        await addScreenshot(page, 'Error encountered', context);
-        return {
-          success: false, message: `"Select Identity Provider" button matching selector '${buttonSelectors.selectIdentityProviderButton}' not found`,
-        };
-      }
-    }
-
     try {
       await page.type(buttonSelectors.username, username);
     } catch (e) {
