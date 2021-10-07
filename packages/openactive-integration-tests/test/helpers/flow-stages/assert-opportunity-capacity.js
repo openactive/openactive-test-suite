@@ -151,7 +151,9 @@ class AssertOpportunityCapacityFlowStage extends FlowStage {
             {
               validationMode: 'BookableRPDEFeed',
             },
-            orderItemCriteriaItem.opportunityCriteria,
+            /* Note that we don't pass in Opportunity Criteria here as the Opportunity may have been changed such that
+            it no longer fits the original criteria. e.g. if a session that matches TestOpportunityBookableFiveSpaces
+            criteria is booked, it may no longer match it */
           );
         });
       },
