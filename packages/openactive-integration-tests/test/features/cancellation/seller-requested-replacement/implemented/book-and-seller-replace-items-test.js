@@ -1,4 +1,3 @@
-// TODO TODO TODO do this to complete the cancellation category
 // const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
@@ -15,10 +14,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  // // TODO TODO TODO remove me
-  // skipMultiple: true,
-  // skipBookingFlows: ['OpenBookingApprovalFlow'],
-  // skipOpportunityTypes: ['FacilityUseSlot'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
@@ -33,6 +28,10 @@ FeatureHelper.describeFeature(module, {
   } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, {
     actionType: 'test:ReplacementSimulateAction',
   });
+  /* TODO in order to do proper capacity assertions for this test:
+  - uncomment the below stuff, which will assert capacity for items that were in the original Order (before replacement)
+  - add logic which will assert capacity for items that have newly been added to Order
+  */
   // const assertOpportunityCapacity = new AssertOpportunityCapacityFlowStage({
   //   ...defaultFlowStageParams,
   //   prerequisite: orderFeedUpdate,
@@ -52,9 +51,6 @@ FeatureHelper.describeFeature(module, {
   //     return previousCapacity + (count - howManyInstancesOfOpportunityAreStillInNewOrder);
   //   },
   // });
-  // TODO TODO TODO and THEN test that any Opportunities that have been newly placed into the Order have had their
-  // capacities reduced.
-  // how about doing this by creating a more barebones assert-opportunity-capacity stage which just runs some ?expectedCapacity call
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -87,28 +83,3 @@ FeatureHelper.describeFeature(module, {
   });
   // FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(assertOpportunityCapacity);
 });
-// // TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(
-// //   { actionType: 'test:ReplacementSimulateAction' },
-// //   ({ b, orderFeedUpdate, orderItemCriteriaList }) => {
-//     it('should have replaced (at least one) OrderItems with a new one', () => {
-//       // original = before the AccessPassUpdateSimulationAction was invoked
-//       const originalOrderItems = b.getOutput().httpResponse.body.orderedItem;
-
-//       // new = after the ReplacementSimulateAction was invoked
-//       const newOrderItems = orderFeedUpdate.getOutput().httpResponse.body.data.orderedItem;
-
-//       // As we'll be setting out expectations in an iteration, this test would
-//       // give a false positive if there were no items in `orderedItem`, so we
-//       // explicitly test that the OrderItems are present.
-//       expect(newOrderItems).to.be.an('array')
-//         .and.to.have.lengthOf.above(0)
-//         .and.to.have.lengthOf(orderItemCriteriaList.length);
-
-//       // At least one orderedItem with the OrderItems should be replaced with a new one
-//       // orderedItems within OrderItems are sorted so that they can be directly compared with one another.
-//       const originalOpportunityIdsSorted = originalOrderItems.map(orderItem => orderItem.orderedItem['@id']).sort();
-//       const newOpportunityIdsSorted = newOrderItems.map(orderItem => orderItem.orderedItem['@id']).sort();
-
-//       expect(originalOpportunityIdsSorted).to.not.deep.equal(newOpportunityIdsSorted);
-//     });
-//   // },

@@ -27,7 +27,6 @@ FeatureHelper.describeFeature(module, {
     ...defaultFlowStageParams,
     prerequisite: deleteOrderQuote1,
   });
-  // TODO TODO TODO assert capacity goes back up after Order Quote deletion (if leasing enabled)
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

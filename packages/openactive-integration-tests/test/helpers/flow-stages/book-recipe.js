@@ -6,6 +6,7 @@
  * @typedef {import('./assert-opportunity-capacity').AssertOpportunityCapacityFlowStageType} AssertOpportunityCapacityFlowStageType
  */
 
+// TODO construct this class using the generic FlowStageRun (e.g. with inheritance), rather than have it be a bespoke thing
 /**
  * The Flow Stages required to complete booking in either Simple or Approval flow.
  *
@@ -40,57 +41,21 @@ class BookRecipe {
       this.orderFeedUpdateCollector = args.orderFeedUpdateCollector;
       this.orderFeedUpdateAfterDeleteProposal = args.orderFeedUpdateAfterDeleteProposal;
       this.firstStage = this.p;
-      this._stagesSequenceBeforeLastStage = [this.p, this.simulateSellerApproval, this.orderFeedUpdateCollector, this.b, this.orderFeedUpdateAfterDeleteProposal];
+      this._stagesSequence = [this.p, this.simulateSellerApproval, this.orderFeedUpdateCollector, this.b, this.orderFeedUpdateAfterDeleteProposal, this._assertOpportunityCapacityAfterBook];
       this._isApproval = true;
     } else {
       this.firstStage = this.b;
-      this._stagesSequenceBeforeLastStage = [this.b];
+      this._stagesSequence = [this.b, this._assertOpportunityCapacityAfterBook];
       this._isApproval = false;
     }
   }
 
   isApproval() { return this._isApproval; }
 
-  getStagesSequenceBeforeLastStage() { return this._stagesSequenceBeforeLastStage; }
+  getStages() { return this._stagesSequence; }
 
   getAssertOpportunityCapacityAfterBook() { return this._assertOpportunityCapacityAfterBook; }
-  // /**
-  //  * @param {object} args
-  //  * @param {BFlowStageType} args.b
-  //  * @param {PFlowStageType | null} [args.p]
-  //  * @param {TestInterfaceActionFlowStageType | null} [args.simulateSellerApproval]
-  //  * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateCollector]
-  //  * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateAfterDeleteProposal]
-  //  * @param {BFlowStageType | PFlowStageType} args.firstStage
-  //  * @param {BFlowStageType | OrderFeedUpdateCollectorType} args.lastStage
-  //  */
-  // constructor({
-  //   b,
-  //   p,
-  //   simulateSellerApproval,
-  //   orderFeedUpdateCollector,
-  //   orderFeedUpdateAfterDeleteProposal,
-  //   firstStage,
-  //   lastStage,
-  // }) {
-  //   this.b = b;
-  //   this.p = p;
-  //   this.simulateSellerApproval = simulateSellerApproval;
-  //   this.orderFeedUpdateCollector = orderFeedUpdateCollector;
-  //   this.orderFeedUpdateAfterDeleteProposal = orderFeedUpdateAfterDeleteProposal;
-  //   this.firstStage = firstStage;
-  //   this.lastStage = lastStage;
-  // }
 }
-
-//  * @param {object} args
-//  * @param {BFlowStageType} args.b
-//  * @param {PFlowStageType | null} [args.p]
-//  * @param {TestInterfaceActionFlowStageType | null} [args.simulateSellerApproval]
-//  * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateCollector]
-//  * @param {OrderFeedUpdateCollectorType | null} [args.orderFeedUpdateAfterDeleteProposal]
-//  * @param {BFlowStageType | PFlowStageType} args.firstStage
-//  * @param {BFlowStageType | OrderFeedUpdateCollectorType} args.lastStage
 
 module.exports = {
   BookRecipe,

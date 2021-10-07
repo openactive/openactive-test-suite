@@ -69,7 +69,6 @@ async function runAssertOpportunityCapacity({
   const expectedCapacityForEachUniqueOpportunity = getGetMatchRequestInfoByOpportunityId(
     getOpportunityExpectedCapacity, initialOpportunityFeedExtractResponses, orderItems,
   );
-  // TODO TODO TODO how to use a same pattern here as with other `reusable-`s..?
   /* This cache is not just an optimization but a necessity. Broker rejects old GetMatch requests if it gets a new
   request for the same Opportunity ID. So, this cache means that there will only be one request per Opportunity ID */
   const opportunityFeedExtractResponses = await pMapWithCache(

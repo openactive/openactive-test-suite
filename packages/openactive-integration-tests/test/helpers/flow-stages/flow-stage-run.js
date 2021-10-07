@@ -9,7 +9,7 @@
 //   * book-and-seller-replace-items: Test switched out OrderItems
 //   * [x] amending-order-quote tests: Test switched out OrderItems
 //   * order-deletion tests: Assert capacity goes up after deletion.
-//   * leasing: Assert Capacity changes in batched tests. Might be complicated..
+//   * [x] leasing: Assert Capacity changes in batched tests. Might be complicated..
 // - Feature toggles
 //   * in one revertable commit/PR
 const { last } = require('lodash');

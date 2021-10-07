@@ -29,7 +29,6 @@ FeatureHelper.describeFeature(module, {
     ...defaultFlowStageParams,
     prerequisite: deleteStage1,
   });
-  // TODO TODO TODO assert capacity goes back up after Order deletion
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

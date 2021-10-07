@@ -238,7 +238,6 @@ const FlowStageUtils = {
       return;
     }
     if (flowStageRunnable instanceof BookRecipe) {
-      const stagesBeforeLastStage = flowStageRunnable.getStagesSequenceBeforeLastStage();
       /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any
       approved items appearing in the feed - which means that the tests will time out.
       One option for achieving that:
@@ -246,28 +245,13 @@ const FlowStageUtils = {
         arg. e.g. if you provide `breakIf: () => !isHttp2xxResponse(p.getOutput().httpResponse)`, then this stage
         can have some code in its run function like `if (breakIf()) { throw new Error('..'); }`
       */
-      // TODO TODO TODO make use same pattern as with FlowStageRun
-      for (const stage of stagesBeforeLastStage) {
+      const allStages = flowStageRunnable.getStages();
+      for (const stage of allStages.slice(0, -1)) {
         FlowStageUtils.describeRunAndRunChecks(checks, stage);
       }
       /* Only run additional tests on the last stage, so that all of the booking will have occurred by the time
       the additional tests are run */
-      FlowStageUtils.describeRunAndRunChecks(checks, flowStageRunnable.lastStage, itAdditionalTests);
-      // if (flowStageOrBookRecipe.p) {
-      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
-      //   /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
-      //   approved items appearing in the feed - which means that the tests will time out */
-      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
-      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
-      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b);
-      //   FlowStageUtils.describeRunAndRunChecks(
-      //     checks,
-      //     flowStageOrBookRecipe.orderFeedUpdateAfterDeleteProposal,
-      //     itAdditionalTests,
-      //   );
-      // } else {
-      //   FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
-      // }
+      FlowStageUtils.describeRunAndRunChecks(checks, last(allStages), itAdditionalTests);
       return;
     }
     // It's a FlowStage
