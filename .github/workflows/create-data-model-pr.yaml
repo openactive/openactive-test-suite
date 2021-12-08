@@ -8,6 +8,10 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -34,7 +38,6 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           path: ./openactive-test-suite/
-          token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
           commit-message: Update data model dependencies
           committer: openactive-bot <openactive-bot@users.noreply.github.com>
           author: openactive-bot <openactive-bot@users.noreply.github.com>
