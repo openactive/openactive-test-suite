@@ -22,11 +22,11 @@ jobs:
           node-version: 14.x
         
       - name: Update openactive-integration-tests with latest data-models
-        run: npm update @openactive/data-models --save
+        run: npm install @openactive/data-models@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-integration-tests/
 
       - name: Update openactive-broker-microservice with latest data-models
-        run: npm update @openactive/data-models --save
+        run: npm install @openactive/data-models@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-broker-microservice/
 
       - name: Create Pull Request
