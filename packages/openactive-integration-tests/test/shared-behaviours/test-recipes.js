@@ -105,8 +105,8 @@ const TestRecipes = {
           createActionFn: () => ({
             type: testInterfaceActionParams.actionType,
             // Note that these 2 fields may need to be configurable in future:
-            objectType: fetchOpportunities.getOutput().orderItems[0].orderedItem['@type'],
-            objectId: fetchOpportunities.getOutput().orderItems[0].orderedItem['@id'],
+            objectType: 'Order',
+            objectId: bookRecipe.b.getOutput().orderId,
           }),
         })),
         orderFeedUpdateParams: {

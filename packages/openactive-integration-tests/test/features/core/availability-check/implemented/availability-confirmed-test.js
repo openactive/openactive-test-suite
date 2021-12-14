@@ -57,6 +57,34 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
     // });
   }
 
+  /**
+   * Price in the result from calling C1 or C2 should match that found in the open data feed.
+   *
+   * @param {C1FlowStageType | C2FlowStageType} flowStage
+   */
+  /*
+  function itShouldMatchPrice(flowStage) {
+    Common.itForEachOrderItem({
+      orderItemCriteriaList,
+      getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
+      // @ts-ignore
+      getOrdersApiResponse: () => flowStage.getOutputWithFire().httpResponse,
+    },
+    'availability should match open data feed',
+    (feedOrderItem, apiResponseOrderItem) => {
+      if (feedOrderItem.orderedItem['@type'] === 'Slot') {
+        expect(apiResponseOrderItem).to.nested.include({
+          'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
+        });
+      } else {
+        expect(apiResponseOrderItem).to.nested.include({
+          'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
+        });
+      }
+    });
+  }
+  */
+
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
     itShouldMatchOccupancy(c1);
