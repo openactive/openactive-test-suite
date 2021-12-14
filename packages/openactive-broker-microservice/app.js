@@ -1664,7 +1664,7 @@ setTimeout(() => {
     logError(`${message}\n`);
     throw new Error(message);
   }
-}, 3600000); // 3600000 ms = 1 hour
+}, 3600000 * 2); // 3600000 ms = 1 hour
 
 /**
  * Event listener for HTTP server "error" event.
