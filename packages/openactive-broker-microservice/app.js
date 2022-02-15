@@ -536,8 +536,8 @@ async function setFeedIsUpToDate(feedIdentifier) {
       if (state.incompleteFeeds.length === 0) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
-        await Promise.all(state.validatorThreadArray.map(async (validator) => validator.terminate));
-        // TODO surely this doesn't work ^ needs to actually call terminate()
+        await Promise.all(state.validatorThreadArray.map((validator) => (
+          validator.terminate())));
 
         if (state.multibar) state.multibar.stop();
 
