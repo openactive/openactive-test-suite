@@ -64,6 +64,7 @@ const {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
+  VALIDATOR_INPUT_TMP_DIR,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
@@ -75,7 +76,6 @@ const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-trac
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 
 const VALIDATOR_ITEMS_CHUNK_LENGTH = 10;
-const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, 'tmp-validator-input');
 
 let validatorInputFilenameSequenceNum = 0;
 

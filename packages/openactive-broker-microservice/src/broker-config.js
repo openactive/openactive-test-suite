@@ -2,6 +2,7 @@
  * Configuration used throughout Broker.
  */
 const config = require('config');
+const path = require('path');
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -43,6 +44,8 @@ const HEADLESS_AUTH = true;
 
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
+// TODO TODO doc
+const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, 'tmp-validator-input');
 
 /**
  * Normalize a port into a number, string, or false.
@@ -88,4 +91,5 @@ module.exports = {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
+  VALIDATOR_INPUT_TMP_DIR,
 };

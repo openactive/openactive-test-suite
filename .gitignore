@@ -2,6 +2,7 @@
 output
 conformance
 tmp
+tmp-validator-input
 
 # Created by .ignore support plugin (hsz.mobi)
 ### macOS template

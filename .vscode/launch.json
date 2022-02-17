@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "integration-tests (controlled) - this test file",
             "request": "launch",
@@ -95,7 +96,8 @@
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
             "env": {
-              "NODE_APP_INSTANCE": "dev"
+            //   "DEBUG_BROKER_NO_VALIDATE": "true",
+              "NODE_ENV": "dev",
             },
         },
         {
