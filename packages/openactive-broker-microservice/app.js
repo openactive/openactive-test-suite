@@ -13,13 +13,16 @@ const sleep = require('util').promisify(setTimeout);
 const { setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 const Handlebars = require('handlebars');
 const fs = require('fs').promises;
+const fsExtra = require('fs-extra');
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
-const { isNil } = require('lodash');
+const { isNil, partial } = require('lodash');
+// const R = require('ramda');
+const itertools = require('iter-tools');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -71,6 +74,11 @@ const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/reque
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 
+const VALIDATOR_ITEMS_CHUNK_LENGTH = 10;
+const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, 'tmp-validator-input');
+
+let validatorInputFilenameSequenceNum = 0;
+
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
  * @typedef {import('./src/models/core').BookingPartnerIdentifier} BookingPartnerIdentifier
@@ -90,47 +98,48 @@ if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
 }
 
-/**
- * Use OpenActive validator to validate the opportunity
- *
- * @param {any} data opportunity JSON-LD object
- */
-async function validateAndStoreValidationResults(data, validator) {
-  const id = data['@id'] || data.id;
-  const errors = await validator.validateItem(data, ITEM_VALIDATION_MODE);
-  if (!errors) return;
-  for (const error of errors) {
-    // Use the first line of the error message to uniquely identify it
-    const errorShortMessage = error.message.split('\n')[0];
-    const errorKey = `${error.path}: ${errorShortMessage}`;
+// /**
+//  * Use OpenActive validator to validate the opportunity
+//  *
+//  * @param {any} data opportunity JSON-LD object
+//  */
+// async function validateAndStoreValidationResults(data, validator) {
+//   const id = data['@id'] || data.id;
+//   const errors = await validator.validateItem(data, ITEM_VALIDATION_MODE);
+//   if (!errors) return;
+//   // TODO TODO don't forget to use these bits in validator worker pool
+//   for (const error of errors) {
+//     // Use the first line of the error message to uniquely identify it
+//     const errorShortMessage = error.message.split('\n')[0];
+//     const errorKey = `${error.path}: ${errorShortMessage}`;
 
-    // Ignore the error that a SessionSeries must have children as they haven't been combined yet.
-    // This is being done because I don't know if there is a validator.validationMode for this, and without ignoring the broker does not run
-    if (data['@type'] === 'SessionSeries' && errorShortMessage === 'A `SessionSeries` must have an `eventSchedule` or at least one `subEvent`.') {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
+//     // Ignore the error that a SessionSeries must have children as they haven't been combined yet.
+//     // This is being done because I don't know if there is a validator.validationMode for this, and without ignoring the broker does not run
+//     if (data['@type'] === 'SessionSeries' && errorShortMessage === 'A `SessionSeries` must have an `eventSchedule` or at least one `subEvent`.') {
+//       // eslint-disable-next-line no-continue
+//       continue;
+//     }
 
-    // Create a new entry if this is a new error
-    let currentValidationResults = state.validationResults.get(errorKey);
-    if (!currentValidationResults) {
-      currentValidationResults = {
-        path: error.path,
-        message: errorShortMessage,
-        occurrences: 0,
-        examples: [],
-      };
-      state.validationResults.set(errorKey, currentValidationResults);
-    }
+//     // Create a new entry if this is a new error
+//     let currentValidationResults = state.validationResults.get(errorKey);
+//     if (!currentValidationResults) {
+//       currentValidationResults = {
+//         path: error.path,
+//         message: errorShortMessage,
+//         occurrences: 0,
+//         examples: [],
+//       };
+//       state.validationResults.set(errorKey, currentValidationResults);
+//     }
 
-    // Keep track of examples of each error, with a preference for newer ones (later in the feed)
-    currentValidationResults.occurrences += 1;
-    currentValidationResults.examples.unshift(id);
-    if (currentValidationResults.examples.length > 5) {
-      currentValidationResults.examples.pop();
-    }
-  }
-}
+//     // Keep track of examples of each error, with a preference for newer ones (later in the feed)
+//     currentValidationResults.occurrences += 1;
+//     currentValidationResults.examples.unshift(id);
+//     if (currentValidationResults.examples.length > 5) {
+//       currentValidationResults.examples.pop();
+//     }
+//   }
+// }
 
 /**
  * Render the currently stored validation errors as HTML
@@ -232,31 +241,41 @@ async function harvestRPDE(
   let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
 
-  /** @type {FeedContext} */
-  const context = {
-    currentPage: baseUrl,
-    pages: 0,
-    items: 0,
-    responseTimes: [],
-    totalItemsQueuedForValidation: 0,
-    validatedItems: 0,
-  };
-  /**
-   * @param {FeedContext} c
-   */
-  const progressFromContext = (c) => ({
-    totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
-    validatedItems: c.validatedItems,
-    validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
-    items: c.items,
+  // /** @type {FeedContext} */
+  // const context = {
+  //   currentPage: baseUrl,
+  //   pages: 0,
+  //   items: 0,
+  //   responseTimes: [],
+  //   totalItemsQueuedForValidation: 0,
+  //   validatedItems: 0,
+  // };
+  const context = createFeedContext(bar, feedContextIdentifier, baseUrl);
+
+  const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
+    feedContextIdentifier,
+    isInitialHarvestComplete: () => isInitialHarvestComplete,
+    addToTotalItemsQueuedForValidation(addition) {
+      context.totalItemsQueuedForValidation += addition;
+    },
   });
-  const progressbar = !bar ? null : bar.create(0, 0, {
-    feedIdentifier: feedContextIdentifier,
-    pages: 0,
-    responseTime: '-',
-    status: 'Harvesting...',
-    ...progressFromContext(context),
-  });
+
+  // /**
+  //  * @param {FeedContext} c
+  //  */
+  // const progressFromContext = (c) => ({
+  //   totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
+  //   validatedItems: c.validatedItems,
+  //   validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
+  //   items: c.items,
+  // });
+  // const progressbar = !bar ? null : bar.create(0, 0, {
+  //   feedIdentifier: feedContextIdentifier,
+  //   pages: 0,
+  //   responseTime: '-',
+  //   status: 'Harvesting...',
+  //   ...progressFromContext(context),
+  // });
 
   if (state.feedContextMap.has(feedContextIdentifier)) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
@@ -304,14 +323,14 @@ async function harvestRPDE(
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
         if (!isInitialHarvestComplete) {
-          if (progressbar) {
-            progressbar.update(context.validatedItems, {
+          if (context.progressbar) {
+            context.progressbar.update(context.validatedItems, {
               pages: context.pages,
               responseTime: Math.round(responseTime),
               ...progressFromContext(context),
               status: context.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
             });
-            progressbar.setTotal(context.totalItemsQueuedForValidation);
+            context.progressbar.setTotal(context.totalItemsQueuedForValidation);
           }
           isInitialHarvestComplete = true;
         }
@@ -337,34 +356,35 @@ async function harvestRPDE(
             }, next: '${json.next}'`,
           );
         }
-        // eslint-disable-next-line no-loop-func
-        await processPage(json, feedContextIdentifier, (item) => {
-          if (!isInitialHarvestComplete) {
-            context.totalItemsQueuedForValidation += 1;
-            validateAndStoreValidationResults(item, validator).then(() => {
-              context.validatedItems += 1;
-              if (progressbar) {
-                progressbar.setTotal(context.totalItemsQueuedForValidation);
-                if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-                  progressbar.update(context.validatedItems, {
-                    ...progressFromContext(context),
-                    status: 'Validation Complete',
-                  });
-                  progressbar.stop();
-                } else {
-                  progressbar.update(context.validatedItems, progressFromContext(context));
-                }
-              }
-            });
-          }
-        });
-        if (!isInitialHarvestComplete && progressbar) {
-          progressbar.update(context.validatedItems, {
+        await processPage(json, feedContextIdentifier, sendItemsToValidatorWorkerPoolForThisFeed);
+        // // eslint-disable-next-line no-loop-func
+        // await processPage(json, feedContextIdentifier, (item) => {
+        //   if (!isInitialHarvestComplete) {
+        //     context.totalItemsQueuedForValidation += 1;
+        //     validateAndStoreValidationResults(item, validator).then(() => {
+        //       context.validatedItems += 1;
+        //       if (progressbar) {
+        //         progressbar.setTotal(context.totalItemsQueuedForValidation);
+        //         if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+        //           progressbar.update(context.validatedItems, {
+        //             ...progressFromContext(context),
+        //             status: 'Validation Complete',
+        //           });
+        //           progressbar.stop();
+        //         } else {
+        //           progressbar.update(context.validatedItems, progressFromContext(context));
+        //         }
+        //       }
+        //     });
+        //   }
+        // });
+        if (!isInitialHarvestComplete && context.progressbar) {
+          context.progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
             ...progressFromContext(context),
           });
-          progressbar.setTotal(context.totalItemsQueuedForValidation);
+          context.progressbar.setTotal(context.totalItemsQueuedForValidation);
         }
         url = json.next;
       }
@@ -387,7 +407,7 @@ async function harvestRPDE(
       } else if (error.response?.status === 404) {
         // If 404, simply stop polling feed
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) { await onFeedEnd(); }
-        state.multibar.remove(progressbar);
+        state.multibar.remove(context.progressbar);
         state.feedContextMap.delete(feedContextIdentifier);
         if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedContextIdentifier} page "${url}", feed will be ignored.`);
         return;
@@ -1095,19 +1115,27 @@ app.post('/assert-unmatched-criteria', function (req, res) {
 });
 
 /**
- * @callback RpdePageProcessor
- * @param {any} rpdePage
- * @param {string} feedIdentifier
- * @param {ValidateItemCallback} validateItemFn
+ * @typedef {(
+ *   rpdePage: any,
+ *   feedIdentifier: string,
+ *   validateItemsFn: (items: any[]) => Promise<void>,
+ * ) => Promise<void>} RpdePageProcessor
  */
 
-/**
- * @callback ValidateItemCallback
- * @param {any} data
- */
+// /**
+//  * @callback RpdePageProcessor
+//  * @param {any} rpdePage
+//  * @param {string} feedIdentifier
+//  * @param {ValidateItemCallback} validateItemFn
+//  */
+
+// /**
+//  * @callback ValidateItemCallback
+//  * @param {any} data
+//  */
 
 /** @type {RpdePageProcessor} */
-async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
+async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -1116,14 +1144,14 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
       state.parentOpportunityMap.delete(jsonLdId);
       state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
     } else {
-      // Run any validation logic for this item
-      await validateItemFn(item.data);
-
+      // // Run any validation logic for this item
+      // await validateItemsFn(item.data);
       const jsonLdId = item.data['@id'] || item.data.id;
       state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.parentOpportunityMap.set(jsonLdId, item.data);
     }
   }
+  await validateItemsFn(rpdePage.items);
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
   await touchOpportunityItems(rpdePage.items
@@ -1132,7 +1160,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 }
 
 /** @type {RpdePageProcessor} */
-async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
+async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -1143,9 +1171,8 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
 
       deleteOpportunityItem(jsonLdId);
     } else {
-      // Run any validation logic for this item
-      await validateItemFn(item.data);
-
+      // // Run any validation logic for this item
+      // await validateItemFn(item.data);
       const jsonLdId = item.data['@id'] || item.data.id;
       state.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityMap.set(jsonLdId, item.data);
@@ -1153,6 +1180,7 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemFn) {
       await storeOpportunityItem(item);
     }
   }
+  await validateItemsFn(rpdePage.items);
 }
 
 async function touchOpportunityItems(parentIds) {
@@ -1357,7 +1385,8 @@ async function processOpportunityItem(item) {
  * @returns {RpdePageProcessor}
  */
 function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
-  return (rpdePage) => {
+  // TODO TODO this doesn't validate its items. Is that right?
+  return async (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
         OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(
@@ -1425,7 +1454,12 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 
 async function startPolling() {
   await mkdirp(VALIDATOR_TMP_DIR);
+  await mkdirp(VALIDATOR_INPUT_TMP_DIR);
+  // Clear this directory of any files which may not have been cleaned up in a prior run
+  await fsExtra.emptyDir(VALIDATOR_INPUT_TMP_DIR);
   await mkdirp(OUTPUT_PATH);
+
+  // validatorWorkerPool.init(onValidateItems);
 
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
@@ -1683,5 +1717,140 @@ function onError(error) {
       break;
     default:
       throw error;
+  }
+}
+
+/**
+ * @param {object} args
+ * @param {string} args.feedContextIdentifier
+ * @param {() => boolean} args.isInitialHarvestComplete
+ * @param {(addition: number) => void} args.addToTotalItemsQueuedForValidation
+ * @param {any[]} items RPDE items
+ */
+async function sendItemsToValidatorWorkerPool({
+  feedContextIdentifier,
+  isInitialHarvestComplete,
+  addToTotalItemsQueuedForValidation,
+}, items) {
+  if (isInitialHarvestComplete()) { return; }
+  // const x = itertools.execPipe(items,
+  //   itertools.toArray);
+  // const y = itertools.execPipe(items,
+  //   itertools.filter((item) => item.state === 'updated'),
+  //   itertools.toArray);
+  // const z = itertools.execPipe(items,
+  //   itertools.filter((item) => item.state === 'updated'),
+  //   itertools.map((item) => ({
+  //     item: item.data,
+  //     validationMode: ITEM_VALIDATION_MODE,
+  //     feedContextIdentifier,
+  //   })),
+  //   itertools.toArray);
+  // const a = itertools.execPipe(items,
+  //   itertools.filter((item) => item.state === 'updated'),
+  //   itertools.map((item) => ({
+  //     item: item.data,
+  //     validationMode: ITEM_VALIDATION_MODE,
+  //     feedContextIdentifier,
+  //   })),
+  //   itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
+  //   itertools.toArray);
+  const validatorInputs = itertools.execPipe(items,
+    itertools.filter((item) => item.state === 'updated'),
+    itertools.map((item) => ({
+      item: item.data,
+      validationMode: ITEM_VALIDATION_MODE,
+      feedContextIdentifier,
+    })),
+    // TODO TODO doc here
+    itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
+    itertools.map((chunkOfItems) => JSON.stringify([...chunkOfItems])),
+    itertools.toArray);
+  // // TODO TODO TODO problem is that items is just an item
+  // // and we need to change this code to handle the RPDE items
+  // const chunksOfItems = R.splitEvery(VALIDATOR_ITEMS_CHUNK_LENGTH, items);
+  // const validatorInputs = chunksOfItems.map((chunkOfItems) => (
+  //   JSON.stringify(
+  //     chunkOfItems.map((item) => ({
+  //       item,
+  //       validationMode: ITEM_VALIDATION_MODE,
+  //       feedContextIdentifier,
+  //     })),
+  //   )
+  // ));
+  await Promise.all(validatorInputs.map(async (validatorInput) => {
+    validatorInputFilenameSequenceNum += 1;
+    await fs.writeFile(
+      path.join(VALIDATOR_INPUT_TMP_DIR, `${validatorInputFilenameSequenceNum}.json`),
+      validatorInput,
+    );
+  }));
+  addToTotalItemsQueuedForValidation(items.length);
+}
+
+/**
+ * @param {import('cli-progress').MultiBar} bar
+ * @param {string} feedContextIdentifier
+ * @param {string} baseUrl
+ * @returns {FeedContext}
+ */
+function createFeedContext(bar, feedContextIdentifier, baseUrl) {
+  /** @type {FeedContext} */
+  const context = {
+    currentPage: baseUrl,
+    pages: 0,
+    items: 0,
+    responseTimes: [],
+    totalItemsQueuedForValidation: 0,
+    validatedItems: 0,
+    progressbar: null,
+  };
+  if (bar) {
+    context.progressbar = bar.create(0, 0, {
+      feedIdentifier: feedContextIdentifier,
+      pages: 0,
+      responseTime: '-',
+      status: 'Harvesting...',
+      ...progressFromContext(context),
+    });
+  }
+  return context;
+}
+
+/**
+ * @param {FeedContext} c
+ */
+function progressFromContext(c) {
+  return {
+    totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
+    validatedItems: c.validatedItems,
+    validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
+    items: c.items,
+  };
+}
+
+/**
+ * @param {string} feedContextIdentifier
+ * @param {number} numItems
+ */
+function onValidateItems(feedContextIdentifier, numItems) {
+  // TODO TODO do this in a way which doesn't require global state. Something like `validatorWorkerPool.setOnValidateItems(feedContextIdentifier, (numItems) => ...)
+  const context = state.feedContextMap.get(feedContextIdentifier);
+  if (!context) {
+    throw new Error(`onValidateItems() called for a feed for which there is no context. feedContextIdentifier: ${feedContextIdentifier}`);
+  }
+  // TODO TODO put context into a class so it controls access?
+  context.validatedItems += numItems;
+  if (context.progressbar) {
+    context.progressbar.setTotal(context.totalItemsQueuedForValidation);
+    if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
+      context.progressbar.update(context.validatedItems, {
+        ...progressFromContext(context),
+        status: 'Validation Complete',
+      });
+      context.progressbar.stop();
+    } else {
+      context.progressbar.update(context.validatedItems, progressFromContext(context));
+    }
   }
 }

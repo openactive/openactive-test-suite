@@ -5,6 +5,8 @@ class AsyncValidatorWorker {
   constructor(validatorIdentifier, blockUntilQueueEmpty, startTime, validatorTimeout) {
     this.pool = Pool(() => spawn(new Worker('./validator-worker')), {
       name: validatorIdentifier,
+      concurrency: 1,
+      maxQueuedJobs: 1,
     });
     this.queueLength = 0;
     this.blockUntilQueueEmpty = blockUntilQueueEmpty;
