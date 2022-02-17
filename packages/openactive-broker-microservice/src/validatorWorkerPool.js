@@ -1,7 +1,7 @@
 /**
  * TODO TODO doc
  */
-const { take } = require('lodash');
+const { execPipe, take, toArray, map } = require('iter-tools');
 const fs = require('fs').promises;
 const os = require('os');
 const path = require('path');
@@ -13,7 +13,7 @@ const { VALIDATOR_INPUT_TMP_DIR } = require('./broker-config');
  * @typedef {import('./validatorWorker').ValidatorWorkerResponse} ValidatorWorkerResponse
  */
 
-const TIME_TO_WAIT_IF_NO_INPUTS_MS = 200;
+const TIME_TO_WAIT_IF_NO_INPUTS_MS = 1000;
 const MAX_NUM_EXAMPLES_PER_VALIDATION_RESULT = 5;
 
 const numCpus = os.cpus().length;
@@ -44,30 +44,46 @@ class ValidatorWorkerPool {
     this._isRunning = false;
   }
 
+  /**
+   * TODO TODO doc
+   *
+   * You probably don't want to `await` this. The await will finish at a rather arbitrary time which is after
+   * the first iteration.
+   */
   async run() {
     if (!this._isRunning) { return; }
-    const fileNames = await fs.readdir(VALIDATOR_INPUT_TMP_DIR);
-    if (fileNames.length === 0) {
+    // Get a batch of files to validate
+    const allFileNames = await fs.readdir(VALIDATOR_INPUT_TMP_DIR);
+    if (allFileNames.length === 0) {
       // Check again in a bit
       setTimeout(() => this.run(), TIME_TO_WAIT_IF_NO_INPUTS_MS);
+      return;
     }
-    fileNames.sort(validatorInputFileNameComparator);
-    await Promise.all(
-      take(fileNames, numWorkers)
-        .map((fileName) => this._validateFileWithWorker(fileName)),
-    );
+    allFileNames.sort(validatorInputFileNameComparator);
+    const filePaths = execPipe(allFileNames,
+      take(numWorkers),
+      map((fileName) => path.join(VALIDATOR_INPUT_TMP_DIR, fileName)),
+      toArray);
+    // Farm off to workers to validate
+    await Promise.all(filePaths.map((filePath) => (
+      this._validateFileWithWorker(filePath))));
+    // Remove now validated files
+    await Promise.all(filePaths.map(async (filePath) => {
+      await fs.rm(filePath, {
+        force: true,
+      });
+    }));
     // Check again immediately
     setImmediate(() => this.run());
   }
 
   /**
-   * @param {string} fileName
+   * @param {string} filePath
    */
-  async _validateFileWithWorker(fileName) {
-    const filePath = path.join(VALIDATOR_INPUT_TMP_DIR, fileName);
+  async _validateFileWithWorker(filePath) {
     const fileData = await fs.readFile(filePath);
     const worker = new Worker(workerFileName, {
-      workerData: fileData,
+      workerData: fileData.toString(),
     });
     await new Promise((resolve, reject) => {
       worker.on('message', (/** @type {ValidatorWorkerResponse} */message) => {

@@ -45,7 +45,7 @@ const HEADLESS_AUTH = true;
 // Note this is duplicated between app.js and validator.js, for efficiency
 const VALIDATOR_TMP_DIR = './tmp';
 // TODO TODO doc
-const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, 'tmp-validator-input');
+const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input');
 
 /**
  * Normalize a port into a number, string, or false.

@@ -23,6 +23,7 @@ const { expect } = require('chai');
 const { isNil, partial } = require('lodash');
 // const R = require('ramda');
 const itertools = require('iter-tools');
+const util = require('util');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -35,7 +36,7 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
-const AsyncValidatorWorker = require('./src/validator/async-validator');
+// const AsyncValidatorWorker = require('./src/validator/async-validator');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./src/util/log');
@@ -74,6 +75,7 @@ const { orderFeedContextIdentifier } = require('./src/util/feed-context-identifi
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
+const { ValidatorWorkerPool } = require('./src/validatorWorkerPool');
 
 const VALIDATOR_ITEMS_CHUNK_LENGTH = 10;
 
@@ -86,6 +88,9 @@ let validatorInputFilenameSequenceNum = 0;
  */
 
 const markdown = new Remarkable();
+
+// TODO TODO don't make this global
+const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems);
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
@@ -235,8 +240,8 @@ async function harvestRPDE(
   };
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
   const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
-  const validator = new AsyncValidatorWorker(feedContextIdentifier, waitForValidation, state.startTime, validatorTimeout);
-  state.validatorThreadArray.push(validator);
+  // const validator = new AsyncValidatorWorker(feedContextIdentifier, waitForValidation, state.startTime, validatorTimeout);
+  // state.validatorThreadArray.push(validator);
 
   let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
@@ -556,8 +561,9 @@ async function setFeedIsUpToDate(feedIdentifier) {
       if (state.incompleteFeeds.length === 0) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
-        await Promise.all(state.validatorThreadArray.map((validator) => (
-          validator.terminate())));
+        validatorWorkerPool.stop();
+        // await Promise.all(state.validatorThreadArray.map((validator) => (
+        //   validator.terminate())));
 
         if (state.multibar) state.multibar.stop();
 
@@ -1459,7 +1465,7 @@ async function startPolling() {
   await fsExtra.emptyDir(VALIDATOR_INPUT_TMP_DIR);
   await mkdirp(OUTPUT_PATH);
 
-  // validatorWorkerPool.init(onValidateItems);
+  validatorWorkerPool.run();
 
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
@@ -1755,8 +1761,8 @@ async function sendItemsToValidatorWorkerPool({
   //   })),
   //   itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
   //   itertools.toArray);
-  const validatorInputs = itertools.execPipe(items,
-    itertools.filter((item) => item.state === 'updated'),
+  const updatedItems = items.filter((item) => item.state === 'updated');
+  const validatorInputs = itertools.execPipe(updatedItems,
     itertools.map((item) => ({
       item: item.data,
       validationMode: ITEM_VALIDATION_MODE,
@@ -1785,7 +1791,7 @@ async function sendItemsToValidatorWorkerPool({
       validatorInput,
     );
   }));
-  addToTotalItemsQueuedForValidation(items.length);
+  addToTotalItemsQueuedForValidation(updatedItems.length);
 }
 
 /**
