@@ -23,7 +23,7 @@ const { expect } = require('chai');
 const { isNil, partial } = require('lodash');
 // const R = require('ramda');
 const itertools = require('iter-tools');
-const util = require('util');
+// const util = require('util');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -90,7 +90,9 @@ let validatorInputFilenameSequenceNum = 0;
 const markdown = new Remarkable();
 
 // TODO TODO don't make this global
-const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems);
+// Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
+const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
+const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems, validatorTimeoutMs);
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
@@ -151,7 +153,8 @@ if (REQUEST_LOGGING_ENABLED) {
  */
 async function renderValidationErrorsHtml() {
   return renderTemplate('validation-errors', {
-    validationErrors: [...state.validationResults.entries()].map(([errorKey, obj]) => ({
+    // validationErrors: [...state.validationResults.entries()].map(([errorKey, obj]) => ({
+    validationErrors: [...validatorWorkerPool.getValidationResults().entries()].map(([errorKey, obj]) => ({
       errorKey,
       ...obj,
     })),
@@ -561,7 +564,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
       if (state.incompleteFeeds.length === 0) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
-        validatorWorkerPool.stop();
+        await validatorWorkerPool.stop();
         // await Promise.all(state.validatorThreadArray.map((validator) => (
         //   validator.terminate())));
 
@@ -598,10 +601,11 @@ async function setFeedIsUpToDate(feedIdentifier) {
           validationPassed = false;
         }
 
-        if (state.validationResults.size > 0) {
+        if (validatorWorkerPool.getValidationResults().size > 0) {
+        // if (state.validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
-          const occurrenceCount = [...state.validationResults.values()].reduce((total, result) => total + result.occurrences, 0);
-          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${state.validationResults.size} were unique.`);
+          const occurrenceCount = [...validatorWorkerPool.getValidationResults().values()].reduce((total, result) => total + result.occurrences, 0);
+          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validatorWorkerPool.getValidationResults().size} were unique.`);
           if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
             logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
           } else {
@@ -1739,6 +1743,12 @@ async function sendItemsToValidatorWorkerPool({
   addToTotalItemsQueuedForValidation,
 }, items) {
   if (isInitialHarvestComplete()) { return; }
+  /* When re-harvesting the feed frequently during development, this can speed up the process. However, note
+  that leaving this on may allow Broker to miss some critical issues which will cause confusing errors later down
+  the line */
+  if (process.env.DEBUG_BROKER_NO_VALIDATE === 'true') {
+    return;
+  }
   // const x = itertools.execPipe(items,
   //   itertools.toArray);
   // const y = itertools.execPipe(items,

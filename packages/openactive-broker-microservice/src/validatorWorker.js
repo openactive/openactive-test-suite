@@ -1,4 +1,8 @@
+const { validate } = require('@openactive/data-model-validator');
+const { execPipe, filter, toArray, map } = require('iter-tools');
 const { workerData, parentPort } = require('worker_threads');
+const { silentlyAllowInsecureConnections } = require('./util/suppress-unauthorized-warning');
+const { VALIDATOR_TMP_DIR } = require('./broker-config');
 
 /**
  * @typedef {{
@@ -18,24 +22,64 @@ const { workerData, parentPort } = require('worker_threads');
  * }[]} ValidatorWorkerRequestParsed
  */
 
-/** @type {ValidatorWorkerRequestParsed} */
-let requestParsed;
-try {
-  requestParsed = JSON.parse(workerData);
-} catch (err) {
-  console.error('validatorWorker requestParsed error. data:', String(workerData));
-  throw err;
+silentlyAllowInsecureConnections();
+
+async function run() {
+  // JSON parsing is included in the validatorWorker as it's CPU intensive
+  /** @type {ValidatorWorkerRequestParsed} */
+  const requestParsed = JSON.parse(workerData);
+  /** @type {ValidatorWorkerResponse['numItemsPerFeed']} */
+  const numItemsPerFeed = {};
+  /** @type {ValidatorWorkerResponse['errors']} */
+  const errors = [];
+  for (const { feedContextIdentifier, validationMode, item } of requestParsed) {
+    numItemsPerFeed[feedContextIdentifier] = (numItemsPerFeed[feedContextIdentifier] ?? 0) + 1;
+
+    const allOaValidationErrors = await validate(item, {
+      loadRemoteJson: true,
+      remoteJsonCachePath: VALIDATOR_TMP_DIR,
+      remoteJsonCacheTimeToLive: 3600,
+      validationMode,
+    });
+    const newErrors = execPipe(allOaValidationErrors,
+      filter((oaValidationError) => (
+        oaValidationError.severity === 'failure'
+        && !isIgnorableResult(item, oaValidationError)
+      )),
+      map(((oaValidationError) => ({
+        opportunityId: item['@id'],
+        error: oaValidationError,
+      }))),
+      toArray);
+    // .filter((result) => (
+    //   result.severity === 'failure'
+    //   && !isIgnorableResult(item, result)
+    // ));
+    errors.push(...newErrors);
+  }
+  /** @type {ValidatorWorkerResponse} */
+  const response = {
+    errors,
+    numItemsPerFeed,
+  };
+  parentPort.postMessage(response);
 }
-/** @type {ValidatorWorkerResponse} */
-const response = {
-  errors: [],
-  numItemsPerFeed: requestParsed.reduce((accum, requestItem) => {
-    // eslint-disable-next-line no-param-reassign
-    accum[requestItem.feedContextIdentifier] = (accum[requestItem.feedContextIdentifier] ?? 0) + 1;
-    return accum;
-  }, /** @type {ValidatorWorkerResponse['numItemsPerFeed']} */({})),
-};
-parentPort.postMessage(response);
+
+/**
+ * @param {any} item
+ * @param {any} oaValidationResult
+ * @returns {boolean}
+ */
+function isIgnorableResult(item, oaValidationResult) {
+  // Ignore the error that a SessionSeries must have children as they haven't been combined yet.
+  // This is being done because I don't know if there is a validator.validationMode for this, and without ignoring the broker does not run
+  if (item['@type'] === 'SessionSeries' && oaValidationResult.message.startsWith('A `SessionSeries` must have an `eventSchedule` or at least one `subEvent`.')) {
+    return true;
+  }
+  return false;
+}
+
+run();
 
 // TODO TODO include this:
 // // Ignore the error that a SessionSeries must have children as they haven't been combined yet.

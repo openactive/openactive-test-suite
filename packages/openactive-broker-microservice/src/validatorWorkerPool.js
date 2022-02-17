@@ -25,8 +25,11 @@ const validatorInputFileNameComparator = R.ascend(getValidatorInputFileNameSeque
 class ValidatorWorkerPool {
   /**
    * @param {(feedContextIdentifier: string, numItems: number) => void} onValidateItems
+   * @param {number} validatorTimeoutMs Validator stops when:
+   *   - the feed has finished harvesting
+   *   - AND the timeout has run out.
    */
-  constructor(onValidateItems) {
+  constructor(onValidateItems, validatorTimeoutMs) {
     /**
      * @type {Map<string, {
      *   path: string;
@@ -36,12 +39,23 @@ class ValidatorWorkerPool {
      * }>}
      */
     this._validationResults = new Map();
-    this._isRunning = true;
+    // this._isRunning = true;
+    // TODO TODO doc this
+    /** @type {(any) => void} */
+    this._hasFinishedHarvestingAndAwaitingCompletionResolve = null;
     this._onValidateItems = onValidateItems;
+    // TODO TODO implement this timeout
+    this._endTime = (new Date()).getTime() + validatorTimeoutMs;
   }
 
   stop() {
-    this._isRunning = false;
+    return new Promise((resolve) => {
+      this._hasFinishedHarvestingAndAwaitingCompletionResolve = resolve;
+    });
+  }
+
+  getValidationResults() {
+    return this._validationResults;
   }
 
   /**
@@ -51,11 +65,20 @@ class ValidatorWorkerPool {
    * the first iteration.
    */
   async run() {
-    if (!this._isRunning) { return; }
+    // Timeout validation
+    if (this._hasFinishedHarvestingAndAwaitingCompletionResolve && (new Date().getTime() >= this._endTime)) {
+      this._hasFinishedHarvestingAndAwaitingCompletionResolve();
+      return;
+    }
     // Get a batch of files to validate
     const allFileNames = await fs.readdir(VALIDATOR_INPUT_TMP_DIR);
     if (allFileNames.length === 0) {
-      // Check again in a bit
+      // If we've finished harvesting and there are no validator inputs left, we've finished.
+      if (this._hasFinishedHarvestingAndAwaitingCompletionResolve) {
+        this._hasFinishedHarvestingAndAwaitingCompletionResolve();
+        return;
+      }
+      // Otherwise, we'll check again in a bit
       setTimeout(() => this.run(), TIME_TO_WAIT_IF_NO_INPUTS_MS);
       return;
     }
