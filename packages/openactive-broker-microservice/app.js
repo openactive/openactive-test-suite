@@ -170,7 +170,6 @@ if (REQUEST_LOGGING_ENABLED) {
  */
 async function renderValidationErrorsHtml() {
   return renderTemplate('validation-errors', {
-    // validationErrors: [...state.validationResults.entries()].map(([errorKey, obj]) => ({
     validationErrors: [...validatorWorkerPool.getValidationResults().entries()].map(([errorKey, obj]) => ({
       errorKey,
       ...obj,
@@ -236,7 +235,6 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
  * @param {boolean} isOrdersFeed
  * @param {object} [options]
  * @param {import('cli-progress').MultiBar} [options.bar]
- * @param {boolean} [options.waitForValidation]
  * @param {(feedContextIdentifier: string) => void} [options.processEndOfFeed] Callback which will be called when the feed has
  *   reached its end - when all items have been harvested.
  */
@@ -248,7 +246,6 @@ async function harvestRPDE(
   isOrdersFeed,
   {
     bar,
-    waitForValidation,
     processEndOfFeed,
   } = {},
 ) {
@@ -258,10 +255,6 @@ async function harvestRPDE(
     }
     await setFeedIsUpToDate(feedContextIdentifier);
   };
-  // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
-  const validatorTimeout = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
-  // const validator = new AsyncValidatorWorker(feedContextIdentifier, waitForValidation, state.startTime, validatorTimeout);
-  // state.validatorThreadArray.push(validator);
 
   let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
@@ -579,11 +572,12 @@ async function setFeedIsUpToDate(feedIdentifier) {
 
       // If all feeds are now completed, trigger responses to healthcheck
       if (state.incompleteFeeds.length === 0) {
+        // TODO TODO this doc v
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
         await validatorWorkerPool.stop();
-        // await Promise.all(state.validatorThreadArray.map((validator) => (
-        //   validator.terminate())));
+        // Once validator has stopped, we may as well clean this directory to free up storage space
+        await clearValidatorInputTmpDir();
 
         if (state.multibar) state.multibar.stop();
 
@@ -619,7 +613,6 @@ async function setFeedIsUpToDate(feedIdentifier) {
         }
 
         if (validatorWorkerPool.getValidationResults().size > 0) {
-        // if (state.validationResults.size > 0) {
           await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
           const occurrenceCount = [...validatorWorkerPool.getValidationResults().values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validatorWorkerPool.getValidationResults().size} were unique.`);
@@ -1480,11 +1473,13 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 async function startPolling() {
-  await mkdirp(VALIDATOR_TMP_DIR);
-  await mkdirp(VALIDATOR_INPUT_TMP_DIR);
-  // Clear this directory of any files which may not have been cleaned up in a prior run
-  await fsExtra.emptyDir(VALIDATOR_INPUT_TMP_DIR);
-  await mkdirp(OUTPUT_PATH);
+  await Promise.all([
+    mkdirp(VALIDATOR_TMP_DIR),
+    mkdirp(VALIDATOR_INPUT_TMP_DIR),
+    // Clear this directory of any files which may not have been cleaned up in a prior run
+    clearValidatorInputTmpDir(),
+    mkdirp(OUTPUT_PATH),
+  ]);
 
   validatorWorkerPool.run();
 
@@ -1606,7 +1601,6 @@ Validation errors found in Dataset Site JSON-LD:
           false,
           {
             bar: state.multibar,
-            waitForValidation: true,
           },
         ),
       );
@@ -1622,7 +1616,6 @@ Validation errors found in Dataset Site JSON-LD:
           false,
           {
             bar: state.multibar,
-            waitForValidation: false,
           },
         ),
       );
@@ -1852,4 +1845,8 @@ function onValidateItems(feedContextIdentifier, numItems) {
       context.progressbar.update(context.validatedItems, progressFromContext(context));
     }
   }
+}
+
+async function clearValidatorInputTmpDir() {
+  await fsExtra.emptyDir(VALIDATOR_INPUT_TMP_DIR);
 }

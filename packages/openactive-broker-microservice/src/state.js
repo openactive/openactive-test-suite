@@ -99,20 +99,6 @@ const state = {
     opportunity: new OnePhaseListeners(),
   },
   orderUuidTracking: OrderUuidTracking.createState(),
-  // VALIDATION
-  /**
-   * Workers which perform the validation. Validation is quite expensive, so we do it with a parallel work queue.
-   *
-   * @type {AsyncValidatorWorker[]}
-   */
-  validatorThreadArray: [],
-  /**
-   * Results of opportunity validation. These are stored so that they can all be rendered to a page if there are any
-   * errors.
-   *
-   * @type {Map<string, any>}
-   */
-  validationResults: new Map(),
   // OPPORTUNITY DATA CACHES
   opportunityIdCache: OpportunityIdCache.create(),
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
