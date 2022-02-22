@@ -75,7 +75,7 @@ const { orderFeedContextIdentifier } = require('./src/util/feed-context-identifi
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
-const { ValidatorWorkerPool } = require('./src/validatorWorkerPool');
+const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 
 /**
  * A chunk length of 500 gives a memory usage by Validator Workers of roughly up to 4kb * 500 * <NUM CORES>.
@@ -106,9 +106,9 @@ let validatorInputFilenameSequenceNum = 0;
 
 const markdown = new Remarkable();
 
-// TODO TODO don't make this global
 // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
 const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
+// TODO TODO don't make this global
 const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems, validatorTimeoutMs);
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
@@ -1766,31 +1766,9 @@ async function sendItemsToValidatorWorkerPool({
   if (process.env.DEBUG_BROKER_NO_VALIDATE === 'true') {
     return;
   }
-  // const x = itertools.execPipe(items,
-  //   itertools.toArray);
-  // const y = itertools.execPipe(items,
-  //   itertools.filter((item) => item.state === 'updated'),
-  //   itertools.toArray);
-  // const z = itertools.execPipe(items,
-  //   itertools.filter((item) => item.state === 'updated'),
-  //   itertools.map((item) => ({
-  //     item: item.data,
-  //     validationMode: ITEM_VALIDATION_MODE,
-  //     feedContextIdentifier,
-  //   })),
-  //   itertools.toArray);
-  // const a = itertools.execPipe(items,
-  //   itertools.filter((item) => item.state === 'updated'),
-  //   itertools.map((item) => ({
-  //     item: item.data,
-  //     validationMode: ITEM_VALIDATION_MODE,
-  //     feedContextIdentifier,
-  //   })),
-  //   itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
-  //   itertools.toArray);
   const updatedItems = items.filter((item) => item.state === 'updated');
   const validatorInputs = itertools.execPipe(updatedItems,
-    itertools.map((item) => ({
+    itertools.map((item) => /** @type {import('./src/validator/types').ValidatorWorkerRequestParsedItem} */({
       item: item.data,
       validationMode: ITEM_VALIDATION_MODE,
       feedContextIdentifier,
@@ -1799,18 +1777,6 @@ async function sendItemsToValidatorWorkerPool({
     itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
     itertools.map((chunkOfItems) => JSON.stringify([...chunkOfItems])),
     itertools.toArray);
-  // // TODO TODO TODO problem is that items is just an item
-  // // and we need to change this code to handle the RPDE items
-  // const chunksOfItems = R.splitEvery(VALIDATOR_ITEMS_CHUNK_LENGTH, items);
-  // const validatorInputs = chunksOfItems.map((chunkOfItems) => (
-  //   JSON.stringify(
-  //     chunkOfItems.map((item) => ({
-  //       item,
-  //       validationMode: ITEM_VALIDATION_MODE,
-  //       feedContextIdentifier,
-  //     })),
-  //   )
-  // ));
   await Promise.all(validatorInputs.map(async (validatorInput) => {
     validatorInputFilenameSequenceNum += 1;
     await fs.writeFile(

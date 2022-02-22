@@ -7,10 +7,10 @@ const os = require('os');
 const path = require('path');
 const R = require('ramda');
 const { Worker } = require('worker_threads');
-const { VALIDATOR_INPUT_TMP_DIR } = require('./broker-config');
+const { VALIDATOR_INPUT_TMP_DIR } = require('../broker-config');
 
 /**
- * @typedef {import('./validatorWorker').ValidatorWorkerResponse} ValidatorWorkerResponse
+ * @typedef {import('./validator-worker').ValidatorWorkerResponse} ValidatorWorkerResponse
  */
 
 const TIME_TO_WAIT_IF_NO_INPUTS_MS = 1000;
@@ -18,7 +18,7 @@ const MAX_NUM_EXAMPLES_PER_VALIDATION_RESULT = 5;
 
 const numCpus = os.cpus().length;
 const numWorkers = numCpus;
-const workerFileName = path.join(__dirname, 'validatorWorker.js');
+const workerFileName = path.join(__dirname, 'validator-worker.js');
 
 const validatorInputFileNameComparator = R.ascend(getValidatorInputFileNameSequenceNumber);
 
