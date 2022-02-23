@@ -32,7 +32,6 @@ if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
 // Inform config library that config is in the root directory (https://github.com/lorenwest/node-config/wiki/Configuration-Files#config-directory)
 process.env.NODE_CONFIG_DIR = path.join(__dirname, '..', '..', 'config');
 
-// const AsyncValidatorWorker = require('./src/validator/async-validator');
 const { silentlyAllowInsecureConnections } = require('./src/util/suppress-unauthorized-warning');
 const { OpportunityIdCache } = require('./src/util/opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./src/util/log');
@@ -94,48 +93,6 @@ setupBrowserAutomationRoutes(app, BUTTON_SELECTORS);
 if (REQUEST_LOGGING_ENABLED) {
   app.use(logger('dev'));
 }
-
-// /**
-//  * Use OpenActive validator to validate the opportunity
-//  *
-//  * @param {any} data opportunity JSON-LD object
-//  */
-// async function validateAndStoreValidationResults(data, validator) {
-//   const id = data['@id'] || data.id;
-//   const errors = await validator.validateItem(data, ITEM_VALIDATION_MODE);
-//   if (!errors) return;
-//   for (const error of errors) {
-//     // Use the first line of the error message to uniquely identify it
-//     const errorShortMessage = error.message.split('\n')[0];
-//     const errorKey = `${error.path}: ${errorShortMessage}`;
-
-//     // Ignore the error that a SessionSeries must have children as they haven't been combined yet.
-//     // This is being done because I don't know if there is a validator.validationMode for this, and without ignoring the broker does not run
-//     if (data['@type'] === 'SessionSeries' && errorShortMessage === 'A `SessionSeries` must have an `eventSchedule` or at least one `subEvent`.') {
-//       // eslint-disable-next-line no-continue
-//       continue;
-//     }
-
-//     // Create a new entry if this is a new error
-//     let currentValidationResults = state.validationResults.get(errorKey);
-//     if (!currentValidationResults) {
-//       currentValidationResults = {
-//         path: error.path,
-//         message: errorShortMessage,
-//         occurrences: 0,
-//         examples: [],
-//       };
-//       state.validationResults.set(errorKey, currentValidationResults);
-//     }
-
-//     // Keep track of examples of each error, with a preference for newer ones (later in the feed)
-//     currentValidationResults.occurrences += 1;
-//     currentValidationResults.examples.unshift(id);
-//     if (currentValidationResults.examples.length > 5) {
-//       currentValidationResults.examples.pop();
-//     }
-//   }
-// }
 
 /**
  * Render the currently stored validation errors as HTML
@@ -325,27 +282,6 @@ async function harvestRPDE({
           );
         }
         await processPage(json, feedContextIdentifier, sendItemsToValidatorWorkerPoolForThisFeed);
-        // // eslint-disable-next-line no-loop-func
-        // await processPage(json, feedContextIdentifier, (item) => {
-        //   if (!isInitialHarvestComplete) {
-        //     context.totalItemsQueuedForValidation += 1;
-        //     validateAndStoreValidationResults(item, validator).then(() => {
-        //       context.validatedItems += 1;
-        //       if (progressbar) {
-        //         progressbar.setTotal(context.totalItemsQueuedForValidation);
-        //         if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-        //           progressbar.update(context.validatedItems, {
-        //             ...progressFromContext(context),
-        //             status: 'Validation Complete',
-        //           });
-        //           progressbar.stop();
-        //         } else {
-        //           progressbar.update(context.validatedItems, progressFromContext(context));
-        //         }
-        //       }
-        //     });
-        //   }
-        // });
         if (!isInitialHarvestComplete && context.progressbar) {
           context.progressbar.update(context.validatedItems, {
             pages: context.pages,
@@ -1104,8 +1040,6 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
       state.parentOpportunityMap.delete(jsonLdId);
       state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
     } else {
-      // // Run any validation logic for this item
-      // await validateItemsFn(item.data);
       const jsonLdId = item.data['@id'] || item.data.id;
       state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.parentOpportunityMap.set(jsonLdId, item.data);
@@ -1131,8 +1065,6 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) 
 
       deleteOpportunityItem(jsonLdId);
     } else {
-      // // Run any validation logic for this item
-      // await validateItemFn(item.data);
       const jsonLdId = item.data['@id'] || item.data.id;
       state.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityMap.set(jsonLdId, item.data);
