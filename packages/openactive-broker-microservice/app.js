@@ -80,9 +80,6 @@ const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInpu
 
 const markdown = new Remarkable();
 
-// Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
-const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
-
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
 
@@ -1352,6 +1349,8 @@ async function startPolling() {
     mkdirp(OUTPUT_PATH),
   ]);
 
+  // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
+  const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
   const validatorWorkerPool = new ValidatorWorkerPool(validatorTimeoutMs);
   validatorWorkerPool.run();
   // It needs to be stored in global state just so that it can be easily accessed in the GET /validation-errors route
