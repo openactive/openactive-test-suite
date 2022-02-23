@@ -1,5 +1,7 @@
 /**
- * TODO TODO doc
+ * Pool of worker threads which validate items from the Booking System's feeds in parallel.
+ *
+ * Validator is computationally expensive, so we parallelise the work in order to get Broker up to speed more quickly.
  */
 const { execPipe, take, toArray, map } = require('iter-tools');
 const fs = require('fs').promises;
@@ -13,7 +15,7 @@ const { VALIDATOR_INPUT_TMP_DIR } = require('../broker-config');
  * @typedef {import('./validator-worker').ValidatorWorkerResponse} ValidatorWorkerResponse
  */
 
-const TIME_TO_WAIT_IF_NO_INPUTS_MS = 1000;
+const TIME_TO_WAIT_IF_NO_INPUTS_MS = 250;
 const MAX_NUM_EXAMPLES_PER_VALIDATION_RESULT = 5;
 
 const numCpus = os.cpus().length;
@@ -42,10 +44,19 @@ class ValidatorWorkerPool {
      * }>}
      */
     this._validationResults = new Map();
-    // TODO TODO doc this
-    /** @type {(any) => void} */
-    this._hasFinishedHarvestingAndAwaitingCompletionResolve = null;
-    // this._onValidateItems = onValidateItems;
+    /**
+     * Info that relates to stopping the Validator Worker Pool.
+     *
+     * @type {{
+     *   doStopWhenTimedOut: false;
+     * } | {
+     *   doStopWhenTimedOut: true;
+     *   resolve: (any) => void;
+     * }} `resolve` is a promise resolution to call when Validator Worker Pool finishes its last iteration
+     */
+    this._stoppingInfo = {
+      doStopWhenTimedOut: false,
+    };
     /**
      * [feedContextIdentifier] -> OnValidateItemsCallback
      *
@@ -67,9 +78,19 @@ class ValidatorWorkerPool {
     this._onValidateItemsCallbacks.set(feedContextIdentifier, onValidateItemsCallback);
   }
 
-  stop() {
+  /**
+   * Stop Validator Worker Pool. This won't stop Validator Worker Pool immediately but rather will stop as soon as
+   * either:
+   *
+   * - The timeout has been reached
+   * - There are no items left to validate
+   */
+  stopWhenTimedOut() {
     return new Promise((resolve) => {
-      this._hasFinishedHarvestingAndAwaitingCompletionResolve = resolve;
+      this._stoppingInfo = {
+        doStopWhenTimedOut: true,
+        resolve,
+      };
     });
   }
 
@@ -78,23 +99,24 @@ class ValidatorWorkerPool {
   }
 
   /**
-   * TODO TODO doc
+   * Start running Validator Worker Pool. Once started, this will run indefinitely until it is stopped with
+   * `stopWhenTimedOut()`.
    *
    * You probably don't want to `await` this. The await will finish at a rather arbitrary time which is after
    * the first iteration.
    */
   async run() {
     // Timeout validation
-    if (this._hasFinishedHarvestingAndAwaitingCompletionResolve && (new Date().getTime() >= this._endTime)) {
-      this._hasFinishedHarvestingAndAwaitingCompletionResolve();
+    if (this._stoppingInfo.doStopWhenTimedOut && (new Date().getTime() >= this._endTime)) {
+      this._stoppingInfo.resolve();
       return;
     }
     // Get a batch of files to validate
     const allFileNames = await fs.readdir(VALIDATOR_INPUT_TMP_DIR);
     if (allFileNames.length === 0) {
       // If we've finished harvesting and there are no validator inputs left, we've finished.
-      if (this._hasFinishedHarvestingAndAwaitingCompletionResolve) {
-        this._hasFinishedHarvestingAndAwaitingCompletionResolve();
+      if (this._stoppingInfo.doStopWhenTimedOut) {
+        this._stoppingInfo.resolve();
         return;
       }
       // Otherwise, we'll check again in a bit

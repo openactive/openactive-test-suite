@@ -10,7 +10,6 @@ const { OnePhaseListeners } = require('./onePhaseListeners');
 
 /**
  * @typedef {import('./models/core').FeedContext} FeedContext
- * @typedef {import('./validator/old/async-validator')} AsyncValidatorWorker
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPool} ValidatorWorkerPool
  */
 /**

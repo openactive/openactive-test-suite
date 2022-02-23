@@ -523,10 +523,12 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier) {
 
       // If all feeds are now completed, trigger responses to healthcheck
       if (state.incompleteFeeds.length === 0) {
-        // TODO TODO this doc v
-        // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
-        // Note in some circumstances threads will complete their work before terminating
-        await validatorWorkerPool.stop();
+        /* Signal for the Validator Worker Pool that we may stop once the validator timeout has run.
+        Validator is an expensive process and is not completely necessary for Booking API testing. So we put a hard
+        limit on how long it runs for (once all items are harvested).
+        This means that, in some cases, only a subset of the results will be validated.
+        Note that the worker pool will finish its current iteration if it has already reached the timeout. */
+        await validatorWorkerPool.stopWhenTimedOut();
         await cleanUpValidatorInputs();
 
         if (state.multibar) state.multibar.stop();

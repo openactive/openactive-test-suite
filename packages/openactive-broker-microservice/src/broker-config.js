@@ -42,9 +42,9 @@ const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('cons
 
 const HEADLESS_AUTH = true;
 
-// Note this is duplicated between app.js and validator.js, for efficiency
+/** Directory for Validator remote JSON cache (https://github.com/openactive/data-model-validator#remotejsoncachepath) */
 const VALIDATOR_TMP_DIR = './tmp';
-// TODO TODO doc
+/** Input files for the Validator Worker Pool are saved in this directory */
 const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input');
 
 /**
