@@ -55,6 +55,9 @@ async function cleanUpValidatorInputs() {
 }
 
 /**
+ * For a given page of items, split out those which are validatable (i.e. ignore deleted ones) into files and save
+ * those files so that the Validator Worker Pool can read and process them.
+ *
  * @param {string} feedContextIdentifier
  * @param {any[]} items RPDE items
  * @returns {Promise<number>} Number of items which have become queued for Validation
