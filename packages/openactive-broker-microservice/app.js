@@ -13,7 +13,6 @@ const sleep = require('util').promisify(setTimeout);
 const { setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 const Handlebars = require('handlebars');
 const fs = require('fs').promises;
-const fsExtra = require('fs-extra');
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
@@ -21,9 +20,6 @@ const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
 const { isNil, partial } = require('lodash');
-// const R = require('ramda');
-const itertools = require('iter-tools');
-// const util = require('util');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -65,7 +61,6 @@ const {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
-  VALIDATOR_INPUT_TMP_DIR,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
@@ -76,27 +71,7 @@ const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/reque
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
-
-/**
- * A chunk length of 500 gives a memory usage by Validator Workers of roughly up to 4kb * 500 * <NUM CORES>.
- *
- * - A rough average size of medium-size (e.g. SessionSeries rather than ScheduledSession) OpenActive items
- *   (uncompressed) is about 2-4kb.
- * - So, with 8 cores, the memory usage will be roughly up to 4kb * 500 * 8 = 16MB, which is acceptable.
- * - To clarify, this is the memory usage of just holding this data in memory. This is not counting the additional
- *   memory usage required by validator's mechanisms.
- *
- * The flipside is that this results in a number of validator-input files created that is roughly:
- *
- * - <NUM UPDATED ITEMS IN FEEDS> / 500
- * - This would happen if validator took so long to run that all the input files accumulated before it had run even
- *   once.
- * - So, with 1M items (as a very high example!) in the feeds, this could result in 2,000 files. This also seems
- *   acceptably unlikely to cause issues (e.g. inode usage issues).
- */
-const VALIDATOR_ITEMS_CHUNK_LENGTH = 500;
-
-let validatorInputFilenameSequenceNum = 0;
+const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -552,8 +527,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier) {
         // Stop the validator threads as soon as we've finished harvesting - so only a subset of the results will be validated
         // Note in some circumstances threads will complete their work before terminating
         await validatorWorkerPool.stop();
-        // Once validator has stopped, we may as well clean this directory to free up storage space
-        await clearValidatorInputTmpDir();
+        await cleanUpValidatorInputs();
 
         if (state.multibar) state.multibar.stop();
 
@@ -1118,18 +1092,6 @@ app.post('/assert-unmatched-criteria', function (req, res) {
  * ) => Promise<void>} RpdePageProcessor
  */
 
-// /**
-//  * @callback RpdePageProcessor
-//  * @param {any} rpdePage
-//  * @param {string} feedIdentifier
-//  * @param {ValidateItemCallback} validateItemFn
-//  */
-
-// /**
-//  * @callback ValidateItemCallback
-//  * @param {any} data
-//  */
-
 /** @type {RpdePageProcessor} */
 async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
@@ -1381,7 +1343,8 @@ async function processOpportunityItem(item) {
  * @returns {RpdePageProcessor}
  */
 function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
-  // TODO TODO this doesn't validate its items. Is that right?
+  /* Note that the Orders RpdePageProcessor does NOT use validateItemsFn i.e. Orders feed items are not validated
+  LW: I don't know why that is */
   return async (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
@@ -1451,9 +1414,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 async function startPolling() {
   await Promise.all([
     mkdirp(VALIDATOR_TMP_DIR),
-    mkdirp(VALIDATOR_INPUT_TMP_DIR),
-    // Clear this directory of any files which may not have been cleaned up in a prior run
-    clearValidatorInputTmpDir(),
+    setUpValidatorInputs(),
     mkdirp(OUTPUT_PATH),
   ]);
 
@@ -1731,31 +1692,8 @@ async function sendItemsToValidatorWorkerPool({
   addToTotalItemsQueuedForValidation,
 }, items) {
   if (isInitialHarvestComplete()) { return; }
-  /* When re-harvesting the feed frequently during development, this can speed up the process. However, note
-  that leaving this on may allow Broker to miss some critical issues which will cause confusing errors later down
-  the line */
-  if (process.env.DEBUG_BROKER_NO_VALIDATE === 'true') {
-    return;
-  }
-  const updatedItems = items.filter((item) => item.state === 'updated');
-  const validatorInputs = itertools.execPipe(updatedItems,
-    itertools.map((item) => /** @type {import('./src/validator/types').ValidatorWorkerRequestParsedItem} */({
-      item: item.data,
-      validationMode: ITEM_VALIDATION_MODE,
-      feedContextIdentifier,
-    })),
-    // TODO TODO doc here
-    itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
-    itertools.map((chunkOfItems) => JSON.stringify([...chunkOfItems])),
-    itertools.toArray);
-  await Promise.all(validatorInputs.map(async (validatorInput) => {
-    validatorInputFilenameSequenceNum += 1;
-    await fs.writeFile(
-      path.join(VALIDATOR_INPUT_TMP_DIR, `${validatorInputFilenameSequenceNum}.json`),
-      validatorInput,
-    );
-  }));
-  addToTotalItemsQueuedForValidation(updatedItems.length);
+  const numItemsQueuedForValidation = await createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, items);
+  addToTotalItemsQueuedForValidation(numItemsQueuedForValidation);
 }
 
 /**
@@ -1804,7 +1742,6 @@ function progressFromContext(c) {
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
-  // TODO TODO put context into a class so it controls access?
   context.validatedItems += numItems;
   if (context.progressbar) {
     context.progressbar.setTotal(context.totalItemsQueuedForValidation);
@@ -1819,10 +1756,3 @@ function onValidateItems(context, numItems) {
     }
   }
 }
-
-async function clearValidatorInputTmpDir() {
-  await fsExtra.emptyDir(VALIDATOR_INPUT_TMP_DIR);
-}
-
-// TODO TODO put "send things to validator-pool" bits into its own module?
-// TODO TODO put "validation error rendering" bits into its own module? (stretch)
