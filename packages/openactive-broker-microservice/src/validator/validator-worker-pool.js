@@ -51,7 +51,7 @@ class ValidatorWorkerPool {
      *   doStopWhenTimedOut: false;
      * } | {
      *   doStopWhenTimedOut: true;
-     *   resolve: (any) => void;
+     *   resolve: (x?: any) => void;
      * }} `resolve` is a promise resolution to call when Validator Worker Pool finishes its last iteration
      */
     this._stoppingInfo = {
@@ -221,6 +221,10 @@ class ValidatorWorkerPool {
 function getValidatorInputFileNameSequenceNumber(fileName) {
   return Number(path.basename(fileName, '.json'));
 }
+
+/**
+ * @typedef {InstanceType<typeof ValidatorWorkerPool>} ValidatorWorkerPoolType
+ */
 
 module.exports = {
   ValidatorWorkerPool,

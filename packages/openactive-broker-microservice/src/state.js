@@ -10,7 +10,7 @@ const { OnePhaseListeners } = require('./onePhaseListeners');
 
 /**
  * @typedef {import('./models/core').FeedContext} FeedContext
- * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPool} ValidatorWorkerPool
+ * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
  */
 /**
  * @typedef {object} PendingResponse
@@ -100,7 +100,7 @@ const state = {
   },
   orderUuidTracking: OrderUuidTracking.createState(),
   // VALIDATOR
-  /** @type {ValidatorWorkerPool} */
+  /** @type {ValidatorWorkerPoolType} */
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
   opportunityIdCache: OpportunityIdCache.create(),
@@ -146,7 +146,7 @@ function addFeed(feedIdentifier) {
 }
 
 /**
- * @param {ValidatorWorkerPool} validatorWorkerPool
+ * @param {ValidatorWorkerPoolType} validatorWorkerPool
  */
 function setGlobalValidatorWorkerPool(validatorWorkerPool) {
   state._validatorWorkerPool = validatorWorkerPool;
