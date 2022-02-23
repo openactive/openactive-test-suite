@@ -1629,6 +1629,8 @@ async function sendItemsToValidatorWorkerPool({
   addToTotalItemsQueuedForValidation(numItemsQueuedForValidation);
 }
 
+/* TODO[suggestion] put FeedContext into a class so that it controls access to itself? And so that all it's logic
+(e.g. progressbar updating stuff) can be in one place? */
 /**
  * @param {import('cli-progress').MultiBar} bar
  * @param {string} feedContextIdentifier
