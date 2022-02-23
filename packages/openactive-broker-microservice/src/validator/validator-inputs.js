@@ -78,12 +78,12 @@ async function createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, i
 
     Compared to saving the entire page as one input file to Validator Worker Pool, this ensures that:
 
-    - There's a hard limit on memory usage from queueing items for validation (ITEM_SIZE * CHUNK_LENGTH * NUM_CORES).
+    - There's a hard limit on memory usage from queueing items for validation, which is ITEM_SIZE * CHUNK_LENGTH * NUM_CORES.
     - Multiple CPU cores will be used to validate items from a page.
 
     Compared to saving an input file for each item, this ensures that:
 
-    - Not too many files are saved, which will impact performance due to IO operations.
+    - Not too many files are saved per second, which will impact performance due to rate of IO operations.
     - Not too many files overall are created, at which point we could hit inode limits, etc.
     */
     itertools.batch(VALIDATOR_ITEMS_CHUNK_LENGTH),
