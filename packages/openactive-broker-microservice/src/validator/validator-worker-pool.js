@@ -39,12 +39,10 @@ class ValidatorWorkerPool {
      * }>}
      */
     this._validationResults = new Map();
-    // this._isRunning = true;
     // TODO TODO doc this
     /** @type {(any) => void} */
     this._hasFinishedHarvestingAndAwaitingCompletionResolve = null;
     this._onValidateItems = onValidateItems;
-    // TODO TODO implement this timeout
     this._endTime = (new Date()).getTime() + validatorTimeoutMs;
   }
 

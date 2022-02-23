@@ -70,7 +70,7 @@ const {
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
 const { TwoPhaseListeners } = require('./src/twoPhaseListeners/twoPhaseListeners');
-const { state, getTestDataset, getAllDatasets, addFeed } = require('./src/state');
+const { state, getTestDataset, getAllDatasets, addFeed, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./src/state');
 const { orderFeedContextIdentifier } = require('./src/util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
@@ -108,8 +108,6 @@ const markdown = new Remarkable();
 
 // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
 const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
-// TODO TODO don't make this global
-const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems, validatorTimeoutMs);
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
@@ -131,7 +129,6 @@ if (REQUEST_LOGGING_ENABLED) {
 //   const id = data['@id'] || data.id;
 //   const errors = await validator.validateItem(data, ITEM_VALIDATION_MODE);
 //   if (!errors) return;
-//   // TODO TODO don't forget to use these bits in validator worker pool
 //   for (const error of errors) {
 //     // Use the first line of the error message to uniquely identify it
 //     const errorShortMessage = error.message.split('\n')[0];
@@ -167,8 +164,10 @@ if (REQUEST_LOGGING_ENABLED) {
 
 /**
  * Render the currently stored validation errors as HTML
+ *
+ * @param {ValidatorWorkerPool} validatorWorkerPool
  */
-async function renderValidationErrorsHtml() {
+async function renderValidationErrorsHtml(validatorWorkerPool) {
   return renderTemplate('validation-errors', {
     validationErrors: [...validatorWorkerPool.getValidationResults().entries()].map(([errorKey, obj]) => ({
       errorKey,
@@ -228,46 +227,37 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
 }
 
 /**
- * @param {string} baseUrl
- * @param {string} feedContextIdentifier
- * @param {() => Promise<Object.<string, string>>} headers
- * @param {RpdePageProcessor} processPage
- * @param {boolean} isOrdersFeed
- * @param {object} [options]
- * @param {import('cli-progress').MultiBar} [options.bar]
- * @param {(feedContextIdentifier: string) => void} [options.processEndOfFeed] Callback which will be called when the feed has
+ * @param {object} args
+ * @param {string} args.baseUrl
+ * @param {string} args.feedContextIdentifier
+ * @param {() => Promise<Object.<string, string>>} args.headers
+ * @param {RpdePageProcessor} args.processPage
+ * @param {boolean} args.isOrdersFeed
+ * @param {ValidatorWorkerPool} args.validatorWorkerPool
+ * @param {import('cli-progress').MultiBar} [args.bar]
+ * @param {(feedContextIdentifier: string) => void} [args.processEndOfFeed] Callback which will be called when the feed has
  *   reached its end - when all items have been harvested.
  */
-async function harvestRPDE(
+async function harvestRPDE({
   baseUrl,
   feedContextIdentifier,
   headers,
   processPage,
   isOrdersFeed,
-  {
-    bar,
-    processEndOfFeed,
-  } = {},
-) {
+  validatorWorkerPool,
+  bar,
+  processEndOfFeed,
+}) {
   const onFeedEnd = async () => {
     if (processEndOfFeed) {
       processEndOfFeed(feedContextIdentifier);
     }
-    await setFeedIsUpToDate(feedContextIdentifier);
+    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
   };
 
   let isInitialHarvestComplete = false;
   let numberOfRetries = 0;
 
-  // /** @type {FeedContext} */
-  // const context = {
-  //   currentPage: baseUrl,
-  //   pages: 0,
-  //   items: 0,
-  //   responseTimes: [],
-  //   totalItemsQueuedForValidation: 0,
-  //   validatedItems: 0,
-  // };
   const context = createFeedContext(bar, feedContextIdentifier, baseUrl);
 
   const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
@@ -277,23 +267,6 @@ async function harvestRPDE(
       context.totalItemsQueuedForValidation += addition;
     },
   });
-
-  // /**
-  //  * @param {FeedContext} c
-  //  */
-  // const progressFromContext = (c) => ({
-  //   totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
-  //   validatedItems: c.validatedItems,
-  //   validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
-  //   items: c.items,
-  // });
-  // const progressbar = !bar ? null : bar.create(0, 0, {
-  //   feedIdentifier: feedContextIdentifier,
-  //   pages: 0,
-  //   responseTime: '-',
-  //   status: 'Harvesting...',
-  //   ...progressFromContext(context),
-  // });
 
   if (state.feedContextMap.has(feedContextIdentifier)) {
     throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
@@ -561,9 +534,10 @@ function getOpportunityMergedWithParentById(opportunityId) {
 }
 
 /**
+ * @param {ValidatorWorkerPool} validatorWorkerPool
  * @param {string} feedIdentifier
  */
-async function setFeedIsUpToDate(feedIdentifier) {
+async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier) {
   if (state.incompleteFeeds.length !== 0) {
     const index = state.incompleteFeeds.indexOf(feedIdentifier);
     if (index > -1) {
@@ -613,7 +587,7 @@ async function setFeedIsUpToDate(feedIdentifier) {
         }
 
         if (validatorWorkerPool.getValidationResults().size > 0) {
-          await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml());
+          await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml(validatorWorkerPool));
           const occurrenceCount = [...validatorWorkerPool.getValidationResults().values()].reduce((total, result) => total + result.occurrences, 0);
           logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validatorWorkerPool.getValidationResults().size} were unique.`);
           if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
@@ -826,7 +800,7 @@ app.get('/status', function (req, res) {
 });
 
 app.get('/validation-errors', async function (req, res) {
-  res.send(await renderValidationErrorsHtml());
+  res.send(await renderValidationErrorsHtml(getGlobalValidatorWorkerPool()));
 });
 
 app.delete('/opportunity-cache', function (req, res) {
@@ -1481,7 +1455,10 @@ async function startPolling() {
     mkdirp(OUTPUT_PATH),
   ]);
 
+  const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems, validatorTimeoutMs);
   validatorWorkerPool.run();
+  // It needs to be stored in global state just so that it can be easily accessed in the GET /validation-errors route
+  setGlobalValidatorWorkerPool(validatorWorkerPool);
 
   const dataset = await extractJSONLDfromDatasetSiteUrl(DATASET_SITE_URL);
 
@@ -1588,36 +1565,34 @@ Validation errors found in Dataset Site JSON-LD:
   }, cliProgress.Presets.shades_grey);
 
   dataset.distribution.forEach((dataDownload) => {
-    const feedIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
+    const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      addFeed(feedIdentifier);
+      addFeed(feedContextIdentifier);
       harvesters.push(
-        harvestRPDE(
-          dataDownload.contentUrl,
-          feedIdentifier,
-          withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          ingestParentOpportunityPage,
-          false,
-          {
-            bar: state.multibar,
-          },
-        ),
+        harvestRPDE({
+          validatorWorkerPool,
+          baseUrl: dataDownload.contentUrl,
+          feedContextIdentifier,
+          headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+          processPage: ingestParentOpportunityPage,
+          isOrdersFeed: false,
+          bar: state.multibar,
+        }),
       );
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      addFeed(feedIdentifier);
+      addFeed(feedContextIdentifier);
       harvesters.push(
-        harvestRPDE(
-          dataDownload.contentUrl,
-          feedIdentifier,
-          withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          ingestOpportunityPage,
-          false,
-          {
-            bar: state.multibar,
-          },
-        ),
+        harvestRPDE({
+          validatorWorkerPool,
+          baseUrl: dataDownload.contentUrl,
+          feedContextIdentifier,
+          headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+          processPage: ingestOpportunityPage,
+          isOrdersFeed: false,
+          bar: state.multibar,
+        }),
       );
     } else {
       logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
@@ -1648,27 +1623,28 @@ Validation errors found in Dataset Site JSON-LD:
     ])) {
       log(`Found ${type} feed: ${feedUrl}`);
       addFeed(feedContextIdentifier);
-      harvesters.push(harvestRPDE(
-        feedUrl,
-        feedContextIdentifier,
-        withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-        feedBookingPartnerIdentifier === 'primary'
-          ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
-          : () => null,
-        true,
-        {
+      harvesters.push(
+        harvestRPDE({
+          validatorWorkerPool,
+          baseUrl: feedUrl,
+          feedContextIdentifier,
+          headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
+          processPage: feedBookingPartnerIdentifier === 'primary'
+            ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
+            : () => null,
+          isOrdersFeed: true,
           bar: state.multibar,
           processEndOfFeed: () => {
             OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
           },
-        },
-      ));
+        }),
+      );
     }
   }
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
-  await setFeedIsUpToDate('DatasetSite');
+  await setFeedIsUpToDate(validatorWorkerPool, 'DatasetSite');
 
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
@@ -1850,3 +1826,6 @@ function onValidateItems(feedContextIdentifier, numItems) {
 async function clearValidatorInputTmpDir() {
   await fsExtra.emptyDir(VALIDATOR_INPUT_TMP_DIR);
 }
+
+// TODO TODO put "send things to validator-pool" bits into its own module?
+// TODO TODO put "validation error rendering" bits into its own module? (stretch)

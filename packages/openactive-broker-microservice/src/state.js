@@ -11,6 +11,7 @@ const { OnePhaseListeners } = require('./onePhaseListeners');
 /**
  * @typedef {import('./models/core').FeedContext} FeedContext
  * @typedef {import('./validator/old/async-validator')} AsyncValidatorWorker
+ * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPool} ValidatorWorkerPool
  */
 /**
  * @typedef {object} PendingResponse
@@ -99,6 +100,9 @@ const state = {
     opportunity: new OnePhaseListeners(),
   },
   orderUuidTracking: OrderUuidTracking.createState(),
+  // VALIDATOR
+  /** @type {ValidatorWorkerPool} */
+  _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
   opportunityIdCache: OpportunityIdCache.create(),
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
@@ -142,9 +146,22 @@ function addFeed(feedIdentifier) {
   state.incompleteFeeds.push(feedIdentifier);
 }
 
+/**
+ * @param {ValidatorWorkerPool} validatorWorkerPool
+ */
+function setGlobalValidatorWorkerPool(validatorWorkerPool) {
+  state._validatorWorkerPool = validatorWorkerPool;
+}
+
+function getGlobalValidatorWorkerPool() {
+  return state._validatorWorkerPool;
+}
+
 module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
   addFeed,
+  setGlobalValidatorWorkerPool,
+  getGlobalValidatorWorkerPool,
 };
