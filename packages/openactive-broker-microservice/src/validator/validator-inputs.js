@@ -71,7 +71,7 @@ async function createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, i
     return updatedItems.length;
   }
   const validatorInputs = itertools.execPipe(updatedItems,
-    itertools.map((item) => /** @type {import('.//types').ValidatorWorkerRequestParsedItem} */({
+    itertools.map((item) => /** @type {import('./types').ValidatorWorkerRequestParsedItem} */({
       item: item.data,
       validationMode: ITEM_VALIDATION_MODE,
       feedContextIdentifier,
