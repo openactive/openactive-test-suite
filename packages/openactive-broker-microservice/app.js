@@ -259,6 +259,8 @@ async function harvestRPDE({
   let numberOfRetries = 0;
 
   const context = createFeedContext(bar, feedContextIdentifier, baseUrl);
+  const onValidateItemsForThisFeed = partial(onValidateItems, context);
+  validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
 
   const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
     feedContextIdentifier,
@@ -1455,7 +1457,7 @@ async function startPolling() {
     mkdirp(OUTPUT_PATH),
   ]);
 
-  const validatorWorkerPool = new ValidatorWorkerPool(onValidateItems, validatorTimeoutMs);
+  const validatorWorkerPool = new ValidatorWorkerPool(validatorTimeoutMs);
   validatorWorkerPool.run();
   // It needs to be stored in global state just so that it can be easily accessed in the GET /validation-errors route
   setGlobalValidatorWorkerPool(validatorWorkerPool);
@@ -1798,15 +1800,10 @@ function progressFromContext(c) {
 }
 
 /**
- * @param {string} feedContextIdentifier
+ * @param {FeedContext} context
  * @param {number} numItems
  */
-function onValidateItems(feedContextIdentifier, numItems) {
-  // TODO TODO do this in a way which doesn't require global state. Something like `validatorWorkerPool.setOnValidateItems(feedContextIdentifier, (numItems) => ...)
-  const context = state.feedContextMap.get(feedContextIdentifier);
-  if (!context) {
-    throw new Error(`onValidateItems() called for a feed for which there is no context. feedContextIdentifier: ${feedContextIdentifier}`);
-  }
+function onValidateItems(context, numItems) {
   // TODO TODO put context into a class so it controls access?
   context.validatedItems += numItems;
   if (context.progressbar) {

@@ -22,14 +22,17 @@ const workerFileName = path.join(__dirname, 'validator-worker.js');
 
 const validatorInputFileNameComparator = R.ascend(getValidatorInputFileNameSequenceNumber);
 
+/**
+ * @typedef {(numItems: number) => void} OnValidateItemsCallback
+ */
+
 class ValidatorWorkerPool {
   /**
-   * @param {(feedContextIdentifier: string, numItems: number) => void} onValidateItems
    * @param {number} validatorTimeoutMs Validator stops when:
    *   - the feed has finished harvesting
    *   - AND the timeout has run out.
    */
-  constructor(onValidateItems, validatorTimeoutMs) {
+  constructor(validatorTimeoutMs) {
     /**
      * @type {Map<string, {
      *   path: string;
@@ -42,8 +45,26 @@ class ValidatorWorkerPool {
     // TODO TODO doc this
     /** @type {(any) => void} */
     this._hasFinishedHarvestingAndAwaitingCompletionResolve = null;
-    this._onValidateItems = onValidateItems;
+    // this._onValidateItems = onValidateItems;
+    /**
+     * [feedContextIdentifier] -> OnValidateItemsCallback
+     *
+     * A map of callbacks for each feed context.
+     *
+     * A feed context's callback is called whenever items in that feed are validated
+     *
+     * @type {Map<string, OnValidateItemsCallback>}
+     */
+    this._onValidateItemsCallbacks = new Map();
     this._endTime = (new Date()).getTime() + validatorTimeoutMs;
+  }
+
+  /**
+   * @param {string} feedContextIdentifier
+   * @param {OnValidateItemsCallback} onValidateItemsCallback
+   */
+  setOnValidateItems(feedContextIdentifier, onValidateItemsCallback) {
+    this._onValidateItemsCallbacks.set(feedContextIdentifier, onValidateItemsCallback);
   }
 
   stop() {
@@ -125,6 +146,18 @@ class ValidatorWorkerPool {
         }
       });
     });
+  }
+
+  /**
+   * @param {string} feedContextIdentifier
+   * @param {number} numItems
+   */
+  _onValidateItems(feedContextIdentifier, numItems) {
+    const callback = this._onValidateItemsCallbacks.get(feedContextIdentifier);
+    if (!callback) {
+      throw new Error(`No onValidateItems callback set for "${feedContextIdentifier}" feed. Remember to call \`setOnValidateItems\` for this feed`);
+    }
+    callback(numItems);
   }
 
   /**
