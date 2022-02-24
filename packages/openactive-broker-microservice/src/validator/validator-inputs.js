@@ -6,7 +6,7 @@
  *
  * The potential worst case scenario is one in which Validator takes a long time to start the first time e.g. because
  * the OpenActive JSON-LD context is taking a long time to load.
- * If the entire feed is harvested before validation has begun, this means that the entire feed will be held in memory
+ * If items are queued in memory, then, in this potential worst case scenario, the entire feed would be held in memory
  * waiting for validation.
  */
 const fs = require('fs').promises;
@@ -81,7 +81,9 @@ async function createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, i
 
     Compared to saving the entire page as one input file to Validator Worker Pool, this ensures that:
 
-    - There's a hard limit on memory usage from queueing items for validation, which is ITEM_SIZE * CHUNK_LENGTH * NUM_CORES.
+    - There's a much tighter limit on memory usage from queueing items for validation, which is
+      MAX_ITEM_SIZE * CHUNK_LENGTH * NUM_CORES.
+        * Note that this memory limit could still become very high if item size is very high.
     - Multiple CPU cores will be used to validate items from a page.
 
     Compared to saving an input file for each item, this ensures that:
