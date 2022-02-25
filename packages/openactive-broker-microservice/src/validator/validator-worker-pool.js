@@ -4,6 +4,7 @@
  * Validator is computationally expensive, so we parallelise the work in order to get Broker up to speed more quickly.
  */
 const { execPipe, take, toArray, map } = require('iter-tools');
+const { isNil } = require('lodash');
 const fs = require('fs').promises;
 const os = require('os');
 const path = require('path');
@@ -30,9 +31,9 @@ const validatorInputFileNameComparator = R.ascend(getValidatorInputFileNameSeque
 
 class ValidatorWorkerPool {
   /**
-   * @param {number} validatorTimeoutMs Validator stops when:
+   * @param {number | null} validatorTimeoutMs Validator stops when:
    *   - the feed has finished harvesting
-   *   - AND the timeout has run out.
+   *   - AND the timeout has run out (if there is a timeout).
    */
   constructor(validatorTimeoutMs) {
     /**
@@ -67,7 +68,10 @@ class ValidatorWorkerPool {
      * @type {Map<string, OnValidateItemsCallback>}
      */
     this._onValidateItemsCallbacks = new Map();
-    this._endTime = (new Date()).getTime() + validatorTimeoutMs;
+    /** @type {number | null} */
+    this._endTime = !isNil(validatorTimeoutMs)
+      ? (new Date()).getTime() + validatorTimeoutMs
+      : null;
   }
 
   /**
@@ -107,7 +111,7 @@ class ValidatorWorkerPool {
    */
   async run() {
     // Timeout validation
-    if (this._stoppingInfo.doStopWhenTimedOut && (new Date().getTime() >= this._endTime)) {
+    if (this._stoppingInfo.doStopWhenTimedOut && this._hasTimedOut()) {
       this._stoppingInfo.resolve();
       return;
     }
@@ -212,6 +216,15 @@ class ValidatorWorkerPool {
     if (currentValidationResults.examples.length > MAX_NUM_EXAMPLES_PER_VALIDATION_RESULT) {
       currentValidationResults.examples.pop();
     }
+  }
+
+  _hasTimedOut() {
+    // If there's no end time, never time out
+    if (isNil(this._endTime)) {
+      return false;
+    }
+    const currentTime = new Date().getTime();
+    return currentTime >= this._endTime;
   }
 }
 

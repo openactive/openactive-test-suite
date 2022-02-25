@@ -1274,8 +1274,13 @@ async function processOpportunityItem(item) {
  * @returns {RpdePageProcessor}
  */
 function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
-  /* Note that the Orders RpdePageProcessor does NOT use validateItemsFn i.e. Orders feed items are not validated
-  LW: I don't know why that is */
+  /* Note that the Orders RpdePageProcessor does NOT use validateItemsFn i.e. Orders feed items are not validated.
+  The reasoning being that the feed _should_ be empty in controlled mode as previously created Orders will have been
+  deleted via the Test Interface.
+  TODO: Validate items in Orders feed as there will be some in there in the following use cases:
+  - Random mode
+  - Controlled mode but the Booking Partner is one that is also used outside of Test Suite (though this use case is
+    not recommended). */
   return async (rpdePage) => {
     for (const item of rpdePage.items) {
       if (item.id) {
