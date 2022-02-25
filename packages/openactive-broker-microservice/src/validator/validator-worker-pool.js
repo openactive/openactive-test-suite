@@ -149,9 +149,8 @@ class ValidatorWorkerPool {
    * @param {string} filePath
    */
   async _validateFileWithWorker(filePath) {
-    const fileData = await fs.readFile(filePath);
     const worker = new Worker(workerFileName, {
-      workerData: fileData.toString(),
+      workerData: filePath,
     });
     await new Promise((resolve, reject) => {
       worker.on('message', (/** @type {ValidatorWorkerResponse} */message) => {
