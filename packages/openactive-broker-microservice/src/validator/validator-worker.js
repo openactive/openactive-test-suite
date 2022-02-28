@@ -1,4 +1,5 @@
 const { validate } = require('@openactive/data-model-validator');
+const fs = require('fs').promises;
 const { execPipe, filter, toArray, map } = require('iter-tools');
 const { workerData, parentPort } = require('worker_threads');
 const { silentlyAllowInsecureConnections } = require('../util/suppress-unauthorized-warning');
@@ -12,9 +13,11 @@ const { VALIDATOR_TMP_DIR } = require('../broker-config');
 silentlyAllowInsecureConnections();
 
 async function run() {
+  const filePath = workerData;
+  const fileData = await fs.readFile(filePath);
   // JSON parsing is included in the validatorWorker as it's CPU intensive
   /** @type {ValidatorWorkerRequestParsed} */
-  const requestParsed = JSON.parse(workerData);
+  const requestParsed = JSON.parse(fileData.toString());
   /** @type {ValidatorWorkerResponse['numItemsPerFeed']} */
   const numItemsPerFeed = {};
   /** @type {ValidatorWorkerResponse['errors']} */
