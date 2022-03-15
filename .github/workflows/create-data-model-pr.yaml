@@ -1,0 +1,57 @@
+name: Update Data Model Dependencies
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [data-models-update]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          path: openactive-test-suite
+
+      - name: Setup Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+        
+      - name: Update openactive-integration-tests with latest data-models
+        run: npm install @openactive/data-models@latest --save
+        working-directory: ./openactive-test-suite/packages/openactive-integration-tests/
+
+      - name: Update openactive-broker-microservice with latest data-models
+        run: npm install @openactive/data-models@latest --save
+        working-directory: ./openactive-test-suite/packages/openactive-broker-microservice/
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
+          path: ./openactive-test-suite/
+          commit-message: Update data model dependencies
+          committer: openactive-bot <openactive-bot@users.noreply.github.com>
+          author: openactive-bot <openactive-bot@users.noreply.github.com>
+          signoff: false
+          branch: ci/update-data-models
+          delete-branch: true
+          title: 'Update data models'
+          body: |
+            Update the OpenActive Test Suite to the latest version of the [OpenActive Vocabulary](https://openactive.io/ns/) (codified by the [Data Models](https://github.com/openactive/data-models)).
+          labels: |
+            automated pr
+          team-reviewers: |
+            owners
+            maintainers
+          draft: false
+
+      - name: Check outputs
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

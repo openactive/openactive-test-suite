@@ -2,6 +2,7 @@
  * Configuration used throughout Broker.
  */
 const config = require('config');
+const path = require('path');
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -41,8 +42,10 @@ const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('cons
 
 const HEADLESS_AUTH = true;
 
-// Note this is duplicated between app.js and validator.js, for efficiency
+/** Directory for Validator remote JSON cache (https://github.com/openactive/data-model-validator#remotejsoncachepath) */
 const VALIDATOR_TMP_DIR = './tmp';
+/** Input files for the Validator Worker Pool are saved in this directory */
+const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input');
 
 /**
  * Normalize a port into a number, string, or false.
@@ -88,4 +91,5 @@ module.exports = {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
+  VALIDATOR_INPUT_TMP_DIR,
 };

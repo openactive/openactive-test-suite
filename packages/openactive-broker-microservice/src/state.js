@@ -10,7 +10,7 @@ const { OnePhaseListeners } = require('./onePhaseListeners');
 
 /**
  * @typedef {import('./models/core').FeedContext} FeedContext
- * @typedef {import('./validator/async-validator')} AsyncValidatorWorker
+ * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
  */
 /**
  * @typedef {object} PendingResponse
@@ -99,20 +99,9 @@ const state = {
     opportunity: new OnePhaseListeners(),
   },
   orderUuidTracking: OrderUuidTracking.createState(),
-  // VALIDATION
-  /**
-   * Workers which perform the validation. Validation is quite expensive, so we do it with a parallel work queue.
-   *
-   * @type {AsyncValidatorWorker[]}
-   */
-  validatorThreadArray: [],
-  /**
-   * Results of opportunity validation. These are stored so that they can all be rendered to a page if there are any
-   * errors.
-   *
-   * @type {Map<string, any>}
-   */
-  validationResults: new Map(),
+  // VALIDATOR
+  /** @type {ValidatorWorkerPoolType} */
+  _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
   opportunityIdCache: OpportunityIdCache.create(),
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
@@ -156,9 +145,22 @@ function addFeed(feedIdentifier) {
   state.incompleteFeeds.push(feedIdentifier);
 }
 
+/**
+ * @param {ValidatorWorkerPoolType} validatorWorkerPool
+ */
+function setGlobalValidatorWorkerPool(validatorWorkerPool) {
+  state._validatorWorkerPool = validatorWorkerPool;
+}
+
+function getGlobalValidatorWorkerPool() {
+  return state._validatorWorkerPool;
+}
+
 module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
   addFeed,
+  setGlobalValidatorWorkerPool,
+  getGlobalValidatorWorkerPool,
 };

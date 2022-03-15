@@ -23,6 +23,10 @@ jobs:
           profile: 'all-features'
           flow: 'both'
 
+    concurrency: 
+      group: openactive-test-suite--${{ github.head_ref }}--${{ matrix.mode }}.${{ matrix.profile }}.${{ matrix.flow }}
+      cancel-in-progress: true
+
     steps:
     - name: Checkout OpenActive Test Suite
       uses: actions/checkout@v2
