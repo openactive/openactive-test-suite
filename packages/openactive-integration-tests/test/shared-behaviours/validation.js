@@ -116,6 +116,9 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
 
     results = await validate(body, optionsWithRemoteJson);
 
+    // Temporarily ignore entitlement related validation errors
+    results = results.filter(x => x.path.indexOf('entitlement') === -1);
+
     results = results.sort((a, b) => priorityOfSeverity(a.severity) - priorityOfSeverity(b.severity));
 
     return results;

@@ -95,7 +95,7 @@
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
             "env": {
-              "NODE_APP_INSTANCE": "dev"
+              "NODE_ENV": "s2"
             },
         },
         {
