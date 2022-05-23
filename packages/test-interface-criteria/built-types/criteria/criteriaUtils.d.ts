@@ -1,28 +1,14 @@
-export type Opportunity = {
-    [k: string]: any;
-};
-export type Offer = {
-    [k: string]: any;
-    '@type': string;
-    '@id': string;
-};
-export type Options = {
-    harvestStartTime: any;
-    harvestStartTimeTwoHoursLater: any;
-};
-export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
-export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
-export type Criteria = {
-    name: string;
-    opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
-    offerConstraints: [string, import("../types/Criteria").OfferConstraint][];
-    testDataShape: import("../types/Criteria").TestDataShapeFactory;
-};
-export type TestDataShapeFactory = (options: import("../types/Options").Options) => import("../types/TestDataShape").TestDataShape;
-export type TestDataShape = import("../types/TestDataShape").TestDataShape;
-export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").BooleanNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
-export type DateRangeNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint;
-export type NumericNodeConstraint = import("../types/TestDataShape").NumericNodeConstraint;
+export type Opportunity = import('../types/Opportunity').Opportunity;
+export type Offer = import('../types/Offer').Offer;
+export type Options = import('../types/Options').Options;
+export type OpportunityConstraint = import('../types/Criteria').OpportunityConstraint;
+export type OfferConstraint = import('../types/Criteria').OfferConstraint;
+export type Criteria = import('../types/Criteria').Criteria;
+export type TestDataShapeFactory = import('../types/Criteria').TestDataShapeFactory;
+export type TestDataShape = import('../types/TestDataShape').TestDataShape;
+export type TestDataNodeConstraint = import('../types/TestDataShape').TestDataNodeConstraint;
+export type DateRangeNodeConstraint = import('../types/TestDataShape').DateRangeNodeConstraint;
+export type NumericNodeConstraint = import('../types/TestDataShape').NumericNodeConstraint;
 export type ArrayConstraint = import("../types/TestDataShape").ArrayConstraint<any, any>;
 /**
  * @param {object} args
@@ -39,7 +25,7 @@ export function createCriteria({ name, opportunityConstraints, offerConstraints,
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
     testDataShape: Criteria['testDataShape'];
-    includeConstraintsFromCriteria: Criteria | null;
+    includeConstraintsFromCriteria?: Criteria | null;
 }): Criteria;
 /**
 * @param {Opportunity} opportunity
@@ -65,13 +51,13 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  * @param {Opportunity} opportunity
  * @returns {DateTime | null} null if there is no booking window defined.
  */
-export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
+export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
  * @returns {DateTime | null} null if there is no cancellation window defined.
  */
-export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
+export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
 /**
 * @param {Opportunity} opportunity
 * @returns {boolean}

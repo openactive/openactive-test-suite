@@ -12,32 +12,18 @@ export type TestMatchResult = {
      */
     unmetCriteriaDetails: string[];
 };
-export type Criteria = {
-    name: string;
-    opportunityConstraints: [string, import("./types/Criteria").OpportunityConstraint][];
-    offerConstraints: [string, import("./types/Criteria").OfferConstraint][];
-    testDataShape: import("./types/Criteria").TestDataShapeFactory;
-};
-export type Opportunity = {
-    [k: string]: any;
-};
-export type Offer = {
-    [k: string]: any;
-    '@type': string;
-    '@id': string;
-};
-export type Options = {
-    harvestStartTime: any;
-    harvestStartTimeTwoHoursLater: any;
-};
-export type TestDataShape = import("./types/TestDataShape").TestDataShape;
+export type Criteria = import('./types/Criteria').Criteria;
+export type Opportunity = import('./types/Opportunity').Opportunity;
+export type Offer = import('./types/Offer').Offer;
+export type Options = import('./types/Options').Options;
+export type TestDataShape = import('./types/TestDataShape').TestDataShape;
 /**
  * Options object as supplied to the test-interface-criteria library API.
  */
 export type LibOptions = {
     harvestStartTime: string;
 };
-declare const allCriteria: import("./types/Criteria").Criteria[];
+import { allCriteria } from "./criteria";
 /**
  * @typedef {import('./types/Criteria').Criteria} Criteria
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
@@ -92,8 +78,8 @@ export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: '
         valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
     }[];
 };
-declare const getOrganizerOrProvider: (opportunity: import("./types/Opportunity").Opportunity) => any;
-declare const getRemainingCapacity: (opportunity: import("./types/Opportunity").Opportunity) => number;
+import { getOrganizerOrProvider } from "./criteria/criteriaUtils";
+import { getRemainingCapacity } from "./criteria/criteriaUtils";
 export declare namespace utils {
     export { getOrganizerOrProvider };
     export { getRemainingCapacity };
