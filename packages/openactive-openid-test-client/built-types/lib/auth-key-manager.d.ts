@@ -4,7 +4,7 @@ declare class OpenActiveTestAuthKeyManager {
     log: any;
     sellersConfig: any;
     bookingPartnersConfig: any;
-    client: import("./client");
+    client: OpenActiveOpenIdTestClient;
     authenticationFailure: boolean;
     dynamicRegistrationFailure: boolean;
     get config(): {
@@ -23,3 +23,4 @@ declare class OpenActiveTestAuthKeyManager {
      */
     refreshAuthorizationCodeFlowAccessTokensIfNeeded(): Promise<void>;
 }
+import OpenActiveOpenIdTestClient = require("./client");

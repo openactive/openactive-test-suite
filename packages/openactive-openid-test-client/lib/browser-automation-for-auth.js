@@ -32,7 +32,7 @@ const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 async function addScreenshot(page, title, context) {
   const image = await page.screenshot({
     encoding: 'base64',
-  });
+  }).toString();
   const url = page.url();
   context.screenshots.push({
     title,
