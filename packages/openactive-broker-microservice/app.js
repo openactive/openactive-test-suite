@@ -1086,7 +1086,7 @@ function invertFacilityUseItems(items) {
   const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => item.data?.individualFacilityUse);
   if (invertibleFacilityUseItems.length < 1) return items;
 
-  // Invert individualFacilityUse so the the top-level `kind` is "IndividualFacilityUse"
+  // Invert "FacilityUse" items so the the top-level `kind` is "IndividualFacilityUse"
   const invertedItems = [];
   for (const facilityUseItem of invertibleFacilityUseItems) {
     for (const individualFacilityUse of facilityUseItem.data.individualFacilityUse) {
