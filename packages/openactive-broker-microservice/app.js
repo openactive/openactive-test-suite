@@ -19,7 +19,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
-const { isNil, partial } = require('lodash');
+const { isNil, partial, omit, partition } = require('lodash');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -869,7 +869,8 @@ function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
     || opportunity.superEvent?.organizer
     || opportunity.superEvent?.superEvent?.organizer
-    || opportunity?.facilityUse.provider;
+    || opportunity?.facilityUse.provider
+    || opportunity?.facilityUse?.aggregateFacilityUse?.provider;
 
   return organizer['@id'] || organizer.id;
 }
@@ -926,6 +927,11 @@ function detectOpportunityBookingFlows(opportunity) {
   if (!offers) {
     throw new Error(`Opportunity (ID: ${opportunity['@id']}) has no offers in superEvent/facilityUse`);
   }
+
+  if (!Array.isArray(offers)) {
+    throw new Error(`Opportunity (ID: ${opportunity['@id']}) offers is not an array`);
+  }
+
   /** @type {Set<string>} */
   const bookingFlows = new Set();
   for (const offer of offers) {
@@ -1030,7 +1036,14 @@ app.post('/assert-unmatched-criteria', function (req, res) {
 /** @type {RpdePageProcessor} */
 async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
-  for (const item of rpdePage.items) {
+  // Some feeds have FacilityUse as the top-level items with embedded
+  // IndividualFacilityUse data. The Slot feed facilityUse associations link to
+  // these embedded IndividualFacilityUses. However the rest of the code assumes
+  // the linked item is the top-level item from the parent feed, so we need to
+  // invert the FacilityUse/IndividualFacilityUse relationship.
+  const items = invertFacilityUseItems(rpdePage.items);
+
+  for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
       const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
@@ -1042,10 +1055,12 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
       state.parentOpportunityMap.set(jsonLdId, item.data);
     }
   }
+
+  // Validate the original feed
   await validateItemsFn(rpdePage.items);
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  await touchOpportunityItems(rpdePage.items
+  await touchOpportunityItems(items
     .filter((item) => item.state !== 'deleted')
     .map((item) => item.data['@id'] || item.data.id));
 }
@@ -1070,6 +1085,29 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) 
     }
   }
   await validateItemsFn(rpdePage.items);
+}
+
+function invertFacilityUseItems(items) {
+  const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => item.data?.individualFacilityUse);
+  if (invertibleFacilityUseItems.length < 1) return items;
+
+  // Invert "FacilityUse" items so the the top-level `kind` is "IndividualFacilityUse"
+  const invertedItems = [];
+  for (const facilityUseItem of invertibleFacilityUseItems) {
+    for (const individualFacilityUse of facilityUseItem.data.individualFacilityUse) {
+      invertedItems.push({
+        ...facilityUseItem,
+        kind: individualFacilityUse['@type'],
+        id: individualFacilityUse['@id'],
+        data: {
+          ...individualFacilityUse,
+          aggregateFacilityUse: omit(facilityUseItem.data, ['individualFacilityUse']),
+        },
+      });
+    }
+  }
+
+  return invertedItems.concat(otherItems);
 }
 
 async function touchOpportunityItems(parentIds) {
