@@ -1036,6 +1036,11 @@ app.post('/assert-unmatched-criteria', function (req, res) {
 /** @type {RpdePageProcessor} */
 async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
+  // Some feeds have FacilityUse as the top-level items with embedded
+  // IndividualFacilityUse data. The Slot feed facilityUse associations link to
+  // these embedded IndividualFacilityUses. However the rest of the code assumes
+  // the linked item is the top-level item from the parent feed, so we need to
+  // invert the FacilityUse/IndividualFacilityUse relationship.
   const items = invertFacilityUseItems(rpdePage.items);
 
   for (const item of items) {
