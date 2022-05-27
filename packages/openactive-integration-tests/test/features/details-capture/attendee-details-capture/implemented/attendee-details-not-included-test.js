@@ -2,7 +2,6 @@ const _ = require('lodash');
 const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
