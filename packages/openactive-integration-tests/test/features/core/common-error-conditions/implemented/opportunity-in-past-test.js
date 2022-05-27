@@ -43,6 +43,6 @@ FeatureHelper.describeFeature(module, {
     itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2);
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(bookRecipe.firstStage);
   });
 });

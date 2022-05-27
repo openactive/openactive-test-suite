@@ -48,7 +48,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c2, () => {
     itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c2);
   });
-  FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, bookRecipe.firstStage, () => {
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(bookRecipe.firstStage);
   });
 });
