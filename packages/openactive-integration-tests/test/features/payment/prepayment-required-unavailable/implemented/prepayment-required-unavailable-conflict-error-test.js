@@ -70,6 +70,6 @@ FeatureHelper.describeFeature(module, {
     itShouldIncludeOpportunityIsInConflictErrorWhereRelevant(c2);
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+    itShouldIncludeOpportunityIsInConflictErrorWhereRelevant(bookRecipe.firstStage);
   });
 });
