@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-in-past',
   testName: 'Expect an OpportunityOfferPairNotBookableError when opportunity is in the past',
-  testDescription: 'Runs C1, C2 and B for an opportunity in the past, expecting an OpportunityOfferPairNotBookableError to be returned at C1 and C2, and an UnableToProcessOrderItemError to be returned at B',
+  testDescription: 'Runs C1, C2 and B for an opportunity in the past, expecting an OpportunityOfferPairNotBookableError to be returned at C1, C2, and B',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableInPast',
   // The secondary opportunity criteria to use for multiple OrderItem tests
