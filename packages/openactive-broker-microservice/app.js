@@ -19,7 +19,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
-const { isNil, partial, omit, partition } = require('lodash');
+const { isNil, partial, omit, partition, merge } = require('lodash');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -71,6 +71,7 @@ const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-trac
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
+const { getSampleRequestConstraints, buildSampleRequests } = require('./src/sample-requests');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -842,6 +843,7 @@ app.get('/opportunity/:id', function (req, res) {
     }
     return null;
   })();
+
   const doesItemMatchCriteria = isNil(expectedCapacity)
     ? (() => true)
     : ((rpdeItem) => (
@@ -1023,6 +1025,28 @@ app.post('/assert-unmatched-criteria', function (req, res) {
       error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
     });
   }
+});
+
+// put our endpoint here
+app.get('/sample-requests', function (req, res) {
+  // Get random opportunity ID
+  const opportunity = getSampleRequestConstraints(req.body);
+  const opportunityType = detectOpportunityType(opportunity);
+  const sellerId = opportunity.superEvent?.organizer || opportunity.facilityUse?.provider;
+  const testDatasetIdentifier = 'sample-requests';
+
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
+
+  const bookableOpportunity = getRandomBookableOpportunity({
+    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
+  });
+  const opportunityWithParent = getOpportunityMergedWithParentById(
+    bookableOpportunity.opportunity["@id"],
+  );
+  const json = buildSampleRequests(opportunityWithParent);
+
+  res.json(json)
 });
 
 /**
