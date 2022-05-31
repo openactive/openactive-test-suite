@@ -71,10 +71,10 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   }
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-  FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
+  FlowStageUtils.describeRunAndCheckIsValid(c1, {doValidateInErrorMode: true}, () => {
     itShouldReturnOpportunityIsFullError(c1);
   });
-  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+  FlowStageUtils.describeRunAndCheckIsValid(c2, {doValidateInErrorMode: true}, () => {
     itShouldReturnOpportunityIsFullError(c2);
   });
 });

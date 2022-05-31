@@ -55,14 +55,15 @@ const FlowStageUtils = {
    *   validation checks.
    * @param {ValidationMode} validationSpec.validationMode
    */
-  simpleValidationTests(logger, { name, validationMode }) {
-    return (/** @type {FlowStageTypeWithHttpResponseOutput} */ flowStage) => {
+  simpleValidationTests(logger, { name, validationMode}) {
+    return (/** @type {FlowStageTypeWithHttpResponseOutput} */ flowStage, /** @type {boolean} */doValidateInErrorMode) => {
       sharedValidationTests.shouldBeValidResponse(
         () => flowStage.getOutput().httpResponse,
         name,
         logger,
         {
           validationMode,
+          doValidateInErrorMode,
         },
       );
     };
@@ -180,6 +181,7 @@ const FlowStageUtils = {
    * @param {object} checks
    * @param {boolean} checks.doCheckSuccess If true, success checks will be run
    * @param {boolean} checks.doCheckIsValid If true, validation will be run
+   * @param {boolean} checks.doValidateInErrorMode If true and Validator is run, validation occurs in Error mode (eg OpenBookingError or C2ResponseOrderItemError)
    * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
    *   all stages within will be checked for validity/success.
    *
@@ -194,34 +196,36 @@ const FlowStageUtils = {
    */
   describeRunAndRunChecks(checks, flowStageOrBookRecipe, itAdditionalTests) {
     if (flowStageOrBookRecipe instanceof BookRecipe) {
-      if (flowStageOrBookRecipe.p) {
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.p);
+      const bookRecipe = flowStageOrBookRecipe;
+      if (bookRecipe.p) {
+        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.p);
         /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
         approved items appearing in the feed - which means that the tests will time out */
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.simulateSellerApproval);
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.orderFeedUpdateCollector);
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b);
+        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.simulateSellerApproval);
+        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.orderFeedUpdateCollector);
+        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.b);
         FlowStageUtils.describeRunAndRunChecks(
           checks,
-          flowStageOrBookRecipe.orderFeedUpdateAfterDeleteProposal,
+          bookRecipe.orderFeedUpdateAfterDeleteProposal,
           itAdditionalTests,
         );
       } else {
-        FlowStageUtils.describeRunAndRunChecks(checks, flowStageOrBookRecipe.b, itAdditionalTests);
+        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.b, itAdditionalTests);
       }
       return;
     }
     if (!flowStageOrBookRecipe.shouldDescribeFlowStage) {
       throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageOrBookRecipe.getLoggableStageName()} as shouldDescribeFlowStage is false`);
     }
-    describe(flowStageOrBookRecipe.testName, () => {
-      flowStageOrBookRecipe.beforeSetup();
+    const flowStage = flowStageOrBookRecipe;
+    describe(flowStage.testName, () => {
+      flowStage.beforeSetup();
 
       if (checks.doCheckSuccess) {
-        flowStageOrBookRecipe.itSuccessChecks();
+        flowStage.itSuccessChecks();
       }
       if (checks.doCheckIsValid) {
-        flowStageOrBookRecipe.itValidationTests();
+        flowStage.itValidationTests(checks.doValidateInErrorMode);
       }
 
       if (itAdditionalTests) {
@@ -246,7 +250,7 @@ const FlowStageUtils = {
    *   success/validation tests.
    */
   describeRunAndCheckIsSuccessfulAndValid(flowStageOrBookRecipe, itAdditionalTests) {
-    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: true }, flowStageOrBookRecipe, itAdditionalTests);
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doValidateInErrorMode: false, doCheckSuccess: true }, flowStageOrBookRecipe, itAdditionalTests);
   },
 
   /**
@@ -261,14 +265,17 @@ const FlowStageUtils = {
    *
    * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
    *   all stages within will be checked for validity.
+   * @param {{doValidateInErrorMode: boolean}} [validationOptions] Options to configure the Validator
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndCheckIsValid(flowStageOrBookRecipe, itAdditionalTests) {
-    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doCheckSuccess: false }, flowStageOrBookRecipe, itAdditionalTests);
+  describeRunAndCheckIsValid(flowStageOrBookRecipe, {doValidateInErrorMode = false}, itAdditionalTests) {
+    return FlowStageUtils.describeRunAndRunChecks({
+      doCheckIsValid: true, doValidateInErrorMode, doCheckSuccess: false,
+    }, flowStageOrBookRecipe, itAdditionalTests);
   },
 };
 
