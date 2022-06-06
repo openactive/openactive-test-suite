@@ -3,7 +3,7 @@ const {
   FlowStageUtils,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
-const { itShouldIncludeErrorForOnlyPrimaryOrderItems, itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { itShouldIncludeErrorForOnlyPrimaryOrderItems } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
@@ -48,7 +48,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c2, () => {
     itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c2);
   });
-  FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, bookRecipe.firstStage, () => {
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(bookRecipe.firstStage);
   });
 });

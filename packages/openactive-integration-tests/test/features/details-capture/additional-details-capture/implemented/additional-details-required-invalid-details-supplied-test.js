@@ -1,7 +1,6 @@
 const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
@@ -22,10 +21,10 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
 
-  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    it('should return an IncompleteAttendeeDetailsError on the OrderItem', () => {
+  function itShouldReturnAnInvalidIntakeFormError(flowStage) {
+    it('should return an InvalidIntakeFormError on the OrderItem', () => {
       const positionsOfOrderItemsThatNeedIntakeForms = Object.keys(c1.getOutput().positionOrderIntakeFormMap).map(parseInt);
-      const orderItemsThatNeedIntakeForms = c2.getOutput().httpResponse.body.orderedItem
+      const orderItemsThatNeedIntakeForms = flowStage.getOutput().httpResponse.body.orderedItem
         .filter(orderItem => positionsOfOrderItemsThatNeedIntakeForms.includes(orderItem.position));
 
       for (const orderItem of orderItemsThatNeedIntakeForms) {
@@ -35,8 +34,12 @@ FeatureHelper.describeFeature(module, {
         chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0);
       }
     });
+  }
+
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    itShouldReturnAnInvalidIntakeFormError(c2);
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+    itShouldReturnAnInvalidIntakeFormError(bookRecipe.firstStage);
   });
 });

@@ -2,7 +2,6 @@ const _ = require('lodash');
 const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
@@ -22,12 +21,12 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
 
-  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+  function itShouldReturnAnIncompleteAttendeeDetailsError(flowStage) {
     it('should return an IncompleteAttendeeDetailsError on the OrderItem', () => {
       const positionsOfOrderItemsThatNeedAttendeeDetails = c1.getOutput().httpResponse.body.orderedItem
         .filter(orderItem => !_.isNil(orderItem.attendeeDetailsRequired))
         .map(orderItem => orderItem.position);
-      const orderItemsThatNeedAttendeeDetails = c2.getOutput().httpResponse.body.orderedItem
+      const orderItemsThatNeedAttendeeDetails = flowStage.getOutput().httpResponse.body.orderedItem
         .filter(orderItem => positionsOfOrderItemsThatNeedAttendeeDetails.includes(orderItem.position));
 
       for (const orderItem of orderItemsThatNeedAttendeeDetails) {
@@ -37,8 +36,13 @@ FeatureHelper.describeFeature(module, {
         chai.expect(incompleteIntakeFormErrors).to.have.lengthOf.above(0);
       }
     });
+  }
+
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    itShouldReturnAnIncompleteAttendeeDetailsError(c2);
   });
+
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+    itShouldReturnAnIncompleteAttendeeDetailsError(bookRecipe.firstStage);
   });
 });
