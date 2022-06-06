@@ -1,6 +1,12 @@
 const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils, C2FlowStage, BFlowStage, PFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+
+/**
+ * @typedef {import('../../../../helpers/flow-stages/p').PFlowStageType} PFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
@@ -26,7 +32,7 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
 
   /**
-   * @param {C2FlowStage | BFlowStage | PFlowStage} flowStage
+   * @param {C2FlowStageType | BFlowStageType | PFlowStageType } flowStage
    */
   function itShouldReturnAnInvalidIntakeFormError(flowStage) {
     it('should return an IncompleteAttendeeDetailsError on the OrderItem', () => {
