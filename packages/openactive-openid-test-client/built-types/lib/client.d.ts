@@ -3,11 +3,11 @@ declare class OpenActiveOpenIdTestClient {
     constructor(baseUrl: any);
     baseUrl: any;
     callbackUrl: string;
-    issuer: import("openid-client").Issuer<import("openid-client").Client>;
+    issuer: Issuer<import("openid-client").Client>;
     /**
      * @param {string} authenticationAuthority
      */
-    discover(authenticationAuthority: string): Promise<import("openid-client").Issuer<import("openid-client").Client>>;
+    discover(authenticationAuthority: string): Promise<Issuer<import("openid-client").Client>>;
     /**
      * @param {string} initialAccessToken
      * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
@@ -57,3 +57,4 @@ declare class OpenActiveOpenIdTestClient {
      */
     refresh(refreshToken: string, clientId: string, clientSecret: string, issuer?: import("openid-client").Issuer<import("openid-client").Client>): Promise<import("openid-client").TokenSet>;
 }
+import { Issuer } from "openid-client";

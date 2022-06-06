@@ -1,6 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
-const { itShouldIncludeErrorForOnlyPrimaryOrderItems, itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { itShouldIncludeErrorForOnlyPrimaryOrderItems } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
@@ -13,7 +13,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-in-past',
   testName: 'Expect an OpportunityOfferPairNotBookableError when opportunity is in the past',
-  testDescription: 'Runs C1, C2 and B for an opportunity in the past, expecting an OpportunityOfferPairNotBookableError to be returned at C1 and C2, and an UnableToProcessOrderItemError to be returned at B',
+  testDescription: 'Runs C1, C2 and B for an opportunity in the past, expecting an OpportunityOfferPairNotBookableError to be returned at C1, C2, and B',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableInPast',
   // The secondary opportunity criteria to use for multiple OrderItem tests
@@ -47,6 +47,6 @@ FeatureHelper.describeFeature(module, {
     itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2.getStage('c2'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(bookRecipe.firstStage);
   });
 });
