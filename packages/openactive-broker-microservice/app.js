@@ -1027,7 +1027,7 @@ app.post('/assert-unmatched-criteria', function (req, res) {
   }
 });
 
-// put our endpoint here
+// Sample Requests endpoint, used to underpin the Postman collection
 app.get('/sample-requests', function (req, res) {
   // Get random opportunity ID
   const opportunity = req.body;
