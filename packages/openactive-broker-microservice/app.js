@@ -874,6 +874,8 @@ function detectSellerId(opportunity) {
     || opportunity?.facilityUse.provider
     || opportunity?.facilityUse?.aggregateFacilityUse?.provider;
 
+  if (typeof organizer === 'string') return organizer;
+
   return organizer['@id'] || organizer.id;
 }
 
@@ -1041,12 +1043,18 @@ app.get('/sample-requests', function (req, res) {
   const bookableOpportunity = getRandomBookableOpportunity({
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
   });
-  const opportunityWithParent = getOpportunityMergedWithParentById(
-    bookableOpportunity.opportunity['@id'],
-  );
-  const json = buildSampleRequests(opportunityWithParent, criteriaName, sellerId);
 
-  res.json(json);
+  if (bookableOpportunity.opportunity) {
+    const opportunityWithParent = getOpportunityMergedWithParentById(
+      bookableOpportunity.opportunity['@id'],
+    );
+    const json = buildSampleRequests(opportunityWithParent, criteriaName, sellerId);
+    res.json(json);
+  } else {
+    res.json({
+      error: bookableOpportunity,
+    });
+  }
 });
 
 /**
