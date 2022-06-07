@@ -1032,7 +1032,7 @@ app.get('/sample-requests', function (req, res) {
   // Get random opportunity ID
   const opportunity = req.body;
   const opportunityType = detectOpportunityType(opportunity);
-  const sellerId = opportunity.superEvent?.organizer || opportunity.facilityUse?.provider;
+  const sellerId = detectSellerId(opportunity);
   const testDatasetIdentifier = 'sample-requests';
 
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
@@ -1044,7 +1044,7 @@ app.get('/sample-requests', function (req, res) {
   const opportunityWithParent = getOpportunityMergedWithParentById(
     bookableOpportunity.opportunity['@id'],
   );
-  const json = buildSampleRequests(opportunityWithParent, criteriaName);
+  const json = buildSampleRequests(opportunityWithParent, criteriaName, sellerId);
 
   res.json(json);
 });

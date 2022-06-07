@@ -34,7 +34,7 @@ function checkpointOne(opportunity, seller, offer) {
     '@type': 'OrderQuote',
     brokerRole: 'https://openactive.io/AgentBroker',
     broker,
-    seller: seller['@id'],
+    seller,
     orderedItem: [
       {
         '@type': 'OrderItem',
@@ -52,7 +52,7 @@ function checkpointTwo(opportunity, seller, offer) {
     '@type': 'OrderQuote',
     brokerRole: 'https://openactive.io/AgentBroker',
     broker,
-    seller: seller['@id'],
+    seller,
     customer,
     orderedItem: [
       {
@@ -71,7 +71,7 @@ function book(opportunity, seller, offer) {
     '@type': 'Order',
     brokerRole: 'https://openactive.io/AgentBroker',
     broker,
-    seller: seller['@id'],
+    seller,
     customer,
     orderedItem: [
       {
@@ -90,7 +90,7 @@ function proposal(opportunity, seller, offer) {
     '@type': 'OrderProposal',
     brokerRole: 'https://openactive.io/AgentBroker',
     broker,
-    seller: seller['@id'],
+    seller,
     customer,
     orderedItem: [
       {
@@ -136,17 +136,15 @@ function getRandomRelevantOffer(opportunity, criteriaName) {
   return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
 }
 
-function buildSampleRequests(opportunity, criteriaName) {
-  const parent = opportunity.superEvent || opportunity.facilityUse;
-  const seller = parent.organizer || parent.provider;
+function buildSampleRequests(opportunity, criteriaName, sellerId) {
   const offer = getRandomRelevantOffer(opportunity, criteriaName);
 
   return {
     opportunity,
-    checkpointOne: checkpointOne(opportunity, seller, offer),
-    checkpointTwo: checkpointTwo(opportunity, seller, offer),
-    book: book(opportunity, seller, offer),
-    proposal: proposal(opportunity, seller, offer),
+    checkpointOne: checkpointOne(opportunity, sellerId, offer),
+    checkpointTwo: checkpointTwo(opportunity, sellerId, offer),
+    book: book(opportunity, sellerId, offer),
+    proposal: proposal(opportunity, sellerId, offer),
     proposalUpdate: proposalUpdate(),
     orderCancellation: orderCancellation(),
   };
