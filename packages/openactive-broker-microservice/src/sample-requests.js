@@ -1,3 +1,6 @@
+const { getRelevantOffers } = require('@openactive/test-interface-criteria');
+const { HARVEST_START_TIME } = require('./broker-config');
+
 const broker = {
   '@type': 'Organization',
   name: 'Example Broker',
@@ -123,10 +126,20 @@ function orderCancellation() {
   };
 }
 
-function buildSampleRequests(opportunity) {
+// NOTE: duplicated from openactive-integration-tests/test/helpers/flow-stages/fetch-opportunities.js
+function getRandomRelevantOffer(opportunity, criteriaName) {
+  const relevantOffers = getRelevantOffers(criteriaName, opportunity, {
+    harvestStartTime: HARVEST_START_TIME,
+  });
+  if (relevantOffers.length === 0) { return null; }
+
+  return relevantOffers[Math.floor(Math.random() * relevantOffers.length)];
+}
+
+function buildSampleRequests(opportunity, criteriaName) {
   const parent = opportunity.superEvent || opportunity.facilityUse;
   const seller = parent.organizer || parent.provider;
-  const offer = parent.offers[0];
+  const offer = getRandomRelevantOffer(opportunity, criteriaName);
 
   return {
     opportunity,

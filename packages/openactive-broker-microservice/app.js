@@ -1044,7 +1044,7 @@ app.get('/sample-requests', function (req, res) {
   const opportunityWithParent = getOpportunityMergedWithParentById(
     bookableOpportunity.opportunity['@id'],
   );
-  const json = buildSampleRequests(opportunityWithParent);
+  const json = buildSampleRequests(opportunityWithParent, criteriaName);
 
   res.json(json);
 });
