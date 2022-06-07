@@ -35,6 +35,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [book-and-seller-replace-all-items](./implemented/book-and-seller-replace-all-items-test.js) | Book and seller replaces order items. | A successful replacement of order items by seller. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| [book-and-seller-replace-items](./implemented/book-and-seller-replace-items-test.js) | Book and seller replaces order items. | A successful replacement of order items by seller. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 

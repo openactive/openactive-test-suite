@@ -1,5 +1,7 @@
 const chakram = require('chakram');
 const config = require('config');
+const { isNil } = require('lodash');
+const querystring = require('querystring');
 
 const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
@@ -166,12 +168,20 @@ class RequestHelper {
    *   item from its cache.
    *   Set to false if you want to wait for a new update to the feed.
    *   Default is: true.
+   * @param {object} [moreOptions]
+   * @param {number} [moreOptions.expectedCapacity]
    */
-  async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
-    const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
+  async getMatch(eventId, orderItemPosition, useCacheIfAvailable, moreOptions) {
+    const expectedCapacity = moreOptions?.expectedCapacity ?? null;
+    const qs = querystring.stringify({
+      useCacheIfAvailable: useCacheIfAvailable === false ? 'false' : 'true',
+      ...(isNil(expectedCapacity)
+        ? {}
+        : { expectedCapacity }),
+    });
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?${qs}`,
       BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {

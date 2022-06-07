@@ -33,18 +33,20 @@ function notImplementedTest(reqTemplateRefs) {
 function invalidDetailsTest(templateRef) {
   /** @type {import('../../../helpers/feature-helper').RunTestsFn} */
   const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger,
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger,
       {
         c1ReqTemplateRef: templateRef,
         c2ReqTemplateRef: templateRef,
+        c1ExpectToFail: true,
+        c2ExpectToFail: true,
       });
 
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => c1.getOutput().httpResponse);
+      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => c2.getOutput().httpResponse);
+      itShouldReturnAnOpenBookingError('InvalidPaymentDetailsError', 400, () => c2.getStage('c2').getOutput().httpResponse);
     });
     // Note B/P is not called, as the totalPaymentDue is not known, so is difficult to test this
   };
@@ -91,10 +93,10 @@ function paymentReconciliationSuccessTest(freeOpportunities) {
 
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldReturnCorrectReconciliationDetails(() => c1.getOutput().httpResponse);
+      itShouldReturnCorrectReconciliationDetails(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldReturnCorrectReconciliationDetails(() => c2.getOutput().httpResponse);
+      itShouldReturnCorrectReconciliationDetails(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       itShouldReturnCorrectReconciliationDetails(() => bookRecipe.b.getOutput().httpResponse);

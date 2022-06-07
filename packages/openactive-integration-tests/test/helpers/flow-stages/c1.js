@@ -1,3 +1,4 @@
+const { Common } = require('../../shared-behaviours');
 const { getTotalPaymentDueFromOrder, getOrderId, getPrepaymentFromOrder, createPositionOrderIntakeFormMap } = require('../order-utils');
 const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
@@ -5,6 +6,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
+ * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
@@ -51,16 +53,23 @@ async function runC1({ templateRef, uuid, brokerRole, sellerConfig, orderItems, 
 class C1FlowStage extends FlowStage {
   /**
    * @param {object} args
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {C1ReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
    * @param {() => Input} args.getInput
    * @param {string | null} [args.brokerRole]
+   * @param {boolean} [args.doSimpleAutomaticCapacityCheck] Defaults to true.
+   *   If false, C1FlowStage will NOT automatically check that the items in the C1 response have unchanged capacity.
+   *
+   *   Since these capacity checks just compare the response with the OrderItems in getInput(), they work well for a
+   *   simple Fetch -> C1 setup - but they may not work for more complicated set-ups e.g. where C1 is called multiple
+   *   times in a row with anonymous leasing.
    * @param {BaseLoggerType} args.logger
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
    */
-  constructor({ templateRef, prerequisite, getInput, brokerRole, logger, requestHelper, uuid, sellerConfig }) {
+  constructor({ orderItemCriteriaList, templateRef, prerequisite, getInput, brokerRole, doSimpleAutomaticCapacityCheck = true, logger, requestHelper, uuid, sellerConfig }) {
     super({
       prerequisite,
       getInput,
@@ -76,7 +85,16 @@ class C1FlowStage extends FlowStage {
           requestHelper,
         });
       },
-      itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
+      itSuccessChecksFn: (flowStage) => {
+        FlowStageUtils.simpleHttp200SuccessChecks()(flowStage);
+        if (doSimpleAutomaticCapacityCheck) {
+          Common.itForEachOrderItemShouldHaveUnchangedCapacity({
+            orderItemCriteriaList,
+            getFeedOrderItems: () => getInput().orderItems,
+            getOrdersApiResponse: () => this.getOutput().httpResponse,
+          });
+        }
+      },
       itValidationTestsFn: FlowStageUtils.simpleValidationTests(logger, { name: 'C1', validationMode: 'C1Response' }),
     });
   }

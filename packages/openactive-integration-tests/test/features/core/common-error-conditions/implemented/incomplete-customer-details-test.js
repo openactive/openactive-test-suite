@@ -32,13 +32,14 @@ FeatureHelper.describeFeature(module, {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
       c2ReqTemplateRef: 'noCustomerEmail',
+      c2ExpectToFail: true,
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-      itShouldReturnAnIncompleteCustomerDetailsError(c2);
+      itShouldReturnAnIncompleteCustomerDetailsError(c2.getStage('c2'));
     });
   });
 
@@ -46,6 +47,7 @@ FeatureHelper.describeFeature(module, {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
       bookReqTemplateRef: 'noCustomerEmail',
+      bookExpectToFail: true,
     });
 
     // # Set up Tests

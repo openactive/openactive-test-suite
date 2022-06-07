@@ -21,7 +21,11 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    c1ExpectToFail: true,
+    c2ExpectToFail: true,
+    bookExpectToFail: true,
+  });
 
   // # Set up Tests
   /**
@@ -37,10 +41,10 @@ FeatureHelper.describeFeature(module, {
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c1);
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2);
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2.getStage('c2'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
     itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(bookRecipe.firstStage);

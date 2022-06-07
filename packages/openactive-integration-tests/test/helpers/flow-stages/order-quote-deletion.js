@@ -47,7 +47,7 @@ class OrderQuoteDeletionFlowStage extends FlowStage {
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp204SuccessChecks(),
-      itValidationTestsFn: () => { },
+      itValidationTestsFn: FlowStageUtils.createNoOpTest(),
     });
   }
 }

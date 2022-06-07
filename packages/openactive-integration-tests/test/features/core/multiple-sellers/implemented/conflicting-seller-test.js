@@ -41,15 +41,19 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   };
 
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    c1ExpectToFail: true,
+    c2ExpectToFail: true,
+    bookExpectToFail: true,
+  });
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldReturnSellerMismatchError(c1);
+    itShouldReturnSellerMismatchError(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldReturnSellerMismatchError(c2);
+    itShouldReturnSellerMismatchError(c2.getStage('c2'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
     itShouldReturnSellerMismatchError(bookRecipe.firstStage);

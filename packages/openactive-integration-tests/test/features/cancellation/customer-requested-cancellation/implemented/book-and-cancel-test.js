@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowStageRecipes, FlowStageUtils, OrderFeedUpdateFlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { FlowStageRecipes, FlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
@@ -14,34 +15,44 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookableCancellable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, opportunityType, bookingFlow) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteria, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
   // Get all OrderItem IDs
-  const getArrayOfAllOrderItemIds = CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [...Array(orderItemCriteria.length).keys()]);
+  const allOrderItemPositions = [...Array(orderItemCriteriaList.length).keys()];
+  const getArrayOfAllOrderItemIds = CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, allOrderItemPositions);
 
   // ### Cancel all order items
-  const [cancelOrderItem, orderFeedUpdateAfter1stCancel] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new CancelOrderFlowStage({
-      ...defaultFlowStageParams,
-      prerequisite,
+  const cancelOrderItems = FlowStageRecipes.runs.customerCancel.successfulCancelAssertOrderUpdateAndCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    cancelArgs: {
       getOrderItemIdArray: getArrayOfAllOrderItemIds,
-      testName: 'Cancel Order',
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: bookRecipe.lastStage,
-      testName: 'Orders Feed (after Order Cancellation)',
+    },
+    assertOpportunityCapacityArgs: {
+      orderItemCriteriaList,
+      // Opportunity capacity should have incremented for all Order Items
+      getInput: () => ({
+        opportunityFeedExtractResponses: bookRecipe.getAssertOpportunityCapacityAfterBook().getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions(allOrderItemPositions),
     },
   });
 
   // ### Cancel order items again to test for idempotency
-  const cancelOrderItemAgain = new CancelOrderFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: cancelOrderItem,
-    getOrderItemIdArray: getArrayOfAllOrderItemIds,
-    testName: 'Cancel Order again (to test for idempotency)',
+  const cancelOrderItemsAgain = FlowStageRecipes.runs.customerCancel.cancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    cancelArgs: {
+      getOrderItemIdArray: getArrayOfAllOrderItemIds,
+    },
+    assertOpportunityCapacityArgs: {
+      orderItemCriteriaList,
+      // Opportunity capacity should have not changed since the last cancel
+      getInput: () => ({
+        opportunityFeedExtractResponses: cancelOrderItems.getStage('assertOpportunityCapacityAfterCancel').getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+    },
   });
 
   // ## Set up tests
@@ -49,11 +60,11 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, opport
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItem);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfter1stCancel, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItems, () => {
+    const orderFeedUpdateAfter1stCancel = cancelOrderItems.getStage('orderFeedUpdate');
     const orderItemsAccessor = () => orderFeedUpdateAfter1stCancel.getOutput().httpResponse.body.data.orderedItem;
     it('should include all OrderItems', () => {
-      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteria.length);
+      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
     });
     it(`should have orderItemStatus CustomerCancelled for each cancelled item, based on the @ids of the OrderItems at ${bookingFlow === 'OpenBookingApprovalFlow' ? 'P' : 'B'}`, () => {
       const cancelledOrderItemIds = getArrayOfAllOrderItemIds();
@@ -63,5 +74,5 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger, opport
       }
     });
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItemAgain);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItemsAgain);
 });

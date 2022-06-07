@@ -1,7 +1,7 @@
 const { always } = require('ramda');
 
 /**
- * TODO TODO TODO document
+ * Mutably merge maps with a "Merger" function.
  *
  * @template {Map<unknown>} TMap
  * @param {(mapThatIsMergedIntoMut: TMap, mapThatIsMergedFrom: TMap) => void} mergerFnMut

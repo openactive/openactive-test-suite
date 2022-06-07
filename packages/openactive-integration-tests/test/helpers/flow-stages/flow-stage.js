@@ -112,10 +112,23 @@ class FlowStage {
    *   an Order Feed Update initiator.
    *
    *   Defaults to true.
+   * @param {boolean} [args.alwaysDoSuccessChecks] If true, this FlowStage, when run by the test runner, should
+   *   ALWAYS do success checks, regardless of any other considerations. Use this for a FlowStage whose success
+   *   checks are expected to pass regardless of whether or not the action "failed" or "succeeded".
    */
-  constructor({ prerequisite, getInput, testName, runFn, itSuccessChecksFn, itValidationTestsFn, shouldDescribeFlowStage = true }) {
+  constructor({
+    prerequisite,
+    getInput,
+    testName,
+    runFn,
+    itSuccessChecksFn,
+    itValidationTestsFn,
+    shouldDescribeFlowStage = true,
+    alwaysDoSuccessChecks = false,
+  }) {
     this.testName = testName;
-    this.shouldDescribeFlowStage = shouldDescribeFlowStage;
+    this._shouldDescribeFlowStage = shouldDescribeFlowStage;
+    this._alwaysDoSuccessChecks = alwaysDoSuccessChecks;
     this._prerequisite = prerequisite;
     this._getInput = getInput;
     this._runFn = runFn;
@@ -126,6 +139,10 @@ class FlowStage {
       status: 'no-response-yet',
     };
   }
+
+  shouldDescribeFlowStage() { return this._shouldDescribeFlowStage; }
+
+  alwaysDoSuccessChecks() { return this._alwaysDoSuccessChecks; }
 
   /**
    * Looks like `FlowStage(testName: C1)`

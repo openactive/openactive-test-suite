@@ -31,14 +31,15 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at C1', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
       c1ReqTemplateRef: 'noBrokerName',
+      c1ExpectToFail: true,
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-      itShouldReturnAnIncompleteBrokerDetailsError(c1);
+      itShouldReturnAnIncompleteBrokerDetailsError(c1.getStage('c1'));
     });
   });
 
@@ -46,13 +47,14 @@ FeatureHelper.describeFeature(module, {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
       c2ReqTemplateRef: 'noBrokerName',
+      c2ExpectToFail: true,
     });
 
     // # Set up Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
     FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-      itShouldReturnAnIncompleteBrokerDetailsError(c2);
+      itShouldReturnAnIncompleteBrokerDetailsError(c2.getStage('c2'));
     });
   });
 
@@ -60,6 +62,7 @@ FeatureHelper.describeFeature(module, {
     // # Initialise Flow Stages
     const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
       bookReqTemplateRef: 'noBrokerName',
+      bookExpectToFail: true,
     });
 
     // # Set up Tests
