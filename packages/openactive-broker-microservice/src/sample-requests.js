@@ -1,91 +1,3 @@
-const { merge } = require('lodash');
-
-const sampleRequestConstraints = {
-  'test:testOpportunityDataShapeExpression': [
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://openactive.io/remainingUses',
-      valueExpr: {
-        '@type': 'NumericNodeConstraint',
-        mininclusive: 2,
-      },
-    },
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://openactive.io/isOpenBookingAllowed',
-      valueExpr: {
-        '@type': 'test:BooleanNodeConstraint',
-        value: true,
-      },
-    },
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://schema.org/startDate',
-      valueExpr: {
-        '@type': 'test:DateRangeNodeConstraint',
-        minDate: '2022-05-26T12:31:31.136+00:00',
-      },
-    },
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://schema.org/eventStatus',
-      valueExpr: {
-        '@type': 'test:OptionNodeConstraint',
-        datatype: 'schema:EventStatusType',
-        blocklist: [
-          'https://schema.org/EventCancelled',
-          'https://schema.org/EventPostponed',
-        ],
-      },
-    },
-  ],
-  'test:testOfferDataShapeExpression': [
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://openactive.io/openBookingFlowRequirement',
-      valueExpr: {
-        '@type': 'test:ArrayConstraint',
-        datatype: 'oa:OpenBookingFlowRequirement',
-        includesAll: [
-          'https://openactive.io/OpenBookingApproval',
-        ],
-        excludesAll: [
-          'https://openactive.io/OpenBookingAttendeeDetails',
-          'https://openactive.io/OpenBookingIntakeForm',
-        ],
-      },
-    },
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://schema.org/price',
-      valueExpr: {
-        '@type': 'NumericNodeConstraint',
-        mininclusive: 0.01,
-      },
-    },
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://openactive.io/validFromBeforeStartDate',
-      valueExpr: {
-        '@type': 'test:DateRangeNodeConstraint',
-        maxDate: '2022-05-26T10:31:31.136+00:00',
-        allowNull: true,
-      },
-    },
-    {
-      '@type': 'test:TripleConstraint',
-      predicate: 'https://openactive.io/openBookingInAdvance',
-      valueExpr: {
-        '@type': 'test:OptionNodeConstraint',
-        datatype: 'oa:RequiredStatusType',
-        blocklist: [
-          'https://openactive.io/Unavailable',
-        ],
-      },
-    },
-  ],
-};
-
 const broker = {
   '@type': 'Organization',
   name: 'Example Broker',
@@ -112,10 +24,6 @@ const customer = {
   givenName: 'Geoff',
   familyName: 'Capes',
 };
-
-function getSampleRequestConstraints(opportunity) {
-  return merge(sampleRequestConstraints, opportunity);
-}
 
 function checkpointOne(opportunity, seller, offer) {
   return {
@@ -192,7 +100,7 @@ function proposal(opportunity, seller, offer) {
   };
 }
 
-function proposalUpdate(opportunity, seller, offer) {
+function proposalUpdate() {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderProposal',
@@ -201,7 +109,7 @@ function proposalUpdate(opportunity, seller, offer) {
   };
 }
 
-function orderCancellation(opportunity, seller, offer) {
+function orderCancellation() {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'Order',
@@ -226,12 +134,11 @@ function buildSampleRequests(opportunity) {
     checkpointTwo: checkpointTwo(opportunity, seller, offer),
     book: book(opportunity, seller, offer),
     proposal: proposal(opportunity, seller, offer),
-    proposalUpdate: proposalUpdate(opportunity, seller, offer),
-    orderCancellation: orderCancellation(opportunity, seller, offer),
+    proposalUpdate: proposalUpdate(),
+    orderCancellation: orderCancellation(),
   };
 }
 
 module.exports = {
-  getSampleRequestConstraints,
   buildSampleRequests,
 };
