@@ -99,9 +99,14 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
     const statusCode = response.response && response.response.statusCode;
     const statusMessage = response.response && response.response.statusMessage;
 
-    // Note C1Response and C2Response are permitted to return 409 errors of type `OrderQuote`, instead of `OpenBookingError`
-    if ((statusCode < 200 || statusCode >= 300) && !(statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response'))) {
-      optionsWithRemoteJson.validationMode = 'OpenBookingError';
+    // Note C1Response, C2Response, BResponse and PResponse are permitted to return 409 errors of type `OrderQuote`, `OrderProposal`, or `Order` instead of `OpenBookingError`
+    if (statusCode < 200 || statusCode >= 300) {
+      // TODO: Test suite should assert whether the response is expected to be an OrderItemError, instead of basing validation on the response status code
+      if (statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response' || options.validationMode === 'BResponse' || options.validationMode === 'PResponse')) {
+        optionsWithRemoteJson.validationMode = `${options.validationMode}OrderItemError`;
+      } else {
+        optionsWithRemoteJson.validationMode = 'OpenBookingError';
+      }
 
       // little nicer error message for completely failed responses.
       if (!body) {

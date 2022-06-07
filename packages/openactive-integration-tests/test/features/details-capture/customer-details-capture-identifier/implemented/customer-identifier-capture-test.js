@@ -24,7 +24,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected Customer identifier', () => {
       // CustomerIdentifierC2 is set in the standard C2 request template.
-      expect(c2.getOutput().httpResponse.body.customer.identifier).to.equal(defaultFlowStageParams.customer.identifier);
+      expect(c2.getStage('c2').getOutput().httpResponse.body.customer.identifier).to.equal(defaultFlowStageParams.customer.identifier);
     });
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {

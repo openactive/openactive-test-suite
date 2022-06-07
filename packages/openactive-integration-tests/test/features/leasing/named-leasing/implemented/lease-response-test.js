@@ -37,6 +37,6 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldReturnLeaseWithFutureExpiryDate(() => c2.getOutput().httpResponse);
+    itShouldReturnLeaseWithFutureExpiryDate(() => c2.getStage('c2').getOutput().httpResponse);
   });
 });

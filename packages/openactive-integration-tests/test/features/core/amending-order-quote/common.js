@@ -1,5 +1,8 @@
 const { expect } = require('chai');
+const { AssertOpportunityCapacityFlowStage } = require('../../../helpers/flow-stages/assert-opportunity-capacity');
 const { Common } = require('../../../shared-behaviours');
+
+const RUN_TESTS_WHICH_FAIL_REFIMPL = process.env.RUN_TESTS_WHICH_FAIL_REFIMPL === 'true';
 
 /**
  * @typedef {import('../../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
@@ -36,6 +39,28 @@ function itEachOrderItemIdShouldMatchThoseFromFeed({
   });
 }
 
+const AmendingOrderQuoteFlowStageRecipes = {
+  /**
+   * @param {string} nameOfPreviousStage
+   * @param {import('../../../helpers/flow-stages/flow-stage').UnknownFlowStageType} prerequisite
+   * @param {import('../../../helpers/flow-stages/flow-stage-recipes').DefaultFlowStageParams} defaultFlowStageParams
+   * @param {FetchOpportunitiesFlowStageType} firstAttemptFetchOpportunities
+   */
+  assertFirstAttemptOpportunitiesHaveRegainedCapacity(nameOfPreviousStage, prerequisite, defaultFlowStageParams, firstAttemptFetchOpportunities) {
+    return new AssertOpportunityCapacityFlowStage({
+      ...defaultFlowStageParams,
+      // Capacity is not correctly restored after amendment in RefImpl: https://github.com/openactive/OpenActive.Server.NET/issues/168
+      doSkip: !RUN_TESTS_WHICH_FAIL_REFIMPL,
+      prerequisite,
+      nameOfPreviousStage,
+      // Capacity for the first Order should have reverted to how it started
+      getInput: () => firstAttemptFetchOpportunities.getOutput(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+    });
+  },
+};
+
 module.exports = {
   itEachOrderItemIdShouldMatchThoseFromFeed,
+  AmendingOrderQuoteFlowStageRecipes,
 };

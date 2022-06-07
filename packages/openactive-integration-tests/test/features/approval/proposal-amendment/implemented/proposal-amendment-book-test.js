@@ -1,16 +1,12 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
   FlowStageUtils,
   PFlowStage,
   TestInterfaceActionFlowStage,
   OrderFeedUpdateFlowStageUtils,
-  BFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
-const RequestHelper = require('../../../../helpers/request-helper');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -43,35 +39,15 @@ FeatureHelper.describeFeature(module, {
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const requestHelper = new RequestHelper(logger);
-
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createDefaultFlowStageParams({ requestHelper, logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
   const p = new PFlowStage({
     ...defaultFlowStageParams,
-    prerequisite: c2,
+    prerequisite: c2.getLastStage(),
     getInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-      prepayment: c2.getOutput().prepayment,
+      totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
+      prepayment: c2.getStage('c2').getOutput().prepayment,
     }),
   });
   const [simulateSellerAmendment, sellerAmendmentOrderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
@@ -115,36 +91,42 @@ FeatureHelper.describeFeature(module, {
     },
   });
   // Attempt booking with old proposal version
-  const bOldProposalVersion = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: orderFeedUpdate,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: p.getOutput().totalPaymentDue,
-      orderProposalVersion: p.getOutput().orderProposalVersion,
-      prepayment: p.getOutput().prepayment,
-    }),
+  const bOldProposalVersion = FlowStageRecipes.runs.book.simpleBAssertCapacity(orderFeedUpdate, defaultFlowStageParams, {
+    isExpectedToSucceed: false,
+    fetchOpportunities,
+    previousAssertOpportunityCapacity: c2.getStage('assertOpportunityCapacityAfterC2'),
+    bArgs: {
+      getInput: () => ({
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        totalPaymentDue: p.getOutput().totalPaymentDue,
+        orderProposalVersion: p.getOutput().orderProposalVersion,
+        prepayment: p.getOutput().prepayment,
+      }),
+    },
   });
   // Using the new proposal version should fail
-  const bNewProposalVersion = new BFlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: orderFeedUpdate,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: sellerAmendmentOrderFeedUpdate.getOutput().totalPaymentDue,
-      orderProposalVersion: sellerAmendmentOrderFeedUpdate.getOutput().orderProposalVersion,
-      prepayment: sellerAmendmentOrderFeedUpdate.getOutput().prepayment,
-    }),
+  const bNewProposalVersion = FlowStageRecipes.runs.book.simpleBAssertCapacity(bOldProposalVersion.getLastStage(), defaultFlowStageParams, {
+    isExpectedToSucceed: true,
+    fetchOpportunities,
+    previousAssertOpportunityCapacity: bOldProposalVersion.getStage('assertOpportunityCapacityAfterB'),
+    bArgs: {
+      getInput: () => ({
+        orderItems: fetchOpportunities.getOutput().orderItems,
+        totalPaymentDue: sellerAmendmentOrderFeedUpdate.getOutput().totalPaymentDue,
+        orderProposalVersion: sellerAmendmentOrderFeedUpdate.getOutput().orderProposalVersion,
+        prepayment: sellerAmendmentOrderFeedUpdate.getOutput().prepayment,
+      }),
+    },
   });
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c1.getStage('c1').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getStage('c2').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
@@ -176,7 +158,7 @@ FeatureHelper.describeFeature(module, {
     });
   });
   FlowStageUtils.describeRunAndCheckIsValid(bOldProposalVersion, () => {
-    itShouldReturnAnOpenBookingError('OrderProposalVersionOutdatedError', 500, () => bOldProposalVersion.getOutput().httpResponse);
+    itShouldReturnAnOpenBookingError('OrderProposalVersionOutdatedError', 500, () => bOldProposalVersion.getStage('b').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bNewProposalVersion);
 });

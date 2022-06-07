@@ -100,10 +100,10 @@ function grossTest(options) {
     // ## Run Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldCalculateGrossTaxCorrectly(() => c1.getOutput().httpResponse);
+      itShouldCalculateGrossTaxCorrectly(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldCalculateGrossTaxCorrectly(() => c2.getOutput().httpResponse);
+      itShouldCalculateGrossTaxCorrectly(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       itShouldCalculateGrossTaxCorrectly(() => bookRecipe.b.getOutput().httpResponse);
@@ -132,10 +132,10 @@ function netTest(options) {
     // ## Run Tests
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldCalculateNetTaxCorrectly(() => c1.getOutput().httpResponse);
+      itShouldCalculateNetTaxCorrectly(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldCalculateNetTaxCorrectly(() => c2.getOutput().httpResponse);
+      itShouldCalculateNetTaxCorrectly(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       itShouldCalculateNetTaxCorrectly(() => bookRecipe.b.getOutput().httpResponse);

@@ -20,14 +20,16 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
     describe('at C2', () => {
       const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
         c2ReqTemplateRef: 'noCustomer',
+        c2ExpectToFail: true,
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-      runFlowStageAndExpectIncompleteCustomerDetailsError(c2);
+      runFlowStageAndExpectIncompleteCustomerDetailsError(c2.getStage('c2'), c2);
     });
     describe('at B or P', () => {
       const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
         bookReqTemplateRef: 'noCustomer',
+        bookExpectToFail: true,
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);

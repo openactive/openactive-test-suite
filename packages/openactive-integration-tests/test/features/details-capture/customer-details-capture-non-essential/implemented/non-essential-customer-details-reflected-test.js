@@ -23,7 +23,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected customer details', () => {
-      const apiResponseJson = c2.getOutput().httpResponse.body;
+      const apiResponseJson = c2.getStage('c2').getOutput().httpResponse.body;
       expect(apiResponseJson).to.have.nested.property('customer.email', defaultFlowStageParams.customer.email);
       expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
       expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);

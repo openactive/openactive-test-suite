@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const _ = require('lodash');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -8,6 +9,23 @@ const { expect } = require('chai');
  * @typedef {import('../../helpers/flow-stages/flow-stage').OrderItem} OrderItem
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  */
+
+/**
+ * e.g.
+ * ```
+ * > multipleObjectsIntoBatches([{ type: 'dog' }, {type: 'cat'}], 2);
+ * [{ type: 'dog' }, { type: 'dog' }, {type: 'cat'}, {type: 'cat'}]
+ * ```
+ *
+ * Resulting objects are deep cloned.
+ *
+ * @template {object} TObj
+ * @param {TObj[]} objects
+ * @param {number} multiple
+ */
+function multiplyObjectsIntoBatches(objects, multiple) {
+  return objects.flatMap(obj => _.times(multiple, () => _.cloneDeep(obj)));
+}
 
 /**
  * For each of the fetched OrderItems, get a batch of duplicates for that item.
@@ -21,19 +39,12 @@ const { expect } = require('chai');
 function multiplyFetchedOrderItemsIntoBatches(fetchOpportunities, multiple) {
   const fetchedOrderItems = fetchOpportunities.getOutput().orderItems;
 
-  /** @type {OrderItem[]} */
-  const result = [];
-  for (let i = 0; i < multiple; i += 1) {
-    result.push(
-      // OrderItems are shallow cloned so that we can reset their positions
-      ...fetchedOrderItems.map(orderItem => ({ ...orderItem })),
-    );
-  }
-  // now, reset `position`s so that multiple OrderItems don't have the same positions :o
-  for (let i = 0; i < result.length; i += 1) {
-    result[i].position = i;
-  }
-  return result;
+  const multipliedOrderItems = multiplyObjectsIntoBatches(fetchedOrderItems, multiple);
+  // now, reset `position`s so that multiplied OrderItems don't have the same positions :o
+  return multipliedOrderItems.map((orderItem, i) => ({
+    ...orderItem,
+    position: i,
+  }));
 }
 
 /**

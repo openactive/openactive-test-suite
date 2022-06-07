@@ -2,8 +2,6 @@ const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
-  TestInterfaceActionFlowStage,
-  OrderFeedUpdateFlowStageUtils,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 
@@ -23,22 +21,9 @@ FeatureHelper.describeFeature(module, {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
 
-  const [simulateSellerCancellation, orderFeedUpdateAfterCancel] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
-      ...defaultFlowStageParams,
-      testName: 'Simulate Seller Cancellation (Test Interface Action)',
-      prerequisite,
-      createActionFn: () => ({
-        type: 'test:SellerRequestedCancellationSimulateAction',
-        objectType: 'Order',
-        objectId: bookRecipe.b.getOutput().orderId,
-      }),
-    })),
-    orderFeedUpdateParams: {
-      ...defaultFlowStageParams,
-      prerequisite: bookRecipe.lastStage,
-      testName: 'Orders Feed (after Simulate Seller Cancellation)',
-    },
+  const simulateSellerCancellation = FlowStageRecipes.runs.sellerCancel.successfulCancelAssertOrderUpdateAndCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunities,
+    getOrderId: () => bookRecipe.b.getOutput().orderId,
   });
 
   // ## Set up tests
@@ -46,9 +31,9 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation);
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdateAfterCancel, () => {
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerCancellation, () => {
     it('should have orderItemStatus: SellerCancelled', () => {
+      const orderFeedUpdateAfterCancel = simulateSellerCancellation.getStage('orderFeedUpdate');
       const orderItems = orderFeedUpdateAfterCancel.getOutput().httpResponse.body.data.orderedItem;
       expect(orderItems).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
       for (const orderItem of orderItems) {
