@@ -106,16 +106,29 @@ class FlowStage {
    * @param {string} args.testName Labels the jest `describe(..)` block
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
-   * @param {(flowStage: FlowStage<unknown, TOutput>, doValidateInErrorMode: boolean) => void} args.itValidationTestsFn
+   * @param {(flowStage: FlowStage<unknown, TOutput>, doValidateInOrderItemErrorMode: boolean) => void} args.itValidationTestsFn
    * @param {boolean} [args.shouldDescribeFlowStage] If false, this FlowStage should
    *   not get its own `describe(..)` block. Use this for abstract flow stages like
    *   an Order Feed Update initiator.
    *
    *   Defaults to true.
+   * @param {boolean} [args.alwaysDoSuccessChecks] If true, this FlowStage, when run by the test runner, should
+   *   ALWAYS do success checks, regardless of any other considerations. Use this for a FlowStage whose success
+   *   checks are expected to pass regardless of whether or not the action "failed" or "succeeded".
    */
-  constructor({ prerequisite, getInput, testName, runFn, itSuccessChecksFn, itValidationTestsFn, shouldDescribeFlowStage = true }) {
+  constructor({
+    prerequisite,
+    getInput,
+    testName,
+    runFn,
+    itSuccessChecksFn,
+    itValidationTestsFn,
+    shouldDescribeFlowStage = true,
+    alwaysDoSuccessChecks = false,
+  }) {
     this.testName = testName;
-    this.shouldDescribeFlowStage = shouldDescribeFlowStage;
+    this._shouldDescribeFlowStage = shouldDescribeFlowStage;
+    this._alwaysDoSuccessChecks = alwaysDoSuccessChecks;
     this._prerequisite = prerequisite;
     this._getInput = getInput;
     this._runFn = runFn;
@@ -126,6 +139,10 @@ class FlowStage {
       status: 'no-response-yet',
     };
   }
+
+  shouldDescribeFlowStage() { return this._shouldDescribeFlowStage; }
+
+  alwaysDoSuccessChecks() { return this._alwaysDoSuccessChecks; }
 
   /**
    * Looks like `FlowStage(testName: C1)`
@@ -239,10 +256,10 @@ class FlowStage {
    *
    * Creates it() blocks.
    * 
-   * @param {boolean} doValidateInErrorMode If true, 
+   * @param {boolean} doValidateInOrderItemErrorMode If true, 
    */
-  itValidationTests(doValidateInErrorMode = false) {
-    this._itValidationTestsFn(this, doValidateInErrorMode);
+  itValidationTests(doValidateInOrderItemErrorMode = false) {
+    this._itValidationTestsFn(this, doValidateInOrderItemErrorMode);
     return this;
   }
 }

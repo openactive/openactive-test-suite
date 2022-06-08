@@ -1,10 +1,29 @@
 const chakram = require('chakram');
 const faker = require('faker');
+const { last } = require('lodash');
 const sharedValidationTests = require('../../shared-behaviours/validation');
 const { generateUuid } = require('../generate-uuid');
 const RequestHelper = require('../request-helper');
 const { getSellerConfigWithTaxMode } = require('../sellers');
 const { BookRecipe } = require('./book-recipe');
+const { FlowStageRun } = require('./flow-stage-run');
+
+/**
+ * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../../helpers/request-helper').RequestHelperType} RequestHelperType
+ * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
+ * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
+ * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
+ *
+ * @typedef {import('./flow-stage').FlowStageType<unknown, unknown>} UnknownFlowStageType
+ * @typedef {import('./flow-stage').FlowStageType<
+ *   unknown,
+ *   Required<Pick<FlowStageOutput, 'httpResponse'>>,
+ * >} FlowStageTypeWithHttpResponseOutput
+ * @typedef {import('./flow-stage-run').AnyFlowStageRun} AnyFlowStageRun
+ * @typedef {import('../../types/SellerConfig').SellerConfig} SellerConfig
+ */
 
 /**
  * @typedef {{
@@ -15,21 +34,8 @@ const { BookRecipe } = require('./book-recipe');
  *  familyName: string,
  *  email: string,
  *  }} Customer
- */
-
-/**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
- * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('../../helpers/request-helper').RequestHelperType} RequestHelperType
- * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
- * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  *
- * @typedef {import('./flow-stage').FlowStageType<unknown, unknown>} UnknownFlowStageType
- * @typedef {import('./flow-stage').FlowStageType<
- *   unknown,
- *   Required<Pick<FlowStageOutput, 'httpResponse'>>,
- * >} FlowStageTypeWithHttpResponseOutput
- * @typedef {import('../../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {UnknownFlowStageType | BookRecipe | AnyFlowStageRun} FlowStageRunnable Something that can be run by the `describeRunAnd-` functions
  */
 
 const { SELLER_CONFIG } = global;
@@ -55,17 +61,28 @@ const FlowStageUtils = {
    *   validation checks.
    * @param {ValidationMode} validationSpec.validationMode
    */
-  simpleValidationTests(logger, { name, validationMode}) {
-    return (/** @type {FlowStageTypeWithHttpResponseOutput} */ flowStage, /** @type {boolean} */doValidateInErrorMode) => {
+  simpleValidationTests(logger, { name, validationMode }) {
+    return (/** @type {FlowStageTypeWithHttpResponseOutput} */ flowStage, /** @type {boolean} */doValidateInOrderItemErrorMode) => {
       sharedValidationTests.shouldBeValidResponse(
         () => flowStage.getOutput().httpResponse,
         name,
         logger,
         {
           validationMode,
-          doValidateInErrorMode,
+          doValidateInOrderItemErrorMode,
         },
       );
+    };
+  },
+
+  /**
+   * No-op test to use for validation tests or success checks if there are none. This is preferable to including no
+   * tests because jest will not include describe(..) blocks in its report when there are no inner it(..) blocks,
+   * which leads to confusing test logs.
+   */
+  createNoOpTest() {
+    return () => {
+      it('noop', () => { });
     };
   },
 
@@ -121,17 +138,19 @@ const FlowStageUtils = {
    * @param {object} args
    * @param {RequestHelperType} args.requestHelper
    * @param {BaseLoggerType} args.logger
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
    * @param {Customer} [args.customer]
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer }) {
+  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer, orderItemCriteriaList }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
       customer: customer || this.createRandomCustomerDetails(),
+      orderItemCriteriaList,
     };
   },
 
@@ -157,17 +176,18 @@ const FlowStageUtils = {
    *
    * @param {object} args
    * @param {BaseLoggerType} args.logger
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
    * @param {SellerConfig} [args.sellerConfig]
    */
-  createSimpleDefaultFlowStageParams({ logger, taxMode = null, ...args }) {
+  createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList, taxMode = null, ...args }) {
     const sellerConfig = args.sellerConfig ?? (
       taxMode
         ? getSellerConfigWithTaxMode(taxMode)
         : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig,
+      requestHelper, logger, sellerConfig, orderItemCriteriaList,
     });
   },
 
@@ -181,8 +201,8 @@ const FlowStageUtils = {
    * @param {object} checks
    * @param {boolean} checks.doCheckSuccess If true, success checks will be run
    * @param {boolean} checks.doCheckIsValid If true, validation will be run
-   * @param {boolean} checks.doValidateInErrorMode If true and Validator is run, validation occurs in Error mode (eg OpenBookingError or C2ResponseOrderItemError)
-   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   * @param {boolean} checks.doValidateInOrderItemErrorMode If true and Validator is run, validation occurs in Error mode (eg OpenBookingError or C2ResponseOrderItemError)
+   * @param {FlowStageRunnable} flowStageRunnable If this is a BookRecipe, or FlowStageRun
    *   all stages within will be checked for validity/success.
    *
    *   NOTE It is recommended to only use a BookRecipe when expecting success. If expecting failure,
@@ -194,38 +214,46 @@ const FlowStageUtils = {
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
    */
-  describeRunAndRunChecks(checks, flowStageOrBookRecipe, itAdditionalTests) {
-    if (flowStageOrBookRecipe instanceof BookRecipe) {
-      const bookRecipe = flowStageOrBookRecipe;
-      if (bookRecipe.p) {
-        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.p);
-        /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any items
-        approved items appearing in the feed - which means that the tests will time out */
-        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.simulateSellerApproval);
-        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.orderFeedUpdateCollector);
-        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.b);
-        FlowStageUtils.describeRunAndRunChecks(
-          checks,
-          bookRecipe.orderFeedUpdateAfterDeleteProposal,
-          itAdditionalTests,
-        );
-      } else {
-        FlowStageUtils.describeRunAndRunChecks(checks, bookRecipe.b, itAdditionalTests);
+  describeRunAndRunChecks(checks, flowStageRunnable, itAdditionalTests) {
+    if (flowStageRunnable instanceof FlowStageRun) {
+      const allStages = flowStageRunnable.getFlattenedStages();
+      for (const stage of allStages.slice(0, -1)) {
+        FlowStageUtils.describeRunAndRunChecks(checks, stage);
       }
+      /* Only run additional tests on the last stage, so that all of the run will have occurred by the time
+      the additional tests are run */
+      FlowStageUtils.describeRunAndRunChecks(checks, last(allStages), itAdditionalTests);
       return;
     }
-    if (!flowStageOrBookRecipe.shouldDescribeFlowStage) {
-      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageOrBookRecipe.getLoggableStageName()} as shouldDescribeFlowStage is false`);
+    if (flowStageRunnable instanceof BookRecipe) {
+      /* TODO optimize: Make it possible to stop after P if P fails. If P fails, there's not going to be any
+      approved items appearing in the feed - which means that the tests will time out.
+      One option for achieving that:
+      - Give OrderFeedUpdateAfterP's Flow Stage (which is an OrderFeedUpdateCollector) an optional `breakIf`
+        arg. e.g. if you provide `breakIf: () => !isHttp2xxResponse(p.getOutput().httpResponse)`, then this stage
+        can have some code in its run function like `if (breakIf()) { throw new Error('..'); }`
+      */
+      const allStages = flowStageRunnable.getStages();
+      for (const stage of allStages.slice(0, -1)) {
+        FlowStageUtils.describeRunAndRunChecks(checks, stage);
+      }
+      /* Only run additional tests on the last stage, so that all of the booking will have occurred by the time
+      the additional tests are run */
+      FlowStageUtils.describeRunAndRunChecks(checks, last(allStages), itAdditionalTests);
+      return;
     }
-    const flowStage = flowStageOrBookRecipe;
-    describe(flowStage.testName, () => {
-      flowStage.beforeSetup();
+    // It's a FlowStage
+    if (!flowStageRunnable.shouldDescribeFlowStage()) {
+      throw new Error(`describeRunAndCheckIsSuccessfulAndValid(..) cannot run on ${flowStageRunnable.getLoggableStageName()} as shouldDescribeFlowStage is false`);
+    }
+    describe(flowStageRunnable.testName, () => {
+      flowStageRunnable.beforeSetup();
 
-      if (checks.doCheckSuccess) {
-        flowStage.itSuccessChecks();
+      if (checks.doCheckSuccess || flowStageRunnable.alwaysDoSuccessChecks()) {
+        flowStageRunnable.itSuccessChecks();
       }
       if (checks.doCheckIsValid) {
-        flowStage.itValidationTests(checks.doValidateInErrorMode);
+        flowStageRunnable.itValidationTests();
       }
 
       if (itAdditionalTests) {
@@ -241,7 +269,7 @@ const FlowStageUtils = {
    * 2. Runs success checks and validation checks of the response in `it(..)` blocks.
    * 3. Optionally runs extra tests.
    *
-   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   * @param {FlowStageRunnable} flowStageOrBookRecipe If this is a BookRecipe or FlowStageRun,
    *   all stages within will be checked for validity/success.
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
@@ -250,7 +278,7 @@ const FlowStageUtils = {
    *   success/validation tests.
    */
   describeRunAndCheckIsSuccessfulAndValid(flowStageOrBookRecipe, itAdditionalTests) {
-    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doValidateInErrorMode: false, doCheckSuccess: true }, flowStageOrBookRecipe, itAdditionalTests);
+    return FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: true, doValidateInOrderItemErrorMode: false, doCheckSuccess: true }, flowStageOrBookRecipe, itAdditionalTests);
   },
 
   /**
@@ -263,18 +291,18 @@ const FlowStageUtils = {
    *   NOTE: Success checks are not run
    * 3. Optionally runs extra tests.
    *
-   * @param {UnknownFlowStageType | BookRecipe} flowStageOrBookRecipe If this is a BookRecipe,
+   * @param {FlowStageRunnable} flowStageOrBookRecipe If this is a BookRecipe or FlowStageRun,
    *   all stages within will be checked for validity.
-   * @param {{doValidateInErrorMode: boolean}} [validationOptions] Options to configure the Validator
    * @param {() => void} [itAdditionalTests] Additional tests which will
    *   be run after success and validation tests have run.
    *   These tests need to create `it(..)` blocks for each of the new tests.
    *   The tests will be run within the same `describe(..)` block as
    *   success/validation tests.
+   * @param {{doValidateInOrderItemErrorMode: boolean}} [validationOptions] Options to configure the Validator
    */
-  describeRunAndCheckIsValid(flowStageOrBookRecipe, {doValidateInErrorMode = false}, itAdditionalTests) {
+  describeRunAndCheckIsValid(flowStageOrBookRecipe, itAdditionalTests, {doValidateInOrderItemErrorMode = false}) {
     return FlowStageUtils.describeRunAndRunChecks({
-      doCheckIsValid: true, doValidateInErrorMode, doCheckSuccess: false,
+      doCheckIsValid: true, doValidateInOrderItemErrorMode, doCheckSuccess: false,
     }, flowStageOrBookRecipe, itAdditionalTests);
   },
 };

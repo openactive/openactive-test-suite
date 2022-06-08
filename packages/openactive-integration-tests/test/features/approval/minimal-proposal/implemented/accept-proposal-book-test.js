@@ -35,17 +35,26 @@ FeatureHelper.describeFeature(module, {
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(
+  const {
+    fetchOpportunities,
+    c1,
+    c2,
+    defaultFlowStageParams,
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow(
     orderItemCriteriaList,
     logger,
   );
-  const bookRecipe = FlowStageRecipes.bookApproval(defaultFlowStageParams, {
-    prerequisite: c2,
+  const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
+    prerequisite: c2.getLastStage(),
     getFirstStageInput: () => ({
       orderItems: fetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: c2.getOutput().totalPaymentDue,
-      prepayment: c2.getOutput().prepayment,
-      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
+      totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
+      prepayment: c2.getStage('c2').getOutput().prepayment,
+      positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
+    }),
+    getAssertOpportunityCapacityInput: () => ({
+      opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
+      orderItems: fetchOpportunities.getOutput().orderItems,
     }),
   });
 
@@ -53,10 +62,10 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c1.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c1.getStage('c1').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldReturnOrderRequiresApprovalTrue(() => c2.getOutput().httpResponse);
+    itShouldReturnOrderRequiresApprovalTrue(() => c2.getStage('c2').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?

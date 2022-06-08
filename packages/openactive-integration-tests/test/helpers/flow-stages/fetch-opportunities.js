@@ -180,8 +180,6 @@ class FetchOpportunitiesFlowStage extends FlowStage {
   /**
    * @param {object} args
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
-   * @param {string} [args.uuid] UUID to use for Order. If excluded, this will
-   *   be generated.
    * @param {FlowStage<unknown, unknown>} [args.prerequisite]
    * @param {SellerConfig} args.sellerConfig Opportunities will be fetched that belong to this Seller.
    *

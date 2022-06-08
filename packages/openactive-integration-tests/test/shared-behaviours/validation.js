@@ -38,7 +38,7 @@ function priorityOfSeverity(severity) {
  * @param {object} options
  * @param {ValidationMode} options.validationMode
  *   What type of response is being validated. Some modes have special handling behaviours.
- * @param {boolean} options.doValidateInErrorMode
+ * @param {boolean} options.doValidateInOrderItemErrorMode
  * @param {string} [opportunityCriteria] If included, this will check that the opportunity
  *   matches the criteria.
  */
@@ -103,7 +103,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
 
     // Note C1Response and C2Response are permitted to return 409 errors of type `OrderQuote`, instead of `OpenBookingError`
     if (statusCode < 200 || statusCode >= 300) {
-      if(!_.isNil(options.doValidateInErrorMode) && 
+      if(!_.isNil(options.doValidateInOrderItemErrorMode) && 
           (options.validationMode === 'C1Response' || options.validationMode === 'C2Response'
             || options.validationMode === 'BResponse' || options.validationMode === 'PResponse'
           )) {

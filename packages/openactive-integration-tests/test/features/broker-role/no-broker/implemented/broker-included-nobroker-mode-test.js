@@ -18,21 +18,31 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   describe('Booking should fail because Broker is included in Order in NoBroker mode', () => {
     describe('at C1', () => {
       // broker is included, by default, in C1 request
-      const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, { brokerRole: 'https://openactive.io/NoBroker' });
+      const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+        brokerRole: 'https://openactive.io/NoBroker',
+        c1ExpectToFail: true,
+      });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
-      runFlowStageAndExpectIncompleteBrokerDetailsError(c1);
+      runFlowStageAndExpectIncompleteBrokerDetailsError(c1.getStage('c1'), c1);
     });
     describe('at C2', () => {
       // broker is included, by default, in C2 request
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, { brokerRole: 'https://openactive.io/NoBroker', c1ReqTemplateRef: 'noBroker' });
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+        brokerRole: 'https://openactive.io/NoBroker',
+        c1ReqTemplateRef: 'noBroker',
+        c2ExpectToFail: true,
+      });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-      runFlowStageAndExpectIncompleteBrokerDetailsError(c2);
+      runFlowStageAndExpectIncompleteBrokerDetailsError(c2.getStage('c2'), c2);
     });
     describe('at B or P', () => {
       // broker is included, by default, in B or P request
       const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
-        brokerRole: 'https://openactive.io/NoBroker', c1ReqTemplateRef: 'noBroker', c2ReqTemplateRef: 'noBroker',
+        brokerRole: 'https://openactive.io/NoBroker',
+        c1ReqTemplateRef: 'noBroker',
+        c2ReqTemplateRef: 'noBroker',
+        bookExpectToFail: true,
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
