@@ -29,7 +29,7 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'approval',
   testFeature: 'minimal-proposal',
   testFeatureImplemented: true,
-  testIdentifier: 'customer-reject-proposal-test',
+  testIdentifier: 'customer-reject-proposal',
   testName: 'OrderProposal rejected by the Customer',
   testDescription: 'An OrderProposal that is rejected by the Customer, and the call to B subsequently fails',
   // The primary opportunity criteria to use for the primary OrderItem under test
