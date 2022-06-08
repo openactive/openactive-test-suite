@@ -4,7 +4,7 @@ const {
   FlowStageRecipes,
   FlowStageUtils,
   PFlowStage,
-  TestInterfaceActionFlowStage,
+  CustomerRejectOrderProposalFlowStage,
   OrderFeedUpdateFlowStageUtils,
 } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
@@ -29,9 +29,9 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'approval',
   testFeature: 'minimal-proposal',
   testFeatureImplemented: true,
-  testIdentifier: 'seller-reject-proposal',
-  testName: 'OrderProposal rejected by the Seller',
-  testDescription: 'An OrderProposal that is rejected by the Seller, and the call to B subsequently fails',
+  testIdentifier: 'customer-reject-proposal-test',
+  testName: 'OrderProposal rejected by the Customer',
+  testDescription: 'An OrderProposal that is rejected by the Customer, and the call to B subsequently fails',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   // even if some OrderItems don't require approval, the whole Order should
@@ -49,21 +49,15 @@ FeatureHelper.describeFeature(module, {
       prepayment: c2.getStage('c2').getOutput().prepayment,
     }),
   });
-  const [simulateSellerRejection, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
-    wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
+  const [customerRejection, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
+    wrappedStageFn: prerequisite => (new CustomerRejectOrderProposalFlowStage({
       ...defaultFlowStageParams,
-      testName: 'Test Interface Action (test:SellerRejectOrderProposalSimulateAction)',
       prerequisite,
-      createActionFn: () => ({
-        type: 'test:SellerRejectOrderProposalSimulateAction',
-        objectType: 'OrderProposal',
-        objectId: p.getOutput().orderId,
-      }),
     })),
     orderFeedUpdateParams: {
       ...defaultFlowStageParams,
       prerequisite: p,
-      testName: 'Order Proposals Feed (after test:SellerRejectOrderProposalSimulateAction)',
+      testName: 'OrdersProposal Feed (after OrderProposal Update)',
       orderFeedType: 'order-proposals',
     },
   });
@@ -97,12 +91,12 @@ FeatureHelper.describeFeature(module, {
     });
     // TODO does validator check that full Seller details are included in the seller response?
   });
-  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerRejection);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(customerRejection);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(orderFeedUpdate, () => {
-    it('should have orderProposalStatus: SellerRejected', () => {
+    it('should have orderProposalStatus: CustomerRejected', () => {
       expect(orderFeedUpdate.getOutput().httpResponse.body).to.have.nested.property(
         // note that we check data.* because the OrderFeed response is an RPDE item
-        'data.orderProposalStatus', 'https://openactive.io/SellerRejected',
+        'data.orderProposalStatus', 'https://openactive.io/CustomerRejected',
       );
     });
     it('should have orderProposalVersion same as that returned by P (i.e. an amendment hasn\'t occurred)', () => {
