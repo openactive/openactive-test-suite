@@ -42,9 +42,9 @@ function getCriteriaAndAssertExists(criteriaName) {
 function getOffers(opportunity) {
   // Merge Offers respecting inheritance, based on the `identifier`, to allow overrides
   const childOffers = opportunity.offers || [];
-  const childOffersIdentifierSet = new Set(childOffers.map(x => x?.identifier).filter(x => x !== undefined));
+  const childOffersIdentifierSet = new Set(childOffers.map((x) => x?.identifier).filter((x) => x !== undefined));
   const parentOffers = (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
-  return childOffers.concat(parentOffers.filter(o => !childOffersIdentifierSet.has(o.identifier)));
+  return childOffers.concat(parentOffers.filter((o) => !childOffersIdentifierSet.has(o.identifier)));
 }
 
 /**
