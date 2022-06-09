@@ -27,13 +27,6 @@ function renderSampleOpportunities(opportunity, criteriaName, sellerId) {
         orderedItem: opportunity['@id'],
       },
     ],
-    requiredPayment: offer.price === 0 ? null : {
-      '@type': 'Payment',
-      identifier: 'EUzQjk0NzhDNjE4MzNGQjI',
-      name: 'AcmeBroker Points',
-      accountId: 'SN1593',
-      paymentProviderId: 'STRIPE',
-    },
   };
 }
 
