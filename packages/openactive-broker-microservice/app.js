@@ -71,6 +71,7 @@ const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-trac
 const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
+const { renderSampleOpportunities } = require('./src/sample-opportunities');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -349,7 +350,7 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
       : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
     const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
     return {
-      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why items in your feed are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors.size !== 0 ? ' The number represents the number of items that do not match.' : ''}`,
+      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors.size !== 0 ? ' The number represents the number of items that do not match.' : ''}`,
       availableSellers,
       criteriaErrors: typeBucket.criteriaErrors ? criteriaErrors : undefined,
     };
@@ -842,6 +843,7 @@ app.get('/opportunity/:id', function (req, res) {
     }
     return null;
   })();
+
   const doesItemMatchCriteria = isNil(expectedCapacity)
     ? (() => true)
     : ((rpdeItem) => (
@@ -869,10 +871,12 @@ function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
     || opportunity.superEvent?.organizer
     || opportunity.superEvent?.superEvent?.organizer
-    || opportunity?.facilityUse.provider
+    || opportunity?.facilityUse?.provider
     || opportunity?.facilityUse?.aggregateFacilityUse?.provider;
 
-  return organizer['@id'] || organizer.id;
+  if (typeof organizer === 'string') return organizer;
+
+  return organizer?.['@id'] || organizer?.id;
 }
 
 function detectOpportunityType(opportunity) {
@@ -1021,6 +1025,34 @@ app.post('/assert-unmatched-criteria', function (req, res) {
     }
     res.status(404).json({
       error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
+    });
+  }
+});
+
+// Sample Requests endpoint, used to underpin the Postman collection
+app.get('/sample-opportunities', function (req, res) {
+  // Get random opportunity ID
+  const opportunity = req.body;
+  const opportunityType = detectOpportunityType(opportunity);
+  const sellerId = detectSellerId(opportunity);
+  const testDatasetIdentifier = 'sample-opportunities';
+
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
+
+  const bookableOpportunity = getRandomBookableOpportunity({
+    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
+  });
+
+  if (bookableOpportunity.opportunity) {
+    const opportunityWithParent = getOpportunityMergedWithParentById(
+      bookableOpportunity.opportunity['@id'],
+    );
+    const json = renderSampleOpportunities(opportunityWithParent, criteriaName, sellerId);
+    res.json(json);
+  } else {
+    res.json({
+      error: bookableOpportunity,
     });
   }
 });

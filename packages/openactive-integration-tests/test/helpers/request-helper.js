@@ -7,6 +7,7 @@ const { c1ReqTemplates } = require('../templates/c1-req.js');
 const { c2ReqTemplates } = require('../templates/c2-req.js');
 const { bReqTemplates } = require('../templates/b-req.js');
 const { uReqTemplates } = require('../templates/u-req.js');
+const { uProposalReqTemplates } = require('../templates/u-proposal-req.js');
 const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
 
 /**
@@ -360,6 +361,28 @@ class RequestHelper {
     );
 
     return pResponse;
+  }
+
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/u-proposal-req').UProposalReqTemplateRef | null} [maybeUProposalReqTemplateRef]
+   */
+  async customerRejectOrderProposal(uuid, maybeUProposalReqTemplateRef) {
+    const uProposalReqTemplateRef = maybeUProposalReqTemplateRef || 'standard';
+    const templateFn = uProposalReqTemplates[uProposalReqTemplateRef];
+    const payload = templateFn();
+
+    const uResponse = await this.patch(
+      'U Proposal',
+      `${BOOKING_API_BASE}/order-proposals/${uuid}`,
+      payload,
+      {
+        headers: this.createHeaders(),
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
+      },
+    );
+
+    return uResponse;
   }
 
   /**
