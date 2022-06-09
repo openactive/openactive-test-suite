@@ -104,7 +104,7 @@ microservice.stdout.pipe(process.stdout);
 microservice.stderr.pipe(process.stderr);
 
 // If microservice exits, kill the integration tests (as something has gone wrong somewhere)
-microservice.on('close', (code) => {
+microservice.on('exit', (code) => {
   microservice = null;
   // Close prompt if currently open
   prompt?.ui?.close();
@@ -129,13 +129,13 @@ function launchIntegrationTests(args, singleFlowPathMode) {
   integrationTests = fork('./node_modules/jest/bin/jest.js', args, { cwd: './packages/openactive-integration-tests/'} );
   if (IS_RUNNING_IN_CI) {
     // When integration tests exit, kill the microservice
-    integrationTests.on('close', (code) => {
+    integrationTests.on('exit', (code) => {
       // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
       if (code !== 0 && code !== null) process.exitCode = code;
       if (microservice !== null) microservice.kill();
     });
   } else {
-    integrationTests.on('close', async (code) => {
+    integrationTests.on('exit', async (code) => {
       if (!microservice) return;
         
       // Ensure that harvesting is paused even in the event of a fatal error within the test suite
