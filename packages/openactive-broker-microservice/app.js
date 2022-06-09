@@ -979,7 +979,7 @@ app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', functi
   } else {
     logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${opportunityType}) call failed: No matching opportunities found`);
     res.status(404).json({
-      error: `Opportunity Type '${opportunityType}' not found for seller '${sellerId}' matching '${criteriaName}' within '${bookingFlow}'.`,
+      error: `Opportunity of type '${opportunityType}' that has an \`organizer\`/\`provider\` with \`@id\` '${sellerId}', that also matched '${criteriaName}' within '${bookingFlow}', was not found within the feeds.`,
       ...result,
     });
   }
