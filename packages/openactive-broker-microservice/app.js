@@ -1133,7 +1133,7 @@ function invertFacilityUseItems(items) {
         id: individualFacilityUse['@id'],
         data: {
           ...individualFacilityUse,
-          aggregateFacilityUse: omit(facilityUseItem.data, ['individualFacilityUse']),
+          aggregateFacilityUse: omit(facilityUseItem.data, ['individualFacilityUse', '@context']),
         },
       });
     }
