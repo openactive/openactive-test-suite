@@ -419,13 +419,13 @@ function getOrganizerOrProvider(opportunity) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
     return /** @type {any} */(opportunity.superEvent?.organizer);
   }
-  if (isObject(opportunity.facilityUse)) {
-    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
-    return /** @type {any} */(opportunity.facilityUse).provider;
-  }
   if (isObject(opportunity?.facilityUse?.aggregateFacilityUse)) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
     return /** @type {any} */(opportunity.facilityUse.aggregateFacilityUse).provider;
+  }
+  if (isObject(opportunity.facilityUse)) {
+    // TS doesn't allow accessing unknown fields of an `object` type - not sure why
+    return /** @type {any} */(opportunity.facilityUse).provider;
   }
   if (isObject(opportunity.organizer)) {
     // TS doesn't allow accessing unknown fields of an `object` type - not sure why
