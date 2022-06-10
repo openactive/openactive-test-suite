@@ -3,7 +3,7 @@ name: Update Data Model Dependencies
 on:
   workflow_dispatch:
   repository_dispatch:
-    types: [data-models-update]
+    types: [data-models-update, data-model-validator-update]
 
 jobs:
   generate:
@@ -22,11 +22,11 @@ jobs:
           node-version: 14.x
         
       - name: Update openactive-integration-tests with latest data-models
-        run: npm install @openactive/data-models@latest --save
+        run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-integration-tests/
 
       - name: Update openactive-broker-microservice with latest data-models
-        run: npm install @openactive/data-models@latest --save
+        run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-broker-microservice/
 
       - name: Create Pull Request
@@ -35,7 +35,7 @@ jobs:
         with:
           token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
           path: ./openactive-test-suite/
-          commit-message: Update data model dependencies
+          commit-message: Update data model and data model validator dependencies
           committer: openactive-bot <openactive-bot@users.noreply.github.com>
           author: openactive-bot <openactive-bot@users.noreply.github.com>
           signoff: false
@@ -43,7 +43,7 @@ jobs:
           delete-branch: true
           title: 'Update data models'
           body: |
-            Update the OpenActive Test Suite to the latest version of the [OpenActive Vocabulary](https://openactive.io/ns/) (codified by the [Data Models](https://github.com/openactive/data-models)).
+            Update the OpenActive Test Suite to the latest version of the [OpenActive Vocabulary](https://openactive.io/ns/) (codified by the [Data Models](https://github.com/openactive/data-models)), and the [Data Model Validator](https://github.com/openactive/data-model-validator).
           labels: |
             automated pr
           team-reviewers: |
