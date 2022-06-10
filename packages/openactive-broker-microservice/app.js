@@ -244,7 +244,7 @@ async function harvestRPDE({
       }
 
       context.currentPage = url;
-      if ((json.next === url && json.items.length === 0) || context.pages > 1) {
+      if (json.next === url && json.items.length === 0) {
         if (!isInitialHarvestComplete) {
           if (context.progressbar) {
             context.progressbar.update(context.validatedItems, {
