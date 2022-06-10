@@ -1537,7 +1537,6 @@ Validation errors found in Dataset Site JSON-LD:
 
   dataset.distribution.forEach((dataDownload) => {
     const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
-    if (feedContextIdentifier !== 'FacilityUseSlot') return; 
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedContextIdentifier);
