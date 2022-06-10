@@ -244,7 +244,7 @@ async function harvestRPDE({
       }
 
       context.currentPage = url;
-      if (json.next === url && json.items.length === 0) {
+      if ((json.next === url && json.items.length === 0) || context.pages > 1) {
         if (!isInitialHarvestComplete) {
           if (context.progressbar) {
             context.progressbar.update(context.validatedItems, {
@@ -1537,6 +1537,7 @@ Validation errors found in Dataset Site JSON-LD:
 
   dataset.distribution.forEach((dataDownload) => {
     const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
+    if (feedContextIdentifier !== 'FacilityUseSlot') return; 
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedContextIdentifier);
