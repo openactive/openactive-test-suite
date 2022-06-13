@@ -1133,6 +1133,7 @@ function invertFacilityUseItems(items) {
         id: individualFacilityUse['@id'],
         data: {
           ...individualFacilityUse,
+          '@context': facilityUseItem.data['@context'],
           aggregateFacilityUse: omit(facilityUseItem.data, ['individualFacilityUse', '@context']),
         },
       });
@@ -1217,8 +1218,8 @@ function sortWithOpenActiveOnTop(arr) {
   return firstList.concat(remainingList.sort());
 }
 
-function getMergedJsonLdContext(...contexts) {
-  return sortWithOpenActiveOnTop([...new Set(contexts.map((x) => x && x['@context']).filter((x) => x).flat())]);
+function getMergedJsonLdContext(...opportunities) {
+  return sortWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
 }
 
 async function processRow(row) {
