@@ -32,7 +32,7 @@ async function run() {
       validationMode,
       rpdeKind,
     });
-    
+
     const newErrors = execPipe(allOaValidationErrors,
       filter((oaValidationError) => (
         oaValidationError.severity === 'failure'
