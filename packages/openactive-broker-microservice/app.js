@@ -1024,7 +1024,7 @@ app.post('/assert-unmatched-criteria', function (req, res) {
       log(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
     }
     res.status(404).json({
-      error: `Assertion not available: opportunities exist that match '${criteriaName}' for Opportunity Type '${opportunityType}'.`,
+      error: `Opportunities exist in the feeds that match '${criteriaName}' for Opportunity Type '${opportunityType}'. The current configuration of the test suite asserts that such opportunities should not exist. One of the \`implementedFeatures\` in the test suite configuration is likely set to \`false\` when it should be set to \`true\`.`,
     });
   }
 });
