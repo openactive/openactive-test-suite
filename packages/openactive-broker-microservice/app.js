@@ -350,7 +350,7 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
       : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
     const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
     return {
-      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors.size !== 0 ? ' The number represents the number of items that do not match.' : ''}`,
+      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors?.size > 0 ? ' The number represents the number of items that do not match.' : ''}`,
       availableSellers,
       criteriaErrors: typeBucket.criteriaErrors ? criteriaErrors : undefined,
     };
