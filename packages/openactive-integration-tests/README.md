@@ -220,6 +220,8 @@ To read the markdown files that are written to the directory specified by `outpu
 - CONTENT -> "autoreload" on
 - ADVANCED OPTIONS -> ALLOW ACCESS TO FILE:// URLS (links to setting in Chrome Extensions settings of the same name)
 
+Use Ctrl+F within the browser and search for "❌️" to jump to the first error on the page, both within the summary.md file, and within the individual test results linked from the summary.
+
 ## Development
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for info on how the flow validations are written.
