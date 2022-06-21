@@ -584,7 +584,7 @@ function getConfig() {
     // Allow a consistent startDate to be used when calling test-interface-criteria
     harvestStartTime: HARVEST_START_TIME,
     // Base URL used by the integration tests
-    bookingApiBaseUrl: state.datasetSiteJson.accessService?.endpointURL,
+    bookingApiBaseUrl: state.datasetSiteJson.accessService?.endpointUrl,
     // Base URL used by the authentication tests
     authenticationAuthority: state.datasetSiteJson.accessService?.authenticationAuthority,
     ...state.globalAuthKeyManager.config,
@@ -1578,16 +1578,16 @@ Validation errors found in Dataset Site JSON-LD:
   const bookingPartnerIdentifiers = ['primary', 'secondary'];
 
   // Only poll orders feed if included in the dataset site
-  if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointURL) {
+  if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointUrl) {
     for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of bookingPartnerIdentifiers.flatMap((bookingPartnerIdentifier) => [
       {
-        feedUrl: `${dataset.accessService.endpointURL}/orders-rpde`,
+        feedUrl: `${dataset.accessService.endpointUrl}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
         feedContextIdentifier: orderFeedContextIdentifier(ORDERS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,
       },
       {
-        feedUrl: `${dataset.accessService.endpointURL}/order-proposals-rpde`,
+        feedUrl: `${dataset.accessService.endpointUrl}/order-proposals-rpde`,
         type: /** @type {OrderFeedType} */('order-proposals'),
         feedContextIdentifier: orderFeedContextIdentifier(ORDER_PROPOSALS_FEED_IDENTIFIER, bookingPartnerIdentifier),
         bookingPartnerIdentifier,

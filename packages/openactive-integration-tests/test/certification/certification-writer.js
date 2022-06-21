@@ -26,7 +26,7 @@ class CertificationWriter {
         datasetJson.url,
         datasetJson['@id'] || datasetJson.id,
         datasetJson.publisher && datasetJson.publisher.logo && datasetJson.publisher.logo.url,
-        datasetJson.accessService && datasetJson.accessService.endpointURL,
+        datasetJson.accessService && datasetJson.accessService.endpointUrl,
       ]
         .concat(Array.isArray(datasetJson.distribution) && datasetJson.distribution.flatMap(x => x.contentUrl))
         .filter(x => typeof x === 'string' && x !== '');
