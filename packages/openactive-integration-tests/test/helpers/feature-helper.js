@@ -308,15 +308,15 @@ class FeatureHelper {
     * }} configuration
     */
   static describeFeatureShouldBeImplementedIfFlowIsImplemented(documentationModule, configuration) {
-    const flowSummary = configuration.flowsThatImplyThisFeature.map(f => `'${f}'`).join(' and ');
+    const flowSummary = configuration.flowsThatImplyThisFeature.map(f => `\`${f}\``).join(' and ');
     this.describeFeature(documentationModule, {
-      testDescription: `This feature must be implemented if flows: ${flowSummary} are implemented`,
+      testDescription: `This feature '${configuration.testFeature}' must be implemented if ${flowSummary} is implemented`,
       skipMultiple: true,
       doesNotUseOpportunitiesMode: true,
       ...configuration,
     }, () => {
       describe('Feature', () => {
-        it(`must be implemented if flows: ${flowSummary} are implemented`, () => {
+        it(`'${configuration.testFeature}' must be implemented if ${flowSummary} is set to \`true\` in the test suite configuration.`, () => {
           expect(BOOKING_FLOWS_IN_SCOPE).to.not.include(
             Object.fromEntries(configuration.flowsThatImplyThisFeature.map(f => [f, true])),
           );

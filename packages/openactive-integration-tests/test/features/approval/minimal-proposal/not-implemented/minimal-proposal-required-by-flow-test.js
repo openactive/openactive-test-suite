@@ -5,7 +5,7 @@ FeatureHelper.describeFeatureShouldBeImplementedIfFlowIsImplemented(module, {
   testFeature: 'minimal-proposal',
   testFeatureImplemented: false,
   testIdentifier: 'minimal-proposal-required-by-flow',
-  testName: 'Feature must be implemented if a specific flow is implemented',
+  testName: "'minimal-proposal' feature and 'OpenBookingApprovalFlow' flow are either both `true` or both `false`",
   flowsThatImplyThisFeature: [
     'OpenBookingApprovalFlow',
   ],
