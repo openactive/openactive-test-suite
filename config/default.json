@@ -3,6 +3,7 @@
   "consoleOutputLevel": "dot",
   "broker": {
     "outputPath": "./output/",
+    "snapshotPath": "./feed_snapshots/",
     "datasetSiteUrl": "https://reference-implementation.openactive.io/openactive",
     "requestLogging": false,
     "waitForHarvestCompletion": true,

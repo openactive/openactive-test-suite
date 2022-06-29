@@ -15,6 +15,7 @@ const REQUEST_LOGGING_ENABLED = config.get('broker.requestLogging');
 const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarvestCompletion');
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
+const SNAPSHOT_PATH = config.get('broker.snapshotPath');
 const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
 // TODO: move this property to the root of the config
 const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
@@ -76,6 +77,7 @@ module.exports = {
   WAIT_FOR_HARVEST,
   VERBOSE,
   OUTPUT_PATH,
+  SNAPSHOT_PATH,
   IS_RUNNING_IN_CI,
   USE_RANDOM_OPPORTUNITIES,
   HARVEST_START_TIME,

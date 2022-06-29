@@ -4,7 +4,7 @@
   "ci": true,
   "consoleOutputLevel": "detail",
   "broker": {
-    "datasetSiteUrl": "https://localhost:5001/openactive"
+    "datasetSiteUrl": "https://jubileehall-openactive.legendonlineservices.co.uk/OpenActive"
   },
   "integrationTests": {
     "generateConformanceCertificate": true

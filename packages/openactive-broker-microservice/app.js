@@ -12,7 +12,7 @@ const { Base64 } = require('js-base64');
 const sleep = require('util').promisify(setTimeout);
 const { setupBrowserAutomationRoutes, FatalError } = require('@openactive/openactive-openid-test-client');
 const Handlebars = require('handlebars');
-const fs = require('fs').promises;
+const fs = require('fs-extra');
 const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
@@ -20,6 +20,7 @@ const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
 const { isNil, partial, omit, partition } = require('lodash');
+const objectHash = require('object-hash');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -45,6 +46,7 @@ const {
   WAIT_FOR_HARVEST,
   VERBOSE,
   OUTPUT_PATH,
+  SNAPSHOT_PATH,
   IS_RUNNING_IN_CI,
   USE_RANDOM_OPPORTUNITIES,
   HARVEST_START_TIME,
@@ -72,6 +74,7 @@ const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 const { renderSampleOpportunities } = require('./src/sample-opportunities');
+const { Hash } = require('crypto');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -79,6 +82,9 @@ const { renderSampleOpportunities } = require('./src/sample-opportunities');
  * @typedef {import('./src/models/core').FeedContext} FeedContext
  */
 
+const feedSnapshot = true;
+const DATASET_SNAPSHOT_PATH_PREVIOUS = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/previous/`;
+const DATASET_SNAPSHOT_PATH_LATEST = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/latest/`;
 const markdown = new Remarkable();
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
@@ -182,6 +188,14 @@ async function harvestRPDE({
     if (processEndOfFeed) {
       processEndOfFeed(feedContextIdentifier);
     }
+    if (feedSnapshot) {
+      // TODO this doesn't quite work the first time, still copies files for some reason
+      if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
+        await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`)
+      }
+      
+      await fs.writeFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, JSON.stringify(feedMap, null, 2));
+    }
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
   };
 
@@ -209,6 +223,7 @@ async function harvestRPDE({
   // One instance of FeedPageChecker per feed, as it maintains state relating to the feed
   const feedChecker = new FeedPageChecker();
 
+  const feedMap = {};
   // Harvest forever, until a 404 is encountered
   for (;;) {
     // If harvesting is paused, block using the mutex
@@ -225,6 +240,18 @@ async function harvestRPDE({
       const responseTime = timerEnd - timerStart;
 
       const json = response.data;
+
+      try {
+        if (feedSnapshot) {
+          feedMap[url] = feedMap[url] ?? json.items.map(item => ({
+            ...item,
+            ...(item.data ? {data: objectHash(item.data)} : {}),
+          }))
+        }
+      } catch (e) {
+        throw e;
+      }
+      
 
       // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
       const rpdeValidationErrors = feedChecker.validateRpdePage({
@@ -1429,6 +1456,8 @@ async function startPolling() {
     mkdirp(VALIDATOR_TMP_DIR),
     setUpValidatorInputs(),
     mkdirp(OUTPUT_PATH),
+    mkdirp(DATASET_SNAPSHOT_PATH_PREVIOUS),
+    mkdirp(DATASET_SNAPSHOT_PATH_LATEST),
   ]);
 
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
@@ -1462,7 +1491,8 @@ Dataset Site URL in validator.openactive.io to confirm that the content of
     .filter((result) => result.severity === 'failure')
     .map((error) => `${error.path}: ${error.message.split('\n')[0]}`);
 
-  if (datasetSiteErrors.length > 0) {
+    const suppressDatasetValidation = true;
+  if (!suppressDatasetValidation && datasetSiteErrors.length > 0) {
     logError(`
 Error: Dataset Site JSON-LD contained validation errors. Please try loading the
 Dataset Site URL in validator.openactive.io to confirm that the content of

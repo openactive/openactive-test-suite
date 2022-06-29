@@ -1,0 +1,16 @@
+{
+  "name": "openactive-feed-snapshot-validator",
+  "version": "1.0.0",
+  "description": "OpenActive Feed Snapshot Validator",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "start-broker": "cd packages/openactive-broker-microservice && npm start"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^10.1.0"
+  }
+}

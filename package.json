@@ -41,7 +41,8 @@
   "dependencies": {
     "config": "^3.3.6",
     "inquirer": "^8.0.0",
-    "node-cleanup": "^2.1.2"
+    "node-cleanup": "^2.1.2",
+    "object-hash": "^3.0.0"
   },
   "engines": {
     "node": "14.16.0"
