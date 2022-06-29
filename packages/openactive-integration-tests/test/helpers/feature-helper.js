@@ -300,6 +300,32 @@ class FeatureHelper {
   }
 
   /**
+   * Use this for a `not-implemented` test for a feature that should be implemented if a specific flow is implemented.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+    *   flowsThatImplyThisFeature: string[];
+    * }} configuration
+    */
+  static describeFeatureShouldBeImplementedIfFlowIsImplemented(documentationModule, configuration) {
+    const flowSummary = configuration.flowsThatImplyThisFeature.map(f => `\`${f}\``).join(' and ');
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature '${configuration.testFeature}' must be implemented if ${flowSummary} is implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`'${configuration.testFeature}' must be implemented if ${flowSummary} is set to \`true\` in the test suite configuration.`, () => {
+          expect(BOOKING_FLOWS_IN_SCOPE).to.not.include(
+            Object.fromEntries(configuration.flowsThatImplyThisFeature.map(f => [f, true])),
+          );
+        });
+      });
+    });
+  }
+
+  /**
    * @param {NodeModule} documentationModule
    * @param {DescribeFeatureConfiguration & {
    *   unmatchedOpportunityCriteria: string[],

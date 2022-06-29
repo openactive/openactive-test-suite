@@ -43,3 +43,20 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 | [seller-reject-proposal](./implemented/seller-reject-proposal-test.js) | OrderProposal rejected by the Seller | An OrderProposal that is rejected by the Seller, and the call to B subsequently fails | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
+
+## 'Not Implemented' tests
+
+
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Not Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "minimal-proposal": false,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [minimal-proposal-required-by-flow](./not-implemented/minimal-proposal-required-by-flow-test.js) | 'minimal-proposal' feature and 'OpenBookingApprovalFlow' flow are either both `true` or both `false` | This feature 'minimal-proposal' must be implemented if `OpenBookingApprovalFlow` is implemented |  |

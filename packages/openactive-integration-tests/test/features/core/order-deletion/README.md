@@ -43,3 +43,10 @@ This feature is **required** by the Open Booking API specification, and so must 
 | [unknown-order](./implemented/unknown-order-test.js) | Expect a UnknownOrderError for an Order that does not exist | Runs Order Deletion for a non-existent Order (with a fictional UUID), expecting an UnknownOrderError error to be returned |  |
 
 
+
+## 'Not Implemented' tests
+
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [feature-required-noop](./not-implemented/feature-required-noop-test.js) | Feature required | This feature is required by the specification and must be implemented. |  |

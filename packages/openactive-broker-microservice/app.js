@@ -246,14 +246,14 @@ async function harvestRPDE({
       context.currentPage = url;
       if (json.next === url && json.items.length === 0) {
         if (!isInitialHarvestComplete) {
-          if (context.progressbar) {
-            context.progressbar.update(context.validatedItems, {
+          if (context._progressbar) {
+            context._progressbar.update(context.validatedItems, {
               pages: context.pages,
               responseTime: Math.round(responseTime),
               ...progressFromContext(context),
               status: context.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
             });
-            context.progressbar.setTotal(context.totalItemsQueuedForValidation);
+            context._progressbar.setTotal(context.totalItemsQueuedForValidation);
           }
           isInitialHarvestComplete = true;
         }
@@ -280,13 +280,13 @@ async function harvestRPDE({
           );
         }
         await processPage(json, feedContextIdentifier, sendItemsToValidatorWorkerPoolForThisFeed);
-        if (!isInitialHarvestComplete && context.progressbar) {
-          context.progressbar.update(context.validatedItems, {
+        if (!isInitialHarvestComplete && context._progressbar) {
+          context._progressbar.update(context.validatedItems, {
             pages: context.pages,
             responseTime: Math.round(responseTime),
             ...progressFromContext(context),
           });
-          context.progressbar.setTotal(context.totalItemsQueuedForValidation);
+          context._progressbar.setTotal(context.totalItemsQueuedForValidation);
         }
         url = json.next;
       }
@@ -309,7 +309,7 @@ async function harvestRPDE({
       } else if (error.response?.status === 404) {
         // If 404, simply stop polling feed
         if (WAIT_FOR_HARVEST || VALIDATE_ONLY) { await onFeedEnd(); }
-        state.multibar.remove(context.progressbar);
+        state.multibar.remove(context._progressbar);
         state.feedContextMap.delete(feedContextIdentifier);
         if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedContextIdentifier} page "${url}", feed will be ignored.`);
         return;
@@ -618,7 +618,8 @@ function mapToObjectSummary(map) {
       return undefined;
     }
     return obj;
-  } if (map instanceof Set) {
+  }
+  if (map instanceof Set) {
     // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
     // instead of outputting the whole set contents. This reduces the size of the output for display.
     return map.size;
@@ -639,6 +640,11 @@ function mapToObjectSummary(map) {
       };
     }
     return undefined;
+  }
+  // @ts-ignore
+  if (map instanceof Object) {
+    // Hide any properties that start with the character '_' in objects, as these are not intended for display
+    return Object.fromEntries(Object.entries(map).filter(([k]) => k.charAt(0) !== '_'));
   }
   return map;
 }
@@ -1722,10 +1728,10 @@ function createFeedContext(bar, feedContextIdentifier, baseUrl) {
     responseTimes: [],
     totalItemsQueuedForValidation: 0,
     validatedItems: 0,
-    progressbar: null,
+    _progressbar: null,
   };
   if (bar) {
-    context.progressbar = bar.create(0, 0, {
+    context._progressbar = bar.create(0, 0, {
       feedIdentifier: feedContextIdentifier,
       pages: 0,
       responseTime: '-',
@@ -1754,16 +1760,16 @@ function progressFromContext(c) {
  */
 function onValidateItems(context, numItems) {
   context.validatedItems += numItems;
-  if (context.progressbar) {
-    context.progressbar.setTotal(context.totalItemsQueuedForValidation);
+  if (context._progressbar) {
+    context._progressbar.setTotal(context.totalItemsQueuedForValidation);
     if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
-      context.progressbar.update(context.validatedItems, {
+      context._progressbar.update(context.validatedItems, {
         ...progressFromContext(context),
         status: 'Validation Complete',
       });
-      context.progressbar.stop();
+      context._progressbar.stop();
     } else {
-      context.progressbar.update(context.validatedItems, progressFromContext(context));
+      context._progressbar.update(context.validatedItems, progressFromContext(context));
     }
   }
 }
