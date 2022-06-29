@@ -4,7 +4,7 @@ FeatureHelper.describeFeatureShouldBeImplementedIfFlowIsImplemented(module, {
   testCategory: 'approval',
   testFeature: 'minimal-proposal',
   testFeatureImplemented: false,
-  testIdentifier: 'feature-required-noop',
+  testIdentifier: 'minimal-proposal-required-by-flow',
   testName: 'Feature must be implemented if a specific flow is implemented',
   flowsThatImplyThisFeature: [
     'OpenBookingApprovalFlow',

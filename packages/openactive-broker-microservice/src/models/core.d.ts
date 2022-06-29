@@ -14,5 +14,5 @@ export type FeedContext = {
   sleepMode?: boolean;
   timeToHarvestCompletion?: string;
 
-  progressbar?: SingleBar;
+  _progressbar?: SingleBar; // Underscore prefix hides this value from /status page
 };
