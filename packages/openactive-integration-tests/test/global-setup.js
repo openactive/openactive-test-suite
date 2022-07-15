@@ -28,7 +28,7 @@ async function getEndpointUrl() {
   const response = await axios.get(`${MICROSERVICE_BASE}/config`);
 
   if (!(response && response.data && response.data.bookingApiBaseUrl)) {
-    throw new Error('Dataset Site JSON-LD does not contain an accessService.endpointURL');
+    throw new Error('Dataset Site JSON-LD does not contain an accessService.endpointUrl');
   }
 
   return response.data.bookingApiBaseUrl;
