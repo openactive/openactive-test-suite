@@ -75,6 +75,7 @@ async function createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, i
       item: item.data,
       validationMode: ITEM_VALIDATION_MODE,
       feedContextIdentifier,
+      rpdeKind: item.kind,
     })),
     /* Items are split into chunks so e.g. a page with 500 items will, with chunk length 100, be split into 5 files
     with 100 items each.

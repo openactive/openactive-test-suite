@@ -22,7 +22,7 @@ async function run() {
   const numItemsPerFeed = {};
   /** @type {ValidatorWorkerResponse['errors']} */
   const errors = [];
-  for (const { feedContextIdentifier, validationMode, item } of requestParsed) {
+  for (const { feedContextIdentifier, validationMode, item, rpdeKind } of requestParsed) {
     numItemsPerFeed[feedContextIdentifier] = (numItemsPerFeed[feedContextIdentifier] ?? 0) + 1;
 
     const allOaValidationErrors = await validate(item, {
@@ -30,7 +30,9 @@ async function run() {
       remoteJsonCachePath: VALIDATOR_TMP_DIR,
       remoteJsonCacheTimeToLive: 3600,
       validationMode,
+      rpdeKind,
     });
+
     const newErrors = execPipe(allOaValidationErrors,
       filter((oaValidationError) => (
         oaValidationError.severity === 'failure'

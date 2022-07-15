@@ -12,6 +12,7 @@ export type ValidatorWorkerRequestParsedItem = {
   validationMode: string;
   item: unknown;
   feedContextIdentifier: string;
+  rpdeKind: string;
 };
 
 export type ValidatorWorkerRequestParsed = ValidatorWorkerRequestParsedItem[];
