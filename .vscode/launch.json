@@ -147,6 +147,12 @@
             "env": {
                 "NODE_APP_INSTANCE": "dev"
             },
+        },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Launch Feed Snapshot Validator",
+          "program": "${workspaceFolder}/packages/openactive-feed-snapshot-validator/app.js"
         }
     ]
 }
