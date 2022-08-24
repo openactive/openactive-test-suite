@@ -186,17 +186,20 @@ async function harvestRPDE({
   // TODO TODO document exact structure of saved files. Also maybe use same type as is used to validate them?
   // TODO TODO find a way to make the snapshot stuff as unintrusive as possible so less merge conflict issues in future
   // TODO TODO document this variable
-  const feedMap = {};
+  /**
+   * @type {{ url: string, items: unknown[] }[]}
+   */
+  const feedSnapshotData = [];
   const onFeedEnd = async () => {
     if (processEndOfFeed) {
       processEndOfFeed(feedContextIdentifier);
     }
     if (feedSnapshot) {
-      // TODO this doesn't quite work the first time, still copies files for some reason
-      if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
-        await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`);
-      }
-      await fs.writeFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, JSON.stringify(feedMap, null, 2));
+      // // TODO this doesn't quite work the first time, still copies files for some reason
+      // if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
+      //   await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`);
+      // }
+      await fs.writeFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, JSON.stringify(feedSnapshotData, null, 2));
     }
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
   };
@@ -242,13 +245,24 @@ async function harvestRPDE({
 
       const json = response.data;
 
-      if (feedSnapshot) {
-        feedMap[url] = feedMap[url] ?? json.items.map((item) => ({
+      // Don't bother adding this page to the snapshot data if it's just a repeat of the last page
+      if (feedSnapshot && url !== feedSnapshotData.slice(-1)[0]?.url) {
+        const feedSnapshotItems = json.items.map((item) => ({
           ...item,
           ...(item.data ? {
             data: objectHash(item.data),
           } : {}),
         }));
+        feedSnapshotData.push({
+          url,
+          items: feedSnapshotItems,
+        });
+        // feedSnapshotData[url] = feedSnapshotData[url] ?? json.items.map((item) => ({
+        //   ...item,
+        //   ...(item.data ? {
+        //     data: objectHash(item.data),
+        //   } : {}),
+        // }));
       }
 
       // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
@@ -1454,8 +1468,17 @@ async function startPolling() {
     mkdirp(VALIDATOR_TMP_DIR),
     setUpValidatorInputs(),
     mkdirp(OUTPUT_PATH),
-    mkdirp(DATASET_SNAPSHOT_PATH_PREVIOUS),
-    mkdirp(DATASET_SNAPSHOT_PATH_LATEST),
+    (async () => {
+      // If there's a "latest" directory of snapshots, copy it into the "previous" directory
+      if (await fs.pathExists(DATASET_SNAPSHOT_PATH_LATEST)) {
+        await fs.copy(DATASET_SNAPSHOT_PATH_LATEST, DATASET_SNAPSHOT_PATH_PREVIOUS);
+      } else {
+        await Promise.all([
+          mkdirp(DATASET_SNAPSHOT_PATH_PREVIOUS),
+          mkdirp(DATASET_SNAPSHOT_PATH_LATEST),
+        ]);
+      }
+    })(),
   ]);
 
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set

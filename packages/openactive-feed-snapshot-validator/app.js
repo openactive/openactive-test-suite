@@ -27,17 +27,6 @@ const RpdeItemType = z.object({
 })
 const SingleFeedInstanceType = z.record(z.array(RpdeItemType));
 
-/**
- * @template TKey
- * @template TValue
- * @param {Map<TKey, TValue>} map
- * @param {TKey} key
- * @param {() => TValue} getDefaultValue
- */
-function mapSetDefaultValue(map, getDefaultValue) {
-  
-}
-
 // TODO TODO document this
 /**
  * @type {Map<string, string[]>}
@@ -70,6 +59,7 @@ async function start() {
   // Snapshot comparison assertions
   for (const [pairKeyName, pair] of pairedFeeds) {
     // TODO TODO do we want to be constrained to latest/previous or be more flexible? Either way, commit
+    // - It might be safer to just have timestamps
     const latestFileName = pair.find((path) => path.includes('latest'));
     const previousFileName =  pair.find((path) => path.includes('previous'));
 
@@ -103,10 +93,10 @@ function runSingleFeedInstanceAssertions(unvalidatedFeedInstance) {
  * Later snapshot comparison checks rely on the fact that RPDE order is valid in both snapshots.
  * So here we check that the RPDE order is indeed valid
  *
- * @param {z.infer<typeof SingleFeedInstanceType>} feedInstance
+ * @param {z.infer<typeof SingleFeedInstanceType>} feedSnapshot
  */
-function checkRpdeOrder(feedInstance) {
-  const getItemsIter = () => flat(1, objectValues(feedInstance));
+function checkRpdeOrder(feedSnapshot) {
+  const getItemsIter = () => flat(1, objectValues(feedSnapshot));
   // Get initial comparison values from the 1st item
   const firstItem = first(getItemsIter());
   if (!firstItem) { return; }
@@ -173,6 +163,16 @@ async function checkUnmodifiedItemsAreEqual(latestFileData, previousFileData) {
   // }
 
   return errors;
+}
+
+/**
+ * If an item is modified in any way (state change, data change, modified change), it should be
+ * past the point of the last item in the previous feed.
+ *
+ * @param {z.infer<typeof SingleFeedInstanceType>} latestFeedSnapshot
+ * @param {z.infer<typeof SingleFeedInstanceType>} previousFeedSnapshot
+ */
+function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previousFeedSnapshot) {
 }
 
 start();
