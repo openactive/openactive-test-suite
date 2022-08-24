@@ -38,14 +38,14 @@ Please note the JSON within the dataset site must include the dataset site [Open
     ],
     "documentation": "https://developer.openactive.io/go/open-booking-api",
     "endpointDescription": "https://www.openactive.io/open-booking-api/EditorsDraft/swagger.json",
-    "endpointURL": "https://example.bookingsystem.com/api/openbooking/",
+    "endpointUrl": "https://example.bookingsystem.com/api/openbooking/",
     "landingPage": "https://exampleforms.com/get-me-an-api-access-key",
     "termsOfService": "https://example.bookingsystem.com/terms"
   }
 }
 ```
 
-Note that the `endpointURL` is most important, and must refer to your local Open Booking API [Base URI](https://openactive.io/open-booking-api/EditorsDraft/#dfn-base-uri).
+Note that the `endpointUrl` is most important, and must refer to your local Open Booking API [Base URI](https://openactive.io/open-booking-api/EditorsDraft/#dfn-base-uri).
 
 ### `requestLogging`
 

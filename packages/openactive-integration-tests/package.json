@@ -17,8 +17,8 @@
   "license": "MIT",
   "eslintConfig": {},
   "dependencies": {
-    "@openactive/data-model-validator": "^2.0.52",
-    "@openactive/data-models": "^2.0.272",
+    "@openactive/data-model-validator": "^2.0.65",
+    "@openactive/data-models": "^2.0.294",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "async-mutex": "^0.3.1",
