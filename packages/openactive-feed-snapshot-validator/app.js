@@ -1,8 +1,9 @@
+const { first, flat, objectValues, slice } = require('iter-tools');
 const fs = require('fs-extra');
 const fsp = fs.promises;
 const path = require('path');
 const FEED_SNAPSHOTS_PATH = path.join(__dirname, '..', 'openactive-broker-microservice', 'feed_snapshots');
-const {z} =  require('zod');
+const { z } =  require('zod');
 const _ = require('lodash');
 
 class SnapshotComparisonError extends Error {
@@ -10,7 +11,7 @@ class SnapshotComparisonError extends Error {
    * @param {string} message
    */
   constructor(message) {
-    super();
+    super(message);
     this.details = [{ message }];
   }
 }
@@ -20,37 +21,55 @@ const RpdeItemType = z.object({
   kind: z.string(),
   state: z.enum(['updated','deleted']),
   id: z.string(),
+  // TODO TODO this can also be string
   modified: z.number(),
   data: z.string().optional(),
 })
 const SingleFeedInstanceType = z.record(z.array(RpdeItemType));
 
+/**
+ * @template TKey
+ * @template TValue
+ * @param {Map<TKey, TValue>} map
+ * @param {TKey} key
+ * @param {() => TValue} getDefaultValue
+ */
+function mapSetDefaultValue(map, getDefaultValue) {
+  
+}
+
+// TODO TODO document this
+/**
+ * @type {Map<string, string[]>}
+ */
 const pairedFeeds = new Map();
 async function start() {
   console.log(__dirname);
   // Single feed instance assertions
   for (const dataSource of await fsp.readdir(FEED_SNAPSHOTS_PATH)) {
+    // `latest` or `previous
     for (const feedInstance of await fsp.readdir(`${FEED_SNAPSHOTS_PATH}/${dataSource}`)) {
+      // e.g. `FacilityUse.json`
       for (const feedFileName of await fsp.readdir(`${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}`)) {
         // Run single feed instance assertion
-        const feedData = JSON.parse(await fsp.readFile(`${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}/${feedFileName}`));
+        const filePath = `${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}/${feedFileName}`;
+        const feedData = JSON.parse(await fsp.readFile(filePath));
         runSingleFeedInstanceAssertions(feedData);
-        console.log('VALID')
+        console.log('VALID, single-feed:', filePath);
 
         const pairKeyName = `${dataSource}-${feedFileName}`;
-        if (pairedFeeds.has(pairKeyName)) {
-          const pair = pairedFeeds.get(pairKeyName);
-          pair.push(`${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}/${feedFileName}`);
-          pairedFeeds.set(pairKeyName, pair);
-        } else {
-          pairedFeeds.set(pairKeyName, [`${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}/${feedFileName}`] );
+        if (!pairedFeeds.has(pairKeyName)) {
+          pairedFeeds.set(pairKeyName, []);
         }
+        pairedFeeds.get(pairKeyName).push(filePath);
       }
     }
   }
+  console.log(pairedFeeds);
 
   // Snapshot comparison assertions
-  for (const [pair, pairKeyName] of pairedFeeds) {
+  for (const [pairKeyName, pair] of pairedFeeds) {
+    // TODO TODO do we want to be constrained to latest/previous or be more flexible? Either way, commit
     const latestFileName = pair.find((path) => path.includes('latest'));
     const previousFileName =  pair.find((path) => path.includes('previous'));
 
@@ -66,21 +85,56 @@ async function start() {
   }
 }
 
-function runSingleFeedInstanceAssertions(feedInstance) {
-  try {
-    // Validate
-    SingleFeedInstanceType.parse(feedInstance);
-  } catch (error) {
-    const a = error;
-    console.log(a.issues)
-    }
+/**
+ * @param {unknown} unvalidatedFeedInstance
+ */
+function runSingleFeedInstanceAssertions(unvalidatedFeedInstance) {
+  // try {
+  //   // Validate
+  const feedInstance = SingleFeedInstanceType.parse(unvalidatedFeedInstance);
+  // } catch (error) {
+  //   const a = error;
+  //   console.error('runSingleFeedInstanceAssertions() - ERROR', a.issues);
+  // }
+  checkRpdeOrder(feedInstance);
 }
 
 /**
- * 
+ * Later snapshot comparison checks rely on the fact that RPDE order is valid in both snapshots.
+ * So here we check that the RPDE order is indeed valid
+ *
+ * @param {z.infer<typeof SingleFeedInstanceType>} feedInstance
+ */
+function checkRpdeOrder(feedInstance) {
+  const getItemsIter = () => flat(1, objectValues(feedInstance));
+  // Get initial comparison values from the 1st item
+  const firstItem = first(getItemsIter());
+  if (!firstItem) { return; }
+  let lastId = firstItem.id;
+  let lastModified = firstItem.modified;
+  // Then compare each item to the previous
+  for (const item of slice(1, getItemsIter())) {
+    if (
+      (item.modified < lastModified)
+      || (item.modified === lastModified && item.id <= lastId)
+    ) {
+      // TODO elaborate these error messages lol
+      throw new SnapshotComparisonError(`Item (ID: ${
+        item.id
+      }; Modified: ${
+        item.modified
+      }) is ordered incorrectly compared to the Previous Item (ID: ${
+        lastId
+      }; Modified: ${lastModified})`)
+    }
+    lastId = item.id;
+    lastModified = item.modified;
+  }
+}
+
+/**
  * @param {z.infer<typeof SingleFeedInstanceType>} latestFileData 
  * @param {z.infer<typeof SingleFeedInstanceType>} previousFileData 
- * @returns 
  */
 async function checkUnmodifiedItemsAreEqual(latestFileData, previousFileData) {
   const latestAllItems = _.flatten(Object.values(latestFileData));

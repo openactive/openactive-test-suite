@@ -149,6 +149,8 @@ class ValidatorWorkerPool {
    * @param {string} filePath
    */
   async _validateFileWithWorker(filePath) {
+    // TODO TODO figure out what happened with the previous mechanism for turning off validation?
+    if (process.env.NO_VALIDATE === 'true') { return; }
     const worker = new Worker(workerFileName, {
       workerData: filePath,
     });

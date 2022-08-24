@@ -36,6 +36,7 @@
     "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
     "morgan": "~1.9.0",
+    "object-hash": "^3.0.0",
     "p-memoize": "^3.1.0",
     "ramda": "^0.28.0",
     "remarkable": "^2.0.1",

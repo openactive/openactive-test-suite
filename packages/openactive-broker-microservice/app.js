@@ -74,7 +74,6 @@ const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 const { renderSampleOpportunities } = require('./src/sample-opportunities');
-const { Hash } = require('crypto');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -184,6 +183,10 @@ async function harvestRPDE({
   bar,
   processEndOfFeed,
 }) {
+  // TODO TODO document exact structure of saved files. Also maybe use same type as is used to validate them?
+  // TODO TODO find a way to make the snapshot stuff as unintrusive as possible so less merge conflict issues in future
+  // TODO TODO document this variable
+  const feedMap = {};
   const onFeedEnd = async () => {
     if (processEndOfFeed) {
       processEndOfFeed(feedContextIdentifier);
@@ -191,9 +194,8 @@ async function harvestRPDE({
     if (feedSnapshot) {
       // TODO this doesn't quite work the first time, still copies files for some reason
       if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
-        await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`)
+        await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`);
       }
-      
       await fs.writeFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, JSON.stringify(feedMap, null, 2));
     }
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
@@ -223,7 +225,6 @@ async function harvestRPDE({
   // One instance of FeedPageChecker per feed, as it maintains state relating to the feed
   const feedChecker = new FeedPageChecker();
 
-  const feedMap = {};
   // Harvest forever, until a 404 is encountered
   for (;;) {
     // If harvesting is paused, block using the mutex
@@ -241,17 +242,14 @@ async function harvestRPDE({
 
       const json = response.data;
 
-      try {
-        if (feedSnapshot) {
-          feedMap[url] = feedMap[url] ?? json.items.map(item => ({
-            ...item,
-            ...(item.data ? {data: objectHash(item.data)} : {}),
-          }))
-        }
-      } catch (e) {
-        throw e;
+      if (feedSnapshot) {
+        feedMap[url] = feedMap[url] ?? json.items.map((item) => ({
+          ...item,
+          ...(item.data ? {
+            data: objectHash(item.data),
+          } : {}),
+        }));
       }
-      
 
       // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
       const rpdeValidationErrors = feedChecker.validateRpdePage({
@@ -1491,7 +1489,7 @@ Dataset Site URL in validator.openactive.io to confirm that the content of
     .filter((result) => result.severity === 'failure')
     .map((error) => `${error.path}: ${error.message.split('\n')[0]}`);
 
-    const suppressDatasetValidation = true;
+  const suppressDatasetValidation = true;
   if (!suppressDatasetValidation && datasetSiteErrors.length > 0) {
     logError(`
 Error: Dataset Site JSON-LD contained validation errors. Please try loading the

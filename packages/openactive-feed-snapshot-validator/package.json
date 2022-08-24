@@ -5,13 +5,14 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
-    "start-broker": "cd packages/openactive-broker-microservice && npm start"
+    "start": "node --unhandled-rejections=strict app.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "fs-extra": "^10.1.0",
-    "lodash": "^4.17.21"
+    "iter-tools": "^7.4.0",
+    "lodash": "^4.17.21",
+    "zod": "^3.18.0"
   }
 }
