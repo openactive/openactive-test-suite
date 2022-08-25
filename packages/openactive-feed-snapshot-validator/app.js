@@ -32,7 +32,10 @@ const FeedSnapshotPage = z.object({
   items: z.array(RpdeItem),
 });
 
-const FeedSnapshot = z.array(FeedSnapshotPage);
+const FeedSnapshot = z.object({
+  isoTimestamp: z.string(),
+  pages: z.array(FeedSnapshotPage),
+});
 
 // const RpdeItemType = z.object({
 //   kind: z.string(),
@@ -135,48 +138,48 @@ function checkRpdeOrder(feedSnapshot) {
   }
 }
 
-/**
- * @param {z.infer<typeof SingleFeedInstanceType>} latestFileData 
- * @param {z.infer<typeof SingleFeedInstanceType>} previousFileData 
- */
-async function checkUnmodifiedItemsAreEqual(latestFileData, previousFileData) {
-  const latestAllItems = _.flatten(Object.values(latestFileData));
-  const previousAllItems = _.flatten(Object.values(previousFileData));
-  const errors = [];
+// /**
+//  * @param {z.infer<typeof SingleFeedInstanceType>} latestFileData 
+//  * @param {z.infer<typeof SingleFeedInstanceType>} previousFileData 
+//  */
+// async function checkUnmodifiedItemsAreEqual(latestFileData, previousFileData) {
+//   const latestAllItems = _.flatten(Object.values(latestFileData));
+//   const previousAllItems = _.flatten(Object.values(previousFileData));
+//   const errors = [];
 
-  for (const previousItem of previousAllItems) {
-    const idMatch = latestAllItems.find(latestItem => latestItem.id === previousItem.id);
-    if (_.isNil(idMatch)) {
-      // If an item existed in the previous feed but not in the latest feed, it MUST have had a state = 'deleted' in the
-      // previous feed
-      if (previousItem.state !== 'deleted') {
-        errors.push(new SnapshotComparisonError(`Item with id: ${previousItem.id} was not found in the latest snapshot`));
-        continue;
-      }
-    }
+//   for (const previousItem of previousAllItems) {
+//     const idMatch = latestAllItems.find(latestItem => latestItem.id === previousItem.id);
+//     if (_.isNil(idMatch)) {
+//       // If an item existed in the previous feed but not in the latest feed, it MUST have had a state = 'deleted' in the
+//       // previous feed
+//       if (previousItem.state !== 'deleted') {
+//         errors.push(new SnapshotComparisonError(`Item with id: ${previousItem.id} was not found in the latest snapshot`));
+//         continue;
+//       }
+//     }
 
-    if (previousItem.modified === idMatch.modified) {
-      if (previousItem.state !== idMatch.state) {
-        errors.push(new SnapshotComparisonError(`Item with id: ${previousItem.id} has changed state without the modified (${previousItem.modified}) changing.`));
-        continue;
-      }
-      if (previousItem.data !== idMatch.data) {
-        errors.push(new SnapshotComparisonError(`Item with id ${previousItem.id} has the same id and modified as an item found in the latest snapshot, but they do have the same data`));
-        continue;
-      }
-    }
-  }
+//     if (previousItem.modified === idMatch.modified) {
+//       if (previousItem.state !== idMatch.state) {
+//         errors.push(new SnapshotComparisonError(`Item with id: ${previousItem.id} has changed state without the modified (${previousItem.modified}) changing.`));
+//         continue;
+//       }
+//       if (previousItem.data !== idMatch.data) {
+//         errors.push(new SnapshotComparisonError(`Item with id ${previousItem.id} has the same id and modified as an item found in the latest snapshot, but they do have the same data`));
+//         continue;
+//       }
+//     }
+//   }
 
 
-  // for (const latestItem of latestAllItems) {
-  //   const idMatch = previousAllItems.find(previousItem => previousItem.id === latestItem.id);
-  //   if (_.isNil(idMatch)) {
-  //     if la
-  //   }
-  // }
+//   // for (const latestItem of latestAllItems) {
+//   //   const idMatch = previousAllItems.find(previousItem => previousItem.id === latestItem.id);
+//   //   if (_.isNil(idMatch)) {
+//   //     if la
+//   //   }
+//   // }
 
-  return errors;
-}
+//   return errors;
+// }
 
 // TODO TODO array of errors
 /**
@@ -218,7 +221,7 @@ function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previo
  * @returns {IterableIterator<z.infer<typeof RpdeItem>>}
  */
 function getFeedSnapshotItemsIterator(feedSnapshot) {
-  return flat(1, map(page => page.items, feedSnapshot));
+  return flat(1, map(page => page.items, feedSnapshot.pages));
 }
 
 /**

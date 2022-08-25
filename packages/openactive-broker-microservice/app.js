@@ -81,7 +81,7 @@ const { renderSampleOpportunities } = require('./src/sample-opportunities');
  * @typedef {import('./src/models/core').FeedContext} FeedContext
  */
 
-const feedSnapshot = true;
+const doSaveFeedSnapshot = true;
 const DATASET_SNAPSHOT_PATH_PREVIOUS = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/previous/`;
 const DATASET_SNAPSHOT_PATH_LATEST = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/latest/`;
 const markdown = new Remarkable();
@@ -187,14 +187,23 @@ async function harvestRPDE({
   // TODO TODO find a way to make the snapshot stuff as unintrusive as possible so less merge conflict issues in future
   // TODO TODO document this variable
   /**
-   * @type {{ url: string, items: unknown[] }[]}
+   * @type {{
+   *   isoTimestamp: string,
+   *   pages: {
+   *     url: string,
+   *     items: unknown[],
+   *   }[]
+   * }}
    */
-  const feedSnapshotData = [];
+  const feedSnapshotData = {
+    isoTimestamp: (new Date()).toISOString(),
+    pages: [],
+  };
   const onFeedEnd = async () => {
     if (processEndOfFeed) {
       processEndOfFeed(feedContextIdentifier);
     }
-    if (feedSnapshot) {
+    if (doSaveFeedSnapshot) {
       // // TODO this doesn't quite work the first time, still copies files for some reason
       // if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
       //   await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`);
@@ -246,14 +255,14 @@ async function harvestRPDE({
       const json = response.data;
 
       // Don't bother adding this page to the snapshot data if it's just a repeat of the last page
-      if (feedSnapshot && url !== feedSnapshotData.slice(-1)[0]?.url) {
+      if (doSaveFeedSnapshot && url !== feedSnapshotData.pages.slice(-1)[0]?.url) {
         const feedSnapshotItems = json.items.map((item) => ({
           ...item,
           ...(item.data ? {
             data: objectHash(item.data),
           } : {}),
         }));
-        feedSnapshotData.push({
+        feedSnapshotData.pages.push({
           url,
           items: feedSnapshotItems,
         });
