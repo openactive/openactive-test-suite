@@ -1,4 +1,5 @@
-const { first, flat, objectValues, slice } = require('iter-tools');
+// TODO TODO this package needs TS/ESLint
+const { execPipe, first, flat, map, objectValues, pipe, slice } = require('iter-tools');
 const fs = require('fs-extra');
 const fsp = fs.promises;
 const path = require('path');
@@ -17,15 +18,31 @@ class SnapshotComparisonError extends Error {
 }
 SnapshotComparisonError.prototype.name = 'SnapshotComparisonError';
 
-const RpdeItemType = z.object({
+const RpdeItem = z.object({
   kind: z.string(),
-  state: z.enum(['updated','deleted']),
+  state: z.enum(['updated', 'deleted']),
   id: z.string(),
   // TODO TODO this can also be string
-  modified: z.number(),
+  modified: z.union([z.number(), z.string()]),
   data: z.string().optional(),
-})
-const SingleFeedInstanceType = z.record(z.array(RpdeItemType));
+});
+
+const FeedSnapshotPage = z.object({
+  url: z.string(),
+  items: z.array(RpdeItem),
+});
+
+const FeedSnapshot = z.array(FeedSnapshotPage);
+
+// const RpdeItemType = z.object({
+//   kind: z.string(),
+//   state: z.enum(['updated','deleted']),
+//   id: z.string(),
+//   // TODO TODO this can also be string
+//   modified: z.number(),
+//   data: z.string().optional(),
+// })
+// const SingleFeedInstanceType = z.record(z.array(RpdeItemType));
 
 // TODO TODO document this
 /**
@@ -66,44 +83,43 @@ async function start() {
     const latestFileData = JSON.parse(await fsp.readFile(latestFileName));
     const previousFileData = JSON.parse(await fsp.readFile(previousFileName));
 
-    const errors = await checkUnmodifiedItemsAreEqual(latestFileData, previousFileData);
-    if (errors.length != 0) {
-      console.log(errors);
-    } else {
+    // const errors = await checkUnmodifiedItemsAreEqual(latestFileData, previousFileData);
+    // if (errors.length != 0) {
+    //   console.log(errors);
+    // } else {
       console.log(`WooGoo ${pairKeyName} is valid`)
-    }
+    // }
   }
 }
 
 /**
- * @param {unknown} unvalidatedFeedInstance
+ * @param {unknown} unvalidatedFeedSnapshot
  */
-function runSingleFeedInstanceAssertions(unvalidatedFeedInstance) {
+function runSingleFeedInstanceAssertions(unvalidatedFeedSnapshot) {
   // try {
   //   // Validate
-  const feedInstance = SingleFeedInstanceType.parse(unvalidatedFeedInstance);
+  const feedSnapshot = FeedSnapshot.parse(unvalidatedFeedSnapshot);
   // } catch (error) {
   //   const a = error;
   //   console.error('runSingleFeedInstanceAssertions() - ERROR', a.issues);
   // }
-  checkRpdeOrder(feedInstance);
+  checkRpdeOrder(feedSnapshot);
 }
 
 /**
  * Later snapshot comparison checks rely on the fact that RPDE order is valid in both snapshots.
  * So here we check that the RPDE order is indeed valid
  *
- * @param {z.infer<typeof SingleFeedInstanceType>} feedSnapshot
+ * @param {z.infer<typeof FeedSnapshot>} feedSnapshot
  */
 function checkRpdeOrder(feedSnapshot) {
-  const getItemsIter = () => flat(1, objectValues(feedSnapshot));
   // Get initial comparison values from the 1st item
-  const firstItem = first(getItemsIter());
+  const firstItem = first(getFeedSnapshotItemsIterator(feedSnapshot));
   if (!firstItem) { return; }
   let lastId = firstItem.id;
   let lastModified = firstItem.modified;
   // Then compare each item to the previous
-  for (const item of slice(1, getItemsIter())) {
+  for (const item of slice(1, getFeedSnapshotItemsIterator(feedSnapshot))) {
     if (
       (item.modified < lastModified)
       || (item.modified === lastModified && item.id <= lastId)
@@ -173,6 +189,15 @@ async function checkUnmodifiedItemsAreEqual(latestFileData, previousFileData) {
  * @param {z.infer<typeof SingleFeedInstanceType>} previousFeedSnapshot
  */
 function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previousFeedSnapshot) {
+  // const lastItemInPreviousFeed = 
+}
+
+/**
+ * @param {z.infer<typeof FeedSnapshot>} feedSnapshot
+ * @returns {IterableIterator<z.infer<typeof RpdeItem>>}
+ */
+function getFeedSnapshotItemsIterator(feedSnapshot) {
+  return flat(1, map(page => page.items, feedSnapshot));
 }
 
 start();
