@@ -1,5 +1,5 @@
 // TODO TODO this package needs TS/ESLint
-const { execPipe, first, flat, map, objectValues, pipe, slice } = require('iter-tools');
+const { arrayLast, execPipe, first, flat, takeLast, map, objectValues, pipe, slice, toArray } = require('iter-tools');
 const fs = require('fs-extra');
 const fsp = fs.promises;
 const path = require('path');
@@ -82,7 +82,9 @@ async function start() {
 
     const latestFileData = JSON.parse(await fsp.readFile(latestFileName));
     const previousFileData = JSON.parse(await fsp.readFile(previousFileName));
+    // We don't need to validate these files again as they were validated in the single-feed assertions section
 
+    checkModificationsArePushedToTheEndOfTheFeed(latestFileData, previousFileData);
     // const errors = await checkUnmodifiedItemsAreEqual(latestFileData, previousFileData);
     // if (errors.length != 0) {
     //   console.log(errors);
@@ -116,25 +118,20 @@ function checkRpdeOrder(feedSnapshot) {
   // Get initial comparison values from the 1st item
   const firstItem = first(getFeedSnapshotItemsIterator(feedSnapshot));
   if (!firstItem) { return; }
-  let lastId = firstItem.id;
-  let lastModified = firstItem.modified;
+  let previousItem = firstItem;
   // Then compare each item to the previous
   for (const item of slice(1, getFeedSnapshotItemsIterator(feedSnapshot))) {
-    if (
-      (item.modified < lastModified)
-      || (item.modified === lastModified && item.id <= lastId)
-    ) {
+    if (!isItemAPastItemB(item, previousItem)) {
       // TODO elaborate these error messages lol
       throw new SnapshotComparisonError(`Item (ID: ${
         item.id
       }; Modified: ${
         item.modified
       }) is ordered incorrectly compared to the Previous Item (ID: ${
-        lastId
-      }; Modified: ${lastModified})`)
+        previousItem.id
+      }; Modified: ${previousItem.modified})`)
     }
-    lastId = item.id;
-    lastModified = item.modified;
+    previousItem = item;
   }
 }
 
@@ -181,15 +178,39 @@ async function checkUnmodifiedItemsAreEqual(latestFileData, previousFileData) {
   return errors;
 }
 
+// TODO TODO array of errors
 /**
  * If an item is modified in any way (state change, data change, modified change), it should be
  * past the point of the last item in the previous feed.
  *
- * @param {z.infer<typeof SingleFeedInstanceType>} latestFeedSnapshot
- * @param {z.infer<typeof SingleFeedInstanceType>} previousFeedSnapshot
+ * @param {z.infer<typeof FeedSnapshot>} latestFeedSnapshot
+ * @param {z.infer<typeof FeedSnapshot>} previousFeedSnapshot
  */
 function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previousFeedSnapshot) {
-  // const lastItemInPreviousFeed = 
+  const previousFeedItems = toArray(getFeedSnapshotItemsIterator(previousFeedSnapshot));
+  // There's nothing to check if there's nothing in the previous feed
+  if (previousFeedItems.length === 0) {
+    return;
+  }
+  // /* perf note: Unfortunately we have to consume the whole iterator in order to find this item.
+
+  // This would be much more performant if we did not bother with iterators and just directly got the last
+  // item from the 2nd-to-last page (as the last page is always empty) but that approach is frought
+  // as not all pages are guaranteed to have items and therefore previousFeedSnapshot[-2][-1] will
+  // not work in all cases */
+  const lastItemFromPreviousFeed = arrayLast(previousFeedItems)
+  /* An item can technically appear multiple times within a feed. In which case only the last occurrence
+  of that item is most accurate. This will happen automatically as `new Map(..)` will overwrite if it sees
+  a duplicate key */
+  const previousFeedItemsById = new Map(previousFeedItems.map(item => [item.id, item]));
+  for (const item of getFeedSnapshotItemsIterator(latestFeedSnapshot)) {
+    const previousItem = previousFeedItemsById.get(item.id);
+    // Just doing a deep equality test means that we also check for new items. If it's a new item,
+    // `previousItem` will be `undefined`.
+    if (!_.isEqual(item, previousItem) && !isItemAPastItemB(item, lastItemFromPreviousFeed)) {
+      throw new SnapshotComparisonError(`Item (ID: ${item.id}) has been modified since the previous run but it wasn't moved to the front of the feed, meaning that a feed importer would not have been able to see the change. New item: ${JSON.stringify(item)}; Previous item: ${JSON.stringify(item)}`);
+    }
+  }
 }
 
 /**
@@ -198,6 +219,15 @@ function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previo
  */
 function getFeedSnapshotItemsIterator(feedSnapshot) {
   return flat(1, map(page => page.items, feedSnapshot));
+}
+
+/**
+ * @param {z.infer<typeof RpdeItem>} itemA
+ * @param {z.infer<typeof RpdeItem>} itemB
+ */
+function isItemAPastItemB(itemA, itemB) {
+  return (itemA.modified > itemB.modified)
+    || (itemA.modified === itemB.modified && itemA.id > itemB.id);
 }
 
 start();
