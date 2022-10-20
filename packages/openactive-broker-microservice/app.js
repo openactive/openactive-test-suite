@@ -263,12 +263,6 @@ async function harvestRPDE({
           url,
           items: feedSnapshotItems,
         });
-        // feedSnapshotData[url] = feedSnapshotData[url] ?? json.items.map((item) => ({
-        //   ...item,
-        //   ...(item.data ? {
-        //     data: objectHash(item.data),
-        //   } : {}),
-        // }));
       }
 
       // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
