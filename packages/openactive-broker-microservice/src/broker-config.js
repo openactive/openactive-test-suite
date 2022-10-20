@@ -8,6 +8,14 @@ const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
 
 const VALIDATE_ONLY = process.argv.includes('--validate-only');
+/**
+ * If true, Broker will exit once it has reached the end of all feeds.
+ * This is used as part of Feed Snapshot Validation.
+ *
+ * In this mode, Broker cannot be used to run integration tests, as these require Broker to stay
+ * up.
+ */
+const EXIT_AT_END_OF_FEEDS = process.argv.includes('--exit-at-end-of-feeds');
 const ITEM_VALIDATION_MODE = VALIDATE_ONLY ? 'RPDEFeed' : 'BookableRPDEFeed';
 
 const DATASET_SITE_URL = VALIDATE_ONLY ? process.argv[3] : config.get('broker.datasetSiteUrl');
@@ -71,6 +79,7 @@ module.exports = {
   PORT,
   MICROSERVICE_BASE_URL,
   VALIDATE_ONLY,
+  EXIT_AT_END_OF_FEEDS,
   ITEM_VALIDATION_MODE,
   DATASET_SITE_URL,
   REQUEST_LOGGING_ENABLED,

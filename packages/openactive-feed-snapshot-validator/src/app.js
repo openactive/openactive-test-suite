@@ -1,4 +1,3 @@
-// TODO TODO this package needs TS/ESLint
 const {
   first, flat, map, slice, toArray,
 } = require('iter-tools');
@@ -39,16 +38,6 @@ const FeedSnapshot = z.object({
   isoTimestamp: z.string(),
   pages: z.array(FeedSnapshotPage),
 });
-
-// const RpdeItemType = z.object({
-//   kind: z.string(),
-//   state: z.enum(['updated','deleted']),
-//   id: z.string(),
-//   // TODO TODO this can also be string
-//   modified: z.number(),
-//   data: z.string().optional(),
-// })
-// const SingleFeedInstanceType = z.record(z.array(RpdeItemType));
 
 // TODO TODO document this
 /**

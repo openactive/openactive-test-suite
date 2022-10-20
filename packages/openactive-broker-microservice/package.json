@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "validate-feeds": "node app.js --validate-only",
+    "save-feed-snapshot": "node app.js --exit-at-end-of-feeds",
     "test": "npm run lint && tsc",
     "debug": "node --inspect app.js",
     "lint": "eslint \"*.js\" \"src/**/*.js\"",

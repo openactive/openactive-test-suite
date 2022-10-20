@@ -62,11 +62,12 @@ const {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
+  EXIT_AT_END_OF_FEEDS,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
 const { TwoPhaseListeners } = require('./src/twoPhaseListeners/twoPhaseListeners');
-const { state, getTestDataset, getAllDatasets, addFeed, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./src/state');
+const { state, getTestDataset, getAllDatasets, registerIncompleteFeed, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool, registerCompleteFeed, haveAllIncompleteFeedsCompleted, disregardAllIncompleteFeeds } = require('./src/state');
 const { orderFeedContextIdentifier } = require('./src/util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./src/util/request-utils');
 const { OrderUuidTracking } = require('./src/order-uuid-tracking/order-uuid-tracking');
@@ -311,7 +312,7 @@ async function harvestRPDE({
         context.sleepMode = true;
         if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
         // Slow down sleep polling while waiting for harvesting of other feeds to complete
-        await sleep(WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0 ? 5000 : 500);
+        await sleep(WAIT_FOR_HARVEST && !haveAllIncompleteFeedsCompleted() ? 5000 : 500);
       } else {
         context.responseTimes.push(responseTime);
         // Maintain a buffer of the last 5 items
@@ -497,86 +498,85 @@ function getOpportunityMergedWithParentById(opportunityId) {
  * @param {string} feedIdentifier
  */
 async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier) {
-  if (state.incompleteFeeds.length !== 0) {
-    const index = state.incompleteFeeds.indexOf(feedIdentifier);
-    if (index > -1) {
-      // Remove the feed from the list
-      state.incompleteFeeds.splice(index, 1);
+  if (!registerCompleteFeed(feedIdentifier)) {
+    return;
+  }
+  // If all feeds are now completed, trigger responses to healthcheck
+  if (haveAllIncompleteFeedsCompleted()) {
+    /* Signal for the Validator Worker Pool that we may stop once the validator timeout has run.
+    Validator is an expensive process and is not completely necessary for Booking API testing. So we put a hard
+    limit on how long it runs for (once all items are harvested).
+    This means that, in some cases, only a subset of the results will be validated.
+    Note that the worker pool will finish its current iteration if it has already reached the timeout. */
+    await validatorWorkerPool.stopWhenTimedOut();
+    await cleanUpValidatorInputs();
 
-      // If all feeds are now completed, trigger responses to healthcheck
-      if (state.incompleteFeeds.length === 0) {
-        /* Signal for the Validator Worker Pool that we may stop once the validator timeout has run.
-        Validator is an expensive process and is not completely necessary for Booking API testing. So we put a hard
-        limit on how long it runs for (once all items are harvested).
-        This means that, in some cases, only a subset of the results will be validated.
-        Note that the worker pool will finish its current iteration if it has already reached the timeout. */
-        await validatorWorkerPool.stopWhenTimedOut();
-        await cleanUpValidatorInputs();
+    if (state.multibar) state.multibar.stop();
 
-        if (state.multibar) state.multibar.stop();
+    log('Harvesting is up-to-date');
+    const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
 
-        log('Harvesting is up-to-date');
-        const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
+    let validationPassed = true;
 
-        let validationPassed = true;
-
-        if (totalOpportunities === 0) {
-          logError(`\n${VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES ? 'FATAL ERROR' : 'NOTE'}: Zero opportunities could be harvested from the opportunities feeds.`);
-          logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
-          if (VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES) validationPassed = false;
-        } else if (totalChildren !== 0 && childOrphans === totalChildren) {
-          logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities that reference a parent do not have a matching parent item from the parent feed, so all integration tests will fail.`);
-          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
-          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
-            logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
-          } else {
-            logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
-          }
-          validationPassed = false;
-        } else if (childOrphans > 0) {
-          logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities that reference a parent (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
-          logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-          await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
-          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
-            logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
-          } else {
-            logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
-          }
-          validationPassed = false;
-        }
-
-        if (validatorWorkerPool.getValidationResults().size > 0) {
-          await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml(validatorWorkerPool));
-          const occurrenceCount = [...validatorWorkerPool.getValidationResults().values()].reduce((total, result) => total + result.occurrences, 0);
-          logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validatorWorkerPool.getValidationResults().size} were unique.`);
-          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
-            logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
-          } else {
-            logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
-          }
-          validationPassed = false;
-        }
-
-        if (validationPassed) {
-          if (VALIDATE_ONLY) {
-            log(chalk.bold.green('\nFeed validation passed'));
-            process.exit(0);
-          }
-        } else {
-          log(chalk.bold.red('\nFeed validation failed\n'));
-          if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
-            log(chalk.red('(press ctrl+c to close or wait 60 seconds)\n'));
-            // Pause harvester and sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
-            // User interaction is not required to exit, for compatibility with CI
-            await state.pauseResume.pause();
-            await sleep(60000);
-          }
-          process.exit(1);
-        }
-
-        unlockHealthCheck();
+    if (totalOpportunities === 0) {
+      logError(`\n${VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES ? 'FATAL ERROR' : 'NOTE'}: Zero opportunities could be harvested from the opportunities feeds.`);
+      logError('Please ensure that the opportunities feeds conform to RPDE using https://validator.openactive.io/rpde.\n');
+      if (VALIDATE_ONLY || USE_RANDOM_OPPORTUNITIES) validationPassed = false;
+    } else if (totalChildren !== 0 && childOrphans === totalChildren) {
+      logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities that reference a parent do not have a matching parent item from the parent feed, so all integration tests will fail.`);
+      logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+      await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+      if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+        logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
+      } else {
+        logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
       }
+      validationPassed = false;
+    } else if (childOrphans > 0) {
+      logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities that reference a parent (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
+      logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
+      await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+      if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+        logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
+      } else {
+        logError(`See ${OUTPUT_PATH}orphans.json for more information\n`);
+      }
+      validationPassed = false;
+    }
+
+    if (validatorWorkerPool.getValidationResults().size > 0) {
+      await fs.writeFile(`${OUTPUT_PATH}validation-errors.html`, await renderValidationErrorsHtml(validatorWorkerPool));
+      const occurrenceCount = [...validatorWorkerPool.getValidationResults().values()].reduce((total, result) => total + result.occurrences, 0);
+      logError(`\nFATAL ERROR: Validation errors were found in the opportunity data feeds. ${occurrenceCount} errors were reported of which ${validatorWorkerPool.getValidationResults().size} were unique.`);
+      if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+        logError(`Open ${OUTPUT_PATH}validation-errors.html or http://localhost:${PORT}/validation-errors in your browser for more information\n`);
+      } else {
+        logError(`See ${OUTPUT_PATH}validation-errors.html for more information\n`);
+      }
+      validationPassed = false;
+    }
+
+    if (validationPassed) {
+      if (VALIDATE_ONLY) {
+        log(chalk.bold.green('\nFeed validation passed'));
+        process.exit(0);
+      }
+    } else {
+      log(chalk.bold.red('\nFeed validation failed\n'));
+      if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
+        log(chalk.red('(press ctrl+c to close or wait 60 seconds)\n'));
+        // Pause harvester and sleep for 1 minute to allow the user to access the /orphans page, before throwing the fatal error
+        // User interaction is not required to exit, for compatibility with CI
+        await state.pauseResume.pause();
+        await sleep(60000);
+      }
+      process.exit(1);
+    }
+
+    unlockHealthCheck();
+
+    if (EXIT_AT_END_OF_FEEDS) {
+      process.exit(0);
     }
   }
 }
@@ -585,8 +585,7 @@ function unlockHealthCheck() {
   state.healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
   // Clear response array
   state.healthCheckResponsesWaitingForHarvest.splice(0, state.healthCheckResponsesWaitingForHarvest.length);
-  // Clear state.incompleteFeeds array
-  state.incompleteFeeds.splice(0, state.incompleteFeeds.length);
+  disregardAllIncompleteFeeds();
 }
 
 // Provide helpful homepage as binding for root to allow the service to run in a container
@@ -614,7 +613,7 @@ app.get('/health-check', async function (req, res) {
   const wasPaused = state.pauseResume.resume();
   if (wasPaused) log('Harvesting resumed');
   req.setTimeout(1000 * 60 * 10);
-  if (WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0) {
+  if (WAIT_FOR_HARVEST && !haveAllIncompleteFeedsCompleted()) {
     state.healthCheckResponsesWaitingForHarvest.push(res);
   } else {
     res.send('openactive-broker');
@@ -1606,7 +1605,7 @@ Validation errors found in Dataset Site JSON-LD:
     const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      addFeed(feedContextIdentifier);
+      registerIncompleteFeed(feedContextIdentifier);
       harvesters.push(
         harvestRPDE({
           validatorWorkerPool,
@@ -1620,7 +1619,7 @@ Validation errors found in Dataset Site JSON-LD:
       );
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      addFeed(feedContextIdentifier);
+      registerIncompleteFeed(feedContextIdentifier);
       harvesters.push(
         harvestRPDE({
           validatorWorkerPool,
@@ -1660,7 +1659,7 @@ Validation errors found in Dataset Site JSON-LD:
       },
     ])) {
       log(`Found ${type} feed: ${feedUrl}`);
-      addFeed(feedContextIdentifier);
+      registerIncompleteFeed(feedContextIdentifier);
       harvesters.push(
         harvestRPDE({
           validatorWorkerPool,
@@ -1689,7 +1688,7 @@ Validation errors found in Dataset Site JSON-LD:
 }
 
 // Ensure that dataset site request also delays "readiness"
-addFeed('DatasetSite');
+registerIncompleteFeed('DatasetSite');
 
 const server = http.createServer(app);
 server.on('error', onError);
