@@ -63,7 +63,7 @@ const VALIDATOR_TMP_DIR = './tmp';
 const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input');
 
 const now = DateTime.now();
-const nowInSimpleCondensedFormat = now.toFormat('yyyyMMdd_hhmmss');
+const nowInSimpleCondensedFormat = now.toFormat('yyyyMMdd_HHmmss');
 const DATASET_SNAPSHOT_PATH = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/${nowInSimpleCondensedFormat}/`;
 
 /**

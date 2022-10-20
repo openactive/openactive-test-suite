@@ -1,14 +1,17 @@
+/**
+ * Example usage:
+ *
+ * ```sh
+ * node src/app.js ../openactive-broker-microservice/feed_snapshots/https%3A%2F%2Fpartners-staging.weplayfootball.com%2FOpenActive/20221020_173220 ../openactive-broker-microservice/feed_snapshots/https%3A%2F%2Fpartners-staging.weplayfootball.com%2FOpenActive/20221020_173728
+ * ```
+ */
 const {
   first, flat, map, slice, toArray,
 } = require('iter-tools');
-const fs = require('fs-extra');
+const fs = require('fs/promises');
 const path = require('path');
-const { z } = require('zod');
 const _ = require('lodash');
-const { last } = require('lodash');
-
-const fsp = fs.promises;
-const FEED_SNAPSHOTS_PATH = path.join(__dirname, '..', 'openactive-broker-microservice', 'feed_snapshots');
+const { z } = require('zod');
 
 class SnapshotComparisonError extends Error {
   /**
@@ -39,57 +42,68 @@ const FeedSnapshot = z.object({
   pages: z.array(FeedSnapshotPage),
 });
 
-// TODO TODO document this
-/**
- * @type {Map<string, string[]>}
- */
-const pairedFeeds = new Map();
+// // TODO TODO document this
+// /**
+//  * @type {Map<string, string[]>}
+//  */
+// const pairedFeeds = new Map();
 async function start() {
-  console.log(__dirname);
-  // Single feed instance assertions
-  for (const dataSource of await fsp.readdir(FEED_SNAPSHOTS_PATH)) {
-    // `latest` or `previous
-    for (const feedInstance of await fsp.readdir(`${FEED_SNAPSHOTS_PATH}/${dataSource}`)) {
-      // e.g. `FacilityUse.json`
-      for (const feedFileName of await fsp.readdir(`${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}`)) {
-        // Run single feed instance assertion
-        const filePath = `${FEED_SNAPSHOTS_PATH}/${dataSource}/${feedInstance}/${feedFileName}`;
-        const feedData = JSON.parse(await fsp.readFile(filePath));
-        runSingleFeedInstanceAssertions(feedData);
-        console.log('VALID, single-feed:', filePath);
+  const earlierSnapshotDirectory = process.argv[2];
+  const laterSnapshotDirectory = process.argv[3];
 
-        // TODO find a name for this thing
-        const pairKeyName = `${dataSource}-${feedFileName}`;
-        if (!pairedFeeds.has(pairKeyName)) {
-          pairedFeeds.set(pairKeyName, []);
-        }
-        pairedFeeds.get(pairKeyName).push(filePath);
-      }
+  // 1. What feeds are we comparing?
+  const sharedFeedFileNames = await getSharedFeedFileNames(
+    earlierSnapshotDirectory,
+    laterSnapshotDirectory,
+  );
+
+  // 2. Run single-feed assertions
+  for (const feedFileName of sharedFeedFileNames) {
+    for (const snapshotDirectory of [earlierSnapshotDirectory, laterSnapshotDirectory]) {
+      const feedData = await getFeedFileData(snapshotDirectory, feedFileName);
+      runSingleFeedInstanceAssertions(feedData);
+      console.log(`SINGLE-FEED PASS: ${getFeedFilePath(snapshotDirectory, feedFileName)}`);
     }
   }
-  console.log(pairedFeeds);
 
-  // Snapshot comparison assertions
-  for (const [pairKeyName, filePaths] of pairedFeeds) {
-    // TODO TODO do we want to be constrained to latest/previous or be more flexible?
-    // Either way, commit
-    // - It might be safer to just have timestamps
-    const latestFileName = filePaths.find((p) => p.includes('latest'));
-    const previousFileName = filePaths.find((p) => p.includes('previous'));
-
-    const latestFileData = JSON.parse(await fsp.readFile(latestFileName));
-    const previousFileData = JSON.parse(await fsp.readFile(previousFileName));
+  // 3. Snapshot comparison assertions
+  for (const feedFileName of sharedFeedFileNames) {
+    const earlierFeedData = await getFeedFileData(earlierSnapshotDirectory, feedFileName);
+    const laterFeedData = await getFeedFileData(laterSnapshotDirectory, feedFileName);
     // We don't need to validate these files again as they were validated in the single-feed
     // assertions section
-
-    checkModificationsArePushedToTheEndOfTheFeed(latestFileData, previousFileData);
-    // const errors = await checkUnmodifiedItemsAreEqual(latestFileData, previousFileData);
-    // if (errors.length != 0) {
-    //   console.log(errors);
-    // } else {
-    console.log(`WooGoo ${pairKeyName} is valid`);
-    // }
+    checkModificationsArePushedToTheEndOfTheFeed(laterFeedData, earlierFeedData);
+    console.log(`COMPARISON PASS: ${feedFileName}`);
   }
+}
+
+/**
+ * @param {string} earlierSnapshotDirectory
+ * @param {string} laterSnapshotDirectory
+ * @returns {Promise<string[]>} e.g. ['FacilityUse.json', 'FacilityUseSlot.json'].
+ *   The file names for each of the feed types that are in both snapshot directory A and B.
+ */
+async function getSharedFeedFileNames(earlierSnapshotDirectory, laterSnapshotDirectory) {
+  const feedFileNamesA = await fs.readdir(earlierSnapshotDirectory);
+  const feedFileNamesB = await fs.readdir(laterSnapshotDirectory);
+  return _.intersection(feedFileNamesA, feedFileNamesB);
+}
+
+/**
+ * @param {string} snapshotDirectory
+ * @param {string} feedFileName
+ */
+async function getFeedFileData(snapshotDirectory, feedFileName) {
+  const filePath = getFeedFilePath(snapshotDirectory, feedFileName);
+  return JSON.parse(String(await fs.readFile(filePath)));
+}
+
+/**
+ * @param {string} snapshotDirectory
+ * @param {string} feedFileName
+ */
+function getFeedFilePath(snapshotDirectory, feedFileName) {
+  return path.join(snapshotDirectory, feedFileName);
 }
 
 /**
@@ -147,7 +161,7 @@ function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previo
   if (previousFeedItems.length === 0) {
     return;
   }
-  const lastItemFromPreviousFeed = last(previousFeedItems);
+  const lastItemFromPreviousFeed = _.last(previousFeedItems);
   /* An item can technically appear multiple times within a feed. In which case only the last
   occurrence of that item is most accurate. This will happen automatically as `new Map(..)` will
   overwrite if it sees a duplicate key */
