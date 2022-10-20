@@ -203,11 +203,9 @@ async function harvestRPDE({
       processEndOfFeed(feedContextIdentifier);
     }
     if (DO_SAVE_FEED_SNAPSHOT) {
-      // // TODO this doesn't quite work the first time, still copies files for some reason
-      // if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
-      //   await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`);
-      // }
-      await fs.writeFile(`${DATASET_SNAPSHOT_PATH}${feedContextIdentifier}.json`, JSON.stringify(feedSnapshotData, null, 2));
+      const feedSnapshotPath = `${DATASET_SNAPSHOT_PATH}${feedContextIdentifier}.json`;
+      // TODO some way of logging, at the end, that feed snapshots have been saved when harvesting is up to date
+      await fs.writeFile(feedSnapshotPath, JSON.stringify(feedSnapshotData, null, 2));
     }
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
   };
