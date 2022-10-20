@@ -5,12 +5,12 @@ const path = require('path');
 
 const BASE_SNAPSHOT_PATH = config.get('broker.snapshotPath');
 const DATASET_SITE_URL = config.get('broker.datasetSiteUrl');
-// TODO is URI encoding sufficient here?
+// TODO TODO is URI encoding sufficient for file paths?
 const SNAPSHOT_PATH = path.join(__dirname, '..', '..', 'packages', 'openactive-broker-microservice', BASE_SNAPSHOT_PATH, encodeURIComponent(DATASET_SITE_URL));
 
 run();
 
-// TODO options;
+// TODO command line options to potentially add:
 // * Specified previous timestamp (to compare to a much earlier one)
 // * Clean up old timestamps?
 async function run() {

@@ -1,10 +1,3 @@
-/**
- * Example usage:
- *
- * ```sh
- * node src/app.js ../openactive-broker-microservice/feed_snapshots/https%3A%2F%2Fpartners-staging.weplayfootball.com%2FOpenActive/20221020_173220 ../openactive-broker-microservice/feed_snapshots/https%3A%2F%2Fpartners-staging.weplayfootball.com%2FOpenActive/20221020_173728
- * ```
- */
 const {
   first, flat, map, slice, toArray,
 } = require('iter-tools');
@@ -116,13 +109,7 @@ function getFeedFilePath(snapshotDirectory, feedFileName) {
  * @param {unknown} unvalidatedFeedSnapshot
  */
 function runSingleFeedInstanceAssertions(unvalidatedFeedSnapshot) {
-  // try {
-  //   // Validate
   const feedSnapshot = FeedSnapshot.parse(unvalidatedFeedSnapshot);
-  // } catch (error) {
-  //   const a = error;
-  //   console.error('runSingleFeedInstanceAssertions() - ERROR', a.issues);
-  // }
   checkRpdeOrder(feedSnapshot);
 }
 

@@ -18,7 +18,6 @@
  *
  * Simply removes all feed snapshots.
  */
-// TODO TODO doc this script e.g. in Broker readme?
 const fs = require('fs/promises');
 const path = require('path');
 
