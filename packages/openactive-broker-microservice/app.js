@@ -46,7 +46,6 @@ const {
   WAIT_FOR_HARVEST,
   VERBOSE,
   OUTPUT_PATH,
-  SNAPSHOT_PATH,
   IS_RUNNING_IN_CI,
   USE_RANDOM_OPPORTUNITIES,
   HARVEST_START_TIME,
@@ -63,6 +62,8 @@ const {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
   EXIT_AT_END_OF_FEEDS,
+  DO_SAVE_FEED_SNAPSHOT,
+  DATASET_SNAPSHOT_PATH,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
@@ -82,9 +83,6 @@ const { renderSampleOpportunities } = require('./src/sample-opportunities');
  * @typedef {import('./src/models/core').FeedContext} FeedContext
  */
 
-const doSaveFeedSnapshot = true;
-const DATASET_SNAPSHOT_PATH_PREVIOUS = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/previous/`;
-const DATASET_SNAPSHOT_PATH_LATEST = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/latest/`;
 const markdown = new Remarkable();
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
@@ -204,12 +202,12 @@ async function harvestRPDE({
     if (processEndOfFeed) {
       processEndOfFeed(feedContextIdentifier);
     }
-    if (doSaveFeedSnapshot) {
+    if (DO_SAVE_FEED_SNAPSHOT) {
       // // TODO this doesn't quite work the first time, still copies files for some reason
       // if (await fs.pathExists(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`)) {
       //   await fs.copyFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, `${DATASET_SNAPSHOT_PATH_PREVIOUS}${feedContextIdentifier}.json`);
       // }
-      await fs.writeFile(`${DATASET_SNAPSHOT_PATH_LATEST}${feedContextIdentifier}.json`, JSON.stringify(feedSnapshotData, null, 2));
+      await fs.writeFile(`${DATASET_SNAPSHOT_PATH}${feedContextIdentifier}.json`, JSON.stringify(feedSnapshotData, null, 2));
     }
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
   };
@@ -256,7 +254,7 @@ async function harvestRPDE({
       const json = response.data;
 
       // Don't bother adding this page to the snapshot data if it's just a repeat of the last page
-      if (doSaveFeedSnapshot && url !== feedSnapshotData.pages.slice(-1)[0]?.url) {
+      if (DO_SAVE_FEED_SNAPSHOT && url !== feedSnapshotData.pages.slice(-1)[0]?.url) {
         const feedSnapshotItems = json.items.map((item) => ({
           ...item,
           ...(item.data ? {
@@ -1476,17 +1474,7 @@ async function startPolling() {
     mkdirp(VALIDATOR_TMP_DIR),
     setUpValidatorInputs(),
     mkdirp(OUTPUT_PATH),
-    (async () => {
-      // If there's a "latest" directory of snapshots, copy it into the "previous" directory
-      if (await fs.pathExists(DATASET_SNAPSHOT_PATH_LATEST)) {
-        await fs.copy(DATASET_SNAPSHOT_PATH_LATEST, DATASET_SNAPSHOT_PATH_PREVIOUS);
-      } else {
-        await Promise.all([
-          mkdirp(DATASET_SNAPSHOT_PATH_PREVIOUS),
-          mkdirp(DATASET_SNAPSHOT_PATH_LATEST),
-        ]);
-      }
-    })(),
+    mkdirp(DATASET_SNAPSHOT_PATH),
   ]);
 
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set

@@ -2,6 +2,7 @@
  * Configuration used throughout Broker.
  */
 const config = require('config');
+const { DateTime } = require('luxon');
 const path = require('path');
 
 const PORT = normalizePort(process.env.PORT || '3000');
@@ -16,6 +17,11 @@ const VALIDATE_ONLY = process.argv.includes('--validate-only');
  * up.
  */
 const EXIT_AT_END_OF_FEEDS = process.argv.includes('--exit-at-end-of-feeds');
+/**
+ * If true, Broker will save a snapshot of the initial harvest of the feed.
+ * This enables Feed Snapshot Validation (See: packages/openactive-feed-snapshot-validator)
+ */
+const DO_SAVE_FEED_SNAPSHOT = process.argv.includes('--save-feed-snapshot');
 const ITEM_VALIDATION_MODE = VALIDATE_ONLY ? 'RPDEFeed' : 'BookableRPDEFeed';
 
 const DATASET_SITE_URL = VALIDATE_ONLY ? process.argv[3] : config.get('broker.datasetSiteUrl');
@@ -56,6 +62,10 @@ const VALIDATOR_TMP_DIR = './tmp';
 /** Input files for the Validator Worker Pool are saved in this directory */
 const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input');
 
+const now = DateTime.now();
+const nowInSimpleCondensedFormat = now.toFormat('yyyyMMdd_hhmmss');
+const DATASET_SNAPSHOT_PATH = `${SNAPSHOT_PATH}${encodeURIComponent(DATASET_SITE_URL)}/${nowInSimpleCondensedFormat}/`;
+
 /**
  * Normalize a port into a number, string, or false.
  */
@@ -80,13 +90,14 @@ module.exports = {
   MICROSERVICE_BASE_URL,
   VALIDATE_ONLY,
   EXIT_AT_END_OF_FEEDS,
+  DO_SAVE_FEED_SNAPSHOT,
   ITEM_VALIDATION_MODE,
   DATASET_SITE_URL,
+  DATASET_SNAPSHOT_PATH,
   REQUEST_LOGGING_ENABLED,
   WAIT_FOR_HARVEST,
   VERBOSE,
   OUTPUT_PATH,
-  SNAPSHOT_PATH,
   IS_RUNNING_IN_CI,
   USE_RANDOM_OPPORTUNITIES,
   HARVEST_START_TIME,
