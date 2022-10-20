@@ -5,22 +5,10 @@ const path = require('path');
 
 const BASE_SNAPSHOT_PATH = config.get('broker.snapshotPath');
 const DATASET_SITE_URL = config.get('broker.datasetSiteUrl');
-const SNAPSHOT_PATH = path.join(BASE_SNAPSHOT_PATH, DATASET_SITE_URL);
+// TODO is URI encoding sufficient here?
+const SNAPSHOT_PATH = path.join(__dirname, '..', '..', 'packages', 'openactive-broker-microservice', BASE_SNAPSHOT_PATH, encodeURIComponent(DATASET_SITE_URL));
 
-function saveFeedSnapshotUsingBroker() {
-  return new Promise((resolve) => {
-    const broker = spawn('npm', ['run', 'save-feed-snapshot-only'], {
-      cwd: './packages/openactive-broker-microservice',
-      stdio: 'inherit'
-    });
-    broker.on('exit', (code) => {
-      if (code !== 0) {
-        process.exit(code);
-      }
-      resolve();
-    });
-  });
-}
+run();
 
 // TODO options;
 // * Specified previous timestamp (to compare to a much earlier one)
@@ -34,9 +22,43 @@ async function run() {
     console.log('A 2nd snapshot is needed in order to perform a comparison. Run this command again at a later time in order to compare the snapshot created then with the snapshot created just now');
     process.exit(0);
   }
-  const [previousTimestamp, latestTimestamp] = [...timestamps.sort()].slice(-2);
+  const [earlierTimestamp, laterTimestamp] = [...timestamps.sort()].slice(-2);
   // 3. Run comparison with the latest 2 timestamps
+  await validateFeedSnapshots(earlierTimestamp, laterTimestamp);
 }
 
-run();
+async function saveFeedSnapshotUsingBroker() {
+  const brokerProc = spawn('npm', ['run', 'save-feed-snapshot-only'], {
+    cwd: './packages/openactive-broker-microservice',
+    stdio: 'inherit'
+  });
+  await completeChildProcess(brokerProc);
+}
 
+/**
+ * @param {string} earlierTimestamp
+ * @param {string} laterTimestamp
+ */
+async function validateFeedSnapshots(earlierTimestamp, laterTimestamp) {
+  const earlierSnapshotDirectory = path.join(SNAPSHOT_PATH, earlierTimestamp);
+  const laterSnapshotDirectory = path.join(SNAPSHOT_PATH, laterTimestamp);
+  const snapshotValidatorProc = spawn('npm', ['start', earlierSnapshotDirectory, laterSnapshotDirectory], {
+    cwd: './packages/openactive-feed-snapshot-validator',
+    stdio: 'inherit',
+  });
+  await completeChildProcess(snapshotValidatorProc);
+}
+
+/**
+ * @param {import('child_process').ChildProcess} childProcess
+ */
+function completeChildProcess(childProcess) {
+  return new Promise((resolve) => {
+    childProcess.on('exit', (code) => {
+      if (code !== 0) {
+        process.exit(code);
+      }
+      resolve();
+    });
+  });
+}

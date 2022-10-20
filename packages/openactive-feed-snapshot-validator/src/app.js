@@ -42,12 +42,18 @@ const FeedSnapshot = z.object({
   pages: z.array(FeedSnapshotPage),
 });
 
-// // TODO TODO document this
-// /**
-//  * @type {Map<string, string[]>}
-//  */
-// const pairedFeeds = new Map();
 async function start() {
+  if (process.argv.length < 4) {
+    console.log('Expected usage:');
+    console.log();
+    console.log('  node src/app.js <EARLIER SNAPSHOT DIRECTORY> <LATER SNAPSHOT DIRECTORY>');
+    console.log();
+    console.log('e.g.');
+    console.log();
+    console.log('  node src/app.js ../openactive-broker-microservice/feed_snapshots/https%3A%2F%2Freference-implementation.openactive.io%2Fopenactive/20221019_122804 ../openactive-broker-microservice/feed_snapshots/https%3A%2F%2Freference-implementation.openactive.io%2Fopenactive/20221020_173728');
+    process.exit(1);
+  }
+
   const earlierSnapshotDirectory = process.argv[2];
   const laterSnapshotDirectory = process.argv[3];
 
