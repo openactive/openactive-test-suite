@@ -106,7 +106,7 @@ class FlowStage {
    * @param {string} args.testName Labels the jest `describe(..)` block
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
-   * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itValidationTestsFn
+   * @param {(flowStage: FlowStage<unknown, TOutput>, doValidateInOrderItemErrorMode: boolean) => void} args.itValidationTestsFn
    * @param {boolean} [args.shouldDescribeFlowStage] If false, this FlowStage should
    *   not get its own `describe(..)` block. Use this for abstract flow stages like
    *   an Order Feed Update initiator.
@@ -255,9 +255,11 @@ class FlowStage {
    * Check that the response received at this stage is valid according to the validator.
    *
    * Creates it() blocks.
+   * 
+   * @param {boolean} doValidateInOrderItemErrorMode If true, 
    */
-  itValidationTests() {
-    this._itValidationTestsFn(this);
+  itValidationTests(doValidateInOrderItemErrorMode = false) {
+    this._itValidationTestsFn(this, doValidateInOrderItemErrorMode);
     return this;
   }
 }

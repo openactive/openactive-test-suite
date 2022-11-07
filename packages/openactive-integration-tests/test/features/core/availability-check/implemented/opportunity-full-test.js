@@ -72,8 +72,10 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
     itShouldReturnOpportunityIsFullError(c1.getStage('c1'));
-  });
+  },
+  { doValidateInOrderItemErrorMode: true });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
     itShouldReturnOpportunityIsFullError(c2.getStage('c2'));
-  });
+  },
+  { doValidateInOrderItemErrorMode: true });
 });

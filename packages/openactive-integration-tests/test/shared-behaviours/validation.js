@@ -1,5 +1,6 @@
 const { validate } = require('@openactive/data-model-validator');
 const { criteriaMap, testMatch } = require('@openactive/test-interface-criteria');
+const _ = require('lodash');
 
 const { HARVEST_START_TIME } = global;
 
@@ -37,6 +38,7 @@ function priorityOfSeverity(severity) {
  * @param {object} options
  * @param {ValidationMode} options.validationMode
  *   What type of response is being validated. Some modes have special handling behaviours.
+ * @param {boolean} options.doValidateInOrderItemErrorMode
  * @param {string} [opportunityCriteria] If included, this will check that the opportunity
  *   matches the criteria.
  */
@@ -99,10 +101,12 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
     const statusCode = response.response && response.response.statusCode;
     const statusMessage = response.response && response.response.statusMessage;
 
-    // Note C1Response, C2Response, BResponse and PResponse are permitted to return 409 errors of type `OrderQuote`, `OrderProposal`, or `Order` instead of `OpenBookingError`
+    // Note C1Response and C2Response are permitted to return 409 errors of type `OrderQuote`, instead of `OpenBookingError`
     if (statusCode < 200 || statusCode >= 300) {
-      // TODO: Test suite should assert whether the response is expected to be an OrderItemError, instead of basing validation on the response status code
-      if (statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response' || options.validationMode === 'BResponse' || options.validationMode === 'PResponse')) {
+      if(!_.isNil(options.doValidateInOrderItemErrorMode) && 
+          (options.validationMode === 'C1Response' || options.validationMode === 'C2Response'
+            || options.validationMode === 'BResponse' || options.validationMode === 'PResponse'
+          )) {
         optionsWithRemoteJson.validationMode = `${options.validationMode}OrderItemError`;
       } else {
         optionsWithRemoteJson.validationMode = 'OpenBookingError';
@@ -115,8 +119,8 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
             severity: 'failure',
             message: `Server returned an error ${statusCode} (${statusMessage}) with an empty body.`,
           },
-        ];
-      }
+        ]; 
+    }
     }
 
     results = await validate(body, optionsWithRemoteJson);
