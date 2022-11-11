@@ -243,10 +243,10 @@ async function harvestRPDE({
 
       try {
         if (feedSnapshot) {
-          feedMap[url] = feedMap[url] ?? json.items.map(item => ({
+          feedMap[url] = feedMap[url] ?? json.items ? json.items.map(item => ({
             ...item,
             ...(item.data ? {data: objectHash(item.data)} : {}),
-          }))
+          })) : []
         }
       } catch (e) {
         throw e;
