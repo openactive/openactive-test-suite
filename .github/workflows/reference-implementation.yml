@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         mode: ['random', 'controlled']
-        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation']
+        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation', 'prepayment-always-required']
         flow: ['simple', 'approval']
         include:
         - mode: 'random'

@@ -1,0 +1,10 @@
+{
+  "integrationTests": {
+    "implementedFeatures": {
+      "prepayment-required": true,
+      "prepayment-required-unavailable": false,
+      "prepayment-optional": false,
+      "prepayment-unavailable": false
+    }
+  }
+}
