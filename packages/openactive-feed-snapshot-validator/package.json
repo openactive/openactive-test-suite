@@ -1,0 +1,27 @@
+{
+  "name": "openactive-feed-snapshot-validator",
+  "version": "1.0.0",
+  "description": "OpenActive Feed Snapshot Validator",
+  "main": "app.js",
+  "scripts": {
+    "lint": "eslint \"src/**/*.js\"",
+    "test": "npm run lint && tsc",
+    "start": "node --unhandled-rejections=strict src/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs-extra": "^10.1.0",
+    "iter-tools": "^7.4.0",
+    "lodash": "^4.17.21",
+    "zod": "^3.18.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.186",
+    "@types/node": "^18.11.2",
+    "eslint": "^8.25.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.26.0",
+    "typescript": "^4.8.4"
+  }
+}

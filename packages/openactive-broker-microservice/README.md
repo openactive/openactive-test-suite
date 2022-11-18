@@ -210,3 +210,25 @@ Use this authentication strategy when using [Client Credentials Flow](https://op
 ```json
   "initialAccessToken": "openactive_test_suite_client_12345xaq"
 ```
+
+## Save Feed Snapshot
+
+This is part of the Feed Snapshot Validation flow (TODO TODO link to consolidated docs in project root).
+
+This command harvests the configured dataset's RPDE feeds and then saves a snapshot.
+
+Example usage:
+
+```sh
+NODE_ENV=dev npm run save-feed-snapshot-only
+```
+
+## Remove Old Feed Snapshots
+
+This clean-up command removes all but the latest 2 feed snapshots.
+
+Example usage:
+
+```sh
+NODE_ENV=dev npm run remove-all-but-last-2-feed-snapshots
+```

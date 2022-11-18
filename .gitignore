@@ -4,6 +4,9 @@ conformance
 tmp
 tmp-validator-input
 
+# Feed Checker output
+packages/openactive-broker-microservice/feed_snapshots/
+
 # Created by .ignore support plugin (hsz.mobi)
 ### macOS template
 # General

@@ -95,7 +95,7 @@
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
             "env": {
-              "NODE_APP_INSTANCE": "dev"
+              "NODE_APP_INSTANCE": "ci"
             },
         },
         {
@@ -147,6 +147,12 @@
             "env": {
                 "NODE_APP_INSTANCE": "dev"
             },
+        },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Launch Feed Snapshot Validator",
+          "program": "${workspaceFolder}/packages/openactive-feed-snapshot-validator/app.js"
         }
     ]
 }
