@@ -253,7 +253,7 @@ async function harvestRPDE({
 
       // Don't bother adding this page to the snapshot data if it's just a repeat of the last page
       if (DO_SAVE_FEED_SNAPSHOT && url !== feedSnapshotData.pages.slice(-1)[0]?.url) {
-        const feedSnapshotItems = json.items.map((item) => ({
+        const feedSnapshotItems = (json.items ?? []).map((item) => ({
           ...item,
           ...(item.data ? {
             data: objectHash(item.data),
