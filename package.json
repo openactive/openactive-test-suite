@@ -10,6 +10,7 @@
     "start-broker": "cd packages/openactive-broker-microservice && npm start",
     "validate-feeds": "cd packages/openactive-broker-microservice && npm run validate-feeds",
     "start-tests": "cd packages/openactive-integration-tests && npm start",
+    "start-snapshot-validator": "cd packages/openactive-feed-snapshot-validator && npm start",
     "install-broker": "cd packages/openactive-broker-microservice && npm install",
     "install-interface-criteria": "cd packages/test-interface-criteria && npm install",
     "install-openid-client": "cd packages/openactive-openid-test-client && npm install",
@@ -41,9 +42,7 @@
   "dependencies": {
     "config": "^3.3.6",
     "inquirer": "^8.0.0",
-    "node-cleanup": "^2.1.2",
-    "object-hash": "^3.0.0",
-    "zod": "^3.17.9"
+    "node-cleanup": "^2.1.2"
   },
   "engines": {
     "node": "14.16.0"

@@ -4,9 +4,7 @@
   "ci": true,
   "consoleOutputLevel": "detail",
   "broker": {
-    //"datasetSiteUrl": "https://jubileehall-openactive.legendonlineservices.co.uk/OpenActive"
-    "datasetSiteUrl": "https://better.weplayfootball.com/OpenActive",
-    "disableOrdersFeedHarvesting": true
+    "datasetSiteUrl": "https://localhost:5001/openactive"
   },
   "integrationTests": {
     "generateConformanceCertificate": true

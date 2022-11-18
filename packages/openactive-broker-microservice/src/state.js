@@ -139,10 +139,43 @@ function getAllDatasets() {
 }
 
 /**
+ * An "incomplete" feed is one which has started harvesting but not yet finished its initial
+ * harvest.
+ *
+ * Register this feed as starting its initial harvest. Do this before harvesting the first page.
+ *
  * @param {string} feedIdentifier
  */
-function addFeed(feedIdentifier) {
+function registerIncompleteFeed(feedIdentifier) {
   state.incompleteFeeds.push(feedIdentifier);
+}
+
+/**
+ * Register an incomplete feed as having finished its initial harvest and thus become "complete".
+ * The feed may continue to harvest if any new data becomes available in the feed but this will
+ * no longer count as the "initial" harvest.
+ *
+ * @param {string} feedIdentifier
+ * @returns {boolean} `true` if this invokation finished the initial harvest.
+ *   `false` if the feed had already finished before this function was run.
+ */
+function registerCompleteFeed(feedIdentifier) {
+  const index = state.incompleteFeeds.indexOf(feedIdentifier);
+  if (index < 0) {
+    return false;
+  }
+  // Remove the feed from the list
+  state.incompleteFeeds.splice(index, 1);
+  return true;
+}
+
+function haveAllIncompleteFeedsCompleted() {
+  return state.incompleteFeeds.length === 0;
+}
+
+function disregardAllIncompleteFeeds() {
+  // Clear state.incompleteFeeds array
+  state.incompleteFeeds.splice(0, state.incompleteFeeds.length);
 }
 
 /**
@@ -160,7 +193,10 @@ module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
-  addFeed,
+  registerIncompleteFeed,
+  registerCompleteFeed,
+  haveAllIncompleteFeedsCompleted,
+  disregardAllIncompleteFeeds,
   setGlobalValidatorWorkerPool,
   getGlobalValidatorWorkerPool,
 };
