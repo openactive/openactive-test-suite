@@ -6,16 +6,37 @@ const path = require('path');
 const _ = require('lodash');
 const { z } = require('zod');
 
-class SnapshotComparisonError extends Error {
-  /**
-   * @param {string} message
-   */
-  constructor(message) {
-    super(message);
-    this.details = [{ message }];
-  }
-}
-SnapshotComparisonError.prototype.name = 'SnapshotComparisonError';
+const MAX_ERRORS_PER_CHECK = 20;
+
+/**
+ * @typedef {{
+ *   message: string;
+ * }} ValidationError
+ *
+ * @typedef {{
+ *   errors: ValidationError[];
+ *   numErrors: number;
+ * }} ValidationCheckResult
+ *
+ * @typedef {{
+ *   didAllChecksPass: boolean;
+ *   singleFeedAssertions: {
+ *     feedFileName: string;
+ *     feedTimestamp: string;
+ *     results: {
+ *       checkType: string;
+ *       result: ValidationCheckResult;
+ *     }[];
+ *   }[];
+ *   comparisonAssertions: {
+ *     feedFileName: string;
+ *     results: {
+ *       checkType: string;
+ *       result: ValidationCheckResult;
+ *     }[];
+ *   }[];
+ * }} OutputResult
+ */
 
 const RpdeItem = z.object({
   kind: z.string(),
@@ -57,23 +78,50 @@ async function start() {
   );
 
   // 2. Run single-feed assertions
+  /** @type {OutputResult['singleFeedAssertions']} */
+  const singleFeedAssertions = [];
   for (const feedFileName of sharedFeedFileNames) {
     for (const snapshotDirectory of [earlierSnapshotDirectory, laterSnapshotDirectory]) {
       const feedData = await getFeedFileData(snapshotDirectory, feedFileName);
-      runSingleFeedInstanceAssertions(feedData);
-      console.log(`SINGLE-FEED PASS: ${getFeedFilePath(snapshotDirectory, feedFileName)}`);
+      const result = runSingleFeedInstanceAssertions(feedFileName, feedData);
+      singleFeedAssertions.push(result);
+      // console.log(`SINGLE-FEED PASS: ${getFeedFilePath(snapshotDirectory, feedFileName)}`);
     }
   }
 
   // 3. Snapshot comparison assertions
+  /** @type {OutputResult['comparisonAssertions']} */
+  const comparisonAssertions = [];
   for (const feedFileName of sharedFeedFileNames) {
     const earlierFeedData = await getFeedFileData(earlierSnapshotDirectory, feedFileName);
     const laterFeedData = await getFeedFileData(laterSnapshotDirectory, feedFileName);
     // We don't need to validate these files again as they were validated in the single-feed
     // assertions section
-    checkModificationsArePushedToTheEndOfTheFeed(laterFeedData, earlierFeedData);
-    console.log(`COMPARISON PASS: ${feedFileName}`);
+    const result = runSnapshotComparisonAssertions(feedFileName, laterFeedData, earlierFeedData);
+    comparisonAssertions.push(result);
+    // console.log(`COMPARISON PASS: ${feedFileName}`);
   }
+
+  const didAnyChecksFail = (
+    singleFeedAssertions.find((sfa) => (
+      sfa.results.find((res) => (
+        res.result.numErrors > 0
+      ))
+    ))
+  ) || (
+    comparisonAssertions.find((ca) => (
+      ca.results.find((res) => (
+        res.result.numErrors > 0
+      ))
+    ))
+  );
+  /** @type {OutputResult} */
+  const outputResult = {
+    didAllChecksPass: !didAnyChecksFail,
+    singleFeedAssertions,
+    comparisonAssertions,
+  };
+  console.log(JSON.stringify(outputResult, null, 2));
 }
 
 /**
@@ -106,11 +154,21 @@ function getFeedFilePath(snapshotDirectory, feedFileName) {
 }
 
 /**
+ * @param {string} feedFileName e.g. 'FacilityUse.json'
  * @param {unknown} unvalidatedFeedSnapshot
+ * @returns {OutputResult['singleFeedAssertions'][number]}
  */
-function runSingleFeedInstanceAssertions(unvalidatedFeedSnapshot) {
+function runSingleFeedInstanceAssertions(feedFileName, unvalidatedFeedSnapshot) {
   const feedSnapshot = FeedSnapshot.parse(unvalidatedFeedSnapshot);
-  checkRpdeOrder(feedSnapshot);
+  const checkRpdeOrderResult = checkRpdeOrder(feedSnapshot);
+  return {
+    feedFileName,
+    feedTimestamp: feedSnapshot.isoTimestamp,
+    results: [{
+      checkType: 'checkRpdeOrder',
+      result: checkRpdeOrderResult,
+    }],
+  };
 }
 
 /**
@@ -118,26 +176,50 @@ function runSingleFeedInstanceAssertions(unvalidatedFeedSnapshot) {
  * So here we check that the RPDE order is indeed valid
  *
  * @param {z.infer<typeof FeedSnapshot>} feedSnapshot
+ * @returns {ValidationCheckResult}
  */
 function checkRpdeOrder(feedSnapshot) {
+  const result = validationCheckResultCreate();
   // Get initial comparison values from the 1st item
   const firstItem = first(getFeedSnapshotItemsIterator(feedSnapshot));
-  if (!firstItem) { return; }
+  if (!firstItem) { return result; }
   let previousItem = firstItem;
   // Then compare each item to the previous
   for (const item of slice(1, getFeedSnapshotItemsIterator(feedSnapshot))) {
     if (!isItemAPastItemB(item, previousItem)) {
       // TODO elaborate these error messages lol
-      throw new SnapshotComparisonError(`Item (ID: ${
-        item.id
-      }; Modified: ${
-        item.modified
-      }) is ordered incorrectly compared to the Previous Item (ID: ${
-        previousItem.id
-      }; Modified: ${previousItem.modified})`);
+      validationCheckResultAddError(result, {
+        message: `Item (ID: ${
+          item.id
+        }; Modified: ${
+          item.modified
+        }) is ordered incorrectly compared to the Previous Item (ID: ${
+          previousItem.id
+        }; Modified: ${previousItem.modified})`,
+      });
     }
     previousItem = item;
   }
+  return result;
+}
+
+/**
+ * @param {string} feedFileName
+ * @param {z.infer<typeof FeedSnapshot>} latestFeedSnapshot
+ * @param {z.infer<typeof FeedSnapshot>} previousFeedSnapshot
+ * @returns {OutputResult['comparisonAssertions'][number]}
+ */
+function runSnapshotComparisonAssertions(feedFileName, latestFeedSnapshot, previousFeedSnapshot) {
+  const checkModificationsArePushedToTheEndOfTheFeedResult = (
+    checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previousFeedSnapshot)
+  );
+  return {
+    feedFileName,
+    results: [{
+      checkType: 'checkModificationsArePushedToTheEndOfTheFeed',
+      result: checkModificationsArePushedToTheEndOfTheFeedResult,
+    }],
+  };
 }
 
 // TODO TODO array of errors
@@ -147,12 +229,14 @@ function checkRpdeOrder(feedSnapshot) {
  *
  * @param {z.infer<typeof FeedSnapshot>} latestFeedSnapshot
  * @param {z.infer<typeof FeedSnapshot>} previousFeedSnapshot
+ * @returns {ValidationCheckResult}
  */
 function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previousFeedSnapshot) {
+  const result = validationCheckResultCreate();
   const previousFeedItems = toArray(getFeedSnapshotItemsIterator(previousFeedSnapshot));
   // There's nothing to check if there's nothing in the previous feed
   if (previousFeedItems.length === 0) {
-    return;
+    return result;
   }
   const lastItemFromPreviousFeed = _.last(previousFeedItems);
   /* An item can technically appear multiple times within a feed. In which case only the last
@@ -164,9 +248,17 @@ function checkModificationsArePushedToTheEndOfTheFeed(latestFeedSnapshot, previo
     // Just doing a deep equality test means that we also check for new items. If it's a new item,
     // `previousItem` will be `undefined`.
     if (!_.isEqual(item, previousItem) && !isItemAPastItemB(item, lastItemFromPreviousFeed)) {
-      throw new SnapshotComparisonError(`Item (ID: ${item.id}) has been modified since the previous run but it wasn't moved to the front of the feed, meaning that a feed importer would not have been able to see the change. New item: ${JSON.stringify(item)}; Previous item: ${JSON.stringify(item)}`);
+      validationCheckResultAddError(result, {
+        message: `Item (ID: ${
+          item.id
+        }) has been modified since the previous run but it wasn't moved to the front of the feed, meaning that a feed importer would not have been able to see the change. New item: ${
+          JSON.stringify(item)
+        }; Previous item: ${JSON.stringify(item)}`,
+      });
+      // throw new Error(`Item (ID: ${item.id}) has been modified since the previous run but it wasn't moved to the front of the feed, meaning that a feed importer would not have been able to see the change. New item: ${JSON.stringify(item)}; Previous item: ${JSON.stringify(item)}`);
     }
   }
+  return result;
 }
 
 /**
@@ -184,6 +276,32 @@ function getFeedSnapshotItemsIterator(feedSnapshot) {
 function isItemAPastItemB(itemA, itemB) {
   return (itemA.modified > itemB.modified)
     || (itemA.modified === itemB.modified && itemA.id > itemB.id);
+}
+
+/**
+ * @returns {ValidationCheckResult}
+ */
+function validationCheckResultCreate() {
+  return {
+    errors: [],
+    numErrors: 0,
+  };
+}
+
+/**
+ * Add an error to a ValidationCheckResult
+ *
+ * @param {ValidationCheckResult} result
+ *   ! This is mutated
+ * @param {ValidationError} error
+ */
+function validationCheckResultAddError(result, error) {
+  if (result.numErrors < MAX_ERRORS_PER_CHECK) {
+    result.errors.push(error);
+  }
+  // eslint-disable-next-line no-param-reassign
+  result.numErrors += 1;
+  return result;
 }
 
 start();
