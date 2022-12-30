@@ -89,7 +89,7 @@ FeatureHelper.describeFeature(module, {
       });
       it('should include expected email address', () => {
         const apiResponseJson = secondAttemptC2.getStage('c2').getOutput().httpResponse.body;
-        expect(apiResponseJson).to.have.nested.property('customer.email', secondAttemptCustomerDetails.email);
+        expect(apiResponseJson).to.have.nested.property('customer.email').that.match(new RegExp(secondAttemptCustomerDetails.email, 'i'));
       });
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptBook, () => {
@@ -101,7 +101,7 @@ FeatureHelper.describeFeature(module, {
       });
       it('should include expected email address', () => {
         const apiResponseJson = secondAttemptBook.b.getOutput().httpResponse.body;
-        expect(apiResponseJson).to.have.nested.property('customer.email', secondAttemptCustomerDetails.email);
+        expect(apiResponseJson).to.have.nested.property('customer.email').that.match(new RegExp(secondAttemptCustomerDetails.email, 'i'));
       });
     });
   });
