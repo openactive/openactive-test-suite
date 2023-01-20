@@ -59,6 +59,7 @@ Makes the output in the terminal more verbose. Useful for debugging.
 ### `waitForHarvestCompletion`
 
 If `true` will block the `openactive-integration-tests` starting until the last page of each harvested feed is reached. This is useful for continuous integration environments.
+If `false` and `broker` and `openactive-integration-tests` are running in separate terminals, the tests will start without waiting for harvesting to finish. This is useful for tests that do not require a large amount of data, or, for example, authentication tests that are not data dependant.
 
 ```json
   "waitForHarvestCompletion": true,
@@ -210,3 +211,7 @@ Use this authentication strategy when using [Client Credentials Flow](https://op
 ```json
   "initialAccessToken": "openactive_test_suite_client_12345xaq"
 ```
+
+
+/status
+// TODO document /status, gives opportunity number and bucket size etc
