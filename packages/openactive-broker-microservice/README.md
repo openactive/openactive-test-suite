@@ -211,7 +211,3 @@ Use this authentication strategy when using [Client Credentials Flow](https://op
 ```json
   "initialAccessToken": "openactive_test_suite_client_12345xaq"
 ```
-
-
-/status
-// TODO document /status, gives opportunity number and bucket size etc
