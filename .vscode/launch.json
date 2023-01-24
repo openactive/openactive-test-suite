@@ -42,9 +42,8 @@
             "type": "node",
             "runtimeVersion": "14.16.0",
             "env": {
-              "NODE_APP_INSTANCE": "legend-uat-scs",
-              "NODE_ENV": "legend-uat-scs",
-                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": true}}"
+              "NODE_APP_INSTANCE": "dev",
+              "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": true}}"
             },
         },
         {
@@ -96,8 +95,7 @@
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
             "env": {
-              "NODE_APP_INSTANCE": "legend-uat-scs",
-              "NODE_ENV": "legend-uat-scs"
+              "NODE_APP_INSTANCE": "dev",
             },
         },
         {
