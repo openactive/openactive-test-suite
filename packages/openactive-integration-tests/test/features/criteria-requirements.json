@@ -217,7 +217,7 @@
     },
     "prepayment-required": {
       "primary": {
-        "TestOpportunityBookableNonFreePrepaymentRequired": 7
+        "TestOpportunityBookableNonFreePrepaymentRequired": 8
       }
     },
     "prepayment-required-unavailable": {
