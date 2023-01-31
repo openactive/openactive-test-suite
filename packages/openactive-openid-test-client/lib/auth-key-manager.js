@@ -150,7 +150,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
 
     // Refresh Seller token if Single Seller booking system
     if (this.sellersConfig.primary?.authentication?.clientCredentials) {
-      // If Booking System is a single seller system, add the tokenSet to the primary (and only) Seller
+      // Since Booking System is a single seller system, add the tokenSet to the primary (and only) Seller
       const bookingPartnerTokenSets = this.sellersConfig.primary.authentication?.bookingPartnerTokenSets || {
 
       };
