@@ -151,7 +151,10 @@ module.exports = class OpenActiveTestAuthKeyManager {
     // Refresh Seller token if Single Seller booking system
     if (this.sellersConfig.primary?.authentication?.clientCredentials) {
       // If Booking System is a single seller system, add the tokenSet to the primary (and only) Seller
-      const bookingPartnerTokenSets = this.sellersConfig.primary.authentication?.bookingPartnerTokenSets || {};
+      const bookingPartnerTokenSets = this.sellersConfig.primary.authentication?.bookingPartnerTokenSets || {
+
+      };
+
       // Do not refresh tokens that have at least 1 minute remaining
       if (bookingPartnerTokenSets.primary?.expires_in && bookingPartnerTokenSets.primary?.expires_in > 60) {
         return;
@@ -163,11 +166,11 @@ module.exports = class OpenActiveTestAuthKeyManager {
         this.sellersConfig.primary.authentication = {
           bookingPartnerTokenSets: {
             primary: tokenSet,
-          }
-        }
-        this.log(`Retrieved Booking tokens via Client Credentials Flow for seller'`);
+          },
+        };
+        this.log('Retrieved Booking tokens via Client Credentials Flow for seller');
       } catch (error) {
-        this.log(`Error retrieving Booking tokens via Client Credentials Flow for seller`);
+        this.log('Error retrieving Booking tokens via Client Credentials Flow for seller');
         throw error;
       }
     }

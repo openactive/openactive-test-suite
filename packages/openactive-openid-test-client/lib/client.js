@@ -142,7 +142,7 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {string} clientId
    * @param {string} clientSecret
    * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
-   * @param {boolean} includeOpenActiveBookingScope this param should only be true if the booking system is a Single Seller system 
+   * @param {boolean} includeOpenActiveBookingScope this param should only be true if the booking system is a Single Seller system
    * and Client Credentials is used to authorize the Booking Partners with the seller.
    */
   async authorizeClientCredentialsFlow(clientId, clientSecret, issuer = this.issuer, includeOpenActiveBookingScope = false) {
