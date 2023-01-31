@@ -148,7 +148,8 @@ module.exports = class OpenActiveTestAuthKeyManager {
       }
     }));
 
-    // Refresh Seller token if Single Seller booking system
+    // Refresh Seller token if Client Credentials Auth Flow is used.
+    // We only consider the primary seller as Client Credentials only supports 1 seller.
     if (this.sellersConfig.primary?.authentication?.clientCredentials) {
       // Since Booking System is a single seller system, add the tokenSet to the primary (and only) Seller
       const bookingPartnerTokenSets = this.sellersConfig.primary.authentication?.bookingPartnerTokenSets || {
