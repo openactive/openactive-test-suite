@@ -142,8 +142,10 @@ module.exports = class OpenActiveOpenIdTestClient {
    * @param {string} clientId
    * @param {string} clientSecret
    * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
+   * @param {boolean} includeOpenActiveBookingScope this param should only be true if the booking system is a Single Seller system
+   * and Client Credentials is used to authorize the Booking Partners with the seller.
    */
-  async authorizeClientCredentialsFlow(clientId, clientSecret, issuer = this.issuer) {
+  async authorizeClientCredentialsFlow(clientId, clientSecret, issuer = this.issuer, includeOpenActiveBookingScope = false) {
     throwIfNoIssuer(issuer);
 
     const client = new issuer.Client({
@@ -153,7 +155,7 @@ module.exports = class OpenActiveOpenIdTestClient {
 
     const tokenSet = await client.grant({
       grant_type: 'client_credentials',
-      scope: 'openactive-ordersfeed',
+      scope: includeOpenActiveBookingScope ? 'openactive-ordersfeed openactive-openbooking' : 'openactive-ordersfeed',
     });
 
     return {

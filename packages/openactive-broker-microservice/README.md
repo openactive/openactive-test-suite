@@ -211,3 +211,84 @@ Use this authentication strategy when using [Client Credentials Flow](https://op
 ```json
   "initialAccessToken": "openactive_test_suite_client_12345xaq"
 ```
+
+### `sellers`
+Config for [Sellers](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-seller) whose opportunities are booked are booked through the Booking System when Test Suite is run.
+
+#### Multi-Seller systems
+In multi-seller systems, Broker can book opportunities from two Sellers, named `primary` and `secondary`.
+
+```json
+   "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1",
+      "authentication": {
+        "loginCredentials": {
+          "username": "test1",
+          "password": "test1"
+        }
+      },
+      "taxMode": "https://openactive.io/TaxGross",
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
+      }
+    },
+    "secondary": {
+      "@type": "Organization",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/2",
+      "authentication": {
+        "loginCredentials": {
+          "username": "test2",
+          "password": "test2"
+        }
+      },
+      "taxMode": "https://openactive.io/TaxNet"
+    }
+  }
+```
+
+The `authentication` field can contain various authentication strategies: [Auth Code Flow](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-authorization-code-flow), Bearer credentials, or API headers. Auth Code Flow is [recommended](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#openid-connect-booking-partner-authentication-for-multiple-seller-systems) for Multi-Seller systems.
+Examples of how to define Auth Code flow credentials for Multi-Seller systems are shown above.
+
+#### Single-seller systems
+For single-seller systems, Broker can book opportunities from the only seller.
+
+```json
+"sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://localhost:5001/api/identifiers/seller",
+      "authentication": {
+        "loginCredentials": null,
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "booking-partner-1",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/seller"
+        }
+      }
+    },
+    "secondary": null
+  }
+```
+
+The `authentication` field can contain various authentication strategies: [Client Credentials](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-client-credentials-flow), Bearer credentials, or API headers. 
+
+Clients credentials can be defined as follows:
+```json
+"sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://localhost:5001/api/identifiers/seller",
+      "authentication": {
+        "loginCredentials": null,
+          "clientCredentials": {
+            "clientId": "clientid_XXX",
+            "clientSecret": "example"
+          }
+      }
+    },
+    "secondary": null
+  }
+```
