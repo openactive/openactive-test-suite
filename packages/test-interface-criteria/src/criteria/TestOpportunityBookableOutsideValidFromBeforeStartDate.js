@@ -1,4 +1,4 @@
-const { getDateAfterWhichBookingsCanBeMade, remainingCapacityMustBeAtLeastTwo, createCriteria } = require('./criteriaUtils');
+const { getDateAfterWhichBookingsCanBeMade, remainingCapacityMustBeAtLeastTwo, createCriteria, mustNotBeOpenBookingInAdvanceUnavailable } = require('./criteriaUtils');
 const { dateRange, shapeConstraintRecipes } = require('../testDataShape');
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
@@ -32,6 +32,10 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     ],
   ],
   offerConstraints: [
+    [
+      'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
+      mustNotBeOpenBookingInAdvanceUnavailable,
+    ],
     [
       'Must be outside booking window (`validFromBeforeStartDate`)',
       mustHaveBookingWindowAndBeOutsideOfIt,
