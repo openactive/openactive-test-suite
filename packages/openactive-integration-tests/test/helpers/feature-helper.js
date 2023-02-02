@@ -6,7 +6,7 @@ const { Logger } = require('./logger');
 const RequestHelper = require('./request-helper');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 
-const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
+const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE, SELLER_CONFIG } = global;
 
 const { SINGLE_FLOW_PATH_MODE } = process.env;
 
@@ -295,6 +295,37 @@ class FeatureHelper {
             Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
           );
         });
+      });
+    });
+  }
+
+  /**
+   * Use this for a `not-implemented` test for a feature that should not be implemented if another feature is.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+  *   otherFeatureWhichImplyThisFeatureShouldNotBeImplemented: string;
+  *   configNeededForOtherFeature? : {sellers?: {primary? : boolean, secondary?: boolean}}
+  * }} configuration
+  */
+  static describeFeatureShouldNotBeImplementedIfOtherFeatureIs(documentationModule, configuration) {
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature must be not implemented if feature ${configuration.otherFeatureWhichImplyThisFeatureShouldNotBeImplemented} is implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`must be not implemented if feature: ${configuration.otherFeatureWhichImplyThisFeatureShouldNotBeImplemented} is`, () => {
+          expect(IMPLEMENTED_FEATURES).to.include([configuration.otherFeatureWhichImplyThisFeatureShouldNotBeImplemented, true])
+        });
+        it(`must have the correct config for the (other) implemented feature ${configuration.otherFeatureWhichImplyThisFeatureShouldNotBeImplemented}`, ()=>{
+          if (configuration.configNeededForOtherFeature.sellers?.primary === true){
+            expect(SELLER_CONFIG.primary).to.not.equal(null).and.not.equal(undefined);
+
+          }
+
+        }) 
       });
     });
   }
