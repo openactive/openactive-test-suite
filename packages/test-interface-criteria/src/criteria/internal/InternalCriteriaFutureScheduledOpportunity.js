@@ -13,6 +13,7 @@ const {
   startDateMustBe2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   excludePaidBookableOffersWithPrepaymentUnavailable,
+  mustNotBeOpenBookingInAdvanceUnavailable,
 } = require('../criteriaUtils');
 
 /**
@@ -37,6 +38,10 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
     [
       'Offer must not be non-free with openBookingPrepayment unavailable',
       excludePaidBookableOffersWithPrepaymentUnavailable,
+    ],
+    [
+      'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
+      mustNotBeOpenBookingInAdvanceUnavailable,
     ],
   ],
   testDataShape: (options) => ({
