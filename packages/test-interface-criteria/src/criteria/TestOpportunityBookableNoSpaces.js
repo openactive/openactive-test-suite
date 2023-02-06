@@ -1,5 +1,5 @@
 const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
-const { quantitativeValue } = require('../testDataShape');
+const { quantitativeValue, shapeConstraintRecipes } = require('../testDataShape');
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
@@ -25,12 +25,15 @@ const TestOpportunityBookableNoSpaces = createCriteria({
     ],
   ],
   offerConstraints: [],
-  testDataShape: () => ({
+  testDataShape: (options) => ({
     opportunityConstraints: {
       // remainingCapacityMustBeZero
       'placeholder:remainingCapacity': quantitativeValue({
         maxinclusive: 0,
       }),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
     },
   }),
   includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
