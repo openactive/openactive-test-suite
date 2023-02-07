@@ -76,7 +76,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
       // Get Client Credentials for Orders feed
       await this.refreshClientCredentialsAccessTokensIfNeeded();
 
-      // Authenticate sellers
+      // Authenticate sellers that require Auth Code Flow
       const sellers = Object.entries(this.sellersConfig).filter(([, s]) => s?.authentication?.loginCredentials);
       if (sellers.length === 0) {
         return;
@@ -129,6 +129,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
     // Only run the update if initialise ran successfully
     if (!this.client.issuer) return;
 
+    // Refresh tokens for Booking Partners
     await Promise.all(Object.entries(this.bookingPartnersConfig).map(async ([bookingPartnerIdentifier, bookingPartner]) => {
       // Do not refresh tokens that have at least 1 minute remaining
       const { orderFeedTokenSet } = bookingPartner.authentication;
@@ -138,7 +139,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
 
       try {
         const { clientId, clientSecret } = bookingPartner.authentication.clientCredentials;
-        const { tokenSet } = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret);
+        const { tokenSet } = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret, this.client.issuer, false);
         this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.orderFeedTokenSet = tokenSet;
         this.log(`Retrieved Orders Feed tokens via Client Credentials Flow for booking partner '${bookingPartnerIdentifier}'`);
       } catch (error) {
@@ -146,6 +147,34 @@ module.exports = class OpenActiveTestAuthKeyManager {
         throw error;
       }
     }));
+
+    // Refresh Seller token if Client Credentials Auth Flow is used.
+    // We only consider the primary seller as Client Credentials only supports 1 seller.
+    if (this.sellersConfig.primary?.authentication?.clientCredentials) {
+      // Since Booking System is a single seller system, add the tokenSet to the primary (and only) Seller
+      const bookingPartnerTokenSets = this.sellersConfig.primary.authentication?.bookingPartnerTokenSets || {
+
+      };
+
+      // Do not refresh tokens that have at least 1 minute remaining
+      if (bookingPartnerTokenSets.primary?.expires_in && bookingPartnerTokenSets.primary?.expires_in > 60) {
+        return;
+      }
+
+      try {
+        const { clientId, clientSecret } = this.sellersConfig.primary.authentication.clientCredentials;
+        const { tokenSet } = await this.client.authorizeClientCredentialsFlow(clientId, clientSecret, this.client.issuer, true);
+        this.sellersConfig.primary.authentication = {
+          bookingPartnerTokenSets: {
+            primary: tokenSet,
+          },
+        };
+        this.log('Retrieved Booking tokens via Client Credentials Flow for seller');
+      } catch (error) {
+        this.log('Error retrieving Booking tokens via Client Credentials Flow for seller');
+        throw error;
+      }
+    }
   }
 
   /**
@@ -163,8 +192,8 @@ module.exports = class OpenActiveTestAuthKeyManager {
           return;
         }
         const { clientId, clientSecret } = this.bookingPartnersConfig[bookingPartnerIdentifier].authentication.clientCredentials;
-        this.log(`Refreshed access token for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
         this.sellersConfig[sellerIdentifier].authentication.bookingPartnerTokenSets[bookingPartnerIdentifier] = await this.client.refresh(tokenSet.refresh_token, clientId, clientSecret);
+        this.log(`Refreshed access token for seller '${sellerIdentifier}' for booking partner '${bookingPartnerIdentifier}'`);
       }));
     }));
   }

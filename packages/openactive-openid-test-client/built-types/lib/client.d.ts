@@ -45,8 +45,10 @@ declare class OpenActiveOpenIdTestClient {
      * @param {string} clientId
      * @param {string} clientSecret
      * @param {import("openid-client").Issuer<import("openid-client").Client>} issuer
+     * @param {boolean} includeOpenActiveBookingScope this param should only be true if the booking system is a Single Seller system
+     * and Client Credentials is used to authorize the Booking Partners with the seller.
      */
-    authorizeClientCredentialsFlow(clientId: string, clientSecret: string, issuer?: import("openid-client").Issuer<import("openid-client").Client>): Promise<{
+    authorizeClientCredentialsFlow(clientId: string, clientSecret: string, issuer?: import("openid-client").Issuer<import("openid-client").Client>, includeOpenActiveBookingScope?: boolean): Promise<{
         tokenSet: import("openid-client").TokenSet;
     }>;
     /**
