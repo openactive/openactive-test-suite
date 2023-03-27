@@ -107,6 +107,7 @@ const state = {
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
   parentOpportunityMap: new Map(),
   parentOpportunityRpdeMap: new Map(),
+  parentOpportunitySubEventMap: new Map(),
   opportunityMap: new Map(),
   opportunityRpdeMap: new Map(),
   rowStoreMap: new Map(),
