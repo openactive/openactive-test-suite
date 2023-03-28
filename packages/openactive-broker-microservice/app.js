@@ -1100,14 +1100,14 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
           const opportunityItemData = {
             ...subEvent,
           };
-          opportunityItemData['@context'] = item.data['@context'] || item.data.context;
+          opportunityItemData['@context'] = item.data['@context'];
           opportunityItemData.superEvent = item.data['@id'] || item.data.id;
 
           const opportunityItem = {
             id: subEvent['@id'] || subEvent.id,
             modified: item.modified,
             kind: subEvent['@type'] || subEvent.type,
-            state: item.state,
+            state: 'updated',
             data: opportunityItemData,
           };
 
