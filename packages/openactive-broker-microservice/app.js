@@ -1140,8 +1140,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
           for (const subEventId of oldSubEventIds) {
             if (!newSubEventIds.includes(subEventId)) {
               deleteOpportunityItem(subEventId);
-              const indexToRemove = state.parentOpportunitySubEventMap.get(jsonLdId).indexOf(subEventId);
-              state.parentOpportunitySubEventMap.get(jsonLdId).splice(indexToRemove, 1);
+              state.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
             }
           }
           for (const subEventId of newSubEventIds) {
