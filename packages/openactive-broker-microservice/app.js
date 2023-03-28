@@ -1102,7 +1102,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
           // subEvent does not have an ID, then we don't make and store an opportunityItem at all, just skip
           // it and move on. This issue will still be discovered later in the RPDE feed check, and alert the
           // user without a harsh process exit.
-          if (subEvent['@id'] || subEvent.id) {
+          if ((subEvent['@id'] || subEvent.id) && (subEvent['@type'] || subEvent.type)) {
             const opportunityItemData = {
               ...subEvent,
             };
