@@ -31,7 +31,7 @@ jobs:
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
           path: ./openactive-test-suite/
@@ -46,9 +46,6 @@ jobs:
             Update the OpenActive Test Suite to the latest version of the [OpenActive Vocabulary](https://openactive.io/ns/) (codified by the [Data Models](https://github.com/openactive/data-models)), and the [Data Model Validator](https://github.com/openactive/data-model-validator).
           labels: |
             automated pr
-          team-reviewers: |
-            owners
-            maintainers
           draft: false
 
       - name: Check outputs
