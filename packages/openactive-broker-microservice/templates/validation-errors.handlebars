@@ -20,6 +20,19 @@
     </div>
   </section>
 
+<pre>
+{{#each profileMeasuresPerFeed }}
+{{{ feedContextIdentifier }}}
+  Total Items: {{{ totalItemCount }}}
+  {{#each profileMeasures }}
+  Profile: {{{ profile }}}
+  {{#each measures }}
+    {{{ measure }}}: {{{ count }}} ({{{ percentage }}}%)
+  {{/each}}
+  {{/each}}
+{{/each}}
+</pre>
+
   <div class="album py-5 bg-light">
     <div class="container">
 

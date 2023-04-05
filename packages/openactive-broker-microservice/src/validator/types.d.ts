@@ -6,6 +6,7 @@ export type ValidatorWorkerResponse = {
   numItemsPerFeed: {
     [feedContextIdentifier: string]: number;
   };
+  profileMeasuresPerFeed: any
 };
 
 export type ValidatorWorkerRequestParsedItem = {
