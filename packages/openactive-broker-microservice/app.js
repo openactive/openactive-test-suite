@@ -232,6 +232,7 @@ async function harvestRPDE({
         json,
         pageIndex: context.pages,
         contentType: response.headers['content-type'],
+        cacheControl: response.headers['cache-control'],
         status: response.status,
         isInitialHarvestComplete,
         isOrdersFeed,

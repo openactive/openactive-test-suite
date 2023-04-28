@@ -14,10 +14,10 @@
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
-    "@openactive/data-model-validator": "^2.0.65",
-    "@openactive/data-models": "^2.0.294",
+    "@openactive/data-model-validator": "^2.0.68",
+    "@openactive/data-models": "^2.0.300",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
-    "@openactive/rpde-validator": "^2.0.9",
+    "@openactive/rpde-validator": "^2.0.16",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "await-semaphore": "^0.1.3",
     "axios": "^0.19.2",

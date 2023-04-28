@@ -3,7 +3,7 @@ name: Update Data Model Dependencies
 on:
   workflow_dispatch:
   repository_dispatch:
-    types: [data-models-update, data-model-validator-update]
+    types: [data-models-update, data-model-validator-update, rpde-validator-update]
 
 jobs:
   generate:
@@ -21,17 +21,17 @@ jobs:
         with:
           node-version: 14.x
         
-      - name: Update openactive-integration-tests with latest data-models
+      - name: Update openactive-integration-tests with latest data-models and validators
         run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-integration-tests/
 
-      - name: Update openactive-broker-microservice with latest data-models
-        run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest --save
+      - name: Update openactive-broker-microservice with latest data-models and validators
+        run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest @openactive/rpde-validator@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-broker-microservice/
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
           path: ./openactive-test-suite/
@@ -46,9 +46,6 @@ jobs:
             Update the OpenActive Test Suite to the latest version of the [OpenActive Vocabulary](https://openactive.io/ns/) (codified by the [Data Models](https://github.com/openactive/data-models)), and the [Data Model Validator](https://github.com/openactive/data-model-validator).
           labels: |
             automated pr
-          team-reviewers: |
-            owners
-            maintainers
           draft: false
 
       - name: Check outputs
