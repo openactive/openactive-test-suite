@@ -103,6 +103,18 @@ async function renderValidationErrorsHtml(validatorWorkerPool) {
       errorKey,
       ...obj,
     })),
+    profileMeasuresPerFeed: [...Object.entries(validatorWorkerPool.getProfileMeasuresPerFeed())].map(([feedContextIdentifier, profileMeasures]) => ({
+      feedContextIdentifier,
+      totalItemCount: profileMeasures.totalItemCount,
+      profileMeasures: [...Object.entries(profileMeasures.profiles)].map(([profile, measures]) => ({
+        profile,
+        measures: [...Object.entries(measures)].map(([measure, count]) => ({
+          measure,
+          count,
+          percentage: Math.round((count / profileMeasures.totalItemCount) * 100),
+        })),
+      })),
+    })),
   });
 }
 
@@ -1474,7 +1486,9 @@ Validation errors found in Dataset Site JSON-LD:
 
 `);
 
-    throw new Error('Unable to read valid JSON-LD from Dataset Site.');
+    // TODO: Set this via an env var or similar
+    // if (continueOnInvalidDatasetSite)
+    // throw new Error('Unable to read valid JSON-LD from Dataset Site.');
   }
 
   // Set global based on data result

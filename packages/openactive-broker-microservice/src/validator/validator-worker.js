@@ -1,4 +1,4 @@
-const { validate } = require('@openactive/data-model-validator');
+const { validateWithMeasures, addMeasures } = require('@openactive/data-model-validator');
 const fs = require('fs').promises;
 const { execPipe, filter, toArray, map } = require('iter-tools');
 const { workerData, parentPort } = require('worker_threads');
@@ -22,10 +22,11 @@ async function run() {
   const numItemsPerFeed = {};
   /** @type {ValidatorWorkerResponse['errors']} */
   const errors = [];
+  const profileMeasuresPerFeed = {};
   for (const { feedContextIdentifier, validationMode, item } of requestParsed) {
     numItemsPerFeed[feedContextIdentifier] = (numItemsPerFeed[feedContextIdentifier] ?? 0) + 1;
 
-    const allOaValidationErrors = await validate(item, {
+    const { errors: allOaValidationErrors, profileMeasures: allOaProfileMeasures } = await validateWithMeasures(item, {
       loadRemoteJson: true,
       remoteJsonCachePath: VALIDATOR_TMP_DIR,
       remoteJsonCacheTimeToLive: 3600,
@@ -42,11 +43,15 @@ async function run() {
       }))),
       toArray);
     errors.push(...newErrors);
+
+    if (!profileMeasuresPerFeed[feedContextIdentifier]) profileMeasuresPerFeed[feedContextIdentifier] = {};
+    addMeasures(profileMeasuresPerFeed[feedContextIdentifier], allOaProfileMeasures);
   }
   /** @type {ValidatorWorkerResponse} */
   const response = {
     errors,
     numItemsPerFeed,
+    profileMeasuresPerFeed,
   };
   parentPort.postMessage(response);
 }

@@ -3,6 +3,7 @@
  *
  * Validator is computationally expensive, so we parallelise the work in order to get Broker up to speed more quickly.
  */
+const { addMeasures } = require('@openactive/data-model-validator');
 const { execPipe, take, toArray, map } = require('iter-tools');
 const { isNil } = require('lodash');
 const fs = require('fs').promises;
@@ -45,6 +46,7 @@ class ValidatorWorkerPool {
      * }>}
      */
     this._validationResults = new Map();
+    this._profileMeasuresPerFeed = {}; // TODO: Convert this to a map
     /**
      * Info that relates to stopping the Validator Worker Pool.
      *
@@ -100,6 +102,10 @@ class ValidatorWorkerPool {
 
   getValidationResults() {
     return this._validationResults;
+  }
+
+  getProfileMeasuresPerFeed() {
+    return this._profileMeasuresPerFeed;
   }
 
   /**
@@ -158,6 +164,7 @@ class ValidatorWorkerPool {
         for (const { opportunityId, error } of message.errors) {
           this._processValidationError(opportunityId, error);
         }
+        this._processProfileMeasures(message.profileMeasuresPerFeed);
         // Inform Broker that some items have been validated (so it can update its progress bars)
         for (const [feedContextIdentifier, numItems] of Object.entries(message.numItemsPerFeed)) {
           this._onValidateItems(feedContextIdentifier, numItems);
@@ -183,6 +190,16 @@ class ValidatorWorkerPool {
       throw new Error(`No onValidateItems callback set for "${feedContextIdentifier}" feed. Remember to call \`setOnValidateItems\` for this feed`);
     }
     callback(numItems);
+  }
+
+  /**
+   * Aggregate the profile measures to minimise memory usage
+   */
+  _processProfileMeasures(profileMeasuresPerFeed) {
+    for (const [feedContextIdentifier, profileMeasures] of Object.entries(profileMeasuresPerFeed)) {
+      if (!this._profileMeasuresPerFeed[feedContextIdentifier]) this._profileMeasuresPerFeed[feedContextIdentifier] = {};
+      addMeasures(this._profileMeasuresPerFeed[feedContextIdentifier], profileMeasures);
+    }
   }
 
   /**

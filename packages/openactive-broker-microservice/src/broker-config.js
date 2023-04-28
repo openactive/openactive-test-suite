@@ -28,8 +28,8 @@ const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
-const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
-const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
+const DO_NOT_FILL_BUCKETS = VALIDATE_ONLY || (config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false);
+const DO_NOT_HARVEST_ORDERS_FEED = VALIDATE_ONLY || (config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false);
 const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
 const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
 
