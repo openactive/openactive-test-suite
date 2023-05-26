@@ -77,6 +77,7 @@ FeatureHelper.describeFeature(module, {
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
       opportunityFeedExtractResponses: secondAttemptC2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
     }),
+    paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
   });
 
   // # Set up Tests

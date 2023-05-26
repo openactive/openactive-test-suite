@@ -1,10 +1,5 @@
-export type Criteria = {
-    name: string;
-    opportunityConstraints: [string, import("../../types/Criteria").OpportunityConstraint][];
-    offerConstraints: [string, import("../../types/Criteria").OfferConstraint][];
-    testDataShape: import("../../types/Criteria").TestDataShapeFactory;
-};
-export type OpportunityConstraint = (opportunity: import("../../types/Opportunity").Opportunity, options?: import("../../types/Options").Options) => boolean;
+export type Criteria = import('../../types/Criteria').Criteria;
+export type OpportunityConstraint = import('../../types/Criteria').OpportunityConstraint;
 /**
  * Useful base constraints for future opportunities.
  *

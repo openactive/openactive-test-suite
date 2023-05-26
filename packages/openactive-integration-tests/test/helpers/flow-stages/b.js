@@ -37,9 +37,24 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {RequestHelperType} args.requestHelper
  * @param {string | null} args.brokerRole
  * @param {PositionOrderIntakeFormMap} args.positionOrderIntakeFormMap
+ * @param {string} args.paymentIdentifierIfPaid
  * @returns {Promise<Output>}
  */
-async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, customer, orderItems, totalPaymentDue, prepayment, orderProposalVersion, requestHelper, positionOrderIntakeFormMap }) {
+async function runB({
+  templateRef,
+  accessPass,
+  brokerRole,
+  uuid,
+  sellerConfig,
+  customer,
+  orderItems,
+  totalPaymentDue,
+  prepayment,
+  orderProposalVersion,
+  requestHelper,
+  positionOrderIntakeFormMap,
+  paymentIdentifierIfPaid,
+}) {
   /** @type {BReqTemplateData} */
   const params = {
     orderType: 'Order',
@@ -52,6 +67,7 @@ async function runB({ templateRef, accessPass, brokerRole, uuid, sellerConfig, c
     brokerRole,
     positionOrderIntakeFormMap,
     customer,
+    paymentIdentifier: paymentIdentifierIfPaid,
   };
   const response = await requestHelper.putOrder(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -81,8 +97,23 @@ class BFlowStage extends FlowStage {
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
    * @param {Customer} [args.customer]
+   * @param {string} args.paymentIdentifierIfPaid This Payment Identifier will be used if this is a paid
+   *   booking. Otherwise, it won't be. This is specified as an arg to allow for consistency between idempotent
+   *   B calls.
    */
-  constructor({ templateRef, accessPass, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig, customer }) {
+  constructor({
+    templateRef,
+    accessPass,
+    brokerRole,
+    prerequisite,
+    getInput,
+    logger,
+    requestHelper,
+    uuid,
+    sellerConfig,
+    customer,
+    paymentIdentifierIfPaid,
+  }) {
     super({
       prerequisite,
       getInput,
@@ -102,6 +133,7 @@ class BFlowStage extends FlowStage {
           orderProposalVersion,
           requestHelper,
           positionOrderIntakeFormMap,
+          paymentIdentifierIfPaid,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp201SuccessChecks(),

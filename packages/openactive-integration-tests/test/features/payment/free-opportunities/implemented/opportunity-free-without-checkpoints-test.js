@@ -1,3 +1,4 @@
+const { omit } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
@@ -12,18 +13,22 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableFree',
   // This must also be TestOpportunityBookableFree as the entire Order must be free.
   controlOpportunityCriteria: 'TestOpportunityBookableFree',
-}, (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
-  const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput, bookRecipeGetAssertOpportunityCapacityInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
-  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(orderItemCriteriaList, bookRecipe, defaultFlowStageParams, {
-    getFirstStageInput: bookRecipeGetFirstStageInput,
-    getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
-  });
+}, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const {
+    fetchOpportunities,
+    bookRecipe,
+    defaultFlowStageParams,
+    bookRecipeArgs,
+  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
+  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(
+    orderItemCriteriaList,
+    bookRecipe,
+    defaultFlowStageParams,
+    omit(bookRecipeArgs, ['prerequisite']),
+  );
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  // Remove this condition once https://github.com/openactive/OpenActive.Server.NET/issues/100 is fixed.
-  if (bookingFlow === 'OpenBookingApprovalFlow') {
-    describe('idempotent repeat B', () => {
-      FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
-    });
-  }
+  describe('idempotent repeat B', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
+  });
 });

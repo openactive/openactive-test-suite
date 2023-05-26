@@ -41,6 +41,7 @@ FeatureHelper.describeFeature(module, {
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const paymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
   const p = new PFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),
@@ -49,6 +50,7 @@ FeatureHelper.describeFeature(module, {
       totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
       prepayment: c2.getStage('c2').getOutput().prepayment,
     }),
+    paymentIdentifierIfPaid,
   });
   const [simulateSellerAmendment, sellerAmendmentOrderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
     // FlowStage that is getting wrapped
@@ -102,6 +104,7 @@ FeatureHelper.describeFeature(module, {
         orderProposalVersion: p.getOutput().orderProposalVersion,
         prepayment: p.getOutput().prepayment,
       }),
+      paymentIdentifierIfPaid,
     },
   });
   // Using the new proposal version should fail
@@ -116,6 +119,7 @@ FeatureHelper.describeFeature(module, {
         orderProposalVersion: sellerAmendmentOrderFeedUpdate.getOutput().orderProposalVersion,
         prepayment: sellerAmendmentOrderFeedUpdate.getOutput().prepayment,
       }),
+      paymentIdentifierIfPaid,
     },
   });
 

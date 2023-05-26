@@ -8,17 +8,20 @@
     "start": "node start.js",
     "debug": "node --inspect start.js -- --runInBand",
     "start-broker": "cd packages/openactive-broker-microservice && npm start",
+    "start-broker-with-auto-restart": "cd packages/openactive-broker-microservice && npm run auto-restart",
     "validate-feeds": "cd packages/openactive-broker-microservice && npm run validate-feeds",
     "start-tests": "cd packages/openactive-integration-tests && npm start",
     "install-broker": "cd packages/openactive-broker-microservice && npm install",
     "install-interface-criteria": "cd packages/test-interface-criteria && npm install",
-    "install-openid-client": "cd packages/openactive-openid-test-client && npm install",
+    "install-openid-client": "cd packages/openactive-openid-client && npm install",
+    "install-openid-browser-automation": "cd packages/openactive-openid-browser-automation && npm install",
+    "install-openid-test-cli": "cd packages/openactive-openid-test-cli && npm install",
     "install-tests": "cd packages/openactive-integration-tests && npm install",
-    "install": "npm run install-broker && npm run install-tests && npm run install-interface-criteria && npm run install-openid-client",
+    "install": "npm run install-interface-criteria && npm run install-openid-client && npm run install-openid-browser-automation && npm run install-openid-test-cli && npm run install-broker && npm run install-tests",
     "test-broker": "cd packages/openactive-broker-microservice && npm test",
     "test-interface-criteria": "cd packages/test-interface-criteria && npm test",
     "test-tests": "cd packages/openactive-integration-tests && npm test",
-    "test-openid-client": "cd packages/openactive-openid-test-client && npm test",
+    "test-openid-client": "(cd packages/openactive-openid-client && npm test); (cd packages/openactive-openid-browser-automation && npm test); (cd packages/openactive-openid-test-cli && npm test)",
     "test": "npm run test-broker && npm run test-interface-criteria && npm run test-openid-client && npm run test-tests",
     "lint-fix-broker": "cd packages/openactive-broker-microservice && npm run lint-fix",
     "lint-fix-interface-criteria": "cd packages/test-interface-criteria && npm run lint-fix",
@@ -32,10 +35,10 @@
     "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types",
     "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types",
     "test-data-generator": "cd packages/openactive-integration-tests && npm run test-data-generator",
-    "gen-openid-client-types": "cd packages/openactive-openid-test-client && npm run gen-types",
-    "git-add-newly-generated-openid-client-types": "git add packages/openactive-openid-test-client/built-types",
+    "gen-openid-client-types": "(cd packages/openactive-openid-client && npm run gen-types); (cd packages/openactive-openid-browser-automation && npm run gen-types); (cd packages/openactive-openid-test-cli && npm run gen-types)",
+    "git-add-newly-generated-openid-client-types": "git add packages/openactive-openid-client/built-types; git add packages/openactive-openid-browser-automation/built-types; git add packages/openactive-openid-test-cli/built-types",
     "gen-and-git-add-everything": "npm run gen-interface-criteria-types && npm run git-add-newly-generated-interface-criteria-types && npm run gen-openid-client-types && npm run git-add-newly-generated-openid-client-types && npm run doc-gen && npm run git-add-newly-generated-integration-test-docs",
-    "clean-install": "npx rimraf ./**/node_modules",
+    "clean-install": "npx rimraf -g ./**/node_modules",
     "update-test-suite": "npm run clean-install && git fetch --all && git reset --hard origin/master && git clean -f -d && npm install"
   },
   "dependencies": {
@@ -44,7 +47,7 @@
     "node-cleanup": "^2.1.2"
   },
   "engines": {
-    "node": "14.16.0"
+    "node": "18.17.1"
   },
   "devDependencies": {
     "husky": "^4.2.5"

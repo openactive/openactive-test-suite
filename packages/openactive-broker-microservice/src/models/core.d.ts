@@ -2,7 +2,7 @@ import { SingleBar } from 'cli-progress';
 
 export type OrderFeedType = 'orders' | 'order-proposals';
 export type OrderFeedIdentifier = 'OrdersFeed' | 'OrderProposalsFeed';
-export type BookingPartnerIdentifier = 'primary' | 'secondary';
+export type BookingPartnerIdentifier = string;
 
 export type FeedContext = {
   currentPage: string;

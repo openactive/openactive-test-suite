@@ -2,7 +2,7 @@ name: Code Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ feature/docker-and-package-upgrades ]
   pull_request:
     branches: [ master ]
 
@@ -14,10 +14,10 @@ jobs:
     steps:
     - name: Checkout OpenActive Test Suite
       uses: actions/checkout@v2
-    - name: Setup Node.js 14.x
+    - name: Setup Node.js 18.17.1
       uses: actions/setup-node@v1
       with:
-        node-version: 14.x
+        node-version: 18.17.1
     - name: Install OpenActive Test Suite
       run: npm install
     - name: Run Checks on the Code (Test the Tests!)

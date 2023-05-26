@@ -1,8 +1,8 @@
 /**
  * Configuration used throughout Broker.
  */
-const config = require('config');
 const path = require('path');
+const config = require('config');
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -25,6 +25,11 @@ const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
 /** @type {import('./models/core').OrderFeedIdentifier} */
 const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
+const BOOKING_PARTNER_IDENTIFIERS = Object.entries(config.get('broker.bookingPartners')).map(([key, value]) => {
+  if (value) return key;
+  return null;
+}).filter(Boolean);
+
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
 const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
@@ -40,7 +45,7 @@ const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('
 };
 const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
 
-const HEADLESS_AUTH = true;
+const HEADLESS_AUTH = config.has('broker.headlessAuth') ? config.get('broker.headlessAuth') : true;
 
 /** Directory for Validator remote JSON cache (https://github.com/openactive/data-model-validator#remotejsoncachepath) */
 const VALIDATOR_TMP_DIR = './tmp';
@@ -92,4 +97,5 @@ module.exports = {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
   VALIDATOR_INPUT_TMP_DIR,
+  BOOKING_PARTNER_IDENTIFIERS,
 };

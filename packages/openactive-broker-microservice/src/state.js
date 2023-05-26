@@ -1,4 +1,4 @@
-const { OpenActiveTestAuthKeyManager } = require('@openactive/openactive-openid-test-client');
+const { OpenActiveTestAuthKeyManager } = require('@openactive/openactive-openid-client');
 const config = require('config');
 const { TwoPhaseListeners: Listeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const PauseResume = require('./util/pause-resume');
@@ -107,6 +107,7 @@ const state = {
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
   parentOpportunityMap: new Map(),
   parentOpportunityRpdeMap: new Map(),
+  parentOpportunitySubEventMap: new Map(),
   opportunityMap: new Map(),
   opportunityRpdeMap: new Map(),
   rowStoreMap: new Map(),

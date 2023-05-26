@@ -209,6 +209,19 @@ const shapeConstraintRecipes = {
   mustAllowFullRefund: () => ({
     'oa:allowCustomerCancellationFullRefund': TRUE_BOOLEAN_CONSTRAINT,
   }),
+  mustBeWithinCancellationWindowOrHaveNoWindow: () => ({
+    'oa:latestCancellationBeforeStartDate': BLOCKED_FIELD,
+  }),
+  onlyNonFreeBookableOffers: () => ({
+    'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+  }),
+  onlyFreeBookableOffersWithUnavailablePrepayment: () => ({
+    'schema:price': FREE_PRICE_QUANTITATIVE_VALUE,
+    'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
+      allowlist: ['https://openactive.io/Unavailable'],
+      allowNull: true,
+    }),
+  }),
 };
 
 module.exports = {
