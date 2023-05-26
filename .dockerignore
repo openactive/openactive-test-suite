@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+
+# All except default config
+**/config/*
+!**/config/default.json
+!**/config/default-ci.json
+!**/config/default-dev.json
+!**/config/default-framework.json
+!**/config/.example.*.json
