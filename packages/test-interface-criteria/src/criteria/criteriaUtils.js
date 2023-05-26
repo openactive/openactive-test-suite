@@ -3,6 +3,7 @@ const { isObject, cloneDeep } = require('lodash');
 const { DateTime, Duration } = require('luxon');
 
 /**
+ * @typedef {import('luxon').DateTime} DateTime
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
  * @typedef {import('../types/Options').Options} Options
@@ -395,6 +396,11 @@ function mustAllowFullRefund(offer) {
   return offer.allowCustomerCancellationFullRefund === true;
 }
 
+const mustAllowFullRefundOfferConstraint = createCriteriaOfferConstraint(
+  'Offer must be fully refundable on customer cancellation, with `"allowCustomerCancellationFullRefund": true`',
+  mustAllowFullRefund,
+);
+
 /**
  * @type {OfferConstraint}
  */
@@ -453,6 +459,18 @@ function excludePaidBookableOffersWithPrepaymentUnavailable(offer) {
   return !(offer.price > 0 && offer.openBookingPrepayment === 'https://openactive.io/Unavailable');
 }
 
+/**
+ * @param {string} name
+ * @param {OfferConstraint} constraint
+ * @returns {Criteria['offerConstraints'][number]}
+ */
+function createCriteriaOfferConstraint(name, constraint) {
+  // It's frozen so that it may be easily used in multiple criteria without the possibility of
+  // erroneous mutation in one criteria affecting all others.
+  // In a later version of TS, just use `const` rather than `any`
+  return Object.freeze(/** @type {any} */([name, constraint]));
+}
+
 module.exports = {
   createCriteria,
   getId,
@@ -474,9 +492,11 @@ module.exports = {
   mustBeOutsideCancellationWindow,
   mustNotAllowFullRefund,
   mustAllowFullRefund,
+  mustAllowFullRefundOfferConstraint,
   mustRequireAdditionalDetails,
   mustNotRequireAdditionalDetails,
   sellerMustAllowOpenBooking,
   excludePaidBookableOffersWithPrepaymentUnavailable,
   extendTestDataShape,
+  createCriteriaOfferConstraint,
 };

@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         mode: ['random', 'controlled']
-        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation', 'prepayment-always-required']
+        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation', 'prepayment-always-required', 'facilityuse-has-slots']
         flow: ['simple', 'approval']
         include:
         - mode: 'random'
@@ -48,10 +48,10 @@ jobs:
       with:
         dotnet-version: 3.1.419
 
-    - name: Setup Node.js 14.x
+    - name: Setup Node.js 18.17.1
       uses: actions/setup-node@v1
       with:
-        node-version: 14.x
+        node-version: 18.17.1
 
     - name: Install OpenActive.Server.NET dependencies
       run: dotnet restore ./server/

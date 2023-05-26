@@ -42,8 +42,8 @@
     "additionalReporters": [],
     "bookableOpportunityTypesInScope": {
       "ScheduledSession": true,
-      "FacilityUseSlot": true,
-      "IndividualFacilityUseSlot": false,
+      "IndividualFacilityUseSlot": true,
+      "FacilityUseSlot": false,
       "CourseInstance": false,
       "CourseInstanceSubEvent": false,
       "HeadlineEvent": false,
