@@ -17,12 +17,9 @@ inputs:
     description: 'Value of NODE_APP_INSTANCE environment variable to pass into OpenActive Test Suite'
     required: false
     default: ''
-outputs:
-  time: # id of output
-    description: 'The time we greeted you'
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/openactive/test-suite:feature-docker'
+  image: 'docker://ghcr.io/openactive/test-suite:latest'
   args:
     - ${{ inputs.args }}
   env:
@@ -30,4 +27,3 @@ runs:
     NODE_CONFIG: ${{ inputs.NODE_CONFIG }}
     NODE_ENV: ${{ inputs.NODE_ENV }}
     NODE_APP_INSTANCE: ${{ inputs.NODE_APP_INSTANCE }}
-    
