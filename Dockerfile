@@ -32,7 +32,7 @@ COPY packages/test-interface-criteria/package*.json /openactive-test-suite/packa
 RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 
 # Bundle app source
-COPY . .
+COPY . /openactive-test-suite/
 
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
