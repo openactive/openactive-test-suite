@@ -1,8 +1,5 @@
 FROM node:14-alpine
 
-# Create app directory
-WORKDIR /openactive-test-suite
-
 # Installs latest Chromium package
 RUN apk update && \
     apk add --no-cache \
@@ -25,18 +22,18 @@ ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-gpu"
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
-COPY package*.json ./
-COPY packages/openactive-broker-microservice/package*.json ./packages/openactive-broker-microservice/
-COPY packages/openactive-integration-tests/package*.json ./packages/openactive-integration-tests/
-COPY packages/openactive-openid-test-client/package*.json ./packages/openactive-openid-test-client/
-COPY packages/test-interface-criteria/package*.json ./packages/test-interface-criteria/
+COPY package*.json /openactive-test-suite/
+COPY packages/openactive-broker-microservice/package*.json /openactive-test-suite/packages/openactive-broker-microservice/
+COPY packages/openactive-integration-tests/package*.json /openactive-test-suite/packages/openactive-integration-tests/
+COPY packages/openactive-openid-test-client/package*.json /openactive-test-suite/packages/openactive-openid-test-client/
+COPY packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
 
 # Set unsafe-perm to true to allow install scripts to run
-RUN npm config set unsafe-perm true
-RUN npm install
+RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 
 # Bundle app source
 COPY . .
 
 EXPOSE 3000
-ENTRYPOINT ["npm", "start"]
+## Specify the working directory explicitly as GitHub Actions will overwrite it
+ENTRYPOINT cd /openactive-test-suite && npm start
