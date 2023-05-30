@@ -22,7 +22,7 @@ outputs:
     description: 'The time we greeted you'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'ghcr.io/openactive/test-suite:feature-docker'
   args:
     - ${{ inputs.args }}
   env:
