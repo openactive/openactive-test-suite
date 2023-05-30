@@ -157,6 +157,8 @@ jobs:
             org.opencontainers.image.title=OpenActive Test Suite
             org.opencontainers.image.description=Test suite for OpenActive data publishing and Open Booking API implementations
             org.opencontainers.image.vendor=OpenActive
+          tags: |
+            latest
 
       - name: Build and push Docker image for OpenActive Test Suite
         uses: docker/build-push-action@v4
