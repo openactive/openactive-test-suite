@@ -148,7 +148,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Booking System
+      - name: Extract metadata (tags, labels) for OpenActive Test Suite
         id: meta
         uses: docker/metadata-action@v4
         with:
@@ -158,7 +158,7 @@ jobs:
             org.opencontainers.image.description=Test suite for OpenActive data publishing and Open Booking API implementations
             org.opencontainers.image.vendor=OpenActive
 
-      - name: Build and push Docker image for Booking System
+      - name: Build and push Docker image for OpenActive Test Suite
         uses: docker/build-push-action@v4
         with:
           context: .

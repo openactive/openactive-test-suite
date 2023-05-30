@@ -1,7 +1,7 @@
 FROM node:14-alpine
 
 # Create app directory
-WORKDIR /openactive
+WORKDIR /openactive-test-suite
 
 # Installs latest Chromium package
 RUN apk update && \
