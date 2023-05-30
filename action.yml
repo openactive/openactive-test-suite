@@ -5,6 +5,10 @@ inputs:
     description: 'Arguments to pass to `npm start` of OpenActive Test Suite'
     required: false
     default: ''
+  config:  # id of input
+    description: 'The path of a config file to copy into ./config/ of OpenActive Test Suite'
+    required: false
+    default: ''
   NODE_CONFIG:  # id of input
     description: 'JSON configuration string to pass into OpenActive Test Suite'
     required: true

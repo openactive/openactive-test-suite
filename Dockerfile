@@ -1,5 +1,7 @@
 FROM node:14-alpine
 
+# Note WORKDIR must not be used for images that are used by GitHub Actions, as it will be overwritten
+
 # Installs latest Chromium package
 RUN apk update && \
     apk add --no-cache \
@@ -28,7 +30,7 @@ COPY packages/openactive-integration-tests/package*.json /openactive-test-suite/
 COPY packages/openactive-openid-test-client/package*.json /openactive-test-suite/packages/openactive-openid-test-client/
 COPY packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
 
-# Set unsafe-perm to true to allow install scripts to run
+# Set unsafe-perm to true to allow npm `install` scripts to run
 RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 
 # Bundle app source
@@ -36,4 +38,5 @@ COPY . /openactive-test-suite/
 
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
-ENTRYPOINT cd /openactive-test-suite && npm start
+## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
+ENTRYPOINT ( ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) || true ) && cd /openactive-test-suite && npm start

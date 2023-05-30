@@ -133,6 +133,24 @@ npm start
 
 Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
+### GitHub Actions
+
+TODO: Improve README
+
+When using GitHub Actions, setting output directories to `/github/workspace/output` in `NODE_ENV` allows these files to be accessed by subsequent actions.
+
+### Docker
+
+TODO: Improve README
+
+When using `docker run` locally, ensure that you specify `-t` to get the full interactive test suite experience.
+
+For example: `docker run -t ghcr.io/openactive/test-suite:latest -- core` is the equivalent of `npm start -- core`.
+
+When using Docker in CI, ensure that `"ci": true`.
+
+When using a hostname other than `localhost` for your booking system, it must included at least one `.` to pass the validator.
+
 ## Test Data Requirements
 
 In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
