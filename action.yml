@@ -30,3 +30,4 @@ runs:
     NODE_CONFIG: ${{ inputs.NODE_CONFIG }}
     NODE_ENV: ${{ inputs.NODE_ENV }}
     NODE_APP_INSTANCE: ${{ inputs.NODE_APP_INSTANCE }}
+    
