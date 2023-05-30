@@ -52,9 +52,12 @@ async function addScreenshot(page, title, context) {
  * @param {Context} args.context
  */
 async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelectors, username, password, context }) {
+  // Get CHROMIUM_FLAGS from environment variable
+  const chromiumFlags = process.env.CHROMIUM_FLAGS ? process.env.CHROMIUM_FLAGS.split(' ') : [];
   const browser = await puppeteer.launch({
     headless,
     ignoreHTTPSErrors: true,
+    args: chromiumFlags,
   });
   const page = await browser.newPage();
   try {
