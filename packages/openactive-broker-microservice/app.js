@@ -1084,14 +1084,87 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 
   for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
-    if (item.state === 'deleted') {
-      const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
-      state.parentOpportunityMap.delete(jsonLdId);
-      state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
-    } else {
+
+    if (item.state !== 'deleted') {
       const jsonLdId = item.data['@id'] || item.data.id;
+
       state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.parentOpportunityMap.set(jsonLdId, item.data);
+
+      // If there are subEvents then we have a basic "small provider" SessionSeries feed. This is not
+      // recommended, but we support it anyway here. We do this by converting each of the embedded
+      // subEvents to its own opportunityItem, taking information from the subEvent itself as well as
+      // from the item in which it is embedded. This mimics the way that the event would be seen in a
+      // ScheduledSession feed.
+      if (item.data.subEvent) {
+        for (const subEvent of item.data.subEvent) {
+          // Having an ID is crucial for dealing with subEvents, as it is needed to assess whether or not to
+          // keep or delete the associated opportunityItem when this item is met again in the RPDE feed. If a
+          // subEvent does not have an ID, then we don't make and store an opportunityItem at all, just skip
+          // it and move on. This issue will still be discovered later in the RPDE feed check, and alert the
+          // user without a harsh process exit.
+          if ((subEvent['@id'] || subEvent.id) && (subEvent['@type'] || subEvent.type)) {
+            const opportunityItemData = {
+              ...subEvent,
+            };
+            opportunityItemData['@context'] = item.data['@context'];
+            opportunityItemData.superEvent = item.data['@id'] || item.data.id;
+
+            const opportunityItem = {
+              id: subEvent['@id'] || subEvent.id,
+              modified: item.modified,
+              kind: subEvent['@type'] || subEvent.type,
+              state: 'updated',
+              data: opportunityItemData,
+            };
+
+            storeOpportunityItem(opportunityItem);
+          }
+        }
+
+        // As the subEvents don't have their own individual "state" fields showing whether or not they are
+        // "updated" or "deleted", we have to infer this from whether or not they were present when this
+        // item was last encountered. In order to do so, we keep a list of the subEvent IDs mapped to the
+        // jsonLdId of the containing item in "parentOpportunitySubEventMap". If an old subEvent is not
+        // present in the list of new subEvents, then it has been deleted and so we remove the associated
+        // opportunityItem data. If a new subEvent is not present in the list of old subEvents, then we
+        // record its ID in the list for the next time this check is done.
+
+        const oldSubEventIds = state.parentOpportunitySubEventMap.get(jsonLdId);
+        const newSubEventIds = item.data.subEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
+
+        if (!oldSubEventIds) {
+          if (newSubEventIds.length > 0) {
+            state.parentOpportunitySubEventMap.set(jsonLdId, newSubEventIds);
+          }
+        } else {
+          for (const subEventId of oldSubEventIds) {
+            if (!newSubEventIds.includes(subEventId)) {
+              deleteOpportunityItem(subEventId);
+              state.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
+            }
+          }
+          for (const subEventId of newSubEventIds) {
+            if (!oldSubEventIds.includes(subEventId)) {
+              state.parentOpportunitySubEventMap.get(jsonLdId).push(subEventId);
+            }
+          }
+        }
+      }
+    } else {
+      const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
+
+      // If we had subEvents for this item, then we must be sure to delete the associated opportunityItems
+      // that were made for them:
+      if (state.parentOpportunitySubEventMap.get(jsonLdId)) {
+        for (const subEventId of state.parentOpportunitySubEventMap.get(jsonLdId)) {
+          deleteOpportunityItem(subEventId);
+        }
+      }
+
+      state.parentOpportunityRpdeMap.delete(feedItemIdentifier);
+      state.parentOpportunityMap.delete(jsonLdId);
+      state.parentOpportunitySubEventMap.delete(jsonLdId);
     }
   }
 
