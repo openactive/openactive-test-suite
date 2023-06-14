@@ -36,18 +36,19 @@ RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 # Bundle app source
 COPY . /openactive-test-suite/
 
-RUN echo "root:P2sswrd!!!" | chpasswd
-RUN mkdir -p /root/.ssh
-RUN chmod 0700 /root/.ssh
-RUN apk add openrc openssh
-RUN ssh-keygen -A
-RUN sed -i 's/prohibit-password/yes/' /etc/ssh/sshd_config
-RUN echo 'StrictHostKeyChecking=no' >> /etc/ssh/ssh_config
-RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
-RUN mkdir -p /run/openrc
-RUN touch /run/openrc/softlevel
+# RUN echo "root:P2sswrd!!!" | chpasswd
+# RUN mkdir -p /root/.ssh
+# RUN chmod 0700 /root/.ssh
+# RUN apk add openrc openssh
+# RUN ssh-keygen -A
+# RUN sed -i 's/prohibit-password/yes/' /etc/ssh/sshd_config
+# RUN echo 'StrictHostKeyChecking=no' >> /etc/ssh/ssh_config
+# RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+# RUN mkdir -p /run/openrc
+# RUN touch /run/openrc/softlevel
 
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
 ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
-ENTRYPOINT rc-status; rc-service sshd start; echo 'IP Address:'; hostname -i; echo 'Hostname:'; hostname; echo 'Hostname (full):'; hostname -f; echo 'Hostname (short):'; hostname -s; echo 'Starting...'; ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start ; sleep 60m
+ENTRYPOINT ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start
+# ENTRYPOINT rc-status; rc-service sshd start; echo 'IP Address:'; hostname -i; echo 'Hostname:'; hostname; echo 'Hostname (full):'; hostname -f; echo 'Hostname (short):'; hostname -s; echo 'Starting...'; ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start ; sleep 60m
