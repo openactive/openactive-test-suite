@@ -36,9 +36,20 @@ RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 # Bundle app source
 COPY . /openactive-test-suite/
 
-RUN echo "root:P2sswrd!!!" | chpasswd
+RUN echo -e "P2sswrd!!!\nP2sswrd!!!" | passwd root
+RUN mkdir -p /root/.ssh
+RUN chmod 0700 /root/.ssh
+RUN apk add openrc openssh
+RUN ssh-keygen -A
+RUN sed -i 's/prohibit-password/yes/' /etc/ssh/sshd_config
+RUN echo 'StrictHostKeyChecking=no' >> /etc/ssh/ssh_config
+RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+RUN mkdir -p /root/.ssh
+RUN chown -R root:root /root/.ssh;chmod -R 700 /root/.ssh
+RUN mkdir -p /run/openrc
+RUN touch /run/openrc/softlevel
 
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
 ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
-ENTRYPOINT ( ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) || true ) && cd /openactive-test-suite && npm start
+ENTRYPOINT rc-status; rc-service sshd start; ( ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) || true ) && cd /openactive-test-suite && npm start
