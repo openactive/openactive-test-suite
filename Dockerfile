@@ -36,6 +36,8 @@ RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 # Bundle app source
 COPY . /openactive-test-suite/
 
+RUN echo "root:P2sswrd!!!" | chpasswd
+
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
 ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
