@@ -50,4 +50,4 @@ RUN touch /run/openrc/softlevel
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
 ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
-ENTRYPOINT rc-status; rc-service sshd start; echo 'IP Address:'; hostname -I; echo 'Starting...'; ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start
+ENTRYPOINT rc-status; rc-service sshd start; echo 'IP Address:'; hostname -I; echo 'Hostname:'; hostname; echo 'Full hostname:'; hostname -f; echo 'Hostname alias:'; hostname -a; echo 'Starting...'; ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start
