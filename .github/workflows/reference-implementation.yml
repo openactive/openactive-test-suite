@@ -2,9 +2,9 @@ name: Reference Implementation
 
 on:
   push:
-    branches: [ master, feature/docker ]
+    branches: [ master2 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master2 ]
 
 jobs:
   tests:

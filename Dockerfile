@@ -1,19 +1,16 @@
-FROM node:14
+FROM node:14-alpine
 
 # Note WORKDIR must not be used for images that are used by GitHub Actions, as it will be overwritten
 
-# Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
-# Note: this installs the necessary libs to make the bundled version of Chrome that Puppeteer
-# installs, work.
-RUN apt-get update \
-    && apt-get install -y wget gnupg \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
-    && sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf libxss1 \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser
+# Installs latest Chromium package
+RUN apk update && \
+    apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
 
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
@@ -39,7 +36,18 @@ RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
 # Bundle app source
 COPY . /openactive-test-suite/
 
+RUN echo "root:P2sswrd!!!" | chpasswd
+RUN mkdir -p /root/.ssh
+RUN chmod 0700 /root/.ssh
+RUN apk add openrc openssh
+RUN ssh-keygen -A
+RUN sed -i 's/prohibit-password/yes/' /etc/ssh/sshd_config
+RUN echo 'StrictHostKeyChecking=no' >> /etc/ssh/ssh_config
+RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+RUN mkdir -p /run/openrc
+RUN touch /run/openrc/softlevel
+
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
 ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
-ENTRYPOINT ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start
+ENTRYPOINT rc-status; rc-service sshd start; ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start
