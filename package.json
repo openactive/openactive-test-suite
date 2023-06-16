@@ -8,6 +8,7 @@
     "start": "node start.js",
     "debug": "node --inspect start.js -- --runInBand",
     "start-broker": "cd packages/openactive-broker-microservice && npm start",
+    "start-broker-with-auto-restart": "cd packages/openactive-broker-microservice && npm run auto-restart",
     "validate-feeds": "cd packages/openactive-broker-microservice && npm run validate-feeds",
     "start-tests": "cd packages/openactive-integration-tests && npm start",
     "install-broker": "cd packages/openactive-broker-microservice && npm install",
