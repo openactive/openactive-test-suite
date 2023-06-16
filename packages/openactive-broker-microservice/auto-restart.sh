@@ -4,6 +4,5 @@
 
 while true; do
     npm start
-    echo "openactive-broker-microservice exited with status $?. Restarting in 10 seconds..."
-    sleep 10
+    echo "openactive-broker-microservice exited with status $?. Restarting..."
 done
