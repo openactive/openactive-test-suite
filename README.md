@@ -151,6 +151,14 @@ When using Docker in CI, ensure that `"ci": true`.
 
 When using a hostname other than `localhost` for your booking system, it must included at least one `.` to pass the validator.
 
+`host.docker.internal` must be the host to access your booking system locally if it is not running in another Docker container. This hostname must also be used within `dev.json`.
+
+If your config is `./config/dev.json` and there's an output dir `./output/`, then the following will run test suite for "core" tests:
+
+`docker run -t -e INPUT_CONFIG=/config/dev.json -e NODE_ENV=dev -p 3000:3000 -v ${PWD}/config:/config -v ${PWD}/output:/output ghcr.io/openactive/test-suite:latest -- core`
+
+
+
 ## Test Data Requirements
 
 In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
