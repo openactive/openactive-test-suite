@@ -945,7 +945,7 @@ function detectOpportunityBookingFlows(opportunity) {
       opportunity['@id']
     }) has no offers in self or in superEvent/facilityUse (ID: ${
       opportunity.superEvent?.['@id'] || opportunity.facilityUse?.['@id']
-    })`);
+    }). This means that it is not usable by the Broker Microservice`);
     return [];
   }
 
@@ -1792,6 +1792,10 @@ async function sendItemsToValidatorWorkerPool({
   addToTotalItemsQueuedForValidation,
 }, items) {
   if (isInitialHarvestComplete()) { return; }
+  /* When re-harvesting the feed frequently during development, this can speed up the process. However, note
+  that leaving this on may allow Broker to miss some critical issues which will cause confusing errors later down
+  the line */
+  if (process.env.DEBUG_BROKER_NO_VALIDATE === 'true') { return; }
   const numItemsQueuedForValidation = await createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, items);
   addToTotalItemsQueuedForValidation(numItemsQueuedForValidation);
 }

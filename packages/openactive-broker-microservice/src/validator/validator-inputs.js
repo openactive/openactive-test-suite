@@ -64,12 +64,6 @@ async function cleanUpValidatorInputs() {
  */
 async function createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, items) {
   const updatedItems = items.filter((item) => item.state === 'updated');
-  /* When re-harvesting the feed frequently during development, this can speed up the process. However, note
-  that leaving this on may allow Broker to miss some critical issues which will cause confusing errors later down
-  the line */
-  if (process.env.DEBUG_BROKER_NO_VALIDATE === 'true') {
-    return updatedItems.length;
-  }
   const validatorInputs = itertools.execPipe(updatedItems,
     itertools.map((item) => /** @type {import('./types').ValidatorWorkerRequestParsedItem} */({
       item: item.data,
