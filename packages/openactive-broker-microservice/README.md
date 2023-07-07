@@ -101,24 +101,50 @@ For private test environments with opportunity feeds that require authentication
   }
 ```
 
-### `datasetDistributionOverride`
+### `datasetOverride`
 
-For test environments that do not yet include a Dataset Site, data feeds may be manually configured. Note that in order to be considered "OpenActive Enabled" and to conform to the Open Booking API, a Dataset Site must be made available in production.
+For test environments that do not yet include a Dataset Site, dataset JSON may be manually configured. Note that in order to be considered "OpenActive Enabled" and to conform to the Open Booking API, a Dataset Site must be made available in production.
 
 ```json
-  "datasetDistributionOverride": [
-    {
-      "@type": "DataDownload",
-      "additionalType": "https://openactive.io/ScheduledSession",
-      "contentUrl": "https://api.example.com/feeds/scheduled-sessions"
+  "datasetOverride": {
+    "@context": [
+      "https://schema.org/",
+      "https://openactive.io/"
+    ],
+    "@type": "Dataset",
+    "@id": "https://opendata.acme-leisure.com/OpenActive/",
+    "url": "https://opendata.acme-leisure.com/OpenActive/",
+    "name": "Acme Leisure Sessions and Facilities",
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "distribution": [
+      {
+        "@type": "DataDownload",
+        "name": "ScheduledSession",
+        "additionalType": "https://openactive.io/ScheduledSession",
+        "contentUrl": "https://www.example.com/feeds/scheduled-sessions",
+        "encodingFormat": "application/vnd.openactive.rpde+json; version=1",
+        "identifier": "ScheduledSession"
+      },
+      {
+        "@type": "DataDownload",
+        "name": "SessionSeries",
+        "additionalType": "https://openactive.io/SessionSeries",
+        "contentUrl": "https://www.example.com/feeds/session-series",
+        "encodingFormat": "application/vnd.openactive.rpde+json; version=1",
+        "identifier": "SessionSeries"
+      },
+      // ....
+    ],
+    "accessService": {
+      "@type": "WebAPI",
+      "name": "Open Booking API",
+      // ...
     },
-    {
-      "@type": "DataDownload",
-      "additionalType": "https://openactive.io/SessionSeries",
-      "contentUrl": "https://api.example.com/feeds/session-series"
-    }
-  ]
+    // ...
+  }
 ```
+
+`datasetOverride` must be a valid `Dataset` object. See the Dataset Site Embedded JSON-LD Example in https://validator.openactive.io/ for a full example of how objects of this type should look.
 
 ### `disableBucketAllocation`
 

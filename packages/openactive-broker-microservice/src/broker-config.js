@@ -27,7 +27,7 @@ const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
 const OPPORTUNITY_FEED_REQUEST_HEADERS = config.has('broker.opportunityFeedRequestHeaders') ? config.get('broker.opportunityFeedRequestHeaders') : {};
-const DATASET_DISTRIBUTION_OVERRIDE = config.has('broker.datasetDistributionOverride') ? config.get('broker.datasetDistributionOverride') : [];
+const DATASET_OVERRIDE = config.has('broker.datasetOverride') ? config.get('broker.datasetOverride') : undefined;
 const DO_NOT_FILL_BUCKETS = config.has('broker.disableBucketAllocation') ? config.get('broker.disableBucketAllocation') : false;
 const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
 const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
@@ -39,6 +39,8 @@ const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('
   button: '.btn-primary',
 };
 const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
+// TODO TODO TODO document this option
+const IGNORE_RPDE_LICENSE_REQUIREMENT = config.has('broker.ignoreRpdeLicenseRequirement') ? config.get('broker.ignoreRpdeLicenseRequirement') : false;
 
 const HEADLESS_AUTH = true;
 
@@ -82,13 +84,14 @@ module.exports = {
   ORDERS_FEED_IDENTIFIER,
   ORDER_PROPOSALS_FEED_IDENTIFIER,
   OPPORTUNITY_FEED_REQUEST_HEADERS,
-  DATASET_DISTRIBUTION_OVERRIDE,
+  DATASET_OVERRIDE,
   DO_NOT_FILL_BUCKETS,
   DO_NOT_HARVEST_ORDERS_FEED,
   DISABLE_BROKER_TIMEOUT,
   LOG_AUTH_CONFIG,
   BUTTON_SELECTORS,
   CONSOLE_OUTPUT_LEVEL,
+  IGNORE_RPDE_LICENSE_REQUIREMENT,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
   VALIDATOR_INPUT_TMP_DIR,

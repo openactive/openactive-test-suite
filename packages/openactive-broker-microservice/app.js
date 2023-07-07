@@ -51,7 +51,7 @@ const {
   ORDERS_FEED_IDENTIFIER,
   ORDER_PROPOSALS_FEED_IDENTIFIER,
   OPPORTUNITY_FEED_REQUEST_HEADERS,
-  DATASET_DISTRIBUTION_OVERRIDE,
+  DATASET_OVERRIDE,
   DO_NOT_FILL_BUCKETS,
   DO_NOT_HARVEST_ORDERS_FEED,
   DISABLE_BROKER_TIMEOUT,
@@ -60,6 +60,7 @@ const {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
+  IGNORE_RPDE_LICENSE_REQUIREMENT,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
@@ -238,9 +239,13 @@ async function harvestRPDE({
         isOrdersFeed,
       });
 
-      if (rpdeValidationErrors.length > 0) {
+      const filteredRpdeValidationErrors = rpdeValidationErrors.filter((error) => !(IGNORE_RPDE_LICENSE_REQUIREMENT
+        && error.type === 'missing_required_field'
+        && error.message
+        && error.message === 'Required property [`license`](https://www.openactive.io/realtime-paged-data-exchange/#-response-) is missing from the feed.'));
+      if (filteredRpdeValidationErrors.length > 0) {
         if (state.multibar) state.multibar.stop();
-        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
+        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${filteredRpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
         process.exit(1);
       }
 
@@ -1475,12 +1480,13 @@ function extractJSONLDfromHTML(url, html) {
   return jsonld;
 }
 
+/**
+ * @param {string} url
+ */
 async function extractJSONLDfromDatasetSiteUrl(url) {
-  if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
-    log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
-    return {
-      distribution: DATASET_DISTRIBUTION_OVERRIDE,
-    };
+  if (DATASET_OVERRIDE) {
+    log('Simulating Dataset Site based on datasetOverride config setting...');
+    return DATASET_OVERRIDE;
   }
   try {
     log(`Downloading Dataset Site JSON-LD from "${url}"...`);
