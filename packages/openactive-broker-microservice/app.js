@@ -941,7 +941,12 @@ function detectOpportunityType(opportunity) {
 function detectOpportunityBookingFlows(opportunity) {
   const offers = opportunity.offers || (opportunity.superEvent || opportunity.facilityUse)?.offers;
   if (!offers) {
-    throw new Error(`Opportunity (ID: ${opportunity['@id']}) has no offers in superEvent/facilityUse`);
+    logError(`Opportunity (ID: ${
+      opportunity['@id']
+    }) has no offers in self or in superEvent/facilityUse (ID: ${
+      opportunity.superEvent?.['@id'] || opportunity.facilityUse?.['@id']
+    })`);
+    return [];
   }
 
   if (!Array.isArray(offers)) {
