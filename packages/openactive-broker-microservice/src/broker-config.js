@@ -27,6 +27,7 @@ const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
 const BOOKING_PARTNER_IDENTIFIERS = Object.entries(config.get('broker.bookingPartners')).map(([key, value]) => {
   if (value) return key;
+  return null;
 }).filter(Boolean);
 
 // These options are not recommended for general use, but are available for specific test environment configuration and debugging
