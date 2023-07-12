@@ -158,7 +158,7 @@ While debugging authentication it can be useful to log the configuration that th
 
 Config for [Booking Partners](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-booking-partner) that the Test Suite will use to connect to your Booking System.
 
-When running Broker Microservice with [Integration Tests](../openactive-integration-tests/) (which is the primary usage of Broker Microservice), you muse define two Booking Partners, named `primary` and `secondary`.
+When running Broker Microservice with [Integration Tests](../openactive-integration-tests/) (which is the primary usage of Broker Microservice), you must define two Booking Partners, named `primary` and `secondary`.
 
 ```json
   "bookingPartners": {
