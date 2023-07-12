@@ -1677,9 +1677,7 @@ Validation errors found in Dataset Site JSON-LD:
           baseUrl: feedUrl,
           feedContextIdentifier,
           headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-          processPage: feedBookingPartnerIdentifier === 'primary'
-            ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
-            : () => null,
+          processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
           isOrdersFeed: true,
           bar: state.multibar,
           processEndOfFeed: () => {

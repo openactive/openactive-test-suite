@@ -158,7 +158,7 @@ While debugging authentication it can be useful to log the configuration that th
 
 Config for [Booking Partners](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#dfn-booking-partner) that the Test Suite will use to connect to your Booking System.
 
-Broker uses two Booking Partners, named `primary` and `secondary`.
+When running Broker Microservice with [Integration Tests](../openactive-integration-tests/) (which is the primary usage of Broker Microservice), you muse define two Booking Partners, named `primary` and `secondary`.
 
 ```json
   "bookingPartners": {
@@ -177,6 +177,8 @@ Broker uses two Booking Partners, named `primary` and `secondary`.
     }
   }
 ```
+
+However, when running Broker Microservice as a standalone app, you may define any number of Booking Partners, with whatever identifiers you like e.g. `acme1`, `acme2` and `acme3` instead of `primary` and `secondary`. Just know that these will NOT work with the [Integration Tests](../openactive-integration-tests/), which expect only `primary` and `secondary`.
 
 The `authentication` field can contain one of several different authentication strategies for authenticating as the Booking Partner for Order and Order Proposal RPDE Feed requests. Set only one of these strategies. The different authentication strategies are documented in the below subsections.
 
