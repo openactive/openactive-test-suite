@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "auto-restart": "./auto-restart.sh",
     "validate-feeds": "node app.js --validate-only",
     "test": "npm run lint && tsc",
     "debug": "node --inspect app.js",
@@ -15,9 +16,9 @@
   "license": "MIT",
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.68",
-    "@openactive/data-models": "^2.0.300",
+    "@openactive/data-models": "^2.0.301",
     "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
-    "@openactive/rpde-validator": "^2.0.16",
+    "@openactive/rpde-validator": "^2.0.17",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "await-semaphore": "^0.1.3",
     "axios": "^0.19.2",
