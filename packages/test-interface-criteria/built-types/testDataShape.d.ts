@@ -114,4 +114,14 @@ export namespace shapeConstraintRecipes {
     export function mustAllowFullRefund(): {
         'oa:allowCustomerCancellationFullRefund': import("./types/TestDataShape").BooleanNodeConstraint;
     };
+    export function mustBeWithinCancellationWindowOrHaveNoWindow(): {
+        'oa:latestCancellationBeforeStartDate': import("./types/TestDataShape").NullNodeConstraint;
+    };
+    export function onlyNonFreeBookableOffers(): {
+        'schema:price': import("./types/TestDataShape").NumericNodeConstraint;
+    };
+    export function onlyFreeBookableOffersWithUnavailablePrepayment(): {
+        'schema:price': import("./types/TestDataShape").NumericNodeConstraint;
+        'oa:openBookingPrepayment': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
+    };
 }
