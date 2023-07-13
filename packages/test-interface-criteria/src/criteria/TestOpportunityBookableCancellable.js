@@ -1,6 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria, mustAllowFullRefund, getDateBeforeWhichCancellationsCanBeMade } = require('./criteriaUtils');
-const { BLOCKED_FIELD, shapeConstraintRecipes } = require('../testDataShape');
+const { createCriteria, getDateBeforeWhichCancellationsCanBeMade, createCriteriaOfferConstraint, mustAllowFullRefundOfferConstraint } = require('./criteriaUtils');
+const { shapeConstraintRecipes } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -17,6 +17,11 @@ function mustBeWithinCancellationWindowOrHaveNoWindow(offer, opportunity, option
   return options.harvestStartTimeTwoHoursLater < dateBeforeWhichCancellationsCanBeMade;
 }
 
+const mustBeWithinCancellationWindowOrHaveNoWindowOfferConstraint = createCriteriaOfferConstraint(
+  'Offer must not have cancellation window (`latestCancellationBeforeStartDate`), or be within the cancellation window',
+  mustBeWithinCancellationWindowOrHaveNoWindow,
+);
+
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableCancellable
  */
@@ -24,20 +29,13 @@ const TestOpportunityBookableCancellable = createCriteria({
   name: 'TestOpportunityBookableCancellable',
   opportunityConstraints: [],
   offerConstraints: [
-    [
-      'Offer must not have cancellation window (`latestCancellationBeforeStartDate`), or be within the cancellation window',
-      mustBeWithinCancellationWindowOrHaveNoWindow,
-    ],
-    [
-      'Offer must be fully refundable on customer cancellation, with `"allowCustomerCancellationFullRefund": true`',
-      mustAllowFullRefund,
-    ],
+    mustBeWithinCancellationWindowOrHaveNoWindowOfferConstraint,
+    mustAllowFullRefundOfferConstraint,
   ],
   testDataShape: () => ({
     offerConstraints: {
       ...shapeConstraintRecipes.mustAllowFullRefund(),
-      // mustBeWithinCancellationWindowOrHaveNoWindow
-      'oa:latestCancellationBeforeStartDate': BLOCKED_FIELD,
+      ...shapeConstraintRecipes.mustBeWithinCancellationWindowOrHaveNoWindow(),
     },
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
@@ -45,4 +43,5 @@ const TestOpportunityBookableCancellable = createCriteria({
 
 module.exports = {
   TestOpportunityBookableCancellable,
+  mustBeWithinCancellationWindowOrHaveNoWindowOfferConstraint,
 };

@@ -1,6 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
-const { NON_FREE_PRICE_QUANTITATIVE_VALUE } = require('../testDataShape');
+const { createCriteria, createCriteriaOfferConstraint } = require('./criteriaUtils');
+const { shapeConstraintRecipes } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -13,6 +13,11 @@ function onlyNonFreeBookableOffers(offer) {
   return offer.price > 0;
 }
 
+const onlyNonFreeBookableOfferConstraint = createCriteriaOfferConstraint(
+  'Only non-free bookable Offers',
+  onlyNonFreeBookableOffers,
+);
+
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableNonFree
  */
@@ -20,15 +25,11 @@ const TestOpportunityBookableNonFree = createCriteria({
   name: 'TestOpportunityBookableNonFree',
   opportunityConstraints: [],
   offerConstraints: [
-    [
-      'Only non-free bookable Offers',
-      onlyNonFreeBookableOffers,
-    ],
+    onlyNonFreeBookableOfferConstraint,
   ],
   testDataShape: () => ({
     offerConstraints: {
-      // onlyNonFreeBookableOffers
-      'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+      ...shapeConstraintRecipes.onlyNonFreeBookableOffers(),
     },
   }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
@@ -36,4 +37,5 @@ const TestOpportunityBookableNonFree = createCriteria({
 
 module.exports = {
   TestOpportunityBookableNonFree,
+  onlyNonFreeBookableOfferConstraint,
 };
