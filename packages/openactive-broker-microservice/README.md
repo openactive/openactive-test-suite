@@ -178,7 +178,7 @@ When running Broker Microservice with [Integration Tests](../openactive-integrat
   }
 ```
 
-However, when running Broker Microservice as a standalone app, you may define any number of Booking Partners, with whatever identifiers you like e.g. `acme1`, `acme2` and `acme3` instead of `primary` and `secondary`. Just know that these will NOT work with the [Integration Tests](../openactive-integration-tests/), which expect only `primary` and `secondary`.
+When running Broker Microservice as a standalone app, any number of Booking Partners may be defined e.g. `acme1`, `acme2` and `acme3` instead of `primary` and `secondary`. Note that these will _not_ work with the [Integration Tests](../openactive-integration-tests/), which expect only `primary` and `secondary`.
 
 The `authentication` field can contain one of several different authentication strategies for authenticating as the Booking Partner for Order and Order Proposal RPDE Feed requests. Set only one of these strategies. The different authentication strategies are documented in the below subsections.
 
