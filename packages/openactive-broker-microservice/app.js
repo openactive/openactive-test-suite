@@ -60,6 +60,7 @@ const {
   CONSOLE_OUTPUT_LEVEL,
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
+  BOOKING_PARTNER_IDENTIFIERS,
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
@@ -1652,14 +1653,9 @@ Validation errors found in Dataset Site JSON-LD:
     }
   });
 
-  /**
-   *  @type {BookingPartnerIdentifier[]}
-   */
-  const bookingPartnerIdentifiers = ['primary', 'secondary'];
-
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointUrl) {
-    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of bookingPartnerIdentifiers.flatMap((bookingPartnerIdentifier) => [
+    for (const { feedUrl, type, feedContextIdentifier, bookingPartnerIdentifier: feedBookingPartnerIdentifier } of BOOKING_PARTNER_IDENTIFIERS.flatMap((bookingPartnerIdentifier) => [
       {
         feedUrl: `${dataset.accessService.endpointUrl}/orders-rpde`,
         type: /** @type {OrderFeedType} */('orders'),
@@ -1681,9 +1677,7 @@ Validation errors found in Dataset Site JSON-LD:
           baseUrl: feedUrl,
           feedContextIdentifier,
           headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-          processPage: feedBookingPartnerIdentifier === 'primary'
-            ? monitorOrdersPage(type, feedBookingPartnerIdentifier)
-            : () => null,
+          processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
           isOrdersFeed: true,
           bar: state.multibar,
           processEndOfFeed: () => {
