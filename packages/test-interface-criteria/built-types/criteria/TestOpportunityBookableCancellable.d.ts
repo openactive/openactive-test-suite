@@ -3,3 +3,4 @@ export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunit
  * Implements https://openactive.io/test-interface#TestOpportunityBookableCancellable
  */
 export const TestOpportunityBookableCancellable: import("../types/Criteria").Criteria;
+export const mustBeWithinCancellationWindowOrHaveNoWindowOfferConstraint: [string, import("../types/Criteria").OfferConstraint];

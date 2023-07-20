@@ -133,6 +133,7 @@ export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer, op
 * @type {OfferConstraint}
 */
 export function mustAllowFullRefund(offer: import("../types/Offer").Offer): boolean;
+export const mustAllowFullRefundOfferConstraint: [string, import("../types/Criteria").OfferConstraint];
 /**
  * @type {OfferConstraint}
  */
@@ -158,3 +159,9 @@ export function excludePaidBookableOffersWithPrepaymentUnavailable(offer: import
  * @return {TestDataShape}
  */
 export function extendTestDataShape(baseTestDataShape: TestDataShape, extraTestDataShape: TestDataShape, criteriaName: string): TestDataShape;
+/**
+ * @param {string} name
+ * @param {OfferConstraint} constraint
+ * @returns {Criteria['offerConstraints'][number]}
+ */
+export function createCriteriaOfferConstraint(name: string, constraint: OfferConstraint): Criteria['offerConstraints'][number];
