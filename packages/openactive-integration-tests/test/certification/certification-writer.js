@@ -61,7 +61,12 @@ class CertificationWriter {
 
   get awardedTo() {
     if (this.datasetJson) {
-      return this.datasetJson.bookingService?.name ? this.datasetJson.bookingService : (this.datasetJson.publisher && {
+      return this.datasetJson.bookingService?.name ? {
+        '@type': 'Organization',
+        name: this.datasetJson.bookingService.name,
+        url: this.datasetJson.bookingService.url,
+        softwareVersion: this.datasetJson.bookingService.softwareVersion,
+      } : (this.datasetJson.publisher && {
         '@type': 'Organization',
         name: this.datasetJson.publisher.name,
         url: this.datasetJson.publisher.url,
