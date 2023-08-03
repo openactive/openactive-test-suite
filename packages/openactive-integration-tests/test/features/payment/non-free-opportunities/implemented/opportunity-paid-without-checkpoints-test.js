@@ -30,10 +30,7 @@ FeatureHelper.describeFeature(module, {
   // Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  // Remove this condition once https://github.com/openactive/OpenActive.Server.NET/issues/100 is fixed.
-  if (bookingFlow === 'OpenBookingApprovalFlow') {
-    describe('idempotent repeat B', () => {
-      FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
-    });
-  }
+  describe('idempotent repeat B', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
+  });
 });
