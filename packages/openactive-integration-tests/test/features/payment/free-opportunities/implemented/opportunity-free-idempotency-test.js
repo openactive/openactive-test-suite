@@ -5,15 +5,14 @@ FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
   testFeature: 'free-opportunities',
   testFeatureImplemented: true,
-  testIdentifier: 'opportunity-free-without-checkpoints',
-  testName: 'Successful booking without Checkpoints',
-  testDescription: 'Free Opportunities, as they need no tax calculation by the Booking System, and, if they do not'
-    + ' require additional details, should be bookable without using Checkpoints C1 & C2',
+  testIdentifier: 'opportunity-free-idempotency',
+  testName: 'Successful booking of free opportunity with idempotency',
+  testDescription: 'Testing idempotency of the B call for free opportunities',
   testOpportunityCriteria: 'TestOpportunityBookableFree',
   // This must also be TestOpportunityBookableFree as the entire Order must be free.
   controlOpportunityCriteria: 'TestOpportunityBookableFree',
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
-  const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput, bookRecipeGetAssertOpportunityCapacityInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput, bookRecipeGetAssertOpportunityCapacityInput } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(orderItemCriteriaList, bookRecipe, defaultFlowStageParams, {
     getFirstStageInput: bookRecipeGetFirstStageInput,
     getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
