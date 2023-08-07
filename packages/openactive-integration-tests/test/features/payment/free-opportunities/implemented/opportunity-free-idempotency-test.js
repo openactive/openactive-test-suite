@@ -11,7 +11,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableFree',
   // This must also be TestOpportunityBookableFree as the entire Order must be free.
   controlOpportunityCriteria: 'TestOpportunityBookableFree',
-}, (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
+}, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput, bookRecipeGetAssertOpportunityCapacityInput } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
   const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(orderItemCriteriaList, bookRecipe, defaultFlowStageParams, {
     getFirstStageInput: bookRecipeGetFirstStageInput,
