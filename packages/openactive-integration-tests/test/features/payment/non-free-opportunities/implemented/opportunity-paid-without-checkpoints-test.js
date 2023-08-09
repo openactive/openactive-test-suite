@@ -1,3 +1,4 @@
+const { omit } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
@@ -21,11 +22,18 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // Initiate Flow Stages
-  const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput, bookRecipeGetAssertOpportunityCapacityInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
-  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(orderItemCriteriaList, bookRecipe, defaultFlowStageParams, {
-    getFirstStageInput: bookRecipeGetFirstStageInput,
-    getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
-  });
+  const {
+    fetchOpportunities,
+    bookRecipe,
+    defaultFlowStageParams,
+    bookRecipeArgs,
+  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
+  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(
+    orderItemCriteriaList,
+    bookRecipe,
+    defaultFlowStageParams,
+    omit(bookRecipeArgs, ['prerequisite']),
+  );
 
   // Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

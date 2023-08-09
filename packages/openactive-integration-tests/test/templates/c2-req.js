@@ -108,7 +108,7 @@ function createStandardC2Req(data) {
       orderItemIntakeForm: undefined,
       orderItemIntakeFormResponse: undefined,
     })),
-    payment: createPaymentPart(false),
+    payment: createPaymentPart(),
   };
 }
 
@@ -264,7 +264,7 @@ function createIncorrectReconciliationDetails(data) {
   const req = createStandardC2Req(data);
   // Always include payment details, regardless of if payment reconciliation
   // details are available in the config, as per the spec for Payment reconciliation detail validation
-  if (!req.payment) req.payment = createPaymentPart(false, true);
+  if (!req.payment) req.payment = createPaymentPart(undefined, true);
   if (req.payment.accountId) {
     req.payment.accountId = `invalid-${shortid.generate()}`;
   }

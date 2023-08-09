@@ -34,6 +34,7 @@ FeatureHelper.describeFeature(module, {
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const paymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
   const p = new PFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),
@@ -42,6 +43,7 @@ FeatureHelper.describeFeature(module, {
       totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
       prepayment: c2.getStage('c2').getOutput().prepayment,
     }),
+    paymentIdentifierIfPaid,
   });
   const b = FlowStageRecipes.runs.book.simpleBAssertCapacity(p, defaultFlowStageParams, {
     isExpectedToSucceed: false,
@@ -55,6 +57,7 @@ FeatureHelper.describeFeature(module, {
         orderProposalVersion: p.getOutput().orderProposalVersion,
         positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
       }),
+      paymentIdentifierIfPaid,
     },
   });
 
