@@ -1,4 +1,4 @@
-FROM node:14-alpine
+FROM node:18-alpine
 
 # Note WORKDIR must not be used for images that are used by GitHub Actions, as it will be overwritten
 

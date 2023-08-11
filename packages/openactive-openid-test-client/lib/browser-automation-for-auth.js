@@ -1,6 +1,9 @@
-const puppeteer = require('puppeteer');
 const cookieSession = require('cookie-session');
 const { generators } = require('openid-client');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
 
 /**
  * @typedef {{
@@ -56,7 +59,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   // Get CHROMIUM_FLAGS from environment variable
   const chromiumFlags = process.env.CHROMIUM_FLAGS ? process.env.CHROMIUM_FLAGS.split(' ') : [];
   const browser = await puppeteer.launch({
-    headless,
+    headless: headless ? 'new' : false, // Note this uses the "new" improved Chrome headless mode (https://developer.chrome.com/articles/new-headless/), which will become the default in future
     ignoreHTTPSErrors: true,
     args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--no-zygote', '--disable-extensions']),
   });
