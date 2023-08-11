@@ -2,7 +2,7 @@ FROM node:18.17.1-alpine
 
 # Note WORKDIR must not be used for images that are used by GitHub Actions, as it will be overwritten
 
-# Installs latest Chromium package
+# Installs latest Chromium package (https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine)
 RUN apk update && \
     apk add --no-cache \
       chromium \
@@ -14,7 +14,8 @@ RUN apk update && \
 
 # Create directory for installing test suite
 RUN mkdir /openactive-test-suite \
-  && chown -R node:node /openactive-test-suite
+  && chown -R node:node /openactive-test-suite \
+  && chmod -R 777 /openactive-test-suite
 
 # The build uses the Non-root User (https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user)
 # This allows npm `install` scripts to run
@@ -33,8 +34,6 @@ COPY packages/openactive-broker-microservice/package*.json /openactive-test-suit
 COPY packages/openactive-integration-tests/package*.json /openactive-test-suite/packages/openactive-integration-tests/
 COPY packages/openactive-openid-test-client/package*.json /openactive-test-suite/packages/openactive-openid-test-client/
 COPY packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
-
-# Set unsafe-perm to true to allow npm `install` scripts to run
 RUN cd /openactive-test-suite && npm install
 
 # Bundle app source
@@ -51,6 +50,7 @@ COPY . /openactive-test-suite/
 # RUN mkdir -p /run/openrc
 # RUN touch /run/openrc/softlevel
 
+# Expose port 3000 for openactive-broker-microservice
 EXPOSE 3000
 ## Specify the working directory explicitly as GitHub Actions will overwrite it
 ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
