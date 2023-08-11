@@ -45,7 +45,7 @@ const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('
 };
 const CONSOLE_OUTPUT_LEVEL = config.has('consoleOutputLevel') ? config.get('consoleOutputLevel') : 'detailed';
 
-const HEADLESS_AUTH = true;
+const HEADLESS_AUTH = config.has('broker.headlessAuth') ? config.get('broker.headlessAuth') : true;
 
 /** Directory for Validator remote JSON cache (https://github.com/openactive/data-model-validator#remotejsoncachepath) */
 const VALIDATOR_TMP_DIR = './tmp';
