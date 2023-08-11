@@ -1,3 +1,7 @@
+/**
+ * @typedef {import('luxon').DateTime} DateTime
+ */
+
 const moment = require('moment');
 const { isObject, cloneDeep } = require('lodash');
 const { DateTime, Duration } = require('luxon');

@@ -10,6 +10,7 @@ export type TestDataNodeConstraint = import('../types/TestDataShape').TestDataNo
 export type DateRangeNodeConstraint = import('../types/TestDataShape').DateRangeNodeConstraint;
 export type NumericNodeConstraint = import('../types/TestDataShape').NumericNodeConstraint;
 export type ArrayConstraint = import("../types/TestDataShape").ArrayConstraint<any, any>;
+export type DateTime = any;
 /**
  * @param {object} args
  * @param {string} args.name
