@@ -15,7 +15,8 @@ RUN apk update && \
 # Create directory for installing test suite
 RUN mkdir /openactive-test-suite \
   && chown -R node:node /openactive-test-suite \
-  && chmod -R 777 /openactive-test-suite
+  && chgrp -R node /openactive-test-suite \
+  && chmod -R 2775 /openactive-test-suite
 
 # The build uses the Non-root User (https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user)
 # This allows npm `install` scripts to run
