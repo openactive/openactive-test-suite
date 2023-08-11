@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18.17.1-alpine
 
 # Note WORKDIR must not be used for images that are used by GitHub Actions, as it will be overwritten
 
@@ -12,9 +12,13 @@ RUN apk update && \
       ca-certificates \
       ttf-freefont
 
+# Create directory for installing test suite
+RUN mkdir /openactive-test-suite \
+  && chown -R node:node /openactive-test-suite
+
 # The build uses the Non-root User (https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user)
 # This allows npm `install` scripts to run
-# This also means we don't need --no-sandbox (https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine)
+# This also means we don't need --no-sandbox for puppeteer to run (https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine)
 USER node
 
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
