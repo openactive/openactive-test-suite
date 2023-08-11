@@ -1,4 +1,4 @@
-name: Reference Implementation
+name: Docker Publish
 
 on:
   push:
