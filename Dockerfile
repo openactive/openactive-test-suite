@@ -12,14 +12,14 @@ RUN apk update && \
       ca-certificates \
       ttf-freefont
 
+# The build uses the Non-root User (https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user)
+# This allows npm `install` scripts to run
+# This also means we don't need --no-sandbox (https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine)
+USER node
+
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-# Headless Chrome requires --no-sandbox in order to work in a Docker environment.
-# https://docs.travis-ci.com/user/chrome#sandboxing
-# https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/troubleshooting.md
-ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox"
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
@@ -31,7 +31,7 @@ COPY packages/openactive-openid-test-client/package*.json /openactive-test-suite
 COPY packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
 
 # Set unsafe-perm to true to allow npm `install` scripts to run
-RUN cd /openactive-test-suite && npm config set unsafe-perm true && npm install
+RUN cd /openactive-test-suite && npm install
 
 # Bundle app source
 COPY . /openactive-test-suite/
