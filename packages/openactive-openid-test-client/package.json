@@ -23,8 +23,6 @@
     "nock": "^13.0.4",
     "openid-client": "^4.2.1",
     "puppeteer": "^21.0.3",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "yargs": "^16.1.0"
   },
   "devDependencies": {
