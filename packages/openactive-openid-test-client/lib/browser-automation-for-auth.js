@@ -61,7 +61,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   const browser = await puppeteer.launch({
     headless: headless ? 'new' : false, // Note this uses the "new" improved Chrome headless mode (https://developer.chrome.com/articles/new-headless/), which will become the default in future
     ignoreHTTPSErrors: true,
-    args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--no-zygote', '--disable-extensions']),
+    args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--disable-extensions']),
   });
   const page = await browser.newPage();
   try {
