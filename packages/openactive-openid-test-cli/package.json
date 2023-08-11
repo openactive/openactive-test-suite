@@ -1,7 +1,7 @@
 {
-  "name": "@openactive/openactive-openid-test-client",
+  "name": "@openactive/openactive-openid-test-cli",
   "version": "1.0.0",
-  "description": "OpenActive OpenID Connect Test Client",
+  "description": "OpenActive OpenID Connect Test CLI",
   "main": "lib/index.js",
   "types": "built-types/lib/index.d.ts",
   "scripts": {
@@ -16,20 +16,15 @@
   "author": "OpenActive Community <hello@openactive.io>",
   "license": "MIT",
   "dependencies": {
+    "@openactive/openactive-openid-browser-automation": "file:../openactive-openid-browser-automation",
+    "@openactive/openactive-openid-client": "file:../openactive-openid-client",
     "axios": "^0.19.2",
-    "chalk": "^4.1.0",
-    "cookie-session": "^1.4.0",
     "express": "^4.17.1",
-    "nock": "^13.0.4",
-    "openid-client": "^4.2.1",
-    "puppeteer": "^21.0.3",
     "yargs": "^16.1.0"
   },
   "devDependencies": {
-    "@types/cookie-session": "^2.0.41",
     "@types/express": "^4.17.9",
     "@types/node": "^14.6.0",
-    "@types/puppeteer": "^5.4.0",
     "@types/yargs": "^15.0.9",
     "eslint": "^7.13.0",
     "eslint-config-airbnb": "^18.2.1",

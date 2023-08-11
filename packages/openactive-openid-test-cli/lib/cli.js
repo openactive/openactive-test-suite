@@ -1,7 +1,8 @@
 const yargs = require('yargs/yargs');
 const express = require('express');
 const http = require('http');
-const { OpenActiveOpenIdTestClient, logWithIntercept, setupBrowserAutomationRoutes } = require('.');
+const { setupBrowserAutomationRoutes } = require('@openactive/openactive-openid-browser-automation');
+const { OpenActiveOpenIdTestClient, logWithIntercept } = require('@openactive/openactive-openid-client');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 

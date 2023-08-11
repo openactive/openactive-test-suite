@@ -19,7 +19,7 @@
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.68",
     "@openactive/data-models": "^2.0.301",
-    "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
+    "@openactive/openactive-openid-client": "file:../openactive-openid-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "async-mutex": "^0.3.1",
     "axios": "^0.19.0",

@@ -16,10 +16,10 @@ jobs:
           ref: master
           path: openactive-test-suite
 
-      - name: Setup Node.js 14.x
+      - name: Setup Node.js 18.17.1
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 18.17.1
         
       - name: Update openactive-integration-tests with latest data-models and validators
         run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest --save

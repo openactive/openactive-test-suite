@@ -2,9 +2,9 @@ name: Reference Implementation
 
 on:
   push:
-    branches: [ master2 ]
+    branches: [ feature/docker-and-package-upgrades ]
   pull_request:
-    branches: [ master2 ]
+    branches: [ master ]
 
 jobs:
   tests:
@@ -48,10 +48,10 @@ jobs:
       with:
         dotnet-version: 3.1.419
 
-    - name: Setup Node.js 14.x
+    - name: Setup Node.js 18.17.1
       uses: actions/setup-node@v1
       with:
-        node-version: 14.x
+        node-version: 18.17.1
 
     - name: Install OpenActive.Server.NET dependencies
       run: dotnet restore ./server/
@@ -96,7 +96,7 @@ jobs:
   deploy-output:
     needs: tests
     # Master branch only
-    if: ${{ github.ref == 'refs/heads/master' }}
+    # if: ${{ github.ref == 'refs/heads/master' }}
 
     runs-on: ubuntu-latest
 

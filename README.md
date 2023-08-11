@@ -5,13 +5,13 @@ To join the conversation, we're on the [OpenActive Slack](https://slack.openacti
 The general aim of this project is to allow end to end testing of the various flows and failure states of the Open Booking API.
 
 Running `npm start` in the root will run the OpenActive Test Suite, which is actually comprised of three packages:
-* [OpenID Test Client](./packages/openactive-openid-test-client): this connects to the target Open Booking API's OpenID Provider. This allows the Broker and Integration tests to authorize with the implementation
 * [Broker Microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
 * [Integration Tests](./packages/openactive-integration-tests): this performs automated tests against the API.
+* [OpenID Client](./packages/openactive-openid-client), [OpenID Browser Automation](./packages/openactive-openid-browser-automation) and [OpenID Test CLI](./packages/openactive-openid-test-cli): together these connect to the target Open Booking API's OpenID Provider. This allows the Broker and Integration tests to authorize with the implementation
 
 # Usage
 
-Running `npm start` will orchestrate running the [OpenID Test Client](./packages/openactive-openid-test-client/), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Open Booking API implementation.
+Running `npm start` will orchestrate running the [OpenID Client](./packages/openactive-openid-client), [OpenID Browser Automation](./packages/openactive-openid-browser-automation), [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Open Booking API implementation.
 
 Note that the implementation under test will need to implement the [OpenActive Test Interface](https://openactive.io/test-interface/) to run in controlled mode, and for selected tests.
 

@@ -17,7 +17,8 @@
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.68",
     "@openactive/data-models": "^2.0.301",
-    "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
+    "@openactive/openactive-openid-client": "file:../openactive-openid-client",
+    "@openactive/openactive-openid-browser-automation": "file:../openactive-openid-browser-automation",
     "@openactive/rpde-validator": "^2.0.17",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "await-semaphore": "^0.1.3",

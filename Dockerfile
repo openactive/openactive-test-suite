@@ -27,7 +27,9 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 COPY --chown=node:node package*.json /openactive-test-suite/
 COPY --chown=node:node packages/openactive-broker-microservice/package*.json /openactive-test-suite/packages/openactive-broker-microservice/
 COPY --chown=node:node packages/openactive-integration-tests/package*.json /openactive-test-suite/packages/openactive-integration-tests/
-COPY --chown=node:node packages/openactive-openid-test-client/package*.json /openactive-test-suite/packages/openactive-openid-test-client/
+COPY --chown=node:node packages/openactive-openid-client/package*.json /openactive-test-suite/packages/openactive-openid-client/
+COPY --chown=node:node packages/openactive-openid-browser-automation/package*.json /openactive-test-suite/packages/openactive-openid-browser-automation/
+COPY --chown=node:node packages/openactive-openid-test-cli/package*.json /openactive-test-suite/packages/openactive-openid-test-cli/
 COPY --chown=node:node packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
 
 # Build the app
