@@ -19,7 +19,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 # Headless Chrome requires --no-sandbox in order to work in a Docker environment.
 # https://docs.travis-ci.com/user/chrome#sandboxing
 # https://github.com/GoogleChrome/puppeteer/blob/v1.11.0/docs/troubleshooting.md
-ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-gpu"
+ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox"
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
