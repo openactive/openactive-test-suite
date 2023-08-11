@@ -58,7 +58,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   const browser = await puppeteer.launch({
     headless,
     ignoreHTTPSErrors: true,
-    args: chromiumFlags.concat('--disable-gpu', '--single-process', '--no-zygote', '--disable-extensions'),
+    args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--no-zygote', '--disable-extensions']),
   });
   const page = await browser.newPage();
   try {
