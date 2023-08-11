@@ -64,6 +64,22 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   try {
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
     try {
+      // Wait for the login button to appear (useful for Next.js / React apps)
+      await page.waitForFunction(
+        // eslint-disable-next-line no-undef
+        (selector) => !!document.querySelector(selector),
+        {
+          timeout: 10000,
+        },
+        buttonSelectors.button,
+      );
+    } catch (e) {
+      await addScreenshot(page, 'Error encountered', context);
+      return {
+        success: false, message: `Login button matching selector '${buttonSelectors.button}' did not appear within 10 seconds`,
+      };
+    }
+    try {
       await page.type(buttonSelectors.username, username);
     } catch (e) {
       await addScreenshot(page, 'Error encountered trying to enter username', context);
