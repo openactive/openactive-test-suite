@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-const fg = require('fast-glob');
-const importFresh = require('import-fresh');
 const path = require('path');
 const { isMainThread, parentPort, workerData } = require('worker_threads');
-const jestConfig = require('../../jest.config.js');
+const fg = require('fast-glob');
+const importFresh = require('import-fresh');
+const jestConfig = require('../../jest.config');
 
 const rootDirectory = path.join(__dirname, '../../');
 

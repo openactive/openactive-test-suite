@@ -1,6 +1,6 @@
+const http = require('http');
 const yargs = require('yargs/yargs');
 const express = require('express');
-const http = require('http');
 const { setupBrowserAutomationRoutes } = require('@openactive/openactive-openid-browser-automation');
 const { OpenActiveOpenIdTestClient, logWithIntercept } = require('@openactive/openactive-openid-client');
 
