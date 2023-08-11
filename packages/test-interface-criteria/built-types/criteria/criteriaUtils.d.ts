@@ -1,3 +1,4 @@
+export type DateTime = any;
 export type Opportunity = import('../types/Opportunity').Opportunity;
 export type Offer = import('../types/Offer').Offer;
 export type Options = import('../types/Options').Options;
@@ -10,7 +11,6 @@ export type TestDataNodeConstraint = import('../types/TestDataShape').TestDataNo
 export type DateRangeNodeConstraint = import('../types/TestDataShape').DateRangeNodeConstraint;
 export type NumericNodeConstraint = import('../types/TestDataShape').NumericNodeConstraint;
 export type ArrayConstraint = import("../types/TestDataShape").ArrayConstraint<any, any>;
-export type DateTime = any;
 /**
  * @param {object} args
  * @param {string} args.name
