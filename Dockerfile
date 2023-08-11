@@ -12,12 +12,6 @@ RUN apk update && \
       ca-certificates \
       ttf-freefont
 
-# Create directory for installing test suite
-RUN mkdir /openactive-test-suite \
-  && chown -R node:node /openactive-test-suite \
-  && chgrp -R node /openactive-test-suite \
-  && chmod -R 2775 /openactive-test-suite
-
 # The build uses the Non-root User (https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user)
 # This allows npm `install` scripts to run
 # This also means we don't need --no-sandbox for puppeteer to run (https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-on-alpine)
@@ -30,15 +24,17 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
-COPY package*.json /openactive-test-suite/
-COPY packages/openactive-broker-microservice/package*.json /openactive-test-suite/packages/openactive-broker-microservice/
-COPY packages/openactive-integration-tests/package*.json /openactive-test-suite/packages/openactive-integration-tests/
-COPY packages/openactive-openid-test-client/package*.json /openactive-test-suite/packages/openactive-openid-test-client/
-COPY packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
+COPY --chown=node:node package*.json /openactive-test-suite/
+COPY --chown=node:node packages/openactive-broker-microservice/package*.json /openactive-test-suite/packages/openactive-broker-microservice/
+COPY --chown=node:node packages/openactive-integration-tests/package*.json /openactive-test-suite/packages/openactive-integration-tests/
+COPY --chown=node:node packages/openactive-openid-test-client/package*.json /openactive-test-suite/packages/openactive-openid-test-client/
+COPY --chown=node:node packages/test-interface-criteria/package*.json /openactive-test-suite/packages/test-interface-criteria/
+
+# Build the app
 RUN cd /openactive-test-suite && npm install
 
 # Bundle app source
-COPY . /openactive-test-suite/
+COPY --chown=node:node . /openactive-test-suite/
 
 # RUN echo "root:P2sswrd!!!" | chpasswd
 # RUN mkdir -p /root/.ssh
