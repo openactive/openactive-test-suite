@@ -56,6 +56,7 @@ FeatureHelper.describeFeature(module, {
       opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
       orderItems: fetchOpportunities.getOutput().orderItems,
     }),
+    paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
   });
 
   // ## Set up tests
