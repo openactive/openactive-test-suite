@@ -20,5 +20,7 @@ jobs:
         node-version: 18.17.1
     - name: Install OpenActive Test Suite
       run: npm install
+    - name: Check licenses of all dependencies are at least permissive
+      run: npx npm-consider install --test
     - name: Run Checks on the Code (Test the Tests!)
       run: npm test

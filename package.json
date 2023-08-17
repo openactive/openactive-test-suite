@@ -4,6 +4,7 @@
   "description": "OpenActive Test Suite",
   "private": true,
   "main": "start.js",
+  "license": "MIT",
   "scripts": {
     "start": "node start.js",
     "debug": "node --inspect start.js -- --runInBand",
@@ -57,5 +58,12 @@
     "hooks": {
       "pre-commit": "npm run gen-and-git-add-everything"
     }
+  },
+  "config": {
+    "allowedLicenseTypes": [
+      "permissive",
+      "publicDomain",
+      "uncategorized"
+    ]
   }
 }
