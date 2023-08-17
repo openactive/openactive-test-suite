@@ -1,3 +1,4 @@
+const shortid = require('shortid');
 const { AssertOpportunityCapacityFlowStage } = require('./assert-opportunity-capacity');
 const { BFlowStage } = require('./b');
 const { BookRecipe } = require('./book-recipe');
@@ -63,6 +64,9 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   AssertOpportunityCapacity flow stage, which runs after the booking is complete
  * @property {GetOpportunityExpectedCapacity} [getOpportunityExpectedCapacity] If not provided, this will
  *   default to using getOpportunityExpectedCapacityAfterBook(..)
+ * @property {string} paymentIdentifierIfPaid This Payment Identifier will be used if this is a paid
+   *   booking. Otherwise, it won't be. This is specified as an arg to allow for consistency between idempotent
+   *   B/P calls.
  */
 
 const RUN_TESTS_WHICH_FAIL_REFIMPL = process.env.RUN_TESTS_WHICH_FAIL_REFIMPL === 'true';
@@ -103,7 +107,8 @@ const FlowStageRecipes = {
         brokerRole,
       },
     );
-    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+    /** @type {BookRecipeArgs} */
+    const bookRecipeArgs = {
       prerequisite: c2.getLastStage(),
       accessPass,
       brokerRole,
@@ -119,7 +124,9 @@ const FlowStageRecipes = {
         orderItems: fetchOpportunities.getOutput().orderItems,
       }),
       isExpectedToFail: bookExpectToFail,
-    });
+      paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
+    };
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
 
     return {
       fetchOpportunities,
@@ -129,6 +136,7 @@ const FlowStageRecipes = {
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,
+      bookRecipeArgs,
     };
   },
   /**
@@ -286,13 +294,20 @@ const FlowStageRecipes = {
       opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
       orderItems: fetchOpportunities.getOutput().orderItems,
     });
-    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+    const bookRecipeGetOpportunityExpectedCapacity = AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBookOnly(
+      isExpectedToSucceed,
+    );
+    const bookRecipePaymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
+    /** @type {BookRecipeArgs} */
+    const bookRecipeArgs = {
       prerequisite: fetchOpportunities,
       isExpectedToFail: !isExpectedToSucceed,
       getFirstStageInput: bookRecipeGetFirstStageInput,
       getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBookOnly(isExpectedToSucceed),
-    });
+      getOpportunityExpectedCapacity: bookRecipeGetOpportunityExpectedCapacity,
+      paymentIdentifierIfPaid: bookRecipePaymentIdentifierIfPaid,
+    };
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
     return {
       fetchOpportunities,
       bookRecipe,
@@ -300,8 +315,7 @@ const FlowStageRecipes = {
       // these params.
       defaultFlowStageParams,
       // These can be used to create an idempotent second B stage.
-      bookRecipeGetFirstStageInput,
-      bookRecipeGetAssertOpportunityCapacityInput,
+      bookRecipeArgs,
     };
   },
   /**
@@ -367,6 +381,7 @@ const FlowStageRecipes = {
         bookRecipeGetFirstStageInput: bookRecipeArgs.getFirstStageInput,
         defaultFlowStageParams,
         prerequisite: bookRecipe.lastStage,
+        paymentIdentifierIfPaid: bookRecipeArgs.paymentIdentifierIfPaid,
       });
     }
     const bookRecipeArgsWithPrerequisite = { ...bookRecipeArgs, prerequisite: bookRecipe.lastStage };
@@ -423,6 +438,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
     isExpectedToFail = null,
+    paymentIdentifierIfPaid,
     ...args
   }) {
     const b = new BFlowStage({
@@ -432,6 +448,7 @@ const FlowStageRecipes = {
       brokerRole,
       accessPass,
       getInput: getFirstStageInput,
+      paymentIdentifierIfPaid,
     });
     const getOpportunityExpectedCapacity = args.getOpportunityExpectedCapacity
       ?? AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false));
@@ -467,6 +484,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
     isExpectedToFail = null,
+    paymentIdentifierIfPaid,
     ...args
   }) {
     const p = new PFlowStage({
@@ -476,6 +494,7 @@ const FlowStageRecipes = {
       brokerRole,
       accessPass,
       getInput: getFirstStageInput,
+      paymentIdentifierIfPaid,
     });
     const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
@@ -503,6 +522,7 @@ const FlowStageRecipes = {
         defaultFlowStageParams,
         prerequisite: orderFeedUpdateListener,
         bookRecipeGetFirstStageInput: getFirstStageInput,
+        paymentIdentifierIfPaid,
       }),
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
@@ -766,6 +786,9 @@ const FlowStageRecipes = {
       },
     },
   },
+  createRandomPaymentIdentifierIfPaid() {
+    return shortid.generate();
+  },
 };
 
 /**
@@ -776,8 +799,9 @@ const FlowStageRecipes = {
  * @param {DefaultFlowStageParams} args.defaultFlowStageParams
  * @param {UnknownFlowStageType} args.prerequisite
  * @param {() => import('./p').Input} args.bookRecipeGetFirstStageInput
+ * @param {string} args.paymentIdentifierIfPaid
  */
-function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstStageInput }) {
+function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstStageInput, paymentIdentifierIfPaid }) {
   return new BFlowStage({
     ...defaultFlowStageParams,
     prerequisite,
@@ -793,6 +817,7 @@ function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstSt
         prepayment: p.getOutput().prepayment,
       };
     },
+    paymentIdentifierIfPaid,
   });
 }
 

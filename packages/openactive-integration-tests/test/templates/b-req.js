@@ -43,6 +43,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   brokerRole?: string | null,
  *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm},
  *   customer: import('../helpers/flow-stages/flow-stage-utils').Customer,
+ *   paymentIdentifier?: string
  * }} BReqTemplateData
  *
  * @typedef {Omit<BReqTemplateData, 'orderProposalVersion'>} PReqTemplateData P accepts the same sort of requests as B.
@@ -75,7 +76,7 @@ function createAfterPBReq(data) {
     orderProposalVersion: data.orderProposalVersion,
   };
   if (isPaymentAvailable(data)) {
-    result.payment = createPaymentPart();
+    result.payment = createPaymentPart(data.paymentIdentifier);
   }
   return result;
 }
@@ -199,7 +200,7 @@ function createPaidWithPaymentBReq(data) {
       price: data.totalPaymentDue,
       priceCurrency: 'GBP',
     },
-    payment: createPaymentPart(),
+    payment: createPaymentPart(data.paymentIdentifier),
   };
 }
 
@@ -221,7 +222,7 @@ function createStandardPaidBReq(data) {
   if (isPaymentAvailable(data)) {
     return {
       ...reqWithoutPayment,
-      payment: createPaymentPart(),
+      payment: createPaymentPart(data.paymentIdentifier),
     };
   }
   return reqWithoutPayment;

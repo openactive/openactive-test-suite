@@ -162,11 +162,11 @@
       "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTestFiles": 5,
+      "implementedTestFiles": 6,
       "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTestFiles": 2,
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {
