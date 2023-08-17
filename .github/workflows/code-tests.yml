@@ -21,6 +21,8 @@ jobs:
     - name: Install OpenActive Test Suite
       run: npm install
     - name: Check licenses of all dependencies are at least permissive
-      run: npx npm-consider install --test
+      run: |
+        npx npm-reflect install --test
+        for dir in ./packages/*; do (cd "$dir" && npx npm-reflect install --test); done
     - name: Run Checks on the Code (Test the Tests!)
       run: npm test
