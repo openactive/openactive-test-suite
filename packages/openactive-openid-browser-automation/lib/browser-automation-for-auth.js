@@ -56,7 +56,7 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   // Get CHROMIUM_FLAGS from environment variable
   const chromiumFlags = process.env.CHROMIUM_FLAGS ? process.env.CHROMIUM_FLAGS.split(' ') : [];
   const browser = await puppeteer.launch({
-    headless: headless ? 'new' : false, // Note this uses the "new" improved Chrome headless mode (https://developer.chrome.com/articles/new-headless/), which will become the default in future
+    headless: headless ? true : false, // ? 'new' : false, // TODO: once it is more stable use the "new" improved Chrome headless mode (https://developer.chrome.com/articles/new-headless/), which will become the default in future (at time of commit this "new" mode causes 1 in 20 runs to fail randomly
     ignoreHTTPSErrors: true,
     args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--disable-extensions']),
   });
