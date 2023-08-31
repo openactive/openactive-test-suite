@@ -68,7 +68,7 @@ Of particular importance is the `describeRunAndRunChecks(..)` function, which cr
 
 ## FlowStageRecipes
 
-Setting up a flow, consisting of multiple FlowStages where each feeds input into the next, can require a lot of boilerplate and repeated logic. In most cases, parts of these flows can be packaged up as they will be the same in lots of different tests.
+Setting up a Flow, consisting of multiple FlowStages where each feeds input into the next, can require a lot of boilerplate and repeated logic. In most cases, parts of these flows can be packaged up as they will be the same in lots of different tests.
 
 These packaged up flows are stored in [FlowStageRecipes](./flow-stage-recipes.js).
 
