@@ -35,10 +35,10 @@ Each of these FlowStages does the following, when run in a test:
 FlowStages can then be queried after they've run in order to:
 
 1. Check that the FlowStage was successful
-  - This is overridable per-FlowStage. For example, B's Flow Stage considers the run successful if the HTTP response has status 201
+  - This is set per-FlowStage. For example, B's Flow Stage considers the run successful if the HTTP response has status 201
   - FlowStage method: `itSuccessChecks()`
 2. Perform validation checks on the output
-  - This is overridable per-FlowStage. In all cases, this is a case of calling [Validator](https://github.com/openactive/data-model-validator) on the HTTP output.
+  - This is set per-FlowStage. In all cases, this is a case of calling [Validator](https://github.com/openactive/data-model-validator) on the HTTP output.
   - FlowStage method: `itValidationTests()`
 
 ## FlowStageRunnable
