@@ -51,7 +51,7 @@ This encapsulation allows us to, for example, more easily reason about tests in 
 
 Flows, consisting of Flow Stages, run the underlying API calls which are being tested, via Jest in the various Test Suite tests.
 
-Jest tests involve a custom course of execution, in which setup occurs in `beforeEach`/`beforeAll` hooks, tests are run in `it` hooks, etc. Flow Stages are designed to work with this.
+Jest tests involve a custom course of execution, in which setup occurs in `beforeEach`/`beforeAll` hooks; tests are run in `it` hooks; etc. Flow Stages are designed to work with this.
 
 Here is how Flow Stages slot into Jest's test execution lifecycle:
 
