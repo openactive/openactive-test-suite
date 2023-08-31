@@ -1,6 +1,6 @@
 # Flow Stages
 
-A Flow is a sequence of API calls that are made by Test Suite, for a given test, against either the Booking System  or the Broker Microservice. A Flow Stage encapsulates the configuration and logic for one of those API calls. e.g. there is a FlowStage for C1 (which is in the Booking System), a FlowStage for Fetch Opportunities (which uses the Broker Microservice), etc.
+A Flow is a sequence of API calls that are made by Test Suite, for a given test, against either the Booking System  or the Broker Microservice. A Flow is composed of several Flow Stages. A Flow Stage encapsulates the configuration and logic for one of those API calls. e.g. there is a FlowStage for C1 (which is in the Booking System), a FlowStage for Fetch Opportunities (which uses the Broker Microservice), etc.
 
 As an example, for [`opportunity-free-test`](packages/openactive-integration-tests/test/features/payment/free-opportunities/implemented/opportunity-free-test.js), when running in [Simple Booking Flow](https://openactive.io/open-booking-api/EditorsDraft/#simple-booking-flow), the following Flow Stages are utilised:
 
