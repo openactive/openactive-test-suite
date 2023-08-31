@@ -43,7 +43,7 @@ FlowStages can then be queried after they've run in order to:
 
 ## FlowStageRunnable
 
-An abstraction that can be either a **Flow Stage**, [**Book Recipe**](./book-recipe.js) or a [**Flow Stage Run**](./flow-stage-run.js). This represents a single FlowStage or sequence of FlowStages that can be run.
+A FlowStageRunnable is an abstraction that can be either a **Flow Stage**, [**Book Recipe**](./book-recipe.js) or a [**Flow Stage Run**](./flow-stage-run.js). This represents a single FlowStage or sequence of FlowStages that can be run.
 
 This encapsulation allows us to, for example, more easily reason about tests in which the "book" stage could use either [Simple Booking Flow](https://openactive.io/open-booking-api/EditorsDraft/#simple-booking-flow) or [Booking Flow with Approval](https://openactive.io/open-booking-api/EditorsDraft/#booking-flow-with-approval), which involve different sets of API calls.
 
