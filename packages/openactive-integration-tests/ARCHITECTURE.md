@@ -95,7 +95,7 @@ Most tests are run for all Booking Flows in Scope ([Simple Booking Flow](https:/
 
 FeatureHelper handles this automatically, running the test for each permutation in the matrix.
 
-If a test does not support an Opportunity Type or Booking Flow, it can be excluded from the matrix via the appropriate `skip-` parameters to `FeatureHelper.describeFeature(..)`.
+If a test does not support an Opportunity Type or Booking Flow, it can be excluded from the matrix via the appropriate `skip-` parameters to `FeatureHelper.describeFeature(..)`, for example `skipOpportunityTypes: ['IndividualFacilityUseSlot']`.
 
 ### Auto-Generates Documentation
 
