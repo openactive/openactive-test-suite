@@ -249,13 +249,16 @@ function itShouldHavePrepayment(getOrder) {
 When testing error scenarios, we would instead use `FlowStageUtils.describeRunAndCheckIsValid(..)` on the Flow Stage Runnable which is expected to fail, which forgoes checking that the HTTP response is successful. Here's an example of that (note that this is NOT an extension of the previous example, but a snippet from a different hypothetical test):
 
 ```js
-  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, () => c2.getOutput().httpResponse);
-  });
+FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+  itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, () => c2.getOutput().httpResponse);
+});
 ```
 
 This uses a helper function `itShouldReturnAnOpenBookingError(..)` which checks that the HTTP response is an [Open Booking Error](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#oa-openbookingerror) with the expected `@type` and `statusCode`.
 
+#### Further Complexity
+
+The above example is a simple test. But much more complex types of tests are supported by the framework. The best way to learn about these is to look at the existing tests. All the tests are in [`./test/features`](./test/features/).
 
 ## TypeScript
 
