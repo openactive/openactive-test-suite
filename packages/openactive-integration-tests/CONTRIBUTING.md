@@ -186,7 +186,7 @@ Here, we're using a [FlowStageRecipes recipe](./test/helpers/flow-stages/README.
 
 If you need to test a different flow from this, there are many other Flow Stage Recipes available, and it's always possible to create custom flows from scratch.
 
-Note that the Flow Stages are just initiated. None of the API calls are made yet.
+Note that the Flow Stages are just initiated after this code is run. None of the API calls are made yet.
 
 ```js
   // ## Initiate Flow Stages
