@@ -25,7 +25,7 @@ const { matchesCriteria, unmetCriteriaDetails } = TestInterfaceCriteria.testMatc
 
 ### Opportunity-Offer
 
-An Opportunity-Offer is a combination of an [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) and one of its [Offers](https://openactive.io/modelling-opportunity-data/#describing-offers-code-schema-offer-code-). This combination is selected by a customer in order to make a booking in real life. Similarly, Test Suite tests select an Opportunity-Offer before testing a booking flow.
+An Opportunity-Offer is a combination of an [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) and one of its [Offers](https://openactive.io/modelling-opportunity-data/#describing-offers-code-schema-offer-code-). This combination is selected by a customer in order to make a booking in real life. Similarly, Test Suite tests select one or more Opportunity-Offers – packaging each into an [OrderItem](https://openactive.io/open-booking-api/EditorsDraft/#schema-orderitem) – before testing a booking flow.
 
 ### Criteria
 

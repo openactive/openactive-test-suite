@@ -19,7 +19,7 @@ The hierarchy for tests is:
 
     A feature contains both **implemented** and **non-implemented** tests:
 
-    * **Implemented** tests are tests that are expected to pass if the feature is turned on
+    * **Implemented** tests are tests that are expected to pass if the feature is turned on.
     * **Non-implemented** tests are tests that are expected to pass if the feature is turned off.
     
         An example non-implemented test is `no-paid-bookable-sessions` within the `non-free-opportunities` feature. This test checks that the Booking System under test does contain any non-free bookable sessions, and therefore can validly skip testing for non-free opportunities.
@@ -30,7 +30,7 @@ The hierarchy for tests is:
     * `payment`: Payment-related features
     * `cancellation`: Cancellation-related features
 
-Tests exist in a path that includes identifiers for the Category, Feature, and Test, whether it is implemented or non-implemented, and a postfix of `-test.js`, as follows:
+Tests exist in a path that includes identifiers for the Category, Feature, and Test; whether it is implemented or non-implemented; and a postfix of `-test.js`, as follows:
 
 `test/features/<testCategory>/<testFeature>/<implemented|non-implemented>/<testIdentifier>-test.js`
 
@@ -88,9 +88,7 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'availability-confirmed',
   testName: 'Occupancy in C1 and C2 matches feed',
   testDescription: 'Runs C1 and C2 for a known opportunity from the feed, and compares the results to those attained from the feed.',
-  // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
-  // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
 function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
@@ -246,7 +244,7 @@ function itShouldHavePrepayment(getOrder) {
 
 ##### Error Scenarios
 
-When testing error scenarios, we would instead use `FlowStageUtils.describeRunAndCheckIsValid(..)` on the Flow Stage Runnable which is expected to fail, which forgoes checking that the HTTP response is successful. Here's an example of that (note that this is NOT an extension of the previous example, but a snippet from a different hypothetical test):
+When testing error scenarios, we would instead use `FlowStageUtils.describeRunAndCheckIsValid(..)` on the [Flow Stage Runnable](./test/helpers/flow-stages/README.md#FlowStageRunnable) which is expected to fail, which forgoes checking that the HTTP response is successful. Here's an example of that (note that this is NOT an extension of the previous example, but a snippet from a different hypothetical test):
 
 ```js
 FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
@@ -254,7 +252,7 @@ FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
 });
 ```
 
-This uses a helper function `itShouldReturnAnOpenBookingError(..)` which checks that the HTTP response is an [Open Booking Error](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#oa-openbookingerror) with the expected `@type` and `statusCode`.
+This uses a helper function `itShouldReturnAnOpenBookingError(..)` which checks that the HTTP response is an [Open Booking Error](https://openactive.io/open-booking-api/EditorsDraft/#oa-openbookingerror) with the expected `@type` and `statusCode`.
 
 #### Further Complexity
 
