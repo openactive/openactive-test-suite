@@ -114,7 +114,7 @@ For more information on `FeatureHelper`, see [the ARCHITECTURE doc](./ARCHITECTU
 
 ### Opportunity Criteria
 
-What a Criteria is is documented in [the test-interface-criteria docs](../test-interface-criteria/README.md#criteria).
+The definition of an Opportunity Criteria is documented in [the test-interface-criteria docs](../test-interface-criteria/README.md#criteria).
 
 Each test is configured to only run for Opportunities which conform to some criteria. This is primarily specified by the `testOpportunityCriteria` property of `FeatureHelper.describeFeature(..)`.
 
