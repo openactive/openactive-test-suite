@@ -100,7 +100,7 @@ An explanation of the main properties:
 * `testFeatureImplemented`: Whether or not this test is **implemented** or **non-implemented**. For info on what this means, see [Structure](#structure).
 * `testName`, `testDescription`: Short- and long-form human-readable descriptions of the text. These are used for automatic Documentation Generation and for the test report.
 * `testOpportunityCriteria`: The **Opportunity Criteria** to use for the primary OrderItem under test. For info on criteria, see [Opportunity Criteria](#opportunity-criteria).
-* `controlOpportunityCriteria`: The **Opportunity Criteria** to use for any "control" OrderItems.
+* `controlOpportunityCriteria`: The **Opportunity Criteria** to use for any "control" OrderItems. For info on criteria, see [Opportunity Criteria](#opportunity-criteria).
 
     When the test is run with multiple opportunities, a "control" opportunity will be added. With this, one can test that the feature still works if combined with other opportunities.
 
