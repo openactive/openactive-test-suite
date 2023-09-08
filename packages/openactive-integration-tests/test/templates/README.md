@@ -51,7 +51,7 @@ function createStandardC2Req(data) {
 
 ### Setup Template Refs
 
-Each Request Template is given a reference, which is used to select the template to use when running a test.
+Each Request Template is given a reference, which can later be used to select the template for a particular API call.
 
 In this example, the `createStandardC2Req` Request Template is given the reference `standard`:
 
