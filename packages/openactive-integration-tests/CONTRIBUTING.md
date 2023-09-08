@@ -93,7 +93,7 @@ Properties in a `feature.json` file:
     ```json
       "requiredCondition": "Required if accessCode can change",
     ```
-- `requiresOneOfIfImplemented` (OPTIONAL): A list of features which must be implemented if this feature is implemented. The example above indicates that, if a Booking System implements `non-free-opportunities`, then they also need to implement at least one of `prepayment-optional`, `prepayment-required`, or `prepayment-unavailable`.
+- `requiresOneOfIfImplemented` (OPTIONAL): A list of features which must be implemented if this feature is implemented. The example `feature.json` at the top of this section indicates that, if a Booking System implements `non-free-opportunities`, then they also need to implement at least one of `prepayment-optional`, `prepayment-required`, or `prepayment-unavailable`.
 - `explainer` (OPTIONAL): An explanation of whether or not this feature should be implemented, especially for complicated use cases. For an example, `prepayment-required-unavailable`'s `feature.json`:
 
     ```json
