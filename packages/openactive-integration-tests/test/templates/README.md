@@ -46,7 +46,7 @@ function createStandardC2Req(data) {
   return {
     '@context': 'https://openactive.io/',
     '@type': 'OrderQuote',
-    brokerRole: data.brokerRole || 'https://openactive.io/AgentBroker',
+    seller: data.sellerId,
 ```
 
 ### Setup Template Refs
