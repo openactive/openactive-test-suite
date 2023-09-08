@@ -31,6 +31,7 @@ const FeatureJsonSchema = z.object({
    */
   requiredCondition: z.string().optional(),
   links: z.array(FeatureJsonLinkSchema).optional(),
+  requiresOneOfIfImplemented: z.array(z.string()).optional(),
 });
 
 /**

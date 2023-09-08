@@ -54,7 +54,7 @@ For each feature, there also exists a `feature.json` file, which contains metada
 
 `test/features/<testCategory>/<testFeature>/feature.json`
 
-Here is an example `feature.json` file:
+Here is a fairly complete example `feature.json` file:
 
 ```json
 {
@@ -62,7 +62,6 @@ Here is an example `feature.json` file:
   "identifier": "non-free-opportunities",
   "name": "Opportunities with a non-zero price",
   "description": "The most simple form of booking with payment. Does not check for leases.",
-  "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description",
   "required": false,
   "coverageStatus": "complete",
@@ -78,7 +77,26 @@ Here is an example `feature.json` file:
 
 Properties in a `feature.json` file:
 
-- `identifier`: 
+- `category`: Identifier of the category that this feature belongs to
+- `identifier`: This feature's identifier
+- `name`: Human-readable name of the feature
+- `description`: Description of the feature
+- `explainer`: An explanation of whether or not this feature should be implemented, especially for complicated use cases. For an example, `prepayment-required-unavailable`'s `feature.json`:
+    ```json
+      "explainer": "This feature must be implemented if prepayment-required and prepayment-unavailable are both implemented.",
+    ```
+- `specificationReference`: A link to the relevant part of the Open Booking API specification.
+- `required`: Whether or not this feature is required to be implemented. If `true`, then the feature must be implemented for a Booking System to be considered conformant. If `false`, then the feature is optional.
+- `coverageStatus`: Whether or not this feature is considered to have a complete set of tests written. Options:
+    - `complete`: All tests for this feature have been written.
+    - `partial`: Some tests for this feature have been written.
+    - `none`: No tests for this feature have been written.
+- `requiredCondition`: Description of when this feature is required. This is for features which are required only in certain circumstances. For an example, `access-code-update-notifications`'s `feature.json`:
+    ```json
+      "requiredCondition": "Required if accessCode can change",
+    ```
+- `links`: Links to resources that may be useful for implementing this feature. Each link has a human-readable name, `name`, and a URL, `href`.
+- `requiresOneOfIfImplemented`: A list of features which must be implemented if this feature is implemented. The example above indicates that, if a Booking System implements `non-free-opportunities`, then they also need to implement at least one of `prepayment-optional`, `prepayment-required`, or `prepayment-unavailable`.
 
 ## Anatomy of a test
 
