@@ -2,7 +2,7 @@
 
 When running tests, the requests that are actually made to the Booking System endpoints C1, C2, B, etc. are generated from the Request Templates in this folder.
 
-The Request Templates are therefore an important part of the definition of a test, as they determine what kind of response is expected from the Booking System e.g. an error response should be sent if the request is purposefully erroneous.
+The Request Templates are therefore an important part of the definition of a test, as they determine what kind of response is expected from the Booking System e.g. an error response will be expected if the request is purposefully erroneous.
 
 Each Request Template is just a function which takes some input and returns the request JSON to use for the Booking System endpoint.
 
