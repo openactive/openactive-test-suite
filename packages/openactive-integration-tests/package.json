@@ -53,7 +53,8 @@
     "shortid": "^2.2.16",
     "strip-ansi": "^6.0.0",
     "uuid": "^8.3.0",
-    "yargs": "^16.2.0"
+    "yargs": "^16.2.0",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",

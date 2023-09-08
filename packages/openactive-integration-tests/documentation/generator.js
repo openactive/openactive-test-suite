@@ -11,6 +11,7 @@ const jestConfig = require('../jest.config.js');
 const defaultConfig = require('../../../config/default.json');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
 const { DefaultMap } = require('../test/helpers/map-utils');
+const { FeatureJsonSchema } = require('./featureJson.js');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
@@ -21,6 +22,7 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
 /**
  * @typedef {import('../test/helpers/feature-helper').TestModuleExports} TestModuleExports
  * @typedef {import('../test/types/OpportunityCriteria').SellerCriteria} SellerCriteria
+ * @typedef {import('./featureJson.js').FeatureJson} FeatureJson
  */
 
 /**
@@ -48,26 +50,6 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
  *   than an array. This is just a very simple way to express them as a "Set"-like
  *   object (i.e. no duplicates) in JSON.
  *   They can still easily be interpreted as an array with Object.keys().
- */
-
-/**
- * @typedef {object} FeatureJsonLink
- * @property {string} name
- * @property {string} href
- */
-
-/**
- * @typedef {object} FeatureJson The shape of data in feature.json files.
- * @property {string} category
- * @property {string} identifier
- * @property {string} name
- * @property {string} description
- * @property {string} explainer
- * @property {string} specificationReference URL reference to a section of the Open Booking API
- * @property {boolean} required Is it required for an implementation to implement this feature?
- * @property {'none' | 'partial' | 'complete'} coverageStatus How much test coverage has been written for this feature
- * @property {string} [requiredCondition] Description of when this feature is required
- * @property {FeatureJsonLink[]} [links]
  */
 
 /**
@@ -109,8 +91,8 @@ const testMetadata = fg.sync(jestConfig.testMatch, { cwd: rootDirectory }).map(f
 /** @type {FeatureMetadataItem[]} */
 const featureMetadata = fg.sync('**/test/features/**/feature.json', { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
-  // TODO: Verify that the data actually conforms to the type.
-  return /** @type {FeatureJson} */(require(`${rootDirectory}${file}`));
+  const rawJson = require(`${rootDirectory}${file}`);
+  return FeatureJsonSchema.parse(rawJson);
 });
 
 // Sort features so that required ones are first

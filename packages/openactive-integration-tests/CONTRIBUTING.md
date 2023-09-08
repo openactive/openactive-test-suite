@@ -76,6 +76,10 @@ Here is an example `feature.json` file:
 }
 ```
 
+Properties in a `feature.json` file:
+
+- `identifier`: 
+
 ## Anatomy of a test
 
 Most tests are configured using `FeatureHelper.describeFeature(..)`. A simple example usage of this is:
