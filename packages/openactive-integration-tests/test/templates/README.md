@@ -8,7 +8,7 @@ Each Request Template is just a function which takes some input and returns the 
 
 ## Usage
 
-Most [Flow Stages](../helpers/flow-stages/README.md) take a `templateRef` parameter, which is the [Template Ref](#setup-template-refs) used to select the Request Template to use for that Flow Stage.
+Most [Flow Stages](../helpers/flow-stages/README.md) take a `templateRef` parameter, which is the [Template Ref](#setup-template-refs) used to select the Request Template to use for the API call made by that Flow Stage.
 
 In this example, the C2 Flow Stage is being configured to use the C2 Request Template with ref `standard`:
 
