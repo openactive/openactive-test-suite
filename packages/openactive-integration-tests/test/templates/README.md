@@ -27,11 +27,11 @@ Defines the type of data that is used as an input to the templates. e.g. `seller
 
 ```js
 /**
-* @typedef {{
-*   sellerId: string,
-*   ...
-* }} C2ReqTemplateData
-*/
+ * @typedef {{
+ *   sellerId: string,
+ *   ...
+ * }} C2ReqTemplateData
+ */
 ```
 
 ### Request Templates
@@ -40,8 +40,8 @@ Collection of Request Template functions, each of which takes input shaped by th
 
 ```js
 /**
-  * @param {C2ReqTemplateData} data
-  */
+ * @param {C2ReqTemplateData} data
+ */
 function createStandardC2Req(data) {
   return {
     '@context': 'https://openactive.io/',
@@ -62,8 +62,8 @@ const c2ReqTemplates = {
 };
 
 /**
-* @typedef {keyof typeof c2ReqTemplates} C2ReqTemplateRef Reference to a particular C2 Request template
-*/
+ * @typedef {keyof typeof c2ReqTemplates} C2ReqTemplateRef Reference to a particular C2 Request template
+ */
 ```
 
 This can then be referred to later. In this example, the C2 [Flow Stage](../helpers/flow-stages/README.md) is being configured to use the C2 Request Template with ref `standard`:
