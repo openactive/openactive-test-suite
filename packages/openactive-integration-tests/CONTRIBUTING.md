@@ -87,12 +87,12 @@ Properties in a `feature.json` file:
     - `complete`: All tests for this feature have been written.
     - `partial`: Some tests for this feature have been written.
     - `none`: No tests for this feature have been written.
+- `links` (OPTIONAL): Links to resources that may be useful for implementing this feature. Each link has a human-readable name, `name`, and a URL, `href`.
 - `requiredCondition` (OPTIONAL): Description of when this feature is required. This is for features which are required only in certain circumstances. For an example, `access-code-update-notifications`'s `feature.json`:
 
     ```json
       "requiredCondition": "Required if accessCode can change",
     ```
-- `links` (OPTIONAL): Links to resources that may be useful for implementing this feature. Each link has a human-readable name, `name`, and a URL, `href`.
 - `requiresOneOfIfImplemented` (OPTIONAL): A list of features which must be implemented if this feature is implemented. The example above indicates that, if a Booking System implements `non-free-opportunities`, then they also need to implement at least one of `prepayment-optional`, `prepayment-required`, or `prepayment-unavailable`.
 - `explainer` (OPTIONAL): An explanation of whether or not this feature should be implemented, especially for complicated use cases. For an example, `prepayment-required-unavailable`'s `feature.json`:
 
