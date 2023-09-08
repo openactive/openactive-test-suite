@@ -82,6 +82,7 @@ Properties in a `feature.json` file:
 - `name`: Human-readable name of the feature
 - `description`: Description of the feature
 - `explainer`: An explanation of whether or not this feature should be implemented, especially for complicated use cases. For an example, `prepayment-required-unavailable`'s `feature.json`:
+
     ```json
       "explainer": "This feature must be implemented if prepayment-required and prepayment-unavailable are both implemented.",
     ```
@@ -92,6 +93,7 @@ Properties in a `feature.json` file:
     - `partial`: Some tests for this feature have been written.
     - `none`: No tests for this feature have been written.
 - `requiredCondition`: Description of when this feature is required. This is for features which are required only in certain circumstances. For an example, `access-code-update-notifications`'s `feature.json`:
+
     ```json
       "requiredCondition": "Required if accessCode can change",
     ```
