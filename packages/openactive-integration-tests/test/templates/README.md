@@ -13,8 +13,8 @@ Most [Flow Stages](../helpers/flow-stages/README.md) take a `templateRef` parame
 In this example, the C2 Flow Stage is being configured to use the C2 Request Template with ref `standard`:
 
 ```js
-const c2ReqTemplates = {
-  standard: createStandardC2Req,
+const c2 = new C2FlowStage({
+  templateRef: 'standard',
 ```
 
 ## Structure
