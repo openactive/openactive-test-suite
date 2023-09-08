@@ -23,7 +23,7 @@ Each module in this folder (e.g. `./c2-req.js`) defines the collection of Reques
 
 ### Template Data Definition
 
-Defines the type of data that is used as an input to the templates. e.g. `sellerId` is part of the Template Data Definition for C2, as it is needed to generate the request JSON. Example:
+Defines the type of data that is used as an input to the templates. e.g. `sellerId` is part of the Template Data Definition for C2, as it is needed to generate the C2 request JSON. Example:
 
 ```js
 /**
