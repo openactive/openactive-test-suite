@@ -19,7 +19,7 @@ const c2 = new C2FlowStage({
 
 ## Structure
 
-Each module in this folder (e.g. `./c2-req.js`) defines the collectino of Request Templates for a particular Booking System endpoint (e.g. C2). Each of these modules is split into three parts:
+Each module in this folder (e.g. `./c2-req.js`) defines the collection of Request Templates for a particular Booking System endpoint (e.g. C2). Each of these modules is split into three parts:
 
 ### Template Data Definition
 
