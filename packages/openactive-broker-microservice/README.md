@@ -325,11 +325,15 @@ Broker Microservice exposes an API which is used by the [Integration Tests](../o
 
 ####  `GET /`
 
-An HTML home page which shows links to other user-facing endpoints
+**Response Type**: 🌐 HTML
+
+A home page which shows links to other user-facing endpoints
 
 #### `GET /status`
 
-A JSON object, which shows the status of the Broker Microservice. This is used by a user to check on the progress of Broker and to help diagnose any potential issues. An annotated example response:
+**Response Type**: 🤖 JSON
+
+Shows the status of the Broker Microservice. This is used by a user to check on the progress of Broker and to help diagnose any potential issues. An annotated example response:
 
 ```json
 {
@@ -387,11 +391,7 @@ A JSON object, which shows the status of the Broker Microservice. This is used b
     "OrderProposalsFeed (auth:secondary)": { /* ... */ },
   },
   "orphans": {
-    /* Tracks the number of items which have been harvested from the ScheduledSession
-    or Slot feeds, where their corresponding parent SessionSeries or FacilityUse
-    has not (yet) been harvested.
-    If all feeds have been harvested and there are orphans, this indicates that
-    there may be a problem with the Booking System's data. */
+    // Tracks the number of Orphans, according to the data that Broker currently has.
     "children": "0 of 13042 (0.00%)"
   },
   "totalOpportunitiesHarvested": 13042,
@@ -453,7 +453,65 @@ A JSON object, which shows the status of the Broker Microservice. This is used b
 
 #### `GET /validation-errors`
 
-An HTML web page which shows any validation errors that have been found for Opportunities that have been harvested from the Booking System.
+**Response Type**: 🌐 HTML
+
+Shows any validation errors that have been found for Opportunities that have been harvested from the Booking System.
+
+#### `GET /orphans`
+
+**Response Type**: 🤖 JSON
+
+Data about any [Orphans](#orphans) that Broker Microservice has found. Useful for debugging issues with the [Booking System](#booking-system-under-test)'s data.
+
+Example response:
+
+```json
+{
+  "children": {
+    // Number of child Opportunities whose parent has been found i.e. not orphaned
+    "matched": 11946,
+    // Number of orphaned child Opportunities
+    "orphaned": 2,
+    // Total number of child Opportunities
+    "total": 11948,
+    // List of the orphaned child Opportunities
+    "orphanedList": [
+      {
+        "jsonLdType": "ScheduledSession",
+        // The RPDE item ID of the Orphan
+        "id": "https://acme-fitness.org/api/scheduled-sessions/1",
+        "modified": 1234,
+        // The JSON-LD data for the Orphan
+        "jsonLd": {
+          "@context": "https://openactive.io/",
+          "@type": "ScheduledSession",
+          "@id": "https://acme-fitness.org/api/scheduled-sessions/1",
+          "name": "Yoga",
+          "superEvent": "https://acme-fitness.org/api/session-series/1",
+          // ...etc
+        },
+        // The JSON-LD ID of the Orphan
+        "jsonLdId": "https://acme-fitness.org/api/scheduled-sessions/1",
+        // The anticipated JSON-LD ID of the Orphan's parent
+        "jsonLdParentId": "https://acme-fitness.org/api/session-series/1",
+      },
+      // ... More orphans
+    ]
+  }
+}
+```
+
+#### `GET /opportunity-cache/:id`
+
+**Response Type**: 🤖 JSON
+
+**Request params**:
+
+* `id`: The ID of the [Child Opportunity](#orphans).
+
+Get an expanded* [Child Opportunity](#orphans) (e.g. a ScheduledSession or IndividualFacilityUseSlot) from Broker Microservice's cache, by its ID. Useful for debugging issues with the [Booking System](#booking-system-under-test)'s data.
+
+- *expanded: The Opportunity will have been expanded to include its parent Opportunity, if it has one.
 
 ### Internal endpoints
 
@@ -461,13 +519,15 @@ Endpoints used by Tests TODO2
 
 #### `GET /health-check`
 
+**Response Type**: 📄 Plain Text
+
 Returns a response when the [Initial Harvest](#initial-harvest) is complete. This is used by the [Integration Tests](../openactive-integration-tests/) to check that Broker Microservice is up to date with the Booking System's data.
 
 This endpoint starts by setting Broker Microservice's [Harvesting Status](#harvesting-status) to `resumed`. So, if it was `paused` before, it will now resume harvesting.
 
 #### `POST /pause`
 
-TODO2 use format for POST data interface
+**Response Type**: 🕳️ Empty
 
 Set Broker Microservice's [Harvesting Status](#harvesting-status) to `paused`.
 
@@ -475,7 +535,9 @@ This is called by the [Integration Tests](../openactive-integration-tests/) when
 
 #### `GET /config`
 
-A JSON object, which [Integration Tests](../openactive-integration-tests/) uses to configure itself. It contains:
+**Response Type**: 🤖 JSON
+
+Config, which [Integration Tests](../openactive-integration-tests/) uses to configure itself. It contains:
 
 * Broker Microservice config
 * Derived Broker Microservice config e.g. `bookingApiBaseUrl` is parsed from the [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
@@ -511,7 +573,11 @@ Here is an annotated example:
 
 #### `GET /dataset-site`
 
-A JSON object, which contains the [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
+**Response Type**: 🤖 JSON
+
+The [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
+
+Some of the tests in the [Integration Tests](../openactive-integration-tests/) use this in order to run checks against the Dataset Site JSON.
 
 Here is an example:
 
@@ -531,6 +597,39 @@ Here is an example:
   // ...etc
 ```
 
+#### `DELETE /opportunity-cache`
+
+**Response Type**: 🕳️ Empty
+
+Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity). This is used by the [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's data in between runs of Test Suite. (TODO2 I'm confused by this)
+
+#### `POST /opportunity-listeners/:id`
+
+**Response Type**: 🕳️ Empty
+
+**Request params**:
+
+* `id`: The ID of the [Child Opportunity](#orphans) to listen for.
+
+Create an [Opportunity Listener](#opportunity-listeners) for the specified Child Opportunity. This will start the **Listen** phase.
+
+#### `GET /opportunity-listeners/:id`
+
+**Response Type**: 🤖 JSON
+
+**Request params**:
+
+* `id`: The ID of the [Child Opportunity](#orphans) that is already being listened for.
+
+Must be called after [`POST /opportunity-listeners/:id`](#post-opportunity-listenersid).
+
+If and when the specified Child Opportunity is updated, this will return the updated Opportunity. This invokes the **Get** phase of the [Opportunity Listener](#opportunity-listeners).
+
+Either this endpoint will:
+
+* (if an update was found) return the updated Opportunity.
+* (if no update is found) eventually timeout.
+
 ## Concepts
 
 ### Booking System under Test
@@ -538,6 +637,8 @@ Here is an example:
 TODO2
 
 ### Buckets
+
+TODO2 change this to a part of Opportunity ID Cache
 
 A **Bucket** is a cache of Opportunity IDs that match a given Opportunity Criteria (TODO link to Opportunity Criteria description in packages/test-interface-criteria/README.md). When Integration Tests sends a request to get a random Opportunity matching a given criteria, the Opportunity is fetched from these buckets.
 
@@ -557,3 +658,27 @@ Broker Microservice can have one of two **Harvesting Statuses**:
 * `paused`: Broker Microservice is **not** harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds. This means that its data is not up to date with the Booking System's data, and so it is not available for use by the [Integration Tests](../openactive-integration-tests/).
 
 TODO2 ensure that all reasons for becoming paused are documented somewhere.
+
+### Opportunity Listeners
+
+An **Opportunity Listener** can be created in Broker Microservice to listen for updates to a given [Child Opportunity](#orphans). This is used by the [Integration Tests](../openactive-integration-tests/) to ensure that certain actions lead to updates to opportunity data.
+
+An Opportunity Listener is used in two phases:
+
+1. **Listen**: Start listening for the Opportunity. Any updates to this Opportunity prior to this point will be ignored.
+2. **Get**: Get the update if there is one. If there isn't one, wait for one to arrive.
+
+### Orphans
+
+There is a parent-child relationship between some types of [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) Feeds. Some examples:
+
+* Parent: **FacilityUse** feed
+    * Child: **Slot** feed or **IndividualFacilityUseSlot** feed
+* Parent: **SessionSeries** feed
+    * Child: **ScheduledSession** feed
+
+An **Orphan** is an Opportunity from a child feed (e.g. a ScheduledSession) whose corresponding parent Opportunity (e.g. a SessionSeries) does not exist.
+
+Broker Microservice keeps track of the number of Orphans that it has found. Before its [Initial Harvest](#initial-harvest), it may erroneously identify Orphans because it has not yet seen all the data from the parent feeds. However, after all feeds have been harvested, if there are still Orphans, this indicates that there may be a problem with the Booking System's data.
+
+For more info about the different configurations of Opportunity feeds available, see [Types of RPDE feed](https://developer.openactive.io/publishing-data/data-feeds/types-of-feed).
