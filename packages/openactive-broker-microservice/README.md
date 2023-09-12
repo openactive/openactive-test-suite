@@ -1,14 +1,20 @@
 ﻿# openactive-broker-microservice
 
-This Node.js microservice provides a service to harvest data and proxy calls to an Open Booking API
+This Node.js microservice provides a service to harvest data and proxy calls to an Open Booking API.
+
+It needs to be running, against an Open Booking API implementation, in order for the [openactive-integration-tests](../openactive-integration-tests/) to run.
+
+TODO perhaps a little more summary about what it does?
 
 ## Usage in separate terminal windows
 
 To run `openactive-broker-microservice` in separate terminal window to `openactive-integration-tests`, from repository root:
 
-1. `npm install`
-2. `export NODE_ENV=dev`
-3. `npm run start-broker`
+1. Install dependencies: `npm install`
+2. Specify Configuration file: `export NODE_ENV=dev`
+    * This is the command to use if using the `dev.json` config file, which is the default behaviour. See [Configuration](../../README.md#configuration) for more details)
+3. Start Broker: `npm run start-broker`
+4. Run [openactive-integration-tests](../openactive-integration-tests/) in another terminal window
 
 ## Configuration for `broker` within `./config/{NODE_ENV}.json`
 
@@ -16,7 +22,7 @@ The `broker` object within `./config/{NODE_ENV}.json` file of the repository con
 
 ### `datasetSiteUrl`
 
-The URL of the dataset site of the booking system under test. This dataset site is used to configure the test suite.
+The URL of the dataset site of the Booking System under test. This dataset site is used to configure the test suite.
 
 ```json
   "datasetSiteUrl": "https://reference-implementation.openactive.io/openactive",
@@ -152,6 +158,14 @@ While debugging authentication it can be useful to log the configuration that th
 
 ```json
   "logAuthConfig": true,
+```
+
+### `headlessAuth`
+
+For debugging authentication, it can be useful to perform the browser automation with a different setting for [Puppeteer's `headless` option](https://github.com/puppeteer/puppeteer#default-runtime-settings). By default, this is set to `true`.
+
+```json
+  "headlessAuth": true,
 ```
 
 ### `bookingPartners`
@@ -294,3 +308,252 @@ Clients credentials can be defined as follows:
     "secondary": null
   }
 ```
+
+## What Broker Microservice does
+
+TODO2:
+
+* Parses Dataset Site
+* RPDE feed harvesting + validation
+* Sets up auth
+
+## Broker Microservice API
+
+Broker Microservice exposes an API which is used by the [Integration Tests](../openactive-integration-tests/) to TODO2
+
+### User-facing endpoints
+
+####  `GET /`
+
+An HTML home page which shows links to other user-facing endpoints
+
+#### `GET /status`
+
+A JSON object, which shows the status of the Broker Microservice. This is used by a user to check on the progress of Broker and to help diagnose any potential issues. An annotated example response:
+
+```json
+{
+  // How long Broker has been running for
+  "elapsedTime": "2:58",
+  // Is Broker currently `harvesting` or is it `paused`?
+  "harvestingStatus": "harvesting",
+  // Status about each RPDE feed that Broker is harvesting
+  "feeds": {
+    "ScheduledSession": {
+      // The last page that Broker harvested from the ScheduledSession feed
+      "currentPage": "https://acme-fitness.org/api/feeds/scheduled-sessions?afterChangeNumber=3710544489",
+      // The total number of pages that Broker has harvested from the ScheduledSession feed so far
+      "pages": 8,
+      // The total number of items that Broker has harvested from the ScheduledSession feed so far
+      "items": 3992,
+      /* The reponse times, in milliseconds, of the last 5 pages that Broker
+      harvested from the ScheduledSession feed */
+      "responseTimes": [
+        476.496187210083,
+        303.6146593093872,
+        313.0219888687134,
+        294.4364585876465,
+        359.7757930755615
+      ],
+      // Number of items which are queued up for Data Model Validation
+      "totalItemsQueuedForValidation": 8,
+      // Number of items which have been validated by Data Model Validation
+      "validatedItems": 1978,
+      /* This feed is in `sleepMode` if the last page has been reached, at which point the feed
+      is polled at a slower rate until more data appears in the feed. */
+      "sleepMode": true,
+      // Time taken for Broker to completely harvest this feed
+      "timeToHarvestCompletion": "0:07"
+    },
+    "SessionSeries": {
+      "currentPage": "https://acme-fitness.org/api/feeds/session-series?afterChangeNumber=3662021037",
+      // ...
+    },
+    "FacilityUse": { /* ... */ },
+    "Slot": { /* ... */ },
+    /* The Orders feed for Booking Partner `primary`. This is the Booking Partner configured
+    in the `bookingPartners` config object with the key `primary`. */
+    "OrdersFeed (auth:primary)": {
+      "currentPage": "https://acme-fitness.org/api/booking/orders-rpde?afterChangeNumber=23504",
+      // ...
+    },
+    // The OrderProposals feed for the same Booking Partner, `primary`.
+    "OrderProposalsFeed (auth:primary)": {
+      "currentPage": "https://acme-fitness.org/api/booking/order-proposals-rpde?afterChangeNumber=23504",
+      // ...
+    },
+    // The Orders and OrderProposals feeds for Booking Partner `secondary`
+    "OrdersFeed (auth:secondary)": { /* ... */ },
+    "OrderProposalsFeed (auth:secondary)": { /* ... */ },
+  },
+  "orphans": {
+    /* Tracks the number of items which have been harvested from the ScheduledSession
+    or Slot feeds, where their corresponding parent SessionSeries or FacilityUse
+    has not (yet) been harvested.
+    If all feeds have been harvested and there are orphans, this indicates that
+    there may be a problem with the Booking System's data. */
+    "children": "0 of 13042 (0.00%)"
+  },
+  "totalOpportunitiesHarvested": 13042,
+  // A summarised view of the numbers of Opportunities in the Buckets
+  "buckets": {
+    "TestOpportunityBookable": {
+      "OpenBookingSimpleFlow": {
+        "ScheduledSession": {
+          /* There are 129 ScheduledSessions with this Seller ID that support
+          Simple Booking Flow and satisfy the criteria `TestOpportunityBookable` */
+          "https://acme-fitness.org/api/sellers/1": 129,
+          "https://acme-fitness.org/api/sellers/2": 27
+        },
+        "FacilityUseSlot": {
+          // ...
+        },
+        "IndividualFacilityUseSlot": {
+          // ...
+        }
+      },
+      "OpenBookingApprovalFlow": {
+        // ...
+      }
+    },
+    "TestOpportunityBookableNonFreeTaxNet": {
+      "OpenBookingSimpleFlow": {
+        "ScheduledSession": {
+          /* Unlike with TestOpporunityBookable, there were no ScheduledSessions
+          that matched this criteria, `TestOpportunityBookableNonFreeTaxNet`, so
+          instead of showing Opportunity numbers for each Seller, the status
+          endpoint shows a summary of why no Opportunities were found. */
+          "criteriaErrors": {
+            /* There are 892 ScheduledSessions which support Simple Booking Flow
+            and that do not satisfy the `TestOpportunityBookableNonFreeTaxNet`
+            criteria because they fail this contraint. That is to say that they
+            do not have seller tax mode TaxNet. */
+            "Seller Tax Mode Net": 892,
+            "Must not require additional details": 88,
+            "startDate must be 2hrs in advance for random tests to use": 236,
+            "Only non-free bookable Offers": 496,
+            // ...
+          }
+        },
+        "FacilityUseSlot": {
+          // ...
+        },
+        "IndividualFacilityUseSlot": {
+          // ...
+        }
+      },
+      "OpenBookingApprovalFlow": {
+        // ...
+      }
+    },
+    // ... so on for every other criteria ...
+  }
+}
+```
+
+#### `GET /validation-errors`
+
+An HTML web page which shows any validation errors that have been found for Opportunities that have been harvested from the Booking System.
+
+### Internal endpoints
+
+Endpoints used by Tests TODO2
+
+#### `GET /health-check`
+
+Returns a response when the [Initial Harvest](#initial-harvest) is complete. This is used by the [Integration Tests](../openactive-integration-tests/) to check that Broker Microservice is up to date with the Booking System's data.
+
+This endpoint starts by setting Broker Microservice's [Harvesting Status](#harvesting-status) to `resumed`. So, if it was `paused` before, it will now resume harvesting.
+
+#### `POST /pause`
+
+TODO2 use format for POST data interface
+
+Set Broker Microservice's [Harvesting Status](#harvesting-status) to `paused`.
+
+This is called by the [Integration Tests](../openactive-integration-tests/) when they have finished running. This reduces the load on the [Booking System](#booking-system-under-test) and on the user's machine in between runs of Test Suite.
+
+#### `GET /config`
+
+A JSON object, which [Integration Tests](../openactive-integration-tests/) uses to configure itself. It contains:
+
+* Broker Microservice config
+* Derived Broker Microservice config e.g. `bookingApiBaseUrl` is parsed from the [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
+* Config from the `OpenActiveTestAuthKeyManager` that Broker Microservice sets up. See [openactive-openid-test-client](../openactive-openid-test-client/) for more info.
+
+Here is an annotated example:
+
+```json
+{
+  // When Broker Microservice started its Initial Harvest
+  "harvestStartTime": "2023-09-12T10:03:28.452Z",
+  // The base URL of the Booking System's Open Booking API interface
+  "bookingApiBaseUrl": "https://acme-fitness.org/api/booking",
+  // Derived from the `headlessAuth` config property.
+  "headlessAuth": true,
+  /* The rest of the config comes straight from calling `OpenActiveTestAuthKeyManager`'s
+  `config` property */
+  "sellersConfig": {
+    "primary": {
+      // ...
+    },
+    "secondary": {
+      // ...
+    }
+  },
+  "bookingPartnersConfig": {
+    // ...
+  },
+  "authenticationFailure": false,
+  "dynamicRegistrationFailure": false,
+}
+```
+
+#### `GET /dataset-site`
+
+A JSON object, which contains the [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
+
+Here is an example:
+
+```json
+{
+  "@context": [
+    "https://schema.org/",
+    "https://openactive.io/"
+  ],
+  "@type": "Dataset",
+  "@id": "https://acme-fitness.org/api/",
+  "url": "https://acme-fitness.org/api/",
+  "name": "Acme Fitness",
+  "accessService": {
+    "@type": "WebAPI",
+    "name": "Open Booking API",
+  // ...etc
+```
+
+## Concepts
+
+### Booking System under Test
+
+TODO2
+
+### Buckets
+
+A **Bucket** is a cache of Opportunity IDs that match a given Opportunity Criteria (TODO link to Opportunity Criteria description in packages/test-interface-criteria/README.md). When Integration Tests sends a request to get a random Opportunity matching a given criteria, the Opportunity is fetched from these buckets.
+
+### Initial Harvest
+
+Broker Microservice starts by performing an **Initial Harvest** of the [Booking System](#booking-system-under-test)'s RPDE feeds. It rapidly pages through all the feeds, caching the data that it finds into [Buckets](#buckets) until it reaches the last page of each feed.
+
+When this Initial Harvest is complete, Broker Microservice's caches are up to date with all of the Booking System's data, and so it can be considered ready for various uses, including running [Integration Tests](../openactive-integration-tests/). A user can manually check whether or not the Initial Harvest is complete by calling the [Health Check endpoint](#get-health-check).
+
+Broker Microservice will continue to poll the feeds after the Initial Harvest and harvest any new data that it finds. This is essential, as many [Integration Tests](../openactive-integration-tests/) require data to be created in the Booking System after the tests have started.
+
+### Harvesting Status
+
+Broker Microservice can have one of two **Harvesting Statuses**:
+
+* `harvesting`: Broker Microservice is harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds, which means that it is either in its [Initial Harvest](#initial-harvest) phase or it is polling the feeds to keep up to date.
+* `paused`: Broker Microservice is **not** harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds. This means that its data is not up to date with the Booking System's data, and so it is not available for use by the [Integration Tests](../openactive-integration-tests/).
+
+TODO2 ensure that all reasons for becoming paused are documented somewhere.
