@@ -528,7 +528,7 @@ Endpoints used by [Integration Tests](../openactive-integration-tests/).
 
 **Response Type**: 📄 Plain Text
 
-Returns a response when the [Initial Harvest](#initial-harvest) is complete. This is used by [Integration Tests](../openactive-integration-tests/) to check that Broker Microservice is up to date with the Booking System's data.
+Returns a response when the [Initial Harvest](#initial-harvest) is complete. This is used by [Integration Tests](../openactive-integration-tests/) to check that Broker Microservice is up to date with the [Booking System](#booking-system-under-test)'s data.
 
 This endpoint starts by setting Broker Microservice's [Harvesting Status](#harvesting-status) to `resumed`. So, if it was `paused` before, it will now resume harvesting.
 
@@ -608,7 +608,10 @@ Here is an example:
 
 **Response Type**: 🕳️ Empty
 
-Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity). This is used by [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's data in between runs of Test Suite. (TODO I'm confused by this)
+Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity).
+
+This is used by [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's cache in between runs of Test Suite in [Controlled mode](../openactive-integration-tests/README.md#userandomopportunities).
+This is necessary as the [Booking System](#booking-system-under-test) deletes the entire Test Dataset in between runs of Test Suite in Controlled mode ([Test Interface docs](https://openactive.io/test-interface/#delete-test-interfacedatasetstestdatasetidentifier)).
 
 #### `POST /opportunity-listeners/:id`
 
