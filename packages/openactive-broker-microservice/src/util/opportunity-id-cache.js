@@ -8,7 +8,6 @@ const { criteria } = require('@openactive/test-interface-criteria');
  * @typedef {Map<string, OpportunityIdCacheCriteriaBucket>} OpportunityIdCacheType
  */
 
-// TODO2 clearly link this to "Buckets"?
 /**
  * Cache of Opportunity IDs. They are stored here according to criteria that they match (e.g. Opportunity Criteria,
  * Opportunity Type, etc).
