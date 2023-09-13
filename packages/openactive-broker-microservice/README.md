@@ -601,7 +601,10 @@ Here is an example:
   "accessService": {
     "@type": "WebAPI",
     "name": "Open Booking API",
-  // ...etc
+    // ...etc
+  },
+  // ...
+}
 ```
 
 #### `DELETE /opportunity-cache`
