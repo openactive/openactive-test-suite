@@ -1,10 +1,12 @@
 ﻿# openactive-broker-microservice
 
-This Node.js microservice provides a service to harvest data and proxy calls to an Open Booking API.
+Broker Microservice sits in front of a [Booking System](#booking-system-under-test), which is an implementation of the [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/), and provides the following services, to enable Test Suite:
 
-It needs to be running, against an Open Booking API implementation, in order for the [openactive-integration-tests](../openactive-integration-tests/) to run.
+1. [Harvests](#initial-harvest) data from the Booking System's Opportunity and Order RPDE feeds. This data is then [validated](#data-model-validation) and [cached](#opportunity-id-cache) and any [listeners](#two-phase-listeners) are notified.
+2. Fetch and parse data from the Booking System's [Dataset Site](https://openactive.io/dataset-api-discovery/EditorsDraft/).
+3. Sets up and maintains [auth credentials](#auth) for access to the Booking System.
 
-TODO perhaps a little more summary about what it does?
+It needs to be running, against a Booking System, in order for the [openactive-integration-tests](../openactive-integration-tests/) to run.
 
 ## Usage in separate terminal windows
 
@@ -309,19 +311,13 @@ Clients credentials can be defined as follows:
   }
 ```
 
-## What Broker Microservice does
-
-TODO2:
-
-* Parses Dataset Site
-* RPDE feed harvesting + validation
-* Sets up auth
-
 ## Broker Microservice API
 
-Broker Microservice exposes an API which is used by the [Integration Tests](../openactive-integration-tests/) to TODO2
+Broker Microservice exposes an API which is used by [Integration Tests](../openactive-integration-tests/) and can be used by users to debug potential issues with the [Booking System](#booking-system-under-test).
 
 ### User-facing endpoints
+
+Endpoints which caan be used by users to debug potential issues with the [Booking System](#booking-system-under-test).
 
 ####  `GET /`
 
@@ -455,7 +451,7 @@ Shows the status of the Broker Microservice. This is used by a user to check on 
 
 **Response Type**: 🌐 HTML
 
-Shows any validation errors that have been found for Opportunities that have been harvested from the Booking System.
+Shows any [validation](#data-model-validation) errors that have been found for Opportunities that have been harvested from the Booking System.
 
 #### `GET /orphans`
 
@@ -525,7 +521,7 @@ The primary use of this endpoint is to use with something like the [Postman API 
 
 ### Internal endpoints
 
-Endpoints used by Tests TODO2
+Endpoints used by [Integration Tests](../openactive-integration-tests/).
 
 #### `GET /health-check`
 
@@ -611,7 +607,7 @@ Here is an example:
 
 **Response Type**: 🕳️ Empty
 
-Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity). This is used by the [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's data in between runs of Test Suite. (TODO2 I'm confused by this)
+Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity). This is used by the [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's data in between runs of Test Suite. (TODO I'm confused by this)
 
 #### `POST /opportunity-listeners/:id`
 
@@ -760,17 +756,34 @@ Assert that an Opportunity matching the Opportunity Criteria, Seller and Opportu
 
 This is used by some [Non-Implemented tests](../openactive-integration-tests/README.md#structure) to ensure that a test feature MUST be implemented if a certain criteria of Opportunity is found in the Booking System's data. e.g. the [`cancellation-window` feature](../openactive-integration-tests/test/features/cancellation/cancellation-window) has a non-implemented test that asserts that there are no Opportunities with cancellation windows defined.
 
+## Browser Automation for Auth Endpoints
+
+Broker Microservice also exposes endpoints created from the `setupBrowserAutomationRoutes(..)` function from [openactive-openid-test-client](../openactive-openid-test-client/).
+These endpoints are used by [Integration Tests](../openactive-integration-tests/) for tests which check the [OpenID Connect](https://openid.net/developers/how-connect-works/) authentication flow.
+
 ## Concepts
+
+### Auth
+
+Broker Microservice sets up and maintains auth credentials for access to the [Booking System](#booking-system-under-test).
+
+[Integration Tests](../openactive-integration-tests/) can also obtain these credentials from [`GET /config`](#get-config) and use them to access the Booking System.
+
+These credentials are set up according to the auth strategy defined in the [`bookingPartners` configuration property](#bookingpartners).
+
+To do this, Broker Microservice uses the [openactive-openid-test-client](../openactive-openid-test-client/) library.
 
 ### Booking System under Test
 
-TODO2
+An implementation of the [Open Booking API specification](https://openactive.io/open-booking-api/EditorsDraft/), which is being tested by the [Integration Tests](../openactive-integration-tests/).
 
-### Buckets
+Broker Microservice connects to this Booking System in order to fetch metadata, harvest its Opportunity and Order RPDE feeds and acquire auth credentials. All of these then empower [Integration Tests](../openactive-integration-tests/) to run a suite of tests against this same Booking System.
 
-TODO2 change this to a part of Opportunity ID Cache
+### Data Model Validation
 
-A **Bucket** is a cache of Opportunity IDs that match a given Opportunity Criteria (TODO link to Opportunity Criteria description in packages/test-interface-criteria/README.md). When Integration Tests sends a request to get a random Opportunity matching a given criteria, the Opportunity is fetched from these buckets.
+For a [Booking System](#booking-system-under-test) to be considered valid, all of the data in its Opportunity and Order RPDE feeds must conform to the specifications for [Opportunity Data](https://openactive.io/modelling-opportunity-data/) and the [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/).
+
+Broker Microservice automatically runs validation on all of the data that it harvests from the Booking System's feeds, using the [Data Model Validator library](https://github.com/openactive/data-model-validator).
 
 ### Initial Harvest
 
@@ -787,7 +800,15 @@ Broker Microservice can have one of two **Harvesting Statuses**:
 * `harvesting`: Broker Microservice is harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds, which means that it is either in its [Initial Harvest](#initial-harvest) phase or it is polling the feeds to keep up to date.
 * `paused`: Broker Microservice is **not** harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds. This means that its data is not up to date with the Booking System's data, and so it is not available for use by the [Integration Tests](../openactive-integration-tests/).
 
-TODO2 ensure that all reasons for becoming paused are documented somewhere.
+### Opportunity ID Cache
+
+Broker Microservice keeps a cache of all the [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) that it has harvested from the [Booking System](#booking-system-under-test)'s feeds.
+
+This cache is stored in various structures. For the purposes of interfacing with Broker Microservice, the most important one to know about is **Buckets**:
+
+#### Buckets
+
+A **Bucket** is a cache of Opportunity IDs that match a given [Opportunity Criteria](../test-interface-criteria/README.md). When Integration Tests sends a request to get a random Opportunity matching a given criteria, the Opportunity is fetched from these buckets.
 
 ### Opportunity Locks
 
