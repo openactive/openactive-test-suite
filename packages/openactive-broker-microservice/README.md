@@ -1,10 +1,11 @@
 ﻿# openactive-broker-microservice
 
-Broker Microservice sits in front of a [Booking System](#booking-system-under-test), which is an implementation of the [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/), and provides the following services, to enable Test Suite:
+Broker Microservice sits in front of a [Booking System](#booking-system-under-test), which is an implementation of the [Open Booking API specification](https://openactive.io/open-booking-api/EditorsDraft/), and provides the following services, to enable Test Suite:
 
-1. [Harvests](#initial-harvest) data from the Booking System's Opportunity and Order RPDE feeds. This data is then [validated](#data-model-validation) and [cached](#opportunity-id-cache) and any [listeners](#two-phase-listeners) are notified.
+1. [Harvests](#initial-harvest) data from the Booking System's Opportunity and Order RPDE feeds.
+    * This data is then [validated](#data-model-validation) and [cached](#opportunity-id-cache) and any [listeners](#two-phase-listeners) are notified.
 2. Fetch and parse data from the Booking System's [Dataset Site](https://openactive.io/dataset-api-discovery/EditorsDraft/).
-3. Sets up and maintains [auth credentials](#auth) for access to the Booking System.
+3. Set up and maintains [auth credentials](#auth) for access to the Booking System.
 
 It needs to be running, against a Booking System, in order for the [openactive-integration-tests](../openactive-integration-tests/) to run.
 
@@ -14,7 +15,7 @@ To run `openactive-broker-microservice` in separate terminal window to `openacti
 
 1. Install dependencies: `npm install`
 2. Specify Configuration file: `export NODE_ENV=dev`
-    * This is the command to use if using the `dev.json` config file, which is the default behaviour. See [Configuration](../../README.md#configuration) for more details)
+    * This is the command to use if using the `dev.json` config file, which is the default behaviour. See [Configuration](../../README.md#configuration) for more details
 3. Start Broker: `npm run start-broker`
 4. Run [openactive-integration-tests](../openactive-integration-tests/) in another terminal window
 
@@ -317,7 +318,7 @@ Broker Microservice exposes an API which is used by [Integration Tests](../opena
 
 ### User-facing endpoints
 
-Endpoints which caan be used by users to debug potential issues with the [Booking System](#booking-system-under-test).
+Endpoints which can be used by users to debug potential issues with the [Booking System](#booking-system-under-test).
 
 ####  `GET /`
 
@@ -329,7 +330,7 @@ A home page which shows links to other user-facing endpoints
 
 **Response Type**: 🤖 JSON
 
-Shows the status of the Broker Microservice. This is used by a user to check on the progress of Broker and to help diagnose any potential issues. An annotated example response:
+Shows the status of the Broker Microservice. Use this to check on the progress of Broker and to help diagnose any potential issues. An annotated example response:
 
 ```json
 {
@@ -451,7 +452,7 @@ Shows the status of the Broker Microservice. This is used by a user to check on 
 
 **Response Type**: 🌐 HTML
 
-Shows any [validation](#data-model-validation) errors that have been found for Opportunities that have been harvested from the Booking System.
+Shows any [validation](#data-model-validation) errors that have been found for Opportunities that have been harvested from the [Booking System](#booking-system-under-test).
 
 #### `GET /orphans`
 
@@ -515,9 +516,9 @@ Get an expanded* [Child Opportunity](#orphans) (e.g. a ScheduledSession or Indiv
 
 **Response Type**: 🤖 JSON
 
-Return a random sample of Opportunities that match the Opportunity Criteria, Seller and Opportunity Type from the request body. This endpoint is very similar to [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](#post-test-interfacedatasetstestdatasetidentifieropportunities), but instead is intended for use outside of the [Integration Tests](../openactive-integration-tests/).
+Return a random sample of Opportunities that match the Opportunity Criteria, Seller and Opportunity Type from the request body. This endpoint is very similar to [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](#post-test-interfacedatasetstestdatasetidentifieropportunities), but instead is intended for use outside of [Integration Tests](../openactive-integration-tests/).
 
-The primary use of this endpoint is to use with something like the [Postman API Platform](https://www.postman.com/) to empower a human user to run manual tests against the [Booking System](#booking-system-under-test).
+The primary use of this endpoint is to use with something like the [Postman API Platform](https://www.postman.com/) to empower a user to run manual tests against the [Booking System](#booking-system-under-test).
 
 ### Internal endpoints
 
@@ -527,7 +528,7 @@ Endpoints used by [Integration Tests](../openactive-integration-tests/).
 
 **Response Type**: 📄 Plain Text
 
-Returns a response when the [Initial Harvest](#initial-harvest) is complete. This is used by the [Integration Tests](../openactive-integration-tests/) to check that Broker Microservice is up to date with the Booking System's data.
+Returns a response when the [Initial Harvest](#initial-harvest) is complete. This is used by [Integration Tests](../openactive-integration-tests/) to check that Broker Microservice is up to date with the Booking System's data.
 
 This endpoint starts by setting Broker Microservice's [Harvesting Status](#harvesting-status) to `resumed`. So, if it was `paused` before, it will now resume harvesting.
 
@@ -537,7 +538,7 @@ This endpoint starts by setting Broker Microservice's [Harvesting Status](#harve
 
 Set Broker Microservice's [Harvesting Status](#harvesting-status) to `paused`.
 
-This is called by the [Integration Tests](../openactive-integration-tests/) when they have finished running. This reduces the load on the [Booking System](#booking-system-under-test) and on the user's machine in between runs of Test Suite.
+This is called by [Integration Tests](../openactive-integration-tests/) when they have finished running. This reduces the load on the [Booking System](#booking-system-under-test) and on the user's machine in between runs of Test Suite.
 
 #### `GET /config`
 
@@ -583,7 +584,7 @@ Here is an annotated example:
 
 The [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
 
-Some of the tests in the [Integration Tests](../openactive-integration-tests/) use this in order to run checks against the Dataset Site JSON.
+Some of the tests in [Integration Tests](../openactive-integration-tests/) use this in order to run checks against the Dataset Site JSON.
 
 Here is an example:
 
@@ -607,7 +608,7 @@ Here is an example:
 
 **Response Type**: 🕳️ Empty
 
-Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity). This is used by the [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's data in between runs of Test Suite. (TODO I'm confused by this)
+Deletes all of Broker Microservice's cached data about harvested [Opportunities](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity). This is used by [Integration Tests](../openactive-integration-tests/) to reset Broker Microservice's data in between runs of Test Suite. (TODO I'm confused by this)
 
 #### `POST /opportunity-listeners/:id`
 
@@ -775,7 +776,7 @@ To do this, Broker Microservice uses the [openactive-openid-test-client](../open
 
 ### Booking System under Test
 
-An implementation of the [Open Booking API specification](https://openactive.io/open-booking-api/EditorsDraft/), which is being tested by the [Integration Tests](../openactive-integration-tests/).
+An implementation of the [Open Booking API specification](https://openactive.io/open-booking-api/EditorsDraft/), which is being tested by [Integration Tests](../openactive-integration-tests/).
 
 Broker Microservice connects to this Booking System in order to fetch metadata, harvest its Opportunity and Order RPDE feeds and acquire auth credentials. All of these then empower [Integration Tests](../openactive-integration-tests/) to run a suite of tests against this same Booking System.
 
@@ -798,7 +799,7 @@ Broker Microservice will continue to poll the feeds after the Initial Harvest an
 Broker Microservice can have one of two **Harvesting Statuses**:
 
 * `harvesting`: Broker Microservice is harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds, which means that it is either in its [Initial Harvest](#initial-harvest) phase or it is polling the feeds to keep up to date.
-* `paused`: Broker Microservice is **not** harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds. This means that its data is not up to date with the Booking System's data, and so it is not available for use by the [Integration Tests](../openactive-integration-tests/).
+* `paused`: Broker Microservice is **not** harvesting or polling the [Booking System](#booking-system-under-test)'s RPDE feeds. This means that its data is not up to date with the Booking System's data, and so it is not available for use by [Integration Tests](../openactive-integration-tests/).
 
 ### Opportunity ID Cache
 
@@ -816,7 +817,7 @@ When running tests in [Random mode](../openactive-integration-tests/README.md#us
 
 Broker Microservice uses **Opportunity Locks** to ensure that an Opportunity is only used in one test. When an Opportunity is retrieved in Random mode, using [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](#post-test-interfacedatasetstestdatasetidentifieropportunities), it is **locked**. Subsequent calls to get a random Opportunity with the same critera will not return the same Opportunity, as it is locked.
 
-In between runs of the [Integration Tests](../openactive-integration-tests/) tests, these locks need to be **released**, to ensure that all Opportunities are available for subsequent test runs.
+In between runs of the tests in [Integration Tests](../openactive-integration-tests/), these locks need to be **released**, to ensure that all Opportunities are available for subsequent test runs.
 
 These locks are contained within each [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints), so that an Opportunity that is locked in one Test Dataset will be avaiable to another.
 
@@ -838,7 +839,7 @@ For more info about the different configurations of Opportunity feeds available,
 
 ### Two-Phase Listeners
 
-A **Two-Phase Listener** can be created in Broker Miroservice to listen to updates to some object (e.g. [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) or Order) in the [Booking System](#booking-system-under-test). These are used by the [Integration Tests](../openactive-integration-tests/) to ensure that certain actions lead to updates to data e.g. cancellation should lead to the Order's cancelled OrderItems updating their status.
+A **Two-Phase Listener** can be created in Broker Miroservice to listen to updates to some object (e.g. [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) or Order) in the [Booking System](#booking-system-under-test). These are used by [Integration Tests](../openactive-integration-tests/) to ensure that certain actions lead to updates to data e.g. cancellation should lead to the Order's cancelled OrderItems updating their status.
 
 The two phases for these listeners are:
 
