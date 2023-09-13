@@ -709,8 +709,8 @@ This endpoint will do one of the following:
 
 **Request query params**:
 
-* `useCacheIfAvailable` (OPTIONAL): If `true`, the Opportunity will be retrieved from Broker Microservice's caches if available. If `false`, Broker Microservice will not look at its existing caches and will await an update to the Opportunity in the [Booking System](#booking-system-under-test)'s feeds. Defaults to `false`.
-* `expectedCapacity` (OPTIONAL): If included, the Opportunity will only be returned if its capacity is equal to the specified value. Any updates which have a different value for capacity will be ignored. This is useful for [Integration Tests](../openactive-integration-tests/) tests which need to check that an Opportunity's capacity has been updated to a certain value.
+* `useCacheIfAvailable` (OPTIONAL): If `true`, the Opportunity will be retrieved from Broker Microservice's [caches](#opportunity-id-cache) if available. If `false`, Broker Microservice will not look at its existing caches and will await an update to the Opportunity in the [Booking System](#booking-system-under-test)'s feeds. Defaults to `false`.
+* `expectedCapacity` (OPTIONAL): If included, the Opportunity will only be returned if its capacity is equal to the specified value. Any updates which have a different value for capacity will be ignored. This is useful for [Integration Tests](../openactive-integration-tests/) tests which need to check that an Opportunity's capacity has been updated to a certain value e.g. it should go down after a successful booking.
 
 **Response Type**: 🤖 JSON
 
