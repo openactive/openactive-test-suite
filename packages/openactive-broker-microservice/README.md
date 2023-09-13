@@ -503,15 +503,25 @@ Example response:
 
 #### `GET /opportunity-cache/:id`
 
-**Response Type**: 🤖 JSON
-
 **Request params**:
 
 * `id`: The ID of the [Child Opportunity](#orphans).
 
+**Response Type**: 🤖 JSON
+
 Get an expanded* [Child Opportunity](#orphans) (e.g. a ScheduledSession or IndividualFacilityUseSlot) from Broker Microservice's cache, by its ID. Useful for debugging issues with the [Booking System](#booking-system-under-test)'s data.
 
 - *expanded: The Opportunity will have been expanded to include its parent Opportunity, if it has one.
+
+#### `GET /sample-opportunities`
+
+**Request body**: The shape of [Child Opportunity](#orphans) to fetch. This data has the same specification as the request body to [Test Interface](https://openactive.io/test-interface/)'s [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) endpoint.
+
+**Response Type**: 🤖 JSON
+
+Return a random sample of Opportunities that match the Opportunity Criteria, Seller and Opportunity Type from the request body. This endpoint is very similar to [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](#post-test-interfacedatasetstestdatasetidentifieropportunities), but instead is intended for use outside of the [Integration Tests](../openactive-integration-tests/).
+
+The primary use of this endpoint is to use with something like the [Postman API Platform](https://www.postman.com/) to empower a human user to run manual tests against the [Booking System](#booking-system-under-test).
 
 ### Internal endpoints
 
@@ -605,30 +615,150 @@ Deletes all of Broker Microservice's cached data about harvested [Opportunities]
 
 #### `POST /opportunity-listeners/:id`
 
-**Response Type**: 🕳️ Empty
-
 **Request params**:
 
 * `id`: The ID of the [Child Opportunity](#orphans) to listen for.
 
-Create an [Opportunity Listener](#opportunity-listeners) for the specified Child Opportunity. This will start the **Listen** phase.
+**Response Type**: 🕳️ Empty
+
+Create an [Opportunity Listener](#two-phase-listeners) to listen for updates to the specified Child Opportunity.
 
 #### `GET /opportunity-listeners/:id`
-
-**Response Type**: 🤖 JSON
 
 **Request params**:
 
 * `id`: The ID of the [Child Opportunity](#orphans) that is already being listened for.
 
+**Response Type**: 🤖 JSON
+
 Must be called after [`POST /opportunity-listeners/:id`](#post-opportunity-listenersid).
 
-If and when the specified Child Opportunity is updated, this will return the updated Opportunity. This invokes the **Get** phase of the [Opportunity Listener](#opportunity-listeners).
+If and when the specified Child Opportunity is updated, this will return the updated Opportunity. This invokes the **Get** phase of the [Opportunity Listener](#two-phase-listeners).
 
 Either this endpoint will:
 
-* (if an update was found) return the updated Opportunity.
-* (if no update is found) eventually timeout.
+* If an update was found:
+    * return the updated Opportunity.
+* If no update is found:
+    * eventually timeout.
+
+### `POST /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
+
+**Request params**:
+
+* `type`: `orders` or `order-proposals`.
+* `bookingPartnerIdentifier`: Identifier of the Booking Partner whose [Orders Feed](https://openactive.io/open-booking-api/EditorsDraft/#dfn-orders-feed) or OrderProposals Feed to listen to. This is the key of the Booking Partner in the [`bookingPartners` configuration property](#bookingpartners) e.g. `primary`.
+* `uuid`: UUID of the Order or OrderProposal to listen for.
+
+**Response Type**: 🤖 JSON
+
+Create an [Order Listener](#two-phase-listeners) to listen for updates to the specified Order or Order Proposal.
+
+The response contains info that is useful to a human user for debugging, such as the `startingFeedPage`, which is the page of the feed that Broker Microservice will start listening from.
+
+### `GET /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
+
+**Request params**:
+
+* `type`: `orders` or `order-proposals`.
+* `bookingPartnerIdentifier`: Identifier of the Booking Partner whose [Orders Feed](https://openactive.io/open-booking-api/EditorsDraft/#dfn-orders-feed) or OrderProposals Feed is being listened for. This is the key of the Booking Partner in the [`bookingPartners` configuration property](#bookingpartners) e.g. `primary`.
+* `uuid`: UUID of the Order or OrderProposal that is being listened for.
+
+**Response Type**: 🤖 JSON
+
+Must be called after [`POST /order-listeners/:type/:bookingPartnerIdentifier/:uuid`](#post-order-listenerstypebookingpartneridentifieruuid).
+
+If and when the specified Order or OrderProposal is updated, this will return its updated data. This invokes the **Get** phase of the [Order Listener](#two-phase-listeners).
+
+Either this endpoint will:
+
+* If an update was found:
+    * return the updated Order or OrderProposal.
+* If no update is found:
+    * eventually timeout.
+
+### `GET /is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid`
+
+**Request params**:
+
+* `type`: `orders` or `order-proposals`.
+* `bookingPartnerIdentifier`: Identifier of the Booking Partner whose [Orders Feed](https://openactive.io/open-booking-api/EditorsDraft/#dfn-orders-feed) or OrderProposals Feed is being checked. This is the key of the Booking Partner in the [`bookingPartners` configuration property](#bookingpartners) e.g. `primary`.
+* `uuid`: UUID of the Order or OrderProposal that is being checked.
+
+**Response Type**: 🤖 JSON
+
+Check whether or not the specified Order or OrderProposal is present in the [Booking System](#booking-system-under-test)'s feeds.
+
+This endpoint will do one of the following:
+
+1. If the Order or OrderProposal has been seen in the feeds already:
+    * return `true`
+2. If the Order or OrderProposal has not been seen in the feeds yet and the feeds have been fully harvested:
+    * return `false`
+3. If the Order or OrderProposal has not been seen in the feeds yet but the feeds have not been fully harvested yet:
+    * wait until either of conditions #1 or #2 are met, then return the appropriate result.
+
+### `GET /opportunity/:id`
+
+**Request params**:
+
+* `id`: The ID of the [Child Opportunity](#orphans).
+
+**Request query params**:
+
+* `useCacheIfAvailable` (OPTIONAL): If `true`, the Opportunity will be retrieved from Broker Microservice's caches if available. If `false`, Broker Microservice will not look at its existing caches and will await an update to the Opportunity in the [Booking System](#booking-system-under-test)'s feeds. Defaults to `false`.
+* `expectedCapacity` (OPTIONAL): If included, the Opportunity will only be returned if its capacity is equal to the specified value. Any updates which have a different value for capacity will be ignored. This is useful for [Integration Tests](../openactive-integration-tests/) tests which need to check that an Opportunity's capacity has been updated to a certain value.
+
+**Response Type**: 🤖 JSON
+
+Get the specified [Child Opportunity](#orphans) from either Broker Microservice's caches or from updates to the [Booking System](#booking-system-under-test)'s feeds that happen after this call is made.
+
+This endpoint will do one of the following:
+
+1. If the Opportunity is found:
+    * return the Opportunity.
+2. If the Opportunity is never found:
+    * eventually timeout
+
+### `POST /test-interface/datasets/:testDatasetIdentifier/opportunities`
+
+**Request params**:
+
+* `testDatasetIdentifier`: The identifier of the [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints)
+
+**Request body**: The shape of [Child Opportunity](#orphans) to fetch. This data has the same specification as the request body to [Test Interface](https://openactive.io/test-interface/)'s [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) endpoint.
+
+**Response type**: 🤖 JSON
+
+This endpoint mirrors the [Test Interface](https://openactive.io/test-interface/)'s [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) endpoint exactly. But, instead of creating a new Opportunity when called, it fetches an existing Opportunity from Broker Microservice's caches.
+
+In this way, it can be used by [Integration Tests](../openactive-integration-tests/) when it is running in [Random mode](../openactive-integration-tests/README.md#userandomopportunities).
+
+If an Opportunity matching the Opportunity Criteria, Seller and Opportunity Type from the request body is found, it will be returned. Otherwise, the response will be a 404.
+
+Any Opportunity returned from this endpoint will be [locked](#opportunity-locks) and so will not be available for subsequent calls until locks are released.
+
+### `DELETE /test-interface/datasets/:testDatasetIdentifier`
+
+**Request params**:
+
+* `testDatasetIdentifier`: The identifier of the [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints)
+
+**Response type**: 🕳️ Empty
+
+This endpoint mirrors the [Test Interface](https://openactive.io/test-interface/)'s [`DELETE /test-interface/datasets/:testDatasetIdentifier`](https://openactive.io/test-interface/#delete-test-interfacedatasetstestdatasetidentifier) endpoint exactly. But, instead of deleting Opportunities, it releases all [Opportunity Locks](#opportunity-locks) created for the specified `testDatasetIdentifier`.
+
+In this way, it can be used by [Integration Tests](../openactive-integration-tests/) when it is running in [Random mode](../openactive-integration-tests/README.md#userandomopportunities) to get ready for a new test run.
+
+### `POST /assert-unmatched-criteria`
+
+**Request body**: The shape of [Child Opportunity](#orphans) to check. This data has the same specification as the request body to [Test Interface](https://openactive.io/test-interface/)'s [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) endpoint.
+
+**Response type**: 🤖 JSON
+
+Assert that an Opportunity matching the Opportunity Criteria, Seller and Opportunity Type from the request body is **not** found in the [Booking System](#booking-system-under-test)'s data. If such an Opportunity is found, the response will be a `404`. Otherwise, the response will be a `204`.
+
+This is used by some [Non-Implemented tests](../openactive-integration-tests/README.md#structure) to ensure that a test feature MUST be implemented if a certain criteria of Opportunity is found in the Booking System's data. e.g. the [`cancellation-window` feature](../openactive-integration-tests/test/features/cancellation/cancellation-window) has a non-implemented test that asserts that there are no Opportunities with cancellation windows defined.
 
 ## Concepts
 
@@ -659,14 +789,15 @@ Broker Microservice can have one of two **Harvesting Statuses**:
 
 TODO2 ensure that all reasons for becoming paused are documented somewhere.
 
-### Opportunity Listeners
+### Opportunity Locks
 
-An **Opportunity Listener** can be created in Broker Microservice to listen for updates to a given [Child Opportunity](#orphans). This is used by the [Integration Tests](../openactive-integration-tests/) to ensure that certain actions lead to updates to opportunity data.
+When running tests in [Random mode](../openactive-integration-tests/README.md#userandomopportunities), it is important that any Opportunity is only used in one test. This increases test coverage by ensuring that tests use a variety of different Opportunities and, crucially, it prevents unexpected behaviours when tests are run in parallel.
 
-An Opportunity Listener is used in two phases:
+Broker Microservice uses **Opportunity Locks** to ensure that an Opportunity is only used in one test. When an Opportunity is retrieved in Random mode, using [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](#post-test-interfacedatasetstestdatasetidentifieropportunities), it is **locked**. Subsequent calls to get a random Opportunity with the same critera will not return the same Opportunity, as it is locked.
 
-1. **Listen**: Start listening for the Opportunity. Any updates to this Opportunity prior to this point will be ignored.
-2. **Get**: Get the update if there is one. If there isn't one, wait for one to arrive.
+In between runs of the [Integration Tests](../openactive-integration-tests/) tests, these locks need to be **released**, to ensure that all Opportunities are available for subsequent test runs.
+
+These locks are contained within each [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints), so that an Opportunity that is locked in one Test Dataset will be avaiable to another.
 
 ### Orphans
 
@@ -682,3 +813,18 @@ An **Orphan** is an Opportunity from a child feed (e.g. a ScheduledSession) whos
 Broker Microservice keeps track of the number of Orphans that it has found. Before its [Initial Harvest](#initial-harvest), it may erroneously identify Orphans because it has not yet seen all the data from the parent feeds. However, after all feeds have been harvested, if there are still Orphans, this indicates that there may be a problem with the Booking System's data.
 
 For more info about the different configurations of Opportunity feeds available, see [Types of RPDE feed](https://developer.openactive.io/publishing-data/data-feeds/types-of-feed).
+
+
+### Two-Phase Listeners
+
+A **Two-Phase Listener** can be created in Broker Miroservice to listen to updates to some object (e.g. [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) or Order) in the [Booking System](#booking-system-under-test). These are used by the [Integration Tests](../openactive-integration-tests/) to ensure that certain actions lead to updates to data e.g. cancellation should lead to the Order's cancelled OrderItems updating their status.
+
+The two phases for these listeners are:
+
+1. **Listen**: Start listening for the object. Any updates to the object prior to this point will be ignored.
+2. **Get**: Get the update if there is one. If there isn't one, wait for one to arrive.
+
+Types of Two-Phase Listeners in Broker Microservice:
+
+* **Opportunity Listeners**: Listen for updates to a given [Child Opportunity](#orphans).
+* **Order Listeners**: Listen for updates to a given Order.
