@@ -3,8 +3,6 @@ const http = require('http');
 const logger = require('morgan');
 const { default: axios } = require('axios');
 const { criteria, testMatch, utils: criteriaUtils } = require('@openactive/test-interface-criteria');
-const { Handler } = require('htmlmetaparser');
-const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 const path = require('path');
 const { performance } = require('perf_hooks');
@@ -19,7 +17,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
-const { isNil, partial, omit, partition } = require('lodash');
+const { isNil, partial } = require('lodash');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -51,7 +49,6 @@ const {
   ORDERS_FEED_IDENTIFIER,
   ORDER_PROPOSALS_FEED_IDENTIFIER,
   OPPORTUNITY_FEED_REQUEST_HEADERS,
-  DATASET_DISTRIBUTION_OVERRIDE,
   DO_NOT_FILL_BUCKETS,
   DO_NOT_HARVEST_ORDERS_FEED,
   DISABLE_BROKER_TIMEOUT,
@@ -73,6 +70,8 @@ const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 const { renderSampleOpportunities } = require('./src/sample-opportunities');
+const { invertFacilityUseItems, createItemFromSubEvent, getMergedJsonLdContext, jsonLdHasReferencedParent } = require('./src/util/item-transforms');
+const { extractJSONLDfromDatasetSiteUrl } = require('./src/util/extract-jsonld-utils');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
@@ -1105,20 +1104,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
           // it and move on. This issue will still be discovered later in the RPDE feed check, and alert the
           // user without a harsh process exit.
           if ((subEvent['@id'] || subEvent.id) && (subEvent['@type'] || subEvent.type)) {
-            const opportunityItemData = {
-              ...subEvent,
-            };
-            opportunityItemData['@context'] = item.data['@context'];
-            opportunityItemData.superEvent = item.data['@id'] || item.data.id;
-
-            const opportunityItem = {
-              id: subEvent['@id'] || subEvent.id,
-              modified: item.modified,
-              kind: subEvent['@type'] || subEvent.type,
-              state: 'updated',
-              data: opportunityItemData,
-            };
-
+            const opportunityItem = createItemFromSubEvent(subEvent, item);
             storeOpportunityItem(opportunityItem);
           }
         }
@@ -1200,30 +1186,6 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) 
   await validateItemsFn(rpdePage.items);
 }
 
-function invertFacilityUseItems(items) {
-  const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => item.data?.individualFacilityUse);
-  if (invertibleFacilityUseItems.length < 1) return items;
-
-  // Invert "FacilityUse" items so the the top-level `kind` is "IndividualFacilityUse"
-  const invertedItems = [];
-  for (const facilityUseItem of invertibleFacilityUseItems) {
-    for (const individualFacilityUse of facilityUseItem.data.individualFacilityUse) {
-      invertedItems.push({
-        ...facilityUseItem,
-        kind: individualFacilityUse['@type'],
-        id: individualFacilityUse['@id'],
-        data: {
-          ...individualFacilityUse,
-          '@context': facilityUseItem.data['@context'],
-          aggregateFacilityUse: omit(facilityUseItem.data, ['individualFacilityUse', '@context']),
-        },
-      });
-    }
-  }
-
-  return invertedItems.concat(otherItems);
-}
-
 async function touchOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
@@ -1285,22 +1247,6 @@ async function storeOpportunityItem(item) {
   } else {
     throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
   }
-}
-
-function jsonLdHasReferencedParent(data) {
-  return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
-}
-
-function sortWithOpenActiveOnTop(arr) {
-  const firstList = [];
-  if (arr.includes('https://openactive.io/')) firstList.push('https://openactive.io/');
-  if (arr.includes('https://schema.org/')) firstList.push('https://schema.org/');
-  const remainingList = arr.filter((x) => x !== 'https://openactive.io/' && x !== 'https://schema.org/');
-  return firstList.concat(remainingList.sort());
-}
-
-function getMergedJsonLdContext(...opportunities) {
-  return sortWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
 }
 
 async function processRow(row) {
@@ -1446,57 +1392,6 @@ function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
       }
     }
   };
-}
-
-function extractJSONLDfromHTML(url, html) {
-  let jsonld = null;
-
-  const handler = new Handler(
-    (err, result) => {
-      if (!err && typeof result === 'object') {
-        const jsonldArray = result.jsonld;
-        // Use the first JSON-LD block on the page
-        if (Array.isArray(jsonldArray) && jsonldArray.length > 0) {
-          [jsonld] = jsonldArray;
-        }
-      }
-    },
-    {
-      url, // The HTML pages URL is used to resolve relative URLs. TODO: Remove this
-    },
-  );
-
-  // Create a HTML parser with the handler.
-  const parser = new Parser(handler, {
-    decodeEntities: true,
-  });
-  parser.write(html);
-  parser.done();
-
-  return jsonld;
-}
-
-async function extractJSONLDfromDatasetSiteUrl(url) {
-  if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
-    log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
-    return {
-      distribution: DATASET_DISTRIBUTION_OVERRIDE,
-    };
-  }
-  try {
-    log(`Downloading Dataset Site JSON-LD from "${url}"...`);
-    const response = await axios.get(url);
-
-    const jsonld = extractJSONLDfromHTML(url, response.data);
-    return jsonld;
-  } catch (error) {
-    if (!error.response) {
-      logError(`\nError while extracting JSON-LD from datasetSiteUrl "${url}"\n`);
-      throw error;
-    } else {
-      throw new Error(`Error ${error.response.status} for datasetSiteUrl "${url}": ${error.message}. Response: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}`);
-    }
-  }
 }
 
 async function startPolling() {

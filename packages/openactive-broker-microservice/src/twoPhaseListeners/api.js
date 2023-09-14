@@ -67,9 +67,6 @@ function doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId) {
   return true;
 }
 
-/**
- * @type {ExpressHandler}
- */
 async function createOrderListenerApi(req, res) {
   if (DO_NOT_HARVEST_ORDERS_FEED) {
     res.status(403).json({
