@@ -270,10 +270,10 @@ Your impementation will need to support at least one Authentication Strategy for
 
 How a Booking Partner accesses the [Orders Feed](https://openactive.io/open-booking-api/EditorsDraft/#dfn-orders-feed) containing updates to Orders that they have created.
 
-For Test Suite, the selected Order Feed Authentication Strategy is configured with the [`broker.bookingPartners` configuration property](./packages/openactive-broker-microservice/README.md#bookingpartners) and documentation on the supported strategies can be found there.
+For Test Suite, the selected Orders Feed Authentication Strategy is configured with the [`broker.bookingPartners` configuration property](./packages/openactive-broker-microservice/README.md#bookingpartners) and documentation on the supported strategies can be found there.
 
 ### Booking Authentication
 
-How a Booking Partner accesses the booking endpoints (C1, C2, B, etc) for a specific Seller's data. This differs from [Orders Feed Authentication](#orders-feed-authentication) as it can be specified at the per-Seller level for Multiple Seller Systems (relevant feature: [multiple-sellers](packages/openactive-integration-tests/test/features/core/multiple-sellers/).
+How a Booking Partner accesses the booking endpoints (C1, C2, B, etc) for a specific Seller's data. This differs from [Orders Feed Authentication](#orders-feed-authentication) as it can be specified at the per-Seller level for Multiple Seller Systems (relevant feature: [`multiple-sellers`](packages/openactive-integration-tests/test/features/core/multiple-sellers/)).
 
 For Test Suite, the selected Booking Authentication Strategy is configured with the [`sellers` configuration property](#configuration-for-seller-authentication) and documentation on the supported strategies can be found there.
