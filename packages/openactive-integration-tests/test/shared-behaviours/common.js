@@ -1,6 +1,6 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { expect } = require('chai');
-const { BFlowStage } = require('../helpers/flow-stages');
+const { BFlowStage } = require('../helpers/flow-stages/b');
 const { expectSuccessfulIdempotentRequestResponsesToBeDeepEqual } = require('../helpers/chakram-response-utils');
 
 /**
@@ -163,10 +163,10 @@ class Common {
    * @param {BFlowStage | import('../helpers/flow-stages/book-recipe').BookRecipe} idempotentB
    */
   static itIdempotentBShouldHaveOutputEqualToFirstB(firstB, idempotentB) {
-    const actualIdempotentB = idempotentB instanceof BFlowStage
-      ? idempotentB
-      : idempotentB.b;
     it('should get a same response as with the first B', () => {
+      const actualIdempotentB = (idempotentB instanceof BFlowStage)
+        ? idempotentB
+        : idempotentB.b;
       expectSuccessfulIdempotentRequestResponsesToBeDeepEqual(
         firstB.getOutput().httpResponse,
         actualIdempotentB.getOutput().httpResponse,
