@@ -169,7 +169,7 @@ While debugging authentication it can be useful to log the configuration that th
 
 ### `headlessAuth`
 
-For debugging authentication, it can be useful to perform the browser automation with a different setting for [Puppeteer's `headless` option](https://github.com/puppeteer/puppeteer#default-runtime-settings). By default, this is set to `true`.
+When debugging authentication, it can be useful to see the browser window in which the OpenID Connect authentication tests take place. This setting configures [Puppeteer's `headless` option](https://github.com/puppeteer/puppeteer#default-runtime-settings), which can be set to `false` to show the browser window. By default, this is set to `true`, so that the browser window is hidden.
 
 ```json
   "headlessAuth": true,
@@ -423,12 +423,14 @@ Shows the status of the Broker Microservice. Use this to check on the progress o
           /* Unlike with TestOpporunityBookable, there were no ScheduledSessions
           that matched this criteria, `TestOpportunityBookableNonFreeTaxNet`, so
           instead of showing Opportunity numbers for each Seller, the status
-          endpoint shows a summary of why no Opportunities were found. */
+          endpoint shows a summary of why no Opportunities were found.
+          The key with the highest value is likely to be the reason that there are
+          no items in this bucket. */
           "criteriaErrors": {
             /* There are 892 ScheduledSessions which support Simple Booking Flow
             and that do not satisfy the `TestOpportunityBookableNonFreeTaxNet`
             criteria because they fail this contraint. That is to say that they
-            do not have seller tax mode TaxNet. */
+            do not have seller `taxMode` of `TaxNet`. */
             "Seller must have taxMode of TaxNet": 892,
             "Must not require additional details": 88,
             "startDate must be 2hrs in advance for random tests to use": 236,
