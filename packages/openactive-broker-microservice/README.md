@@ -663,7 +663,14 @@ Either this endpoint will:
 
 Create an [Order Listener](#two-phase-listeners) to listen for updates to the specified Order or Order Proposal.
 
-The response contains info that is useful to a human user for debugging, such as the `startingFeedPage`, which is the page of the feed that Broker Microservice will start listening from.
+The response contains info that may be useful to a user for debugging. Example:
+
+```json
+{
+  // The page of the feed that Broker Microservice will start listening from.
+  "startingFeedPage": "https://acme-fitness.org/api/booking/orders-rpde?afterChangeNumber=23504",
+}
+```
 
 ### `GET /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
 
