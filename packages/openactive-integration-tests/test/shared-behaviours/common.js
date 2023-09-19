@@ -160,7 +160,7 @@ class Common {
    * requests should be identical.
    *
    * @param {BFlowStage} firstB
-   * @param {BFlowStage | import('../helpers/flow-stages/book-recipe').BookRecipe} idempotentB
+   * @param {BFlowStage | import('../helpers/flow-stages/book-recipe').BookRecipeType} idempotentB
    */
   static itIdempotentBShouldHaveOutputEqualToFirstB(firstB, idempotentB) {
     it('should get a same response as with the first B', () => {
