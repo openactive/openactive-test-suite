@@ -1,11 +1,15 @@
 ﻿# openactive-broker-microservice
 
-Broker Microservice sits in front of a [Booking System](#booking-system-under-test), which is an implementation of the [Open Booking API specification](https://openactive.io/open-booking-api/EditorsDraft/), and provides the following services, to enable Test Suite:
+This "Broker Microservice" project is a component of the OpenActive Test Suite. Although it can be run stand-alone for some advanced use-cases, it is run automatically as part of the OpenActive Test Suite `npm start` command (or when the OpenActive Test Suite Docker container is started). For general information about running the OpenActive Test Suite, please see the [relevant documentation](https://developer.openactive.io/open-booking-api/test-suite).
 
-1. [Harvests](#initial-harvest) data from the Booking System's Opportunity and Order RPDE feeds.
+## How it works
+
+Broker Microservice sits in front of a [Booking System](#booking-system-under-test), which is an implementation of the [Open Booking API specification](https://openactive.io/open-booking-api/EditorsDraft/), and provides the following services, to support OpenActive Test Suite:
+
+1. Fetch, parse and validate data from the Booking System's [Dataset Site](https://openactive.io/dataset-api-discovery/EditorsDraft/).
+2. Set up and maintain [auth credentials](#auth) for access to the Booking System.
+3. [Harvests](#initial-harvest) data from the Booking System's Opportunity and Order RPDE feeds.
     * This data is then [validated](#data-model-validation) and [cached](#opportunity-id-cache) and any [listeners](#two-phase-listeners) are notified.
-2. Fetch and parse data from the Booking System's [Dataset Site](https://openactive.io/dataset-api-discovery/EditorsDraft/).
-3. Set up and maintains [auth credentials](#auth) for access to the Booking System.
 
 It needs to be running, against a Booking System, in order for the [openactive-integration-tests](../openactive-integration-tests/) to run.
 
