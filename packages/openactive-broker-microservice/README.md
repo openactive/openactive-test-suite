@@ -429,7 +429,7 @@ Shows the status of the Broker Microservice. Use this to check on the progress o
             and that do not satisfy the `TestOpportunityBookableNonFreeTaxNet`
             criteria because they fail this contraint. That is to say that they
             do not have seller tax mode TaxNet. */
-            "Seller Tax Mode Net": 892,
+            "Seller must have taxMode of TaxNet": 892,
             "Must not require additional details": 88,
             "startDate must be 2hrs in advance for random tests to use": 236,
             "Only non-free bookable Offers": 496,
