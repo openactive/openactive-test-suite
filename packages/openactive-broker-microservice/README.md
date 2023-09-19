@@ -423,7 +423,9 @@ Shows the status of the Broker Microservice. Use this to check on the progress o
           /* Unlike with TestOpporunityBookable, there were no ScheduledSessions
           that matched this criteria, `TestOpportunityBookableNonFreeTaxNet`, so
           instead of showing Opportunity numbers for each Seller, the status
-          endpoint shows a summary of why no Opportunities were found. */
+          endpoint shows a summary of why no Opportunities were found.
+          The key with the highest value is likely to be the reason that there are
+          no items in this bucket. */
           "criteriaErrors": {
             /* There are 892 ScheduledSessions which support Simple Booking Flow
             and that do not satisfy the `TestOpportunityBookableNonFreeTaxNet`
