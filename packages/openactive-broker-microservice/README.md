@@ -430,7 +430,7 @@ Shows the status of the Broker Microservice. Use this to check on the progress o
             /* There are 892 ScheduledSessions which support Simple Booking Flow
             and that do not satisfy the `TestOpportunityBookableNonFreeTaxNet`
             criteria because they fail this contraint. That is to say that they
-            do not have seller tax mode TaxNet. */
+            do not have seller `taxMode` of `TaxNet`. */
             "Seller Tax Mode Net": 892,
             "Must not require additional details": 88,
             "startDate must be 2hrs in advance for random tests to use": 236,
