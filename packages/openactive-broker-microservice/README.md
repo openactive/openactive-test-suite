@@ -828,7 +828,7 @@ This cache is stored in various structures. For the purposes of interfacing with
 
 #### Buckets
 
-A **Bucket** is a cache of Opportunity IDs that match a given [Opportunity Criteria](../test-interface-criteria/README.md). When Integration Tests sends a request to get a random Opportunity matching a given criteria, the Opportunity is fetched from these buckets.
+A **Bucket** is a cache of Opportunity IDs that match a given [Opportunity Criteria](../test-interface-criteria/README.md). During harvesting, each Opportunity found in the feeds is added to the buckets whose criteria it matches. When Integration Tests sends a request to get a random Opportunity matching a given criteria, the Opportunity is fetched from these buckets.
 
 ### Opportunity Locks
 
