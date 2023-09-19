@@ -514,7 +514,7 @@ Example response:
 
 Get an expanded* [Child Opportunity](#orphans) (e.g. a ScheduledSession or IndividualFacilityUseSlot) from Broker Microservice's cache, by its ID. Useful for debugging issues with the [Booking System](#booking-system-under-test)'s data.
 
-- *expanded: The Opportunity will have been expanded to include its parent Opportunity, if it has one.
+- *expanded: The Opportunity will have been expanded to include its parent Opportunity, if it references one that exists.
 
 #### `GET /sample-opportunities`
 
