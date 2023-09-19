@@ -17,7 +17,7 @@ To run `openactive-integration-tests` in separate terminal window to `openactive
 
 1. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running in another terminal window
 2. Specify Configuration file: `export NODE_ENV=dev`
-    * This is the command to use if using the `dev.json` config file, which is the default behaviour. See [Configuration](../../README.md#configuration) for more details)
+    * This is the command to use if using the `dev.json` config file. See [Configuration](../../README.md#configuration) for more details)
 3. Run Tests: `npm run start-tests`
 
 ### Running specific tests
