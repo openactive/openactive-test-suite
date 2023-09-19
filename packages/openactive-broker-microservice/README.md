@@ -169,7 +169,7 @@ While debugging authentication it can be useful to log the configuration that th
 
 ### `headlessAuth`
 
-For debugging authentication, it can be useful to perform the browser automation with a different setting for [Puppeteer's `headless` option](https://github.com/puppeteer/puppeteer#default-runtime-settings). By default, this is set to `true`.
+When debugging authentication, it can be useful to see the browser window in which the OpenID Connect authentication tests take place. This setting configures [Puppeteer's `headless` option](https://github.com/puppeteer/puppeteer#default-runtime-settings), which can be set to `false` to show the browser window. By default, this is set to `true`, so that the browser window is hidden.
 
 ```json
   "headlessAuth": true,
