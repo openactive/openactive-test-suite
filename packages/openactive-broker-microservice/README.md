@@ -836,7 +836,7 @@ When running tests in [Random mode](../openactive-integration-tests/README.md#us
 
 Broker Microservice uses **Opportunity Locks** to ensure that an Opportunity is only used in one test. When an Opportunity is retrieved in Random mode, using [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](#post-test-interfacedatasetstestdatasetidentifieropportunities), it is **locked**. Subsequent calls to get a random Opportunity with the same critera will not return the same Opportunity, as it is locked.
 
-In between runs of the tests in [Integration Tests](../openactive-integration-tests/), these locks need to be **released**, to ensure that all Opportunities are available for subsequent test runs.
+In between runs of the tests in [Integration Tests](../openactive-integration-tests/), these locks are **released**, to ensure that all Opportunities are available for subsequent test runs.
 
 These locks are contained within each [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints), so that an Opportunity that is locked in one Test Dataset will be avaiable to another.
 
