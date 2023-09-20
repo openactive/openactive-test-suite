@@ -84,7 +84,7 @@ Description of each field:
 * `authentication`: Check out the [**Configuration for Seller Authentication**](#configuration-for-seller-authentication) section.
 * `taxMode`: Which [Tax Mode](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#tax-mode) is used for this Seller.
 
-  **Note: If testing both Tax Modes, make sure that there is at least one Seller with each**. Alternatively, if not supporting multiple Sellers, you can run the Test Suite once with `"taxMode": "https://openactive.io/TaxNet"` and once with `"taxMode": "https://openactive.io/TaxGross"`.
+  **Note: If testing both Tax Modes, make sure that there is at least one Seller with each**. Alternatively, if not supporting multiple Sellers, you can run the Test Suite once with `"taxMode": "https://openactive.io/TaxNet"` and once with `"taxMode": "https://openactive.io/TaxGross"`. However, it is not currently possible to generate a certificate that covers both configurations unless multiple Sellers are supported.
 * `paymentReconciliationDetails`: If testing [Payment Reconciliation Detail Validation](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation), include the required payment reconciliation details here.
 
 ### Configuration for Seller Authentication
