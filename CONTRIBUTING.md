@@ -67,10 +67,7 @@ How to run them both locally:
     For example, to run broker and a specific test separately (See [**Tips for quicker test runs**](#tips-for-quicker-test-runs) for a more efficient process):
 
     ```sh
-    NODE_APP_INSTANCE=dev npm start # to start the broker
-    NODE_APP_INSTANCE=dev npm run start-broker # to start the broker
-    # in another terminal:
-    NODE_APP_INSTANCE=dev npm run start-tests  -- packages/openactive-integration-tests/test/features/core/common-error-conditions/implemented/not-bookable-test.js
+    NODE_APP_INSTANCE=dev npm start
     ```
 
 **N.B.:** When running the reference implementation locally, the `unknown-endpoint` test in `core/common-error-conditions` will fail as the dev version of reference implementation shows a developer error page instead of the regular 404 response.
