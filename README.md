@@ -31,13 +31,16 @@ Note that the above command only runs the "core" tests within the test suite, wh
 The hosted OpenActive Reference Implementation is running on a basic developer tier Azure instance with a burst quota, so it will not handle the load of a test suite run for all tests (hence `npm start -- core`); if the hosted application shuts down, simply wait 5 minutes and try again.
 
 ## Configuration
+
 In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV` environment variable), including the following properties:
    - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration-for-broker-within-confignode_envjson)
    - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration-for-integrationtests-within-confignode_envjson)
 
-The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
+The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. For development and deployment create a new file instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
-For more information see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+For more information about this use of `NODE_ENV` see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+
+By convention, much of the documentation assumes you to have created a `config/dev.json` file, which Test Suite will use when env var `NODE_ENV=dev`. But you can use any name you like, and have multiple configuration files for different environments.
 
 ## Installation
 
