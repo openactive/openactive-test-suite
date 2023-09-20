@@ -5,7 +5,7 @@ const { getTestDataShapeExpressions } = require('@openactive/test-interface-crit
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  */
 
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, USE_SHAPE_EXPRESSIONS } = global;
 
 /**
  * Create opportunity data for sending to https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities
@@ -39,8 +39,10 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
     // e.g. OpenBookingApprovalFlow -> https://openactive.io/test-interface#OpenBookingApprovalFlow
     'test:testOpenBookingFlow': `https://openactive.io/test-interface#${bookingFlow}`,
-    'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
-    'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
+    ...(USE_SHAPE_EXPRESSIONS ? {
+      'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
+      'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
+    } : {}),
   };
   const seller = sellerId ? {
     '@type': sellerType,

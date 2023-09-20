@@ -4,6 +4,8 @@ Command line tool to generate a distribution definition of test data based on th
 
 Test data is outputted to `./test-data/test-data.json` by default.
 
+The data outputted by this tool can be used by a script to add sufficient test data into your [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/) implementation's database for testing when using [random mode](../README.md#userandomopportunities).
+
 ## Usage
 
 ```bash
@@ -17,6 +19,8 @@ npm run test-data-generator -- --output ./test-data.json # output to ./test-data
 ## Test data file format
 
 The `item` within the file format is identical to the Controlled Opportunity Creation endpoint defined within the [OpenActive Test Interface](https://openactive.io/test-interface/). This allows an implementation to use the same logic to generate data from the test data file and from the test interface.
+
+TODO2 need to be removed from here too based on config
 
 ```json
 {
