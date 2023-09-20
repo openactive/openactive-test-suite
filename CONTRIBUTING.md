@@ -57,12 +57,12 @@ See the [Integration Tests CONTRIBUTING.md](./packages/openactive-integration-te
 
 ## Locally running Test Suite to test changes
 
-When you are making changes to the Test Suite, please run it on your machine to check that the changes work before submitting a [pull request](#pull-request-process). These changes can be checked against the [**Reference Implementation**](#reference-implementation). You may or may not also have changes to the reference implementation that is required for your updated tests to pass. Either way, you'll need to run both projects on your machine order to test your changes.
+When you are making changes to the Test Suite, please run it on your machine to check that the changes work before submitting a [pull request](#pull-request-process). These changes can be checked against the [**reference implementation**](#reference-implementation). You may or may not also have changes to the reference implementation that is required for your updated tests to pass. Either way, you'll need to run both projects on your machine order to test your changes.
 
 How to run them both locally:
 
 * **Reference Implementation**: To run this locally, follow the guidelines in its [project's contribution documentation](https://github.com/openactive/OpenActive.Server.NET/blob/master/CONTRIBUTING.md).
-* **Test Suite**: With Reference Implementation running locally, use the [`default-dev.json` config](./config/default-dev.json) by setting env var `NODE_APP_INSTANCE=dev`.
+* **Test Suite**: With the reference implementation running locally, use the [`default-dev.json` config](./config/default-dev.json) by setting env var `NODE_APP_INSTANCE=dev`.
     e.g., to run broker and a specific test separately (See [**Tips for quicker test runs**](#tips-for-quicker-test-runs) for a more efficient process)):
 
     ```sh
@@ -72,7 +72,7 @@ How to run them both locally:
     NODE_APP_INSTANCE=dev npm run start-tests  -- packages/openactive-integration-tests/test/features/core/common-error-conditions/implemented/not-bookable-test.js
     ```
 
-**N.B.:** When running Reference Implementation locally, the `unknown-endpoint` test in `core/common-error-conditions` will fail as the dev version of Reference Implementation shows a developer error page instead of the regular 404 response.
+**N.B.:** When running the reference implementation locally, the `unknown-endpoint` test in `core/common-error-conditions` will fail as the dev version of reference implementation shows a developer error page instead of the regular 404 response.
 
 ### Tips for quicker test runs
 
@@ -103,6 +103,6 @@ To do this, see the [**Optimizing for Controlled Mode**](https://github.com/open
 
 ### NODE_APP_INSTANCE=dev
 
-Setting env var `NODE_APP_INSTANCE=dev` informs Test Suite to use the [`default-dev.json` config file](./config/default-dev.json), which is configured to run against the Reference Implementation running locally.
+Setting env var `NODE_APP_INSTANCE=dev` informs Test Suite to use the [`default-dev.json` config file](./config/default-dev.json), which is configured to run against the reference implementation running locally.
 
 `NODE_APP_INSTANCE` is a feature of the [`config`](https://github.com/node-config/node-config/) library.
