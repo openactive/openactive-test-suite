@@ -57,7 +57,7 @@ See the [Integration Tests CONTRIBUTING.md](./packages/openactive-integration-te
 
 ## Locally running Test Suite to test changes
 
-When you're making changes to the Test Suite, you'll want to run it on your machine to check that the changes work before submitting a [pull request](#pull-request-process). These changes can be checked against the [**Reference Implementation**](#reference-implementation). You may or may not also have changes to the reference implementation that is required for your updated tests to pass. Either way, you'll need to run both projects on your machine order to test your changes.
+When you are making changes to the Test Suite, please run it on your machine to check that the changes work before submitting a [pull request](#pull-request-process). These changes can be checked against the [**Reference Implementation**](#reference-implementation). You may or may not also have changes to the reference implementation that is required for your updated tests to pass. Either way, you'll need to run both projects on your machine order to test your changes.
 
 How to run them both locally:
 
