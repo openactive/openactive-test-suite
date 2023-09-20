@@ -61,8 +61,8 @@ When you are making changes to the Test Suite, please run it on your machine to 
 
 How to run them both locally:
 
-* Reference Implementation: To run this locally, follow the guidelines in its [project](https://github.com/openactive/OpenActive.Server.NET)'s contribution documentation.
-* Test Suite: With Reference Implementation running locally, use the [`default-dev.json` config](./config/default-dev.json) by setting env var `NODE_APP_INSTANCE=dev`.
+* **Reference Implementation**: To run this locally, follow the guidelines in its [project](https://github.com/openactive/OpenActive.Server.NET)'s contribution documentation.
+* **Test Suite**: With Reference Implementation running locally, use the [`default-dev.json` config](./config/default-dev.json) by setting env var `NODE_APP_INSTANCE=dev`.
     e.g., to run broker and a specific test separately (See [**Tips for quicker test runs**](#tips-for-quicker-test-runs) for a more efficient process)):
 
     ```sh
