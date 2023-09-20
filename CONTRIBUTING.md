@@ -85,9 +85,9 @@ Here's an example of how to do this:
 # In one terminal, start broker
 NODE_APP_INSTANCE=dev npm run start-broker
 
-# Then, in ANOTHER terminal, run the opportunity-in-past single test
+# Then, in ANOTHER terminal, run only the opportunity-in-past test
 NODE_APP_INSTANCE=dev npm run start-tests -- packages/openactive-integration-tests/test/features/core/common-error-conditions/implemented/opportunity-in-past-test.js
-# OR, run only the common-error-conditions feature
+# OR, run only the tests within the common-error-conditions feature
 NODE_APP_INSTANCE=dev npm run start-tests -- packages/openactive-integration-tests/test/features/core/common-error-conditions/
 ```
 
