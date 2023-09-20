@@ -64,7 +64,7 @@ How to run them both locally:
 * **Reference Implementation**: To run this locally, follow the guidelines in its [project's contribution documentation](https://github.com/openactive/OpenActive.Server.NET/blob/master/CONTRIBUTING.md).
 * **Test Suite**: With the reference implementation running locally, use the [`default-dev.json` config](./config/default-dev.json) by setting env var `NODE_APP_INSTANCE=dev`.
 
-    For example, to run broker and a specific test separately (See [**Tips for quicker test runs**](#tips-for-quicker-test-runs) for a more efficient process):
+    For example, to run broker and a specific test separately (See [**Tips for quicker test runs**](#tips-for-quicker-test-runs) for a much more efficient process):
 
     ```sh
     NODE_APP_INSTANCE=dev npm start
