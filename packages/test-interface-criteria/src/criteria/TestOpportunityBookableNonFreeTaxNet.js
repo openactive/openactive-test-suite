@@ -9,7 +9,7 @@ const { TestOpportunityBookableNonFree } = require('./TestOpportunityBookableNon
 /**
  * @type {OpportunityConstraint}
  */
-function sellerTaxModeNet(opportunity) {
+function sellerMustHaveTaxModeTaxNet(opportunity) {
   const organization = getOrganizerOrProvider(opportunity);
   return organization && organization.taxMode === 'https://openactive.io/TaxNet';
 }
@@ -21,8 +21,8 @@ const TestOpportunityBookableNonFreeTaxNet = createCriteria({
   name: 'TestOpportunityBookableNonFreeTaxNet',
   opportunityConstraints: [
     [
-      'Seller Tax Mode Net',
-      sellerTaxModeNet,
+      'Seller must have taxMode of TaxNet',
+      sellerMustHaveTaxModeTaxNet,
     ],
   ],
   offerConstraints: [],
