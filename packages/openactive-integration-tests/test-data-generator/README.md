@@ -20,8 +20,6 @@ npm run test-data-generator -- --output ./test-data.json # output to ./test-data
 
 The `item` within the file format is identical to the Controlled Opportunity Creation endpoint defined within the [OpenActive Test Interface](https://openactive.io/test-interface/). This allows an implementation to use the same logic to generate data from the test data file and from the test interface.
 
-TODO2 need to be removed from here too based on config
-
 ```json
 {
   "@context": [
