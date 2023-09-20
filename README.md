@@ -116,7 +116,7 @@ Example:
 
 #### Request Headers
 
-Just a set of request HTTP headers which will be used to make booking requests.
+Just a set of request HTTP headers which will be used to make booking requests. There are no restrictions on the `requestHeaders` that can be specified.
 
 Example:
 
