@@ -33,13 +33,131 @@ Note that the above command only runs the "core" tests within the test suite, wh
 The hosted OpenActive Reference Implementation is running on a basic developer tier Azure instance with a burst quota, so it will not handle the load of a test suite run for all tests (hence `npm start -- core`); if the hosted application shuts down, simply wait 5 minutes and try again.
 
 ## Configuration
+
 In order to run the test suite against your own implementation, configure the test suite by creating a copy of [`config/default.json`](./config/default.json) named `config/{NODE_ENV}.json` (where `{NODE_ENV}` is the value of your `NODE_ENV` environment variable), including the following properties:
    - [`broker` microservice configuration](./packages/openactive-broker-microservice/#configuration-for-broker-within-confignode_envjson)
    - [`integrationTests` and `sellers` configuration](./packages/openactive-integration-tests/#configuration-for-integrationtests-within-confignode_envjson)
 
-The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. It is recommended that for development and deployment a such a new file is created instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
+The test suite uses the file `config/{NODE_ENV}.json` to override the settings in `default.json`. For development and deployment create a new file instead of making changes to the `default.json` file, so that any new required settings that are added in future versions can be automatically updated in `default.json`.
 
-For more information see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+For more information about this use of `NODE_ENV` see this [documentation](https://github.com/lorenwest/node-config/wiki/Environment-Variables#node_env).
+
+By convention, much of the documentation assumes you to have created a `config/dev.json` file, which Test Suite will use when env var `NODE_ENV=dev`. But you can use any name you like, and have multiple configuration files for different environments.
+
+### Configuration for `sellers` within `./config/{NODE_ENV}`
+
+The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
+
+An example, using OpenID Connect Authentication:
+
+```json
+  "sellers": {
+    "primary": {
+      "@type": "Organization",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
+      "authentication": {
+        "loginCredentials": {
+          "username": "test1",
+          "password": "test1"
+        }
+      },
+      "taxMode": "https://openactive.io/TaxGross",
+      "paymentReconciliationDetails": {
+        "name": "AcmeBroker Points",
+        "accountId": "SN1593",
+        "paymentProviderId": "STRIPE"
+      }
+    },
+    "secondary": {
+      "@type": "Person",
+      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1",
+      "authentication": {
+        "loginCredentials": {
+          "username": "test2",
+          "password": "test2"
+        }
+      },
+      "taxMode": "https://openactive.io/TaxNet"
+    }
+  }
+```
+
+Description of each field:
+
+* `authentication`: Check out the [**Configuration for Seller Authentication**](#configuration-for-seller-authentication) section.
+* `taxMode`: Which [Tax Mode](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#tax-mode) is used for this Seller.
+
+  **Note: If testing both Tax Modes, make sure that there is at least one Seller with each**. Alternatively, if not supporting multiple Sellers, you can run the Test Suite once with `"taxMode": "https://openactive.io/TaxNet"` and once with `"taxMode": "https://openactive.io/TaxGross"`. However, it is not currently possible to generate a certificate that covers both configurations unless multiple Sellers are supported.
+* `paymentReconciliationDetails`: If testing [Payment Reconciliation Detail Validation](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation), include the required payment reconciliation details here.
+
+### Configuration for Seller Authentication
+
+In order to make bookings for a specific Seller's Opportunity data, some kind of authentication is required to ensure that the caller is authorized to make bookings for that Seller.
+
+Test Suite allows for a few different options for Seller Authentication. This determines the data to put in the `authentication` field for each Seller:
+
+#### OpenID Connect
+
+[View Spec](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)
+
+You'll need the username/password that the Seller can use to log in to your OpenID Connect Provider.
+
+Example:
+
+```json
+  "sellers": {
+    "primary": {
+      // ...
+      "authentication": {
+        "loginCredentials": {
+          "username": "test1",
+          "password": "test1"
+        }
+      }
+    },
+```
+
+#### Request Headers
+
+Just a set of request HTTP headers which will be used to make booking requests. There are no restrictions on the `requestHeaders` that can be specified.
+
+Example:
+
+```json
+  "sellers": {
+    "primary": {
+      // ...
+      "authentication": {
+        "loginCredentials": null,
+        "requestHeaders": {
+          "X-OpenActive-Test-Client-Id": "booking-partner-1",
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
+        }
+      }
+    },
+```
+
+#### Client Credentials
+
+[OAuth Client Credentials](https://oauth.net/2/grant-types/client-credentials/) are used to make booking requests.
+
+Example:
+
+```json
+  "sellers": {
+    "primary": {
+      // ...
+      "authentication": {
+        "loginCredentials": null,
+        "clientCredentials": {
+          "clientId": "clientid_XXX",
+          "clientSecret": "example"
+        }
+      }
+    },
+```
+
+This is different from the behaviour in the Client Credentials sub-section mentioned within the [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems) section in the spec as, in this case, Client Credentials are used to make booking requests for this Seller, rather than just to view the Booking Partner's Orders Feed.
 
 ### Configuration for `sellers` within `./config/{NODE_ENV}`
 

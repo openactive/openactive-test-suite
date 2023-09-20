@@ -3,8 +3,15 @@ const { Mutex } = require('await-semaphore');
 class PauseResume {
   constructor() {
     this.pauseHarvesting = false;
+    /**
+     * Lock that is held while harvesting is paused. It is released when
+     * harvesting is resumed. This is used to enable `waitIfPaused()`
+     */
     this.pauseHarvestingMutex = new Mutex();
-    this.releasePauseSemaphore = null;
+    /**
+     * @type {() => void | null} Function that releases `this.pauseHarvestingMutex`
+     */
+    this.releasePauseHarvestingMutex = null;
     process.on('message', async (msg) => {
       if (msg === 'pause') {
         await this.pause();
@@ -17,8 +24,8 @@ class PauseResume {
   async pause() {
     if (!this.pauseHarvesting) {
       this.pauseHarvesting = true;
-      if (this.releasePauseSemaphore) this.releasePauseSemaphore();
-      this.releasePauseSemaphore = await this.pauseHarvestingMutex.acquire();
+      if (this.releasePauseHarvestingMutex) this.releasePauseHarvestingMutex();
+      this.releasePauseHarvestingMutex = await this.pauseHarvestingMutex.acquire();
     }
   }
 
@@ -29,8 +36,8 @@ class PauseResume {
   resume() {
     const wasPaused = this.pauseHarvesting;
     this.pauseHarvesting = false;
-    if (this.releasePauseSemaphore) this.releasePauseSemaphore();
-    this.releasePauseSemaphore = null;
+    if (this.releasePauseHarvestingMutex) this.releasePauseHarvestingMutex();
+    this.releasePauseHarvestingMutex = null;
     return wasPaused;
   }
 
