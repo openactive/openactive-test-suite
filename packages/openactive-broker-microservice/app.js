@@ -1075,13 +1075,6 @@ app.get('/sample-opportunities', function (req, res) {
 /** @type {RpdePageProcessor} */
 async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
-  // Some feeds have FacilityUse as the top-level items with embedded
-  // IndividualFacilityUse data. The Slot feed facilityUse associations link to
-  // these embedded IndividualFacilityUses. However the rest of the code assumes
-  // the linked item is the top-level item from the parent feed, so we need to
-  // invert the FacilityUse/IndividualFacilityUse relationship.
-  // const items = invertFacilityUseItems(rpdePage.items);
-
   const { items } = rpdePage;
 
   for (const item of items) {
@@ -1089,6 +1082,11 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 
     // State = updated
     if (item.state !== 'deleted') {
+      // Some feeds have FacilityUse as the top-level items with embedded
+      // IndividualFacilityUse data. The Slot feed facilityUse associations link to
+      // these embedded IndividualFacilityUses. However the rest of the code assumes
+      // the linked item is the top-level item from the parent feed, so we need to
+      // invert the FacilityUse/IndividualFacilityUse relationship.
       if (!isNil(item.data?.individualFacilityUse) && !isEmpty(item.data.individualFacilityUse)) {
         // Item is a FacilityUse with embedded IndividualFacilityUse
         const invertedItems = invertFacilityUseItem(item);
@@ -1170,8 +1168,8 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
 
 /**
  *
- * @param {*} item
- * @param {*} jsonLdId
+ * @param {{data: {subEvent: {'@id'?: string, id?:string}[]}}} item
+ * @param {string} jsonLdId
  */
 function updateParentOpportunitySubEventMap(item, jsonLdId) {
   const oldSubEventIds = state.parentOpportunitySubEventMap.get(jsonLdId);
