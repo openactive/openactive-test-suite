@@ -1,33 +1,21 @@
-const { partition, omit } = require('lodash');
+const { omit } = require('lodash');
 
 /**
  * Inverts any FacilityUse items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
- *
- * @param {{state: string, modified:any, kind: string, id: string, data: {id: string, individualFacilityUse?: Record<string, any>[], subEvent?:Record<string, any>[] }}[]} items
+ * @typedef {{'@id'?: string, id?: string}} IndividualFacilityUse
+ * @param {{state: string, modified:any, kind: string, id: string, data: {id: string, individualFacilityUse?: IndividualFacilityUse[] }}} item
  */
-function invertFacilityUseItems(items) {
-  const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => (item.data?.individualFacilityUse || []).length > 0);
-  if (invertibleFacilityUseItems.length < 1) return items;
-
-  // Invert "FacilityUse" items so the the top-level `kind` is "IndividualFacilityUse"
-  const invertedItems = [];
-  for (const facilityUseItem of invertibleFacilityUseItems) {
-    for (const individualFacilityUse of facilityUseItem.data.individualFacilityUse) {
-      invertedItems.push({
-        ...facilityUseItem,
-        kind: individualFacilityUse['@type'],
-        id: individualFacilityUse['@id'],
-        data: {
-          ...individualFacilityUse,
-          '@context': facilityUseItem.data['@context'],
-          aggregateFacilityUse: omit(facilityUseItem.data, ['individualFacilityUse', '@context']),
-        },
-      });
-    }
-  }
-
-  // @ts-ignore TS is unhappy with concatting two different types of items
-  return invertedItems.concat(otherItems);
+function invertFacilityUseItem(item) {
+  return item.data.individualFacilityUse.map((individualFacilityUse) => ({
+    ...item,
+    kind: individualFacilityUse['@type'],
+    id: individualFacilityUse['@id'],
+    data: {
+      ...individualFacilityUse,
+      '@context': item.data['@context'],
+      aggregateFacilityUse: omit(item.data, ['individualFacilityUse', '@context']),
+    },
+  }));
 }
 
 /**
@@ -85,7 +73,7 @@ function getMergedJsonLdContext(...opportunities) {
 }
 
 module.exports = {
-  invertFacilityUseItems,
+  invertFacilityUseItem,
   createItemFromSubEvent,
   jsonLdHasReferencedParent,
   getMergedJsonLdContext,

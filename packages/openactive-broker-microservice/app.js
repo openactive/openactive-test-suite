@@ -17,7 +17,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
-const { isNil, partial } = require('lodash');
+const { isNil, partial, isEmpty } = require('lodash');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -70,7 +70,7 @@ const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 const { renderSampleOpportunities } = require('./src/sample-opportunities');
-const { invertFacilityUseItems, createItemFromSubEvent, getMergedJsonLdContext, jsonLdHasReferencedParent } = require('./src/util/item-transforms');
+const { invertFacilityUseItem, createItemFromSubEvent, getMergedJsonLdContext, jsonLdHasReferencedParent } = require('./src/util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./src/util/extract-jsonld-utils');
 
 /**
@@ -1080,12 +1080,35 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
   // these embedded IndividualFacilityUses. However the rest of the code assumes
   // the linked item is the top-level item from the parent feed, so we need to
   // invert the FacilityUse/IndividualFacilityUse relationship.
-  const items = invertFacilityUseItems(rpdePage.items);
+  // const items = invertFacilityUseItems(rpdePage.items);
+
+  const { items } = rpdePage;
 
   for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
 
+    // State = updated
     if (item.state !== 'deleted') {
+      if (!isNil(item.data?.individualFacilityUse) && !isEmpty(item.data.individualFacilityUse)) {
+        // Item is a FacilityUse with embedded IndividualFacilityUse
+        const invertedItems = invertFacilityUseItem(item);
+        for (const invertedItem of invertedItems) {
+          const jsonLdId = invertedItem.data['@id'] || invertedItem.data.id;
+          state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
+          state.parentOpportunityMap.set(jsonLdId, item.data);
+        }
+        // Item has been split into multiple parent items and stored, so no further processing required,
+        // and we can move on to the next item in the for loop
+        continue;
+      }
+      // Item here can be one of three things:
+      // - a FacilityUse without IndividualFacilityUse,
+      // - a SessionSeries without subEvents
+      // - a SessionSeries with subEvents
+      // All three of these are parent opportunities, and so can initially be processed in the same way ie store some data in the parent maps
+      // However the third (with subEvents) requires additional processing, which is explained below
+
+      // Store the parent opportunity data in the maps
       const jsonLdId = item.data['@id'] || item.data.id;
 
       state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
@@ -1116,29 +1139,10 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
         // present in the list of new subEvents, then it has been deleted and so we remove the associated
         // opportunityItem data. If a new subEvent is not present in the list of old subEvents, then we
         // record its ID in the list for the next time this check is done.
-
-        const oldSubEventIds = state.parentOpportunitySubEventMap.get(jsonLdId);
-        const newSubEventIds = item.data.subEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
-
-        if (!oldSubEventIds) {
-          if (newSubEventIds.length > 0) {
-            state.parentOpportunitySubEventMap.set(jsonLdId, newSubEventIds);
-          }
-        } else {
-          for (const subEventId of oldSubEventIds) {
-            if (!newSubEventIds.includes(subEventId)) {
-              deleteOpportunityItem(subEventId);
-              state.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
-            }
-          }
-          for (const subEventId of newSubEventIds) {
-            if (!oldSubEventIds.includes(subEventId)) {
-              state.parentOpportunitySubEventMap.get(jsonLdId).push(subEventId);
-            }
-          }
-        }
+        updateParentOpportunitySubEventMap(item, jsonLdId);
       }
     } else {
+      // State = updated
       const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
 
       // If we had subEvents for this item, then we must be sure to delete the associated opportunityItems
@@ -1162,6 +1166,34 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
   await touchOpportunityItems(items
     .filter((item) => item.state !== 'deleted')
     .map((item) => item.data['@id'] || item.data.id));
+}
+
+/**
+ *
+ * @param {*} item
+ * @param {*} jsonLdId
+ */
+function updateParentOpportunitySubEventMap(item, jsonLdId) {
+  const oldSubEventIds = state.parentOpportunitySubEventMap.get(jsonLdId);
+  const newSubEventIds = item.data.subEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
+
+  if (!oldSubEventIds) {
+    if (newSubEventIds.length > 0) {
+      state.parentOpportunitySubEventMap.set(jsonLdId, newSubEventIds);
+    }
+  } else {
+    for (const subEventId of oldSubEventIds) {
+      if (!newSubEventIds.includes(subEventId)) {
+        deleteOpportunityItem(subEventId);
+        state.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
+      }
+    }
+    for (const subEventId of newSubEventIds) {
+      if (!oldSubEventIds.includes(subEventId)) {
+        state.parentOpportunitySubEventMap.get(jsonLdId).push(subEventId);
+      }
+    }
+  }
 }
 
 /** @type {RpdePageProcessor} */
