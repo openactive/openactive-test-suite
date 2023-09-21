@@ -30,8 +30,8 @@ function invertFacilityUseItems(items) {
 }
 
 /**
- * Creates an opportunity item from a subEvent. This is used when a SessionSeries feed has ScheduledSessions,
- * and using this function splits the subEvents into items to simulate a ScheduledSessions feed.
+ * Creates an opportunity item from a subEvent. This is used when a SessionSeries feed has embedded ScheduledSessions,
+ * and using this function splits the subEvent into items to simulate a separate ScheduledSessions feed.
  *
  * @param {object} subEvent
  * @param {{modified: any, data: object}} item
