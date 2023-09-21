@@ -9,7 +9,7 @@ function invertFacilityUseItem(item) {
   return item.data.individualFacilityUse.map((individualFacilityUse) => ({
     ...item,
     kind: individualFacilityUse['@type'],
-    id: individualFacilityUse['@id'],
+    id: individualFacilityUse['@id'] || individualFacilityUse.id,
     data: {
       ...individualFacilityUse,
       '@context': item.data['@context'],
