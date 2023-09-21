@@ -9,7 +9,7 @@ describe('test/utils/item-transforms-test', () => {
         { data: { individualFacilityUse: [] } },
       ];
       const result = invertFacilityUseItems(items);
-      expect(result).to.equal(items);
+      expect(result).to.deep.equal(items);
     });
 
     it('should invert FacilityUse items and concatenate them with other items', () => {
@@ -30,7 +30,7 @@ describe('test/utils/item-transforms-test', () => {
             name: 'Facility Use 2',
             '@context': 'https://openactive.io/',
             '@type': 'FacilityUse', 
-            individualFacilityUse: [{ '@type': 'IndividualFacilityUse', '@id': '2' }] 
+            individualFacilityUse: [{ '@type': 'IndividualFacilityUse', '@id': '2' }, { '@type': 'IndividualFacilityUse', '@id': '3' }] 
           } 
         },
       ];

@@ -3,10 +3,10 @@ const { partition, omit } = require('lodash');
 /**
  * Inverts any items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
  *
- * @param {{state: string, modified:any, kind: string, id: string, data: {individualFacilityUse: object}}[]} items
+ * @param {{state: string, modified:any, kind: string, id: string, data: {id: string, individualFacilityUse?: Record<string, any>[], subEvent?:Record<string, any>[] }}[]} items
  */
 function invertFacilityUseItems(items) {
-  const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => item.data?.individualFacilityUse?.length > 0);
+  const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => (item.data?.individualFacilityUse || []).length > 0);
   if (invertibleFacilityUseItems.length < 1) return items;
 
   // Invert "FacilityUse" items so the the top-level `kind` is "IndividualFacilityUse"
@@ -26,6 +26,7 @@ function invertFacilityUseItems(items) {
     }
   }
 
+  // @ts-ignore TS is unhappy with concatting two different types of items
   return invertedItems.concat(otherItems);
 }
 
@@ -33,8 +34,8 @@ function invertFacilityUseItems(items) {
  * Creates an opportunity item from a subEvent. This is used when a SessionSeries feed has ScheduledSessions,
  * and using this function splits the subEvents into items to simulate a ScheduledSessions feed.
  *
- * @param {object} subEvent
- * @param {{modified: any, data: object}} item
+ * @param {Record<string, any>} subEvent
+ * @param {{modified: any, data: Record<string, any>}} item
  */
 function createItemFromSubEvent(subEvent, item) {
   const opportunityItemData = {
@@ -77,7 +78,7 @@ function sortWithOpenActiveOnTop(arr) {
 /**
  * Merges and sorts contexts
  *
- * @param  {object[]} opportunities
+ * @param  {Record<string, any>[]} opportunities
  */
 function getMergedJsonLdContext(...opportunities) {
   return sortWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
