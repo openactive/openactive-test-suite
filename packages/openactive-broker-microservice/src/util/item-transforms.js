@@ -1,7 +1,7 @@
 const { partition, omit } = require('lodash');
 
 /**
- * Inverts any items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
+ * Inverts any FacilityUse items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
  *
  * @param {{state: string, modified:any, kind: string, id: string, data: {id: string, individualFacilityUse?: Record<string, any>[], subEvent?:Record<string, any>[] }}[]} items
  */
@@ -31,8 +31,8 @@ function invertFacilityUseItems(items) {
 }
 
 /**
- * Creates an opportunity item from a subEvent. This is used when a SessionSeries feed has ScheduledSessions,
- * and using this function splits the subEvents into items to simulate a ScheduledSessions feed.
+ * Creates an opportunity item from a subEvent. This is used when a SessionSeries feed has embedded ScheduledSessions,
+ * and using this function splits the subEvent into items to simulate a separate ScheduledSessions feed.
  *
  * @param {Record<string, any>} subEvent
  * @param {{modified: any, data: Record<string, any>}} item
