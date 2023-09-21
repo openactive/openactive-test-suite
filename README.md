@@ -161,15 +161,21 @@ This is different from the behaviour in the Client Credentials sub-section menti
 
 ## Installation
 
-Node.js version 14 or above is required.
+First, ensure that you have the correct Node.js version installed. We recommend managing this with [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm). If you use NVM, switch to the correct version of Node.js with:
+
+```sh
+nvm use
+```
+
+Otherwise, get the correct version of Node.js from the [`.nvmrc`](./.nvmrc) file.
+
+Then, install the dependencies needed for all packages in the test suite:
 
 ```bash
 npm install
 ```
- 
-This will install the dependencies needed for all packages in the test suite.
 
-For developers that are customising the installation, for use in e.g. Docker, the directories `./packages/test-interface-criteria` and `./packages/openactive-openid-test-client` are dependencies, and so must be present during `npm install`.
+For developers that are customising the installation, for use in e.g. Docker, the directories `./packages/openactive-openid-browser-automation`, `./packages/openactive-openid-client`, `./packages/openactive-openid-test-cli`, `./packages/openactive-openid-test-client` and `./packages/test-interface-criteria` are dependencies, and so must be present during `npm install`.
 
 ## Running
 
