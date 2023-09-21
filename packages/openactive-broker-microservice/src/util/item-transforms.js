@@ -1,7 +1,7 @@
 const { partition, omit } = require('lodash');
 
 /**
- * Inverts any items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
+ * Inverts any FacilityUse items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
  *
  * @param {{state: string, modified:any, kind: string, id: string, data: {individualFacilityUse: object}}[]} items
  */
