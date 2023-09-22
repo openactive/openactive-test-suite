@@ -3,6 +3,7 @@
 A package that tests `openactive-openid-client` and `openactive-openid-browser-automation` by providing a CLI interface that uses both.
 
 ## Command-line usage
+
 The test client can be run stand-alone via a command-line interface, to aid debugging of an OpenID Connect implementation.
 
 1. `npm install`

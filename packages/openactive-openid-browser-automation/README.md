@@ -7,7 +7,7 @@ This package forms part of the suite of [OpenID Connect](https://openid.net/deve
 
 OpenID Connect is one of the authentication and authorization strategies facilitated by the Open Booking API (spec: [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)).
 
-This Node.js library automates the process of going to an authorization page on the booking system's OpenID Provider, filling in login details, navigating through the flow, and capturing screenshots along the way to track and report the process
+This Node.js library automates the process of going to an authorization page on a booking system's OpenID Provider, filling in login details, navigating through the flow, and capturing screenshots along the way to track and report the process. It is used to exercise the booking system' OpenID Provider implementation according to the [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems).
 
 ## Redirect URI
 
