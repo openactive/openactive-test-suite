@@ -2,8 +2,8 @@
 
 This package forms part of the suite of [OpenID Connect](https://openid.net/developers/how-connect-works/) helper libraries and tools used within the Test Suite. The other packages are:
 
+* [openactive-openid-browser-automation](../packages/openactive-openid-browser-automation/)
 * [openactive-openid-client](../openactive-openid-client/)
-* [openactive-openid-test-cli](../openactive-openid-test-cli/)
 
 OpenID Connect is one of the authentication and authorization strategies facilitated by the Open Booking API (spec: [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)).
 
