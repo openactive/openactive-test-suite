@@ -1,9 +1,17 @@
 ﻿# openactive-openid-test-cli
 
-A package that tests `openactive-openid-client` and `openactive-openid-browser-automation` by providing a CLI interface that uses both.
+This package forms part of the suite of [OpenID Connect](https://openid.net/developers/how-connect-works/) helper libraries and tools used within the Test Suite. The other packages are:
+
+* [openactive-openid-browser-automation](../packages/openactive-openid-browser-automation/)
+* [openactive-openid-client](../openactive-openid-client/)
+
+OpenID Connect is one of the authentication and authorization strategies facilitated by the Open Booking API (spec: [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)).
+
+This Node.js script connects to an OpenID Provider using [openactive-openid-client](../openactive-openid-client/) and [openactive-openid-test-cli](../openactive-openid-test-cli/) and so tests that the OpenID Provider is correctly configured.
 
 ## Command-line usage
-The test client can be run stand-alone via a command-line interface, to aid debugging of an OpenID Connect implementation.
+
+The script is run via a command-line interface, to aid debugging of an OpenID Connect implementation.
 
 1. `npm install`
 2. `npm start -- --help`

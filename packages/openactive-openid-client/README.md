@@ -1,12 +1,13 @@
 ﻿# openactive-openid-client
 
-This Node.js library provides an OpenID Connect test client. It caches tokens retrieved to allow them to be reused across tests, as well as providing endpoints that exercise a target OpenID Connect Server implementation according to the specific OpenID Connect profile defined within the Open Booking API.
+This package forms part of the suite of [OpenID Connect](https://openid.net/developers/how-connect-works/) helper libraries and tools used within the Test Suite. The other packages are:
 
-## Command-line usage
-The test client can be run stand-alone via a command-line interface, to aid debugging of an OpenID Connect implementation.
+* [openactive-openid-browser-automation](../packages/openactive-openid-browser-automation/)
+* [openactive-openid-test-cli](../openactive-openid-test-cli/)
 
-1. `npm install`
-2. `npm start -- --help`
+OpenID Connect is one of the authentication and authorization strategies facilitated by the Open Booking API (spec: [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)).
+
+This Node.js library provides an OpenID Connect test client. It caches tokens retrieved to allow them to be reused across tests, and can connect to endpoints provided by [openactive-openid-browser-automation](../packages/openactive-openid-browser-automation/) in order to exercise a target booking system's OpenID Provider implementation according to the [spec](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems).
 
 ## Redirect URI
 
