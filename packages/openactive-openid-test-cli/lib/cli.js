@@ -94,19 +94,16 @@ const argv = yargs(process.argv.slice(2))
     },
     usernameFieldSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the username field',
       default: "[name='username' i]",
     },
     passwordFieldSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the password field',
       default: "[name='password' i]",
     },
     loginPageButtonSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the login button',
       default: '.btn-primary',
     },
@@ -118,6 +115,11 @@ const argv = yargs(process.argv.slice(2))
     // Set up brower automation service
     const app = express();
     app.use(express.json());
+    console.log('\n\n\nHEY', {
+      username: argv.usernameFieldSelector,
+      password: argv.passwordFieldSelector,
+      button: argv.loginPageButtonSelector,
+    }, '\n\n\n');
     setupBrowserAutomationRoutes(app, {
       username: argv.usernameFieldSelector,
       password: argv.passwordFieldSelector,
@@ -143,7 +145,7 @@ const argv = yargs(process.argv.slice(2))
 
     // Authorization Code Flow
     const { tokenSet, authorizationUrl } = await logWithIntercept('Authorization Code Flow', () => client.authorizeAuthorizationCodeFlow(clientId, clientSecret, {
-      headless: true,
+      headless: false,
       username: argv.username,
       password: argv.password,
     }));
