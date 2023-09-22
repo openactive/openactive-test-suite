@@ -7,11 +7,17 @@ This package forms part of the suite of [OpenID Connect](https://openid.net/deve
 
 OpenID Connect is one of the authentication and authorization strategies facilitated by the Open Booking API (spec: [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)).
 
-This Node.js library provides an OpenID Connect test client. It caches tokens retrieved to allow them to be reused across tests, and can connect to endpoints provided by [openactive-openid-browser-automation](../packages/openactive-openid-browser-automation/) in order to exercise a target booking system's OpenID Provider implementation according to the [spec](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems).
+This Node.js library provides a test client for connecting to an OpenID Provider. It caches tokens retrieved to allow them to be reused across tests, and can connect to endpoints provided by [openactive-openid-browser-automation](../packages/openactive-openid-browser-automation/) in order to exercise a target booking system's OpenID Provider implementation according to the [spec](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems).
 
 ## Redirect URI
 
 The OAuth Redirect URI defaults to `http://localhost:3000/cb`, so make sure that your OpenID Connect Server is configured to allow this Redirect URI.
+
+## Library Interface
+
+The library is documented using JSDoc. The library entry point is [`lib/index.js`](./lib/index.js), so you should be able to view the documentation by following the links within that index file.
+
+At time of writing, the library's documentation is not complete. We welcome any contributions to complete it 😊.
 
 ## Developing
 
