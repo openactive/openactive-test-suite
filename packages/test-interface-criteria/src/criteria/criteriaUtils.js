@@ -288,6 +288,21 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
 }
 
 /**
+ * Get the date that the startDate - validThroughBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window defined.
+ */
+function getDateBeforeWhichBookingsCanBeMade(offer, opportunity) {
+  if (!offer || !offer.validThroughBeforeStartDate) {
+    return null; // has no booking window
+  }
+
+  return dateMinusDuration(opportunity.startDate, offer.validThroughBeforeStartDate);
+}
+
+/**
 * @type {OfferConstraint}
 */
 function mustRequireAttendeeDetails(offer) {
@@ -376,8 +391,13 @@ function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
 */
 function mustHaveBeInsideValidFromBeforeStartDateWindow(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
-  if (dateAfterWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
-  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
+  const dateBeforeWhichBookingsCanBeMade = getDateBeforeWhichBookingsCanBeMade(offer, opportunity);
+  if (dateAfterWhichBookingsCanBeMade == null && dateBeforeWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
+  /* If, within 2 hours, the end of the booking window would be reached, it may be possible for this to happen
+  during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
+  ends at least 2 hours in the future. */
+  return (dateAfterWhichBookingsCanBeMade == null || options.harvestStartTime > dateAfterWhichBookingsCanBeMade)
+   && (dateBeforeWhichBookingsCanBeMade == null || options.harvestStartTimeTwoHoursLater < dateBeforeWhichBookingsCanBeMade);
 }
 
 /**
@@ -476,6 +496,7 @@ module.exports = {
   getType,
   getRemainingCapacity,
   getDateAfterWhichBookingsCanBeMade,
+  getDateBeforeWhichBookingsCanBeMade,
   getDateBeforeWhichCancellationsCanBeMade,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
