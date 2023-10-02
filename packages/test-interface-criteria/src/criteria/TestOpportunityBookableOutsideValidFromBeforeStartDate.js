@@ -53,6 +53,9 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
       'oa:validFromBeforeStartDate': dateRange({
         minDate: options.harvestStartTimeTwoHoursLater.toISO(),
       }),
+      'oa:validThroughBeforeStartDate': dateRange({
+        maxDate: options.harvestStartTimeTwoHoursLater.toISO(),
+      }),
     },
   }),
 });
