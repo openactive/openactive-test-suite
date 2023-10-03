@@ -63,9 +63,17 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTime | null} null if there is no booking window lower limit defined.
  */
 export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
+/**
+ * Get the date that the startDate - validThroughBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ */
+export function getDateBeforeWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
