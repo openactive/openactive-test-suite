@@ -19,7 +19,7 @@ function mustHaveBookingWindowAndBeOutsideOfIt(offer, opportunity, options) {
   during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
   starts at least 2 hours in the future. */
   return (dateAfterWhichBookingsCanBeMade == null || options.harvestStartTimeTwoHoursLater < dateAfterWhichBookingsCanBeMade)
-    || (dateBeforeWhichBookingsCanBeMade == null || options.harvestStartTime > dateBeforeWhichBookingsCanBeMade);
+    && (dateBeforeWhichBookingsCanBeMade == null || options.harvestStartTime > dateBeforeWhichBookingsCanBeMade);
 }
 
 /**
