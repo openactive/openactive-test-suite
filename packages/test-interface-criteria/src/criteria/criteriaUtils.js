@@ -277,7 +277,7 @@ function dateMinusDuration(datetimeIso, durationIso) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTime | null} null if there is no booking window lower limit defined.
  */
 function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validFromBeforeStartDate) {
@@ -292,7 +292,7 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTime | null} null if there is no booking window upper limit defined.
  */
 function getDateBeforeWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validThroughBeforeStartDate) {
@@ -389,10 +389,9 @@ function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
 /**
 * @type {OfferConstraint}
 */
-function mustHaveBeInsideValidFromBeforeStartDateWindow(offer, opportunity, options) {
+function mustBeInsideBookingWindowIfOneExists(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
   const dateBeforeWhichBookingsCanBeMade = getDateBeforeWhichBookingsCanBeMade(offer, opportunity);
-  if (dateAfterWhichBookingsCanBeMade == null && dateBeforeWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
   /* If, within 2 hours, the end of the booking window would be reached, it may be possible for this to happen
   during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
   ends at least 2 hours in the future. */
@@ -507,7 +506,7 @@ module.exports = {
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   getOrganizerOrProvider,
   mustBeOutsideCancellationWindow,
   mustNotAllowFullRefund,
