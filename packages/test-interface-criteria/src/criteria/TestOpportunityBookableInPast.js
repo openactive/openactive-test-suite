@@ -2,7 +2,7 @@ const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   sellerMustAllowOpenBooking,
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
@@ -45,7 +45,7 @@ const TestOpportunityBookableInPast = createCriteria({
     ],
     [
       'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
+      mustBeInsideBookingWindowIfOneExists,
     ],
     [
       'Must not require attendee details',
