@@ -27,7 +27,7 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Must have booking window (`validFromBeforeStartDate` or `validThroughBeforeStartDate`) and be within it',
+      'Must have a booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) and be within it',
       mustHaveBookingWindowAndBeWithinIt,
     ],
   ],
