@@ -36,7 +36,7 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be outside booking window (`validFromBeforeStartDate`)',
+      'Must have a booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) and be outside of it',
       mustHaveBookingWindowAndBeOutsideOfIt,
     ],
   ],

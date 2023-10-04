@@ -42,7 +42,7 @@ const TestOpportunityBookableOneSpace = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be within validFromBeforeStartDate window',
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
       mustBeInsideBookingWindowIfOneExists,
     ],
   ],
