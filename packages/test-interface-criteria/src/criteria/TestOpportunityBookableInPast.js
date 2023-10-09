@@ -2,7 +2,6 @@ const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
   sellerMustAllowOpenBooking,
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
@@ -42,10 +41,6 @@ const TestOpportunityBookableInPast = createCriteria({
     [
       'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
       mustNotBeOpenBookingInAdvanceUnavailable,
-    ],
-    [
-      'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
     ],
     [
       'Must not require attendee details',
