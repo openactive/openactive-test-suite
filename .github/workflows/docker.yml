@@ -2,7 +2,7 @@ name: Docker Publish
 
 on:
   push:
-    branches: [ feature/docker-and-package-upgrades ]
+    branches: [ feature/docker-and-package-upgrades-new ]
 
 jobs:
   build-and-push-docker-image:
