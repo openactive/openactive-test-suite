@@ -1,6 +1,7 @@
 const { omit } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { Common } = require('../../../../shared-behaviours');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'payment',
@@ -29,6 +30,8 @@ FeatureHelper.describeFeature(module, {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   describe('idempotent repeat B', () => {
-    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB, () => {
+      Common.itIdempotentBShouldHaveOutputEqualToFirstB(bookRecipe.b, idempotentRepeatB);
+    });
   });
 });
