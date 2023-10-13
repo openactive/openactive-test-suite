@@ -2,7 +2,7 @@ const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   sellerMustAllowOpenBooking,
   mustNotRequireAttendeeDetails,
   mustNotRequireAdditionalDetails,
@@ -50,8 +50,8 @@ const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
     ],
     [
       'Only paid bookable offers with openBookingPrepayment unavailable',
