@@ -277,7 +277,7 @@ function dateMinusDuration(datetimeIso, durationIso) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTime | null} null if there is no booking window lower limit defined.
  */
 function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validFromBeforeStartDate) {
@@ -285,6 +285,21 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   }
 
   return dateMinusDuration(opportunity.startDate, offer.validFromBeforeStartDate);
+}
+
+/**
+ * Get the date that the startDate - validThroughBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ */
+function getDateBeforeWhichBookingsCanBeMade(offer, opportunity) {
+  if (!offer || !offer.validThroughBeforeStartDate) {
+    return null; // has no booking window
+  }
+
+  return dateMinusDuration(opportunity.startDate, offer.validThroughBeforeStartDate);
 }
 
 /**
@@ -374,10 +389,14 @@ function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
 /**
 * @type {OfferConstraint}
 */
-function mustHaveBeInsideValidFromBeforeStartDateWindow(offer, opportunity, options) {
+function mustBeInsideBookingWindowIfOneExists(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
-  if (dateAfterWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
-  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
+  const dateBeforeWhichBookingsCanBeMade = getDateBeforeWhichBookingsCanBeMade(offer, opportunity);
+  /* If, within 2 hours, the end of the booking window would be reached, it may be possible for this to happen
+  during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
+  ends at least 2 hours in the future. */
+  return (dateAfterWhichBookingsCanBeMade == null || options.harvestStartTime > dateAfterWhichBookingsCanBeMade)
+   && (dateBeforeWhichBookingsCanBeMade == null || options.harvestStartTimeTwoHoursLater < dateBeforeWhichBookingsCanBeMade);
 }
 
 /**
@@ -476,6 +495,7 @@ module.exports = {
   getType,
   getRemainingCapacity,
   getDateAfterWhichBookingsCanBeMade,
+  getDateBeforeWhichBookingsCanBeMade,
   getDateBeforeWhichCancellationsCanBeMade,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
@@ -486,7 +506,7 @@ module.exports = {
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   getOrganizerOrProvider,
   mustBeOutsideCancellationWindow,
   mustNotAllowFullRefund,
