@@ -3,8 +3,8 @@
 // This should look something like `npm run test-data-generator -- [category-or-feature]`
 // e.g. `npm run test-data-generator -- authorization`
 const fs = require('fs').promises;
-const { DateTime } = require('luxon');
 const path = require('path');
+const { DateTime } = require('luxon');
 const { dissoc } = require('ramda');
 const yargs = require('yargs/yargs');
 const { getConfigVarOrThrow, SELLER_CONFIG } = require('../test/helpers/config-utils');

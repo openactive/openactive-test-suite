@@ -1,6 +1,6 @@
-const puppeteer = require('puppeteer');
 const cookieSession = require('cookie-session');
 const { generators } = require('openid-client');
+const puppeteer = require('puppeteer');
 
 /**
  * @typedef {{
@@ -53,13 +53,33 @@ async function addScreenshot(page, title, context) {
  * @param {Context} args.context
  */
 async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelectors, username, password, context }) {
+  // Get CHROMIUM_FLAGS from environment variable
+  const chromiumFlags = process.env.CHROMIUM_FLAGS ? process.env.CHROMIUM_FLAGS.split(' ') : [];
   const browser = await puppeteer.launch({
-    headless,
+    // eslint-disable-next-line no-unneeded-ternary
+    headless: headless ? true : false, // ? 'new' : false, // TODO: once it is more stable use the "new" improved Chrome headless mode (https://developer.chrome.com/articles/new-headless/), which will become the default in future (at time of commit this "new" mode causes 1 in 20 runs to fail randomly
     ignoreHTTPSErrors: true,
+    args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--disable-extensions']),
   });
   const page = await browser.newPage();
   try {
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
+    try {
+      // Wait for the login button to appear (useful for Next.js / React apps)
+      await page.waitForFunction(
+        // eslint-disable-next-line no-undef
+        (selector) => !!document.querySelector(selector),
+        {
+          timeout: 10000,
+        },
+        buttonSelectors.button,
+      );
+    } catch (e) {
+      await addScreenshot(page, 'Error encountered', context);
+      return {
+        success: false, message: `Login button matching selector '${buttonSelectors.button}' did not appear within 10 seconds`,
+      };
+    }
     try {
       await page.type(buttonSelectors.username, username);
     } catch (e) {

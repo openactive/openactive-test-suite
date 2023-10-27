@@ -1,17 +1,14 @@
-export type EventStatusType = "https://schema.org/EventCancelled" | "https://schema.org/EventPostponed" | "https://schema.org/EventScheduled";
-export type TaxMode = "https://openactive.io/TaxGross" | "https://openactive.io/TaxNet";
-export type RequiredStatusType = "https://openactive.io/Required" | "https://openactive.io/Optional" | "https://openactive.io/Unavailable";
-export type OpenBookingFlowRequirement = "https://openactive.io/OpenBookingIntakeForm" | "https://openactive.io/OpenBookingAttendeeDetails" | "https://openactive.io/OpenBookingApproval" | "https://openactive.io/OpenBookingNegotiation" | "https://openactive.io/OpenBookingMessageExchange";
-export type DateRangeNodeConstraint = import("./types/TestDataShape").DateRangeNodeConstraint;
-export type NumericNodeConstraint = import("./types/TestDataShape").NumericNodeConstraint;
-export type BooleanNodeConstraint = import("./types/TestDataShape").BooleanNodeConstraint;
-export type NullNodeConstraint = import("./types/TestDataShape").NullNodeConstraint;
-export type TestDataShape = import("./types/TestDataShape").TestDataShape;
-export type ValueType = "oa:OpenBookingFlowRequirement" | "oa:RequiredStatusType" | "oa:TaxMode" | "oa:Terms" | "schema:EventStatusType" | "schema:EventAttendanceModeEnumeration";
-export type Options = {
-    harvestStartTime: any;
-    harvestStartTimeTwoHoursLater: any;
-};
+export type EventStatusType = import('./types/TestDataShape').EventStatusType;
+export type TaxMode = import('./types/TestDataShape').TaxMode;
+export type RequiredStatusType = import('./types/TestDataShape').RequiredStatusType;
+export type OpenBookingFlowRequirement = import('./types/TestDataShape').OpenBookingFlowRequirement;
+export type DateRangeNodeConstraint = import('./types/TestDataShape').DateRangeNodeConstraint;
+export type NumericNodeConstraint = import('./types/TestDataShape').NumericNodeConstraint;
+export type BooleanNodeConstraint = import('./types/TestDataShape').BooleanNodeConstraint;
+export type NullNodeConstraint = import('./types/TestDataShape').NullNodeConstraint;
+export type TestDataShape = import('./types/TestDataShape').TestDataShape;
+export type ValueType = import('./types/TestDataShape').ValueType;
+export type Options = import('./types/Options').Options;
 /**
  * @typedef {import('./types/TestDataShape').EventStatusType} EventStatusType
  * @typedef {import('./types/TestDataShape').TaxMode} TaxMode
@@ -53,14 +50,14 @@ export const NON_FREE_PRICE_QUANTITATIVE_VALUE: import("./types/TestDataShape").
  * @param {Omit<import('./types/TestDataShape').OptionNodeConstraint<TOptionType, TValueType>, '@type'>} requirements
  * @returns {import('./types/TestDataShape').OptionNodeConstraint<TOptionType, TValueType>}
  */
-export function optionNodeConstraint<TOptionType, TValueType extends import("./types/TestDataShape").ValueType>(requirements: Pick<import("./types/TestDataShape").OptionNodeConstraint<TOptionType, TValueType>, "allowNull" | "datatype" | "allowlist" | "blocklist">): import("./types/TestDataShape").OptionNodeConstraint<TOptionType, TValueType>;
+export function optionNodeConstraint<TOptionType, TValueType extends import("./types/TestDataShape").ValueType>(requirements: Omit<import("./types/TestDataShape").OptionNodeConstraint<TOptionType, TValueType>, "@type">): import("./types/TestDataShape").OptionNodeConstraint<TOptionType, TValueType>;
 /**
  * @template TArrayOf
  * @template {ValueType} TValueType
  * @param {Omit<import('./types/TestDataShape').ArrayConstraint<TArrayOf, TValueType>, '@type'>} requirements
  * @returns {import('./types/TestDataShape').ArrayConstraint<TArrayOf, TValueType>}
  */
-export function arrayConstraint<TArrayOf, TValueType extends import("./types/TestDataShape").ValueType>(requirements: Pick<import("./types/TestDataShape").ArrayConstraint<TArrayOf, TValueType>, "datatype" | "includesAll" | "excludesAll" | "minLength">): import("./types/TestDataShape").ArrayConstraint<TArrayOf, TValueType>;
+export function arrayConstraint<TArrayOf, TValueType extends import("./types/TestDataShape").ValueType>(requirements: Omit<import("./types/TestDataShape").ArrayConstraint<TArrayOf, TValueType>, "@type">): import("./types/TestDataShape").ArrayConstraint<TArrayOf, TValueType>;
 /** @type {NullNodeConstraint} */
 export const BLOCKED_FIELD: NullNodeConstraint;
 /**
@@ -101,26 +98,26 @@ export function termsOfServiceArrayConstraint(minLength: number): import('./type
 export const TRUE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export namespace shapeConstraintRecipes {
-    export function remainingCapacityMustBeAtLeast(mininclusive: any): {
+    function remainingCapacityMustBeAtLeast(mininclusive: any): {
         'placeholder:remainingCapacity': import("./types/TestDataShape").NumericNodeConstraint;
     };
-    export function mustHaveBookableOffer(options: import("./types/Options").Options): {
+    function mustHaveBookableOffer(options: import("./types/Options").Options): {
         'oa:validFromBeforeStartDate': import("./types/TestDataShape").DateRangeNodeConstraint;
         'oa:openBookingInAdvance': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
     };
-    export function sellerMustAllowOpenBooking(): {
+    function sellerMustAllowOpenBooking(): {
         'oa:isOpenBookingAllowed': import("./types/TestDataShape").BooleanNodeConstraint;
     };
-    export function mustAllowFullRefund(): {
+    function mustAllowFullRefund(): {
         'oa:allowCustomerCancellationFullRefund': import("./types/TestDataShape").BooleanNodeConstraint;
     };
-    export function mustBeWithinCancellationWindowOrHaveNoWindow(): {
+    function mustBeWithinCancellationWindowOrHaveNoWindow(): {
         'oa:latestCancellationBeforeStartDate': import("./types/TestDataShape").NullNodeConstraint;
     };
-    export function onlyNonFreeBookableOffers(): {
+    function onlyNonFreeBookableOffers(): {
         'schema:price': import("./types/TestDataShape").NumericNodeConstraint;
     };
-    export function onlyFreeBookableOffersWithUnavailablePrepayment(): {
+    function onlyFreeBookableOffersWithUnavailablePrepayment(): {
         'schema:price': import("./types/TestDataShape").NumericNodeConstraint;
         'oa:openBookingPrepayment': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
     };

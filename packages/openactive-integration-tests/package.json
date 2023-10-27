@@ -19,7 +19,7 @@
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.78",
     "@openactive/data-models": "^2.0.316",
-    "@openactive/openactive-openid-test-client": "file:../openactive-openid-test-client",
+    "@openactive/openactive-openid-client": "file:../openactive-openid-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "async-mutex": "^0.3.1",
     "axios": "^0.19.0",
@@ -70,10 +70,10 @@
     "eslint": "^7.13.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.22.1",
-    "typescript": "^3.9.6",
+    "typescript": "^5.1.6",
     "utility-types": "^3.10.0"
   },
   "engines": {
-    "node": "14.16.0"
+    "node": "18.17.1"
   }
 }

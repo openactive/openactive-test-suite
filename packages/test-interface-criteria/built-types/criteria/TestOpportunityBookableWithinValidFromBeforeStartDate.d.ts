@@ -1,2 +1,2 @@
-export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
+export type OfferConstraint = import('../types/Criteria').OfferConstraint;
 export const TestOpportunityBookableWithinValidFromBeforeStartDate: import("../types/Criteria").Criteria;

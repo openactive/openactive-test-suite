@@ -1,4 +1,4 @@
-export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
+export type OpportunityConstraint = import('../types/Criteria').OpportunityConstraint;
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookableOneSpace
  */
