@@ -224,6 +224,7 @@ class BaseLogger {
   }
 
   get referenceImplementationResultUrl () {
+    // @ts-ignore
     return `https://openactive.io/openactive-test-suite/example-output/${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}/${this.config.testFeature}_${this.config.testIdentifier}_${this.bookingFlow}_${this.opportunityType}.html`;
   }
 
