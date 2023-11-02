@@ -8,6 +8,7 @@ const { getConfigVarOrThrow } = require('./config-utils');
  */
 
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // abstract class, implement shared methods
 class BaseLogger {
@@ -220,6 +221,10 @@ class BaseLogger {
 
   get testFileName () {
     return `test/features/${this.config.testCategory}/${this.config.testFeature}/${this.config.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${this.config.testIdentifier}-test.js`;
+  }
+
+  get referenceImplementationResultUrl () {
+    return `https://openactive.io/openactive-test-suite/example-output/${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}/${this.config.testFeature}_${this.config.testIdentifier}_${this.bookingFlow}_${this.opportunityType}.html`;
   }
 
   get implementedDisplayLabel() {
