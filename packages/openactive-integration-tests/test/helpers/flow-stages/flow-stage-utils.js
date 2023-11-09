@@ -28,10 +28,10 @@ const { FlowStageRun } = require('./flow-stage-run');
 /**
  * @typedef {{
  *  '@type': 'Person' | 'Organization',
- *  identifier: string
- *  telephone: string,
- *  givenName: string,
- *  familyName: string,
+ *  identifier?: string
+ *  telephone?: string,
+ *  givenName?: string,
+ *  familyName?: string,
  *  email: string,
  *  }} Customer
  *
@@ -158,14 +158,27 @@ const FlowStageUtils = {
    * @returns {Customer}
    */
   createRandomCustomerDetails() {
-    return {
+    /** @type {Customer} */
+    const person = {
       '@type': 'Person',
       email: faker.internet.email(),
-      telephone: faker.phone.phoneNumber(),
-      givenName: faker.name.lastName(),
-      familyName: faker.name.firstName(),
-      identifier: faker.datatype.uuid(),
     };
+    if (Math.random() < 0.5) {
+      person.email = faker.internet.email();
+    }
+    if (Math.random() < 0.5) {
+      person.telephone = faker.phone.phoneNumber();
+    }
+    if (Math.random() < 0.5) {
+      person.givenName = faker.name.lastName();
+    }
+    if (Math.random() < 0.5) {
+      person.familyName = faker.name.firstName();
+    }
+    if (Math.random() < 0.5) {
+      person.identifier = faker.datatype.uuid();
+    }
+    return person;
   },
 
   /**
