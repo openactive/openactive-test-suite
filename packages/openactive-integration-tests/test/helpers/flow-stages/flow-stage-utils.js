@@ -162,7 +162,7 @@ const FlowStageUtils = {
 
   /**
    * Randomly generate customer details
-   * @param {boolean} includeAllOptionalFields
+   * @param {boolean} [includeAllOptionalFields]
    * @returns {Customer}
    */
   createRandomCustomerDetails(includeAllOptionalFields) {
