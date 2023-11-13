@@ -140,42 +140,47 @@ const FlowStageUtils = {
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
-   * @param {Customer} [args.customer]
+   * @param {boolean} [args.includeAllOptionalCustomerDetails]
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer, orderItemCriteriaList }) {
+  createDefaultFlowStageParams({
+    requestHelper,
+    logger,
+    uuid,
+    sellerConfig,
+    orderItemCriteriaList,
+    includeAllOptionalCustomerDetails,
+  }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: customer || this.createRandomCustomerDetails(),
+      customer: this.createRandomCustomerDetails(includeAllOptionalCustomerDetails ?? false),
       orderItemCriteriaList,
     };
   },
 
   /**
    * Randomly generate customer details
+   * @param {boolean} includeAllOptionalFields
    * @returns {Customer}
    */
-  createRandomCustomerDetails() {
+  createRandomCustomerDetails(includeAllOptionalFields) {
     /** @type {Customer} */
     const person = {
       '@type': 'Person',
       email: faker.internet.email(),
     };
-    if (Math.random() < 0.5) {
-      person.email = faker.internet.email();
-    }
-    if (Math.random() < 0.5) {
+    if (includeAllOptionalFields || Math.random() < 0.5) {
       person.telephone = faker.phone.phoneNumber();
     }
-    if (Math.random() < 0.5) {
+    if (includeAllOptionalFields || Math.random() < 0.5) {
       person.givenName = faker.name.lastName();
     }
-    if (Math.random() < 0.5) {
+    if (includeAllOptionalFields || Math.random() < 0.5) {
       person.familyName = faker.name.firstName();
     }
-    if (Math.random() < 0.5) {
+    if (includeAllOptionalFields || Math.random() < 0.5) {
       person.identifier = faker.datatype.uuid();
     }
     return person;
@@ -190,16 +195,29 @@ const FlowStageUtils = {
    * @param {BaseLoggerType} args.logger
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
+   * @param {boolean} [args.includeAllOptionalCustomerDetails] If `true`, then the created `customer`
+   *   object will have all optional fields set. Otherwise, optional fields may or may not be set
+   *   randomly.
    * @param {SellerConfig} [args.sellerConfig]
    */
-  createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList, taxMode = null, ...args }) {
+  createSimpleDefaultFlowStageParams({
+    logger,
+    orderItemCriteriaList,
+    taxMode = null,
+    includeAllOptionalCustomerDetails,
+    ...args
+  }) {
     const sellerConfig = args.sellerConfig ?? (
       taxMode
         ? getSellerConfigWithTaxMode(taxMode)
         : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig, orderItemCriteriaList,
+      requestHelper,
+      logger,
+      sellerConfig,
+      orderItemCriteriaList,
+      includeAllOptionalCustomerDetails,
     });
   },
 
