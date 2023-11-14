@@ -40,6 +40,7 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   bookReqTemplateRef?: PReqTemplateRef | null,
  *   brokerRole?: string | null,
  *   taxMode?: string | null,
+ *   includeAllOptionalFieldsWhenGeneratingCustomer?: boolean,
  *   accessPass?: AccessPassItem[] | null,
  *   defaultFlowStageParams?: DefaultFlowStageParams | null,
  *   c1ExpectToFail?: boolean,
@@ -212,10 +213,14 @@ const FlowStageRecipes = {
     c1ReqTemplateRef = null,
     taxMode = null,
     brokerRole = null,
+    includeAllOptionalFieldsWhenGeneratingCustomer,
     ...options
   } = {}) {
     const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({
-      orderItemCriteriaList, logger, taxMode,
+      orderItemCriteriaList,
+      logger,
+      taxMode,
+      includeAllOptionalCustomerDetails: includeAllOptionalFieldsWhenGeneratingCustomer,
     });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
