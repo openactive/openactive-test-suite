@@ -186,10 +186,23 @@ function termsOfServiceArrayConstraint(minLength) {
 
 /** Constraints that match the criteriaUtils functions */
 const shapeConstraintRecipes = {
-  remainingCapacityMustBeAtLeast: (mininclusive) => ({
-    'placeholder:remainingCapacity': quantitativeValue({
-      mininclusive,
-    }),
+  /**
+   * @param {number} mininclusive
+   * @param {number} mininclusiveIfuSlot Minimum value for IFU slots, which
+   *   may have different requirements.
+   *   This defaults to 1 because IFU slots can, in the spec, only have a capacity
+   *   of 0 or 1.
+   * @returns {Pick<TestDataShape['opportunityConstraints'], 'placeholder:remainingCapacity'>}
+   */
+  remainingCapacityMustBeAtLeast: (mininclusive, mininclusiveIfuSlot = 1) => ({
+    'placeholder:remainingCapacity': {
+      default: quantitativeValue({
+        mininclusive,
+      }),
+      individualFacilityUseSlot: quantitativeValue({
+        mininclusive: mininclusiveIfuSlot,
+      }),
+    },
   }),
   /**
    * @param {Options} options

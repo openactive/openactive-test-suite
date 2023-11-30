@@ -116,7 +116,10 @@ export interface TestDataShape {
      * "placeholder:remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
      * or remainingUses (facilities)
      */
-    'placeholder:remainingCapacity'?: NumericNodeConstraint;
+    'placeholder:remainingCapacity'?: {
+      individualFacilityUseSlot: NumericNodeConstraint;
+      default: NumericNodeConstraint;
+    };
     'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
     'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
     'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
