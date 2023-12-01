@@ -5,9 +5,9 @@
   "types": "built-types/index.d.ts",
   "description": "OpenActive Test Interface Criteria",
   "scripts": {
-    "//check-types": "tsc --project tsconfig.check.json",
-    "//gen-types": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/ && tsc --project tsconfig.gen.json",
-    "gen-types": "rimraf \"built-types/*\" && tsc && copyfiles --up 1 \"src/**/*.d.ts\" built-types/",
+    "gen-types-clean": "rimraf \"built-types/*\"",
+    "gen-types-copy-d-ts-files": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/",
+    "gen-types": "npm run gen-types-clean && tsc && npm run gen-types-copy-d-ts-files",
     "test": "npm run lint && tsc",
     "lint": "eslint \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
