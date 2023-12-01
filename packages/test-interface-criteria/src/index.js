@@ -7,7 +7,6 @@ const { DateTime } = require('luxon');
 const { allCriteria } = require('./criteria');
 const { getOrganizerOrProvider, extendTestDataShape, getRemainingCapacity } = require('./criteria/criteriaUtils');
 const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape');
-const { pickPartition } = require('./utils/objUtils');
 
 /**
  * @typedef {import('./types/Criteria').Criteria} Criteria
@@ -143,14 +142,6 @@ function getTestDataShapeExpressions(criteriaName, bookingFlow, oppotunityType, 
   const options = augmentLibOptions(libOptions);
   const criteria = getCriteriaAndAssertExists(criteriaName);
   const shape = criteria.testDataShape(options);
-  // const contextualisePredicate = (predicate) => (
-  //   predicate === 'placeholder:remainingCapacity'
-  //     ? remainingCapacityPredicate
-  //     : predicate
-  // );
-  // /**
-  //  * @param {{[predicate: string]: import('./types/TestDataShape').TestDataNodeConstraint}} constraints
-  //  */
   /**
    * @param {{[predicate: string]: import('./types/TestDataShape').TestDataNodeConstraint}} constraints
    */
@@ -189,13 +180,11 @@ function getTestDataShapeExpressions(criteriaName, bookingFlow, oppotunityType, 
  * @param {TestDataShapeOpportunityConstraints} opportunityConstraints
  */
 function replaceOpportunityConstraintsPlaceholderFields(opportunityType, opportunityConstraints) {
-  const [{
+  const {
     'placeholder:remainingCapacity': placeholderRemainingCapacity,
     'placeholder:remainingCapacityIfuSlot': placeholderRemainingCapacityIfuSlot,
-  }, remainingOpportunityConstraints] = pickPartition([
-    'placeholder:remainingCapacity',
-    'placeholder:remainingCapacityIfuSlot',
-  ], opportunityConstraints);
+    ...remainingOpportunityConstraints
+  } = opportunityConstraints;
   switch (opportunityType) {
     case 'IndividualFacilityUseSlot':
       return {
