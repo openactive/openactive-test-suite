@@ -135,10 +135,10 @@ function getRelevantOffers(criteriaName, opportunity, libOptions) {
 /**
  * @param {string} criteriaName
  * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
- * @param {string} oppotunityType
+ * @param {string} opportunityType
  * @param {LibOptions} libOptions
  */
-function getTestDataShapeExpressions(criteriaName, bookingFlow, oppotunityType, libOptions) {
+function getTestDataShapeExpressions(criteriaName, bookingFlow, opportunityType, libOptions) {
   const options = augmentLibOptions(libOptions);
   const criteria = getCriteriaAndAssertExists(criteriaName);
   const shape = criteria.testDataShape(options);
@@ -167,7 +167,7 @@ function getTestDataShapeExpressions(criteriaName, bookingFlow, oppotunityType, 
   };
   const combinedConstraints = extendTestDataShape(shape, constraintsDueToBookingFlow, criteriaName);
   const opportunityConstraints = replaceOpportunityConstraintsPlaceholderFields(
-    oppotunityType, combinedConstraints.opportunityConstraints,
+    opportunityType, combinedConstraints.opportunityConstraints ?? {},
   );
   return {
     'test:testOpportunityDataShapeExpression': convertConstraintsToShapeExpression(opportunityConstraints),

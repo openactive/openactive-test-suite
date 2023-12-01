@@ -64,10 +64,10 @@ export function getRelevantOffers(criteriaName: string, opportunity: Opportunity
 /**
  * @param {string} criteriaName
  * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
- * @param {string} oppotunityType
+ * @param {string} opportunityType
  * @param {LibOptions} libOptions
  */
-export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', oppotunityType: string, libOptions: LibOptions): {
+export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', opportunityType: string, libOptions: LibOptions): {
     'test:testOpportunityDataShapeExpression': {
         '@type': string;
         predicate: string;
