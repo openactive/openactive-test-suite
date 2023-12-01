@@ -104,27 +104,31 @@ export type TestDataNodeConstraint =
   | NullNodeConstraint
   | BooleanNodeConstraint;
 
+export type TestDataShapeOpportunityConstraints = {
+  'schema:startDate'?: DateRangeNodeConstraint;
+  /**
+   * "placeholder:remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
+   * or remainingUses (facilities)
+   */
+  'placeholder:remainingCapacity'?: NumericNodeConstraint;
+  /**
+   * IFU slots can have a different capacity requirement to other opportunity types
+   * because the spec imposes a maximum capacity of 1 for IFU slots.
+   */
+  'placeholder:remainingCapacityIfuSlot'?: NumericNodeConstraint;
+  'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
+  'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
+  'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
+  'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
+};
+
 /**
  * For a particular criteria, test data requirements that must be met by an opportunity
  * and offer so that they meet the criteria.
  * e.g. the free criteria has the data requirement that price must be 0
  */
-export interface TestDataShape {
-  'opportunityConstraints'?: {
-    'schema:startDate'?: DateRangeNodeConstraint;
-    /**
-     * "placeholder:remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
-     * or remainingUses (facilities)
-     */
-    'placeholder:remainingCapacity'?: {
-      individualFacilityUseSlot: NumericNodeConstraint;
-      default: NumericNodeConstraint;
-    };
-    'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
-    'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
-    'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
-    'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
-  };
+export type TestDataShape = {
+  'opportunityConstraints'?: TestDataShapeOpportunityConstraints;
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
     'oa:openBookingPrepayment'?: OptionNodeConstraint<RequiredStatusType,'oa:RequiredStatusType'>;

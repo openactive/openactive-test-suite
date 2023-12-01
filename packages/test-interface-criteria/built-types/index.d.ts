@@ -17,6 +17,7 @@ export type Opportunity = import('./types/Opportunity').Opportunity;
 export type Offer = import('./types/Offer').Offer;
 export type Options = import('./types/Options').Options;
 export type TestDataShape = import('./types/TestDataShape').TestDataShape;
+export type TestDataShapeOpportunityConstraints = import('./types/TestDataShape').TestDataShapeOpportunityConstraints;
 /**
  * Options object as supplied to the test-interface-criteria library API.
  */
@@ -30,6 +31,7 @@ import { allCriteria } from "./criteria";
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
+ * @typedef {import('./types/TestDataShape').TestDataShapeOpportunityConstraints} TestDataShapeOpportunityConstraints
  */
 /**
  * @typedef {{
@@ -62,19 +64,18 @@ export function getRelevantOffers(criteriaName: string, opportunity: Opportunity
 /**
  * @param {string} criteriaName
  * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
- * @param {string} remainingCapacityPredicate The ShEx predicate to use for "remaining capacity". This should be
- *   remainingUses for Slots and remainingAttendeeCapacity for Events.
+ * @param {string} oppotunityType
  * @param {LibOptions} libOptions
  */
-export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', remainingCapacityPredicate: string, libOptions: LibOptions): {
+export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', oppotunityType: string, libOptions: LibOptions): {
     'test:testOpportunityDataShapeExpression': {
         '@type': string;
-        predicate: any;
+        predicate: string;
         valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
     }[];
     'test:testOfferDataShapeExpression': {
         '@type': string;
-        predicate: any;
+        predicate: string;
         valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
     }[];
 };
