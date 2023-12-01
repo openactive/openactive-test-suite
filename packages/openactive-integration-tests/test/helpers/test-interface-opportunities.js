@@ -21,13 +21,10 @@ const { HARVEST_START_TIME } = global;
  * @returns {TestInterfaceOpportunity}
  */
 function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null, harvestStartTimeOverride = null }) {
-  const remainingCapacityPredicate = (opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot')
-    ? 'oa:remainingUses'
-    : 'schema:remainingAttendeeCapacity';
   const testDataShapeExpressions = getTestDataShapeExpressions(
     testOpportunityCriteria,
     bookingFlow,
-    remainingCapacityPredicate,
+    opportunityType,
     { harvestStartTime: harvestStartTimeOverride ?? HARVEST_START_TIME },
   );
   /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpenBookingFlow' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
