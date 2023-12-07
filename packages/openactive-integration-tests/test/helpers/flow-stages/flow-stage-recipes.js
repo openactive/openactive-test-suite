@@ -11,6 +11,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
+const { fixCalculatedMoneyValue } = require('../money-utils');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -282,7 +283,10 @@ const FlowStageRecipes = {
           }
           result.totalPaymentDue += price;
         }
-        return result;
+        return {
+          ...result,
+          totalPaymentDue: fixCalculatedMoneyValue(result.totalPaymentDue),
+        };
       })();
       return {
         orderItems: fetchOpportunities.getOutput().orderItems,
