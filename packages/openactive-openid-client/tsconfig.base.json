@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "built-types/",
+    "outDir": "built-types/lib",
     "allowJs": true,
     "checkJs": true,
     "downlevelIteration": true,
@@ -9,7 +9,6 @@
     "resolveJsonModule": true
   },
   "include": [
-    "src/**/*.d.ts",
-    "src/**/*.js"
+    "lib/*.js"
   ]
 }

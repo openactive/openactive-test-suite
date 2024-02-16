@@ -1,8 +1,8 @@
 /**
  * Configuration used throughout Broker.
  */
-const config = require('config');
 const path = require('path');
+const config = require('config');
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;

@@ -3,6 +3,7 @@ const { isObject, cloneDeep } = require('lodash');
 const { DateTime, Duration } = require('luxon');
 
 /**
+ * @typedef {import('luxon').DateTime} DateTime
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
  * @typedef {import('../types/Options').Options} Options

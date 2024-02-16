@@ -1,6 +1,6 @@
+const sleep = require('util').promisify(setTimeout);
 const { Issuer, generators, custom } = require('openid-client');
 const { default: axios } = require('axios');
-const sleep = require('util').promisify(setTimeout);
 
 custom.setHttpOptionsDefaults({
   timeout: 20000,

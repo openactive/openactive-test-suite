@@ -3,11 +3,11 @@
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
 
-const fg = require('fast-glob');
 const fs = require('fs');
-const chai = require('chai');
 const path = require('path');
-const jestConfig = require('../jest.config.js');
+const fg = require('fast-glob');
+const chai = require('chai');
+const jestConfig = require('../jest.config');
 const defaultConfig = require('../../../config/default.json');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('../test/helpers/criteria-utils');
 const { DefaultMap } = require('../test/helpers/map-utils');

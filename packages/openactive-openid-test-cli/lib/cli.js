@@ -1,7 +1,8 @@
+const http = require('http');
 const yargs = require('yargs/yargs');
 const express = require('express');
-const http = require('http');
-const { OpenActiveOpenIdTestClient, logWithIntercept, setupBrowserAutomationRoutes } = require('.');
+const { setupBrowserAutomationRoutes } = require('@openactive/openactive-openid-browser-automation');
+const { OpenActiveOpenIdTestClient, logWithIntercept } = require('@openactive/openactive-openid-client');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -83,29 +84,26 @@ const argv = yargs(process.argv.slice(2))
       type: 'string',
       alias: 'u',
       description: 'Username of the Seller',
-      default: 'test',
+      default: 'test1',
     },
     password: {
       type: 'string',
       alias: 'p',
       description: 'Password of the Seller',
-      default: 'test',
+      default: 'test1',
     },
     usernameFieldSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the username field',
       default: "[name='username' i]",
     },
     passwordFieldSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the password field',
       default: "[name='password' i]",
     },
     loginPageButtonSelector: {
       type: 'string',
-      alias: 'l',
       description: 'CSS selector for the login button',
       default: '.btn-primary',
     },
