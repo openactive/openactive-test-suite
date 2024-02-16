@@ -7,8 +7,6 @@ const express = require('express');
 const logger = require('morgan');
 const { default: axios } = require('axios');
 const { criteria, testMatch, utils: criteriaUtils } = require('@openactive/test-interface-criteria');
-const { Handler } = require('htmlmetaparser');
-const { Parser } = require('htmlparser2');
 const chalk = require('chalk');
 const { Base64 } = require('js-base64');
 const { setupBrowserAutomationRoutes } = require('@openactive/openactive-openid-browser-automation');
@@ -21,7 +19,7 @@ const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
 const { isNil, partial, omit, partition } = require('lodash');
-const { extractJSONLDfromHTML } = require('@openactive/dataset-utils')
+const { extractJSONLDfromHTML } = require('@openactive/dataset-utils');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
