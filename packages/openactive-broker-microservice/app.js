@@ -21,6 +21,7 @@ const { validate } = require('@openactive/data-model-validator');
 const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
 const { isNil, partial, omit, partition } = require('lodash');
+const { extractJSONLDfromHTML } = require('@openactive/dataset-utils')
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -212,7 +213,7 @@ async function harvestRPDE({
   const feedChecker = new FeedPageChecker();
 
   // Harvest forever, until a 404 is encountered
-  for (;;) {
+  for (; ;) {
     // If harvesting is paused, block using the mutex
     await state.pauseResume.waitIfPaused();
 
@@ -277,8 +278,7 @@ async function harvestRPDE({
         if (REQUEST_LOGGING_ENABLED) {
           const kind = json.items && json.items[0] && json.items[0].kind;
           log(
-            `RPDE kind: ${kind}, page: ${context.pages}, length: ${
-              json.items.length
+            `RPDE kind: ${kind}, page: ${context.pages}, length: ${json.items.length
             }, next: '${json.next}'`,
           );
         }
@@ -1447,34 +1447,6 @@ function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
       }
     }
   };
-}
-
-function extractJSONLDfromHTML(url, html) {
-  let jsonld = null;
-
-  const handler = new Handler(
-    (err, result) => {
-      if (!err && typeof result === 'object') {
-        const jsonldArray = result.jsonld;
-        // Use the first JSON-LD block on the page
-        if (Array.isArray(jsonldArray) && jsonldArray.length > 0) {
-          [jsonld] = jsonldArray;
-        }
-      }
-    },
-    {
-      url, // The HTML pages URL is used to resolve relative URLs. TODO: Remove this
-    },
-  );
-
-  // Create a HTML parser with the handler.
-  const parser = new Parser(handler, {
-    decodeEntities: true,
-  });
-  parser.write(html);
-  parser.done();
-
-  return jsonld;
 }
 
 async function extractJSONLDfromDatasetSiteUrl(url) {

@@ -42,6 +42,7 @@
     "update-test-suite": "npm run clean-install && git fetch --all && git reset --hard origin/master && git clean -f -d && npm install"
   },
   "dependencies": {
+    "@openactive/dataset-utils": "^1.0.1",
     "config": "^3.3.6",
     "inquirer": "^8.0.0",
     "node-cleanup": "^2.1.2"
