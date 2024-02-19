@@ -45,6 +45,12 @@ export type ValueType =
   | 'schema:EventStatusType'
   | 'schema:EventAttendanceModeEnumeration';
 
+/**
+ * Specifies a value that must be one of a set of options.
+ * For example, an `eventStatus` field would be set up to only have
+ * one of the `schema:EventStatusType` options (e.g.
+ * `https://schema.org/EventCancelled`, etc)
+ */
 export interface OptionNodeConstraint<
   /** TypeScript union of the types that this option can take */
   TOptionType,
@@ -70,6 +76,10 @@ export interface OptionNodeConstraint<
   allowNull?: true;
 }
 
+/**
+ * Similar to OptionNodeConstraint, but where the value must be an
+ * array. Each item in the array must be from the same set of options.
+ */
 export interface ArrayConstraint<
   TArrayOf,
   TValueType extends ValueType

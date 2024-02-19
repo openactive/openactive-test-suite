@@ -3,19 +3,31 @@ const { faker } = require('@faker-js/faker');
 const fc = require('fast-check');
 const { DateTime } = require('luxon');
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { getTestDataShapeExpressions } = require('..');
+const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 
+// TODO many samples
 test('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // const shape = TestOpportunityBookable.testDataShape({
   //   harvestStartTime: DateTime.now(),
   //   harvestStartTimeTwoHoursLater: DateTime.now().plus({ hours: 2 }),
   // });
+  const harvestStartTime = DateTime.now().toUTC().toISO();
   const shapeExpressions = getTestDataShapeExpressions('TestOpportunityBookable', 'OpenBookingSimpleFlow', 'ScheduledSession', {
-    harvestStartTime: DateTime.now().toUTC().toISO(),
+    harvestStartTime,
   });
   console.log('shapeExpressions:', shapeExpressions);
-  const generated = generateOpportunityConstraints(shapeExpressions['test:testOpportunityDataShapeExpression']);
-  console.log('generated:', generated);
+  const generatedOpportunityPart = generateForShapeDataExpressions(shapeExpressions['test:testOpportunityDataShapeExpression']);
+  console.log('generatedOpportunityPart:', generatedOpportunityPart);
+  const generatedOffer = generateForShapeDataExpressions(shapeExpressions['test:testOfferDataShapeExpression']);
+  console.log('generatedOffer:', generatedOffer);
+  const generatedOpportunity = {
+    ...generatedOpportunityPart,
+    offers: generatedOffer,
+  };
+  const result = testMatch(criteriaMap.get('TestOpportunityBookable'), generatedOpportunity, {
+    harvestStartTime,
+  });
+  console.log('result:', result);
   // shape.opportunityConstraints.
 });
 
@@ -36,7 +48,7 @@ const generatorsByType = {
       min: minDate,
     });
     if (constraint.allowNull) {
-      return fc.oneof(dateArbitrary, fc.constant(null), fc.constant(undefined));
+      return fc.oneof(dateArbitrary, fc.constantFrom(null, undefined));
     }
     return dateArbitrary;
     // fc.oneof
@@ -61,15 +73,54 @@ const generatorsByType = {
    * @param {import('../types/TestDataShape').OptionNodeConstraint<any, any>} constraint 
    */
   'test:OptionNodeConstraint'(constraint) {
-    // TODO3 not sure what to do here yet
-    return fc.constant('TODO');
+    if (constraint.allowlist) {
+      if (constraint.allowNull) {
+        return fc.constantFrom(...constraint.allowlist, null, undefined);
+      }
+      return fc.constantFrom(...constraint.allowlist);
+    }
+    const optionsPool = new Set(getDataTypeOptions(constraint.datatype));
+    if (constraint.allowNull) {
+      optionsPool.add(null);
+      optionsPool.add(undefined);
+    }
+    if (constraint.blocklist) {
+      for (const blocklisted of constraint.blocklist) {
+        optionsPool.delete(blocklisted);
+      }
+    }
+    return fc.constantFrom(...optionsPool);
   },
   /**
    * @param {import('../types/TestDataShape').ArrayConstraint<any, any>} constraint 
    */
   'test:ArrayConstraint'(constraint) {
-    // TODO3 not sure what to do here yet
-    return fc.constant('TODO');
+    if (constraint.includesAll) {
+      return fc.array(fc.constantFrom(...constraint.includesAll), { minLength: constraint.minLength ?? 0 });
+    }
+    if (constraint.datatype === 'oa:Terms') {
+      // special handling because oa:Terms is not an enum constraint
+      return fc.array(
+        fc.record({
+          '@type': fc.constant('Terms'),
+          name: fc.string({ minLength: 1}),
+          url: fc.webUrl(),
+          requiresExplicitConsent: fc.boolean(),
+          dateModified: fc.date().map(date => date.toISOString()),
+        }, {
+          requiredKeys: ['@type', 'name', 'url', 'requiresExplicitConsent'],
+        }),
+        { minLength: constraint.minLength ?? 0 }
+      )
+    }
+    const optionsPool = new Set(getDataTypeOptions(constraint.datatype));
+    if (constraint.excludesAll) {
+      for (const excluded of constraint.excludesAll) {
+        optionsPool.delete(excluded);
+      }
+    }
+    // TODO this might need to have no duplicates
+    return fc.array(fc.constantFrom(...optionsPool), { minLength: constraint.minLength ?? 0 });
   },
   /**
    * @param {import('../testDataShape').NullNodeConstraint} constraint
@@ -77,16 +128,14 @@ const generatorsByType = {
   'test:NullNodeConstraint'(constraint) {
     return fc.oneof(fc.constant(null), fc.constant(undefined));
   }
-  // TODO3 here i am
-  // ValueType
 };
 
 /**
- * @param {ReturnType<typeof getTestDataShapeExpressions>['test:testOpportunityDataShapeExpression']} opportunityDataShapeExpression
+ * @param {ReturnType<typeof getTestDataShapeExpressions>['test:testOpportunityDataShapeExpression']} shapeExpressions
  */
-function generateOpportunityConstraints(opportunityDataShapeExpression) {
+function generateForShapeDataExpressions(shapeExpressions) {
   const result = {};
-  for (const tripleConstraint of opportunityDataShapeExpression) {
+  for (const tripleConstraint of shapeExpressions) {
     if (tripleConstraint['@type'] !== 'test:TripleConstraint') {
       throw new Error(`Expected test:TripleConstraint but got ${tripleConstraint['@type']}`);
     }
@@ -101,7 +150,7 @@ function generateOpportunityConstraints(opportunityDataShapeExpression) {
       throw new Error(`No generator for type ${constraint['@type']}`);
     }
     const arbitrary = generator(/** @type {any} */(constraint));
-    const generated = fc.sample(/** @type {any} */(arbitrary), 1);
+    const [generated] = fc.sample(/** @type {any} */(arbitrary), 1);
     result[fieldName] = generated;
   }
   return result;
@@ -121,4 +170,50 @@ function generateOpportunityConstraints(opportunityDataShapeExpression) {
   //     1,
   //   );
   // }
+}
+
+/**
+ * @param {string} datatype
+ * @returns {string[]}
+ */
+function getDataTypeOptions(datatype) {
+  switch (datatype) {
+    case 'schema:EventStatusType':
+      return [
+        'https://schema.org/EventCancelled',
+        'https://schema.org/EventPostponed',
+        'https://schema.org/EventScheduled'
+      ];
+    case 'schema:EventAttendanceModeEnumeration':
+      return [
+        'https://schema.org/MixedEventAttendanceMode',
+        'https://schema.org/OfflineEventAttendanceMode',
+        'https://schema.org/OnlineEventAttendanceMode',
+      ];
+    case 'oa:RequiredStatusType':
+      return [
+        'https://openactive.io/Required',
+        'https://openactive.io/Optional',
+        'https://openactive.io/Unavailable',
+      ];
+    case 'oa:TaxMode':
+      return [
+        'https://openactive.io/TaxGross',
+        'https://openactive.io/TaxNet',
+      ]
+    case 'oa:OpenBookingFlowRequirement':
+      return [
+        'https://openactive.io/OpenBookingIntakeForm',
+        'https://openactive.io/OpenBookingAttendeeDetails',
+        'https://openactive.io/OpenBookingApproval',
+        'https://openactive.io/OpenBookingNegotiation',
+        'https://openactive.io/OpenBookingMessageExchange',
+      ];
+    // case 'oa:Terms':
+    //   return [
+
+    //   ];
+    default:
+      throw new Error(`Unexpected datatype ${datatype}`);
+  }
 }

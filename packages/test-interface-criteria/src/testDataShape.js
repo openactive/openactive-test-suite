@@ -174,6 +174,29 @@ function openBookingFlowRequirementArrayConstraint(requirements) {
   });
 }
 
+/* TODO this is not a good match for an ArrayConstraint as they presently
+are defined and used. Currently, ArrayConstraint is used for things like
+oa:OpenBookingFlowRequirement, where the constrained value is an array of
+items from the oa:OpenBookingFlowRequirement enum.
+
+`oa:Terms`, on the other hand, is a data structure, not an enum.
+
+This means that, presently, any implementation which uses these Shape
+Expressions must have custom handling for `oa:Terms` ArrayConstraints.
+
+One possible solution:
+
+- Make ArrayConstraint a meta-constraint which takes a constraint, applies
+  it to items within an array, and adds special array-specific constraints
+  like minLength.
+  In this way, the `oa:OpenBookingFlowRequirement` constraint would be
+  something like: `ArrayConstraint(OptionNodeConstraint(datatype='oa:OpenBookingFlowRequirement'))`.
+  And then, the terms constraint would apply `ArrayConstraint(..)` to a
+  single-oa:Term constraint. (possibly a RecordConstraint meta-constraint?).
+
+  One consideration here would be that we don't presently have any
+  meta-constraints.
+*/
 /**
  * @param {number} minLength
  * @returns {import('./types/TestDataShape').ArrayConstraint<unknown, 'oa:Terms'>}
