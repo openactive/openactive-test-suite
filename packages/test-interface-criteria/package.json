@@ -8,7 +8,7 @@
     "gen-types-clean": "rimraf \"built-types/*\"",
     "gen-types-copy-d-ts-files": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/",
     "gen-types": "npm run gen-types-clean && tsc && npm run gen-types-copy-d-ts-files",
-    "test": "npm run lint && tsc",
+    "test": "npm run lint && tsc && jest",
     "lint": "eslint \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },

@@ -6,43 +6,57 @@ const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 
 // TODO many samples
-test('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
-  // const shape = TestOpportunityBookable.testDataShape({
-  //   harvestStartTime: DateTime.now(),
-  //   harvestStartTimeTwoHoursLater: DateTime.now().plus({ hours: 2 }),
-  // });
-  const harvestStartTime = DateTime.now().toUTC().toISO();
-  const opportunityType = /** @type {const} */('ScheduledSession');
-  const shapeExpressions = getTestDataShapeExpressions(
-    // TODO iterate through all the options for these three.
-    'TestOpportunityBookable',
-    'OpenBookingSimpleFlow',
-    opportunityType,
-    {
-      harvestStartTime,
+describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
+  // test ('hi', () => {});
+  // TODO3
+  const allCriteriaNames = [...criteriaMap.keys()];
+  // const allCriteriaNames = ['TestOpportunityBookableNonFreePrepaymentRequired'];
+  const allOpportunityTypes = /** @type {const} */([
+    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+  // 'ScheduledSession',
+  ]);
+  const allBookingFlows = /** @type {const} */([
+    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+  // 'OpenBookingApprovalFlow',
+  ]);
+  for (const opportunityType of allOpportunityTypes) {
+    for (const bookingFlow of allBookingFlows) {
+      for (const criteriaName of allCriteriaNames) {
+        test(`For opportunityType: ${opportunityType}; bookingFlow: ${bookingFlow}; criteria: ${criteriaName}`, () => {
+          const harvestStartTime = DateTime.now().toUTC().toISO();
+          const shapeExpressions = getTestDataShapeExpressions(
+            criteriaName,
+            bookingFlow,
+            opportunityType,
+            {
+              harvestStartTime,
+            }
+          );
+          console.log('shapeExpressions:', shapeExpressions);
+          const generatedOpportunityPart = generateForShapeDataExpressions(
+            shapeExpressions['test:testOpportunityDataShapeExpression'],
+            { opportunityType },
+          );
+          console.log('generatedOpportunityPart:', generatedOpportunityPart);
+          const generatedOffer = generateForShapeDataExpressions(
+            shapeExpressions['test:testOfferDataShapeExpression'],
+            { startDate: generatedOpportunityPart.startDate },
+          );
+          console.log('generatedOffer:', generatedOffer);
+          const generatedOpportunity = {
+            ...generatedOpportunityPart,
+            offers: [generatedOffer],
+          };
+          const result = testMatch(criteriaMap.get(criteriaName), generatedOpportunity, {
+            harvestStartTime,
+          });
+          console.log('result:', result);
+          expect(result).toHaveProperty('matchesCriteria', true);
+          // shape.opportunityConstraints.
+        });
+      }
     }
-  );
-  console.log('shapeExpressions:', shapeExpressions);
-  const generatedOpportunityPart = generateForShapeDataExpressions(
-    shapeExpressions['test:testOpportunityDataShapeExpression'],
-    { opportunityType },
-  );
-  console.log('generatedOpportunityPart:', generatedOpportunityPart);
-  const generatedOffer = generateForShapeDataExpressions(
-    shapeExpressions['test:testOfferDataShapeExpression'],
-    { startDate: generatedOpportunityPart.startDate },
-  );
-  console.log('generatedOffer:', generatedOffer);
-  const generatedOpportunity = {
-    ...generatedOpportunityPart,
-    offers: [generatedOffer],
-  };
-  const result = testMatch(criteriaMap.get('TestOpportunityBookable'), generatedOpportunity, {
-    harvestStartTime,
-  });
-  console.log('result:', result);
-  expect(result).toHaveProperty('matchesCriteria', true);
-  // shape.opportunityConstraints.
+  }
 });
 
 const generatorsByType = {
@@ -76,7 +90,9 @@ const generatorsByType = {
   NumericNodeConstraint(constraint) {
     const min = constraint.mininclusive ?? undefined;
     const max = constraint.maxinclusive ?? undefined;
-    return fc.oneof(fc.integer({ min, max }), fc.float({ min, max }));
+    // TODO2 address
+    // return fc.oneof(fc.integer({ min, max }), fc.float({ min, max }));
+    return fc.double({ min, max });
   },
   /**
    * @param {import('../types/TestDataShape').BooleanNodeConstraint} constraint
