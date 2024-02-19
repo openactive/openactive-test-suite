@@ -8,11 +8,11 @@ const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // test ('hi', () => {});
   // TODO3
-  const allCriteriaNames = [...criteriaMap.keys()];
-  // const allCriteriaNames = ['TestOpportunityBookableFiveSpaces'];
+  // const allCriteriaNames = [...criteriaMap.keys()];
+  const allCriteriaNames = ['TestOpportunityBookableWithinValidFromBeforeStartDate'];
   const allOpportunityTypes = /** @type {const} */([
     // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  'FacilityUseSlot',
+  'ScheduledSession',
   ]);
   const allBookingFlows = /** @type {const} */([
     // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
@@ -40,6 +40,7 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
             }
           );
           console.log('shapeExpressions:', util.inspect(shapeExpressions, false, null, true));
+          for (let i = 0; i < 100; i++) {
           const generatedOpportunityPart = generateForShapeDataExpressions(
             shapeExpressions['test:testOpportunityDataShapeExpression'],
             { opportunityType },
@@ -58,12 +59,17 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
             harvestStartTime,
           });
           console.log('result:', result);
+          if (!result.matchesCriteria && result.unmetCriteriaDetails[0].startsWith('startDate')) {
+            console.log('generatedOpportunity.startDate:', generatedOpportunity.startDate);
+            console.log('harvestStartTime:', harvestStartTime);
+          }
           // expect(result.matchesCriteria).toEqual(tr)
           // expect(result).toHaveProperty('matchesCriteria', true);
           expect(result).toEqual({
             matchesCriteria: true,
             unmetCriteriaDetails: [],
           });
+        }
           // expect(result).to.deep.equal({
           //   matchesCriteria: true,
           //   unmetCriteriaDetails: [],
@@ -106,14 +112,13 @@ const generatorsByType = {
   NumericNodeConstraint(constraint) {
     const min = constraint.mininclusive ?? undefined;
     const max = constraint.maxinclusive ?? undefined;
-    console.log('NumericNodeConstraint', { constraint, min, max, eq: min === max })
     // TODO2 address
     // return fc.oneof(fc.integer({ min, max }), fc.float({ min, max }));
     if (min === max) {
       // fast-check otherwise produces NaN
       return fc.constant(min);
     }
-    return fc.double({ min, max });
+    return fc.double({ min, max, noNaN: true, noDefaultInfinity: true });
   },
   /**
    * @param {import('../types/TestDataShape').BooleanNodeConstraint} constraint

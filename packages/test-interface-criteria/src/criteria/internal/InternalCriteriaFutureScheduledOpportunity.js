@@ -11,7 +11,7 @@ const {
 
 const {
   createCriteria,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   excludePaidBookableOffersWithPrepaymentUnavailable,
 } = require('../criteriaUtils');
@@ -26,8 +26,8 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   name: '_InternalCriteriaFutureScheduledOpportunity',
   opportunityConstraints: [
     [
-      'startDate must be 2hrs in advance for random tests to use',
-      startDateMustBe2HrsInAdvance,
+      'startDate must be over 2hrs in advance for random tests to use',
+      startDateMustBeOver2HrsInAdvance,
     ],
     [
       'eventStatus must not be Cancelled or Postponed',

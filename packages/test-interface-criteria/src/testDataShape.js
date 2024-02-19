@@ -261,7 +261,8 @@ const shapeConstraintRecipes = {
    */
   startDateMustBe2HrsInAdvance: (options) => ({
     'schema:startDate': dateRange({
-      minDate: options.harvestStartTimeTwoHoursLater.toISO(),
+      // Add a second to match the fact that the non-ShEx criteria uses a non-equaling comparison
+      minDate: options.harvestStartTimeTwoHoursLater.plus({ seconds: 1 }).toISO(),
     }),
   }),
   eventStatusMustNotBeCancelledOrPostponed: () => ({

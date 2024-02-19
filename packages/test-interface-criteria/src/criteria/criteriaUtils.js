@@ -378,7 +378,7 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 /**
 * @type {OpportunityConstraint}
 */
-function startDateMustBe2HrsInAdvance(opportunity, options) {
+function startDateMustBeOver2HrsInAdvance(opportunity, options) {
   return options.harvestStartTimeTwoHoursLater < DateTime.fromISO(opportunity.startDate);
 }
 
@@ -519,7 +519,7 @@ module.exports = {
   mustRequireAttendeeDetails,
   mustNotRequireAttendeeDetails,
   mustAllowProposalAmendment,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotBeOpenBookingInAdvanceUnavailable,

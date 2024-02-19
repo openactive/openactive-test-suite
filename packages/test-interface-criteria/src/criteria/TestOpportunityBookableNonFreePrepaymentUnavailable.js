@@ -7,7 +7,7 @@ const {
   sellerMustAllowOpenBooking,
   mustNotRequireAttendeeDetails,
   mustNotRequireAdditionalDetails,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
 } = require('./criteriaUtils');
 
@@ -37,8 +37,8 @@ const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
       sellerMustAllowOpenBooking,
     ],
     [
-      'startDate must be 2hrs in advance for random tests to use',
-      startDateMustBe2HrsInAdvance,
+      'startDate must be over 2hrs in advance for random tests to use',
+      startDateMustBeOver2HrsInAdvance,
     ],
     [
       'eventStatus must not be Cancelled or Postponed',
