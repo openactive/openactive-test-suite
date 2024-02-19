@@ -25,10 +25,13 @@ test('Data generated via the testDataShape satisfies the opportunityConstraints 
   console.log('shapeExpressions:', shapeExpressions);
   const generatedOpportunityPart = generateForShapeDataExpressions(
     shapeExpressions['test:testOpportunityDataShapeExpression'],
-    opportunityType,
+    { opportunityType },
   );
   console.log('generatedOpportunityPart:', generatedOpportunityPart);
-  const generatedOffer = generateForShapeDataExpressions(shapeExpressions['test:testOfferDataShapeExpression']);
+  const generatedOffer = generateForShapeDataExpressions(
+    shapeExpressions['test:testOfferDataShapeExpression'],
+    { startDate: generatedOpportunityPart.startDate },
+  );
   console.log('generatedOffer:', generatedOffer);
   const generatedOpportunity = {
     ...generatedOpportunityPart,
@@ -60,7 +63,7 @@ const generatorsByType = {
       max: maxDate,
       min: minDate,
     }).map(date => date.toISOString());
-    console.log('test:DateRangeNodeConstraint', { constraint, minDate, maxDate });
+    // console.log('test:DateRangeNodeConstraint', { constraint, minDate, maxDate });
     if (constraint.allowNull) {
       return fc.oneof(dateArbitrary, fc.constantFrom(null, undefined));
     }
@@ -170,10 +173,16 @@ const fieldParentPathSpecs = {
 
 /**
  * @param {ReturnType<typeof getTestDataShapeExpressions>['test:testOpportunityDataShapeExpression']} shapeExpressions
- * @param {'ScheduledSession' | 'FacilityUseSlot' | 'IndividualFacilityUseSlot'} [opportunityType]
+ * @param {object} options
+ * @param {'ScheduledSession' | 'FacilityUseSlot' | 'IndividualFacilityUseSlot'} [options.opportunityType]
  *   Exclude if generating for an offer
+ * @param {string} [options.startDate] Include if startDate has already been
+ *   generated. Used to derive validFromBeforeStartDate
  */
-function generateForShapeDataExpressions(shapeExpressions, opportunityType) {
+function generateForShapeDataExpressions(shapeExpressions, {
+  opportunityType,
+  startDate,
+}) {
   const result = {};
   for (const tripleConstraint of shapeExpressions) {
     if (tripleConstraint['@type'] !== 'test:TripleConstraint') {
@@ -217,23 +226,18 @@ function generateForShapeDataExpressions(shapeExpressions, opportunityType) {
     _.set(result, fieldPath, generated);
     // result[fieldName] = generated;
   }
+  /* This is a special case in which the generated value is supposed to be a derived
+  value i.e. startDate - validFromBeforeStartDate */
+  if (result.validFromBeforeStartDate) {
+    if (!startDate) {
+      throw new Error('startDate must be set in order to derive validFromBeforeStartDate');
+    }
+    const startDateAsDate = DateTime.fromISO(startDate);
+    const validFromBeforeStartDateAsDate = DateTime.fromISO(result.validFromBeforeStartDate);
+    const validFromBeforeStartDateAsDuration = startDateAsDate.diff(validFromBeforeStartDateAsDate);
+    result.validFromBeforeStartDate = validFromBeforeStartDateAsDuration.toISO();
+  }
   return result;
-  // for (const [key, constraint] of Object.entries(opportunityDataShapeExpression)) {
-  //   const generator = generatorsByType[constraint['@type']];
-  //   if (!generator) {
-  //     throw new Error(`No generator for type ${constraint['@type']}`);
-  //   }
-  //   const arbitrary = generator(/** @type {any} */(constraint));
-  //   const generated = fc.sample(/** @type {any} */(arbitrary), 1);
-  //   const nonNamespacedField = /^(^:)+:(.+)$/.exec(key)[2];
-  //   result[nonNamespacedField] = generated;
-  // }
-  // if (opportunityConstraints['schema:startDate']) {
-  //   result.startDate = fc.sample(
-  //     generatorsByType['test:DateRangeNodeConstraint'](opportunityConstraints['schema:startDate']),
-  //     1,
-  //   );
-  // }
 }
 
 /**
