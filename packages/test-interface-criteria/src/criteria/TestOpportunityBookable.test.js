@@ -8,15 +8,15 @@ const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // test ('hi', () => {});
   // TODO3
-  // const allCriteriaNames = [...criteriaMap.keys()];
-  const allCriteriaNames = ['TestOpportunityOfflineBookable'];
+  const allCriteriaNames = [...criteriaMap.keys()];
+  // const allCriteriaNames = ['TestOpportunityOfflineBookable'];
   const allOpportunityTypes = /** @type {const} */([
-    // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  'IndividualFacilityUseSlot',
+    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+  // 'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
-    // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
-  'OpenBookingSimpleFlow',
+    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+  // 'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
