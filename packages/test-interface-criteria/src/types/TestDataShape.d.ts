@@ -116,6 +116,7 @@ export type TestDataNodeConstraint =
 
 export type TestDataShapeOpportunityConstraints = {
   'schema:startDate'?: DateRangeNodeConstraint;
+  'schema:endDate'?: DateRangeNodeConstraint;
   /**
    * "placeholder:remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
    * or remainingUses (facilities)
