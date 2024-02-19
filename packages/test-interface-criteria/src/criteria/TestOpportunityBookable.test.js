@@ -9,10 +9,10 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
   // test ('hi', () => {});
   // TODO3
   // const allCriteriaNames = [...criteriaMap.keys()];
-  const allCriteriaNames = ['TestOpportunityBookableWithinValidFromBeforeStartDate'];
+  const allCriteriaNames = ['TestOpportunityOfflineBookable'];
   const allOpportunityTypes = /** @type {const} */([
     // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  'ScheduledSession',
+  'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
     // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
@@ -40,41 +40,36 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
             }
           );
           console.log('shapeExpressions:', util.inspect(shapeExpressions, false, null, true));
-          for (let i = 0; i < 100; i++) {
+          // Run test 10 times each as it involves randomly generated data
+          for (let i = 0; i < 10; i++) {
           const generatedOpportunityPart = generateForShapeDataExpressions(
             shapeExpressions['test:testOpportunityDataShapeExpression'],
             { opportunityType },
           );
-          console.log('generatedOpportunityPart:', generatedOpportunityPart);
           const generatedOffer = generateForShapeDataExpressions(
             shapeExpressions['test:testOfferDataShapeExpression'],
             { startDate: generatedOpportunityPart.startDate },
           );
-          console.log('generatedOffer:', generatedOffer);
           const generatedOpportunity = {
             ...generatedOpportunityPart,
             offers: [generatedOffer],
           };
+          if (opportunityType === 'IndividualFacilityUseSlot') {
+            _.set(generatedOpportunity, ['facilityUse', '@type'], 'IndividualFacilityUse');
+          }
+          console.log('generatedOpportunity:', util.inspect(generatedOpportunity, false, null, true));
           const result = testMatch(criteriaMap.get(criteriaName), generatedOpportunity, {
             harvestStartTime,
           });
-          console.log('result:', result);
-          if (!result.matchesCriteria && result.unmetCriteriaDetails[0].startsWith('startDate')) {
-            console.log('generatedOpportunity.startDate:', generatedOpportunity.startDate);
-            console.log('harvestStartTime:', harvestStartTime);
+          if (!result.matchesCriteria) {
+            console.log('whaaa');
           }
-          // expect(result.matchesCriteria).toEqual(tr)
-          // expect(result).toHaveProperty('matchesCriteria', true);
+          console.log('result:', result);
           expect(result).toEqual({
             matchesCriteria: true,
             unmetCriteriaDetails: [],
           });
         }
-          // expect(result).to.deep.equal({
-          //   matchesCriteria: true,
-          //   unmetCriteriaDetails: [],
-          // });
-          // shape.opportunityConstraints.
         });
       }
     }

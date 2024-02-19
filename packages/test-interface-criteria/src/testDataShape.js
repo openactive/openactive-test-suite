@@ -230,7 +230,8 @@ const shapeConstraintRecipes = {
    */
   mustHaveBookableOffer: (options) => ({
     'oa:validFromBeforeStartDate': dateRange({
-      maxDate: options.harvestStartTime.toISO(),
+      // -1s to match the non-equaling comparison in the non-ShEx constraint
+      maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
       allowNull: true,
     }),
     'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
