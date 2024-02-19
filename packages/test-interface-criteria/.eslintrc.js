@@ -2,6 +2,7 @@ module.exports = {
   extends: 'airbnb-base',
   env: {
     node: true,
+    'jest/globals': true,
   },
   globals: {
     expectAsync: true,
