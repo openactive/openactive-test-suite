@@ -10,7 +10,7 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
   // test ('hi', () => {});
   // TODO3
   // const allCriteriaNames = [...criteriaMap.keys()];
-  const allCriteriaNames = ['TestOpportunityBookableCancellableOutsideWindow'];
+  const allCriteriaNames = ['TestOpportunityBookableOutsideValidFromBeforeStartDate'];
   const allOpportunityTypes = /** @type {const} */([
     // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
   'IndividualFacilityUseSlot',
@@ -266,6 +266,13 @@ function generateForShapeDataExpressions(shapeExpressions, {
   if (result.latestCancellationBeforeStartDate) {
     result.latestCancellationBeforeStartDate = deriveDurationForDateBeforeStart(
       result.latestCancellationBeforeStartDate,
+      startDate
+    );
+  }
+  // Same situation as for validFromBeforeStartDate
+  if (result.validThroughBeforeStartDate) {
+    result.validThroughBeforeStartDate = deriveDurationForDateBeforeStart(
+      result.validThroughBeforeStartDate,
       startDate
     );
   }
