@@ -99,6 +99,24 @@
             },
         },
         {
+            "name": "test-interface-criteria - unit tests",
+            "type": "node",
+            "request": "launch",
+            // "env": { "CI": "true" },
+            "cwd": "${workspaceFolder}/packages/test-interface-criteria/",
+            "runtimeArgs": [
+              "--inspect-brk",
+              "node_modules/.bin/jest",
+              "--runInBand"
+              ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+            // "runtimeExecutable": "npm",
+            // "runtimeVersion": "18.17.1",
+            // "runtimeArgs": ["run-script", "run-tests", "--", "--runInBand"],
+            // "port": 9229,
+        },
+        {
             "name": "validate-feeds",
             "type": "node",
             "request": "launch",
