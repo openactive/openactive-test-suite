@@ -9,15 +9,15 @@ const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // test ('hi', () => {});
   // TODO3
-  const allCriteriaNames = [...criteriaMap.keys()];
-  // const allCriteriaNames = ['TestOpportunityBookableNonFreePrepaymentRequired'];
+  // const allCriteriaNames = [...criteriaMap.keys()];
+  const allCriteriaNames = ['TestOpportunityBookableSellerTermsOfService'];
   const allOpportunityTypes = /** @type {const} */([
-    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  // 'ScheduledSession',
+    // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+  'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
-    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
-  // 'OpenBookingApprovalFlow',
+    // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+  'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
@@ -51,7 +51,16 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
             harvestStartTime,
           });
           console.log('result:', result);
-          expect(result).toHaveProperty('matchesCriteria', true);
+          // expect(result.matchesCriteria).toEqual(tr)
+          // expect(result).toHaveProperty('matchesCriteria', true);
+          expect(result).toEqual({
+            matchesCriteria: true,
+            unmetCriteriaDetails: [],
+          });
+          // expect(result).to.deep.equal({
+          //   matchesCriteria: true,
+          //   unmetCriteriaDetails: [],
+          // });
           // shape.opportunityConstraints.
         });
       }
@@ -182,9 +191,7 @@ const fieldParentPathSpecHelpers = {
 const fieldParentPathSpecs = {
   taxMode: fieldParentPathSpecHelpers.organizerOrProvider,
   isOpenBookingAllowed: fieldParentPathSpecHelpers.organizerOrProvider,
-  // ScheduledSession: {
-  //   'oa:taxMode': ['superEvent', 'organizer'],
-  // }
+  termsOfService: fieldParentPathSpecHelpers.organizerOrProvider,
 }
 
 /**

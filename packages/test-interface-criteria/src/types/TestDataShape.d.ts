@@ -130,6 +130,9 @@ export type TestDataShapeOpportunityConstraints = {
   'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
   'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
   'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
+  // note that the type isn't specified yet (it's a '@type': 'Terms' object) as
+  // we don't use includes/excludes rules for this field, so it's irrelevant.
+  'schema:termsOfService'?: ArrayConstraint<unknown, 'oa:Terms'>;
 };
 
 /**
@@ -152,8 +155,5 @@ export type TestDataShape = {
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
     'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint | DateRangeNodeConstraint;
     'oa:allowCustomerCancellationFullRefund'?: BooleanNodeConstraint;
-    // note that the type isn't specified yet (it's a '@type': 'Terms' object) as
-    // we don't use includes/excludes rules for this field, so it's irrelevant.
-    'schema:termsOfService'?: ArrayConstraint<unknown, 'oa:Terms'>;
   };
 }
