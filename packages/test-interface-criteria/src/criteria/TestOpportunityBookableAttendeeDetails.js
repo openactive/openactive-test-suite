@@ -51,6 +51,7 @@ const TestOpportunityBookableAttendeeDetails = createCriteria({
       'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
         includesAll: ['https://openactive.io/OpenBookingAttendeeDetails'],
         excludesAll: ['https://openactive.io/OpenBookingIntakeForm'],
+        // minLength: 1,
       }),
     },
   }),

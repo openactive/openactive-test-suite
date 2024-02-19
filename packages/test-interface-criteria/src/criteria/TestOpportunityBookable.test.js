@@ -1,4 +1,3 @@
-// TODO make this enumerate all criteria
 const fc = require('fast-check');
 const _ = require('lodash');
 const { DateTime } = require('luxon');
@@ -10,15 +9,15 @@ const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // test ('hi', () => {});
   // TODO3
-  // const allCriteriaNames = [...criteriaMap.keys()];
-  const allCriteriaNames = ['TestOpportunityBookableInPast'];
+  const allCriteriaNames = [...criteriaMap.keys()];
+  // const allCriteriaNames = ['TestOpportunityBookableAttendeeDetails'];
   const allOpportunityTypes = /** @type {const} */([
-    // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  'IndividualFacilityUseSlot',
+    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+  // 'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
-    // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
-  'OpenBookingSimpleFlow',
+    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+  // 'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
@@ -142,7 +141,8 @@ const generatorsByType = {
    */
   'test:ArrayConstraint'(constraint) {
     if (constraint.includesAll) {
-      return fc.array(fc.constantFrom(...constraint.includesAll), { minLength: constraint.minLength ?? 0 });
+      return fc.constant(constraint.includesAll);
+      // return fc.array(fc.constantFrom(...constraint.includesAll), { minLength: constraint.minLength ?? 0 });
     }
     if (constraint.datatype === 'oa:Terms') {
       // special handling because oa:Terms is not an enum constraint
