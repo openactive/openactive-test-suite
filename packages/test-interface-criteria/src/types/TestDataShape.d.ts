@@ -154,6 +154,11 @@ export type TestDataShape = {
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
     'oa:openBookingInAdvance'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
+    /**
+     * Refers to the date calculated as `startDate - latestCancellationBeforeStartDate`.
+     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validFromBeforeStartDate`
+     * can be null.
+     */
     'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint | DateRangeNodeConstraint;
     'oa:allowCustomerCancellationFullRefund'?: BooleanNodeConstraint;
   };

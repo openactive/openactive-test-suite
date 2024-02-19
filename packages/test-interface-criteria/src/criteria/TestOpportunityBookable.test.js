@@ -9,15 +9,15 @@ const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // test ('hi', () => {});
   // TODO3
-  const allCriteriaNames = [...criteriaMap.keys()];
-  // const allCriteriaNames = ['TestOpportunityBookableAttendeeDetails'];
+  // const allCriteriaNames = [...criteriaMap.keys()];
+  const allCriteriaNames = ['TestOpportunityBookableCancellableOutsideWindow'];
   const allOpportunityTypes = /** @type {const} */([
-    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  // 'IndividualFacilityUseSlot',
+    // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+  'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
-    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
-  // 'OpenBookingSimpleFlow',
+    // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+  'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
@@ -257,15 +257,33 @@ function generateForShapeDataExpressions(shapeExpressions, {
   /* This is a special case in which the generated value is supposed to be a derived
   value i.e. startDate - validFromBeforeStartDate */
   if (result.validFromBeforeStartDate) {
-    if (!startDate) {
-      throw new Error('startDate must be set in order to derive validFromBeforeStartDate');
-    }
-    const startDateAsDate = DateTime.fromISO(startDate);
-    const validFromBeforeStartDateAsDate = DateTime.fromISO(result.validFromBeforeStartDate);
-    const validFromBeforeStartDateAsDuration = startDateAsDate.diff(validFromBeforeStartDateAsDate);
-    result.validFromBeforeStartDate = validFromBeforeStartDateAsDuration.toISO();
+    result.validFromBeforeStartDate = deriveDurationForDateBeforeStart(
+      result.validFromBeforeStartDate,
+      startDate
+    );
+  }
+  // Same situation as for validFromBeforeStartDate
+  if (result.latestCancellationBeforeStartDate) {
+    result.latestCancellationBeforeStartDate = deriveDurationForDateBeforeStart(
+      result.latestCancellationBeforeStartDate,
+      startDate
+    );
   }
   return result;
+}
+
+/**
+ * @param {string} dateBeforeStart
+ * @param {string} [startDate]
+ */
+function deriveDurationForDateBeforeStart(dateBeforeStart, startDate) {
+  if (!startDate) {
+    throw new Error('startDate must be set in order to derive validFromBeforeStartDate/latestCancellationBeforeStartDate');
+  }
+  const startDateAsDate = DateTime.fromISO(startDate);
+  const validFromBeforeStartDateAsDate = DateTime.fromISO(dateBeforeStart);
+  const validFromBeforeStartDateAsDuration = startDateAsDate.diff(validFromBeforeStartDateAsDate);
+  return validFromBeforeStartDateAsDuration.toISO();
 }
 
 /**
