@@ -58,6 +58,7 @@ function quantitativeValue(requirements) {
 
 const FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
   maxinclusive: 0,
+  mininclusive: 0,
 });
 
 const NON_FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({

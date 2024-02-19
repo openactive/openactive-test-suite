@@ -2,6 +2,7 @@
 const fc = require('fast-check');
 const _ = require('lodash');
 const { DateTime } = require('luxon');
+const util = require('util');
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 
@@ -9,15 +10,15 @@ const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   // test ('hi', () => {});
   // TODO3
-  // const allCriteriaNames = [...criteriaMap.keys()];
-  const allCriteriaNames = ['TestOpportunityBookableSellerTermsOfService'];
+  const allCriteriaNames = [...criteriaMap.keys()];
+  // const allCriteriaNames = ['TestOpportunityBookableFreePrepaymentRequired'];
   const allOpportunityTypes = /** @type {const} */([
-    // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  'IndividualFacilityUseSlot',
+    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+  // 'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
-    // 'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
-  'OpenBookingSimpleFlow',
+    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+  // 'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
@@ -32,7 +33,7 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
               harvestStartTime,
             }
           );
-          console.log('shapeExpressions:', shapeExpressions);
+          console.log('shapeExpressions:', util.inspect(shapeExpressions, false, null, true));
           const generatedOpportunityPart = generateForShapeDataExpressions(
             shapeExpressions['test:testOpportunityDataShapeExpression'],
             { opportunityType },
@@ -101,6 +102,10 @@ const generatorsByType = {
     const max = constraint.maxinclusive ?? undefined;
     // TODO2 address
     // return fc.oneof(fc.integer({ min, max }), fc.float({ min, max }));
+    if (min === max) {
+      // fast-check otherwise produces NaN
+      return fc.constant(min);
+    }
     return fc.double({ min, max });
   },
   /**
