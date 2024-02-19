@@ -2,7 +2,6 @@ const fc = require('fast-check');
 const _ = require('lodash');
 const { DateTime } = require('luxon');
 const util = require('util');
-const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 
 // TODO many samples
@@ -10,7 +9,7 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
   // test ('hi', () => {});
   // TODO3
   // const allCriteriaNames = [...criteriaMap.keys()];
-  const allCriteriaNames = ['TestOpportunityBookableOutsideValidFromBeforeStartDate'];
+  const allCriteriaNames = ['TestOpportunityBookableOneSpace'];
   const allOpportunityTypes = /** @type {const} */([
     // 'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
   'IndividualFacilityUseSlot',
@@ -22,6 +21,14 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
       for (const criteriaName of allCriteriaNames) {
+        if (
+          opportunityType === 'IndividualFacilityUseSlot'
+          && criteriaName === 'TestOpportunityBookableFiveSpaces'
+        ) {
+          // It's not possible to generate a valid IFU Slot for this criteria
+          // as IFU slots can only have a capacity of 0 or 1
+          continue;
+        }
         test(`For opportunityType: ${opportunityType}; bookingFlow: ${bookingFlow}; criteria: ${criteriaName}`, () => {
           const harvestStartTime = DateTime.now().toUTC().toISO();
           const shapeExpressions = getTestDataShapeExpressions(
@@ -99,6 +106,7 @@ const generatorsByType = {
   NumericNodeConstraint(constraint) {
     const min = constraint.mininclusive ?? undefined;
     const max = constraint.maxinclusive ?? undefined;
+    console.log('NumericNodeConstraint', { constraint, min, max, eq: min === max })
     // TODO2 address
     // return fc.oneof(fc.integer({ min, max }), fc.float({ min, max }));
     if (min === max) {
