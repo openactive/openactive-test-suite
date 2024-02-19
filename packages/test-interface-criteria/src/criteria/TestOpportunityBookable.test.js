@@ -1,6 +1,6 @@
 // TODO make this enumerate all criteria
-const { faker } = require('@faker-js/faker');
 const fc = require('fast-check');
+const _ = require('lodash');
 const { DateTime } = require('luxon');
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
@@ -12,46 +12,59 @@ test('Data generated via the testDataShape satisfies the opportunityConstraints 
   //   harvestStartTimeTwoHoursLater: DateTime.now().plus({ hours: 2 }),
   // });
   const harvestStartTime = DateTime.now().toUTC().toISO();
-  const shapeExpressions = getTestDataShapeExpressions('TestOpportunityBookable', 'OpenBookingSimpleFlow', 'ScheduledSession', {
-    harvestStartTime,
-  });
+  const opportunityType = /** @type {const} */('ScheduledSession');
+  const shapeExpressions = getTestDataShapeExpressions(
+    // TODO iterate through all the options for these three.
+    'TestOpportunityBookable',
+    'OpenBookingSimpleFlow',
+    opportunityType,
+    {
+      harvestStartTime,
+    }
+  );
   console.log('shapeExpressions:', shapeExpressions);
-  const generatedOpportunityPart = generateForShapeDataExpressions(shapeExpressions['test:testOpportunityDataShapeExpression']);
+  const generatedOpportunityPart = generateForShapeDataExpressions(
+    shapeExpressions['test:testOpportunityDataShapeExpression'],
+    opportunityType,
+  );
   console.log('generatedOpportunityPart:', generatedOpportunityPart);
   const generatedOffer = generateForShapeDataExpressions(shapeExpressions['test:testOfferDataShapeExpression']);
   console.log('generatedOffer:', generatedOffer);
   const generatedOpportunity = {
     ...generatedOpportunityPart,
-    offers: generatedOffer,
+    offers: [generatedOffer],
   };
   const result = testMatch(criteriaMap.get('TestOpportunityBookable'), generatedOpportunity, {
     harvestStartTime,
   });
   console.log('result:', result);
+  expect(result).toHaveProperty('matchesCriteria', true);
   // shape.opportunityConstraints.
 });
 
 const generatorsByType = {
   /**
    * @param {import('../types/TestDataShape').DateRangeNodeConstraint} constraint
-   * @returns {fc.Arbitrary<Date | null | undefined>}
+   * @returns {fc.Arbitrary<string | null | undefined>}
    */
   'test:DateRangeNodeConstraint'(constraint) {
     const minDate = constraint.minDate
       ? DateTime.fromISO(constraint.minDate).toJSDate()
-      : undefined;
+      // Reasonable min date so that we don't need to worry about like 10,000 BCE, etc
+      : DateTime.fromISO('2000-01-01T00:00:00Z').toJSDate();
     const maxDate = constraint.maxDate
       ? DateTime.fromISO(constraint.maxDate).toJSDate()
-      : undefined;
+      // Reasonable max date so that we don't need to worry about like 999,999 CE, etc
+      : DateTime.fromISO('3000-01-01T00:00:00Z').toJSDate();
     const dateArbitrary = fc.date({
       max: maxDate,
       min: minDate,
-    });
+    }).map(date => date.toISOString());
+    console.log('test:DateRangeNodeConstraint', { constraint, minDate, maxDate });
     if (constraint.allowNull) {
       return fc.oneof(dateArbitrary, fc.constantFrom(null, undefined));
     }
     return dateArbitrary;
-    // fc.oneof
   },
   /**
    * @param {import('../types/TestDataShape').NumericNodeConstraint} constraint
@@ -103,7 +116,7 @@ const generatorsByType = {
       return fc.array(
         fc.record({
           '@type': fc.constant('Terms'),
-          name: fc.string({ minLength: 1}),
+          name: fc.string({ minLength: 1 }),
           url: fc.webUrl(),
           requiresExplicitConsent: fc.boolean(),
           dateModified: fc.date().map(date => date.toISOString()),
@@ -130,10 +143,37 @@ const generatorsByType = {
   }
 };
 
+const fieldParentPathSpecHelpers = {
+  organizerOrProvider: {
+    byType: {
+      ScheduledSession: ['superEvent', 'organizer'],
+      FacilityUseSlot: ['facilityUse', 'provider'],
+      IndividualFacilityUseSlot: ['facilityUse', 'aggregateFacilityUse', 'provider'],
+    },
+  },
+};
+
+/**
+ * @type {{
+ *   [fieldName: string]: {
+ *     byType: Record<'ScheduledSession' | 'FacilityUseSlot' | 'IndividualFacilityUseSlot', string[]>
+ *   }
+ * }}
+ */
+const fieldParentPathSpecs = {
+  taxMode: fieldParentPathSpecHelpers.organizerOrProvider,
+  isOpenBookingAllowed: fieldParentPathSpecHelpers.organizerOrProvider,
+  // ScheduledSession: {
+  //   'oa:taxMode': ['superEvent', 'organizer'],
+  // }
+}
+
 /**
  * @param {ReturnType<typeof getTestDataShapeExpressions>['test:testOpportunityDataShapeExpression']} shapeExpressions
+ * @param {'ScheduledSession' | 'FacilityUseSlot' | 'IndividualFacilityUseSlot'} [opportunityType]
+ *   Exclude if generating for an offer
  */
-function generateForShapeDataExpressions(shapeExpressions) {
+function generateForShapeDataExpressions(shapeExpressions, opportunityType) {
   const result = {};
   for (const tripleConstraint of shapeExpressions) {
     if (tripleConstraint['@type'] !== 'test:TripleConstraint') {
@@ -144,6 +184,29 @@ function generateForShapeDataExpressions(shapeExpressions) {
       throw new Error(`Not able to extract field name from ${tripleConstraint.predicate}`);
     }
     const fieldName = fieldNameRegexResult[1];
+    const fieldPath = (() => {
+      const fieldParentPathSpec = fieldParentPathSpecs[fieldName];
+      if (fieldParentPathSpec) {
+        if (fieldParentPathSpec.byType) {
+          if (!opportunityType) {
+            throw new Error(
+              `opportunityType must be specified when generating data for field: ${tripleConstraint.predicate}`
+            );
+          }
+          const byType = fieldParentPathSpec.byType[opportunityType];
+          if (!byType) {
+            throw new Error(
+              `fieldParentPathSpecs[${fieldName}].byType[${opportunityType}] not found`
+            );
+          }
+          return [...byType, fieldName];
+        }
+        throw new Error(
+          `No known parent path strategy found for fieldParentPathSpecs[${fieldName}]`
+        );
+      }
+      return [fieldName];
+    })();
     const constraint = tripleConstraint.valueExpr;
     const generator = generatorsByType[constraint['@type']];
     if (!generator) {
@@ -151,7 +214,8 @@ function generateForShapeDataExpressions(shapeExpressions) {
     }
     const arbitrary = generator(/** @type {any} */(constraint));
     const [generated] = fc.sample(/** @type {any} */(arbitrary), 1);
-    result[fieldName] = generated;
+    _.set(result, fieldPath, generated);
+    // result[fieldName] = generated;
   }
   return result;
   // for (const [key, constraint] of Object.entries(opportunityDataShapeExpression)) {
