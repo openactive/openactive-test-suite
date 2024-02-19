@@ -256,6 +256,19 @@ const shapeConstraintRecipes = {
       allowNull: true,
     }),
   }),
+  /**
+   * @param {Options} options
+   */
+  startDateMustBe2HrsInAdvance: (options) => ({
+    'schema:startDate': dateRange({
+      minDate: options.harvestStartTimeTwoHoursLater.toISO(),
+    }),
+  }),
+  eventStatusMustNotBeCancelledOrPostponed: () => ({
+    'schema:eventStatus': eventStatusOptionNodeConstraint({
+      blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
+    }),
+  }),
 };
 
 module.exports = {

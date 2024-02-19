@@ -1,3 +1,4 @@
+const { shapeConstraintRecipes, NON_FREE_PRICE_QUANTITATIVE_VALUE, prepaymentOptionNodeConstraint, openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
@@ -66,8 +67,28 @@ const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
       mustNotRequireAdditionalDetails,
     ],
   ],
-  testDataShape: () => ({
-    // TODO: Add data shape
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+      ...shapeConstraintRecipes.startDateMustBe2HrsInAdvance(options),
+      ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+      // onlyPaidBookableOffersWithPrepaymentUnavailable
+      'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+      'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
+        allowlist: ['https://openactive.io/Unavailable'],
+      }),
+      // mustNotRequireAttendeeDetails, mustNotRequireAdditionalDetails
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        excludesAll: [
+          'https://openactive.io/OpenBookingAttendeeDetails',
+          'https://openactive.io/OpenBookingIntakeForm',
+        ],
+      }),
+    },
   }),
 });
 

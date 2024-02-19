@@ -11,7 +11,7 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
   // test ('hi', () => {});
   // TODO3
   const allCriteriaNames = [...criteriaMap.keys()];
-  // const allCriteriaNames = ['TestOpportunityBookableFreePrepaymentRequired'];
+  // const allCriteriaNames = ['TestOpportunityBookableNonFreePrepaymentUnavailable'];
   const allOpportunityTypes = /** @type {const} */([
     'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
   // 'IndividualFacilityUseSlot',

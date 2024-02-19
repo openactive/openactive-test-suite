@@ -1,6 +1,7 @@
 const {
   dateRange,
   eventStatusOptionNodeConstraint,
+  shapeConstraintRecipes,
 } = require('../../testDataShape');
 
 /**
@@ -41,14 +42,8 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   ],
   testDataShape: (options) => ({
     opportunityConstraints: ({
-      // startDateMustBe2HrsInAdvance
-      'schema:startDate': dateRange({
-        minDate: options.harvestStartTimeTwoHoursLater.toISO(),
-      }),
-      // eventStatusMustNotBeCancelledOrPostponed
-      'schema:eventStatus': eventStatusOptionNodeConstraint({
-        blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
-      }),
+      ...shapeConstraintRecipes.startDateMustBe2HrsInAdvance(options),
+      ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
     }),
   }),
 });
