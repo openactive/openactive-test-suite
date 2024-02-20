@@ -25,7 +25,6 @@
     "node": "18.17.1"
   },
   "devDependencies": {
-    "@faker-js/faker": "^8.4.1",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.14.202",
     "@types/luxon": "^3.4.2",
