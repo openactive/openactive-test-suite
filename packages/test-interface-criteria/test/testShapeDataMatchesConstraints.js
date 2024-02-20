@@ -4,19 +4,20 @@ const { DateTime } = require('luxon');
 const util = require('util');
 const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 
-// TODO many samples
-describe('Data generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
-  // test ('hi', () => {});
-  // TODO3
+/**
+ * Since each test uses random data, we run each test multiple times to increase
+ * the likelihood of catching any issues. A higher value for NUM_SAMPLES leads to
+ * more reliability, but increases the time taken to run tests.
+ */
+const NUM_SAMPLES = 10;
+
+describe('Data randomly generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   const allCriteriaNames = [...criteriaMap.keys()];
-  // const allCriteriaNames = ['TestOpportunityOfflineBookable'];
   const allOpportunityTypes = /** @type {const} */([
     'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
-  // 'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
     'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
-  // 'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
@@ -39,37 +40,38 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
               harvestStartTime,
             }
           );
-          console.log('shapeExpressions:', util.inspect(shapeExpressions, false, null, true));
           // Run test 10 times each as it involves randomly generated data
-          for (let i = 0; i < 10; i++) {
-          const generatedOpportunityPart = generateForShapeDataExpressions(
-            shapeExpressions['test:testOpportunityDataShapeExpression'],
-            { opportunityType },
-          );
-          const generatedOffer = generateForShapeDataExpressions(
-            shapeExpressions['test:testOfferDataShapeExpression'],
-            { startDate: generatedOpportunityPart.startDate },
-          );
-          const generatedOpportunity = {
-            ...generatedOpportunityPart,
-            offers: [generatedOffer],
-          };
-          if (opportunityType === 'IndividualFacilityUseSlot') {
-            _.set(generatedOpportunity, ['facilityUse', '@type'], 'IndividualFacilityUse');
+          for (let i = 0; i < NUM_SAMPLES; i++) {
+            const generatedOpportunityPart = generateForShapeDataExpressions(
+              shapeExpressions['test:testOpportunityDataShapeExpression'],
+              { opportunityType },
+            );
+            const generatedOffer = generateForShapeDataExpressions(
+              shapeExpressions['test:testOfferDataShapeExpression'],
+              { startDate: generatedOpportunityPart.startDate },
+            );
+            const generatedOpportunity = {
+              ...generatedOpportunityPart,
+              offers: [generatedOffer],
+            };
+            if (opportunityType === 'IndividualFacilityUseSlot') {
+              _.set(generatedOpportunity, ['facilityUse', '@type'], 'IndividualFacilityUse');
+            }
+            const result = testMatch(criteriaMap.get(criteriaName), generatedOpportunity, {
+              harvestStartTime,
+            });
+            if (!result.matchesCriteria) {
+              console.error('ERROR: generated opportunity does not match criteria', util.inspect({
+                shapeExpressions,
+                generatedOpportunity,
+                result,
+              }, false, null, true));
+            }
+            expect(result).toEqual({
+              matchesCriteria: true,
+              unmetCriteriaDetails: [],
+            });
           }
-          console.log('generatedOpportunity:', util.inspect(generatedOpportunity, false, null, true));
-          const result = testMatch(criteriaMap.get(criteriaName), generatedOpportunity, {
-            harvestStartTime,
-          });
-          if (!result.matchesCriteria) {
-            console.log('whaaa');
-          }
-          console.log('result:', result);
-          expect(result).toEqual({
-            matchesCriteria: true,
-            unmetCriteriaDetails: [],
-          });
-        }
         });
       }
     }
@@ -78,7 +80,7 @@ describe('Data generated via the testDataShape satisfies the opportunityConstrai
 
 const generatorsByType = {
   /**
-   * @param {import('../types/TestDataShape').DateRangeNodeConstraint} constraint
+   * @param {import('../src/types/TestDataShape').DateRangeNodeConstraint} constraint
    * @returns {fc.Arbitrary<string | null | undefined>}
    */
   'test:DateRangeNodeConstraint'(constraint) {
@@ -94,36 +96,38 @@ const generatorsByType = {
       max: maxDate,
       min: minDate,
     }).map(date => date.toISOString());
-    // console.log('test:DateRangeNodeConstraint', { constraint, minDate, maxDate });
     if (constraint.allowNull) {
       return fc.oneof(dateArbitrary, fc.constantFrom(null, undefined));
     }
     return dateArbitrary;
   },
   /**
-   * @param {import('../types/TestDataShape').NumericNodeConstraint} constraint
+   * @param {import('../src/types/TestDataShape').NumericNodeConstraint} constraint
    * @returns {fc.Arbitrary<number>}
    */
   NumericNodeConstraint(constraint) {
     const min = constraint.mininclusive ?? undefined;
     const max = constraint.maxinclusive ?? undefined;
-    // TODO2 address
-    // return fc.oneof(fc.integer({ min, max }), fc.float({ min, max }));
     if (min === max) {
       // fast-check otherwise produces NaN
       return fc.constant(min);
     }
+    /* NOTE: This does not presently only produce integers. For the time being,
+    this is fine as the opportunity/offerConstraints don't check that e.g.
+    remainingUses is an integer.
+    In that case, we may want to add a new property to the NumericNodeConstraint,
+    or add a new kind of shape constraint for ints. */
     return fc.double({ min, max, noNaN: true, noDefaultInfinity: true });
   },
   /**
-   * @param {import('../types/TestDataShape').BooleanNodeConstraint} constraint
+   * @param {import('../src/types/TestDataShape').BooleanNodeConstraint} constraint
    * @returns {fc.Arbitrary<boolean>}
    */
   'test:BooleanNodeConstraint'(constraint) {
     return fc.constant(constraint.value);
   },
   /**
-   * @param {import('../types/TestDataShape').OptionNodeConstraint<any, any>} constraint 
+   * @param {import('../src/types/TestDataShape').OptionNodeConstraint<any, any>} constraint 
    */
   'test:OptionNodeConstraint'(constraint) {
     if (constraint.allowlist) {
@@ -145,12 +149,11 @@ const generatorsByType = {
     return fc.constantFrom(...optionsPool);
   },
   /**
-   * @param {import('../types/TestDataShape').ArrayConstraint<any, any>} constraint 
+   * @param {import('../src/types/TestDataShape').ArrayConstraint<any, any>} constraint 
    */
   'test:ArrayConstraint'(constraint) {
     if (constraint.includesAll) {
       return fc.constant(constraint.includesAll);
-      // return fc.array(fc.constantFrom(...constraint.includesAll), { minLength: constraint.minLength ?? 0 });
     }
     if (constraint.datatype === 'oa:Terms') {
       // special handling because oa:Terms is not an enum constraint
@@ -173,11 +176,11 @@ const generatorsByType = {
         optionsPool.delete(excluded);
       }
     }
-    // TODO this might need to have no duplicates
+    // Note: this currently produces duplicates, but this is not yet a problem
     return fc.array(fc.constantFrom(...optionsPool), { minLength: constraint.minLength ?? 0 });
   },
   /**
-   * @param {import('../testDataShape').NullNodeConstraint} constraint
+   * @param {import('../src/testDataShape').NullNodeConstraint} constraint
    */
   'test:NullNodeConstraint'(constraint) {
     return fc.oneof(fc.constant(null), fc.constant(undefined));
@@ -260,7 +263,6 @@ function generateForShapeDataExpressions(shapeExpressions, {
     const arbitrary = generator(/** @type {any} */(constraint));
     const [generated] = fc.sample(/** @type {any} */(arbitrary), 1);
     _.set(result, fieldPath, generated);
-    // result[fieldName] = generated;
   }
   /* This is a special case in which the generated value is supposed to be a derived
   value i.e. startDate - validFromBeforeStartDate */
@@ -338,10 +340,6 @@ function getDataTypeOptions(datatype) {
         'https://openactive.io/OpenBookingNegotiation',
         'https://openactive.io/OpenBookingMessageExchange',
       ];
-    // case 'oa:Terms':
-    //   return [
-
-    //   ];
     default:
       throw new Error(`Unexpected datatype ${datatype}`);
   }

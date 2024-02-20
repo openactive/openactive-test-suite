@@ -10,7 +10,7 @@
     "gen-types": "npm run gen-types-clean && tsc && npm run gen-types-copy-d-ts-files",
     "run-tests": "jest",
     "test": "npm run lint && tsc && npm run run-tests",
-    "lint": "eslint \"src/**/*.js\"",
+    "lint": "eslint \"src/**/*.js\" \"test/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },
   "author": "OpenActive Community <hello@openactive.io>",
