@@ -45,7 +45,6 @@
     "@openactive/dataset-utils": "^1.0.1",
     "config": "^3.3.6",
     "inquirer": "^8.0.0",
-    "marked": "^12.0.0",
     "node-cleanup": "^2.1.2"
   },
   "engines": {
