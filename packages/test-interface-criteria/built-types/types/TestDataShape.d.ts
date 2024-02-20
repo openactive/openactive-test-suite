@@ -154,7 +154,7 @@ export type TestDataShape = {
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
     /**
      * Refers to the date calculated as `startDate - validThroughBeforeStartDate`.
-     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validFromBeforeStartDate`
+     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validThroughBeforeStartDate`
      * can be null.
      */
     'oa:validThroughBeforeStartDate'?: DateRangeNodeConstraint;
@@ -162,7 +162,7 @@ export type TestDataShape = {
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
     /**
      * Refers to the date calculated as `startDate - latestCancellationBeforeStartDate`.
-     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validFromBeforeStartDate`
+     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `latestCancellationBeforeStartDate`
      * can be null.
      */
     'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint | DateRangeNodeConstraint;
