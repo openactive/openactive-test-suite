@@ -153,7 +153,7 @@ class CertificationWriter {
   async generateZip(loggers, generator) {
     const evidenceFilePaths = [].concat(
       loggers.map(logger => ({ path: logger.metaPath, zipPath: `json/${logger.metaLocalPath}` })),
-      loggers.map(logger => ({ path: logger.hmtlPath, zipPath: `html/${logger.htmlLocalPath}` })),
+      loggers.map(logger => ({ path: logger.htmlPath, zipPath: `html/${logger.htmlLocalPath}` })),
       { path: generator.summaryMetaPath, zipPath: 'json/index.json' },
       { path: generator.reportHtmlPath, zipPath: 'html/summary.html' },
     );
