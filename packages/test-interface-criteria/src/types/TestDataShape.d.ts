@@ -152,6 +152,12 @@ export type TestDataShape = {
      * can be null.
      */
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
+    /**
+     * Refers to the date calculated as `startDate - validThroughBeforeStartDate`.
+     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validFromBeforeStartDate`
+     * can be null.
+     */
+    'oa:validThroughBeforeStartDate'?: DateRangeNodeConstraint;
     'oa:openBookingInAdvance'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
     /**
