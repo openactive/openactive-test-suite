@@ -3,6 +3,7 @@ const { isObject, cloneDeep } = require('lodash');
 const { DateTime, Duration } = require('luxon');
 
 /**
+ * @typedef {import('luxon').DateTime} DateTimeType
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
  * @typedef {import('../types/Options').Options} Options
@@ -277,7 +278,7 @@ function dateMinusDuration(datetimeIso, durationIso) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window lower limit defined.
+ * @returns {DateTimeType | null} null if there is no booking window lower limit defined.
  */
 function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validFromBeforeStartDate) {
@@ -292,7 +293,7 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ * @returns {DateTimeType | null} null if there is no booking window upper limit defined.
  */
 function getDateBeforeWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validThroughBeforeStartDate) {
@@ -340,7 +341,7 @@ function mustAllowProposalAmendment(offer) {
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no cancellation window defined.
+ * @returns {DateTimeType | null} null if there is no cancellation window defined.
  */
 function getDateBeforeWhichCancellationsCanBeMade(offer, opportunity) {
   if (!offer || !offer.latestCancellationBeforeStartDate) {

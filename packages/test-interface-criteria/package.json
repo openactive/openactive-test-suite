@@ -24,6 +24,7 @@
     "node": "18.17.1"
   },
   "devDependencies": {
+    "@types/luxon": "^3.4.2",
     "copyfiles": "^2.3.0",
     "eslint": "7.24.0",
     "eslint-config-airbnb": "^18.2.1",
