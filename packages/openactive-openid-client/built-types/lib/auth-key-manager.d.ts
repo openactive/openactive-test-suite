@@ -54,13 +54,14 @@ declare class OpenActiveTestAuthKeyManager {
      * This also acts as a validation step, ensuring that the config and OIDC implementation
      * are correct.
      *
-     * - Validate live OpenID Provider configuration
+     * - Validate live OpenID Provider configuration.
      * - A client will be registered for each booking partner that uses Dynamic
      *   Client Registration.
      * - For each booking partner, use client credentials to get access tokens
      *   (and therefore, validate the client credentials flow).
-     * - For each seller that uses Authorization Code Flow, complete thi flow
-     *   using the endpoints provided by openactive-openid-browser-automation.
+     * - For each seller that uses Authorization Code Flow, complete this flow
+     *   using the endpoints provided by openactive-openid-browser-automation
+     *   (and therefore, validate the authorization code flow).
      *
      * @param {string} authenticationAuthority The location of the OpenID Provider
      *   e.g. `https://auth.bookingsystem.com`. A `/.well-known/openid-configuration`

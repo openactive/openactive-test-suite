@@ -1,4 +1,3 @@
-export type DateTime = any;
 export type Opportunity = import('../types/Opportunity').Opportunity;
 export type Offer = import('../types/Offer').Offer;
 export type Options = import('../types/Options').Options;
@@ -50,9 +49,17 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTime | null} null if there is no booking window lower limit defined.
  */
 export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
+/**
+ * Get the date that the startDate - validThroughBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ */
+export function getDateBeforeWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
@@ -72,7 +79,7 @@ export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Oppor
 export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
-export function mustHaveBeInsideValidFromBeforeStartDateWindow(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustBeInsideBookingWindowIfOneExists(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 /**
 * For a session, get `organizer`. For a facility, get `provider`.
 * These can be used interchangeably as `organizer` is either a Person or an Organization

@@ -1,4 +1,4 @@
-﻿# openactive-openid-client
+# openactive-openid-client
 
 This package forms part of the suite of [OpenID Connect](https://openid.net/developers/how-connect-works/) helper libraries and tools used within the Test Suite. The other packages are:
 

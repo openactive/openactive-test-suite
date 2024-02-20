@@ -57,6 +57,10 @@ class BookRecipe {
   getAssertOpportunityCapacityAfterBook() { return this._assertOpportunityCapacityAfterBook; }
 }
 
+/**
+ * @typedef {InstanceType<typeof BookRecipe>} BookRecipeType
+ */
+
 module.exports = {
   BookRecipe,
 };

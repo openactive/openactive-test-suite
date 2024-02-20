@@ -68,7 +68,8 @@ function doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId) {
 }
 
 /**
- * @type {ExpressHandler}
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
  */
 async function createOrderListenerApi(req, res) {
   if (DO_NOT_HARVEST_ORDERS_FEED) {

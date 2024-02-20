@@ -5,9 +5,10 @@
   "types": "built-types/index.d.ts",
   "description": "OpenActive Test Interface Criteria",
   "scripts": {
-    "check-types": "tsc --project tsconfig.check.json",
-    "gen-types": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/ && tsc --project tsconfig.gen.json",
-    "test": "npm run lint && npm run check-types",
+    "gen-types-clean": "rimraf \"built-types/*\"",
+    "gen-types-copy-d-ts-files": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/",
+    "gen-types": "npm run gen-types-clean && tsc && npm run gen-types-copy-d-ts-files",
+    "test": "npm run lint && tsc",
     "lint": "eslint \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },
@@ -27,6 +28,7 @@
     "eslint": "7.24.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.22.1",
+    "rimraf": "^5.0.5",
     "typescript": "^5.1.6"
   }
 }

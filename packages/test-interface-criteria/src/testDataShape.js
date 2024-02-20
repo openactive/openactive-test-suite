@@ -7,6 +7,7 @@
  * @typedef {import('./types/TestDataShape').NumericNodeConstraint} NumericNodeConstraint
  * @typedef {import('./types/TestDataShape').BooleanNodeConstraint} BooleanNodeConstraint
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
+ * @typedef {import('./types/TestDataShape').TestDataShapeOpportunityConstraints} TestDataShapeOpportunityConstraints
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
  * @typedef {import('./types/Options').Options} Options
@@ -186,9 +187,18 @@ function termsOfServiceArrayConstraint(minLength) {
 
 /** Constraints that match the criteriaUtils functions */
 const shapeConstraintRecipes = {
-  remainingCapacityMustBeAtLeast: (mininclusive) => ({
-    'placeholder:remainingCapacity': quantitativeValue({
-      mininclusive,
+  /**
+   * @param {number} mininclusive
+   * @param {number} mininclusiveIfuSlot Minimum value for IFU slots, which
+   *   may have different requirements.
+   *   This defaults to 1 because IFU slots can, in the spec, only have a capacity
+   *   of 0 or 1.
+   * @returns {Pick<Required<TestDataShapeOpportunityConstraints>, 'placeholder:remainingCapacity' | 'placeholder:remainingCapacityIfuSlot'>}
+   */
+  remainingCapacityMustBeAtLeast: (mininclusive, mininclusiveIfuSlot = 1) => ({
+    'placeholder:remainingCapacity': quantitativeValue({ mininclusive }),
+    'placeholder:remainingCapacityIfuSlot': quantitativeValue({
+      mininclusive: mininclusiveIfuSlot,
     }),
   }),
   /**
