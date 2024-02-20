@@ -1,6 +1,4 @@
 const {
-  dateRange,
-  eventStatusOptionNodeConstraint,
   shapeConstraintRecipes,
 } = require('../../testDataShape');
 

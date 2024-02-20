@@ -1,7 +1,7 @@
+const util = require('util');
 const fc = require('fast-check');
 const _ = require('lodash');
 const { DateTime } = require('luxon');
-const util = require('util');
 const { getTestDataShapeExpressions, testMatch, criteriaMap } = require('..');
 
 /**
@@ -14,10 +14,10 @@ const NUM_SAMPLES = 10;
 describe('Data randomly generated via the testDataShape satisfies the opportunityConstraints and offerConstraints', () => {
   const allCriteriaNames = [...criteriaMap.keys()];
   const allOpportunityTypes = /** @type {const} */([
-    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot'
+    'ScheduledSession', 'FacilityUseSlot', 'IndividualFacilityUseSlot',
   ]);
   const allBookingFlows = /** @type {const} */([
-    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow'
+    'OpenBookingApprovalFlow', 'OpenBookingSimpleFlow',
   ]);
   for (const opportunityType of allOpportunityTypes) {
     for (const bookingFlow of allBookingFlows) {
@@ -38,10 +38,10 @@ describe('Data randomly generated via the testDataShape satisfies the opportunit
             opportunityType,
             {
               harvestStartTime,
-            }
+            },
           );
           // Run test 10 times each as it involves randomly generated data
-          for (let i = 0; i < NUM_SAMPLES; i++) {
+          for (let i = 0; i < NUM_SAMPLES; i += 1) {
             const generatedOpportunityPart = generateForShapeDataExpressions(
               shapeExpressions['test:testOpportunityDataShapeExpression'],
               { opportunityType },
@@ -61,6 +61,7 @@ describe('Data randomly generated via the testDataShape satisfies the opportunit
               harvestStartTime,
             });
             if (!result.matchesCriteria) {
+              // eslint-disable-next-line no-console
               console.error('ERROR: generated opportunity does not match criteria', util.inspect({
                 shapeExpressions,
                 generatedOpportunity,
@@ -83,7 +84,7 @@ const generatorsByType = {
    * @param {import('../src/types/TestDataShape').DateRangeNodeConstraint} constraint
    * @returns {fc.Arbitrary<string | null | undefined>}
    */
-  'test:DateRangeNodeConstraint'(constraint) {
+  'test:DateRangeNodeConstraint': (constraint) => {
     const minDate = constraint.minDate
       ? DateTime.fromISO(constraint.minDate).toJSDate()
       // Reasonable min date so that we don't need to worry about like 10,000 BCE, etc
@@ -95,7 +96,7 @@ const generatorsByType = {
     const dateArbitrary = fc.date({
       max: maxDate,
       min: minDate,
-    }).map(date => date.toISOString());
+    }).map((date) => date.toISOString());
     if (constraint.allowNull) {
       return fc.oneof(dateArbitrary, fc.constantFrom(null, undefined));
     }
@@ -117,19 +118,19 @@ const generatorsByType = {
     remainingUses is an integer.
     In that case, we may want to add a new property to the NumericNodeConstraint,
     or add a new kind of shape constraint for ints. */
-    return fc.double({ min, max, noNaN: true, noDefaultInfinity: true });
+    return fc.double({
+      min, max, noNaN: true, noDefaultInfinity: true,
+    });
   },
   /**
    * @param {import('../src/types/TestDataShape').BooleanNodeConstraint} constraint
    * @returns {fc.Arbitrary<boolean>}
    */
-  'test:BooleanNodeConstraint'(constraint) {
-    return fc.constant(constraint.value);
-  },
+  'test:BooleanNodeConstraint': (constraint) => fc.constant(constraint.value),
   /**
-   * @param {import('../src/types/TestDataShape').OptionNodeConstraint<any, any>} constraint 
+   * @param {import('../src/types/TestDataShape').OptionNodeConstraint<any, any>} constraint
    */
-  'test:OptionNodeConstraint'(constraint) {
+  'test:OptionNodeConstraint': (constraint) => {
     if (constraint.allowlist) {
       if (constraint.allowNull) {
         return fc.constantFrom(...constraint.allowlist, null, undefined);
@@ -149,9 +150,9 @@ const generatorsByType = {
     return fc.constantFrom(...optionsPool);
   },
   /**
-   * @param {import('../src/types/TestDataShape').ArrayConstraint<any, any>} constraint 
+   * @param {import('../src/types/TestDataShape').ArrayConstraint<any, any>} constraint
    */
-  'test:ArrayConstraint'(constraint) {
+  'test:ArrayConstraint': (constraint) => {
     if (constraint.includesAll) {
       return fc.constant(constraint.includesAll);
     }
@@ -163,12 +164,12 @@ const generatorsByType = {
           name: fc.string({ minLength: 1 }),
           url: fc.webUrl(),
           requiresExplicitConsent: fc.boolean(),
-          dateModified: fc.date().map(date => date.toISOString()),
+          dateModified: fc.date().map((date) => date.toISOString()),
         }, {
           requiredKeys: ['@type', 'name', 'url', 'requiresExplicitConsent'],
         }),
-        { minLength: constraint.minLength ?? 0 }
-      )
+        { minLength: constraint.minLength ?? 0 },
+      );
     }
     const optionsPool = new Set(getDataTypeOptions(constraint.datatype));
     if (constraint.excludesAll) {
@@ -182,9 +183,8 @@ const generatorsByType = {
   /**
    * @param {import('../src/testDataShape').NullNodeConstraint} constraint
    */
-  'test:NullNodeConstraint'(constraint) {
-    return fc.oneof(fc.constant(null), fc.constant(undefined));
-  }
+  // eslint-disable-next-line no-unused-vars
+  'test:NullNodeConstraint': (constraint) => fc.oneof(fc.constant(null), fc.constant(undefined)),
 };
 
 const fieldParentPathSpecHelpers = {
@@ -208,7 +208,7 @@ const fieldParentPathSpecs = {
   taxMode: fieldParentPathSpecHelpers.organizerOrProvider,
   isOpenBookingAllowed: fieldParentPathSpecHelpers.organizerOrProvider,
   termsOfService: fieldParentPathSpecHelpers.organizerOrProvider,
-}
+};
 
 /**
  * @param {ReturnType<typeof getTestDataShapeExpressions>['test:testOpportunityDataShapeExpression']} shapeExpressions
@@ -238,19 +238,19 @@ function generateForShapeDataExpressions(shapeExpressions, {
         if (fieldParentPathSpec.byType) {
           if (!opportunityType) {
             throw new Error(
-              `opportunityType must be specified when generating data for field: ${tripleConstraint.predicate}`
+              `opportunityType must be specified when generating data for field: ${tripleConstraint.predicate}`,
             );
           }
           const byType = fieldParentPathSpec.byType[opportunityType];
           if (!byType) {
             throw new Error(
-              `fieldParentPathSpecs[${fieldName}].byType[${opportunityType}] not found`
+              `fieldParentPathSpecs[${fieldName}].byType[${opportunityType}] not found`,
             );
           }
           return [...byType, fieldName];
         }
         throw new Error(
-          `No known parent path strategy found for fieldParentPathSpecs[${fieldName}]`
+          `No known parent path strategy found for fieldParentPathSpecs[${fieldName}]`,
         );
       }
       return [fieldName];
@@ -269,21 +269,21 @@ function generateForShapeDataExpressions(shapeExpressions, {
   if (result.validFromBeforeStartDate) {
     result.validFromBeforeStartDate = deriveDurationForDateBeforeStart(
       result.validFromBeforeStartDate,
-      startDate
+      startDate,
     );
   }
   // Same situation as for validFromBeforeStartDate
   if (result.latestCancellationBeforeStartDate) {
     result.latestCancellationBeforeStartDate = deriveDurationForDateBeforeStart(
       result.latestCancellationBeforeStartDate,
-      startDate
+      startDate,
     );
   }
   // Same situation as for validFromBeforeStartDate
   if (result.validThroughBeforeStartDate) {
     result.validThroughBeforeStartDate = deriveDurationForDateBeforeStart(
       result.validThroughBeforeStartDate,
-      startDate
+      startDate,
     );
   }
   return result;
@@ -313,7 +313,7 @@ function getDataTypeOptions(datatype) {
       return [
         'https://schema.org/EventCancelled',
         'https://schema.org/EventPostponed',
-        'https://schema.org/EventScheduled'
+        'https://schema.org/EventScheduled',
       ];
     case 'schema:EventAttendanceModeEnumeration':
       return [
@@ -331,7 +331,7 @@ function getDataTypeOptions(datatype) {
       return [
         'https://openactive.io/TaxGross',
         'https://openactive.io/TaxNet',
-      ]
+      ];
     case 'oa:OpenBookingFlowRequirement':
       return [
         'https://openactive.io/OpenBookingIntakeForm',

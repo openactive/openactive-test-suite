@@ -47,7 +47,7 @@ function mergeTestDataNodeConstraintField(
   fieldName,
   baseConstraint,
   extensionConstraint,
-  getValueIfBothExist
+  getValueIfBothExist,
 ) {
   if (baseConstraint[fieldName] == null && extensionConstraint[fieldName] == null) {
     return {};
