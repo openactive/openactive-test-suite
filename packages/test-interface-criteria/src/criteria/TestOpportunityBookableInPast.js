@@ -60,9 +60,9 @@ const TestOpportunityBookableInPast = createCriteria({
     opportunityConstraints: {
       ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
       ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
-      // TODO endDateMustBeInThePast
+      // endDateMustBeInThePast
       'schema:endDate': dateRange({
-        maxDate: options.harvestStartTime.toISO(),
+        maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
       }),
       ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
     },
