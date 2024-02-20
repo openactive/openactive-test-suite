@@ -14,7 +14,7 @@ Mode: **{{ useRandomOpportunitiesMode }}**
   {{#each featureGroups }}
   * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
     {{#each loggers}}
-    - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ markdownLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
+    - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ htmlLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
     {{/each}}
   {{/each}}
 

@@ -1,4 +1,19 @@
+<head>
+  <style>
+h2 {
+    cursor: pointer;
+}
+h2:hover {
+    color: #0056b3; /* Example color change on hover */
+}
+</style>
+</head>
+
 [< Return to Summary](summary.md) | File Generated: {{{ timestamp }}}
+
+<button id="toggleButton">Toggle All Sections</button>
+<button id="collapseAllButFirstError">Collapse All But First Error</button>
+
 
 # {{{ title }}}
 
@@ -141,3 +156,74 @@ Test could not be completed as it timed out while a request was still pending:
 
     {{/if~}}
 {{/logsFor}}
+
+<script>
+  function toggleH2Section(nextElement, isCurrentlyCollapsed) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+              // Toggle visibility
+              nextElement.style.display = isCurrentlyCollapsed ? '' : 'none';
+              nextElement = nextElement.nextElementSibling;
+          }
+  }
+
+  var isCurrentlyCollapsed = true;
+  function toggleAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function(h2) {
+        var nextElement = h2.nextElementSibling;
+        toggleH2Section(nextElement, isCurrentlyCollapsed);
+    });
+    isCurrentlyCollapsed = !isCurrentlyCollapsed;
+  }
+
+  function collapseExceptFirstSpecialH2Section() {
+    const h2Elements = document.querySelectorAll('h2');
+    let specialSectionFound = false;
+
+    h2Elements.forEach((h2) => {
+        let nextNode = h2.nextElementSibling;
+        let sectionContainsSpecialChar = false;
+
+        // Iterate through sibling elements until the next H2 or no more siblings until the error section is found
+        while (nextNode && nextNode.tagName !== 'H2') {
+            if (!specialSectionFound && nextNode.textContent.includes('❌')) {
+                sectionContainsSpecialChar = true;
+                specialSectionFound = true; 
+                break;
+            }
+            nextNode = nextNode.nextElementSibling;
+        }
+
+        // If this section is not the one with the error, collapse it
+        if (!sectionContainsSpecialChar) {
+            nextNode = h2.nextElementSibling; 
+            while (nextNode && nextNode.tagName !== 'H2') {
+                nextNode.style.display = 'none';
+                nextNode = nextNode.nextElementSibling;
+            }
+        }
+    });
+}
+
+
+  // Show/Hide each header section
+  document.querySelectorAll('h2').forEach(function(h2) {
+      h2.addEventListener('click', function() {
+          let nextElement = this.nextElementSibling;
+          toggleH2Section(nextElement)
+      });
+  });
+
+  // Show/Hide all header sections
+  document.getElementById('toggleButton').addEventListener('click', function() {
+      toggleAllH2Sections();
+  });
+
+  // Collapse all but first error section button
+    document.getElementById('collapseAllButFirstError').addEventListener('click', function() {
+      collapseExceptFirstSpecialH2Section();
+  });
+
+  // Hide all header sections by default
+  collapseExceptFirstSpecialH2Section();
+  </script>

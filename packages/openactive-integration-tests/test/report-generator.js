@@ -5,6 +5,7 @@ const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 const { getConfigVarOrThrow } = require('./helpers/config-utils');
+const showdown = require('showdown');
 
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
@@ -140,7 +141,7 @@ class BaseReportGenerator {
     return {};
   }
 
-  get reportMarkdownPath () {
+  get reportHtmlPath () {
     throw "Not Implemented";
   }
 
@@ -160,7 +161,7 @@ class BaseReportGenerator {
     }
   }
 
-  async writeMarkdown () {
+  async writeHtml () {
     let template = await this.getTemplate(`${this.templateName}.md`);
 
     let data = template(this.templateData, {
@@ -169,12 +170,19 @@ class BaseReportGenerator {
       helpers: this.helpers,
     });
 
-    await fs.writeFile(this.reportMarkdownPath, data);
+    const converter = new showdown.Converter();
+    converter.setOption('completeHTMLDocument', true);
+    converter.setOption('moreStyling', true)
+    converter.setOption('openLinksInNewWindow', true)
+    const html = converter.makeHtml(data);
+
+
+    await fs.writeFile(this.reportHtmlPath, html);
   }
 
   async report(silentOnConsole) {
     if (!silentOnConsole) await this.outputConsole();
-    await this.writeMarkdown();
+    await this.writeHtml();
   }
 
   async getTemplate (name) {
@@ -199,8 +207,8 @@ class ReportGenerator extends BaseReportGenerator {
     return this.logger;
   }
 
-  get reportMarkdownPath () {
-    return this.logger.markdownPath;
+  get reportHtmlPath () {
+    return this.logger.htmlPath;
   }
 }
 
@@ -274,8 +282,8 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return `${OUTPUT_PATH}json/summary.json`;
   }
 
-  get reportMarkdownPath () {
-    return `${OUTPUT_PATH}summary.md`;
+  get reportHtmlPath () {
+    return `${OUTPUT_PATH}summary.html`;
   }
 
   get opportunityTypeGroups () {

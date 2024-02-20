@@ -244,12 +244,12 @@ class BaseLogger {
     return `${OUTPUT_PATH}json/${this.metaLocalPath}`;
   }
 
-  get markdownLocalPath () {
-    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.md`;
+  get htmlLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.html`;
   }
 
-  get markdownPath () {
-    return `${OUTPUT_PATH}${this.markdownLocalPath}`;
+  get htmlPath () {
+    return `${OUTPUT_PATH}${this.htmlLocalPath}`;
   }
 
   get validationStatusCounts () {
