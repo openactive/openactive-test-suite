@@ -116,8 +116,8 @@ const generatorsByType = {
     /* NOTE: This does not presently only produce integers. For the time being,
     this is fine as the opportunity/offerConstraints don't check that e.g.
     remainingUses is an integer.
-    In that case, we may want to add a new property to the NumericNodeConstraint,
-    or add a new kind of shape constraint for ints. */
+    If that were to happen, we may want to add a new property to the
+    NumericNodeConstraint, or add a new kind of shape constraint for ints. */
     return fc.double({
       min, max, noNaN: true, noDefaultInfinity: true,
     });
