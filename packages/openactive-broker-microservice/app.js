@@ -18,9 +18,8 @@ const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
 const { isNil, omit, partition, partialRight } = require('lodash');
 const { extractJSONLDfromHTML } = require('@openactive/dataset-utils');
-const {harvestRPDE, createFeedContext, progressFromContext} = require('@openactive/harvesting-utils');
+const { harvestRPDE, createFeedContext, progressFromContext } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
-const a = require('@openactive/harvesting-utils');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -1254,7 +1253,7 @@ async function processOpportunityItem(item) {
 /**
  * @param {OrderFeedType} orderFeedType
  * @param {string} bookingPartnerIdentifier
- * @returns {import('./src/harvestRPDE').RpdePageProcessor}
+ * @returns {import('@openactive/harvesting-utils/src/harvest-rpde').RpdePageProcessor}
  */
 function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
   /* Note that the Orders RpdePageProcessor does NOT use validateItemsFn i.e. Orders feed items are not validated.
@@ -1611,7 +1610,7 @@ async function sendItemsToValidatorWorkerPool({
 }
 
 /**
- * @param {import('./src/harvestRPDE').FeedContext} context
+ * @param {import('@openactive/harvesting-utils/src/harvest-rpde').FeedContext} context
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
