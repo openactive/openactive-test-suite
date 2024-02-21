@@ -34,7 +34,7 @@ declare global {
       };
       SELLER_CONFIG: {
         primary: SellerConfig;
-        secondary: SellerConfig
+        secondary?: SellerConfig
       };
       AUTHENTICATION_FAILURE: boolean;
       DYNAMIC_REGISTRATION_FAILURE: boolean;

@@ -19,6 +19,22 @@ npm start -- --runInBand test/features/core/single-seller/
 
 
 
+## 'Implemented' tests
+
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "single-seller": true,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [only-primary-seller-configured](./implemented/only-primary-seller-configured-test.js) | Only the primary seller should be configured | If the single-seller feature is implemented, multiple-sellers is not enabled, and so a secondary seller should not be configured. |  |
+
 
 
 ## 'Not Implemented' tests
@@ -36,4 +52,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [multiple-sellers-implemented](./not-implemented/multiple-sellers-implemented-test.js) | Single Seller feature must be implemented | Either one, and only one, of the Multiple Sellers feature and Single Seller feature must be implemented |  |
+| [multiple-sellers-implemented](./not-implemented/multiple-sellers-implemented-test.js) | Multiple Sellers feature must be implemented if Single Seller is not implemented | Either one, and only one, of the Multiple Sellers feature and Single Seller feature must be implemented |  |

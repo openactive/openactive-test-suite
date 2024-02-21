@@ -122,7 +122,7 @@
       "notImplementedTestFiles": 0
     },
     "single-seller": {
-      "implementedTestFiles": 0,
+      "implementedTestFiles": 1,
       "notImplementedTestFiles": 1
     },
     "test-interface": {

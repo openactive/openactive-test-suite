@@ -319,12 +319,6 @@ class FeatureHelper {
       describe('Feature', () => {
         if (otherFeaturesWhichImplyThisOne.length > 0) {
           it(`must be implemented if other features: ${otherFeaturesWhichImplyThisOneSummary} are`, () => {
-            console.log('heyhey', {
-              testIdentifier: configuration.testIdentifier,
-              otherFeaturesWhichImplyThisOneSummary,
-              IMPLEMENTED_FEATURES,
-              r: Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
-            });
             expect(IMPLEMENTED_FEATURES).to.not.include(
               Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
             );

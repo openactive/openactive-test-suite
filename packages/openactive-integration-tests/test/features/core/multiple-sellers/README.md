@@ -56,4 +56,4 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type |
 |------------|------|-------------|---------------|
-| [single-seller-implemented](./not-implemented/single-seller-implemented-test.js) | Single Seller feature must be implemented | Either one, and only one, of the Multiple Sellers feature and the Single Seller feature must be implemented |  |
+| [single-seller-implemented](./not-implemented/single-seller-implemented-test.js) | Single Seller feature must be implemented if Multiple Sellers is not implemented | Either one, and only one, of the Multiple Sellers feature and the Single Seller feature must be implemented |  |
