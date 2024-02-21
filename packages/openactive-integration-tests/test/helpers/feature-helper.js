@@ -274,7 +274,7 @@ class FeatureHelper {
 
   /**
    * Use this for a `not-implemented` test for a feature that should be implemented if another given
-   * set of features are.
+   * set of features are or are not.
    *
    * @param {NodeModule} documentationModule
    * @param {Omit<DescribeFeatureConfiguration, 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
@@ -288,7 +288,7 @@ class FeatureHelper {
    *     feature names. If any of these features are implemented, then the
    *     feature in focus must NOT also be implemented
    */
-  static describeFeatureShouldBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
+  static describeFeatureShouldBeImplementedIfOtherFeaturesAreOrAreNot(documentationModule, configuration) {
     const otherFeaturesWhichImplyThisOne = (configuration.otherFeaturesWhichImplyThisOne ?? []);
     const otherFeaturesWhichAreMutuallyExclusiveWithThisOne = (configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne ?? []);
     if (

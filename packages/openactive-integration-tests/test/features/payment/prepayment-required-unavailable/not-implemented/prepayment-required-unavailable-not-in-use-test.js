@@ -1,6 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 
-FeatureHelper.describeFeatureShouldBeImplementedIfOtherFeaturesAre(module, {
+FeatureHelper.describeFeatureShouldBeImplementedIfOtherFeaturesAreOrAreNot(module, {
   testCategory: 'payment',
   testFeature: 'prepayment-required-unavailable',
   testFeatureImplemented: false,
