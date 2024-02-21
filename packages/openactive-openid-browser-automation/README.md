@@ -73,9 +73,9 @@ These selectors would work for a login page whose HTML looks like:
 
 ## How to use it
 
-1. Call `setupBrowserAutomationRoutes(expressApp, buttonSelectors)` to set up the `POST /browser-automation-for-auth` route as well as some other internal routes which enable the full Auth Code Flow.
+1. Call [`setupBrowserAutomationRoutes(expressApp, buttonSelectors)`](#setupbrowserautomationroutesexpressapp-buttonselectors) to set up the `POST /browser-automation-for-auth` route as well as some other internal routes which enable the full Auth Code Flow.
     - This only needs to be called once
-2. Make a `POST` request to `/browser-automation-for-auth` with the necessary data to perform an Auth Code Flow.
+2. Make a `POST` request to [`/browser-automation-for-auth`](#post-browser-automation-for-auth) with the necessary data to perform an Auth Code Flow.
     - This can be called multiple times
 
 ## Redirect URI
