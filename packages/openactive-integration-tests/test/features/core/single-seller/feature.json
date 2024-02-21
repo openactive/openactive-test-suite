@@ -3,7 +3,7 @@
   "identifier": "single-seller",
   "name": "Single Seller",
   "description": "The booking system only supports providing services to one seller.",
-  "explainer": "This booking system must not have any data from any other sellers. (TODO2)",
+  "explainer": "",
   "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#booking-pre-conditions",
   "required": false,
   "coverageStatus": "complete"

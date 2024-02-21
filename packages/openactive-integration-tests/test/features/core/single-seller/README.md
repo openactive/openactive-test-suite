@@ -3,7 +3,6 @@
 
 The booking system only supports providing services to one seller.
 
-This booking system must not have any data from any other sellers. (TODO2)
 
 https://openactive.io/open-booking-api/EditorsDraft/#booking-pre-conditions
 
