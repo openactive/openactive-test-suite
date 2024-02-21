@@ -7,7 +7,76 @@ This package forms part of the suite of [OpenID Connect](https://openid.net/deve
 
 OpenID Connect is one of the authentication and authorization strategies facilitated by the Open Booking API (spec: [OpenID Connect Booking Partner Authentication for Multiple Seller Systems](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)).
 
+## What it does
+
 This Node.js library automates the process of going to an authorization page on a booking system's OpenID Provider, filling in login details, navigating through the flow, and capturing screenshots along the way to track and report the process. It is used to exercise the booking system' OpenID Provider implementation according to the [spec](https://openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems).
+
+### `setupBrowserAutomationRoutes(expressApp, buttonSelectors)`
+
+Sets up Browser Auth Automation.
+
+It creates the following route on the provided express app:
+
+#### `POST /browser-automation-for-auth`
+
+Perform a complete [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/) against the booking system's OpenID Provider using a headless browser.
+
+It opens the OpenID Provider's login page and logs in using the provided username and password, then captures screenshots at various stages of the process, which can be used to debug any issues.
+
+##### Request body (JSON)
+
+Example:
+
+```json
+{
+  "authorizationUrl": "https://auth.reference-implementation.openactive.io/connect/authorize?client_id=abc&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcb&response_type=code&scope=openid%20openactive-openbooking%20offline_access%20openactive-identity&...",
+  "headless": true,
+  "username": "acme-user-1",
+  "password": "acme-password-1"
+}
+```
+
+Fields:
+
+- `authorizationUrl` (required): The URL to the OpenID Provider's authorization (login) page.
+
+  This MUST include the necessary query params including the redirect_uri set to the `/cb` endpoint
+- `headless` (optional): Whether to run the browser in headless mode. Defaults to `false`.
+- `username` (required): The username to use to log in to the OpenID Provider.
+- `password` (required): The password to use to log in to the OpenID Provider.
+
+#### `buttonSelectors` param
+
+`buttonSelectors` is an object of [CSS Selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) which are used to find, in the booking system's OpenID Provider login page, the following HTML elements:
+
+* Username text input
+* Password text input
+* Submit button
+
+An example of `buttonSelectors` is:
+
+```json
+{
+  "username": "[name='username' i]",
+  "password": "[name='password' i]",
+  "button": ".btn-primary"
+}
+```
+
+These selectors would work for a login page whose HTML looks like:
+
+```html
+<input type="text" name="username" placeholder="Username" />
+<input type="password" name="password" placeholder="Password" />
+<input type="submit" class="btn-primary" value="Submit" />
+```
+
+## How to use it
+
+1. Call `setupBrowserAutomationRoutes(expressApp, buttonSelectors)` to set up the `POST /browser-automation-for-auth` route as well as some other internal routes which enable the full Auth Code Flow.
+    - This only needs to be called once
+2. Make a `POST` request to `/browser-automation-for-auth` with the necessary data to perform an Auth Code Flow.
+    - This can be called multiple times
 
 ## Redirect URI
 
