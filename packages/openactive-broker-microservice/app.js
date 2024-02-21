@@ -1,6 +1,5 @@
 const http = require('http');
 const path = require('path');
-const { performance } = require('perf_hooks');
 const sleep = require('util').promisify(setTimeout);
 const fs = require('fs').promises;
 const express = require('express');
@@ -16,10 +15,12 @@ const { Remarkable } = require('remarkable');
 const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
-const { FeedPageChecker } = require('@openactive/rpde-validator');
 const { expect } = require('chai');
-const { isNil, partial, omit, partition } = require('lodash');
+const { isNil, omit, partition, partialRight } = require('lodash');
 const { extractJSONLDfromHTML } = require('@openactive/dataset-utils');
+const {harvestRPDE, createFeedContext, progressFromContext} = require('@openactive/harvesting-utils');
+const { partial } = require('lodash');
+const a = require('@openactive/harvesting-utils');
 
 // Force TTY based on environment variable to ensure TTY output
 if (process.env.FORCE_TTY === 'true' && process.env.FORCE_TTY_COLUMNS) {
@@ -73,11 +74,12 @@ const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 const { renderSampleOpportunities } = require('./src/sample-opportunities');
+const _ = require('lodash');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
  * @typedef {import('./src/models/core').BookingPartnerIdentifier} BookingPartnerIdentifier
- * @typedef {import('./src/models/core').FeedContext} FeedContext
+ * 
  */
 
 const markdown = new Remarkable();
@@ -155,179 +157,6 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
     'Cache-Control': 'max-age=0',
     ...await getHeadersFn() || {},
   });
-}
-
-/**
- * @param {object} args
- * @param {string} args.baseUrl
- * @param {string} args.feedContextIdentifier
- * @param {() => Promise<Object.<string, string>>} args.headers
- * @param {RpdePageProcessor} args.processPage
- * @param {boolean} args.isOrdersFeed
- * @param {ValidatorWorkerPool} args.validatorWorkerPool
- * @param {import('cli-progress').MultiBar} [args.bar]
- * @param {(feedContextIdentifier: string) => void} [args.processEndOfFeed] Callback which will be called when the feed has
- *   reached its end - when all items have been harvested.
- */
-async function harvestRPDE({
-  baseUrl,
-  feedContextIdentifier,
-  headers,
-  processPage,
-  isOrdersFeed,
-  validatorWorkerPool,
-  bar,
-  processEndOfFeed,
-}) {
-  const onFeedEnd = async () => {
-    if (processEndOfFeed) {
-      processEndOfFeed(feedContextIdentifier);
-    }
-    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier);
-  };
-
-  let isInitialHarvestComplete = false;
-  let numberOfRetries = 0;
-
-  const context = createFeedContext(bar, feedContextIdentifier, baseUrl);
-  const onValidateItemsForThisFeed = partial(onValidateItems, context);
-  validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
-
-  const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
-    feedContextIdentifier,
-    isInitialHarvestComplete: () => isInitialHarvestComplete,
-    addToTotalItemsQueuedForValidation(addition) {
-      context.totalItemsQueuedForValidation += addition;
-    },
-  });
-
-  if (state.feedContextMap.has(feedContextIdentifier)) {
-    throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
-  }
-  state.feedContextMap.set(feedContextIdentifier, context);
-  let url = baseUrl;
-
-  // One instance of FeedPageChecker per feed, as it maintains state relating to the feed
-  const feedChecker = new FeedPageChecker();
-
-  // Harvest forever, until a 404 is encountered
-  for (; ;) {
-    // If harvesting is paused, block using the mutex
-    await state.pauseResume.waitIfPaused();
-
-    try {
-      const options = {
-        headers: await headers(),
-      };
-
-      const timerStart = performance.now();
-      const response = await axios.get(url, options);
-      const timerEnd = performance.now();
-      const responseTime = timerEnd - timerStart;
-
-      const json = response.data;
-
-      // Validate RPDE page using RPDE Validator, noting that for non-2xx state.pendingGetOpportunityResponses that we want to retry axios will have already thrown an error above
-      const rpdeValidationErrors = feedChecker.validateRpdePage({
-        url,
-        json,
-        pageIndex: context.pages,
-        contentType: response.headers['content-type'],
-        cacheControl: response.headers['cache-control'],
-        status: response.status,
-        isInitialHarvestComplete,
-        isOrdersFeed,
-      });
-
-      if (rpdeValidationErrors.length > 0) {
-        if (state.multibar) state.multibar.stop();
-        logError(`\nFATAL ERROR: RPDE Validation Error(s) found on RPDE feed ${feedContextIdentifier} page "${url}":\n${rpdeValidationErrors.map((error) => `- ${error.message.split('\n')[0]}`).join('\n')}\n`);
-        process.exit(1);
-      }
-
-      context.currentPage = url;
-      if (json.next === url && json.items.length === 0) {
-        if (!isInitialHarvestComplete) {
-          if (context._progressbar) {
-            context._progressbar.update(context.validatedItems, {
-              pages: context.pages,
-              responseTime: Math.round(responseTime),
-              ...progressFromContext(context),
-              status: context.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
-            });
-            context._progressbar.setTotal(context.totalItemsQueuedForValidation);
-          }
-          isInitialHarvestComplete = true;
-        }
-        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
-          await onFeedEnd();
-        } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${url}"`);
-        context.sleepMode = true;
-        if (context.timeToHarvestCompletion === undefined) context.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
-        // Slow down sleep polling while waiting for harvesting of other feeds to complete
-        await sleep(WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0 ? 5000 : 500);
-      } else {
-        context.responseTimes.push(responseTime);
-        // Maintain a buffer of the last 5 items
-        if (context.responseTimes.length > 5) context.responseTimes.shift();
-        context.pages += 1;
-        context.items += json.items.length;
-        delete context.sleepMode;
-        if (REQUEST_LOGGING_ENABLED) {
-          const kind = json.items && json.items[0] && json.items[0].kind;
-          log(
-            `RPDE kind: ${kind}, page: ${context.pages}, length: ${json.items.length
-            }, next: '${json.next}'`,
-          );
-        }
-        await processPage(json, feedContextIdentifier, sendItemsToValidatorWorkerPoolForThisFeed);
-        if (!isInitialHarvestComplete && context._progressbar) {
-          context._progressbar.update(context.validatedItems, {
-            pages: context.pages,
-            responseTime: Math.round(responseTime),
-            ...progressFromContext(context),
-          });
-          context._progressbar.setTotal(context.totalItemsQueuedForValidation);
-        }
-        url = json.next;
-      }
-      numberOfRetries = 0;
-    } catch (error) {
-      // Do not wait for the Orders feed if failing (as it might be an auth error)
-      if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && isOrdersFeed) {
-        onFeedEnd();
-      }
-      if (error instanceof FatalError) {
-        // If a fatal error, quit the application immediately
-        if (state.multibar) state.multibar.stop();
-        logError(`\nFATAL ERROR for RPDE feed ${feedContextIdentifier} page "${url}": ${error.message}\n`);
-        process.exit(1);
-      } else if (!error.isAxiosError) {
-        // If a non-axios error, quit the application immediately
-        if (state.multibar) state.multibar.stop();
-        logErrorDuringHarvest(`FATAL ERROR for RPDE feed ${feedContextIdentifier} page "${url}": ${error.message}\n${error.stack}`);
-        process.exit(1);
-      } else if (error.response?.status === 404) {
-        // If 404, simply stop polling feed
-        if (WAIT_FOR_HARVEST || VALIDATE_ONLY) { await onFeedEnd(); }
-        state.multibar.remove(context._progressbar);
-        state.feedContextMap.delete(feedContextIdentifier);
-        if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) === -1) logErrorDuringHarvest(`Not Found error for RPDE feed ${feedContextIdentifier} page "${url}", feed will be ignored.`);
-        return;
-      } else {
-        logErrorDuringHarvest(`Error ${error?.response?.status ?? 'without response'} for RPDE feed ${feedContextIdentifier} page "${url}" (attempt ${numberOfRetries}): ${error.message}.${error.response ? `\n\nResponse: ${typeof error.response.data === 'object' ? JSON.stringify(error.response.data, null, 2) : error.response.data}` : ''}`);
-        // Force retry, after a delay, up to 12 times
-        if (numberOfRetries < 12) {
-          numberOfRetries += 1;
-          await sleep(5000);
-        } else {
-          if (state.multibar) state.multibar.stop();
-          logError(`\nFATAL ERROR: Retry limit exceeded for RPDE feed ${feedContextIdentifier} page "${url}"\n`);
-          process.exit(1);
-        }
-      }
-    }
-  }
 }
 
 /**
@@ -448,8 +277,10 @@ function getOpportunityMergedWithParentById(opportunityId) {
 /**
  * @param {ValidatorWorkerPool} validatorWorkerPool
  * @param {string} feedIdentifier
+ * @param {object} [options]
+ * @param {import('cli-progress').MultiBar} [options.multibar]
  */
-async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier) {
+async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar } = {}) {
   if (state.incompleteFeeds.length !== 0) {
     const index = state.incompleteFeeds.indexOf(feedIdentifier);
     if (index > -1) {
@@ -466,7 +297,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier) {
         await validatorWorkerPool.stopWhenTimedOut();
         await cleanUpValidatorInputs();
 
-        if (state.multibar) state.multibar.stop();
+        if (multibar) multibar.stop();
 
         log('Harvesting is up-to-date');
         const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
@@ -1068,12 +899,13 @@ app.get('/sample-opportunities', function (req, res) {
  * @typedef {(
  *   rpdePage: any,
  *   feedIdentifier: string,
- *   validateItemsFn: (items: any[]) => Promise<void>,
- * ) => Promise<void>} RpdePageProcessor
+ *   isInitialHarvestComplete: () => boolean,
+ *   validateItemsFn: (items: any[], isInitialHarvestComplete: () => boolean) => Promise<void>,
+ * ) => Promise<void>} RpdePageProcessorAndValidator
  */
 
-/** @type {RpdePageProcessor} */
-async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
+/** @type {RpdePageProcessorAndValidator} */
+async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestComplete, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
   // Some feeds have FacilityUse as the top-level items with embedded
   // IndividualFacilityUse data. The Slot feed facilityUse associations link to
@@ -1169,7 +1001,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
   }
 
   // Validate the original feed
-  await validateItemsFn(rpdePage.items);
+  await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
   await touchOpportunityItems(items
@@ -1177,8 +1009,8 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, validateIte
     .map((item) => item.data['@id'] || item.data.id));
 }
 
-/** @type {RpdePageProcessor} */
-async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) {
+/** @type {RpdePageProcessorAndValidator} */
+async function ingestOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestComplete, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -1196,7 +1028,7 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, validateItemsFn) 
       await storeOpportunityItem(item);
     }
   }
-  await validateItemsFn(rpdePage.items);
+  await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
 }
 
 function invertFacilityUseItems(items) {
@@ -1422,7 +1254,7 @@ async function processOpportunityItem(item) {
 /**
  * @param {OrderFeedType} orderFeedType
  * @param {string} bookingPartnerIdentifier
- * @returns {RpdePageProcessor}
+ * @returns {import('./src/harvestRPDE').RpdePageProcessor}
  */
 function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
   /* Note that the Orders RpdePageProcessor does NOT use validateItemsFn i.e. Orders feed items are not validated.
@@ -1590,32 +1422,56 @@ Validation errors found in Dataset Site JSON-LD:
 
   dataset.distribution.forEach((dataDownload) => {
     const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
+    const feedContext = createFeedContext(feedContextIdentifier, dataDownload.contentUrl, state.multibar);
+    const onValidateItemsForThisFeed = partial(onValidateItems, feedContext); 
+    validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
+    
+    const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
+      feedContextIdentifier,
+      addToTotalItemsQueuedForValidation(addition) {
+        feedContext.totalItemsQueuedForValidation += addition;
+      },
+    });
+    
+    const onFeedEnd = async () => {
+      await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, { multibar: state.multibar });
+    };
+    
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedContextIdentifier);
+      const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
       harvesters.push(
         harvestRPDE({
-          validatorWorkerPool,
           baseUrl: dataDownload.contentUrl,
           feedContextIdentifier,
           headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          processPage: ingestParentOpportunityPage,
+          processPage: ingestParentOpportunityPageForThisFeed,
+          onFeedEnd,
           isOrdersFeed: false,
-          bar: state.multibar,
+          state: { context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime },
+          loggingFns: { log, logError, logErrorDuringHarvest },
+          config: { WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED },
+          options: { multibar: state.multibar, pauseResume: state.pauseResume, }
         }),
       );
     } else if (isParentFeed[dataDownload.additionalType] === false) {
       log(`Found opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedContextIdentifier);
+      const ingestOpportunityPageForThisFeed = partialRight(ingestOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
+
       harvesters.push(
         harvestRPDE({
-          validatorWorkerPool,
           baseUrl: dataDownload.contentUrl,
           feedContextIdentifier,
           headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          processPage: ingestOpportunityPage,
+          processPage: ingestOpportunityPageForThisFeed,
+          onFeedEnd,
           isOrdersFeed: false,
-          bar: state.multibar,
+          state: { context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime },
+          loggingFns: { log, logError, logErrorDuringHarvest },
+          config: { WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED },
+          options: { multibar: state.multibar, pauseResume: state.pauseResume, }
         }),
       );
     } else {
@@ -1641,19 +1497,24 @@ Validation errors found in Dataset Site JSON-LD:
       },
     ])) {
       log(`Found ${type} feed: ${feedUrl}`);
+      const onFeedEnd = async () => {
+        OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
+        await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, { multibar: state.multibar });
+      };
+
       addFeed(feedContextIdentifier);
       harvesters.push(
         harvestRPDE({
-          validatorWorkerPool,
           baseUrl: feedUrl,
           feedContextIdentifier,
           headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
           processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
+          onFeedEnd,
           isOrdersFeed: true,
-          bar: state.multibar,
-          processEndOfFeed: () => {
-            OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
-          },
+          state: { feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime },
+          loggingFns: { log, logError, logErrorDuringHarvest },
+          config: { WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED },
+          options: { multibar: state.multibar, pauseResume: state.pauseResume }
         }),
       );
     }
@@ -1661,7 +1522,7 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
-  await setFeedIsUpToDate(validatorWorkerPool, 'DatasetSite');
+  await setFeedIsUpToDate(validatorWorkerPool, 'DatasetSite', { multibar: state.multibar });
 
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
@@ -1736,65 +1597,21 @@ function onError(error) {
 /**
  * @param {object} args
  * @param {string} args.feedContextIdentifier
- * @param {() => boolean} args.isInitialHarvestComplete
  * @param {(addition: number) => void} args.addToTotalItemsQueuedForValidation
  * @param {any[]} items RPDE items
+ * @param {() => boolean} isInitialHarvestComplete
  */
 async function sendItemsToValidatorWorkerPool({
   feedContextIdentifier,
-  isInitialHarvestComplete,
   addToTotalItemsQueuedForValidation,
-}, items) {
+}, items, isInitialHarvestComplete) {
   if (isInitialHarvestComplete()) { return; }
   const numItemsQueuedForValidation = await createAndSaveValidatorInputsFromRpdePage(feedContextIdentifier, items);
   addToTotalItemsQueuedForValidation(numItemsQueuedForValidation);
 }
 
-/* TODO[suggestion] put FeedContext into a class so that it controls access to itself? And so that all it's logic
-(e.g. progressbar updating stuff) can be in one place? */
 /**
- * @param {import('cli-progress').MultiBar} bar
- * @param {string} feedContextIdentifier
- * @param {string} baseUrl
- * @returns {FeedContext}
- */
-function createFeedContext(bar, feedContextIdentifier, baseUrl) {
-  /** @type {FeedContext} */
-  const context = {
-    currentPage: baseUrl,
-    pages: 0,
-    items: 0,
-    responseTimes: [],
-    totalItemsQueuedForValidation: 0,
-    validatedItems: 0,
-    _progressbar: null,
-  };
-  if (bar) {
-    context._progressbar = bar.create(0, 0, {
-      feedIdentifier: feedContextIdentifier,
-      pages: 0,
-      responseTime: '-',
-      status: 'Harvesting...',
-      ...progressFromContext(context),
-    });
-  }
-  return context;
-}
-
-/**
- * @param {FeedContext} c
- */
-function progressFromContext(c) {
-  return {
-    totalItemsQueuedForValidation: c.totalItemsQueuedForValidation,
-    validatedItems: c.validatedItems,
-    validatedPercentage: c.totalItemsQueuedForValidation === 0 ? 0 : Math.round((c.validatedItems / c.totalItemsQueuedForValidation) * 100),
-    items: c.items,
-  };
-}
-
-/**
- * @param {FeedContext} context
+ * @param {import('./src/harvestRPDE').FeedContext} context
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
