@@ -40,3 +40,20 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 | [seller-access-restricted-by-auth](./implemented/seller-access-restricted-by-auth-test.js) | Credentials for Seller (a) must not provide access to make bookings for Seller (b) | Using primary seller auth, make a call to C1, C2, and P/B for the secondary seller, expecting all calls to fail with InvalidAuthorizationDetailsError | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
 
 
+
+## 'Not Implemented' tests
+
+
+Update `default.json` within `packages/openactive-integration-tests/config/` as follows to enable 'Not Implemented' testing for this feature:
+
+```json
+"implementedFeatures": {
+  ...
+  "multiple-sellers": false,
+  ...
+}
+```
+
+| Identifier | Name | Description | Prerequisites per Opportunity Type |
+|------------|------|-------------|---------------|
+| [single-seller-implemented](./not-implemented/single-seller-implemented-test.js) | Single Seller feature must be implemented | Either one, and only one, of the Multiple Sellers feature and the Single Seller feature must be implemented |  |

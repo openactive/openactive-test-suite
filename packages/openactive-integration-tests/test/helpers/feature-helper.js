@@ -277,24 +277,66 @@ class FeatureHelper {
    * set of features are.
    *
    * @param {NodeModule} documentationModule
-   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
-   *   otherFeaturesWhichImplyThisOne: string[];
+   * @param {Omit<DescribeFeatureConfiguration, 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+   *   otherFeaturesWhichImplyThisOne?: string[];
+   *   otherFeaturesWhichAreMutuallyExclusiveWithThisOne?: string[];
    * }} configuration
+   *   - `otherFeaturesWhichImplyThisOne` is an array of feature names. If any
+   *     of these features are implemented, then the feature in focus MUST also
+   *     be implemented
+   *   - `otherFeaturesWhichAreMutuallyExclusiveWithThisOne` is an array of
+   *     feature names. If any of these features are implemented, then the
+   *     feature in focus must NOT also be implemented
    */
   static describeFeatureShouldBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
-    const otherFeaturesSummary = configuration.otherFeaturesWhichImplyThisOne.map(f => `'${f}'`).join(' and ');
+    const otherFeaturesWhichImplyThisOne = (configuration.otherFeaturesWhichImplyThisOne ?? []);
+    const otherFeaturesWhichAreMutuallyExclusiveWithThisOne = (configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne ?? []);
+    if (
+      otherFeaturesWhichImplyThisOne.length === 0
+      && otherFeaturesWhichAreMutuallyExclusiveWithThisOne.length === 0
+    ) {
+      throw new Error('At least one of `otherFeaturesWhichImplyThisOne` or `otherFeaturesWhichAreMutuallyExclusiveWithThisOne` must be set');
+    }
+    const otherFeaturesWhichImplyThisOneSummary = otherFeaturesWhichImplyThisOne.map(f => `'${f}'`).join(' and ');
+    const otherFeaturesWhichAreMutuallyExclusiveWithThisOneSummary = otherFeaturesWhichAreMutuallyExclusiveWithThisOne.map(f => `'${f}'`).join(' and ');
+    const defaultTestDescriptionCore = (() => {
+      const parts = [];
+      if (otherFeaturesWhichImplyThisOne.length > 0) {
+        parts.push(`features: ${otherFeaturesWhichImplyThisOneSummary} are implemented`);
+      }
+      if (otherFeaturesWhichAreMutuallyExclusiveWithThisOne.length > 0) {
+        parts.push(`features: ${otherFeaturesWhichAreMutuallyExclusiveWithThisOneSummary} are NOT implemented`);
+      }
+      return parts.join('; and if ');
+    })();
+    const defaultTestDescription = `This feature must be implemented if ${defaultTestDescriptionCore}`;
     this.describeFeature(documentationModule, {
-      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are implemented`,
+      testDescription: defaultTestDescription,
       skipMultiple: true,
       doesNotUseOpportunitiesMode: true,
       ...configuration,
     }, () => {
       describe('Feature', () => {
-        it(`must be implemented if other features: ${otherFeaturesSummary} are`, () => {
-          expect(IMPLEMENTED_FEATURES).to.not.include(
-            Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
-          );
-        });
+        if (otherFeaturesWhichImplyThisOne.length > 0) {
+          it(`must be implemented if other features: ${otherFeaturesWhichImplyThisOneSummary} are`, () => {
+            console.log('heyhey', {
+              testIdentifier: configuration.testIdentifier,
+              otherFeaturesWhichImplyThisOneSummary,
+              IMPLEMENTED_FEATURES,
+              r: Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
+            });
+            expect(IMPLEMENTED_FEATURES).to.not.include(
+              Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
+            );
+          });
+        }
+        if (otherFeaturesWhichAreMutuallyExclusiveWithThisOne.length > 0) {
+          it(`must not be implemented if other features: ${otherFeaturesWhichAreMutuallyExclusiveWithThisOneSummary} are`, () => {
+            expect(IMPLEMENTED_FEATURES).to.include(
+              Object.fromEntries(configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne.map(f => [f, true])),
+            );
+          });
+        }
       });
     });
   }
