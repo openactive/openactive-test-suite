@@ -73,12 +73,11 @@ const { error400IfExpressParamsAreMissing } = require('./src/util/api-utils');
 const { ValidatorWorkerPool } = require('./src/validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./src/validator/validator-inputs');
 const { renderSampleOpportunities } = require('./src/sample-opportunities');
-const _ = require('lodash');
 
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
  * @typedef {import('./src/models/core').BookingPartnerIdentifier} BookingPartnerIdentifier
- * 
+ *
  */
 
 const markdown = new Remarkable();
@@ -1422,20 +1421,22 @@ Validation errors found in Dataset Site JSON-LD:
   dataset.distribution.forEach((dataDownload) => {
     const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
     const feedContext = createFeedContext(feedContextIdentifier, dataDownload.contentUrl, state.multibar);
-    const onValidateItemsForThisFeed = partial(onValidateItems, feedContext); 
+    const onValidateItemsForThisFeed = partial(onValidateItems, feedContext);
     validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
-    
+
     const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
       feedContextIdentifier,
       addToTotalItemsQueuedForValidation(addition) {
         feedContext.totalItemsQueuedForValidation += addition;
       },
     });
-    
+
     const onFeedEnd = async () => {
-      await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, { multibar: state.multibar });
+      await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+        multibar: state.multibar,
+      });
     };
-    
+
     if (isParentFeed[dataDownload.additionalType] === true) {
       log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
       addFeed(feedContextIdentifier);
@@ -1448,10 +1449,18 @@ Validation errors found in Dataset Site JSON-LD:
           processPage: ingestParentOpportunityPageForThisFeed,
           onFeedEnd,
           isOrdersFeed: false,
-          state: { context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime },
-          loggingFns: { log, logError, logErrorDuringHarvest },
-          config: { WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED },
-          options: { multibar: state.multibar, pauseResume: state.pauseResume, }
+          state: {
+            context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime,
+          },
+          loggingFns: {
+            log, logError, logErrorDuringHarvest,
+          },
+          config: {
+            WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED,
+          },
+          options: {
+            multibar: state.multibar, pauseResume: state.pauseResume,
+          },
         }),
       );
     } else if (isParentFeed[dataDownload.additionalType] === false) {
@@ -1467,10 +1476,18 @@ Validation errors found in Dataset Site JSON-LD:
           processPage: ingestOpportunityPageForThisFeed,
           onFeedEnd,
           isOrdersFeed: false,
-          state: { context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime },
-          loggingFns: { log, logError, logErrorDuringHarvest },
-          config: { WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED },
-          options: { multibar: state.multibar, pauseResume: state.pauseResume, }
+          state: {
+            context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime,
+          },
+          loggingFns: {
+            log, logError, logErrorDuringHarvest,
+          },
+          config: {
+            WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED,
+          },
+          options: {
+            multibar: state.multibar, pauseResume: state.pauseResume,
+          },
         }),
       );
     } else {
@@ -1498,7 +1515,9 @@ Validation errors found in Dataset Site JSON-LD:
       log(`Found ${type} feed: ${feedUrl}`);
       const onFeedEnd = async () => {
         OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
-        await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, { multibar: state.multibar });
+        await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+          multibar: state.multibar,
+        });
       };
 
       addFeed(feedContextIdentifier);
@@ -1510,10 +1529,18 @@ Validation errors found in Dataset Site JSON-LD:
           processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
           onFeedEnd,
           isOrdersFeed: true,
-          state: { feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime },
-          loggingFns: { log, logError, logErrorDuringHarvest },
-          config: { WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED },
-          options: { multibar: state.multibar, pauseResume: state.pauseResume }
+          state: {
+            feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime,
+          },
+          loggingFns: {
+            log, logError, logErrorDuringHarvest,
+          },
+          config: {
+            WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED,
+          },
+          options: {
+            multibar: state.multibar, pauseResume: state.pauseResume,
+          },
         }),
       );
     }
@@ -1521,7 +1548,9 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Finished processing dataset site
   if (WAIT_FOR_HARVEST) log('\nBlocking integration tests to wait for harvest completion...');
-  await setFeedIsUpToDate(validatorWorkerPool, 'DatasetSite', { multibar: state.multibar });
+  await setFeedIsUpToDate(validatorWorkerPool, 'DatasetSite', {
+    multibar: state.multibar,
+  });
 
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
