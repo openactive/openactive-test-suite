@@ -7,12 +7,14 @@ h2:hover {
     color: #0056b3; /* Example color change on hover */
 }
 </style>
+
 </head>
 
-[< Return to Summary](summary.md) | File Generated: {{{ timestamp }}}
+[< Return to Summary](summary.html) | File Generated: {{{ timestamp }}}
 
-<button id="toggleButton">Toggle All Sections</button>
-<button id="collapseAllButFirstError">Collapse All But First Error</button>
+<button id="collapseH2Button">Collapse All Sections</button>
+<button id="showH2Button">Show All Sections</button>
+<button id="collapseAllButFirstError">Show Only First Error</button>
 
 
 # {{{ title }}}
@@ -45,7 +47,7 @@ The [OpenActive Reference Implementation test result for this test]({{{ referenc
 
 {{#each activeSuites }}
 
-## {{{ renderSuiteName . }}}
+## {{ validationIcon (statusFor . ) }} {{{ renderSuiteName . }}}
     {{#logsFor . "information"}}
 
 ### {{title}}
@@ -158,22 +160,45 @@ Test could not be completed as it timed out while a request was still pending:
 {{/logsFor}}
 
 <script>
-  function toggleH2Section(nextElement, isCurrentlyCollapsed) {
+  function collapseH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+        if (nextElement.style.display !== 'none') {
+            nextElement.style.display = 'none';
+        }
+        nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function showH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+        if (nextElement.style.display !== '') {
+            nextElement.style.display = '';
+        }
+        nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function toggleH2Section(nextElement) {
     while(nextElement && nextElement.tagName !== 'H2') {
               // Toggle visibility
-              nextElement.style.display = isCurrentlyCollapsed ? '' : 'none';
+              nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
               nextElement = nextElement.nextElementSibling;
           }
   }
 
-  var isCurrentlyCollapsed = true;
-  function toggleAllH2Sections() {
+  function collapseAllH2Sections() {
     var h2Elements = document.querySelectorAll('h2');
     h2Elements.forEach(function(h2) {
         var nextElement = h2.nextElementSibling;
-        toggleH2Section(nextElement, isCurrentlyCollapsed);
+        collapseH2Section(nextElement);
     });
-    isCurrentlyCollapsed = !isCurrentlyCollapsed;
+  }
+  function showAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function(h2) {
+        var nextElement = h2.nextElementSibling;
+        showH2Section(nextElement);
+    });
   }
 
   function collapseExceptFirstSpecialH2Section() {
@@ -190,17 +215,15 @@ Test could not be completed as it timed out while a request was still pending:
                 sectionContainsSpecialChar = true;
                 specialSectionFound = true; 
                 break;
-            }
+              }
+              showH2Section(nextNode);
             nextNode = nextNode.nextElementSibling;
         }
 
         // If this section is not the one with the error, collapse it
         if (!sectionContainsSpecialChar) {
             nextNode = h2.nextElementSibling; 
-            while (nextNode && nextNode.tagName !== 'H2') {
-                nextNode.style.display = 'none';
-                nextNode = nextNode.nextElementSibling;
-            }
+            collapseH2Section(nextNode);
         }
     });
 }
@@ -214,9 +237,14 @@ Test could not be completed as it timed out while a request was still pending:
       });
   });
 
-  // Show/Hide all header sections
-  document.getElementById('toggleButton').addEventListener('click', function() {
-      toggleAllH2Sections();
+  // Show all header sections
+  document.getElementById('showH2Button').addEventListener('click', function() {
+      showAllH2Sections();
+  });
+
+  // Collapse all header sections
+  document.getElementById('collapseH2Button').addEventListener('click', function() {
+      collapseAllH2Sections();
   });
 
   // Collapse all but first error section button
@@ -227,3 +255,7 @@ Test could not be completed as it timed out while a request was still pending:
   // Hide all header sections by default
   collapseExceptFirstSpecialH2Section();
   </script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>

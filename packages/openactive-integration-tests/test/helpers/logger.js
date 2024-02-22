@@ -285,6 +285,18 @@ class BaseLogger {
     };
   }
 
+  get specStatusCountsForEachSuiteName()  {
+    if (this._specStatusCountsBySuiteName) return this._specStatusCountsBySuiteName;
+    
+    let statusBySuiteName =  _.chain(this.logs)
+    .filter(log => log.type === "spec")
+    .groupBy(log => log.ancestorTitles.join(" > "))
+    .mapValues(logs => _.countBy(logs, log => log.spec.status))
+    .value();
+
+    return this._specStatusCountsBySuiteName = statusBySuiteName;
+  }
+
   get overallStatus() {
     let spec = this.specStatusCounts;
     let validation = this.validationStatusCounts;
@@ -453,6 +465,17 @@ class ReporterLogger extends BaseLogger {
     });
 
     return result;
+  }
+
+  statusFor (suiteName) {
+    let specStatusCountsBySuiteName = this.specStatusCountsForEachSuiteName;
+    let joinedSuiteName = suiteName.join(" > ");
+    let spec = specStatusCountsBySuiteName[joinedSuiteName];
+    if (spec) {
+      if (spec.failed > 0) return "failed";
+      return "passed"
+    }
+    return "";
   }
 }
 

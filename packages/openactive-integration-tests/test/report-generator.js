@@ -127,6 +127,10 @@ class BaseReportGenerator {
 
         return ret;
       },
+      "statusFor": (suite) => {
+        let status = this.logger.statusFor(suite);
+        return status;
+      },
       "eachSorted": (context, options) => {
         var ret = "";
         Object.keys(context).sort().forEach(function(key) {
