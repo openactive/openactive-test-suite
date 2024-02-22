@@ -10,8 +10,6 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful end to end booking of a non-free opportunity with the `payment` property included if required.',
   testOpportunityCriteria: 'TestOpportunityBookableNonFree',
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  skipMultiple: true,
-  skipOpportunityTypes: ['ScheduledSession'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
   // ## Initiate Flow Stages

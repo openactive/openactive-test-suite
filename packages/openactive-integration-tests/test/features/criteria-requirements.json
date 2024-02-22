@@ -199,8 +199,8 @@
     },
     "non-free-opportunities": {
       "primary": {
-        "TestOpportunityBookableNonFree": 7,
-        "TestOpportunityBookable": 2
+        "TestOpportunityBookableNonFree": 9,
+        "TestOpportunityBookable": 3
       }
     },
     "payment-reconciliation-detail-validation": {
