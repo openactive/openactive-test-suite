@@ -10,7 +10,7 @@ const { OnePhaseListeners } = require('./onePhaseListeners');
 
 /**
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
- * @typedef {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} FeedContext 
+ * @typedef {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} FeedContext
  */
 /**
  * @typedef {object} PendingResponse
