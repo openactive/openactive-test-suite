@@ -1639,7 +1639,7 @@ async function sendItemsToValidatorWorkerPool({
 }
 
 /**
- * @param {import('@openactive/harvesting-utils/src/harvest-rpde').FeedContext} context
+ * @param {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} context
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
