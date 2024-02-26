@@ -448,8 +448,9 @@ class RequestHelper {
     sellerId,
     sellerType,
   }) {
+    const stage = `Local Microservice Test Interface for OrderItem ${orderItemPosition}`;
     const respObj = await this.post(
-      `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
+      stage,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       createTestInterfaceOpportunity({
         opportunityType,
@@ -461,6 +462,19 @@ class RequestHelper {
         timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
+    const opportunityNotFound = (
+      respObj.response.statusCode === 404
+      && respObj.body?.type === 'OpportunityNotFound'
+    );
+    if (opportunityNotFound) {
+      this.logger.recordFlowStageEvent(stage, {
+        type: 'OpportunityNotFound',
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+      });
+    }
 
     return respObj;
   }

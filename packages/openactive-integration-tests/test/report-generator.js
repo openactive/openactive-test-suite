@@ -1,3 +1,4 @@
+const util = require('util');
 const chalk = require("chalk");
 const Handlebars = require("handlebars");
 const fs = require("fs").promises;
@@ -229,6 +230,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
   }
 
   get summaryMeta () {
+    console.log('\n\n\nsummaryMeta. STATE:', util.inspect(this, false, null, true), '\n\n\n');
     return {
       'conformanceCertificateId': this.conformanceCertificateId,
       'dataset': this.datasetJson,
