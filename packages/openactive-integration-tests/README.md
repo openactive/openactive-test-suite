@@ -22,11 +22,11 @@ To run `openactive-integration-tests` in separate terminal window to `openactive
 
 ### Running specific tests
 
-`npm start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
+`npm run start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
 
 ### Running core tests in a single process
 
-`npm start-tests -- --runInBand test/features/core/`
+`npm run start-tests -- --runInBand test/features/core/`
 
 ## Configuration for `integrationTests` within `./config/{NODE_ENV}.json`
 
