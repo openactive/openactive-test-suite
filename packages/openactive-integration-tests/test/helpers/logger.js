@@ -327,12 +327,12 @@ class BaseLogger {
     return `${OUTPUT_PATH}json/${this.metaLocalPath}`;
   }
 
-  get markdownLocalPath () {
-    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.md`;
+  get htmlLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.html`;
   }
 
-  get markdownPath () {
-    return `${OUTPUT_PATH}${this.markdownLocalPath}`;
+  get htmlPath () {
+    return `${OUTPUT_PATH}${this.htmlLocalPath}`;
   }
 
   get validationStatusCounts () {
@@ -366,6 +366,18 @@ class BaseLogger {
       failed: statuses.failed || 0,
       passed: statuses.passed || 0,
     };
+  }
+
+  get specStatusCountsForEachSuiteName()  {
+    if (this._specStatusCountsBySuiteName) return this._specStatusCountsBySuiteName;
+    
+    let statusBySuiteName =  _.chain(this.logs)
+    .filter(log => log.type === "spec")
+    .groupBy(log => log.ancestorTitles.join(" > "))
+    .mapValues(logs => _.countBy(logs, log => log.spec.status))
+    .value();
+
+    return this._specStatusCountsBySuiteName = statusBySuiteName;
   }
 
   get overallStatus() {
@@ -536,6 +548,17 @@ class ReporterLogger extends BaseLogger {
     });
 
     return result;
+  }
+
+  statusFor (suiteName) {
+    let specStatusCountsBySuiteName = this.specStatusCountsForEachSuiteName;
+    let joinedSuiteName = suiteName.join(" > ");
+    let spec = specStatusCountsBySuiteName[joinedSuiteName];
+    if (spec) {
+      if (spec.failed > 0) return "failed";
+      return "passed"
+    }
+    return "";
   }
 }
 
