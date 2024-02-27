@@ -230,7 +230,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
   }
 
   get summaryMeta () {
-    console.log('\n\n\nsummaryMeta. STATE:', util.inspect(this, false, null, true), '\n\n\n');
+    // console.log('\n\n\nsummaryMeta. STATE:', util.inspect(this, false, null, true), '\n\n\n');
     return {
       'conformanceCertificateId': this.conformanceCertificateId,
       'dataset': this.datasetJson,
@@ -295,6 +295,9 @@ class SummaryReportGenerator extends BaseReportGenerator {
 }
 
 class LoggerGroup {
+  /**
+   * @param {import('./helpers/logger').BaseLoggerType[]} loggers
+   */
   constructor (reporter, loggers) {
     this.reporter = reporter;
     this.loggers = loggers;
@@ -382,6 +385,29 @@ class LoggerGroup {
     else return "passed";
   }
 
+  /**
+   * TODO2
+   */
+  getMissingOpportunityDataSummary() {
+    const allAugmentedEvents = this.loggers.flatMap((logger) => {
+      const testConfig = _.pick(logger.config, [
+        'testCategory',
+        'testFeature',
+        'testFeatureImplemented',
+        'testIdentifier',
+        'testName',
+      ]);
+      const flowStageLogs = Object.values(logger.flow);
+      return flowStageLogs.flatMap(flowStageLog => (
+        flowStageLog.events
+          .filter(event => event.type === 'OpportunityNotFound')
+          // Associate each of these events with a specific test
+          .map(event => ({ ..._.omit(event, ['type']), testConfig }))
+      ));
+    });
+    const uniqueAugmentedEvents = _.uniqWith(allAugmentedEvents, _.isEqual);
+    return uniqueAugmentedEvents;
+  }
 }
 
 module.exports = {

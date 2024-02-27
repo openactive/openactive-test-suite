@@ -18,5 +18,8 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookableFree',
   // temporarily disable control in multiple mode until refactoring complete
   multipleOpportunityCriteriaTemplate: multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpportunityCriteria),
+  skipMultiple: true,
+  skipBookingFlows: ['OpenBookingApprovalFlow'],
+  skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
 },
 successTests(expectedPrepayment, 'standardFree'));

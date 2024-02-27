@@ -121,14 +121,23 @@ class BaseLogger {
   }
 
   /**
-   * Ensure that there is a FlowStageLog stored for the given stage
+   * Ensure that there is a FlowStageLog stored for the given stage.
+   * Create one if it doesn't exist.
    *
    * @param {string} stage
    */
   _ensureFlowStage(stage) {
     if (!this.flow[stage]) {
       this.flow[stage] = {
-        events: [],
+        // TODO revert
+        events: [{
+          type: 'OpportunityNotFound',
+          opportunityType: 'IndividualFacilityUse',
+          testOpportunityCriteria: 'TestOpportunityBookable',
+          bookingFlow: 'OpenBookingSimpleFlow',
+          sellerId: 'https://localhost:5001/api/identifiers/sellers/1',
+        }],
+        // events: [],
       };
     }
   }
@@ -503,7 +512,7 @@ class ReporterLogger extends BaseLogger {
   }
 
   recordTestResult (stage, data) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
 
