@@ -6,7 +6,7 @@ const {
   sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
 const {
-  shapeConstraintRecipes,
+  shapeConstraintRecipes, quantitativeValue,
 } = require('../testDataShape');
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
@@ -48,7 +48,14 @@ const TestOpportunityBookableOneSpace = createCriteria({
   ],
   testDataShape: (options) => ({
     opportunityConstraints: {
-      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(1),
+      'placeholder:remainingCapacity': quantitativeValue({
+        mininclusive: 1,
+        maxinclusive: 1,
+      }),
+      'placeholder:remainingCapacityIfuSlot': quantitativeValue({
+        mininclusive: 1,
+        maxinclusive: 1,
+      }),
       ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
     },
     offerConstraints: {

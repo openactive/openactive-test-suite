@@ -30,8 +30,7 @@ Mode: **{{ useRandomOpportunitiesMode }}**
 {{/if}}
 
 {{#eachSorted opportunityTypeGroups }}
-## {{{ opportunityTypeName }}}
-
+{{{ opportunityTypeName }}}
 ---
 
   {{#each featureGroups }}
@@ -42,6 +41,7 @@ Mode: **{{ useRandomOpportunitiesMode }}**
   {{/each}}
 
 {{/eachSorted}}
+
 ---
 
 <script>

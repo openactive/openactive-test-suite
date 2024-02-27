@@ -99,6 +99,19 @@
             },
         },
         {
+            "name": "test-interface-criteria - unit tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/test-interface-criteria/",
+            "runtimeArgs": [
+              "--inspect-brk",
+              "node_modules/.bin/jest",
+              "--runInBand"
+              ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
             "name": "validate-feeds",
             "type": "node",
             "request": "launch",
