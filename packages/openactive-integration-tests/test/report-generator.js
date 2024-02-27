@@ -9,6 +9,22 @@ const { getConfigVarOrThrow } = require('./helpers/config-utils');
 const { recursivelyObjectEntries } = require('./helpers/obj-utils');
 const showdown = require('showdown');
 
+/**
+ * @typedef {{
+ *   [testOpportunityCriteria: string]: {
+ *     sellers: string[];
+ *     tests: {
+ *       opportunityTypeName: string;
+ *
+ *       featureName: string;
+ *       implementedDisplayLabel: string;
+ *       suiteName: string;
+ *       htmlLocalPath: string;
+ *     }[];
+ *   }
+ * }} MissingOpportunityDataSummary
+ */
+
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
 const ENABLE_HEADER_LOGGING = getConfigVarOrThrow('integrationTests', 'requestHeaderLogging');
@@ -332,7 +348,10 @@ class SummaryReportGenerator extends BaseReportGenerator {
     }
     console.log('get missingOpportunityDataSummary() - returning not null');
     // Convert nested object to array of arrays for easier handling by handlebars
-    this._missingOpportunityDataSummary = recursivelyObjectEntries(missingOpportunityDataSummary);
+    this._missingOpportunityDataSummary = missingOpportunityDataSummary;
+    // this._missingOpportunityDataSummary = Object.entries(missingOpportunityDataSummary);
+    // // Convert nested object to array of arrays for easier handling by handlebars
+    // this._missingOpportunityDataSummary = recursivelyObjectEntries(missingOpportunityDataSummary);
     return this._missingOpportunityDataSummary;
   }
 }
@@ -368,7 +387,8 @@ class LoggerGroup {
   }
 
   get opportunityTypeName() {
-    return this.loggers[0].opportunityType ? (`${this.loggers[0].bookingFlow} >> ${this.loggers[0].opportunityType}`) : 'Generic';
+    return this.loggers[0].opportunityTypeName;
+    // return this.loggers[0].opportunityType ? (`${this.loggers[0].bookingFlow} >> ${this.loggers[0].opportunityType}`) : 'Generic';
   }
 
   get featureName () {
@@ -451,6 +471,8 @@ class LoggerGroup {
       //  * }}
       //  */
       const testConfig = _.pick(logger, [
+        'opportunityTypeName',
+
         'featureName',
         'implementedDisplayLabel',
         'suiteName',
@@ -480,42 +502,58 @@ class LoggerGroup {
     // summary report.
     const sorted = _.sortBy(stats, [
       'testOpportunityCriteria',
+      'sellerId',
       'opportunityType',
       'bookingFlow',
-      'sellerId',
       'testConfig.featureName',
       'testConfig.implementedDisplayLabel',
       'testConfig.suiteName',
     ]);
-    /**
-     * @type {{
-     *   [testOpportunityCriteria: string]: {
-     *     [opportunityType: string]: {
-     *       [bookingFlow: string]: {
-     *         [sellerId: string]: Pick<import('./helpers/logger').BaseLoggerType, "featureName" | "implementedDisplayLabel" | "suiteName" | "htmlLocalPath">[];
-     *       }
-     *     }
-     *   }
-     * }}
-     */
-    const grouped = sorted.reduce((acc, event) => {
-      const path = [
-        event.testOpportunityCriteria,
-        event.opportunityType,
-        event.bookingFlow,
-        event.sellerId,
-      ];
-      const { testConfig } = event;
-      _.update(acc, path, (existing) => {
-        if (!existing) {
-          return [testConfig];
-        }
-        existing.push(testConfig);
-        return existing;
-      });
+    this._missingOpportunityDataSummary = sorted.reduce((acc, event) => {
+      if (!acc[event.testOpportunityCriteria]) {
+        acc[event.testOpportunityCriteria] = {
+          sellers: [],
+          tests: [],
+        };
+      }
+      const summary = acc[event.testOpportunityCriteria];
+      // As items are already sorted by seller, we only need to check the last
+      // item in the array
+      if (_.last(summary.sellers) !== event.sellerId) {
+        summary.sellers.push(event.sellerId);
+      }
+      summary.tests.push(event.testConfig);
       return acc;
-    }, {});
-    this._missingOpportunityDataSummary = grouped;
+    }, /** @type {MissingOpportunityDataSummary} */({}));
+    // /**
+    //  * @type {{
+    //  *   [testOpportunityCriteria: string]: {
+    //  *     [opportunityType: string]: {
+    //  *       [bookingFlow: string]: {
+    //  *         [sellerId: string]: Pick<import('./helpers/logger').BaseLoggerType, "featureName" | "implementedDisplayLabel" | "suiteName" | "htmlLocalPath">[];
+    //  *       }
+    //  *     }
+    //  *   }
+    //  * }}
+    //  */
+    // const grouped = sorted.reduce((acc, event) => {
+    //   const path = [
+    //     event.testOpportunityCriteria,
+    //     event.opportunityType,
+    //     event.bookingFlow,
+    //     event.sellerId,
+    //   ];
+    //   const { testConfig } = event;
+    //   _.update(acc, path, (existing) => {
+    //     if (!existing) {
+    //       return [testConfig];
+    //     }
+    //     existing.push(testConfig);
+    //     return existing;
+    //   });
+    //   return acc;
+    // }, {});
+    // this._missingOpportunityDataSummary = grouped;
     return this._missingOpportunityDataSummary;
   }
 }

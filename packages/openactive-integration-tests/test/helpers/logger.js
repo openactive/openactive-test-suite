@@ -424,6 +424,16 @@ class BaseLogger {
   get numPassed () {
     return this.specStatusCounts.passed;
   }
+
+  get opportunityTypeName() {
+    if ('opportunityType' in this && 'bookingFlow' in this) {
+      return `${this.bookingFlow} >> ${this.opportunityType}`;
+    }
+    if ('opportunityType' in this) {
+      return this.opportunityType;
+    }
+    return 'Generic';
+  }
 }
 
 class Logger extends BaseLogger {

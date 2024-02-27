@@ -36,25 +36,13 @@ were found, that also includes a list of which tests failed as a result:
 
 {{#each missingOpportunityDataSummary}}
 
-{{!-- Criteria --}}
-- Criteria: **[{{lookup . 0}}](https://openactive.io/test-interface#{{lookup . 0}})**
-    {{!-- Opportunity Type --}}
-    {{#each (lookup . 1)}}
-    * Opportunity Type: **{{lookup . 0}}**
-        {{!-- Booking Flow --}}
-        {{#each (lookup . 1)}}
-        - Booking Flow: _{{lookup . 0}}_
-            {{!-- Seller ID --}}
-            {{#each (lookup . 1)}}
-            * Seller ID: `{{lookup . 0}}`
-                {{!-- Tests --}}
-                {{#each (lookup . 1)}}
-                {{!-- - ❌ {{lookup . "testCategory"}} >> {{lookup . "testFeature"}} ({{lookup . "testFeatureImplemented"}}) >> {{lookup . "testName"}} --}}
-                - ❌ {{lookup . "featureName"}} ({{lookup . "implementedDisplayLabel"}}) >> [{{lookup . "suiteName"}}]({{lookup . "htmlLocalPath"}})
-                {{/each}}
-            {{/each}}
+- Criteria: **[{{@key}}](https://openactive.io/test-interface#{{@key}})**
+    * Sellers: {{#each (lookup . "sellers")}}`{{.}}`{{#unless @last}}, {{/unless}}{{/each}}
+    * Tests
+        {{#each (lookup . "tests")}}
+        - ❌ **{{opportunityTypeName}} >> {{lookup . "featureName"}} ({{lookup . "implementedDisplayLabel"}}) >>** [{{lookup . "suiteName"}}]({{lookup . "htmlLocalPath"}})
         {{/each}}
-    {{/each}}
+
 
 {{/each}}
 
