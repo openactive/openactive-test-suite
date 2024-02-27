@@ -129,15 +129,7 @@ class BaseLogger {
   _ensureFlowStage(stage) {
     if (!this.flow[stage]) {
       this.flow[stage] = {
-        // TODO revert
-        events: [{
-          type: 'OpportunityNotFound',
-          opportunityType: 'IndividualFacilityUse',
-          testOpportunityCriteria: 'TestOpportunityBookable',
-          bookingFlow: 'OpenBookingSimpleFlow',
-          sellerId: 'https://localhost:5001/api/identifiers/sellers/1',
-        }],
-        // events: [],
+        events: [],
       };
     }
   }
