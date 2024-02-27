@@ -177,7 +177,7 @@ class BaseReportGenerator {
     const converter = new showdown.Converter();
     converter.setOption('completeHTMLDocument', true);
     converter.setOption('moreStyling', true)
-    converter.setOption('openLinksInNewWindow', true)
+    converter.setOption('openLinksInNewWindow', true);
     const html = converter.makeHtml(data);
 
 

@@ -1,3 +1,25 @@
+<head>
+<style>
+h2 {
+    cursor: pointer;
+    border-top-color: #CCC;
+    border-top-width: 1px;
+    border-top-style: solid;
+    padding-top: 5px;
+}
+h2:hover {
+    color: #0056b3; /* Example color change on hover */
+}
+</style>
+</head>
+
+File Generated: {{{ timestamp }}}
+
+<button id="collapseH2Button">Collapse All Sections</button>
+<button id="showH2Button">Show All Sections</button>
+<button id="showOnlyErrorsButton">Show All Errors</button>
+
+
 # Summary of Test Suite Results for '{{ bookingServiceName }}'
 
 Mode: **{{ useRandomOpportunitiesMode }}**
@@ -8,7 +30,8 @@ Mode: **{{ useRandomOpportunitiesMode }}**
 {{/if}}
 
 {{#eachSorted opportunityTypeGroups }}
-{{{ opportunityTypeName }}}
+## {{{ opportunityTypeName }}}
+
 ---
 
   {{#each featureGroups }}
@@ -19,3 +42,90 @@ Mode: **{{ useRandomOpportunitiesMode }}**
   {{/each}}
 
 {{/eachSorted}}
+---
+
+<script>
+  function collapseH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      if (nextElement.style.display !== 'none') {
+        nextElement.style.display = 'none';
+      }
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function showH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      if (nextElement.style.display !== '') {
+        nextElement.style.display = '';
+      }
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function toggleH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      // Toggle visibility
+      nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function collapseAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      collapseH2Section(nextElement);
+    });
+  }
+  function showAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      showH2Section(nextElement);
+    });
+  }
+
+  function showOnlyErrorH2() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      if (nextElement.innerHTML.includes('❌')) {
+        showH2Section(nextElement);
+      } else {
+        collapseH2Section(nextElement);
+      }
+    });
+  }
+
+
+  // Show/Hide each header section
+  document.querySelectorAll('h2').forEach(function (h2) {
+    h2.addEventListener('click', function () {
+      let nextElement = this.nextElementSibling;
+      toggleH2Section(nextElement)
+    });
+  });
+
+  // Show all header sections
+  document.getElementById('showH2Button').addEventListener('click', function () {
+    showAllH2Sections();
+  });
+
+  // Collapse all header sections
+  document.getElementById('collapseH2Button').addEventListener('click', function () {
+    collapseAllH2Sections();
+  });
+
+  // Show only error sections button
+  document.getElementById('showOnlyErrorsButton').addEventListener('click', function () {
+    showOnlyErrorH2();
+  });
+
+  // Show only errors by default
+  showOnlyErrorH2();
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
