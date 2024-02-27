@@ -7,9 +7,64 @@ Mode: **{{ useRandomOpportunitiesMode }}**
 {{/if}}{{#if testResultSummary.numPendingTests}}– {{ testResultSummary.numPendingTests }} pending
 {{/if}}
 
+{{#if missingOpportunityDataSummary}}
+
+## ❌ Missing Opportunity Data
+
+Some of the tests failed because there were not enough opportunities matching
+the required [criteria](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/README.md).
+
+This only happens when using [Random Mode](https://developer.openactive.io/open-booking-api/test-suite#random-mode)
+as opposed to [Controlled Mode](https://developer.openactive.io/open-booking-api/test-suite#controlled-mode).
+
+In order to pass these tests, you will need to generate more opportunities in
+your Booking System. Make sure that there are many opportunities available for
+each criteria.
+
+You can use [test-data-generator](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test-data-generator)
+to get a specification of how much of each type of opportunity you need to
+generate.
+
+If any of these criteria are not relevant to your Booking System, you may
+need to remove the relevant feature from your Test Suite configuration
+(See [`implementedFeatures`](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests#implementedfeatures)).
+
+### Results
+
+This is a list of the criteria, opportunity type, etc for which no opportunities
+were found, that also includes a list of which tests failed as a result:
+
+{{#each missingOpportunityDataSummary}}
+
+{{!-- Criteria --}}
+- Criteria: **[{{lookup . 0}}](https://openactive.io/test-interface#{{lookup . 0}})**
+    {{!-- Opportunity Type --}}
+    {{#each (lookup . 1)}}
+    * Opportunity Type: **{{lookup . 0}}**
+        {{!-- Booking Flow --}}
+        {{#each (lookup . 1)}}
+        - Booking Flow: _{{lookup . 0}}_
+            {{!-- Seller ID --}}
+            {{#each (lookup . 1)}}
+            * Seller ID: `{{lookup . 0}}`
+                {{!-- Tests --}}
+                {{#each (lookup . 1)}}
+                {{!-- - ❌ {{lookup . "testCategory"}} >> {{lookup . "testFeature"}} ({{lookup . "testFeatureImplemented"}}) >> {{lookup . "testName"}} --}}
+                - ❌ {{lookup . "featureName"}} ({{lookup . "implementedDisplayLabel"}}) >> [{{lookup . "suiteName"}}]({{lookup . "htmlLocalPath"}})
+                {{/each}}
+            {{/each}}
+        {{/each}}
+    {{/each}}
+
+{{/each}}
+
+{{/if}}
+
+## Tests
+
 {{#eachSorted opportunityTypeGroups }}
-{{{ opportunityTypeName }}}
----
+
+### {{{ opportunityTypeName }}}
 
   {{#each featureGroups }}
   * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})

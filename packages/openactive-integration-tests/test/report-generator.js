@@ -6,6 +6,7 @@ const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 const { getConfigVarOrThrow } = require('./helpers/config-utils');
+const { recursivelyObjectEntries } = require('./helpers/obj-utils');
 const showdown = require('showdown');
 
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
@@ -243,6 +244,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
 
   get summaryMeta () {
     // console.log('\n\n\nsummaryMeta. STATE:', util.inspect(this, false, null, true), '\n\n\n');
+    // const { missingOpportunityDataSummary } = this.loggers;
     return {
       'conformanceCertificateId': this.conformanceCertificateId,
       'dataset': this.datasetJson,
@@ -262,7 +264,10 @@ class SummaryReportGenerator extends BaseReportGenerator {
             numFailed
           }))
         }))
-        )
+      ),
+      // missingOpportunityDataSummary: _.isEmpty(missingOpportunityDataSummary)
+      //   ? null
+      //   : missingOpportunityDataSummary,
     };
   }
 
@@ -276,8 +281,17 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return "summary";
   }
 
-  get templateData () {
+  // TODO2 actually we can revert this
+  get templateData() {
+    // if (this.missingOpportunityDataSummary === undefined) {
+    //   this.missingOpportunityDataSummary = this.getMissingOpportunityDataSummary();
+    // }
+    // console.log('\n\n\nSummaryReportGenerator.templateData(): this:', this);
     return this;
+    // return {
+    //   ...this,
+    //   // missingOpportunityDataSummary: this.getMissingOpportunityDataSummary(),
+    // };
   }
 
   get testResultSummary () {
@@ -303,6 +317,23 @@ class SummaryReportGenerator extends BaseReportGenerator {
   get bookingServiceName() {
     return (this.datasetJson.bookingService && this.datasetJson.bookingService.name) || 
     (this.datasetJson.publisher && this.datasetJson.publisher.name);
+  }
+
+  get missingOpportunityDataSummary() {
+    if (this._missingOpportunityDataSummary !== undefined) {
+      return this._missingOpportunityDataSummary;
+    }
+    console.log('get missingOpportunityDataSummary()');
+    const { missingOpportunityDataSummary } = this.loggers;
+    console.log('get missingOpportunityDataSummary() - missingOpportunityDataSummary:', missingOpportunityDataSummary);
+    if (_.isEmpty(missingOpportunityDataSummary)) {
+      console.log('get missingOpportunityDataSummary() - returning null');
+      return null;
+    }
+    console.log('get missingOpportunityDataSummary() - returning not null');
+    // Convert nested object to array of arrays for easier handling by handlebars
+    this._missingOpportunityDataSummary = recursivelyObjectEntries(missingOpportunityDataSummary);
+    return this._missingOpportunityDataSummary;
   }
 }
 
@@ -400,14 +431,30 @@ class LoggerGroup {
   /**
    * TODO2
    */
-  getMissingOpportunityDataSummary() {
+  get missingOpportunityDataStats() {
+    if (this._missingOpportunityDataStats) { return this._missingOpportunityDataStats; }
     const allAugmentedEvents = this.loggers.flatMap((logger) => {
-      const testConfig = _.pick(logger.config, [
-        'testCategory',
-        'testFeature',
-        'testFeatureImplemented',
-        'testIdentifier',
-        'testName',
+      // const testConfig = _.pick(logger.config, [
+      //   'testCategory',
+      //   'testFeature',
+      //   'testFeatureImplemented',
+      //   'testIdentifier',
+      //   'testName',
+      // ]);
+      // const { featureName, implementedDisplayLabel, suiteName, htmlLocalPath } = logger;
+      // /**
+      //  * @type {{
+      //  *   featureName: string;
+      //  *   implementedDisplayLabel: string;
+      //  *   suiteName: string;
+      //  *   htmlLocalPath: string;
+      //  * }}
+      //  */
+      const testConfig = _.pick(logger, [
+        'featureName',
+        'implementedDisplayLabel',
+        'suiteName',
+        'htmlLocalPath',
       ]);
       const flowStageLogs = Object.values(logger.flow);
       return flowStageLogs.flatMap(flowStageLog => (
@@ -418,7 +465,58 @@ class LoggerGroup {
       ));
     });
     const uniqueAugmentedEvents = _.uniqWith(allAugmentedEvents, _.isEqual);
-    return uniqueAugmentedEvents;
+    this._missingOpportunityDataStats = uniqueAugmentedEvents;
+    return this._missingOpportunityDataStats;
+  }
+
+  /**
+   * Groups the results from `missingOpportunityDataStats` into something
+   * that can be shown in the summary report.
+   */
+  get missingOpportunityDataSummary() {
+    if (this._missingOpportunityDataSummary) { return this._missingOpportunityDataSummary; }
+    const stats = this.missingOpportunityDataStats;
+    // Sort stats so that groupings are alphabetical and consistent in the
+    // summary report.
+    const sorted = _.sortBy(stats, [
+      'testOpportunityCriteria',
+      'opportunityType',
+      'bookingFlow',
+      'sellerId',
+      'testConfig.featureName',
+      'testConfig.implementedDisplayLabel',
+      'testConfig.suiteName',
+    ]);
+    /**
+     * @type {{
+     *   [testOpportunityCriteria: string]: {
+     *     [opportunityType: string]: {
+     *       [bookingFlow: string]: {
+     *         [sellerId: string]: Pick<import('./helpers/logger').BaseLoggerType, "featureName" | "implementedDisplayLabel" | "suiteName" | "htmlLocalPath">[];
+     *       }
+     *     }
+     *   }
+     * }}
+     */
+    const grouped = sorted.reduce((acc, event) => {
+      const path = [
+        event.testOpportunityCriteria,
+        event.opportunityType,
+        event.bookingFlow,
+        event.sellerId,
+      ];
+      const { testConfig } = event;
+      _.update(acc, path, (existing) => {
+        if (!existing) {
+          return [testConfig];
+        }
+        existing.push(testConfig);
+        return existing;
+      });
+      return acc;
+    }, {});
+    this._missingOpportunityDataSummary = grouped;
+    return this._missingOpportunityDataSummary;
   }
 }
 
