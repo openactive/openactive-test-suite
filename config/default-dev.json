@@ -2,47 +2,19 @@
 // Use this via `export NODE_APP_INSTANCE=dev`
 {
   "broker": {
-    "datasetSiteUrl": "https://localhost:5004/openactive",
-    "bookingPartners": {
-      "primary": {
-        "authentication": {
-          "initialAccessToken": null,
-          "ordersFeedRequestHeaders": {
-            "X-OpenActive-Test-Client-Id": "booking-partner-1"
-          }
-        }
-      },
-      "secondary": {
-        "authentication": {
-          "initialAccessToken": null,
-          "ordersFeedRequestHeaders": {
-            "X-OpenActive-Test-Client-Id": "booking-partner-2"
-          }
-        }
-      }
-    }
+    "datasetSiteUrl": "https://localhost:5001/openactive"
   },
   "integrationTests": {
     "useRandomOpportunities": false
   },
   "sellers": {
     "primary": {
-      "authentication": {
-        "loginCredentials": null,
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "booking-partner-1",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5004/api/identifiers/sellers/1"
-        }
-      }
+      "@type": "Organization",
+      "@id": "https://localhost:5001/api/identifiers/sellers/1"
     },
     "secondary": {
-      "authentication": {
-        "loginCredentials": null,
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "booking-partner-1",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5004/api/identifiers/sellers/2"
-        }
-      }
+      "@type": "Organization",
+      "@id": "https://localhost:5001/api/identifiers/sellers/2"
     }
   }
 }
