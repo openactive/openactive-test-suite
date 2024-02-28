@@ -484,7 +484,10 @@ class LoggerGroup {
 }
 
 /**
- * TODO2 doc
+ * Push an item to an array that is already sorted.
+ *
+ * The item will be inserted into the array at a position which maintains sort
+ * order. If the item is already present in the array, it will not be added.
  *
  * ! Mutates `arr`
  *
@@ -498,22 +501,6 @@ function pushToSortedUniqueArray(arr, value) {
     return;
   }
   arr.splice(index, 0, value);
-}
-
-/**
- * Useful for when adding a collection of already-sorted but non-deduplicated
- * items to an array of unique items.
- *
- * ! Mutates `arr`
- *
- * @template T
- * @param {T[]} arr
- * @param {T} value
- */
-function pushIfDifferentToLast(arr, value) {
-  if (_.last(arr) !== value) {
-    arr.push(value);
-  }
 }
 
 module.exports = {
