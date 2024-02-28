@@ -459,8 +459,7 @@ class LoggerGroup {
   get missingOpportunityDataSummary() {
     if (this._missingOpportunityDataSummary) { return this._missingOpportunityDataSummary; }
     const stats = this.missingOpportunityDataStats;
-    // Sort stats so that groupings are alphabetical and consistent in the
-    // summary report.
+    // So that criteria are listed alphabetically in the summary report
     const statsSortedByCriteria = _.sortBy(stats, [
       'testOpportunityCriteria',
     ]);
