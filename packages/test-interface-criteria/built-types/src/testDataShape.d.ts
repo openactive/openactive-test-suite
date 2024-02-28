@@ -121,4 +121,10 @@ export namespace shapeConstraintRecipes {
         'schema:price': import("./types/TestDataShape").NumericNodeConstraint;
         'oa:openBookingPrepayment': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
     };
+    function startDateMustBe2HrsInAdvance(options: import("./types/Options").Options): {
+        'schema:startDate': import("./types/TestDataShape").DateRangeNodeConstraint;
+    };
+    function eventStatusMustNotBeCancelledOrPostponed(): {
+        'schema:eventStatus': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").EventStatusType, "schema:EventStatusType">;
+    };
 }

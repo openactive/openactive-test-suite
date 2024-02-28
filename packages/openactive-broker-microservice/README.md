@@ -473,7 +473,7 @@ Config, which [Integration Tests](../openactive-integration-tests/) uses to conf
 
 * Broker Microservice config
 * Derived Broker Microservice config e.g. `bookingApiBaseUrl` is parsed from the [Dataset Site JSON](https://openactive.io/dataset-api-discovery/EditorsDraft/#embedded-json) that was loaded from the Dataset Site defined by the [`datasetSiteUrl` configuration property](#datasetsiteurl).
-* Config from the `OpenActiveTestAuthKeyManager` that Broker Microservice sets up. See [openactive-openid-test-client](../openactive-openid-test-client/) for more info.
+* Config from the `OpenActiveTestAuthKeyManager` that Broker Microservice sets up. See [openactive-openid-client](../openactive-openid-client/) for more info.
 
 Here is an annotated example:
 
@@ -697,7 +697,7 @@ This is used by some [Non-Implemented tests](../openactive-integration-tests/REA
 
 ## Browser Automation for Auth Endpoints
 
-Broker Microservice also exposes endpoints created from the `setupBrowserAutomationRoutes(..)` function from [openactive-openid-test-client](../openactive-openid-test-client/).
+Broker Microservice also exposes endpoints created from the `setupBrowserAutomationRoutes(..)` function from [openactive-openid-browser-automation](../openactive-openid-browser-automation/).
 These endpoints are used by [Integration Tests](../openactive-integration-tests/) for tests which check the [OpenID Connect](https://openid.net/developers/how-connect-works/) authentication flow.
 
 ## Concepts
@@ -710,7 +710,7 @@ Broker Microservice sets up and maintains auth credentials for access to the [Bo
 
 These credentials are set up according to the auth strategy defined in the [`bookingPartners` configuration property](#bookingpartners).
 
-To do this, Broker Microservice uses the [openactive-openid-test-client](../openactive-openid-test-client/) library.
+To do this, Broker Microservice uses the [openactive-openid-client](../openactive-openid-client/) library.
 
 ### Booking System under Test
 
