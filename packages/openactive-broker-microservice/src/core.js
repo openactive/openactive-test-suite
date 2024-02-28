@@ -1292,6 +1292,11 @@ function monitorOrdersPage(orderFeedType, bookingPartnerIdentifier) {
   };
 }
 
+/**
+ * Download the Dataset Site and extract the embedded JSON from it.
+ *
+ * @param {string} url
+ */
 async function extractJSONLDfromDatasetSiteUrl(url) {
   if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
     log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
@@ -1316,6 +1321,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
 }
 
 async function startPolling() {
+  // Ready directories for temporary files used by Broker
   await Promise.all([
     mkdirp(VALIDATOR_TMP_DIR),
     setUpValidatorInputs(),
@@ -1323,6 +1329,7 @@ async function startPolling() {
   ]);
 
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
+  // TODO2 why?
   const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
   const validatorWorkerPool = new ValidatorWorkerPool(validatorTimeoutMs);
   validatorWorkerPool.run();
