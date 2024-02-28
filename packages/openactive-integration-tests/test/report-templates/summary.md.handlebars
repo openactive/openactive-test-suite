@@ -34,22 +34,23 @@ need to remove the relevant feature from your Test Suite configuration
 This is a list of the criteria, opportunity type, etc for which no opportunities
 were found, that also includes a list of which tests failed as a result:
 
-{{#each missingOpportunityDataSummary}}
+{{!-- This is rendered to HTML as the markdown->HTML renderer was creating <p>s
+  for each root list item, which resulted in overlarge margins --}}
+<ul>
+  {{#each missingOpportunityDataSummary}}
 
-- ❌️ Missing Criteria: **[{{@key}}](https://openactive.io/test-interface#{{@key}})**
-    * [Opportunity Types](https://developer.openactive.io/publishing-data/data-feeds/types-of-feed#event-relationship-overview): {{#each (lookup . "opportunityTypes")}}**{{.}}**{{#unless @last}}, {{/unless}}{{/each}}
-    * [Booking Flows](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#booking-flows): {{#each (lookup . "bookingFlows")}}**{{.}}**{{#unless @last}}, {{/unless}}{{/each}}
-    * Sellers: {{#each (lookup . "sellerIds")}}`{{.}}`{{#unless @last}}, {{/unless}}{{/each}}
-    * Tests failing as a result: {{lookup . "numTestsFailing"}}
+  <li>
+    ❌️ Missing Criteria: <strong><a href="https://openactive.io/test-interface#{{@key}}">{{@key}}</a></strong>
+    <ul>
+      <li><a href="https://developer.openactive.io/publishing-data/data-feeds/types-of-feed#event-relationship-overview">Opportunity Types</a>: {{#each (lookup . "opportunityTypes")}}<strong>{{.}}</strong>{{#unless @last}}, {{/unless}}{{/each}}</li>
+      <li><a href="https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#booking-flows">Booking Flows</a>: {{#each (lookup . "bookingFlows")}}<strong>{{.}}</strong>{{#unless @last}}, {{/unless}}{{/each}}</li>
+      <li>Sellers: {{#each (lookup . "sellerIds")}}<code>{{.}}</code>{{#unless @last}}, {{/unless}}{{/each}}</li>
+      <li>Tests failing as a result: {{lookup . "numTestsFailing"}}</li>
+    </ul>
+  </li>
 
-{{!-- - Criteria: **[{{@key}}](https://openactive.io/test-interface#{{@key}})**
-    * Sellers: {{#each (lookup . "sellers")}}`{{.}}`{{#unless @last}}, {{/unless}}{{/each}}
-    * Tests
-        {{#each (lookup . "tests")}}
-        - ❌ **{{opportunityTypeName}} >> {{lookup . "featureName"}} ({{lookup . "implementedDisplayLabel"}}) >>** [{{lookup . "suiteName"}}]({{lookup . "htmlLocalPath"}})
-        {{/each}} --}}
-
-{{/each}}
+  {{/each}}
+</ul>
 
 {{/if}}
 
