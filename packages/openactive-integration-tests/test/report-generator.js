@@ -11,15 +11,10 @@ const showdown = require('showdown');
 /**
  * @typedef {{
  *   [testOpportunityCriteria: string]: {
- *     sellers: string[];
- *     tests: {
- *       opportunityTypeName: string;
- *
- *       featureName: string;
- *       implementedDisplayLabel: string;
- *       suiteName: string;
- *       htmlLocalPath: string;
- *     }[];
+ *     sellerIds: string[];
+ *     opportunityTypes: string[];
+ *     bookingFlows: string[];
+ *     numTestsFailing: number;
  *   }
  * }} MissingOpportunityDataSummary
  */
@@ -462,32 +457,59 @@ class LoggerGroup {
     const stats = this.missingOpportunityDataStats;
     // Sort stats so that groupings are alphabetical and consistent in the
     // summary report.
-    const sorted = _.sortBy(stats, [
+    const statsSortedByCriteria = _.sortBy(stats, [
       'testOpportunityCriteria',
-      'sellerId',
-      'opportunityType',
-      'bookingFlow',
-      'testConfig.featureName',
-      'testConfig.implementedDisplayLabel',
-      'testConfig.suiteName',
     ]);
-    this._missingOpportunityDataSummary = sorted.reduce((acc, event) => {
+    this._missingOpportunityDataSummary = statsSortedByCriteria.reduce((acc, event) => {
       if (!acc[event.testOpportunityCriteria]) {
         acc[event.testOpportunityCriteria] = {
-          sellers: [],
-          tests: [],
+          sellerIds: [],
+          opportunityTypes: [],
+          bookingFlows: [],
+          numTestsFailing: 0,
         };
       }
       const summary = acc[event.testOpportunityCriteria];
-      // As items are already sorted by seller, we only need to check the last
-      // item in the array
-      if (_.last(summary.sellers) !== event.sellerId) {
-        summary.sellers.push(event.sellerId);
-      }
-      summary.tests.push(event.testConfig);
+      pushToSortedUniqueArray(summary.sellerIds, event.sellerId);
+      pushToSortedUniqueArray(summary.opportunityTypes, event.opportunityType);
+      pushToSortedUniqueArray(summary.bookingFlows, event.bookingFlow);
+      summary.numTestsFailing += 1;
       return acc;
     }, /** @type {MissingOpportunityDataSummary} */({}));
     return this._missingOpportunityDataSummary;
+  }
+}
+
+/**
+ * TODO2 doc
+ *
+ * ! Mutates `arr`
+ *
+ * @template T
+ * @param {T[]} arr
+ * @param {T} value
+ */
+function pushToSortedUniqueArray(arr, value) {
+  const index = _.sortedIndex(arr, value);
+  if (arr[index] === value) {
+    return;
+  }
+  arr.splice(index, 0, value);
+}
+
+/**
+ * Useful for when adding a collection of already-sorted but non-deduplicated
+ * items to an array of unique items.
+ *
+ * ! Mutates `arr`
+ *
+ * @template T
+ * @param {T[]} arr
+ * @param {T} value
+ */
+function pushIfDifferentToLast(arr, value) {
+  if (_.last(arr) !== value) {
+    arr.push(value);
   }
 }
 
