@@ -7,6 +7,7 @@ const { log } = require('./util/log');
 const { MICROSERVICE_BASE_URL } = require('./broker-config');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { OnePhaseListeners } = require('./onePhaseListeners');
+const { IncompleteFeeds } = require('./incomplete-feeds');
 
 /**
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
@@ -48,12 +49,7 @@ const state = {
    * @type {Map<string, FeedContext>}
    */
   feedContextMap: new Map(),
-  /**
-   * List of Feed identifiers which have not yet completed harvesting.
-   *
-   * @type {string[]}
-   */
-  incompleteFeeds: [],
+  incompleteFeeds: new IncompleteFeeds(),
   // API RESPONSES
   /**
    * Maps Listener ID => a "Listener" object, which can be used to return an API response to the client
@@ -140,13 +136,6 @@ function getAllDatasets() {
 }
 
 /**
- * @param {string} feedIdentifier
- */
-function addFeed(feedIdentifier) {
-  state.incompleteFeeds.push(feedIdentifier);
-}
-
-/**
  * @param {ValidatorWorkerPoolType} validatorWorkerPool
  */
 function setGlobalValidatorWorkerPool(validatorWorkerPool) {
@@ -161,7 +150,6 @@ module.exports = {
   state,
   getTestDataset,
   getAllDatasets,
-  addFeed,
   setGlobalValidatorWorkerPool,
   getGlobalValidatorWorkerPool,
 };

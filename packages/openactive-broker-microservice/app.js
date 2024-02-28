@@ -27,7 +27,7 @@ const {
 } = require('./src/broker-config');
 const { getIsOrderUuidPresentApi } = require('./src/order-uuid-tracking/api');
 const { createOpportunityListenerApi, getOpportunityListenerApi, createOrderListenerApi, getOrderListenerApi } = require('./src/twoPhaseListeners/api');
-const { addFeed } = require('./src/state');
+const { state } = require('./src/state');
 const {
   homepageRoute,
   healthCheckRoute,
@@ -90,8 +90,9 @@ app.post('/assert-unmatched-criteria', assertUnmatchedCriteriaRoute);
 // Sample Requests endpoint, used to underpin the Postman collection
 app.get('/sample-opportunities', getSampleOpportunitiesRoute);
 
-// Ensure that dataset site request also delays "readiness"
-addFeed('DatasetSite');
+/* Ensure that processing the Dataset Site, and initiating polling on all the
+feeds therein, delays the Broker Microservice from being "ready" */
+state.incompleteFeeds.markFeedHarvestStarted('DatasetSite');
 
 const server = http.createServer(app);
 server.on('error', onHttpServerError);
