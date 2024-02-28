@@ -117,6 +117,7 @@ class BaseReportGenerator {
       },
       "logsFor": (suite, type, options) => {
         let first = true;
+        // @ts-expect-error this.logger is only defined in ReportGenerator
         let logs = this.logger.logsFor(suite, type);
         let ret = "";
         for (let [i, value] of logs.entries()) {
@@ -140,6 +141,7 @@ class BaseReportGenerator {
         return ret;
       },
       "statusFor": (suite) => {
+        // @ts-expect-error this.logger is only defined in ReportGenerator
         let status = this.logger.statusFor(suite);
         return status;
       },
@@ -157,6 +159,9 @@ class BaseReportGenerator {
     return {};
   }
 
+  /**
+   * @returns {string}
+   */
   get reportHtmlPath () {
     throw "Not Implemented";
   }
@@ -191,7 +196,6 @@ class BaseReportGenerator {
     converter.setOption('moreStyling', true)
     converter.setOption('openLinksInNewWindow', true)
     const html = converter.makeHtml(data);
-
 
     await fs.writeFile(this.reportHtmlPath, html);
   }
@@ -343,6 +347,7 @@ class LoggerGroup {
 
     return this._opportunityTypeGroups = _
       .chain(this.loggers)
+      // @ts-expect-error logger.opportunityType and logger.bookingFlow are only defined when a logger is loaded from an output JSON
       .groupBy(logger => logger.opportunityType ? `${logger.bookingFlow} >> ${logger.opportunityType}` : "Generic")
       .mapValues(group => new LoggerGroup(this.reporter, group))
       .value();
@@ -394,7 +399,7 @@ class LoggerGroup {
           acc[key] = (acc[key] || 0) + value;
         }
         return acc;
-      }, {});
+      }, /** @type {Record<string, number>} */({}));
   }
 
   get validationStatusCounts () {
@@ -405,7 +410,7 @@ class LoggerGroup {
           acc[key] = (acc[key] || 0) + value;
         }
         return acc;
-      }, {});
+      }, /** @type {Record<string, number>} */({}));
   }
 
   get overallStatus () {
