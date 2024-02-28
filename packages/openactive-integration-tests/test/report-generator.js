@@ -327,7 +327,6 @@ class SummaryReportGenerator extends BaseReportGenerator {
     if (_.isEmpty(missingOpportunityDataSummary)) {
       return null;
     }
-    // Convert nested object to array of arrays for easier handling by handlebars
     this._missingOpportunityDataSummary = missingOpportunityDataSummary;
     return this._missingOpportunityDataSummary;
   }
