@@ -77,7 +77,6 @@ const { renderSampleOpportunities } = require('./src/sample-opportunities');
 /**
  * @typedef {import('./src/models/core').OrderFeedType} OrderFeedType
  * @typedef {import('./src/models/core').BookingPartnerIdentifier} BookingPartnerIdentifier
- *
  */
 
 const markdown = new Remarkable();
@@ -85,12 +84,390 @@ const markdown = new Remarkable();
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 silentlyAllowInsecureConnections();
 
-const app = express();
-app.use(express.json());
-setupBrowserAutomationRoutes(app, BUTTON_SELECTORS);
+startBroker();
 
-if (REQUEST_LOGGING_ENABLED) {
-  app.use(logger('dev'));
+function startBroker() {
+  const app = express();
+  app.use(express.json());
+  setupBrowserAutomationRoutes(app, BUTTON_SELECTORS);
+
+  if (REQUEST_LOGGING_ENABLED) {
+    app.use(logger('dev'));
+  }
+
+  // Provide helpful homepage as binding for root to allow the service to run in a container
+  app.get('/', homepageRoute);
+  app.get('/health-check', healthCheckRoute);
+  app.post('/pause', pauseRoute);
+  // Config endpoint used to get global variables within the integration tests
+  app.get('/config', getConfigRoute);
+  app.get('/dataset-site', getDatasetSiteRoute);
+  app.get('/orphans', getOrphansRoute);
+  app.get('/status', getStatusRoute);
+  app.get('/validation-errors', getValidationErrorsRoute);
+
+  app.delete('/opportunity-cache', deleteOpportunityCacheRoute);
+  app.get('/opportunity-cache/:id', getOpportunityCacheByIdRoute);
+
+  app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
+  app.get('/opportunity-listeners/:id', getOpportunityListenerApi);
+  app.post('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', createOrderListenerApi);
+  app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListenerApi);
+
+  app.get('/is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid', getIsOrderUuidPresentApi);
+
+  app.get('/opportunity/:id', getOpportunityByIdRoute);
+
+  app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', getRandomOpportunityRoute);
+  app.delete('/test-interface/datasets/:testDatasetIdentifier', deleteTestDatasetRoute);
+
+  app.post('/assert-unmatched-criteria', assertUnmatchedCriteriaRoute);
+
+  // Sample Requests endpoint, used to underpin the Postman collection
+  app.get('/sample-opportunities', getSampleOpportunitiesRoute);
+
+  // Ensure that dataset site request also delays "readiness"
+  addFeed('DatasetSite');
+
+  const server = http.createServer(app);
+  server.on('error', onError);
+
+  app.listen(PORT, () => {
+    log(`Broker Microservice running on port ${PORT}
+
+Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
+`);
+    // if this has been run as a child process in the `npm start` script, `process.send` will be defined.
+    if (process.send) {
+      // Notify parent process that the server is up
+      process.send('listening');
+    }
+
+    // Start polling after HTTP server starts listening
+    (async () => {
+      try {
+        await startPolling();
+      } catch (error) {
+        logError(error.stack);
+        process.exit(1);
+      }
+    })();
+  });
+
+  // Ensure bucket allocation does not become stale
+  setTimeout(() => {
+    logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
+    if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
+      const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
+      logError(`${message}\n`);
+      throw new Error(message);
+    }
+  }, 3600000); // 3600000 ms = 1 hour
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function homepageRoute(req, res) {
+  res.send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OpenActive Test Suite - Broker Microservice</title>
+</head>
+
+<body>
+  <h1>OpenActive Test Suite - Broker Microservice</h1>
+  <a href="/status">Status Page</a>
+  <a href="/validation-errors">Validation Errors</a>
+</body>
+</html>`);
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function healthCheckRoute(req, res) {
+  // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
+  // to ensure that the tests will not run until the feeds have been fully consumed
+  // Allow blocking for up to 10 minutes to fully harvest the feed
+  const wasPaused = state.pauseResume.resume();
+  if (wasPaused) log('Harvesting resumed');
+  req.setTimeout(1000 * 60 * 10);
+  if (WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0) {
+    state.healthCheckResponsesWaitingForHarvest.push(res);
+  } else {
+    res.send('openactive-broker');
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function pauseRoute(req, res) {
+  await state.pauseResume.pause();
+  log('Harvesting paused');
+  res.send();
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function getConfigRoute(req, res) {
+  await state.globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
+  res.json(getConfig());
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getDatasetSiteRoute(req, res) {
+  res.json(state.datasetSiteJson);
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getOrphansRoute(req, res) {
+  res.send(getOrphanJson());
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getStatusRoute(req, res) {
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
+  res.send({
+    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime()),
+    harvestingStatus: state.pauseResume.pauseHarvestingStatus,
+    feeds: mapToObjectSummary(state.feedContextMap),
+    orphans: {
+      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
+    },
+    totalOpportunitiesHarvested: totalOpportunities,
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.opportunityIdCache),
+  });
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function getValidationErrorsRoute(req, res) {
+  res.send(await renderValidationErrorsHtml(getGlobalValidatorWorkerPool()));
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function deleteOpportunityCacheRoute(req, res) {
+  state.parentOpportunityMap.clear();
+  state.parentOpportunityRpdeMap.clear();
+  state.opportunityMap.clear();
+  state.opportunityRpdeMap.clear();
+  state.rowStoreMap.clear();
+  state.parentIdIndex.clear();
+
+  state.opportunityIdCache = OpportunityIdCache.create();
+
+  res.status(204).send();
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getOpportunityCacheByIdRoute(req, res) {
+  if (req.params.id) {
+    const { id } = req.params;
+
+    const cachedResponse = getOpportunityMergedWithParentById(id);
+
+    if (cachedResponse) {
+      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+        logCharacter('.');
+      } else {
+        log(`Used cache for "${id}"`);
+      }
+      res.json({
+        data: cachedResponse,
+      });
+    } else {
+      res.status(404).json({
+        error: `Opportunity with id "${id}" was not found`,
+      });
+    }
+  } else {
+    res.status(400).json({
+      error: 'id is required',
+    });
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getOpportunityByIdRoute(req, res) {
+  if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
+  const { id } = req.params;
+
+  const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
+  /* Use ?expectedCapacity=2 for the Opportunity to appear with this capacity. If it is found with a different
+  capacity, this route will wait until it times out or the Opportunity is updated again with the expected
+  capacity. */
+  const expectedCapacity = (() => {
+    if ('expectedCapacity' in req.query) {
+      const asNum = Number(req.query.expectedCapacity);
+      // eslint-disable-next-line no-unused-expressions
+      expect(asNum).to.not.be.NaN;
+      return asNum;
+    }
+    return null;
+  })();
+
+  const doesItemMatchCriteria = isNil(expectedCapacity)
+    ? (() => true)
+    : ((rpdeItem) => (
+      criteriaUtils.getRemainingCapacity(rpdeItem.data) === expectedCapacity
+    ));
+  doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
+}
+
+/**
+ * A stand-in for the Test Interface Create Opportunity route, which instead
+ * gets a random opportunity from a Booking System which does not support
+ * Controlled Mode.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getRandomOpportunityRoute(req, res) {
+  if (DO_NOT_FILL_BUCKETS) {
+    res.status(403).json({
+      error: 'Test interface is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+    return;
+  }
+
+  // Use :testDatasetIdentifier to ensure the same id is not returned twice
+  const { testDatasetIdentifier } = req.params;
+
+  const opportunity = req.body;
+  const opportunityType = detectOpportunityType(opportunity);
+  const sellerId = detectSellerId(opportunity);
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
+
+  const result = getRandomBookableOpportunity({
+    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
+  });
+  if (result && result.opportunity) {
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
+    }
+    res.json(result.opportunity);
+  } else {
+    logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${opportunityType}) call failed: No matching opportunities found`);
+    res.status(404).json({
+      error: `Opportunity of type '${opportunityType}' that has an \`organizer\`/\`provider\` with \`@id\` '${sellerId}', that also matched '${criteriaName}' within '${bookingFlow}', was not found within the feeds.`,
+      ...result,
+    });
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function deleteTestDatasetRoute(req, res) {
+  // Use :testDatasetIdentifier to identify locks, and clear them
+  const { testDatasetIdentifier } = req.params;
+  releaseOpportunityLocks(testDatasetIdentifier);
+  res.status(204).send();
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function assertUnmatchedCriteriaRoute(req, res) {
+  if (DO_NOT_FILL_BUCKETS) {
+    res.status(403).json({
+      error: 'Bucket functionality is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
+    });
+    return;
+  }
+
+  const opportunity = req.body;
+  const opportunityType = detectOpportunityType(opportunity);
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
+
+  const result = assertOpportunityCriteriaNotFound({
+    opportunityType, criteriaName, bookingFlow,
+  });
+
+  if (result) {
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
+    }
+    res.status(204).send();
+  } else {
+    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
+      logCharacter('.');
+    } else {
+      log(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
+    }
+    res.status(404).json({
+      error: `Opportunities exist in the feeds that match '${criteriaName}' for Opportunity Type '${opportunityType}'. The current configuration of the test suite asserts that such opportunities should not exist. One of the \`implementedFeatures\` in the test suite configuration is likely set to \`false\` when it should be set to \`true\`.`,
+    });
+  }
+}
+
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+function getSampleOpportunitiesRoute(req, res) {
+  // Get random opportunity ID
+  const opportunity = req.body;
+  const opportunityType = detectOpportunityType(opportunity);
+  const sellerId = detectSellerId(opportunity);
+  const testDatasetIdentifier = 'sample-opportunities';
+
+  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
+  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
+
+  const bookableOpportunity = getRandomBookableOpportunity({
+    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
+  });
+
+  if (bookableOpportunity.opportunity) {
+    const opportunityWithParent = getOpportunityMergedWithParentById(
+      bookableOpportunity.opportunity['@id'],
+    );
+    const json = renderSampleOpportunities(opportunityWithParent, criteriaName, sellerId);
+    res.json(json);
+  } else {
+    res.json({
+      error: bookableOpportunity,
+    });
+  }
 }
 
 /**
@@ -371,44 +748,6 @@ function unlockHealthCheck() {
   state.incompleteFeeds.splice(0, state.incompleteFeeds.length);
 }
 
-// Provide helpful homepage as binding for root to allow the service to run in a container
-// @ts-ignore
-app.get('/', (req, res) => {
-  res.send(`<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>OpenActive Test Suite - Broker Microservice</title>
-</head>
-
-<body>
-  <h1>OpenActive Test Suite - Broker Microservice</h1>
-  <a href="/status">Status Page</a>
-  <a href="/validation-errors">Validation Errors</a>
-</body>
-</html>`);
-});
-
-app.get('/health-check', async function (req, res) {
-  // Healthcheck response will block until all feeds are up-to-date, which is useful in CI environments
-  // to ensure that the tests will not run until the feeds have been fully consumed
-  // Allow blocking for up to 10 minutes to fully harvest the feed
-  const wasPaused = state.pauseResume.resume();
-  if (wasPaused) log('Harvesting resumed');
-  req.setTimeout(1000 * 60 * 10);
-  if (WAIT_FOR_HARVEST && state.incompleteFeeds.length !== 0) {
-    state.healthCheckResponsesWaitingForHarvest.push(res);
-  } else {
-    res.send('openactive-broker');
-  }
-});
-
-app.post('/pause', async function (req, res) {
-  await state.pauseResume.pause();
-  log('Harvesting paused');
-  res.send();
-});
-
 function getConfig() {
   return {
     // Allow a consistent startDate to be used when calling test-interface-criteria
@@ -421,16 +760,6 @@ function getConfig() {
     headlessAuth: HEADLESS_AUTH,
   };
 }
-
-// Config endpoint used to get global variables within the integration tests
-app.get('/config', async function (req, res) {
-  await state.globalAuthKeyManager.refreshAuthorizationCodeFlowAccessTokensIfNeeded();
-  res.json(getConfig());
-});
-
-app.get('/dataset-site', function (req, res) {
-  res.json(state.datasetSiteJson);
-});
 
 /**
  * @param {Map | Set} map
@@ -504,10 +833,6 @@ function getOrphanJson() {
   };
 }
 
-app.get('/orphans', function (req, res) {
-  res.send(getOrphanJson());
-});
-
 /**
  * @typedef {Object} OrphanStats
  * @property {number} childOrphans
@@ -532,64 +857,6 @@ function getOrphanStats() {
     totalOpportunities,
   };
 }
-
-app.get('/status', function (req, res) {
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
-  res.send({
-    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime()),
-    harvestingStatus: state.pauseResume.pauseHarvestingStatus,
-    feeds: mapToObjectSummary(state.feedContextMap),
-    orphans: {
-      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
-    },
-    totalOpportunitiesHarvested: totalOpportunities,
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.opportunityIdCache),
-  });
-});
-
-app.get('/validation-errors', async function (req, res) {
-  res.send(await renderValidationErrorsHtml(getGlobalValidatorWorkerPool()));
-});
-
-app.delete('/opportunity-cache', function (req, res) {
-  state.parentOpportunityMap.clear();
-  state.parentOpportunityRpdeMap.clear();
-  state.opportunityMap.clear();
-  state.opportunityRpdeMap.clear();
-  state.rowStoreMap.clear();
-  state.parentIdIndex.clear();
-
-  state.opportunityIdCache = OpportunityIdCache.create();
-
-  res.status(204).send();
-});
-
-app.get('/opportunity-cache/:id', function (req, res) {
-  if (req.params.id) {
-    const { id } = req.params;
-
-    const cachedResponse = getOpportunityMergedWithParentById(id);
-
-    if (cachedResponse) {
-      if (CONSOLE_OUTPUT_LEVEL === 'dot') {
-        logCharacter('.');
-      } else {
-        log(`Used cache for "${id}"`);
-      }
-      res.json({
-        data: cachedResponse,
-      });
-    } else {
-      res.status(404).json({
-        error: `Opportunity with id "${id}" was not found`,
-      });
-    }
-  } else {
-    res.status(400).json({
-      error: 'id is required',
-    });
-  }
-});
 
 /**
  * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
@@ -617,13 +884,6 @@ function doNotifyOrderListener(type, bookingPartnerIdentifier, uuid, item) {
   const listenerId = TwoPhaseListeners.getOrderListenerId(type, bookingPartnerIdentifier, uuid);
   TwoPhaseListeners.doNotifyListener(state.twoPhaseListeners.byOrderUuid, listenerId, item);
 }
-
-app.post('/opportunity-listeners/:id', createOpportunityListenerApi);
-app.get('/opportunity-listeners/:id', getOpportunityListenerApi);
-app.post('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', createOrderListenerApi);
-app.get('/order-listeners/:type/:bookingPartnerIdentifier/:uuid', getOrderListenerApi);
-
-app.get('/is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid', getIsOrderUuidPresentApi);
 
 /**
  * @param {string} opportunityId
@@ -661,32 +921,6 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
     log(`listening for "${opportunityId}"`);
   }
 }
-
-app.get('/opportunity/:id', function (req, res) {
-  if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
-  const { id } = req.params;
-
-  const useCacheIfAvailable = req.query.useCacheIfAvailable === 'true';
-  /* Use ?expectedCapacity=2 for the Opportunity to appear with this capacity. If it is found with a different
-  capacity, this route will wait until it times out or the Opportunity is updated again with the expected
-  capacity. */
-  const expectedCapacity = (() => {
-    if ('expectedCapacity' in req.query) {
-      const asNum = Number(req.query.expectedCapacity);
-      // eslint-disable-next-line no-unused-expressions
-      expect(asNum).to.not.be.NaN;
-      return asNum;
-    }
-    return null;
-  })();
-
-  const doesItemMatchCriteria = isNil(expectedCapacity)
-    ? (() => true)
-    : ((rpdeItem) => (
-      criteriaUtils.getRemainingCapacity(rpdeItem.data) === expectedCapacity
-    ));
-  doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
-});
 
 function getTypeFromOpportunityType(opportunityType) {
   const mapping = {
@@ -783,115 +1017,6 @@ function detectOpportunityBookingFlows(opportunity) {
   }
   return [...bookingFlows];
 }
-
-app.post('/test-interface/datasets/:testDatasetIdentifier/opportunities', function (req, res) {
-  if (DO_NOT_FILL_BUCKETS) {
-    res.status(403).json({
-      error: 'Test interface is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
-    });
-    return;
-  }
-
-  // Use :testDatasetIdentifier to ensure the same id is not returned twice
-  const { testDatasetIdentifier } = req.params;
-
-  const opportunity = req.body;
-  const opportunityType = detectOpportunityType(opportunity);
-  const sellerId = detectSellerId(opportunity);
-  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
-
-  const result = getRandomBookableOpportunity({
-    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
-  });
-  if (result && result.opportunity) {
-    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
-      logCharacter('.');
-    } else {
-      log(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${result.opportunity['@type']}): ${result.opportunity['@id']}`);
-    }
-    res.json(result.opportunity);
-  } else {
-    logError(`Random Bookable Opportunity from seller ${sellerId} for ${criteriaName} within ${bookingFlow} (${opportunityType}) call failed: No matching opportunities found`);
-    res.status(404).json({
-      error: `Opportunity of type '${opportunityType}' that has an \`organizer\`/\`provider\` with \`@id\` '${sellerId}', that also matched '${criteriaName}' within '${bookingFlow}', was not found within the feeds.`,
-      ...result,
-    });
-  }
-});
-
-app.delete('/test-interface/datasets/:testDatasetIdentifier', function (req, res) {
-  // Use :testDatasetIdentifier to identify locks, and clear them
-  const { testDatasetIdentifier } = req.params;
-  releaseOpportunityLocks(testDatasetIdentifier);
-  res.status(204).send();
-});
-
-app.post('/assert-unmatched-criteria', function (req, res) {
-  if (DO_NOT_FILL_BUCKETS) {
-    res.status(403).json({
-      error: 'Bucket functionality is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
-    });
-    return;
-  }
-
-  const opportunity = req.body;
-  const opportunityType = detectOpportunityType(opportunity);
-  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
-
-  const result = assertOpportunityCriteriaNotFound({
-    opportunityType, criteriaName, bookingFlow,
-  });
-
-  if (result) {
-    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
-      logCharacter('.');
-    } else {
-      log(`Asserted that no opportunities match ${criteriaName} (${opportunityType}).`);
-    }
-    res.status(204).send();
-  } else {
-    if (CONSOLE_OUTPUT_LEVEL === 'dot') {
-      logCharacter('.');
-    } else {
-      log(`Call failed for "/assert-unmatched-criteria" for ${criteriaName} (${opportunityType}): Matching opportunities found.`);
-    }
-    res.status(404).json({
-      error: `Opportunities exist in the feeds that match '${criteriaName}' for Opportunity Type '${opportunityType}'. The current configuration of the test suite asserts that such opportunities should not exist. One of the \`implementedFeatures\` in the test suite configuration is likely set to \`false\` when it should be set to \`true\`.`,
-    });
-  }
-});
-
-// Sample Requests endpoint, used to underpin the Postman collection
-app.get('/sample-opportunities', function (req, res) {
-  // Get random opportunity ID
-  const opportunity = req.body;
-  const opportunityType = detectOpportunityType(opportunity);
-  const sellerId = detectSellerId(opportunity);
-  const testDatasetIdentifier = 'sample-opportunities';
-
-  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
-
-  const bookableOpportunity = getRandomBookableOpportunity({
-    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
-  });
-
-  if (bookableOpportunity.opportunity) {
-    const opportunityWithParent = getOpportunityMergedWithParentById(
-      bookableOpportunity.opportunity['@id'],
-    );
-    const json = renderSampleOpportunities(opportunityWithParent, criteriaName, sellerId);
-    res.json(json);
-  } else {
-    res.json({
-      error: bookableOpportunity,
-    });
-  }
-});
 
 /**
  * @typedef {(
@@ -1555,44 +1680,6 @@ Validation errors found in Dataset Site JSON-LD:
   // Wait until all harvesters error catastrophically before existing
   await Promise.all(harvesters);
 }
-
-// Ensure that dataset site request also delays "readiness"
-addFeed('DatasetSite');
-
-const server = http.createServer(app);
-server.on('error', onError);
-
-app.listen(PORT, () => {
-  log(`Broker Microservice running on port ${PORT}
-
-Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
-`);
-  // if this has been run as a child process in the `npm start` script, `process.send` will be defined.
-  if (process.send) {
-    // Notify parent process that the server is up
-    process.send('listening');
-  }
-
-  // Start polling after HTTP server starts listening
-  (async () => {
-    try {
-      await startPolling();
-    } catch (error) {
-      logError(error.stack);
-      process.exit(1);
-    }
-  })();
-});
-
-// Ensure bucket allocation does not become stale
-setTimeout(() => {
-  logError('\n------ WARNING: openactive-broker-microservice has been running for too long ------\n\nOpportunities are sorted into test-interface-criteria buckets based on the startDate of the opportunity when it is harvested. The means that the broker microservice must be restarted periodically to ensure its buckets allocation does not get stale. If bucket allocation becomes stale, tests will start to fail randomly.\n');
-  if (!DISABLE_BROKER_TIMEOUT && !DO_NOT_FILL_BUCKETS) {
-    const message = 'BROKER TIMEOUT: The openactive-broker-microservice has been running for too long and its bucket allocation is at risk of becoming stale. It must be restarted to continue.';
-    logError(`${message}\n`);
-    throw new Error(message);
-  }
-}, 3600000); // 3600000 ms = 1 hour
 
 /**
  * Event listener for HTTP server "error" event.
