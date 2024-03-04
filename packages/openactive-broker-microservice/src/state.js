@@ -11,7 +11,7 @@ const { IncompleteFeeds } = require('./incomplete-feeds');
 
 /**
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
- * @typedef {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} FeedContext
+ * @typedef {import('@openactive/harvesting-utils').FeedContext} FeedContext
  */
 /**
  * @typedef {object} PendingResponse
@@ -32,11 +32,12 @@ const state = {
   datasetSiteJson: {},
   // TEST DATASETS
   /**
-   * For each Test Dataset, a set of IDs of Opportunities which have been randomly generated for this Test Dataset.
+   * For each Test Dataset, a set of IDs of Opportunities which are now
+   * considered "locked" because they have already been used in a test.
    *
    * @type {Map<string, Set<string>>}
    */
-  testDatasets: new Map(),
+  lockedOpportunityIdsByTestDataset: new Map(),
   // HARVESTING
   /**
    * Harvesting state for each RPDE feed.
@@ -122,17 +123,21 @@ const state = {
 };
 
 /**
+ * All Opportunity IDs that are considered "locked" (because they have already
+ * been used in a test) for the specified [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints).
+ *
  * @param {string} testDatasetIdentifier
+ * @returns {Set<string>}
  */
-function getTestDataset(testDatasetIdentifier) {
-  if (!state.testDatasets.has(testDatasetIdentifier)) {
-    state.testDatasets.set(testDatasetIdentifier, new Set());
+function getLockedOpportunityIdsInTestDataset(testDatasetIdentifier) {
+  if (!state.lockedOpportunityIdsByTestDataset.has(testDatasetIdentifier)) {
+    state.lockedOpportunityIdsByTestDataset.set(testDatasetIdentifier, new Set());
   }
-  return state.testDatasets.get(testDatasetIdentifier);
+  return state.lockedOpportunityIdsByTestDataset.get(testDatasetIdentifier);
 }
 
-function getAllDatasets() {
-  return new Set(Array.from(state.testDatasets.values()).flatMap((x) => Array.from(x.values())));
+function getAllLockedOpportunityIds() {
+  return new Set(Array.from(state.lockedOpportunityIdsByTestDataset.values()).flatMap((x) => Array.from(x.values())));
 }
 
 /**
@@ -148,8 +153,8 @@ function getGlobalValidatorWorkerPool() {
 
 module.exports = {
   state,
-  getTestDataset,
-  getAllDatasets,
+  getLockedOpportunityIdsInTestDataset,
+  getAllLockedOpportunityIds,
   setGlobalValidatorWorkerPool,
   getGlobalValidatorWorkerPool,
 };

@@ -43,7 +43,7 @@ const {
   BOOKING_PARTNER_IDENTIFIERS,
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
-const { state, getTestDataset, getAllDatasets, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
+const { state, getLockedOpportunityIdsInTestDataset, getAllLockedOpportunityIds, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
 const { orderFeedContextIdentifier } = require('./util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./util/request-utils');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
@@ -429,6 +429,9 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
 }
 
 /**
+ * Get a random opportunity from Broker Microservice's cache that matches the
+ * criteria.
+ *
  * @param {object} args
  * @param {string} args.sellerId
  * @param {string} args.bookingFlow
@@ -455,8 +458,8 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
     };
   } // Seller has no items
 
-  const allTestDatasets = getAllDatasets();
-  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allTestDatasets.has(x));
+  const opportunityIdsFromAllTestDatasets = getAllLockedOpportunityIds();
+  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !opportunityIdsFromAllTestDatasets.has(x));
 
   if (unusedBucketItems.length === 0) {
     return {
@@ -467,7 +470,7 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
   const id = unusedBucketItems[Math.floor(Math.random() * unusedBucketItems.length)];
 
   // Add the item to the testDataset to ensure it does not get reused
-  getTestDataset(testDatasetIdentifier).add(id);
+  getLockedOpportunityIdsInTestDataset(testDatasetIdentifier).add(id);
 
   return {
     opportunity: {
@@ -494,7 +497,7 @@ function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, book
 }
 
 function releaseOpportunityLocks(testDatasetIdentifier) {
-  const testDataset = getTestDataset(testDatasetIdentifier);
+  const testDataset = getLockedOpportunityIdsInTestDataset(testDatasetIdentifier);
   log(`Cleared dataset '${testDatasetIdentifier}' of opportunity locks ${Array.from(testDataset).join(', ')}`);
   testDataset.clear();
 }
@@ -1417,17 +1420,8 @@ Validation errors found in Dataset Site JSON-LD:
     if (LOG_AUTH_CONFIG) log(`\nAugmented config supplied to Integration Tests: ${JSON.stringify(getConfig(), null, 2)}\n`);
   }
 
-  const harvesters = [];
-
-  const isParentFeed = {
-    'https://openactive.io/SessionSeries': true,
-    'https://openactive.io/FacilityUse': true,
-    'https://openactive.io/IndividualFacilityUse': true,
-    'https://openactive.io/ScheduledSession': false,
-    'https://openactive.io/Slot': false,
-    'https://schema.org/Event': false,
-    'https://schema.org/OnDemandEvent': false,
-  };
+  /** @type {Promise[]} Promises that resolve when the harvester has exited due to fatal error */
+  const harvesterExitPromises = [];
 
   const hasTotalItems = dataset.distribution.filter((x) => x.totalItems).length > 0;
   state.multibar = new cliProgress.MultiBar({
@@ -1441,83 +1435,14 @@ Validation errors found in Dataset Site JSON-LD:
       : '{feedIdentifier} | {items} items harvested from {pages} pages | Response time: {responseTime}ms | Elapsed: {duration_formatted} | Validated: {value} of {total} ({percentage}%) ETA: {eta_formatted} | Status: {status}',
   }, cliProgress.Presets.shades_grey);
 
-  dataset.distribution.forEach((dataDownload) => {
-    const feedContextIdentifier = dataDownload.identifier || dataDownload.name || dataDownload.additionalType;
-    const feedContext = createFeedContext(feedContextIdentifier, dataDownload.contentUrl, state.multibar);
-    const onValidateItemsForThisFeed = partial(onValidateItems, feedContext);
-    validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
-
-    const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
-      feedContextIdentifier,
-      addToTotalItemsQueuedForValidation(addition) {
-        feedContext.totalItemsQueuedForValidation += addition;
-      },
-    });
-
-    const onFeedEnd = async () => {
-      await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
-        multibar: state.multibar,
-      });
-    };
-
-    if (isParentFeed[dataDownload.additionalType] === true) {
-      log(`Found parent opportunity feed: ${dataDownload.contentUrl}`);
-      state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
-      const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
-      harvesters.push(
-        harvestRPDE({
-          baseUrl: dataDownload.contentUrl,
-          feedContextIdentifier,
-          headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          processPage: ingestParentOpportunityPageForThisFeed,
-          onFeedEnd,
-          isOrdersFeed: false,
-          state: {
-            context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime,
-          },
-          loggingFns: {
-            log, logError, logErrorDuringHarvest,
-          },
-          config: {
-            WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED,
-          },
-          options: {
-            multibar: state.multibar, pauseResume: state.pauseResume,
-          },
-        }),
-      );
-    } else if (isParentFeed[dataDownload.additionalType] === false) {
-      log(`Found opportunity feed: ${dataDownload.contentUrl}`);
-      state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
-      const ingestOpportunityPageForThisFeed = partialRight(ingestOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
-
-      harvesters.push(
-        harvestRPDE({
-          baseUrl: dataDownload.contentUrl,
-          feedContextIdentifier,
-          headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          processPage: ingestOpportunityPageForThisFeed,
-          onFeedEnd,
-          isOrdersFeed: false,
-          state: {
-            context: feedContext, feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime,
-          },
-          loggingFns: {
-            log, logError, logErrorDuringHarvest,
-          },
-          config: {
-            WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED,
-          },
-          options: {
-            multibar: state.multibar, pauseResume: state.pauseResume,
-          },
-        }),
-      );
-    } else {
-      logError(`\nERROR: Found unsupported feed in dataset site "${dataDownload.contentUrl}" with additionalType "${dataDownload.additionalType}"`);
-      logError(`Only the following additionalType values are supported: \n${Object.keys(isParentFeed).map((x) => `- "${x}"`).join('\n')}'`);
-    }
-  });
+  // Start polling for all Opportunity feeds concurrently
+  harvesterExitPromises.push(
+    ...dataset.distribution.map((datasetDistributionItem) => (
+      startPollingForOpportunityFeed(datasetDistributionItem, {
+        validatorWorkerPool,
+      })
+    )),
+  );
 
   // Only poll orders feed if included in the dataset site
   if (!VALIDATE_ONLY && !DO_NOT_HARVEST_ORDERS_FEED && dataset.accessService && dataset.accessService.endpointUrl) {
@@ -1536,34 +1461,9 @@ Validation errors found in Dataset Site JSON-LD:
       },
     ])) {
       log(`Found ${type} feed: ${feedUrl}`);
-      const onFeedEnd = async () => {
-        OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
-        await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
-          multibar: state.multibar,
-        });
-      };
-
-      state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
-      harvesters.push(
-        harvestRPDE({
-          baseUrl: feedUrl,
-          feedContextIdentifier,
-          headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-          processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
-          onFeedEnd,
-          isOrdersFeed: true,
-          state: {
-            feedContextMap: state.feedContextMap, incompleteFeeds: state.incompleteFeeds, startTime: state.startTime,
-          },
-          loggingFns: {
-            log, logError, logErrorDuringHarvest,
-          },
-          config: {
-            WAIT_FOR_HARVEST, VALIDATE_ONLY, VERBOSE, ORDER_PROPOSALS_FEED_IDENTIFIER, REQUEST_LOGGING_ENABLED,
-          },
-          options: {
-            multibar: state.multibar, pauseResume: state.pauseResume,
-          },
+      harvesterExitPromises.push(
+        startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, feedBookingPartnerIdentifier, {
+          validatorWorkerPool,
         }),
       );
     }
@@ -1575,8 +1475,160 @@ Validation errors found in Dataset Site JSON-LD:
     multibar: state.multibar,
   });
 
-  // Wait until all harvesters error catastrophically before existing
-  await Promise.all(harvesters);
+  // Wait until all harvesters error catastrophically before exiting
+  await Promise.all(harvesterExitPromises);
+}
+
+/**
+ * Maps a Dataset Distribution item's additionalType to whether or not it is a parent feed.
+ */
+const DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED = {
+  'https://openactive.io/SessionSeries': true,
+  'https://openactive.io/FacilityUse': true,
+  'https://openactive.io/IndividualFacilityUse': true,
+  'https://openactive.io/ScheduledSession': false,
+  'https://openactive.io/Slot': false,
+  'https://schema.org/Event': false,
+  'https://schema.org/OnDemandEvent': false,
+};
+
+/**
+ * @param {any} datasetDistributionItem
+ * @param {object} args
+ * @param {ValidatorWorkerPool} args.validatorWorkerPool
+ */
+async function startPollingForOpportunityFeed(datasetDistributionItem, { validatorWorkerPool }) {
+  const feedContextIdentifier = datasetDistributionItem.identifier || datasetDistributionItem.name || datasetDistributionItem.additionalType;
+  const feedContext = createFeedContext(feedContextIdentifier, datasetDistributionItem.contentUrl, state.multibar);
+  const onValidateItemsForThisFeed = partial(onValidateItems, feedContext);
+  validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
+
+  const sendItemsToValidatorWorkerPoolForThisFeed = partial(sendItemsToValidatorWorkerPool, {
+    feedContextIdentifier,
+    addToTotalItemsQueuedForValidation(addition) {
+      feedContext.totalItemsQueuedForValidation += addition;
+    },
+  });
+
+  const onFeedEnd = async () => {
+    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+      multibar: state.multibar,
+    });
+  };
+
+  if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
+    log(`Found parent opportunity feed: ${datasetDistributionItem.contentUrl}`);
+    state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
+    const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
+
+    await harvestRPDE({
+      baseUrl: datasetDistributionItem.contentUrl,
+      feedContextIdentifier,
+      headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+      processPage: ingestParentOpportunityPageForThisFeed,
+      onFeedEnd,
+      onError: harvestRpdeOnError,
+      isOrdersFeed: false,
+      state: {
+        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+      },
+      loggingFns: {
+        log, logError, logErrorDuringHarvest,
+      },
+      config: {
+        howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
+        WAIT_FOR_HARVEST,
+        VALIDATE_ONLY,
+        VERBOSE,
+        ORDER_PROPOSALS_FEED_IDENTIFIER,
+        REQUEST_LOGGING_ENABLED,
+      },
+      options: {
+        multibar: state.multibar, pauseResume: state.pauseResume,
+      },
+    });
+    return;
+  }
+  if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === false) {
+    log(`Found opportunity feed: ${datasetDistributionItem.contentUrl}`);
+    state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
+    const ingestOpportunityPageForThisFeed = partialRight(ingestOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
+
+    await harvestRPDE({
+      baseUrl: datasetDistributionItem.contentUrl,
+      feedContextIdentifier,
+      headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+      processPage: ingestOpportunityPageForThisFeed,
+      onFeedEnd,
+      onError: harvestRpdeOnError,
+      isOrdersFeed: false,
+      state: {
+        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+      },
+      loggingFns: {
+        log, logError, logErrorDuringHarvest,
+      },
+      config: {
+        howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
+        WAIT_FOR_HARVEST,
+        VALIDATE_ONLY,
+        VERBOSE,
+        ORDER_PROPOSALS_FEED_IDENTIFIER,
+        REQUEST_LOGGING_ENABLED,
+      },
+      options: {
+        multibar: state.multibar, pauseResume: state.pauseResume,
+      },
+    });
+    return;
+  }
+  logError(`\nERROR: Found unsupported feed in dataset site "${datasetDistributionItem.contentUrl}" with additionalType "${datasetDistributionItem.additionalType}"`);
+  logError(`Only the following additionalType values are supported: \n${Object.keys(DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED).map((x) => `- "${x}"`).join('\n')}'`);
+}
+
+/**
+ * @param {string} feedUrl
+ * @param {OrderFeedType} type
+ * @param {string} feedContextIdentifier
+ * @param {string} feedBookingPartnerIdentifier
+ * @param {object} args
+ * @param {ValidatorWorkerPool} args.validatorWorkerPool
+ */
+async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, feedBookingPartnerIdentifier, { validatorWorkerPool }) {
+  const onFeedEnd = async () => {
+    OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
+    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+      multibar: state.multibar,
+    });
+  };
+
+  state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
+  await harvestRPDE({
+    baseUrl: feedUrl,
+    feedContextIdentifier,
+    headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
+    processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
+    onFeedEnd,
+    onError: harvestRpdeOnError,
+    isOrdersFeed: true,
+    state: {
+      feedContextMap: state.feedContextMap, startTime: state.startTime,
+    },
+    loggingFns: {
+      log, logError, logErrorDuringHarvest,
+    },
+    config: {
+      howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
+      WAIT_FOR_HARVEST,
+      VALIDATE_ONLY,
+      VERBOSE,
+      ORDER_PROPOSALS_FEED_IDENTIFIER,
+      REQUEST_LOGGING_ENABLED,
+    },
+    options: {
+      multibar: state.multibar, pauseResume: state.pauseResume,
+    },
+  });
 }
 
 /**
@@ -1624,7 +1676,7 @@ async function sendItemsToValidatorWorkerPool({
 }
 
 /**
- * @param {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} context
+ * @param {import('@openactive/harvesting-utils').FeedContext} context
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
@@ -1641,6 +1693,15 @@ function onValidateItems(context, numItems) {
       context._progressbar.update(context.validatedItems, progressFromContext(context));
     }
   }
+}
+
+function harvestRpdeHowLongToSleepAtFeedEnd() {
+  // Slow down sleep polling while waiting for harvesting of other feeds to complete
+  return WAIT_FOR_HARVEST && state.incompleteFeeds.anyFeedsStillHarvesting() ? 5000 : 500;
+}
+
+function harvestRpdeOnError() {
+  process.exit(1);
 }
 
 module.exports = {
