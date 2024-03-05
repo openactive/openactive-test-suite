@@ -9,8 +9,8 @@ const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking
 const { OnePhaseListeners } = require('./onePhaseListeners');
 
 /**
- * @typedef {import('./models/core').FeedContext} FeedContext
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
+ * @typedef {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} FeedContext
  */
 /**
  * @typedef {object} PendingResponse
