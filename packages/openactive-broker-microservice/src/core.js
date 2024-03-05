@@ -233,6 +233,7 @@ function getOpportunityByIdRoute(req, res) {
     : ((rpdeItem) => (
       criteriaUtils.getRemainingCapacity(rpdeItem.data) === expectedCapacity
     ));
+  // If it's not in the cache already, the route will return if/when it is found
   doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
 }
 
@@ -496,6 +497,9 @@ function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, book
   return Array.from(typeBucket.contents).every(([, items]) => (items.size === 0));
 }
 
+/**
+ * @param {string} testDatasetIdentifier
+ */
 function releaseOpportunityLocks(testDatasetIdentifier) {
   const testDataset = getLockedOpportunityIdsInTestDataset(testDatasetIdentifier);
   log(`Cleared dataset '${testDatasetIdentifier}' of opportunity locks ${Array.from(testDataset).join(', ')}`);
@@ -503,18 +507,22 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
 }
 
 /**
- * @param {string} opportunityId
+ * For a given `childOpportunityId`, fetch the full opportunity from the cache.
+ * If the opportunity has a parent, the full opportunity for the parent will be
+ * fetched and merged into the `superEvent` or `facilityUse` property.
+ *
+ * @param {string} childOpportunityId
  */
-function getOpportunityMergedWithParentById(opportunityId) {
-  const opportunity = state.opportunityMap.get(opportunityId);
+function getOpportunityMergedWithParentById(childOpportunityId) {
+  const opportunity = state.opportunityMap.get(childOpportunityId);
   if (!opportunity) {
     return null;
   }
   if (!jsonLdHasReferencedParent(opportunity)) {
     return opportunity;
   }
-  const superEvent = state.parentOpportunityMap.get(opportunity.superEvent);
-  const facilityUse = state.parentOpportunityMap.get(opportunity.facilityUse);
+  const superEvent = state.parentOpportunityMap.get(/** @type {string} */(opportunity.superEvent));
+  const facilityUse = state.parentOpportunityMap.get(/** @type {string} */(opportunity.facilityUse));
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     delete opportunity['@context'];
@@ -547,6 +555,13 @@ function getOpportunityMergedWithParentById(opportunityId) {
 }
 
 /**
+ * Call this function on a feed when the last page has been fetched, indicating
+ * that we have, as of the time of the last page fetch, read and cached all
+ * data from the feed.
+ *
+ * It marks the feed as complete, and if all feeds are complete, it triggers
+ * some housekeeping.
+ *
  * @param {ValidatorWorkerPool} validatorWorkerPool
  * @param {string} feedIdentifier
  * @param {object} [options]
@@ -559,7 +574,8 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   if (state.incompleteFeeds.anyFeedsStillHarvesting()) {
     return;
   }
-  // If all feeds are now completed, trigger responses to healthcheck
+  // All feeds are now completed
+  // Finish and cleanup any ongoing validation work
   /* Signal for the Validator Worker Pool that we may stop once the validator timeout has run.
   Validator is an expensive process and is not completely necessary for Booking API testing. So we put a hard
   limit on how long it runs for (once all items are harvested).
@@ -568,9 +584,12 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   await validatorWorkerPool.stopWhenTimedOut();
   await cleanUpValidatorInputs();
 
+  // Stop showing progress bar
   if (multibar) multibar.stop();
 
   log('Harvesting is up-to-date');
+
+  // Run some assertions to ensure that feed harvesting has lead to the correct state.
   const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
 
   let validationPassed = true;
@@ -630,9 +649,14 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
     process.exit(1);
   }
 
+  // Since all feeds are now completed, trigger responses to healthcheck
   unlockHealthCheck();
 }
 
+/**
+ * Resolve all pending /health-check requests and set subsequent requests to
+ * resolve immediately.
+ */
 function unlockHealthCheck() {
   state.healthCheckResponsesWaitingForHarvest.forEach((res) => res.send('openactive-broker'));
   // Clear response array
@@ -655,6 +679,13 @@ function getConfig() {
 }
 
 /**
+ * Convert an ES Map to a plain object (recursively), summarising some aspects
+ * as follows:
+ *
+ * - Any value that is an ES Set will be replaced with its size
+ * - Hide any properties which start with the character '_' in objects
+ * - OpportunityIdCacheTypeBucket objects have special handling
+ *
  * @param {Map | Set} map
  * @returns {{[k: string]: any} | number}
  */
@@ -676,6 +707,7 @@ function mapToObjectSummary(map) {
     // instead of outputting the whole set contents. This reduces the size of the output for display.
     return map.size;
   }
+  // Special handling for OpportunityIdCacheTypeBuckets
   // @ts-ignore
   if (map.contents) {
     // @ts-ignore
@@ -701,6 +733,9 @@ function mapToObjectSummary(map) {
   return map;
 }
 
+/**
+ * @param {number} millis
+ */
 function millisToMinutesAndSeconds(millis) {
   const minutes = Math.floor(millis / 60000);
   const seconds = ((millis % 60000) / 1000);
@@ -752,14 +787,15 @@ function getOrphanStats() {
 }
 
 /**
- * For an Opportunity being harvested from RPDE, check if there is a listener listening for it.
+ * For an Opportunity being harvested from RPDE, check if there is a two-phase
+ * listener listening for it.
  *
  * If so, respond to that listener.
  *
  * @param {string} id
  * @param {any} item
  */
-function doNotifyOpportunityListener(id, item) {
+function doNotifyTwoPhaseOpportunityListener(id, item) {
   TwoPhaseListeners.doNotifyListener(state.twoPhaseListeners.byOpportunityId, id, item);
 }
 
@@ -815,6 +851,9 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
   }
 }
 
+/**
+ * @param {string} opportunityType
+ */
 function getTypeFromOpportunityType(opportunityType) {
   const mapping = {
     ScheduledSession: 'ScheduledSession',
@@ -830,6 +869,9 @@ function getTypeFromOpportunityType(opportunityType) {
   return mapping[opportunityType];
 }
 
+/**
+ * @param {Record<string, any>} opportunity
+ */
 function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
     || opportunity.superEvent?.organizer
@@ -842,6 +884,9 @@ function detectSellerId(opportunity) {
   return organizer?.['@id'] || organizer?.id;
 }
 
+/**
+ * @param {Record<string, any>} opportunity
+ */
 function detectOpportunityType(opportunity) {
   switch (opportunity['@type'] || opportunity.type) {
     case 'ScheduledSession':
@@ -920,7 +965,13 @@ function detectOpportunityBookingFlows(opportunity) {
  * ) => Promise<void>} RpdePageProcessorAndValidator
  */
 
-/** @type {RpdePageProcessorAndValidator} */
+/**
+ * For a given RPDE page of items (of a parent Opportunity feed e.g. SessionSeries),
+ * cache the items and notify any listeneres that are looking for the parent Opportunity
+ * or any of its children.
+ *
+ * @type {RpdePageProcessorAndValidator}
+ */
 async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestComplete, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
   // Some feeds have FacilityUse as the top-level items with embedded
@@ -966,7 +1017,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
               data: opportunityItemData,
             };
 
-            storeOpportunityItem(opportunityItem);
+            storeChildOpportunityItem(opportunityItem);
           }
         }
 
@@ -988,7 +1039,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
         } else {
           for (const subEventId of oldSubEventIds) {
             if (!newSubEventIds.includes(subEventId)) {
-              deleteOpportunityItem(subEventId);
+              deleteChildOpportunityItem(subEventId);
               state.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
             }
           }
@@ -1006,7 +1057,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       // that were made for them:
       if (state.parentOpportunitySubEventMap.get(jsonLdId)) {
         for (const subEventId of state.parentOpportunitySubEventMap.get(jsonLdId)) {
-          deleteOpportunityItem(subEventId);
+          deleteChildOpportunityItem(subEventId);
         }
       }
 
@@ -1020,13 +1071,18 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  await touchOpportunityItems(items
+  await touchChildOpportunityItems(items
     .filter((item) => item.state !== 'deleted')
     .map((item) => item.data['@id'] || item.data.id));
 }
 
-/** @type {RpdePageProcessorAndValidator} */
-async function ingestOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestComplete, validateItemsFn) {
+/**
+ * For a given RPDE page of items (of a child Opportunity feed e.g. ScheduledSession),
+ * cache the items and notify any listeners that are looking for it.
+ *
+ * @type {RpdePageProcessorAndValidator}
+ */
+async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestComplete, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -1035,23 +1091,33 @@ async function ingestOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestC
       state.opportunityMap.delete(jsonLdId);
       state.opportunityRpdeMap.delete(feedItemIdentifier);
 
-      deleteOpportunityItem(jsonLdId);
+      deleteChildOpportunityItem(jsonLdId);
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
       state.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityMap.set(jsonLdId, item.data);
 
-      await storeOpportunityItem(item);
+      await storeChildOpportunityItem(item);
     }
   }
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
 }
 
+/**
+ * Invert any FacilityUses which contain IndividualFacilityUses, so that the
+ * IndividualFacilityUse (if one exists) is the top-level item.
+ *
+ * This will lead to more items than the original amount if there are any
+ * FacilityUses with more than one IndividualFacilityUse.
+ *
+ * @param {import('./models/core').RpdeItem[]} items
+ */
 function invertFacilityUseItems(items) {
   const [invertibleFacilityUseItems, otherItems] = partition(items, (item) => item.data?.individualFacilityUse);
   if (invertibleFacilityUseItems.length < 1) return items;
 
   // Invert "FacilityUse" items so the the top-level `kind` is "IndividualFacilityUse"
+  /** @type {import('./models/core').RpdeItem[]} */
   const invertedItems = [];
   for (const facilityUseItem of invertibleFacilityUseItems) {
     for (const individualFacilityUse of facilityUseItem.data.individualFacilityUse) {
@@ -1071,9 +1137,17 @@ function invertFacilityUseItems(items) {
   return invertedItems.concat(otherItems);
 }
 
-async function touchOpportunityItems(parentIds) {
+/**
+ * Given a collection of parent Opportunity IDs which have just been updated,
+ * trigger any actions (e.g. notifying listeners) that should be triggered when
+ * an Opportunity (or child/parent pair) is updated.
+ *
+ * @param {string[]} parentIds
+ */
+async function touchChildOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
+  // Get IDs of all opportunities which are children of the specified parents.
   parentIds.forEach((parentId) => {
     if (state.parentIdIndex.has(parentId)) {
       state.parentIdIndex.get(parentId).forEach((jsonLdId) => {
@@ -1092,7 +1166,12 @@ async function touchOpportunityItems(parentIds) {
   }));
 }
 
-function deleteOpportunityItem(jsonLdId) {
+/**
+ * Delete a (child) Opportunity from parts of the cache.
+ *
+ * @param {string} jsonLdId
+ */
+function deleteChildOpportunityItem(jsonLdId) {
   const row = state.rowStoreMap.get(jsonLdId);
   if (row) {
     const idx = state.parentIdIndex.get(row.jsonLdParentId);
@@ -1103,9 +1182,18 @@ function deleteOpportunityItem(jsonLdId) {
   }
 }
 
-async function storeOpportunityItem(item) {
+/**
+ * Store (child) Opportunity to parts of the cache. Notify any listeners if
+ * the child and parent both exist.
+ *
+ * @param {import('./models/core').RpdeItem} item
+ */
+async function storeChildOpportunityItem(item) {
   if (item.state === 'deleted') throw new Error('Not expected to be called for deleted items');
 
+  /**
+   * @type {import('./models/core').OpportunityItemRow}
+   */
   const row = {
     id: item.id,
     modified: item.modified,
@@ -1118,41 +1206,67 @@ async function storeOpportunityItem(item) {
     waitingForParentToBeIngested: jsonLdHasReferencedParent(item.data) && !(state.parentOpportunityMap.has(item.data.superEvent) || state.parentOpportunityMap.has(item.data.facilityUse)),
   };
 
-  if (row.jsonLdId != null) {
-    if (row.jsonLdParentId != null) {
-      if (!state.parentIdIndex.has(row.jsonLdParentId)) state.parentIdIndex.set(row.jsonLdParentId, new Set());
-      state.parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
-    }
-
-    state.rowStoreMap.set(row.jsonLdId, row);
-
-    if (!row.waitingForParentToBeIngested) {
-      await processRow(row);
-    }
-  } else {
+  if (row.jsonLdId == null) {
     throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
+  }
+  // Associate the child with its parent
+  if (row.jsonLdParentId != null) {
+    if (!state.parentIdIndex.has(row.jsonLdParentId)) state.parentIdIndex.set(row.jsonLdParentId, new Set());
+    state.parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
+  }
+
+  // Cache it
+  state.rowStoreMap.set(row.jsonLdId, row);
+
+  // If child and parent both exist, notify any listeners, etc
+  if (!row.waitingForParentToBeIngested) {
+    await processRow(row);
   }
 }
 
+/**
+ * Does this Opportunity have a reference to a Parent Opportunity? (i.e. is it a Child Opportunity?)
+ *
+ * @param {Record<string, unknown>} data
+ */
 function jsonLdHasReferencedParent(data) {
   return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
 }
 
-function sortWithOpenActiveOnTop(arr) {
+/**
+ * Sort JSON-LD `@context` so that `https://openactive.io/` and
+ * `https://schema.org/` are at the top, which is useful for consistency
+ * and required by validator.
+ *
+ * @param {string[]} context
+ */
+function sortJsonLdContextWithOpenActiveOnTop(context) {
   const firstList = [];
-  if (arr.includes('https://openactive.io/')) firstList.push('https://openactive.io/');
-  if (arr.includes('https://schema.org/')) firstList.push('https://schema.org/');
-  const remainingList = arr.filter((x) => x !== 'https://openactive.io/' && x !== 'https://schema.org/');
+  if (context.includes('https://openactive.io/')) firstList.push('https://openactive.io/');
+  if (context.includes('https://schema.org/')) firstList.push('https://schema.org/');
+  const remainingList = context.filter((x) => x !== 'https://openactive.io/' && x !== 'https://schema.org/');
   return firstList.concat(remainingList.sort());
 }
 
+/**
+ * Merge and sort JSON-LD `@context` from multiple Opportunities.
+ *
+ * @param  {...import('./models/core').Opportunity} opportunities
+ */
 function getMergedJsonLdContext(...opportunities) {
-  return sortWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
+  return sortJsonLdContextWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
 }
 
+/**
+ * Merge a child- and parent- opportunity and then save them to the
+ * criteria-oriented cache and notify any listeners.
+ *
+ * @param {import('./models/core').OpportunityItemRow} row
+ */
 async function processRow(row) {
+  // Create an RPDE item that contains both the child and its merged parent
+  /** @type {Omit<import('./models/core').RpdeItem, 'kind'>} */
   let newItem;
-  // No need for processing for items without parents
   if (row.jsonLdParentId === null) {
     newItem = {
       state: row.deleted ? 'deleted' : 'updated',
@@ -1206,68 +1320,80 @@ async function processRow(row) {
   await processOpportunityItem(newItem);
 }
 
+/**
+ * Save a (merged i.e. child-with-parent) opportunity to criteria-oriented
+ * cache and notify any listeners.
+ *
+ * @param {Omit<import('./models/core').RpdeItem, 'kind'>} item
+ */
 async function processOpportunityItem(item) {
-  if (item.data) {
-    const id = item.data['@id'] || item.data.id;
+  if (!item.data) {
+    return;
+  }
+  const id = item.data['@id'] || item.data.id;
 
-    // Fill buckets
-    const matchingCriteria = [];
-    let unmetCriteriaDetails = [];
+  // Store opportunity to criteria-oriented cache
+  const matchingCriteria = [];
+  let unmetCriteriaDetails = [];
 
-    if (!DO_NOT_FILL_BUCKETS) {
-      const opportunityType = detectOpportunityType(item.data);
-      const bookingFlows = detectOpportunityBookingFlows(item.data);
-      const sellerId = detectSellerId(item.data);
+  if (!DO_NOT_FILL_BUCKETS) {
+    const opportunityType = detectOpportunityType(item.data);
+    const bookingFlows = detectOpportunityBookingFlows(item.data);
+    const sellerId = detectSellerId(item.data);
 
-      for (const { criteriaName, criteriaResult } of criteria.map((c) => ({
-        criteriaName: c.name,
-        criteriaResult: testMatch(c, item.data, {
-          harvestStartTime: HARVEST_START_TIME,
-        }),
-      }))) {
-        for (const bookingFlow of bookingFlows) {
-          const typeBucket = OpportunityIdCache.getTypeBucket(state.opportunityIdCache, {
-            criteriaName, opportunityType, bookingFlow,
-          });
-          if (!typeBucket.contents.has(sellerId)) typeBucket.contents.set(sellerId, new Set());
-          const sellerCompartment = typeBucket.contents.get(sellerId);
-          if (criteriaResult.matchesCriteria) {
-            sellerCompartment.add(id);
-            matchingCriteria.push(criteriaName);
-            // Hide criteriaErrors if at least one matching item is found
-            typeBucket.criteriaErrors = undefined;
-          } else {
-            sellerCompartment.delete(id);
-            unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
-            // Ignore errors if criteriaErrors is already hidden
-            if (typeBucket.criteriaErrors) {
-              for (const error of criteriaResult.unmetCriteriaDetails) {
-                if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
-                typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
-              }
+    for (const { criteriaName, criteriaResult } of criteria.map((c) => ({
+      criteriaName: c.name,
+      criteriaResult: testMatch(c, item.data, {
+        harvestStartTime: HARVEST_START_TIME,
+      }),
+    }))) {
+      for (const bookingFlow of bookingFlows) {
+        const typeBucket = OpportunityIdCache.getTypeBucket(state.opportunityIdCache, {
+          criteriaName, opportunityType, bookingFlow,
+        });
+        if (!typeBucket.contents.has(sellerId)) typeBucket.contents.set(sellerId, new Set());
+        const sellerCompartment = typeBucket.contents.get(sellerId);
+        if (criteriaResult.matchesCriteria) {
+          sellerCompartment.add(id);
+          matchingCriteria.push(criteriaName);
+          // Hide criteriaErrors if at least one matching item is found
+          typeBucket.criteriaErrors = undefined;
+        } else {
+          sellerCompartment.delete(id);
+          unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
+          // Ignore errors if criteriaErrors is already hidden
+          if (typeBucket.criteriaErrors) {
+            for (const error of criteriaResult.unmetCriteriaDetails) {
+              if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
+              typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
             }
           }
         }
       }
     }
-
-    const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(id, item);
-
-    if (VERBOSE) {
-      const bookableIssueList = unmetCriteriaDetails.length > 0
-        ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
-      if (didRespond) {
-        log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
-      } else {
-        log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
-      }
-    }
-
-    doNotifyOpportunityListener(id, item);
   }
+
+  // Notify one-phase opportunity listeners
+  const { didRespond } = state.onePhaseListeners.opportunity.doRespondToAndDeleteListenerIfExistsAndMatchesCriteria(id, item);
+
+  if (VERBOSE) {
+    const bookableIssueList = unmetCriteriaDetails.length > 0
+      ? `\n   [Unmet Criteria: ${Array.from(new Set(unmetCriteriaDetails)).join(', ')}]` : '';
+    if (didRespond) {
+      log(`seen ${matchingCriteria.join(', ')} and dispatched ${id}${bookableIssueList}`);
+    } else {
+      log(`saw ${matchingCriteria.join(', ')} ${id}${bookableIssueList}`);
+    }
+  }
+
+  // Notify two-phase opportunity listeners
+  doNotifyTwoPhaseOpportunityListener(id, item);
 }
 
 /**
+ * An RPDE page processor for the Orders RPDE feed. It ensure that any Order
+ * listeners are notified of Order updates.
+ *
  * @param {OrderFeedType} orderFeedType
  * @param {string} bookingPartnerIdentifier
  * @returns {import('@openactive/harvesting-utils/src/harvest-rpde').RpdePageProcessor}
@@ -1377,7 +1503,6 @@ Validation errors found in Dataset Site JSON-LD:
     throw new Error('Unable to read valid JSON-LD from Dataset Site.');
   }
 
-  // TODO3 here i am just going through and writing comments
   // Set global based on data result
   state.datasetSiteJson = dataset;
 
@@ -1500,6 +1625,8 @@ const DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED = {
 async function startPollingForOpportunityFeed(datasetDistributionItem, { validatorWorkerPool }) {
   const feedContextIdentifier = datasetDistributionItem.identifier || datasetDistributionItem.name || datasetDistributionItem.additionalType;
   const feedContext = createFeedContext(feedContextIdentifier, datasetDistributionItem.contentUrl, state.multibar);
+
+  // Set-up parallel validation for items in this feed
   const onValidateItemsForThisFeed = partial(onValidateItems, feedContext);
   validatorWorkerPool.setOnValidateItems(feedContextIdentifier, onValidateItemsForThisFeed);
 
@@ -1516,6 +1643,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     });
   };
 
+  // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
     log(`Found parent opportunity feed: ${datasetDistributionItem.contentUrl}`);
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
@@ -1549,10 +1677,11 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     });
     return;
   }
+  // Harvest a child opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === false) {
     log(`Found opportunity feed: ${datasetDistributionItem.contentUrl}`);
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
-    const ingestOpportunityPageForThisFeed = partialRight(ingestOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
+    const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
     await harvestRPDE({
       baseUrl: datasetDistributionItem.contentUrl,
@@ -1676,6 +1805,9 @@ async function sendItemsToValidatorWorkerPool({
 }
 
 /**
+ * Callback called after a batch of items is validated from an opportunity
+ * feed. Updates the progress bar.
+ *
  * @param {import('@openactive/harvesting-utils').FeedContext} context
  * @param {number} numItems
  */

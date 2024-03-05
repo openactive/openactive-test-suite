@@ -100,14 +100,71 @@ const state = {
   /** @type {ValidatorWorkerPoolType} */
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
+  // We use multiple strategies to cache opportunity data for different use cases.
+  /**
+   * A criteria-oriented cache for opportunity data. Used to get criteria-matching
+   * opportunities for tests.
+   */
   opportunityIdCache: OpportunityIdCache.create(),
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
+  /**
+   * Map { [jsonLdId] => opportunityData }
+   *
+   * For parent opportunities (e.g. FacilityUse) only.
+   *
+   * @type {Map<string, Record<string, unknown>>}
+   */
   parentOpportunityMap: new Map(),
+  /**
+   * Map { [feedItemIdentifier] => jsonLdId }
+   *
+   * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+   * as deleted items do not contain the JSON-LD ID.
+   *
+   * For parent opportunities (e.g. FacilityUse) only.
+   *
+   * @type {Map<string, string>}
+   */
   parentOpportunityRpdeMap: new Map(),
+  /**
+   * Map { [jsonLdId] => subEventIds }
+   *
+   * Associates a parent opportunity (jsonLdId) with a list of its child
+   * Opportunity IDs.
+   *
+   * @type {Map<string, string[]>}
+   */
   parentOpportunitySubEventMap: new Map(),
+  /**
+   * Map { [jsonLdId] => opportunityData }
+   *
+   * For child opportunities (e.g. FacilityUseSlot) only.
+   *
+   * @type {Map<string, Record<string, unknown>>}
+   */
   opportunityMap: new Map(),
+  /**
+   * Map { [feedItemIdentifier] => jsonLdId }
+   *
+   * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+   * as deleted items do not contain the JSON-LD ID.
+   *
+   * For child opportunities (e.g. FacilityUseSlot) only.
+   *
+   * @type {Map<string, string>}
+   */
   opportunityRpdeMap: new Map(),
+  /**
+   * Map { [jsonLdId] => opportunityItemRow }
+   *
+   * @type {Map<string, import('./models/core').OpportunityItemRow>}
+   */
   rowStoreMap: new Map(),
+  /**
+   * Maps each parent Opportunity ID to a set of the IDs of its children.
+   *
+   * @type {Map<string, Set<string>>}
+   */
   parentIdIndex: new Map(),
   // UI
   // create new progress bar container
