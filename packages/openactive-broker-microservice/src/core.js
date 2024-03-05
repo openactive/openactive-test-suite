@@ -459,8 +459,8 @@ function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, 
     };
   } // Seller has no items
 
-  const opportunityIdsFromAllTestDatasets = getAllLockedOpportunityIds();
-  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !opportunityIdsFromAllTestDatasets.has(x));
+  const allLockedOpportunityIds = getAllLockedOpportunityIds();
+  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allLockedOpportunityIds.has(x));
 
   if (unusedBucketItems.length === 0) {
     return {
