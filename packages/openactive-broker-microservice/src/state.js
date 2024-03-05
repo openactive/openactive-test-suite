@@ -101,6 +101,13 @@ const state = {
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
   // We use multiple strategies to cache opportunity data for different use cases.
+  /*
+  TODO, for clarity, consider splitting these caches into categories. I thiiiink
+  that there are three categories: OpportunityIdCache (criteria-oriented),
+  row-ish (rowStoreMap/parentIdIndex), and the rest. It would also be good to
+  more fully understand the latter two categories and see if they are still
+  both needed.
+  */
   /**
    * A criteria-oriented cache for opportunity data. Used to get criteria-matching
    * opportunities for tests.
