@@ -1458,7 +1458,7 @@ async function startPolling() {
   ]);
 
   // Limit validator to 5 minutes if WAIT_FOR_HARVEST is set
-  // TODO2 why?
+  // TODO: explain why
   const validatorTimeoutMs = WAIT_FOR_HARVEST ? 1000 * 60 * 5 : null;
   const validatorWorkerPool = new ValidatorWorkerPool(validatorTimeoutMs);
   validatorWorkerPool.run();
