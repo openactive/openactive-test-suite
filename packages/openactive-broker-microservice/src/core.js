@@ -870,7 +870,7 @@ function getTypeFromOpportunityType(opportunityType) {
 }
 
 /**
- * @param {Record<string, any>} opportunity
+ * @param {import('./models/core').Opportunity} opportunity
  */
 function detectSellerId(opportunity) {
   const organizer = opportunity.organizer
@@ -885,7 +885,7 @@ function detectSellerId(opportunity) {
 }
 
 /**
- * @param {Record<string, any>} opportunity
+ * @param {import('./models/core').Opportunity} opportunity
  */
 function detectOpportunityType(opportunity) {
   switch (opportunity['@type'] || opportunity.type) {
@@ -930,7 +930,7 @@ function detectOpportunityType(opportunity) {
 }
 
 /**
- * @param {{[k: string]: any}} opportunity
+ * @param {import('./models/core').Opportunity} opportunity
  * @returns {string[]} An opportunity can support multiple Booking Flows as these are in the Offers. An Opportunity
  *   can have an Offer requiring approval and one that does not.
  */
@@ -1227,7 +1227,7 @@ async function storeChildOpportunityItem(item) {
 /**
  * Does this Opportunity have a reference to a Parent Opportunity? (i.e. is it a Child Opportunity?)
  *
- * @param {Record<string, unknown>} data
+ * @param {import('./models/core').Opportunity} data
  */
 function jsonLdHasReferencedParent(data) {
   return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
