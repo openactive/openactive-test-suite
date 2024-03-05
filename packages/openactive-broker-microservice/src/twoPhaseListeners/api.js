@@ -50,6 +50,7 @@ function getOrderListenerApi(req, res) {
 }
 
 /**
+ * @param {import('express').Response} res
  * @param {Map<string, Listener>} listenersMap
  * @param {string} listenerId
  * @returns {boolean} `true` if it was found. `false` if no listener was found.
