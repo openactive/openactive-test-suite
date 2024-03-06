@@ -967,7 +967,7 @@ function detectOpportunityBookingFlows(opportunity) {
 
 /**
  * For a given RPDE page of items (of a parent Opportunity feed e.g. SessionSeries),
- * cache the items and notify any listeneres that are looking for the parent Opportunity
+ * cache the items and notify any listeners that are looking for the parent Opportunity
  * or any of its children.
  *
  * @type {RpdePageProcessorAndValidator}
