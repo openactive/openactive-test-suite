@@ -2,6 +2,12 @@ export type OrderFeedType = 'orders' | 'order-proposals';
 export type OrderFeedIdentifier = 'OrdersFeed' | 'OrderProposalsFeed';
 export type BookingPartnerIdentifier = string;
 
+/*
+TODO in future we should put more thorough typing on this object (especially
+given that it has been validated [Could we couple TS with validator I wonder 🤔])
+and that would then immediately improve type-checking on all functions that
+act on opportunity data
+ */
 export type Opportunity = Record<string, any>;
 export type RpdeItem = {
   state: string;
