@@ -6,10 +6,13 @@
     "downlevelIteration": true,
     "target": "ES2019",
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
+    "emitDeclarationOnly": true
   },
   "include": [
     "src/**/*.d.ts",
-    "src/**/*.js"
+    "src/**/*.js",
+    "test/**/*.js"
   ]
 }

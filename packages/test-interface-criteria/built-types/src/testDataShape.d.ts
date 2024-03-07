@@ -6,6 +6,7 @@ export type DateRangeNodeConstraint = import('./types/TestDataShape').DateRangeN
 export type NumericNodeConstraint = import('./types/TestDataShape').NumericNodeConstraint;
 export type BooleanNodeConstraint = import('./types/TestDataShape').BooleanNodeConstraint;
 export type NullNodeConstraint = import('./types/TestDataShape').NullNodeConstraint;
+export type TestDataShapeOpportunityConstraints = import('./types/TestDataShape').TestDataShapeOpportunityConstraints;
 export type TestDataShape = import('./types/TestDataShape').TestDataShape;
 export type ValueType = import('./types/TestDataShape').ValueType;
 export type Options = import('./types/Options').Options;
@@ -18,6 +19,7 @@ export type Options = import('./types/Options').Options;
  * @typedef {import('./types/TestDataShape').NumericNodeConstraint} NumericNodeConstraint
  * @typedef {import('./types/TestDataShape').BooleanNodeConstraint} BooleanNodeConstraint
  * @typedef {import('./types/TestDataShape').NullNodeConstraint} NullNodeConstraint
+ * @typedef {import('./types/TestDataShape').TestDataShapeOpportunityConstraints} TestDataShapeOpportunityConstraints
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
  * @typedef {import('./types/TestDataShape').ValueType} ValueType
  * @typedef {import('./types/Options').Options} Options
@@ -98,9 +100,7 @@ export function termsOfServiceArrayConstraint(minLength: number): import('./type
 export const TRUE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export const FALSE_BOOLEAN_CONSTRAINT: import("./types/TestDataShape").BooleanNodeConstraint;
 export namespace shapeConstraintRecipes {
-    function remainingCapacityMustBeAtLeast(mininclusive: any): {
-        'placeholder:remainingCapacity': import("./types/TestDataShape").NumericNodeConstraint;
-    };
+    function remainingCapacityMustBeAtLeast(mininclusive: number, mininclusiveIfuSlot?: number): Pick<Required<import("./types/TestDataShape").TestDataShapeOpportunityConstraints>, "placeholder:remainingCapacity" | "placeholder:remainingCapacityIfuSlot">;
     function mustHaveBookableOffer(options: import("./types/Options").Options): {
         'oa:validFromBeforeStartDate': import("./types/TestDataShape").DateRangeNodeConstraint;
         'oa:openBookingInAdvance': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
@@ -120,5 +120,11 @@ export namespace shapeConstraintRecipes {
     function onlyFreeBookableOffersWithUnavailablePrepayment(): {
         'schema:price': import("./types/TestDataShape").NumericNodeConstraint;
         'oa:openBookingPrepayment': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").RequiredStatusType, "oa:RequiredStatusType">;
+    };
+    function startDateMustBe2HrsInAdvance(options: import("./types/Options").Options): {
+        'schema:startDate': import("./types/TestDataShape").DateRangeNodeConstraint;
+    };
+    function eventStatusMustNotBeCancelledOrPostponed(): {
+        'schema:eventStatus': import("./types/TestDataShape").OptionNodeConstraint<import("./types/TestDataShape").EventStatusType, "schema:EventStatusType">;
     };
 }

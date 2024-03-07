@@ -8,6 +8,7 @@ const { getConfigVarOrThrow } = require('./config-utils');
  */
 
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // abstract class, implement shared methods
 class BaseLogger {
@@ -222,6 +223,11 @@ class BaseLogger {
     return `test/features/${this.config.testCategory}/${this.config.testFeature}/${this.config.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${this.config.testIdentifier}-test.js`;
   }
 
+  get referenceImplementationResultUrl () {
+    // @ts-ignore
+    return `https://openactive.io/openactive-test-suite/example-output/${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}/${this.config.testFeature}_${this.config.testIdentifier}_${this.bookingFlow}_${this.opportunityType}.html`;
+  }
+
   get implementedDisplayLabel() {
     return this.implemented ? 'Implemented' : 'Not Implemented';
   }
@@ -238,12 +244,12 @@ class BaseLogger {
     return `${OUTPUT_PATH}json/${this.metaLocalPath}`;
   }
 
-  get markdownLocalPath () {
-    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.md`;
+  get htmlLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.html`;
   }
 
-  get markdownPath () {
-    return `${OUTPUT_PATH}${this.markdownLocalPath}`;
+  get htmlPath () {
+    return `${OUTPUT_PATH}${this.htmlLocalPath}`;
   }
 
   get validationStatusCounts () {
@@ -277,6 +283,18 @@ class BaseLogger {
       failed: statuses.failed || 0,
       passed: statuses.passed || 0,
     };
+  }
+
+  get specStatusCountsForEachSuiteName()  {
+    if (this._specStatusCountsBySuiteName) return this._specStatusCountsBySuiteName;
+    
+    let statusBySuiteName =  _.chain(this.logs)
+    .filter(log => log.type === "spec")
+    .groupBy(log => log.ancestorTitles.join(" > "))
+    .mapValues(logs => _.countBy(logs, log => log.spec.status))
+    .value();
+
+    return this._specStatusCountsBySuiteName = statusBySuiteName;
   }
 
   get overallStatus() {
@@ -447,6 +465,17 @@ class ReporterLogger extends BaseLogger {
     });
 
     return result;
+  }
+
+  statusFor (suiteName) {
+    let specStatusCountsBySuiteName = this.specStatusCountsForEachSuiteName;
+    let joinedSuiteName = suiteName.join(" > ");
+    let spec = specStatusCountsBySuiteName[joinedSuiteName];
+    if (spec) {
+      if (spec.failed > 0) return "failed";
+      return "passed"
+    }
+    return "";
   }
 }
 

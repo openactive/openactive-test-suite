@@ -39,6 +39,11 @@ const TestOpportunityBookableNoSpaces = createCriteria({
       // remainingCapacityMustBeZero
       'placeholder:remainingCapacity': quantitativeValue({
         maxinclusive: 0,
+        mininclusive: 0,
+      }),
+      'placeholder:remainingCapacityIfuSlot': quantitativeValue({
+        maxinclusive: 0,
+        mininclusive: 0,
       }),
     },
     offerConstraints: {
