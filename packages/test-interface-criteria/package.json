@@ -8,8 +8,9 @@
     "gen-types-clean": "rimraf \"built-types/*\"",
     "gen-types-copy-d-ts-files": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/",
     "gen-types": "npm run gen-types-clean && tsc && npm run gen-types-copy-d-ts-files",
-    "test": "npm run lint && tsc",
-    "lint": "eslint \"src/**/*.js\"",
+    "run-tests": "jest",
+    "test": "npm run lint && tsc && npm run run-tests",
+    "lint": "eslint \"src/**/*.js\" \"test/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },
   "author": "OpenActive Community <hello@openactive.io>",
@@ -24,11 +25,16 @@
     "node": "18.17.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.14.202",
     "@types/luxon": "^3.4.2",
     "copyfiles": "^2.3.0",
     "eslint": "7.24.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^27.9.0",
+    "fast-check": "^3.15.1",
+    "jest": "^29.7.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.1.6"
   }

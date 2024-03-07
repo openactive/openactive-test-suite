@@ -23,6 +23,18 @@ To run `openactive-broker-microservice` in separate terminal window to `openacti
 3. Start Broker: `npm run start-broker`
 4. Run [openactive-integration-tests](../openactive-integration-tests/) in another terminal window
 
+## Running in "Validate Only" mode
+
+In "Validate Only" mode, Broker Microservice will just validate the data from the Booking System's feeds and then exit. And, so, it cannot be used to run the [Integration Tests](../openactive-integration-tests/).
+
+To run Broker Microservice in "Validate Only" mode:
+
+```sh
+npm start -- --validate-only <datasetSiteUrl>
+```
+
+- `<datasetSiteUrl>`: URL of the [Dataset Site](https://openactive.io/dataset-api-discovery/EditorsDraft/#dfn-dataset-site) whose feeds to validate.
+
 ## Configuration for `broker` within `./config/{NODE_ENV}.json`
 
 The `broker` object within `./config/{NODE_ENV}.json` file of the repository configures access to the Open Booking API. This object includes the properties listed below.
@@ -697,7 +709,7 @@ This is used by some [Non-Implemented tests](../openactive-integration-tests/REA
 
 #### Browser Automation for Auth Endpoints
 
-Broker Microservice also exposes endpoints created from the `setupBrowserAutomationRoutes(..)` function from [openactive-openid-test-client](../openactive-openid-test-client/).
+Broker Microservice also exposes endpoints created from the `setupBrowserAutomationRoutes(..)` function from [openactive-openid-browser-automation](../openactive-openid-browser-automation/).
 These endpoints are used by [Integration Tests](../openactive-integration-tests/) for tests which check the [OpenID Connect](https://openid.net/developers/how-connect-works/) authentication flow.
 
 ## Concepts
@@ -710,7 +722,7 @@ Broker Microservice sets up and maintains auth credentials for access to the [Bo
 
 These credentials are set up according to the auth strategy defined in the [`bookingPartners` configuration property](#bookingpartners).
 
-To do this, Broker Microservice uses the [openactive-openid-test-client](../openactive-openid-test-client/) library.
+To do this, Broker Microservice uses the [openactive-openid-client](../openactive-openid-client/) library.
 
 ### Booking System under Test
 

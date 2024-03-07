@@ -76,7 +76,7 @@ export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/
 export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustAllowProposalAmendment(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
-export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function startDateMustBeOver2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;

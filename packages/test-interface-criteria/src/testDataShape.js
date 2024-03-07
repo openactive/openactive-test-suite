@@ -58,6 +58,7 @@ function quantitativeValue(requirements) {
 
 const FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
   maxinclusive: 0,
+  mininclusive: 0,
 });
 
 const NON_FREE_PRICE_QUANTITATIVE_VALUE = quantitativeValue({
@@ -174,6 +175,9 @@ function openBookingFlowRequirementArrayConstraint(requirements) {
   });
 }
 
+/* TODO this is not a good match for an ArrayConstraint as they presently
+are defined and used. See
+https://github.com/openactive/openactive-test-suite/issues/629. */
 /**
  * @param {number} minLength
  * @returns {import('./types/TestDataShape').ArrayConstraint<unknown, 'oa:Terms'>}
@@ -206,7 +210,8 @@ const shapeConstraintRecipes = {
    */
   mustHaveBookableOffer: (options) => ({
     'oa:validFromBeforeStartDate': dateRange({
-      maxDate: options.harvestStartTime.toISO(),
+      // -1s to match the non-equaling comparison in the non-ShEx constraint
+      maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
       allowNull: true,
     }),
     'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
@@ -230,6 +235,20 @@ const shapeConstraintRecipes = {
     'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
       allowlist: ['https://openactive.io/Unavailable'],
       allowNull: true,
+    }),
+  }),
+  /**
+   * @param {Options} options
+   */
+  startDateMustBe2HrsInAdvance: (options) => ({
+    'schema:startDate': dateRange({
+      // Add a second to match the fact that the non-ShEx criteria uses a non-equaling comparison
+      minDate: options.harvestStartTimeTwoHoursLater.plus({ seconds: 1 }).toISO(),
+    }),
+  }),
+  eventStatusMustNotBeCancelledOrPostponed: () => ({
+    'schema:eventStatus': eventStatusOptionNodeConstraint({
+      blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
     }),
   }),
 };
