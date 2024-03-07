@@ -61,3 +61,7 @@ For new features that affect test coverage, use a `coverage/*` branch in this re
 2. Ensure that documentation reflects the new changes.
 3. Check that CI tests pass before merging a Pull Request.
 4. Ensure that your Pull Request has at least one approval before merging.
+
+## Writing a new test
+
+See the [Integration Tests CONTRIBUTING.md](./packages/openactive-integration-tests/CONTRIBUTING.md) for guidance on writing a new test.
