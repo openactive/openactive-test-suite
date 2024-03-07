@@ -1,8 +1,8 @@
 /**
  * Configuration used throughout Broker.
  */
-const config = require('config');
 const path = require('path');
+const config = require('config');
 
 const PORT = normalizePort(process.env.PORT || '3000');
 const MICROSERVICE_BASE_URL = `http://localhost:${PORT}`;
@@ -54,6 +54,8 @@ const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input'
 
 /**
  * Normalize a port into a number, string, or false.
+ *
+ * @param {string} val
  */
 function normalizePort(val) {
   const integerPort = parseInt(val, 10);

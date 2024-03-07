@@ -134,7 +134,8 @@
           }
         }
       }
-    }
+    },
+    "useShapeExpressions": false
   },
   "sellers": {
     "primary": {

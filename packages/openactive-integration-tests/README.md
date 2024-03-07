@@ -16,16 +16,17 @@ The results of this test suite when run against the reference implementation can
 To run `openactive-integration-tests` in separate terminal window to `openactive-broker-microservice`, from repository root:
 
 1. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running in another terminal window
-2. `export NODE_ENV=dev`
-3. `npm run start-tests`
+2. Specify Configuration file: `export NODE_ENV=dev`
+    * This is the command to use if using the `dev.json` config file. See [Configuration](../../README.md#configuration) for more details)
+3. Run Tests: `npm run start-tests`
 
 ### Running specific tests
 
-`npm start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
+`npm run start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
 
 ### Running core tests in a single process
 
-`npm start-tests -- --runInBand test/features/core/`
+`npm run start-tests -- --runInBand test/features/core/`
 
 ## Configuration for `integrationTests` within `./config/{NODE_ENV}.json`
 
@@ -120,98 +121,19 @@ The value can be any string, such as `uat-ci`, or `alex-dev`.
 
 Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
 
+### `useShapeExpressions`
 
-## Configuration for `sellers` within `./config/{NODE_ENV}.json`
+Whether or not to use the experimental Shape Expressions feature (introduced in this [Test Interface issue](https://github.com/openactive/test-interface/issues/1)) to improve the process of requesting data matching a specific criteria.
 
-The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
+This is off by default as it is currently an experimental feature which has not yet been included in the [Test Interface](https://openactive.io/test-interface/) specification.
 
-An example, using OpenID Connect Authentication:
+If turned on, you may be able to build a simpler and more extensible:
 
-```json
-  "sellers": {
-    "primary": {
-      "@type": "Organization",
-      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
-      "authentication": {
-        "loginCredentials": {
-          "username": "test1",
-          "password": "test1"
-        }
-      },
-      "taxMode": "https://openactive.io/TaxGross",
-      "paymentReconciliationDetails": {
-        "name": "AcmeBroker Points",
-        "accountId": "SN1593",
-        "paymentProviderId": "STRIPE"
-      }
-    },
-    "secondary": {
-      "@type": "Person",
-      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1",
-      "authentication": {
-        "loginCredentials": {
-          "username": "test2",
-          "password": "test2"
-        }
-      },
-      "taxMode": "https://openactive.io/TaxNet"
-    }
-  }
-```
-
-Description of each field:
-
-* `authentication`: Check out the **Configuration for Seller Authentication** section.
-* `taxMode`: Which [Tax Mode](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#tax-mode) is used for this Seller.
-
-  **Note: If testing both Tax Modes, make sure that there is at least one Seller with each**. Alternatively, if not supporting multiple Sellers, you can run the Test Suite once with `"taxMode": "https://openactive.io/TaxNet"` and once with `"taxMode": "https://openactive.io/TaxGross"`.
-* `paymentReconciliationDetails`: If testing [Payment Reconciliation Detail Validation](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#payment-reconciliation-detail-validation), include the required payment reconciliation details here.
-
-### Configuration for Seller Authentication
-
-In order to make bookings for a specific Seller's Opportunity data, some kind of authentication is required to ensure that the caller is authorized to make bookings for that Seller.
-
-Test Suite allows for a few different options for Seller Authentication. This determines the data to put in the `authentication` field for each Seller:
-
-**OpenID Connect**
-
-[View Spec](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#openid-connect-booking-partner-authentication-for-multiple-seller-systems)
-
-You'll need the username/password that the Seller can use to log in to your OpenID Connect Provider.
-
-Example:
+* [Create Opportunity API](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) (for [controlled mode](#userandomopportunities)).
+* Script for adding test data to your booking system's database from the output of the [test-data-generator script](./test-data-generator/) (for [random mode](#userandomopportunities)).
 
 ```json
-  "sellers": {
-    "primary": {
-      // ...
-      "authentication": {
-        "loginCredentials": {
-          "username": "test1",
-          "password": "test1"
-        }
-      }
-    },
-```
-
-**Request Headers**
-
-Just a set of request HTTP headers which will be used to make booking requests.
-
-Example:
-
-```json
-  "sellers": {
-    "primary": {
-      // ...
-      "authentication": {
-        "loginCredentials": null,
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "booking-partner-1",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
-        }
-      }
-    },
+  "useShapeExpressions": false
 ```
 
 ## Reading test results
