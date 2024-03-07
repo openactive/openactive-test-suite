@@ -48,10 +48,10 @@ jobs:
       with:
         dotnet-version: 3.1.419
 
-    - name: Setup Node.js 14.x
+    - name: Setup Node.js 18.17.1
       uses: actions/setup-node@v1
       with:
-        node-version: 14.x
+        node-version: 18.17.1
 
     - name: Install OpenActive.Server.NET dependencies
       run: dotnet restore ./server/

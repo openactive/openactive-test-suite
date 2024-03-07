@@ -2,7 +2,7 @@ const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   sellerMustAllowOpenBooking,
 } = require('./criteriaUtils');
 const {
@@ -31,8 +31,8 @@ const TestOpportunityBookable = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
     ],
   ],
   testDataShape: (options) => ({

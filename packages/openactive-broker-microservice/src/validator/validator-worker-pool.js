@@ -3,13 +3,13 @@
  *
  * Validator is computationally expensive, so we parallelise the work in order to get Broker up to speed more quickly.
  */
-const { execPipe, take, toArray, map } = require('iter-tools');
-const { isNil } = require('lodash');
+const { Worker } = require('worker_threads');
+const path = require('path');
 const fs = require('fs').promises;
 const os = require('os');
-const path = require('path');
+const { execPipe, take, toArray, map } = require('iter-tools');
+const { isNil } = require('lodash');
 const R = require('ramda');
-const { Worker } = require('worker_threads');
 const { VALIDATOR_INPUT_TMP_DIR } = require('../broker-config');
 
 /**
@@ -29,6 +29,10 @@ const validatorInputFileNameComparator = R.ascend(getValidatorInputFileNameSeque
  * @typedef {(numItems: number) => void} OnValidateItemsCallback
  */
 
+/**
+ * Manage a pool of workers used to validate items from the Booking System's
+ * feeds in parallel.
+ */
 class ValidatorWorkerPool {
   /**
    * @param {number | null} validatorTimeoutMs Validator stops when:

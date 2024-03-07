@@ -1,8 +1,8 @@
+const { shapeConstraintRecipes, advanceBookingOptionNodeConstraint, openBookingFlowRequirementArrayConstraint, dateRange } = require('../testDataShape');
 const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
   sellerMustAllowOpenBooking,
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
@@ -44,10 +44,6 @@ const TestOpportunityBookableInPast = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
-    ],
-    [
       'Must not require attendee details',
       mustNotRequireAttendeeDetails,
     ],
@@ -60,8 +56,29 @@ const TestOpportunityBookableInPast = createCriteria({
       excludePaidBookableOffersWithPrepaymentUnavailable,
     ],
   ],
-  testDataShape: () => ({
-    // TODO: Add data shape
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+      // endDateMustBeInThePast
+      'schema:endDate': dateRange({
+        maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
+      }),
+      ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
+    },
+    offerConstraints: {
+      // mustNotBeOpenBookingInAdvanceUnavailable
+      'oa:openBookingInAdvance': advanceBookingOptionNodeConstraint({
+        blocklist: ['https://openactive.io/Unavailable'],
+      }),
+      // mustNotRequireAttendeeDetails, mustNotRequireAdditionalDetails
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        excludesAll: [
+          'https://openactive.io/OpenBookingAttendeeDetails',
+          'https://openactive.io/OpenBookingIntakeForm',
+        ],
+      }),
+    },
   }),
 });
 
