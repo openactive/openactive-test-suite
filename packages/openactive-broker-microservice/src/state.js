@@ -7,10 +7,11 @@ const { log } = require('./util/log');
 const { MICROSERVICE_BASE_URL } = require('./broker-config');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { OnePhaseListeners } = require('./onePhaseListeners');
+const { IncompleteFeeds } = require('./incomplete-feeds');
 
 /**
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
- * @typedef {import('@openactive/harvesting-utils/models/FeedContext').FeedContext} FeedContext
+ * @typedef {import('@openactive/harvesting-utils').FeedContext} FeedContext
  */
 /**
  * @typedef {object} PendingResponse
@@ -31,11 +32,12 @@ const state = {
   datasetSiteJson: {},
   // TEST DATASETS
   /**
-   * For each Test Dataset, a set of IDs of Opportunities which have been randomly generated for this Test Dataset.
+   * For each Test Dataset, a set of IDs of Opportunities which are now
+   * considered "locked" because they have already been used in a test.
    *
    * @type {Map<string, Set<string>>}
    */
-  testDatasets: new Map(),
+  lockedOpportunityIdsByTestDataset: new Map(),
   // HARVESTING
   /**
    * Harvesting state for each RPDE feed.
@@ -48,12 +50,7 @@ const state = {
    * @type {Map<string, FeedContext>}
    */
   feedContextMap: new Map(),
-  /**
-   * List of Feed identifiers which have not yet completed harvesting.
-   *
-   * @type {string[]}
-   */
-  incompleteFeeds: [],
+  incompleteFeeds: new IncompleteFeeds(),
   // API RESPONSES
   /**
    * Maps Listener ID => a "Listener" object, which can be used to return an API response to the client
@@ -103,14 +100,78 @@ const state = {
   /** @type {ValidatorWorkerPoolType} */
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
+  // We use multiple strategies to cache opportunity data for different use cases.
+  /*
+  TODO, for clarity, consider splitting these caches into categories. I thiiiink
+  that there are three categories: OpportunityIdCache (criteria-oriented),
+  row-ish (rowStoreMap/parentIdIndex), and the rest. It would also be good to
+  more fully understand the latter two categories and see if they are still
+  both needed.
+  */
+  /**
+   * A criteria-oriented cache for opportunity data. Used to get criteria-matching
+   * opportunities for tests.
+   */
   opportunityIdCache: OpportunityIdCache.create(),
   // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
+  /**
+   * Map { [jsonLdId] => opportunityData }
+   *
+   * For parent opportunities (e.g. FacilityUse) only.
+   *
+   * @type {Map<string, Record<string, unknown>>}
+   */
   parentOpportunityMap: new Map(),
+  /**
+   * Map { [feedItemIdentifier] => jsonLdId }
+   *
+   * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+   * as deleted items do not contain the JSON-LD ID.
+   *
+   * For parent opportunities (e.g. FacilityUse) only.
+   *
+   * @type {Map<string, string>}
+   */
   parentOpportunityRpdeMap: new Map(),
+  /**
+   * Map { [jsonLdId] => subEventIds }
+   *
+   * Associates a parent opportunity (jsonLdId) with a list of its child
+   * Opportunity IDs.
+   *
+   * @type {Map<string, string[]>}
+   */
   parentOpportunitySubEventMap: new Map(),
+  /**
+   * Map { [jsonLdId] => opportunityData }
+   *
+   * For child opportunities (e.g. FacilityUseSlot) only.
+   *
+   * @type {Map<string, Record<string, unknown>>}
+   */
   opportunityMap: new Map(),
+  /**
+   * Map { [feedItemIdentifier] => jsonLdId }
+   *
+   * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+   * as deleted items do not contain the JSON-LD ID.
+   *
+   * For child opportunities (e.g. FacilityUseSlot) only.
+   *
+   * @type {Map<string, string>}
+   */
   opportunityRpdeMap: new Map(),
+  /**
+   * Map { [jsonLdId] => opportunityItemRow }
+   *
+   * @type {Map<string, import('./models/core').OpportunityItemRow>}
+   */
   rowStoreMap: new Map(),
+  /**
+   * Maps each parent Opportunity ID to a set of the IDs of its children.
+   *
+   * @type {Map<string, Set<string>>}
+   */
   parentIdIndex: new Map(),
   // UI
   // create new progress bar container
@@ -126,24 +187,21 @@ const state = {
 };
 
 /**
+ * All Opportunity IDs that are considered "locked" (because they have already
+ * been used in a test) for the specified [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints).
+ *
  * @param {string} testDatasetIdentifier
+ * @returns {Set<string>}
  */
-function getTestDataset(testDatasetIdentifier) {
-  if (!state.testDatasets.has(testDatasetIdentifier)) {
-    state.testDatasets.set(testDatasetIdentifier, new Set());
+function getLockedOpportunityIdsInTestDataset(testDatasetIdentifier) {
+  if (!state.lockedOpportunityIdsByTestDataset.has(testDatasetIdentifier)) {
+    state.lockedOpportunityIdsByTestDataset.set(testDatasetIdentifier, new Set());
   }
-  return state.testDatasets.get(testDatasetIdentifier);
+  return state.lockedOpportunityIdsByTestDataset.get(testDatasetIdentifier);
 }
 
-function getAllDatasets() {
-  return new Set(Array.from(state.testDatasets.values()).flatMap((x) => Array.from(x.values())));
-}
-
-/**
- * @param {string} feedIdentifier
- */
-function addFeed(feedIdentifier) {
-  state.incompleteFeeds.push(feedIdentifier);
+function getAllLockedOpportunityIds() {
+  return new Set(Array.from(state.lockedOpportunityIdsByTestDataset.values()).flatMap((x) => Array.from(x.values())));
 }
 
 /**
@@ -159,9 +217,8 @@ function getGlobalValidatorWorkerPool() {
 
 module.exports = {
   state,
-  getTestDataset,
-  getAllDatasets,
-  addFeed,
+  getLockedOpportunityIdsInTestDataset,
+  getAllLockedOpportunityIds,
   setGlobalValidatorWorkerPool,
   getGlobalValidatorWorkerPool,
 };

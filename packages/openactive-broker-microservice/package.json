@@ -18,7 +18,7 @@
     "@openactive/data-model-validator": "^2.0.78",
     "@openactive/data-models": "^2.0.316",
     "@openactive/dataset-utils": "^1.0.1",
-    "@openactive/harvesting-utils": "github:openactive/harvesting-utils#9ae4474",
+    "@openactive/harvesting-utils": "github:openactive/harvesting-utils#9dad411",
     "@openactive/openactive-openid-browser-automation": "file:../openactive-openid-browser-automation",
     "@openactive/openactive-openid-client": "file:../openactive-openid-client",
     "@openactive/rpde-validator": "^2.0.19",
@@ -57,6 +57,7 @@
     "eslint": "^7.24.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^48.2.0",
     "typescript": "^5.1.6"
   },
   "engines": {

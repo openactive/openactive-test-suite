@@ -54,6 +54,8 @@ const VALIDATOR_INPUT_TMP_DIR = path.join(__dirname, '..', 'tmp-validator-input'
 
 /**
  * Normalize a port into a number, string, or false.
+ *
+ * @param {string} val
  */
 function normalizePort(val) {
   const integerPort = parseInt(val, 10);
