@@ -1,6 +1,5 @@
 const {
-  dateRange,
-  eventStatusOptionNodeConstraint,
+  shapeConstraintRecipes,
 } = require('../../testDataShape');
 
 /**
@@ -10,7 +9,7 @@ const {
 
 const {
   createCriteria,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
   excludePaidBookableOffersWithPrepaymentUnavailable,
 } = require('../criteriaUtils');
@@ -25,8 +24,8 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   name: '_InternalCriteriaFutureScheduledOpportunity',
   opportunityConstraints: [
     [
-      'startDate must be 2hrs in advance for random tests to use',
-      startDateMustBe2HrsInAdvance,
+      'startDate must be over 2hrs in advance for random tests to use',
+      startDateMustBeOver2HrsInAdvance,
     ],
     [
       'eventStatus must not be Cancelled or Postponed',
@@ -41,14 +40,8 @@ const InternalCriteriaFutureScheduledOpportunity = createCriteria({
   ],
   testDataShape: (options) => ({
     opportunityConstraints: ({
-      // startDateMustBe2HrsInAdvance
-      'schema:startDate': dateRange({
-        minDate: options.harvestStartTimeTwoHoursLater.toISO(),
-      }),
-      // eventStatusMustNotBeCancelledOrPostponed
-      'schema:eventStatus': eventStatusOptionNodeConstraint({
-        blocklist: ['https://schema.org/EventCancelled', 'https://schema.org/EventPostponed'],
-      }),
+      ...shapeConstraintRecipes.startDateMustBe2HrsInAdvance(options),
+      ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
     }),
   }),
 });

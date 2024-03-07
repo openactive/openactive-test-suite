@@ -1,4 +1,3 @@
-export type DateTime = any;
 export type Opportunity = import('../types/Opportunity').Opportunity;
 export type Offer = import('../types/Offer').Offer;
 export type Options = import('../types/Options').Options;
@@ -76,7 +75,7 @@ export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/
 export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustAllowProposalAmendment(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
-export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function startDateMustBeOver2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
@@ -112,3 +111,4 @@ export function extendTestDataShape(baseTestDataShape: TestDataShape, extraTestD
  * @returns {Criteria['offerConstraints'][number]}
  */
 export function createCriteriaOfferConstraint(name: string, constraint: OfferConstraint): Criteria['offerConstraints'][number];
+import { DateTime } from "luxon/src/datetime";

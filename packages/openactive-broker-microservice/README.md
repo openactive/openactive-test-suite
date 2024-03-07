@@ -23,6 +23,18 @@ To run `openactive-broker-microservice` in separate terminal window to `openacti
 3. Start Broker: `npm run start-broker`
 4. Run [openactive-integration-tests](../openactive-integration-tests/) in another terminal window
 
+## Running in "Validate Only" mode
+
+In "Validate Only" mode, Broker Microservice will just validate the data from the Booking System's feeds and then exit. And, so, it cannot be used to run the [Integration Tests](../openactive-integration-tests/).
+
+To run Broker Microservice in "Validate Only" mode:
+
+```sh
+npm start -- --validate-only <datasetSiteUrl>
+```
+
+- `<datasetSiteUrl>`: URL of the [Dataset Site](https://openactive.io/dataset-api-discovery/EditorsDraft/#dfn-dataset-site) whose feeds to validate.
+
 ## Configuration for `broker` within `./config/{NODE_ENV}.json`
 
 The `broker` object within `./config/{NODE_ENV}.json` file of the repository configures access to the Open Booking API. This object includes the properties listed below.
