@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "outDir": "built-types/lib",
+    "allowJs": true,
+    "checkJs": true,
+    "downlevelIteration": true,
+    "target": "ES2019",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "lib/*.js"
+  ]
+}

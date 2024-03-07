@@ -1,7 +1,7 @@
-const { validate } = require('@openactive/data-model-validator');
 const fs = require('fs').promises;
-const { execPipe, filter, toArray, map } = require('iter-tools');
 const { workerData, parentPort } = require('worker_threads');
+const { execPipe, filter, toArray, map } = require('iter-tools');
+const { validate } = require('@openactive/data-model-validator');
 const { silentlyAllowInsecureConnections } = require('../util/suppress-unauthorized-warning');
 const { VALIDATOR_TMP_DIR } = require('../broker-config');
 
