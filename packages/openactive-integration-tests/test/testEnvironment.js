@@ -9,6 +9,7 @@ const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE = getConfigVarOrThrow('integrationTest
 const BOOKING_FLOWS_IN_SCOPE = getConfigVarOrThrow('integrationTests', 'bookingFlowsInScope');
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
+const USE_SHAPE_EXPRESSIONS = getConfigVarOrThrow('integrationTests', 'useShapeExpressions');
 
 // Set NODE_TLS_REJECT_UNAUTHORIZED = '0' and suppress associated warning
 const { silentlyAllowInsecureConnections } = require('./helpers/suppress-unauthorized-warning');
@@ -42,6 +43,7 @@ class TestEnvironment extends NodeEnvironment {
     this.global.BOOKING_FLOWS_IN_SCOPE = BOOKING_FLOWS_IN_SCOPE;
     this.global.IMPLEMENTED_FEATURES = IMPLEMENTED_FEATURES;
     this.global.USE_RANDOM_OPPORTUNITIES = USE_RANDOM_OPPORTUNITIES;
+    this.global.USE_SHAPE_EXPRESSIONS = USE_SHAPE_EXPRESSIONS;
   }
 
   async teardown() {

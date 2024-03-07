@@ -10,10 +10,10 @@
  * waiting for validation.
  */
 const fs = require('fs').promises;
+const path = require('path');
 const fsExtra = require('fs-extra');
 const itertools = require('iter-tools');
 const mkdirp = require('mkdirp');
-const path = require('path');
 const { ITEM_VALIDATION_MODE, VALIDATOR_INPUT_TMP_DIR } = require('../broker-config');
 
 /**

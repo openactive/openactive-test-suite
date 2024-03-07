@@ -5,6 +5,7 @@ const JSZip = require('jszip');
 const assert = require('assert');
 const path = require('path');
 const { Worker } = require('worker_threads');
+const { extractJSONLDfromHTML } = require('@openactive/dataset-utils')
 
 const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(__dirname, '..', 'features', 'tests-implemented.json');
 
@@ -17,35 +18,12 @@ const TESTS_IMPLEMENTED_METADATA = JSON.parse(fs.readFileSync(INDEX_TESTS_IMPLEM
 })(); */
 
 async function validateCertificateHtml(certificateHtml, certificateUrl, holderName) {
-  const certificateJson = extractJSONLDfromHTML(certificateHtml);
+  // There are no relative URLs in the certificate HTML, so the URL can be empty
+  const url = '';
+  const certificateJson = extractJSONLDfromHTML(url, certificateHtml);
 
   return await validateCertificate(certificateJson, certificateUrl, holderName);
 
-  function extractJSONLDfromHTML(html) {
-    let jsonld = null;
-
-    const handler = new Handler(
-      (err, result) => {
-        if (!err && typeof result === 'object') {
-          const jsonldArray = result.jsonld;
-          // Use the first JSON-LD block on the page
-          if (Array.isArray(jsonldArray) && jsonldArray.length > 0) {
-            [jsonld] = jsonldArray;
-          }
-        }
-      },
-      {
-        url: '', // The HTML pages URL is used to resolve relative URLs. TODO: Remove this
-      },
-    );
-
-    // Create a HTML parser with the handler.
-    const parser = new Parser(handler, { decodeEntities: true });
-    parser.write(html);
-    parser.done();
-
-    return jsonld;
-  }
 }
 
 async function validateCertificate(certificateJson, certificateUrl, holderName) {
@@ -195,7 +173,7 @@ function assertCertificateIntegrity(certificateJson, scaffoldedSuites, evidenceJ
   // Check every test in the index file has passed
   assert.ok(indexJson.features.every(
     feature => feature.overallStatus === 'passed'
-    || feature.tests.every(test => ['passed', 'warning'].includes(test.overallStatus)),
+      || feature.tests.every(test => ['passed', 'warning'].includes(test.overallStatus)),
   ));
 
   // Check every referenced file in index (except for 'test-interface')
