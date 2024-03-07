@@ -1,14 +1,14 @@
+const querystring = require('querystring');
 const chakram = require('chakram');
 const config = require('config');
 const { isNil } = require('lodash');
-const querystring = require('querystring');
 
-const { c1ReqTemplates } = require('../templates/c1-req.js');
-const { c2ReqTemplates } = require('../templates/c2-req.js');
-const { bReqTemplates } = require('../templates/b-req.js');
-const { cancelOrderReqTemplates } = require('../templates/cancel-order-req.js');
-const { rejectOrderProposalReqTemplates } = require('../templates/reject-order-proposal-req.js');
-const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
+const { c1ReqTemplates } = require('../templates/c1-req');
+const { c2ReqTemplates } = require('../templates/c2-req');
+const { bReqTemplates } = require('../templates/b-req');
+const { cancelOrderReqTemplates } = require('../templates/cancel-order-req');
+const { rejectOrderProposalReqTemplates } = require('../templates/reject-order-proposal-req');
+const { createTestInterfaceOpportunity } = require('./test-interface-opportunities');
 
 /**
  * @typedef {import('chakram').RequestMethod} RequestMethod

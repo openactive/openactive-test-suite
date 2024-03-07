@@ -5,7 +5,7 @@ const { getTestDataShapeExpressions } = require('@openactive/test-interface-crit
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  */
 
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, USE_SHAPE_EXPRESSIONS } = global;
 
 /**
  * Create opportunity data for sending to https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities
@@ -21,13 +21,10 @@ const { HARVEST_START_TIME } = global;
  * @returns {TestInterfaceOpportunity}
  */
 function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null, harvestStartTimeOverride = null }) {
-  const remainingCapacityPredicate = (opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot')
-    ? 'oa:remainingUses'
-    : 'schema:remainingAttendeeCapacity';
   const testDataShapeExpressions = getTestDataShapeExpressions(
     testOpportunityCriteria,
     bookingFlow,
-    remainingCapacityPredicate,
+    opportunityType,
     { harvestStartTime: harvestStartTimeOverride ?? HARVEST_START_TIME },
   );
   /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpenBookingFlow' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
@@ -39,8 +36,10 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
     // e.g. OpenBookingApprovalFlow -> https://openactive.io/test-interface#OpenBookingApprovalFlow
     'test:testOpenBookingFlow': `https://openactive.io/test-interface#${bookingFlow}`,
-    'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
-    'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
+    ...(USE_SHAPE_EXPRESSIONS ? {
+      'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
+      'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
+    } : {}),
   };
   const seller = sellerId ? {
     '@type': sellerType,

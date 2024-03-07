@@ -35,25 +35,30 @@ function assertNodeConstraintType(expectedType, requirement, criteriaName) {
  * @template {TestDataNodeConstraint} TNodeConstraint
  * @template {keyof TNodeConstraint} TFieldName
  * @param {TFieldName} fieldName
- * @param {TNodeConstraint} reqA
- * @param {TNodeConstraint} reqB
+ * @param {TNodeConstraint} baseConstraint
+ * @param {TNodeConstraint} extensionConstraint
  * @param {(reqAField: TNodeConstraint[TFieldName], reqBField: TNodeConstraint[TFieldName]) => TNodeConstraint[TFieldName] | null} getValueIfBothExist
  * @returns {{} | Pick<TNodeConstraint, TFieldName>} This format makes it easy to merge this data into an object literal.
  *   The result will look like e.g. `{ mininclusive: 3 }`.
  *   It can also be an empty object to cater for instances in which neither of the requirements have the field
  *   and therefore this field should not be added to the merged requirement.
  */
-function mergeTestDataNodeConstraintField(fieldName, reqA, reqB, getValueIfBothExist) {
-  if (reqA[fieldName] == null && reqB[fieldName] == null) {
+function mergeTestDataNodeConstraintField(
+  fieldName,
+  baseConstraint,
+  extensionConstraint,
+  getValueIfBothExist,
+) {
+  if (baseConstraint[fieldName] == null && extensionConstraint[fieldName] == null) {
     return {};
   }
-  if (reqA[fieldName] != null) {
-    return { [fieldName]: reqA[fieldName] };
+  if (extensionConstraint[fieldName] != null && baseConstraint[fieldName] == null) {
+    return { [fieldName]: extensionConstraint[fieldName] };
   }
-  if (reqB[fieldName] != null) {
-    return { [fieldName]: reqB[fieldName] };
+  if (baseConstraint[fieldName] != null && extensionConstraint[fieldName] == null) {
+    return { [fieldName]: baseConstraint[fieldName] };
   }
-  const mergedValue = getValueIfBothExist(reqA[fieldName], reqB[fieldName]);
+  const mergedValue = getValueIfBothExist(baseConstraint[fieldName], extensionConstraint[fieldName]);
   if (mergedValue == null) { return {}; }
   return { [fieldName]: mergedValue };
 }
@@ -76,15 +81,27 @@ function mergeDateRangeNodeConstraints(reqA, reqB) {
 }
 
 /**
- * @param {NumericNodeConstraint} reqA
- * @param {NumericNodeConstraint} reqB
+ * @param {NumericNodeConstraint} baseConstraint
+ * @param {NumericNodeConstraint} extensionConstraint
  * @returns {NumericNodeConstraint}
  */
-function mergeNumericNodeConstraints(reqA, reqB) {
+function mergeNumericNodeConstraints(baseConstraint, extensionConstraint) {
   return {
     '@type': 'NumericNodeConstraint',
-    ...mergeTestDataNodeConstraintField('mininclusive', reqA, reqB, Math.max),
-    ...mergeTestDataNodeConstraintField('maxinclusive', reqA, reqB, Math.min),
+    ...mergeTestDataNodeConstraintField(
+      'mininclusive',
+      baseConstraint,
+      extensionConstraint,
+      // The extension should overwrite the base if they both exist
+      (base, extension) => extension,
+    ),
+    ...mergeTestDataNodeConstraintField(
+      'maxinclusive',
+      baseConstraint,
+      extensionConstraint,
+      // The extension should overwrite the base if they both exist
+      (base, extension) => extension,
+    ),
   };
 }
 
@@ -277,7 +294,7 @@ function dateMinusDuration(datetimeIso, durationIso) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTime | null} null if there is no booking window lower limit defined.
  */
 function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validFromBeforeStartDate) {
@@ -285,6 +302,21 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   }
 
   return dateMinusDuration(opportunity.startDate, offer.validFromBeforeStartDate);
+}
+
+/**
+ * Get the date that the startDate - validThroughBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ */
+function getDateBeforeWhichBookingsCanBeMade(offer, opportunity) {
+  if (!offer || !offer.validThroughBeforeStartDate) {
+    return null; // has no booking window
+  }
+
+  return dateMinusDuration(opportunity.startDate, offer.validThroughBeforeStartDate);
 }
 
 /**
@@ -346,7 +378,7 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 /**
 * @type {OpportunityConstraint}
 */
-function startDateMustBe2HrsInAdvance(opportunity, options) {
+function startDateMustBeOver2HrsInAdvance(opportunity, options) {
   return options.harvestStartTimeTwoHoursLater < DateTime.fromISO(opportunity.startDate);
 }
 
@@ -374,10 +406,14 @@ function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
 /**
 * @type {OfferConstraint}
 */
-function mustHaveBeInsideValidFromBeforeStartDateWindow(offer, opportunity, options) {
+function mustBeInsideBookingWindowIfOneExists(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
-  if (dateAfterWhichBookingsCanBeMade == null) { return true; } // no booking window - therefore bookable at any time
-  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
+  const dateBeforeWhichBookingsCanBeMade = getDateBeforeWhichBookingsCanBeMade(offer, opportunity);
+  /* If, within 2 hours, the end of the booking window would be reached, it may be possible for this to happen
+  during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
+  ends at least 2 hours in the future. */
+  return (dateAfterWhichBookingsCanBeMade == null || options.harvestStartTime > dateAfterWhichBookingsCanBeMade)
+   && (dateBeforeWhichBookingsCanBeMade == null || options.harvestStartTimeTwoHoursLater < dateBeforeWhichBookingsCanBeMade);
 }
 
 /**
@@ -476,17 +512,18 @@ module.exports = {
   getType,
   getRemainingCapacity,
   getDateAfterWhichBookingsCanBeMade,
+  getDateBeforeWhichBookingsCanBeMade,
   getDateBeforeWhichCancellationsCanBeMade,
   hasCapacityLimitOfOne,
   remainingCapacityMustBeAtLeastTwo,
   mustRequireAttendeeDetails,
   mustNotRequireAttendeeDetails,
   mustAllowProposalAmendment,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   getOrganizerOrProvider,
   mustBeOutsideCancellationWindow,
   mustNotAllowFullRefund,

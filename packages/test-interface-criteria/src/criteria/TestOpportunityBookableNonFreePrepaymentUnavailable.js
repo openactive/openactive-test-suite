@@ -1,12 +1,13 @@
+const { shapeConstraintRecipes, NON_FREE_PRICE_QUANTITATIVE_VALUE, prepaymentOptionNodeConstraint, openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
 const {
   createCriteria,
   remainingCapacityMustBeAtLeastTwo,
   mustNotBeOpenBookingInAdvanceUnavailable,
-  mustHaveBeInsideValidFromBeforeStartDateWindow,
+  mustBeInsideBookingWindowIfOneExists,
   sellerMustAllowOpenBooking,
   mustNotRequireAttendeeDetails,
   mustNotRequireAdditionalDetails,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   eventStatusMustNotBeCancelledOrPostponed,
 } = require('./criteriaUtils');
 
@@ -36,8 +37,8 @@ const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
       sellerMustAllowOpenBooking,
     ],
     [
-      'startDate must be 2hrs in advance for random tests to use',
-      startDateMustBe2HrsInAdvance,
+      'startDate must be over 2hrs in advance for random tests to use',
+      startDateMustBeOver2HrsInAdvance,
     ],
     [
       'eventStatus must not be Cancelled or Postponed',
@@ -50,8 +51,8 @@ const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
     ],
     [
       'Only paid bookable offers with openBookingPrepayment unavailable',
@@ -66,8 +67,28 @@ const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
       mustNotRequireAdditionalDetails,
     ],
   ],
-  testDataShape: () => ({
-    // TODO: Add data shape
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+      ...shapeConstraintRecipes.startDateMustBe2HrsInAdvance(options),
+      ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+      // onlyPaidBookableOffersWithPrepaymentUnavailable
+      'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+      'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
+        allowlist: ['https://openactive.io/Unavailable'],
+      }),
+      // mustNotRequireAttendeeDetails, mustNotRequireAdditionalDetails
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        excludesAll: [
+          'https://openactive.io/OpenBookingAttendeeDetails',
+          'https://openactive.io/OpenBookingIntakeForm',
+        ],
+      }),
+    },
   }),
 });
 
