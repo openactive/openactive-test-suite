@@ -48,10 +48,12 @@ const TestOpportunityBookableOutsideValidFromBeforeStartDate = createCriteria({
     offerConstraints: {
       // mustHaveBookingWindowAndBeOutsideOfIt
       'oa:validFromBeforeStartDate': dateRange({
-        minDate: options.harvestStartTimeTwoHoursLater.toISO(),
+        // +1s to match the non-equaling comparison in the non-ShEx constraint
+        minDate: options.harvestStartTimeTwoHoursLater.plus({ seconds: 1 }).toISO(),
       }),
       'oa:validThroughBeforeStartDate': dateRange({
-        maxDate: options.harvestStartTime.toISO(),
+        // -1s to match the non-equaling comparison in the non-ShEx constraint
+        maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
       }),
     },
   }),

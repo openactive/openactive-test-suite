@@ -29,6 +29,10 @@ const validatorInputFileNameComparator = R.ascend(getValidatorInputFileNameSeque
  * @typedef {(numItems: number) => void} OnValidateItemsCallback
  */
 
+/**
+ * Manage a pool of workers used to validate items from the Booking System's
+ * feeds in parallel.
+ */
 class ValidatorWorkerPool {
   /**
    * @param {number | null} validatorTimeoutMs Validator stops when:

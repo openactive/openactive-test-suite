@@ -22,11 +22,11 @@ To run `openactive-integration-tests` in separate terminal window to `openactive
 
 ### Running specific tests
 
-`npm start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
+`npm run start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
 
 ### Running core tests in a single process
 
-`npm start-tests -- --runInBand test/features/core/`
+`npm run start-tests -- --runInBand test/features/core/`
 
 ## Configuration for `integrationTests` within `./config/{NODE_ENV}.json`
 
@@ -121,6 +121,20 @@ The value can be any string, such as `uat-ci`, or `alex-dev`.
 
 Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
 
+### `useShapeExpressions`
+
+Whether or not to use the experimental Shape Expressions feature (introduced in this [Test Interface issue](https://github.com/openactive/test-interface/issues/1)) to improve the process of requesting data matching a specific criteria.
+
+This is off by default as it is currently an experimental feature which has not yet been included in the [Test Interface](https://openactive.io/test-interface/) specification.
+
+If turned on, you may be able to build a simpler and more extensible:
+
+* [Create Opportunity API](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) (for [controlled mode](#userandomopportunities)).
+* Script for adding test data to your booking system's database from the output of the [test-data-generator script](./test-data-generator/) (for [random mode](#userandomopportunities)).
+
+```json
+  "useShapeExpressions": false
+```
 
 ## Reading test results
 
