@@ -1038,7 +1038,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
         updateParentOpportunitySubEventMap(item, jsonLdId);
       }
     } else {
-      // State = updated
+      // State = deleted
       const jsonLdId = state.parentOpportunityRpdeMap.get(feedItemIdentifier);
 
       // If we had subEvents for this item, then we must be sure to delete the associated opportunityItems
