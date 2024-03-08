@@ -6,8 +6,8 @@ const { isNil } = require('lodash');
 const { c1ReqTemplates } = require('../templates/c1-req');
 const { c2ReqTemplates } = require('../templates/c2-req');
 const { bReqTemplates } = require('../templates/b-req');
-const { uReqTemplates } = require('../templates/u-req');
-const { uProposalReqTemplates } = require('../templates/u-proposal-req');
+const { cancelOrderReqTemplates } = require('../templates/cancel-order-req');
+const { rejectOrderProposalReqTemplates } = require('../templates/reject-order-proposal-req');
 const { createTestInterfaceOpportunity } = require('./test-interface-opportunities');
 
 /**
@@ -365,11 +365,11 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/u-proposal-req').UProposalReqTemplateRef | null} [maybeUProposalReqTemplateRef]
+   * @param {import('../templates/reject-order-proposal-req.js').RejectOrderProposalReqTemplateRef | null} [maybeRejectOrderProposalReqTemplateRef]
    */
-  async customerRejectOrderProposal(uuid, maybeUProposalReqTemplateRef) {
-    const uProposalReqTemplateRef = maybeUProposalReqTemplateRef || 'standard';
-    const templateFn = uProposalReqTemplates[uProposalReqTemplateRef];
+  async customerRejectOrderProposal(uuid, maybeRejectOrderProposalReqTemplateRef) {
+    const rejectOrderProposalReqTemplateRef = maybeRejectOrderProposalReqTemplateRef || 'standard';
+    const templateFn = rejectOrderProposalReqTemplates[rejectOrderProposalReqTemplateRef];
     const payload = templateFn();
 
     const uResponse = await this.patch(
@@ -387,12 +387,12 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/u-req.js').UReqTemplateData} params
-   * @param {import('../templates/u-req').UReqTemplateRef | null} [maybeUReqTemplateRef]
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateData} params
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateRef | null} [maybeCancelOrderReqTemplateRef]
    */
-  async cancelOrder(uuid, params, maybeUReqTemplateRef) {
-    const uReqTemplateRef = maybeUReqTemplateRef || 'standard';
-    const templateFn = uReqTemplates[uReqTemplateRef];
+  async cancelOrder(uuid, params, maybeCancelOrderReqTemplateRef) {
+    const cancelOrderReqTemplateRef = maybeCancelOrderReqTemplateRef || 'standard';
+    const templateFn = cancelOrderReqTemplates[cancelOrderReqTemplateRef];
     const payload = templateFn(params);
 
     const uResponse = await this.patch(

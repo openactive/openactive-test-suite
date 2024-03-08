@@ -103,6 +103,9 @@ class FlowStage {
    *   This input goes into `getInput`. It's a function as it will be called when
    *   the FlowStage is run (rather than when the FlowStage is set up). Therefore,
    *   it will have acccess to the output of any prerequisite stages.
+   *
+   *   Note that this is usually used to get the output of a prerequisite stage, but
+   *   is flexible to other use cases.
    * @param {string} args.testName Labels the jest `describe(..)` block
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
@@ -198,7 +201,10 @@ class FlowStage {
    *
    * If there is a prerequisite stage, it will be run first.
    *
-   * The result is cached.
+   * The result is cached. This means that FlowStages will only be run once, while
+   * allowing for some flexibility on how they are run. For example, a test could only
+   * run the `run()` method on the last FlowStage in a flow, and this would automatically
+   * run all pre-requisite stages.
    */
   run = pMemoize(async () => {
     // ## 1. Run prerequisite stage
