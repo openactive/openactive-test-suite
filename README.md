@@ -117,6 +117,8 @@ Example:
     },
 ```
 
+In order for Test Suite to be able to log in to your OpenID Connect Provider, you'll need to also configure `broker.loginPagesSelectors` (see [Broker Microservice Configuration](./packages/openactive-broker-microservice/README.md#loginpagesselectors)).
+
 #### Request Headers
 
 Just a set of request HTTP headers which will be used to make booking requests. There are no restrictions on the `requestHeaders` that can be specified.
