@@ -265,6 +265,15 @@ Note that running `npm start` in the root `openactive-test-suite` directory will
 
 In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
 
+## Certification
+
+An OpenActive Conformance Certificate offers a mechanism by which implementing systems can prove their conformance to the OpenActive specifications. Test Suite can be configured to output a Conformance Certificate upon all tests passing.
+
+An example conformance certificate can be found here:
+https://certificates.reference-implementation.openactive.io/examples/all-features/random/
+
+For more information about Certification please see [here](packages/openactive-integration-tests/test/certification/README.md).
+
 # Contributing
 
 - [Contributing to the project](./CONTRIBUTING.md)
