@@ -1,4 +1,4 @@
-const { createCriteria, getRemainingCapacity, mustNotBeOpenBookingInAdvanceUnavailable, mustHaveBeInsideValidFromBeforeStartDateWindow } = require('./criteriaUtils');
+const { createCriteria, getRemainingCapacity, mustNotBeOpenBookingInAdvanceUnavailable, mustBeInsideBookingWindowIfOneExists } = require('./criteriaUtils');
 const { quantitativeValue, shapeConstraintRecipes } = require('../testDataShape');
 const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
@@ -30,8 +30,8 @@ const TestOpportunityBookableNoSpaces = createCriteria({
       mustNotBeOpenBookingInAdvanceUnavailable,
     ],
     [
-      'Must be within validFromBeforeStartDate window',
-      mustHaveBeInsideValidFromBeforeStartDateWindow,
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
     ],
   ],
   testDataShape: (options) => ({
@@ -39,6 +39,11 @@ const TestOpportunityBookableNoSpaces = createCriteria({
       // remainingCapacityMustBeZero
       'placeholder:remainingCapacity': quantitativeValue({
         maxinclusive: 0,
+        mininclusive: 0,
+      }),
+      'placeholder:remainingCapacityIfuSlot': quantitativeValue({
+        maxinclusive: 0,
+        mininclusive: 0,
       }),
     },
     offerConstraints: {

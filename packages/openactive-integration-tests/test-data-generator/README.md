@@ -4,6 +4,8 @@ Command line tool to generate a distribution definition of test data based on th
 
 Test data is outputted to `./test-data/test-data.json` by default.
 
+The data outputted by this tool can be used by a script to add sufficient test data into your [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/) implementation's database for testing when using [random mode](../README.md#userandomopportunities).
+
 ## Usage
 
 ```bash

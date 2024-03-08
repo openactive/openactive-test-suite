@@ -8,7 +8,7 @@ Running `npm start` in the root will run the OpenActive Test Suite, which is act
 
 * [Integration Tests](./packages/openactive-integration-tests): this performs automated tests against the API.
 * [Broker Microservice](./packages/openactive-broker-microservice/): this sits in between the test suite and the target Open Booking API implementation. This allows the integration tests to watch for changes to the various RPDE feeds.
-* [OpenID Test Client](./packages/openactive-openid-test-client): this connects to the target Open Booking API's OpenID Provider. This allows the Broker and Integration tests to authorize with the implementation
+* [OpenID Client](./packages/openactive-openid-client), [OpenID Browser Automation](./packages/openactive-openid-browser-automation) and [OpenID Test CLI](./packages/openactive-openid-test-cli): together these connect to the target Open Booking API's OpenID Provider. This allows the Broker and Integration tests to authorize with the implementation
 * [Test Interface Criteria](./packages/test-interface-criteria/): this allows test suite to tailor specific opportunities to specific tests by implementing the [OpenActive Test Interface](https://openactive.io/test-interface/) Criteria.
 
 # Usage
@@ -117,6 +117,8 @@ Example:
     },
 ```
 
+In order for Test Suite to be able to log in to your OpenID Connect Provider, you'll need to also configure `broker.loginPagesSelectors` (see [Broker Microservice Configuration](./packages/openactive-broker-microservice/README.md#loginpagesselectors)).
+
 #### Request Headers
 
 Just a set of request HTTP headers which will be used to make booking requests. There are no restrictions on the `requestHeaders` that can be specified.
@@ -161,15 +163,21 @@ This is different from the behaviour in the Client Credentials sub-section menti
 
 ## Installation
 
-Node.js version 14 or above is required.
+First, ensure that you have the correct Node.js version installed. We recommend managing this with [Node Version Manager (NVM)](https://github.com/nvm-sh/nvm). If you use NVM, switch to the correct version of Node.js with:
+
+```sh
+nvm use
+```
+
+Otherwise, get the correct version of Node.js from the [`.nvmrc`](./.nvmrc) file.
+
+Then, install the dependencies needed for all packages in the test suite:
 
 ```bash
 npm install
 ```
- 
-This will install the dependencies needed for all packages in the test suite.
 
-For developers that are customising the installation, for use in e.g. Docker, the directories `./packages/test-interface-criteria` and `./packages/openactive-openid-test-client` are dependencies, and so must be present during `npm install`.
+For developers that are customising the installation, for use in e.g. Docker, the directories `./packages/openactive-openid-browser-automation`, `./packages/openactive-openid-client`, `./packages/openactive-openid-test-cli`, `./packages/openactive-openid-test-client` and `./packages/test-interface-criteria` are dependencies, and so must be present during `npm install`.
 
 ## Running
 
@@ -256,6 +264,15 @@ Note that running `npm start` in the root `openactive-test-suite` directory will
 ## Test Data Requirements
 
 In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
+
+## Certification
+
+An OpenActive Conformance Certificate offers a mechanism by which implementing systems can prove their conformance to the OpenActive specifications. Test Suite can be configured to output a Conformance Certificate upon all tests passing.
+
+An example conformance certificate can be found here:
+https://certificates.reference-implementation.openactive.io/examples/all-features/random/
+
+For more information about Certification please see [here](packages/openactive-integration-tests/test/certification/README.md).
 
 # Contributing
 
