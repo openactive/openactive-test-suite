@@ -13,6 +13,7 @@
     "test/**/*.d.ts",
     "test/features/**/*.js",
     "test/helpers/**/*.js",
+    "test/report-generator.js",
     "test/report-templates/**/*.js",
     "test/shared-behaviours/index.js",
     "test/shared-behaviours/errors.js",

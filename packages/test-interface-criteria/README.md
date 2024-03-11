@@ -21,6 +21,44 @@ const TestOpportunityBookableCriteria = TestInterfaceCriteria.criteriaMap.get('T
 const { matchesCriteria, unmetCriteriaDetails } = TestInterfaceCriteria.testMatch(TestOpportunityBookableCriteria, opportunity);
 ```
 
+## Concepts
+
+### Opportunity-Offer
+
+An Opportunity-Offer is a combination of an [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) and one of its [Offers](https://openactive.io/modelling-opportunity-data/#describing-offers-code-schema-offer-code-). This combination is selected by a customer in order to make a booking in real life. Similarly, Test Suite tests select one or more Opportunity-Offers – packaging each into an [OrderItem](https://openactive.io/open-booking-api/EditorsDraft/#schema-orderitem) – before testing a booking flow.
+
+### Criteria
+
+A Criteria is a set of Constraints that an **Opportunity-Offer** may or may not satisfy. For example, the `TestOpportunityBookableNotCancellable` criteria is only satisfied for an Opportunity-Offer that can be booked but cannot be cancelled.
+
+The Criteria are specified in the [Test Interface](https://openactive.io/test-interface) spec. Each of the "Enumeration Values" with type `test:TestOpportunityCriteriaEnumeration` is one of the supported Criteria.
+
+This package, `test-interface-criteria`, provides, for each of the Criteria specified in the spec, the logic for determining whether or not an Opportunity-Offer satisfies that Criteria. In this package, this logic is split into composable **Constraints**.
+
+### Constraints
+
+Each **Criteria** is composed of multiple Opportunity Constraints and Offer Constraints. Each of these is a predicate function that returns true if the Opportunity or Offer satisfies the Constraint, and false otherwise. Here is an example Opportunity Constraint:
+
+```js
+/**
+* @type {OpportunityConstraint}
+*/
+function endDateMustBeInThePast(opportunity) {
+  return DateTime.fromISO(opportunity.endDate) < DateTime.now();
+}
+```
+
+And, an example Offer Constraint:
+
+```js
+/**
+* @type {OfferConstraint}
+*/
+function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
+  return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable';
+}
+```
+
 ## Developing
 
 ### TypeScript
