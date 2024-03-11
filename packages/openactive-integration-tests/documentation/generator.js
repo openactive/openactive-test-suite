@@ -59,6 +59,17 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
  * }} FeatureMetadataItem
  */
 
+const FEATURES_NOT_REQUIRED_FOR_DEFAULT_JSON = new Set([
+  /* Not required because the default behaviour allows for both opportunities
+  which can and can not be cancelled */
+  'customer-requested-cancellation-always-allowed',
+  /* change-of-logistics-notification is also temporarily disabled while the
+  Reference Implementation catches up to its new specification. */
+  'change-of-logistics-notifications',
+  // This is not required because it is mutually exclusive with multiple-sellers
+  'single-seller',
+]);
+
 const rootDirectory = path.join(__dirname, '../');
 
 // Stub global config
@@ -80,9 +91,8 @@ const testMetadata = fg.sync(jestConfig.testMatch, { cwd: rootDirectory }).map(f
   // ## Validate the test metadata
   const expectedPath = `test/features/${renderFullTestPath(data)}`;
   chai.expect(expectedPath, `Expected ${file} to contain metadata matching its path`).to.equal(file);
-  // All features in default.json should be true except for customer-requested-cancellation-always-allowed
-  // change-of-logistics-notification is also temporarily disabled while the Reference Implementation catches up to its new specification.
-  const expectedValue = data.testFeature !== 'customer-requested-cancellation-always-allowed' && data.testFeature !== 'change-of-logistics-notifications';
+  // All features in default.json should be true, with some exceptions
+  const expectedValue = !FEATURES_NOT_REQUIRED_FOR_DEFAULT_JSON.has(data.testFeature);
   chai.expect(defaultConfig.integrationTests.implementedFeatures, `Expected default.json to contain feature '${data.testFeature} set to "${expectedValue}"'`).to.have.property(data.testFeature).to.equal(expectedValue);
   return data;
 });
