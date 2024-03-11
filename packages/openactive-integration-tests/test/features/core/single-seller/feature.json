@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "single-seller",
+  "name": "Single Seller",
+  "description": "The booking system only supports providing services to one seller.",
+  "explainer": "",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#booking-pre-conditions",
+  "required": false,
+  "coverageStatus": "complete"
+}

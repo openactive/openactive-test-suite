@@ -72,6 +72,7 @@
       "prepayment-unavailable": true,
       "minimal-proposal": true,
       "proposal-amendment": true,
+      "single-seller": false,
       "multiple-sellers": true,
       "payment-reconciliation-detail-validation": true,
       "booking-window": true,
