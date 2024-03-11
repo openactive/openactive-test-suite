@@ -114,7 +114,7 @@ These selectors would work for a login page whose HTML looks like:
 <input type="submit" class="btn-primary" value="Submit" />
 ```
 
-**Context**: For Sellers which use OpenID Connect for authorization, Broker needs to acquire these Sellers' tokens in order to authenticate as each of these Sellers. Broker does this by going through [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/), loading the Booking System's login page in a headless browser and entering username/password details therein. See the [openactive-openid-browser-automation](../openactive-openid-browser-automation/) package for more details.
+**Context**: For Sellers which use OpenID Connect for authorization (see [Sellers Authentication Configuration](../../README.md#openid-connect) to see how this is configured), Broker needs to acquire these Sellers' tokens in order to authenticate as each of these Sellers. Broker does this by going through [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/), loading the Booking System's login page in a headless browser and entering username/password details therein. See the [openactive-openid-browser-automation](../openactive-openid-browser-automation/) package for more details.
 
 ### `opportunityFeedRequestHeaders`
 
