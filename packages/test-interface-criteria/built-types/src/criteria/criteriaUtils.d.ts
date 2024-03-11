@@ -1,3 +1,4 @@
+export type DateTimeType = import('luxon').DateTime;
 export type Opportunity = import('../types/Opportunity').Opportunity;
 export type Offer = import('../types/Offer').Offer;
 export type Options = import('../types/Options').Options;
@@ -49,23 +50,23 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window lower limit defined.
+ * @returns {DateTimeType | null} null if there is no booking window lower limit defined.
  */
-export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
+export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTimeType | null;
 /**
  * Get the date that the startDate - validThroughBeforeStartDate window starts
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ * @returns {DateTimeType | null} null if there is no booking window upper limit defined.
  */
-export function getDateBeforeWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
+export function getDateBeforeWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTimeType | null;
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no cancellation window defined.
+ * @returns {DateTimeType | null} null if there is no cancellation window defined.
  */
-export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): DateTime | null;
+export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): DateTimeType | null;
 /**
 * @param {Opportunity} opportunity
 * @returns {boolean}
@@ -111,4 +112,3 @@ export function extendTestDataShape(baseTestDataShape: TestDataShape, extraTestD
  * @returns {Criteria['offerConstraints'][number]}
  */
 export function createCriteriaOfferConstraint(name: string, constraint: OfferConstraint): Criteria['offerConstraints'][number];
-import { DateTime } from "luxon/src/datetime";
