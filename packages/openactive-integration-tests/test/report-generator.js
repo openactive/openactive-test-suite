@@ -1,3 +1,4 @@
+const util = require('util');
 const chalk = require("chalk");
 const Handlebars = require("handlebars");
 const fs = require("fs").promises;
@@ -6,6 +7,17 @@ const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 const { getConfigVarOrThrow } = require('./helpers/config-utils');
 const showdown = require('showdown');
+
+/**
+ * @typedef {{
+ *   [testOpportunityCriteria: string]: {
+ *     sellerIds: string[];
+ *     opportunityTypes: string[];
+ *     bookingFlows: string[];
+ *     numTestsFailing: number;
+ *   }
+ * }} MissingOpportunityDataSummary
+ */
 
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
@@ -105,6 +117,7 @@ class BaseReportGenerator {
       },
       "logsFor": (suite, type, options) => {
         let first = true;
+        // @ts-expect-error this.logger is only defined in ReportGenerator
         let logs = this.logger.logsFor(suite, type);
         let ret = "";
         for (let [i, value] of logs.entries()) {
@@ -128,6 +141,7 @@ class BaseReportGenerator {
         return ret;
       },
       "statusFor": (suite) => {
+        // @ts-expect-error this.logger is only defined in ReportGenerator
         let status = this.logger.statusFor(suite);
         return status;
       },
@@ -145,6 +159,9 @@ class BaseReportGenerator {
     return {};
   }
 
+  /**
+   * @returns {string}
+   */
   get reportHtmlPath () {
     throw "Not Implemented";
   }
@@ -179,7 +196,6 @@ class BaseReportGenerator {
     converter.setOption('moreStyling', true)
     converter.setOption('openLinksInNewWindow', true);
     const html = converter.makeHtml(data);
-
 
     await fs.writeFile(this.reportHtmlPath, html);
   }
@@ -260,7 +276,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
             numFailed
           }))
         }))
-        )
+      ),
     };
   }
 
@@ -274,7 +290,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return "summary";
   }
 
-  get templateData () {
+  get templateData() {
     return this;
   }
 
@@ -302,9 +318,24 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return (this.datasetJson.bookingService && this.datasetJson.bookingService.name) || 
     (this.datasetJson.publisher && this.datasetJson.publisher.name);
   }
+
+  get missingOpportunityDataSummary() {
+    if (this._missingOpportunityDataSummary !== undefined) {
+      return this._missingOpportunityDataSummary;
+    }
+    const { missingOpportunityDataSummary } = this.loggers;
+    if (_.isEmpty(missingOpportunityDataSummary)) {
+      return null;
+    }
+    this._missingOpportunityDataSummary = missingOpportunityDataSummary;
+    return this._missingOpportunityDataSummary;
+  }
 }
 
 class LoggerGroup {
+  /**
+   * @param {import('./helpers/logger').BaseLoggerType[]} loggers
+   */
   constructor (reporter, loggers) {
     this.reporter = reporter;
     this.loggers = loggers;
@@ -315,6 +346,7 @@ class LoggerGroup {
 
     return this._opportunityTypeGroups = _
       .chain(this.loggers)
+      // @ts-expect-error logger.opportunityType and logger.bookingFlow are only defined when a logger is loaded from an output JSON
       .groupBy(logger => logger.opportunityType ? `${logger.bookingFlow} >> ${logger.opportunityType}` : "Generic")
       .mapValues(group => new LoggerGroup(this.reporter, group))
       .value();
@@ -332,7 +364,7 @@ class LoggerGroup {
   }
 
   get opportunityTypeName() {
-    return this.loggers[0].opportunityType ? (`${this.loggers[0].bookingFlow} >> ${this.loggers[0].opportunityType}`) : 'Generic';
+    return this.loggers[0].opportunityTypeName;
   }
 
   get featureName () {
@@ -366,7 +398,7 @@ class LoggerGroup {
           acc[key] = (acc[key] || 0) + value;
         }
         return acc;
-      }, {});
+      }, /** @type {Record<string, number>} */({}));
   }
 
   get validationStatusCounts () {
@@ -377,7 +409,7 @@ class LoggerGroup {
           acc[key] = (acc[key] || 0) + value;
         }
         return acc;
-      }, {});
+      }, /** @type {Record<string, number>} */({}));
   }
 
   get overallStatus () {
@@ -392,6 +424,83 @@ class LoggerGroup {
     else return "passed";
   }
 
+  /**
+   * Get stats about which tests have OpportunityNotFound events and thus
+   * failed due to missing required opportunity data.
+   */
+  get missingOpportunityDataStats() {
+    if (this._missingOpportunityDataStats) { return this._missingOpportunityDataStats; }
+    const allAugmentedEvents = this.loggers.flatMap((logger) => {
+      const testConfig = _.pick(logger, [
+        'opportunityTypeName',
+
+        'featureName',
+        'implementedDisplayLabel',
+        'suiteName',
+        'htmlLocalPath',
+      ]);
+      const flowStageLogs = Object.values(logger.flow);
+      return flowStageLogs.flatMap(flowStageLog => (
+        flowStageLog.events
+          .filter(event => event.type === 'OpportunityNotFound')
+          // Associate each of these events with a specific test
+          .map(event => ({ ..._.omit(event, ['type']), testConfig }))
+      ));
+    });
+    const uniqueAugmentedEvents = _.uniqWith(allAugmentedEvents, _.isEqual);
+    this._missingOpportunityDataStats = uniqueAugmentedEvents;
+    return this._missingOpportunityDataStats;
+  }
+
+  /**
+   * Groups the results from `missingOpportunityDataStats` into something
+   * that can be shown in the summary report.
+   */
+  get missingOpportunityDataSummary() {
+    if (this._missingOpportunityDataSummary) { return this._missingOpportunityDataSummary; }
+    const stats = this.missingOpportunityDataStats;
+    // So that criteria are listed alphabetically in the summary report
+    const statsSortedByCriteria = _.sortBy(stats, [
+      'testOpportunityCriteria',
+    ]);
+    this._missingOpportunityDataSummary = statsSortedByCriteria.reduce((acc, event) => {
+      if (!acc[event.testOpportunityCriteria]) {
+        acc[event.testOpportunityCriteria] = {
+          sellerIds: [],
+          opportunityTypes: [],
+          bookingFlows: [],
+          numTestsFailing: 0,
+        };
+      }
+      const summary = acc[event.testOpportunityCriteria];
+      pushToSortedUniqueArray(summary.sellerIds, event.sellerId);
+      pushToSortedUniqueArray(summary.opportunityTypes, event.opportunityType);
+      pushToSortedUniqueArray(summary.bookingFlows, event.bookingFlow);
+      summary.numTestsFailing += 1;
+      return acc;
+    }, /** @type {MissingOpportunityDataSummary} */({}));
+    return this._missingOpportunityDataSummary;
+  }
+}
+
+/**
+ * Push an item to an array that is already sorted.
+ *
+ * The item will be inserted into the array at a position which maintains sort
+ * order. If the item is already present in the array, it will not be added.
+ *
+ * ! Mutates `arr`
+ *
+ * @template T
+ * @param {T[]} arr
+ * @param {T} value
+ */
+function pushToSortedUniqueArray(arr, value) {
+  const index = _.sortedIndex(arr, value);
+  if (arr[index] === value) {
+    return;
+  }
+  arr.splice(index, 0, value);
 }
 
 module.exports = {
