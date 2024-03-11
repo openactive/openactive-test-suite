@@ -274,63 +274,67 @@ class FeatureHelper {
 
   /**
    * Use this for a `not-implemented` test for a feature that should be implemented if another given
-   * set of features are or are not.
+   * set of features are.
    *
    * @param {NodeModule} documentationModule
    * @param {Omit<DescribeFeatureConfiguration, 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
-   *   otherFeaturesWhichImplyThisOne?: string[];
-   *   otherFeaturesWhichAreMutuallyExclusiveWithThisOne?: string[];
+   *   otherFeaturesWhichImplyThisOne: string[];
    * }} configuration
    *   - `otherFeaturesWhichImplyThisOne` is an array of feature names. If any
    *     of these features are implemented, then the feature in focus MUST also
    *     be implemented
-   *   - `otherFeaturesWhichAreMutuallyExclusiveWithThisOne` is an array of
-   *     feature names. If any of these features are implemented, then the
-   *     feature in focus must NOT also be implemented
    */
-  static describeFeatureShouldBeImplementedIfOtherFeaturesAreOrAreNot(documentationModule, configuration) {
-    const otherFeaturesWhichImplyThisOne = (configuration.otherFeaturesWhichImplyThisOne ?? []);
-    const otherFeaturesWhichAreMutuallyExclusiveWithThisOne = (configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne ?? []);
-    if (
-      otherFeaturesWhichImplyThisOne.length === 0
-      && otherFeaturesWhichAreMutuallyExclusiveWithThisOne.length === 0
-    ) {
-      throw new Error('At least one of `otherFeaturesWhichImplyThisOne` or `otherFeaturesWhichAreMutuallyExclusiveWithThisOne` must be set');
-    }
-    const otherFeaturesWhichImplyThisOneSummary = otherFeaturesWhichImplyThisOne.map(f => `'${f}'`).join(' and ');
-    const otherFeaturesWhichAreMutuallyExclusiveWithThisOneSummary = otherFeaturesWhichAreMutuallyExclusiveWithThisOne.map(f => `'${f}'`).join(' and ');
-    const defaultTestDescriptionCore = (() => {
-      const parts = [];
-      if (otherFeaturesWhichImplyThisOne.length > 0) {
-        parts.push(`features: ${otherFeaturesWhichImplyThisOneSummary} are implemented`);
-      }
-      if (otherFeaturesWhichAreMutuallyExclusiveWithThisOne.length > 0) {
-        parts.push(`features: ${otherFeaturesWhichAreMutuallyExclusiveWithThisOneSummary} are NOT implemented`);
-      }
-      return parts.join('; and if ');
-    })();
-    const defaultTestDescription = `This feature must be implemented if ${defaultTestDescriptionCore}`;
+  static describeFeatureShouldBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
+    const otherFeaturesSummary = configuration.otherFeaturesWhichImplyThisOne.map(f => `'${f}'`).join(' and ');
     this.describeFeature(documentationModule, {
-      testDescription: defaultTestDescription,
+      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are implemented`,
       skipMultiple: true,
       doesNotUseOpportunitiesMode: true,
       ...configuration,
     }, () => {
       describe('Feature', () => {
-        if (otherFeaturesWhichImplyThisOne.length > 0) {
-          it(`must be implemented if other features: ${otherFeaturesWhichImplyThisOneSummary} are`, () => {
-            expect(IMPLEMENTED_FEATURES).to.not.include(
-              Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
-            );
-          });
-        }
-        if (otherFeaturesWhichAreMutuallyExclusiveWithThisOne.length > 0) {
-          it(`must not be implemented if other features: ${otherFeaturesWhichAreMutuallyExclusiveWithThisOneSummary} are`, () => {
-            expect(IMPLEMENTED_FEATURES).to.include(
-              Object.fromEntries(configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne.map(f => [f, true])),
-            );
-          });
-        }
+        it(`must be implemented if other features: ${otherFeaturesSummary} are`, () => {
+          expect(IMPLEMENTED_FEATURES).to.not.include(
+            Object.fromEntries(configuration.otherFeaturesWhichImplyThisOne.map(f => [f, true])),
+          );
+        });
+      });
+    });
+  }
+
+  /**
+   * Use this for a `not-implemented` test for a feature that should be
+   * implemented if another given set of features are NOT. i.e. this feature
+   * is mutually exclusive with another set of features.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+   *   otherFeaturesWhichAreMutuallyExclusiveWithThisOne: string[];
+   * }} configuration
+   *   - `otherFeaturesWhichAreMutuallyExclusiveWithThisOne` is an array of
+   *     feature names. If all of these features are not implemented, then
+   *     the feature in focus MUST be implemented.
+   */
+  static describeFeatureShouldBeImplementedIfOtherFeaturesAreNot(documentationModule, configuration) {
+    const otherFeaturesSummary = configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne
+      .map(f => `'${f}'`)
+      .join(' and ');
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are NOT implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`must be implemented if other features: ${otherFeaturesSummary} are NOT`, () => {
+          expect(IMPLEMENTED_FEATURES).to.include(
+            Object.fromEntries(
+              configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne.map(
+                f => [f, true],
+              ),
+            ),
+          );
+        });
       });
     });
   }

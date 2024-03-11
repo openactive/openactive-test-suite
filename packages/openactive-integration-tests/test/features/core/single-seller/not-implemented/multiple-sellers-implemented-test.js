@@ -1,6 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 
-FeatureHelper.describeFeatureShouldBeImplementedIfOtherFeaturesAreOrAreNot(module, {
+FeatureHelper.describeFeatureShouldBeImplementedIfOtherFeaturesAreNot(module, {
   testCategory: 'core',
   testFeature: 'single-seller',
   testFeatureImplemented: false,

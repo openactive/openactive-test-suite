@@ -60,6 +60,8 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
  */
 
 const FEATURES_NOT_REQUIRED_FOR_DEFAULT_JSON = new Set([
+  /* Not required because the default behaviour allows for both opportunities
+  which can and can not be cancelled */
   'customer-requested-cancellation-always-allowed',
   /* change-of-logistics-notification is also temporarily disabled while the
   Reference Implementation catches up to its new specification. */
