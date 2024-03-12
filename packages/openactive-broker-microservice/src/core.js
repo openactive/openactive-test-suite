@@ -12,7 +12,7 @@ const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
 const { harvestRPDE, createFeedContext, progressFromContext } = require('@openactive/harvesting-utils');
-const { partial, isEmpty } = require('lodash');
+const { partial } = require('lodash');
 
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./util/log');
@@ -48,7 +48,7 @@ const { error400IfExpressParamsAreMissing } = require('./util/api-utils');
 const { ValidatorWorkerPool } = require('./validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./validator/validator-inputs');
 const { renderSampleOpportunities } = require('./sample-opportunities');
-const { invertFacilityUseItem, createItemFromSubEvent } = require('./util/item-transforms');
+const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
 
 /**
@@ -974,31 +974,21 @@ function detectOpportunityBookingFlows(opportunity) {
  */
 async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHarvestComplete, validateItemsFn) {
   const feedPrefix = `${feedIdentifier}---`;
-  const { items } = rpdePage;
+
+  // Some feeds have FacilityUse as the top-level items with embedded
+  // IndividualFacilityUse data. The Slot feed facilityUse associations link to
+  // these embedded IndividualFacilityUses. However the rest of the code assumes
+  // the linked item is the top-level item from the parent feed, so we need to
+  // invert the FacilityUse/IndividualFacilityUse relationship.
+  const items = rpdePage.items.flatMap((item) => invertFacilityUseItemIfPossible(item));
 
   for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
 
     // State = updated
     if (item.state !== 'deleted') {
-      // Some feeds have FacilityUse as the top-level items with embedded
-      // IndividualFacilityUse data. The Slot feed facilityUse associations link to
-      // these embedded IndividualFacilityUses. However the rest of the code assumes
-      // the linked item is the top-level item from the parent feed, so we need to
-      // invert the FacilityUse/IndividualFacilityUse relationship.
-      if (!isNil(item.data?.individualFacilityUse) && !isEmpty(item.data.individualFacilityUse)) {
-        // Item is a FacilityUse with embedded IndividualFacilityUse
-        const invertedItems = invertFacilityUseItem(item);
-        for (const invertedItem of invertedItems) {
-          const jsonLdId = invertedItem.data['@id'] || invertedItem.data.id;
-          state.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-          state.parentOpportunityMap.set(jsonLdId, item.data);
-        }
-        // Item has been split into multiple parent items and stored, so no further processing required,
-        // and we can move on to the next item in the for loop
-        continue;
-      }
-      // Item here can be one of three things:
+      // Each item here can be one of four things:
+      // - an inverted IndividualFacilityUse with FacilityUse ,
       // - a FacilityUse without IndividualFacilityUse,
       // - a SessionSeries without subEvents
       // - a SessionSeries with subEvents

@@ -1,18 +1,18 @@
 const { expect } = require('chai');
-const {invertFacilityUseItem, createItemFromSubEvent} = require('../../src/util/item-transforms');
+const { invertFacilityUseItem, createItemFromSubEvent } = require('../../src/util/item-transforms');
 
 describe('test/utils/item-transforms-test', () => {
   describe('invertFacilityUseItems', () => {
     it('should invert FacilityUse items and concatenate them with other items', () => {
       // Test Objects
-      const a = { 
+      const a = {
         state: 'updated',
-        data: { 
+        data: {
           '@context': 'https://openactive.io/',
           name: 'Facility Use 1',
-          '@type': 'FacilityUse', 
-          individualFacilityUse: [{ '@type': 'IndividualFacilityUse', '@id': '1' }, { '@type': 'IndividualFacilityUse', '@id': '2' }] 
-        } 
+          '@type': 'FacilityUse',
+          individualFacilityUse: [{ '@type': 'IndividualFacilityUse', '@id': '1' }, { '@type': 'IndividualFacilityUse', '@id': '2' }]
+        }
       };
 
       // Test
@@ -34,6 +34,27 @@ describe('test/utils/item-transforms-test', () => {
       expect(result[1].data).to.have.property('aggregateFacilityUse');
       expect(result[1].data.aggregateFacilityUse).to.have.property('name', 'Facility Use 1');
       expect(result[1].data.aggregateFacilityUse).to.not.have.property('@context');
+    });
+    it('should not invert FacilityUse items if there are no IndividualFacilityUses', () => {
+      // Test Objects
+      const a = {
+        state: 'updated',
+        data: {
+          '@context': 'https://openactive.io/',
+          name: 'Facility Use 1',
+          '@type': 'FacilityUse',
+        }
+      };
+
+      // Test
+      const result = invertFacilityUseItem(a);
+
+      // Assertions
+      expect(result).to.have.lengthOf(1);
+
+      expect(result[0].data).to.have.property('@context', 'https://openactive.io/');
+      expect(result[0].data).to.have.property('name', 'Facility Use 1');
+      expect(result[0].data).to.not.have.property('aggregateFacilityUse');
     });
   });
 

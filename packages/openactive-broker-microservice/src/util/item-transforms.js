@@ -1,4 +1,4 @@
-const { omit } = require('lodash');
+const { omit, isNil, isEmpty } = require('lodash');
 
 /**
  * Inverts any FacilityUse items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
@@ -6,16 +6,19 @@ const { omit } = require('lodash');
  * @param {{state: string, modified:any, kind: string, id: string, data: {id: string, individualFacilityUse?: IndividualFacilityUse[] }}} item
  */
 function invertFacilityUseItem(item) {
-  return item.data.individualFacilityUse.map((individualFacilityUse) => ({
-    ...item,
-    kind: individualFacilityUse['@type'],
-    id: individualFacilityUse['@id'] || individualFacilityUse.id,
-    data: {
-      ...individualFacilityUse,
-      '@context': item.data['@context'],
-      aggregateFacilityUse: omit(item.data, ['individualFacilityUse', '@context']),
-    },
-  }));
+  if (!isNil(item.data?.individualFacilityUse) && !isEmpty(item.data.individualFacilityUse)) {
+    return item.data.individualFacilityUse.map((individualFacilityUse) => ({
+      ...item,
+      kind: individualFacilityUse['@type'],
+      id: individualFacilityUse['@id'] || individualFacilityUse.id,
+      data: {
+        ...individualFacilityUse,
+        '@context': item.data['@context'],
+        aggregateFacilityUse: omit(item.data, ['individualFacilityUse', '@context']),
+      },
+    }));
+  }
+  return [item];
 }
 
 /**

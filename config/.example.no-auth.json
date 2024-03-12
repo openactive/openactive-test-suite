@@ -31,7 +31,7 @@
         "loginCredentials": null,
         "requestHeaders": {
           "X-OpenActive-Test-Client-Id": "booking-partner-1",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5004/api/identifiers/sellers/1"
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/1"
         }
       }
     },
@@ -40,7 +40,7 @@
         "loginCredentials": null,
         "requestHeaders": {
           "X-OpenActive-Test-Client-Id": "booking-partner-1",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5004/api/identifiers/sellers/2"
+          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
         }
       }
     }
