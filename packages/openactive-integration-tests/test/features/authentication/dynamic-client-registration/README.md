@@ -11,6 +11,7 @@ Coverage Status: **complete**
 
 
 
+
 ### Running tests for only this feature
 
 ```bash
@@ -31,9 +32,9 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |
-| [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow | Client Credentials Flow allows Booking Partners to access the Orders Feed |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |  |
+| [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow | Client Credentials Flow allows Booking Partners to access the Orders Feed |  |  |
 
 

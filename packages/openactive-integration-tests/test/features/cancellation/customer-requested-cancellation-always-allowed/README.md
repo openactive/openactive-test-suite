@@ -10,6 +10,7 @@ Coverage Status: **complete**
 
 
 
+
 ### Running tests for only this feature
 
 ```bash
@@ -30,8 +31,8 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [all-opportunities-allow-cancellation](./implemented/all-opportunities-allow-cancellation-test.js) | All opportunities in the feeds allow cancellation | Check that the feed does not include any bookable sessions that have cancellation restricted. |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [all-opportunities-allow-cancellation](./implemented/all-opportunities-allow-cancellation-test.js) | All opportunities in the feeds allow cancellation | Check that the feed does not include any bookable sessions that have cancellation restricted. |  |  |
 
 
