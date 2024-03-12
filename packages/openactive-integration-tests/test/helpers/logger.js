@@ -1,3 +1,27 @@
+// TODO fix these issues!
+/* eslint-disable arrow-parens */
+/* eslint-disable prefer-destructuring */
+/* eslint-disable no-var */
+/* eslint-disable semi */
+/* eslint-disable vars-on-top */
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-param-reassign */
+/* eslint-disable arrow-body-style */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-else-return */
+/* eslint-disable no-return-assign */
+/* eslint-disable comma-dangle */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable object-shorthand */
+/* eslint-disable getter-return */
+/* eslint-disable consistent-return */
+/* eslint-disable prefer-const */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable object-curly-spacing */
+/* eslint-disable import/no-useless-path-segments */
+/* eslint-disable quotes */
 const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
@@ -7,12 +31,40 @@ const { getConfigVarOrThrow } = require('./config-utils');
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
  */
 
+/**
+ * @typedef {{
+ *   type: 'OpportunityNotFound';
+ *   opportunityType: string;
+ *   testOpportunityCriteria: string;
+ *   bookingFlow: string;
+ *   sellerId: string;
+ * }} OpportunityNotFoundEvent An Opportunity was requested from the
+ *   Booking System (possibly via Broker Microservice) but was not found.
+ *   At report generation, this is used to show the user if their Booking
+ *   System has run out of data in random mode.
+ *
+ * @typedef {OpportunityNotFoundEvent} FlowStageLogEvent A noteworthy event that
+ *   occurred during a flow stage.
+ *   These events can then be used by the report generator to add detail to the
+ *   flow stage or summarized for the whole test run.
+ *
+ * @typedef {{
+ *   request?: Record<string, unknown>;
+ *   response?: {
+ *     validations?: unknown;
+ *     specs?: unknown[];
+ *   };
+ *   events: FlowStageLogEvent[]
+ * }} FlowStageLog
+ */
+
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
 const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // abstract class, implement shared methods
 class BaseLogger {
   constructor () {
+    /** @type {{[stage: string]: FlowStageLog}} */
     this.flow = {};
     this.logs = [];
     this.timestamp = (new Date()).toString();
@@ -68,15 +120,29 @@ class BaseLogger {
     return log;
   }
 
+  /**
+   * Ensure that there is a FlowStageLog stored for the given stage.
+   * Create one if it doesn't exist.
+   *
+   * @param {string} stage
+   */
+  _ensureFlowStage(stage) {
+    if (!this.flow[stage]) {
+      this.flow[stage] = {
+        events: [],
+      };
+    }
+  }
+
   recordRequest (stage, request) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].request) this.flow[stage].request = {};
 
     this.flow[stage].request = request;
   }
 
   recordResponse (stage, response) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     let fields = {
@@ -101,6 +167,15 @@ class BaseLogger {
     }
 
     Object.assign(this.flow[stage].response, fields);
+  }
+
+  /**
+   * @param {string} stage
+   * @param {FlowStageLogEvent} event
+   */
+  recordFlowStageEvent(stage, event) {
+    this._ensureFlowStage(stage);
+    this.flow[stage].events.push(event);
   }
 
   /**
@@ -159,7 +234,7 @@ class BaseLogger {
   }
 
   recordResponseValidations (stage, data) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     this.flow[stage].response.validations = data;
@@ -341,6 +416,16 @@ class BaseLogger {
   get numPassed () {
     return this.specStatusCounts.passed;
   }
+
+  get opportunityTypeName() {
+    if ('opportunityType' in this && 'bookingFlow' in this) {
+      return `${this.bookingFlow} >> ${this.opportunityType}`;
+    }
+    if ('opportunityType' in this) {
+      return this.opportunityType;
+    }
+    return 'Generic';
+  }
 }
 
 class Logger extends BaseLogger {
@@ -441,7 +526,7 @@ class ReporterLogger extends BaseLogger {
   }
 
   recordTestResult (stage, data) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
 

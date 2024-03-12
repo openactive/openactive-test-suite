@@ -7,7 +7,7 @@ const puppeteer = require('puppeteer');
  *   send: (status: number, json: any) => void,
  *   screenshots: { title: string, url: string, image: string }[],
  *   requiredConsent?: boolean,
- * }} Context
+ * }} AuthSessionContext
  */
 
 /**
@@ -19,6 +19,17 @@ const puppeteer = require('puppeteer');
  */
 
 /**
+ * @typedef {object} BrowserAutomationForAuthOptions
+ * @property {string} authorizationUrl The URL to the OpenID Provider's
+ *   authorization (login) page.
+ *   This MUST include the necessary query params including the redirect_uri
+ *   set to the `/cb` endpoint.
+ * @property {boolean} [headless]
+ * @property {string} username
+ * @property {string} password
+ */
+
+/**
  * Adds routes to Express that facilitate browser automation of the Authorization Code Flow
  */
 
@@ -27,7 +38,7 @@ const AUTHORIZE_SUCCESS_CLASS = 'openactive-test-callback-success';
 /**
  * @param {import('puppeteer').Page} page
  * @param {string} title
- * @param {Context} context
+ * @param {AuthSessionContext} context
  */
 async function addScreenshot(page, title, context) {
   const imageBuffer = await page.screenshot({
@@ -43,14 +54,17 @@ async function addScreenshot(page, title, context) {
 }
 
 /**
- * @param {object} args
- * @param {string} args.sessionKey
- * @param {string} args.authorizationUrl
- * @param {boolean} [args.headless]
- * @param {ButtonSelectors} args.buttonSelectors
- * @param {string} args.username
- * @param {string} args.password
- * @param {Context} args.context
+ * Launch a headless browser (using puppeteer), go to the OpenID Provider's
+ * login page and login using the provided username and password.
+ *
+ * Screenshots of the process (including any errors encountered) are saved to
+ * the AuthSessionContext, which can be used to debug any issues.
+ *
+ * @param {BrowserAutomationForAuthOptions & {
+ *   sessionKey: string,
+ *   buttonSelectors: ButtonSelectors,
+ *   context: AuthSessionContext,
+ * }} args
  */
 async function authorizeInteractive({ sessionKey, authorizationUrl, headless, buttonSelectors, username, password, context }) {
   // Get CHROMIUM_FLAGS from environment variable
@@ -63,6 +77,9 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   });
   const page = await browser.newPage();
   try {
+    /* Associate this browser session with its AuthSessionContext, which will
+    later be used by /cb to send a response back to the client.
+    And then, load the OpenID Provider's login page */
     await page.goto(`http://localhost:3000/auth?key=${encodeURIComponent(sessionKey)}&url=${encodeURIComponent(authorizationUrl)}`);
     try {
       // Wait for the login button to appear (useful for Next.js / React apps)
@@ -111,6 +128,8 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
         success: false, message: `Login button matching selector '${buttonSelectors.button}' not found`,
       };
     }
+    /* By this point, if successful, the /cb endpoint should have been called
+    by the Auth Code initiated by pressing the button */
     const isSuccessfulFollowingLogin = await page.$(`.${AUTHORIZE_SUCCESS_CLASS}`);
     if (!isSuccessfulFollowingLogin) {
       // If we do not see the callback page, then it is likely we're being asked for consent to authorize access
@@ -155,15 +174,15 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
 }
 
 let sessionKeyCounter = 0;
-/** @type {Map<string, Context>} */
+/** @type {Map<string, AuthSessionContext>} */
 const requestStore = new Map();
 
 /**
- * @param {import('express').Application} app
+ * @param {import('express').Application} expressApp
  * @param {ButtonSelectors} buttonSelectors
  */
-function setupBrowserAutomationRoutes(app, buttonSelectors) {
-  app.use(cookieSession({
+function setupBrowserAutomationRoutes(expressApp, buttonSelectors) {
+  expressApp.use(cookieSession({
     name: 'session',
     keys: [generators.codeVerifier()], // Random string as key
 
@@ -171,7 +190,22 @@ function setupBrowserAutomationRoutes(app, buttonSelectors) {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   }));
 
-  app.post('/browser-automation-for-auth', async (req, res, next) => {
+  /**
+   * Perform a complete Auth Code Flow process against the OpenID Provider
+   * using a headless browser.
+   *
+   * This endpoint is the interface for the browser auth automation service.
+   *
+   * It's an endpoint rather than a function just for convenience of use rather
+   * than having to pass the function around.
+   *
+   * Expected req.body (JSON) is a BrowserAutomationForAuthOptions object.
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+   */
+  const browserAutomationForAuthRoute = async (req, res, next) => {
     try {
       const sessionKey = sessionKeyCounter;
       sessionKeyCounter += 1;
@@ -210,10 +244,19 @@ function setupBrowserAutomationRoutes(app, buttonSelectors) {
     } catch (err) {
       next(err);
     }
-  });
+  };
 
-  // Private endpoint, only called by authorizeInteractive function
-  app.get('/auth', (req, res, next) => {
+  /**
+   * Private endpoint, only called by authorizeInteractive function.
+   *
+   * Associates this session with a AuthSessionContext (keyed with req.query.key)
+   * and redirects to the URL provided in req.query.url.
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+   */
+  const authRoute = (req, res, next) => {
     try {
       const { url, key } = req.query;
       if (typeof url !== 'string') {
@@ -232,10 +275,23 @@ function setupBrowserAutomationRoutes(app, buttonSelectors) {
     } catch (err) {
       next(err);
     }
-  });
+  };
 
-  // Private endpoint, only called by authorizeInteractive function
-  app.get('/cb', async (req, res, next) => {
+  /**
+   * Private endpoint, only called by authorizeInteractive function
+   *
+   * The callback endpoint for the Auth Code Flow process initiated by
+   * /browser-automation-for-auth.
+   *
+   * It finalises the automation process by sending screenshots and any
+   * other gathered information back to the client who first called
+   * /browser-automation-for-auth.
+   *
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+   */
+  const cbRoute = async (req, res, next) => {
     try {
       const sessionKey = req.session.key;
       res.send('<html><body><h1 class="openactive-test-callback-success">Callback Success</h1></body></html>');
@@ -252,7 +308,11 @@ function setupBrowserAutomationRoutes(app, buttonSelectors) {
     } catch (err) {
       next(err);
     }
-  });
+  };
+
+  expressApp.post('/browser-automation-for-auth', browserAutomationForAuthRoute);
+  expressApp.get('/auth', authRoute);
+  expressApp.get('/cb', cbRoute);
 }
 
 module.exports = {

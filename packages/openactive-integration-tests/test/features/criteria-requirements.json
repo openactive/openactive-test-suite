@@ -136,6 +136,7 @@
       }
     },
     "opportunity-feed": {},
+    "single-seller": {},
     "test-interface": {
       "primary": {
         "TestOpportunityBookable": 1

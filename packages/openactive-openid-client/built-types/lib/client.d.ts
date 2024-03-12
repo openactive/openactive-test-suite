@@ -25,6 +25,10 @@ declare class OpenActiveOpenIdTestClient {
      * @property {string} password
      */
     /**
+     * PRE-REQUISITE: Browser Automation Routes should have been setup. This method
+     * uses them. See the `openactive-openid-browser-automation` package for more
+     * info.
+     *
      * @param {string} clientId
      * @param {string} clientSecret
      * @param {AuthorizeOptions} options
