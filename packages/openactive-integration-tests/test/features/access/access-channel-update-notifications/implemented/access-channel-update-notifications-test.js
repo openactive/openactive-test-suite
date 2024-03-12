@@ -15,7 +15,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityOnlineBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipOpportunityTypes: ['FacilityUseSlot', 'IndividualFacilityUseSlot'],
-  testInterfaceActions: ['test:AccessChannelUpdateSimulateAction'],
+  testInterfaceActions: ['test:AccessChannelUpdateSimulateAction', 'lksdjflkjsd'],
 }, (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
 

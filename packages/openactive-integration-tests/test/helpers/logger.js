@@ -29,6 +29,7 @@ const { getConfigVarOrThrow } = require('./config-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('@openactive/openactive-openid-client/built-types/lib/request-intercept').Entry} RequestInterceptEntry
  */
 
 /**
@@ -56,6 +57,56 @@ const { getConfigVarOrThrow } = require('./config-utils');
  *   };
  *   events: FlowStageLogEvent[]
  * }} FlowStageLog
+ *
+ * @typedef {{
+ *   ancestorTitles: string[];
+ *   title: string;
+ *   fullName: string;
+ * }} TestMeta
+ *
+ * @typedef {RequestInterceptEntry & {
+ *   requestMetadata?: any;
+ * }} RequestEntry
+ *
+ * @typedef {{
+ *   type: 'result';
+ *   stage: string;
+ *   description: string;
+ *   jsonResult: any;
+ * }} ResultEntry
+ *
+ * @typedef {{
+ *   type: 'information';
+ *   title: string;
+ *   message: string;
+ * }} InformationEntry
+ *
+ * @typedef {{
+ *   type: 'validations';
+ *   stage: string;
+ *   validations: any[];
+ * }} ValidationsEntry
+ *
+ * @typedef {{
+ *   ancestorTitles: string[];
+ *   title: string;
+ *   fullName: string;
+ *   status: number;
+ * }} SpecEntryData
+ *
+ * @typedef {{
+ *   type: 'spec';
+ *   spec: SpecEntryData;
+ * }} SpecEntry
+ *
+ * @typedef {RequestEntry | ResultEntry | InformationEntry | ValidationsEntry | SpecEntry} Entry
+ */
+/**
+ * @template {Entry} TEntry
+ * @typedef {TestMeta & TEntry} LogOf
+ */
+/**
+ * @typedef {LogOf<Entry>} Log
  */
 
 const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
@@ -66,6 +117,7 @@ class BaseLogger {
   constructor () {
     /** @type {{[stage: string]: FlowStageLog}} */
     this.flow = {};
+    /** @type {Log[]} */
     this.logs = [];
     this.timestamp = (new Date()).toString();
     /** @type {{[k: string]: any} | null} */
@@ -74,6 +126,9 @@ class BaseLogger {
     this.implemented = null;
   }
 
+  /**
+   * @returns {TestMeta}
+   */
   get testMeta () {
     return {
       ancestorTitles: global.testState.ancestorTitles,
@@ -82,6 +137,11 @@ class BaseLogger {
     };
   }
 
+  /**
+   * @template {Entry} T
+   * @param {T} entry
+   * @returns {LogOf<T>}
+   */
   recordLogEntry(entry) {
     const log = {
       ...(this.testMeta),
@@ -93,7 +153,13 @@ class BaseLogger {
     return log;
   }
 
+  /**
+   * @param {string} stage
+   * @param {string} description
+   * @param {any} json
+   */
   recordLogResult(stage, description, json) {
+    /** @type {Log} */
     const log = {
       ...(this.testMeta),
       type: 'result',
@@ -107,7 +173,12 @@ class BaseLogger {
     return log;
   }
 
+  /**
+   * @param {string} title
+   * @param {string} message
+   */
   recordLogHeadlineMessage(title, message) {
+    /** @type {Log} */
     const log = {
       ...(this.testMeta),
       type: 'information',
@@ -185,7 +256,7 @@ class BaseLogger {
    * @param {Promise<ChakramResponse>} responsePromise
    */
   recordRequestResponse(stage, request, requestMetadata, responsePromise) {
-    const entry = this.recordLogEntry({
+    const entry = this.recordLogEntry(/** @type {RequestEntry} */({
       type: 'request',
       stage,
       request: {
@@ -194,7 +265,7 @@ class BaseLogger {
       isPending: true,
       requestMetadata,
       duration: 0,
-    });
+    }));
 
     // manually count how long it's been waiting
     // todo: capture a timestamp and hook into test state instead
@@ -233,6 +304,10 @@ class BaseLogger {
     });
   }
 
+  /**
+   * @param {string} stage
+   * @param {any[]} data
+   */
   recordResponseValidations (stage, data) {
     this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
@@ -332,8 +407,8 @@ class BaseLogger {
 
     let statuses = _.chain(this.logs)
       .filter(log => log.type === "validations")
-      .flatMap(log => log.validations)
-      .countBy(log => log.severity)
+      .flatMap((/** @type {LogOf<ValidationsEntry>} */ log) => log.validations)
+      .countBy((/** @type {any} */ validation) => validation.severity)
       .value();
 
     return this._validationStatusCounts = {
@@ -350,7 +425,7 @@ class BaseLogger {
     let statuses = _.chain(this.logs)
       .filter(log => log.type === "spec")
       .filter(log => log.title !== "passes validation checks")
-      .countBy(log => log.spec.status)
+      .countBy((/** @type {LogOf<SpecEntry>} */ log) => log.spec.status)
       .value();
 
     return this._specStatusCounts = {
@@ -360,14 +435,14 @@ class BaseLogger {
     };
   }
 
-  get specStatusCountsForEachSuiteName()  {
+  get specStatusCountsForEachSuiteName() {
     if (this._specStatusCountsBySuiteName) return this._specStatusCountsBySuiteName;
     
-    let statusBySuiteName =  _.chain(this.logs)
-    .filter(log => log.type === "spec")
-    .groupBy(log => log.ancestorTitles.join(" > "))
-    .mapValues(logs => _.countBy(logs, log => log.spec.status))
-    .value();
+    let statusBySuiteName = _.chain(this.logs)
+      .filter(log => log.type === "spec")
+      .groupBy(log => log.ancestorTitles.join(" > "))
+      .mapValues((/** @type {LogOf<SpecEntry>[]} */ logs) => _.countBy(logs, log => log.spec.status))
+      .value();
 
     return this._specStatusCountsBySuiteName = statusBySuiteName;
   }
@@ -386,7 +461,7 @@ class BaseLogger {
     let validations = _
       .chain(this.logs)
       .filter(item => item.type === "validations")
-      .flatMap(item => item.validations);
+      .flatMap((/** @type {LogOf<ValidationsEntry>} */ item) => item.validations);
     // .sumBy(item => item.validations.length);
 
     let result = {
@@ -525,6 +600,10 @@ class ReporterLogger extends BaseLogger {
     return active;
   }
 
+  /**
+   * @param {string} stage
+   * @param {SpecEntryData} data
+   */
   recordTestResult (stage, data) {
     this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};

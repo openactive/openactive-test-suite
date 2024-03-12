@@ -11,6 +11,9 @@ const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED
 
 const { SINGLE_FLOW_PATH_MODE } = process.env;
 
+// TODO2 doc
+const FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME = 'Feature Description Assertions (for OpenActive maintainers)';
+
 /**
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  * @typedef {import('../types/OpportunityCriteria').OpportunityType} OpportunityType
@@ -183,33 +186,29 @@ class FeatureHelper {
       // TODO2 make this non-alarming to users when a test fails. Make clear that this is only important
       // to a maintainer and then only if this test fails where other tests pass and so make an issue if
       // that happens
-      it('should use and only use the specified `testInterfaceActions`', () => {
-        const expectedUsedTestInterfaceActions = [...testInterfaceActions].sort();
-        // const usedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
-        const usedTestInterfaceActions = (() => {
-          const allUsedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
-          // TODO2 ensure that approvalFlow means that this action is always required in test-data-generator script
-          // TODO2 doc
-          if (bookingFlow === 'OpenBookingApprovalFlow'
-            && !expectedUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
-            && allUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
-          ) {
-            return allUsedTestInterfaceActions
-              .filter(x => x !== 'test:SellerAcceptOrderProposalSimulateAction');
-          }
-          return allUsedTestInterfaceActions;
-        })();
+      describe(FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME, () => {
+        it('Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test', () => {
+          const expectedUsedTestInterfaceActions = [...testInterfaceActions].sort();
+          // const usedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
+          const usedTestInterfaceActions = (() => {
+            const allUsedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
+            // TODO2 ensure that approvalFlow means that this action is always required in test-data-generator script
+            // TODO2 doc
+            if (bookingFlow === 'OpenBookingApprovalFlow'
+              && !expectedUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
+              && allUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
+            ) {
+              return allUsedTestInterfaceActions
+                .filter(x => x !== 'test:SellerAcceptOrderProposalSimulateAction');
+            }
+            return allUsedTestInterfaceActions;
+          })();
 
-        // TODO2 doc use of stringify
-        expect(JSON.stringify(usedTestInterfaceActions))
-          .to.deep.equal(JSON.stringify(expectedUsedTestInterfaceActions));
+          // TODO2 doc use of stringify
+          expect(JSON.stringify(usedTestInterfaceActions))
+            .to.deep.equal(JSON.stringify(expectedUsedTestInterfaceActions));
+        });
       });
-      // // TODO2 make this non-alarming to users when a test fails
-      // it('should use and only use the specified `testInterfaceActions`', () => {
-      //   const usedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
-      //   const expectedUsedTestInterfaceActions = [...testInterfaceActions].sort();
-      //   expect(usedTestInterfaceActions).to.deep.equal(expectedUsedTestInterfaceActions);
-      // });
     };
 
     // Only run the test if it is for the correct implmentation status
@@ -509,4 +508,5 @@ function createDefaultMultipleOpportunityCriteriaTemplateFn({ testOpportunityCri
 module.exports = {
   FeatureHelper,
   createDefaultMultipleOpportunityCriteriaTemplateFn,
+  FEATURE_DESCRIPTION_ASSERTIONS_TEST_NAME: FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME,
 };
