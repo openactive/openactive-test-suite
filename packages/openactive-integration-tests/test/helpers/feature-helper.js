@@ -180,9 +180,9 @@ class FeatureHelper {
      */
     const itAssertTestInterfaceActionsUsedAsSpecified = (describeFeatureRecord, bookingFlow) => {
       const testInterfaceActions = configuration.testInterfaceActions ?? [];
-      // if (testInterfaceActions.length === 0) {
-      //   return;
-      // }
+      // TODO2 make this non-alarming to users when a test fails. Make clear that this is only important
+      // to a maintainer and then only if this test fails where other tests pass and so make an issue if
+      // that happens
       it('should use and only use the specified `testInterfaceActions`', () => {
         const expectedUsedTestInterfaceActions = [...testInterfaceActions].sort();
         // const usedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();

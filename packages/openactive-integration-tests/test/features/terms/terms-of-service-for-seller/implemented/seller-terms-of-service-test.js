@@ -30,8 +30,8 @@ FeatureHelper.describeFeature(module, {
   // that don't satisfy this criteria, which constraints the seller.
   controlOpportunityCriteria: 'TestOpportunityBookableSellerTermsOfService',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
     bookExpectToFail: true,
   });
 

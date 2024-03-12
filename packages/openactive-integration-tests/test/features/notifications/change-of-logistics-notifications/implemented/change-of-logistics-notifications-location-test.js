@@ -11,6 +11,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  testInterfaceActions: ['test:ChangeOfLogisticsLocationSimulateAction'],
 }, runChangeOfLogisticsTests({
   actionType: 'test:ChangeOfLogisticsLocationSimulateAction',
 }));

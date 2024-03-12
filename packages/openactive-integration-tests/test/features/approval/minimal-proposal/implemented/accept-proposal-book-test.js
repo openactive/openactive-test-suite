@@ -33,8 +33,9 @@ FeatureHelper.describeFeature(module, {
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
+  testInterfaceActions: ['test:ChangeOfLogisticsTimeSimulateAction'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   const {
     fetchOpportunities,
     c1,
@@ -43,6 +44,7 @@ FeatureHelper.describeFeature(module, {
   } = FlowStageRecipes.initialiseSimpleC1C2Flow(
     orderItemCriteriaList,
     logger,
+    describeFeatureRecord,
   );
   const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite: c2.getLastStage(),

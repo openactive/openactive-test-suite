@@ -50,6 +50,7 @@ FeatureHelper.describeFeature(module, {
   const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
     orderItemCriteriaList,
     logger,
+    describeFeatureRecord,
     {
       defaultFlowStageParams,
       c1ExpectToFail: true,

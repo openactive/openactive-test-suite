@@ -32,7 +32,7 @@ FeatureHelper.describeFeature(module, {
   ],
   skipMultiple: true,
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   /**
    * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
    */
@@ -41,7 +41,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   };
 
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
     c1ExpectToFail: true,
     c2ExpectToFail: true,
     bookExpectToFail: true,

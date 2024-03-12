@@ -38,8 +38,8 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
   const paymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
   const p = new PFlowStage({
     ...defaultFlowStageParams,
