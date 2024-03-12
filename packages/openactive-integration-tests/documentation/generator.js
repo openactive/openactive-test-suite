@@ -56,7 +56,13 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
  * @typedef {FeatureJson & {
  *   criteriaRequirement?: Map<string, number>,
  *   sellerCriteriaRequirements?: Map<string, Map<string, number>>,
+ *   testInterfaceActionImplementationRequirements?: Set<string>,
  * }} FeatureMetadataItem
+ *   - `criteriaRequirement`: `Map { [opportunityCriteria] => [numOpportunitiesRequired] }`
+ *     e.g. `Map { 'TestOpportunityBookable' => 1 }`
+ *   - `sellerCriteriaRequirements`: `Map { [sellerCriteria] => { [opportunityCriteria] => [numOpportunitiesRequired] } }`
+ *   - `testInterfaceActionImplementationRequirements`: Test Interface Actions
+ *     that need to be implemented for this feature to be tested.
  */
 
 const FEATURES_NOT_REQUIRED_FOR_DEFAULT_JSON = new Set([
@@ -117,6 +123,12 @@ for (const featureMetadataItem of featureMetadata) {
   const sellerCriteriaRequirements = SellerCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.sellerCriteriaRequirements));
   featureMetadataItem.criteriaRequirement = criteriaRequirement;
   featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;
+  featureMetadataItem.testInterfaceActionImplementationRequirements = new Set();
+  for (const t of testMetadataThatAreWithinFeature) {
+    for (const action of (t.testInterfaceActions ?? [])) {
+      featureMetadataItem.testInterfaceActionImplementationRequirements.add(action);
+    }
+  }
 }
 
 // Save implemented/not-implemented information to a machine-readable (JSON) file.
@@ -177,8 +189,8 @@ Stub tests are provided in many cases, and test coverage should not be regarded 
 
 The tests for these features cover all known edge cases, including both happy and unhappy paths.
 
-| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
-|----------|---------|---------------|-------------|-------------------|
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|----------|---------|---------------|-------------|-------------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'complete').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 ${!features.some(f => f.coverageStatus === 'partial') ? '' : `
 ## Partial Test Coverage
@@ -204,7 +216,7 @@ ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexF
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureIndexFeatureFragment(f) {
-  return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | ${f.required ? 'Required' : 'Optional'}<br>[View Spec](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} |
+  return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | ${f.required ? 'Required' : 'Optional'}<br>[View Spec](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} | ${renderTestInterfaceActionImplementationRequirements(f)} |
 `;
 }
 
@@ -322,6 +334,16 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
   return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => (
     `[${key}](https://openactive.io/test-interface#${key}) x${value}`
   )).join(', ')}`;
+}
+
+/**
+ * @param {FeatureMetadataItem} item
+ */
+function renderTestInterfaceActionImplementationRequirements(item) {
+  return [...item.testInterfaceActionImplementationRequirements].map((r) => {
+    const nonPrefixed = r.replace(/^test:/, '');
+    return `[${nonPrefixed}](https://openactive.io/test-interface#${nonPrefixed})`;
+  }).join(', ');
 }
 
 // # JSON rendering functions
