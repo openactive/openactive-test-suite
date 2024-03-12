@@ -22,6 +22,13 @@
 /* eslint-disable object-curly-spacing */
 /* eslint-disable import/no-useless-path-segments */
 /* eslint-disable quotes */
+
+/*
+
+NEXT: If there are other failures, hide the Feature Description Assertions test. This needs to be well documented!
+
+*/
+
 const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
