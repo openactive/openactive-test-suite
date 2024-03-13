@@ -1,6 +1,11 @@
 const _ = require('lodash');
 
-/** TODO2 */
+/**
+ * A record of events that occurred during the execution of a test. In
+ * particular, it records usage that relates to how the test is annotated. It
+ * can then be checked after the test has run to ensure that the test's
+ * annotations match the test's runtime behaviour.
+ */
 class DescribeFeatureRecord {
   constructor() {
     /**
