@@ -1,3 +1,35 @@
+/* eslint-disable no-else-return */
+/* eslint-disable no-confusing-arrow */
+/* eslint-disable no-return-assign */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable operator-linebreak */
+/* eslint-disable comma-dangle */
+/* eslint-disable indent */
+/* eslint-disable no-shadow */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable arrow-parens */
+/* eslint-disable no-extra-semi */
+/* eslint-disable function-paren-newline */
+/* eslint-disable prefer-template */
+/* eslint-disable no-path-concat */
+/* eslint-disable semi */
+/* eslint-disable no-throw-literal */
+/* eslint-disable operator-assignment */
+/* eslint-disable no-var */
+/* eslint-disable padded-blocks */
+/* eslint-disable prefer-const */
+/* eslint-disable eqeqeq */
+/* eslint-disable block-spacing */
+/* eslint-disable spaced-comment */
+/* eslint-disable prefer-rest-params */
+/* eslint-disable quote-props */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable object-curly-spacing */
+/* eslint-disable import/order */
+/* eslint-disable quotes */
+// TODO fix these issues!
+/* eslint-disable no-unused-vars */
 const util = require('util');
 const chalk = require("chalk");
 const Handlebars = require("handlebars");
@@ -40,6 +72,9 @@ class BaseReportGenerator {
 
         return chalkFn(options.fn(this));
       },
+      /**
+       * @param {string[]} suiteName
+       */
       "renderSuiteName": function(suiteName, options) {
         if (suiteName.length <= 2) return "Test setup";
 
@@ -140,9 +175,13 @@ class BaseReportGenerator {
 
         return ret;
       },
+      /**
+       * @param {string[]} suite
+       */
       "statusFor": (suite) => {
-        // @ts-expect-error this.logger is only defined in ReportGenerator
-        let status = this.logger.statusFor(suite);
+        // this.logger is only defined in ReportGenerator
+        let status = /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .statusFor(suite);
         return status;
       },
       "eachSorted": (context, options) => {

@@ -579,6 +579,11 @@ class ReporterLogger extends BaseLogger {
     super();
 
     this.testFileIdentifier = testFileIdentifier;
+    /**
+     * Each item is the `ancestorTitles` array for a suite
+     *
+     * @type {string[][]}
+     */
     this.suites = [];
   }
 
@@ -594,6 +599,7 @@ class ReporterLogger extends BaseLogger {
   }
 
   get activeSuites () {
+    /** @type {string[][]} */
     let activeSuites = [];
     for (let log of this.logs) {
       activeSuites.push(log.ancestorTitles);
@@ -638,6 +644,9 @@ class ReporterLogger extends BaseLogger {
     return result;
   }
 
+  /**
+   * @param {string[]} suiteName
+   */
   statusFor (suiteName) {
     let specStatusCountsBySuiteName = this.specStatusCountsForEachSuiteName;
     let joinedSuiteName = suiteName.join(" > ");
