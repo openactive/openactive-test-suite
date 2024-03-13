@@ -1,3 +1,4 @@
+// TODO fix these issues!
 /* eslint-disable no-else-return */
 /* eslint-disable no-confusing-arrow */
 /* eslint-disable no-return-assign */
@@ -28,7 +29,6 @@
 /* eslint-disable object-curly-spacing */
 /* eslint-disable import/order */
 /* eslint-disable quotes */
-// TODO fix these issues!
 /* eslint-disable no-unused-vars */
 const util = require('util');
 const chalk = require("chalk");
@@ -39,6 +39,7 @@ const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 const { getConfigVarOrThrow } = require('./helpers/config-utils');
 const showdown = require('showdown');
+const { FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME } = require('./helpers/suite-name-constants');
 
 /**
  * @typedef {{
@@ -150,10 +151,15 @@ class BaseReportGenerator {
       "headers": function(data, options) {
         return ENABLE_HEADER_LOGGING && data && _.isObject(data.headers) ? `\n${Object.entries(data.headers).map(([k, v], i) => `* **${k}:** \`${JSON.stringify(v)}\`\n`).join('')}` : '';
       },
+      /**
+       * @param {string[]} suite
+       * @param {string} type
+       */
       "logsFor": (suite, type, options) => {
         let first = true;
-        // @ts-expect-error this.logger is only defined in ReportGenerator
-        let logs = this.logger.logsFor(suite, type);
+        // this.logger is only defined in ReportGenerator
+        let logs = /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .logsFor(suite, type);
         let ret = "";
         for (let [i, value] of logs.entries()) {
 
@@ -190,6 +196,46 @@ class BaseReportGenerator {
           ret = ret + options.fn(context[key]);
         })
         return ret;
+      },
+      /**
+       * @param {string[]} suite
+       * @returns {boolean}
+       */
+      doRenderSuite: (suite) => {
+        // return true;
+        if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
+          return true;
+        }
+        /* This is the Feature Description Assertions meta test. Only render it
+        if it has failed but everything else has succeeded.
+
+        This is because it will confuse a normal Test Suite user to see
+        information about this test, which is actually a "meta-test" i.e. it
+        tests that the test itself was annotated in a way that matches the run
+        profile. Therefore, the meta-test may fail if other tests fail, as this
+        impacts the run profile. But this is not a useful piece of information.
+        If all tests succeed and this meta-test fails, then the test is
+        annotated incorrectly. */
+
+        // this.logger is only defined in ReportGenerator
+        return /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .isSuiteTheOnlyFailure(suite);
+      },
+      /**
+       * @param {string[]} suite
+       * @returns {string}
+       */
+      maintainerInfo: (suite) => {
+        // return `SUITE: ${suite.join(', ')}`;
+        if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
+          return '';
+        }
+        // This is the Feature Description Assertions meta test. TODO2 more
+        // TODO use a more generic error message if we add more meta-tests.
+        // Currently, we only meta-test `testInterfaceActions`.
+        return `If you are NOT a Test Suite maintainer: this failure means that the there is an issue with the Test Suite test itself. Please [raise an issue on the Test Suite repository](https://github.com/openactive/openactive-test-suite/issues), attaching this full \`.html\` file.
+
+If you ARE a Test Suite maintainer: this failure indicates that the test's \`testInterfaceActions\` param to \`FeatureHelper.describeFeature(..)\` does not match the actual Test Interface Actions that were used in the test.`;
       },
     };
   }

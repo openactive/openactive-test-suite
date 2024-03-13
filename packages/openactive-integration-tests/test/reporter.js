@@ -1,3 +1,11 @@
+/**
+ * A custom Jest reporter
+ *
+ * NOTE: Because reporter.js is loaded in a separate Node.js process (by Jest),
+ * it does not have access to the same environment as the tests. One
+ * consequence of this is that it cannot import modules that use any of the
+ * Jest globals like `afterEach`, etc.
+ */
 /* eslint-disable class-methods-use-this */
 const _ = require('lodash');
 const chalk = require('chalk');

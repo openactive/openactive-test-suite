@@ -6,13 +6,11 @@ const { Logger } = require('./logger');
 const RequestHelper = require('./request-helper');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
 const { DescribeFeatureRecord } = require('./describe-feature-record');
+const { FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME } = require('./suite-name-constants');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
 const { SINGLE_FLOW_PATH_MODE } = process.env;
-
-// TODO2 doc
-const FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME = 'Feature Description Assertions (for OpenActive maintainers)';
 
 /**
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
@@ -508,5 +506,4 @@ function createDefaultMultipleOpportunityCriteriaTemplateFn({ testOpportunityCri
 module.exports = {
   FeatureHelper,
   createDefaultMultipleOpportunityCriteriaTemplateFn,
-  FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME,
 };

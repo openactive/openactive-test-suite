@@ -50,7 +50,12 @@ The [OpenActive Reference Implementation test result for this test]({{{ referenc
 
 {{#each activeSuites }}
 
+{{#if (doRenderSuite .)}}
+
 ## {{ validationIcon (statusFor . ) }} {{{ renderSuiteName . }}}
+
+{{{ maintainerInfo . }}}
+
     {{#logsFor . "information"}}
 
 ### {{title}}
@@ -150,6 +155,10 @@ Response error:
  * {{ validationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
     {{/logsFor}}
+
+{{!-- {{#if (doRenderSuite .)}} --}}
+{{/if}}
+{{!-- {{#each activeSuites }} --}}
 {{/each}}
 
 
