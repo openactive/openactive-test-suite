@@ -202,7 +202,6 @@ class BaseReportGenerator {
        * @returns {boolean}
        */
       doRenderSuite: (suite) => {
-        // return true;
         if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
           return true;
         }
