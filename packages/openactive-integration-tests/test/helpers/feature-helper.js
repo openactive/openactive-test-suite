@@ -508,5 +508,5 @@ function createDefaultMultipleOpportunityCriteriaTemplateFn({ testOpportunityCri
 module.exports = {
   FeatureHelper,
   createDefaultMultipleOpportunityCriteriaTemplateFn,
-  FEATURE_DESCRIPTION_ASSERTIONS_TEST_NAME: FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME,
+  FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME,
 };

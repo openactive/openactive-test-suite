@@ -657,6 +657,16 @@ class ReporterLogger extends BaseLogger {
     }
     return "";
   }
+
+  /**
+   * Is this suite the only one that failed in this test run?
+   *
+   * @param {string[]} suiteName
+   */
+  isSuiteTheOnlyFailure(suiteName) {
+    const status = this.statusFor(suiteName);
+    return status === 'failed' && this.numFailed === 1;
+  }
 }
 
 /**
