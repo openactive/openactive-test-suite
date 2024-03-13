@@ -33,7 +33,6 @@ FeatureHelper.describeFeature(module, {
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
-  testInterfaceActions: ['test:ChangeOfLogisticsTimeSimulateAction'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   const {

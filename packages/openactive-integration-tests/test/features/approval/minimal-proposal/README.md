@@ -17,7 +17,7 @@ Opportunities that match the following criteria must exist in the booking system
 
 The following Test Interface Actions must be implemented by the [test interface](https://openactive.io/test-interface/) of the booking system in order to test this feature:
 
-[ChangeOfLogisticsTimeSimulateAction](https://openactive.io/test-interface#ChangeOfLogisticsTimeSimulateAction), [SellerRejectOrderProposalSimulateAction](https://openactive.io/test-interface#SellerRejectOrderProposalSimulateAction)
+[SellerRejectOrderProposalSimulateAction](https://openactive.io/test-interface#SellerRejectOrderProposalSimulateAction)
 
 
 ### Running tests for only this feature
@@ -42,7 +42,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
 |------------|------|-------------|---------------|-------------------|
-| [accept-proposal-book](./implemented/accept-proposal-book-test.js) | Successful booking using the Booking Flow with Approval | A successful end to end booking, via Booking Flow with Approval, of an opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 | [ChangeOfLogisticsTimeSimulateAction](https://openactive.io/test-interface#ChangeOfLogisticsTimeSimulateAction) |
+| [accept-proposal-book](./implemented/accept-proposal-book-test.js) | Successful booking using the Booking Flow with Approval | A successful end to end booking, via Booking Flow with Approval, of an opportunity. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |  |
 | [customer-reject-proposal](./implemented/customer-reject-proposal-test.js) | OrderProposal rejected by the Customer | An OrderProposal that is rejected by the Customer, and the call to B subsequently fails | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |  |
 | [not-accept-proposal-book](./implemented/not-accept-proposal-book-test.js) | OrderProposal not yet accepted by the Seller | An OrderProposal that is not yet accepted by the Seller, and the call to B subsequently fails | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |  |
 | [seller-reject-proposal](./implemented/seller-reject-proposal-test.js) | OrderProposal rejected by the Seller | An OrderProposal that is rejected by the Seller, and the call to B subsequently fails | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 | [SellerRejectOrderProposalSimulateAction](https://openactive.io/test-interface#SellerRejectOrderProposalSimulateAction) |
