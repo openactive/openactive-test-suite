@@ -7,7 +7,7 @@
     "start": "node app.js",
     "auto-restart": "./auto-restart.sh",
     "validate-feeds": "node app.js --validate-only",
-    "test": "npm run lint && tsc",
+    "test": "npm run lint && tsc && jest",
     "debug": "node --inspect app.js",
     "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
@@ -51,6 +51,7 @@
     "@types/cli-progress": "3.9.0",
     "@types/express": "^4.17.20",
     "@types/fs-extra": "^9.0.13",
+    "@types/jest": "^29.5.4",
     "@types/lodash": "^4.14.175",
     "@types/node": "^18.17.1",
     "@types/ramda": "0.27.37",
@@ -58,7 +59,14 @@
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^48.2.0",
-    "typescript": "^5.1.6"
+    "jest": "^29.7.0",
+    "typescript": "^5.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*-test.[tj]s?(x)"
+    ]
   },
   "engines": {
     "node": "18.17.1"
