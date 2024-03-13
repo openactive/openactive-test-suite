@@ -46,7 +46,18 @@ const { SINGLE_FLOW_PATH_MODE } = process.env;
  *   Use this for things like testing a Booking System's auth
  * @property {boolean} [skipMultiple] If true, this test will not be run in
  *   Multiple Opportunities mode i.e. with multiple Opportunities in one Order.
- * @property {string[]} [testInterfaceActions] TODO2 doc also mention that no need to include duplicates
+ * @property {string[]} [testInterfaceActions] A list of Test Interface Action
+ *   types that are used in this test. e.g.
+ *   `['test:AccessChannelUpdateSimulateAction', 'test:ReplacementSimulateAction']`.
+ *
+ *   This is used to inform users which actions need to be implemented for which
+ *   features.
+ *
+ *   At the end of the test run, FeatureHelper will check that the test did
+ *   indeed run the exact set of actions specified here.
+ *
+ *   The order of this list is not important and it is not necessary to include
+ *   duplicates.
  * @property {boolean} [runOnlyIf]
  * @property {boolean} [surviveAuthenticationFailure]
  * @property {boolean} [surviveDynamicRegistrationFailure]
@@ -174,24 +185,32 @@ class FeatureHelper {
     const bookingFlowsSingleSelection = (SINGLE_FLOW_PATH_MODE || '').split('/')[0];
     const opportunityTypesSingleSelection = (SINGLE_FLOW_PATH_MODE || '').split('/')[1];
 
-    // TODO2 doc
     /**
+     * Set up a test which checks that the Test Interface Actions used so far
+     * exactly match those specified in `.testInterfaceActions`.
+     *
+     * To be used at the end of a run of tests (e.g. the end of the
+     * ScheduledSession/ApprovalFlow tests)
+     *
      * @param {DescribeFeatureRecord} describeFeatureRecord
-     * @param {BookingFlow} [bookingFlow] TODO2 doc
+     * @param {BookingFlow} [bookingFlow]
      */
     const itAssertTestInterfaceActionsUsedAsSpecified = (describeFeatureRecord, bookingFlow) => {
       const testInterfaceActions = configuration.testInterfaceActions ?? [];
-      // TODO2 make this non-alarming to users when a test fails. Make clear that this is only important
-      // to a maintainer and then only if this test fails where other tests pass and so make an issue if
-      // that happens
+      /* This constant is also used in report generation. The results from this
+      test will only be shown in report generation if this test fails and all
+      other tests pass. This is to reduce user confusion (as this test is meant
+      to be seen by maintainers only). If other tests fail, then this test may
+      be expected to fail, because the runtime behaviour changes on failure */
       describe(FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME, () => {
         it('Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test', () => {
           const expectedUsedTestInterfaceActions = [...testInterfaceActions].sort();
-          // const usedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
           const usedTestInterfaceActions = (() => {
             const allUsedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
-            // TODO2 ensure that approvalFlow means that this action is always required in test-data-generator script
-            // TODO2 doc
+            /* Approval flow tests will often implicitly use
+            test:SellerAcceptOrderProposalSimulateAction as a necessary part of
+            the booking flow. This therefore does not need to be explicitly
+            annotated */
             if (bookingFlow === 'OpenBookingApprovalFlow'
               && !expectedUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
               && allUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
@@ -202,7 +221,8 @@ class FeatureHelper {
             return allUsedTestInterfaceActions;
           })();
 
-          // TODO2 doc use of stringify
+          /* JSON.stringify(..) used because otherwise the test output truncates
+          to `expected [Array(2)] to equal [Array(1)]`, which is useless. */
           expect(JSON.stringify(usedTestInterfaceActions))
             .to.deep.equal(JSON.stringify(expectedUsedTestInterfaceActions));
         });
