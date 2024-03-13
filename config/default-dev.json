@@ -9,11 +9,11 @@
   },
   "sellers": {
     "primary": {
-      "@type": "Organization",
+      "@type": "Organization",	    
       "@id": "https://localhost:5001/api/identifiers/sellers/1"
     },
     "secondary": {
-      "@type": "Organization",
+      "@type": "Organization",	    
       "@id": "https://localhost:5001/api/identifiers/sellers/2"
     }
   }

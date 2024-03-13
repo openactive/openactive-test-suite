@@ -37,6 +37,7 @@
     ],
     "no-use-before-define": ["error", { "functions": false, "classes": false }],
     "no-underscore-dangle": "off",
+    "no-continue": 0,
     // Ensure that all function args are typed
     "jsdoc/require-param": "error",
     "jsdoc/require-param-type": "error"
