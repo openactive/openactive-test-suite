@@ -14,33 +14,45 @@ const { createTestInterfaceOpportunity } = require('../test/helpers/test-interfa
 
 /**
  * @typedef {import('../documentation/generator').CategoriesJson} CategoriesJson
- * @typedef {import('../documentation/generator').CriteriaRequirementsJson} CriteriaRequirementsJson
+ * @typedef {import('../documentation/generator').FeatureRequirementsJson} FeatureRequirementsJson
  * @typedef {import('../test/types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
  * @typedef {import('../test/types/OpportunityCriteria').SellerCriteria} SellerCriteria
  */
 
 /**
+ * @template TListItem
  * @typedef {{
  *   '@context': [
  *     'https://openactive.io/',
  *     'https://openactive.io/test-interface',
- *   ],
- *   '@type': 'ItemList',
- *   numberOfItems: number,
- *   itemListElement: TestDataListItem[],
- * }} TestData
+ *   ];
+ *   '@type': 'ItemList';
+ *   numberOfItems: number;
+ *   itemListElement: TListItem[];
+ * }} ItemList
+ */
+/**
+ * @typedef {ItemList<OutputOpportunityTestDataListItem>} OutputOpportunityTestData
  *
  * @typedef {{
  *   '@type': 'ListItem',
  *   'test:numberOfInstancesInDistribution': number,
  *   item: Omit<TestInterfaceOpportunity, '@context'>,
- * }} TestDataListItem
+ * }} OutputOpportunityTestDataListItem
+ *
+ * @typedef {ItemList<{
+ *   '@type': 'ListItem',
+ *   item: {
+ *     '@type': string;
+ *   };
+ * }>} OutputTestInterfaceActions
  */
 
 // # Constants - File Paths
-const CRITERIA_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'criteria-requirements.json');
+const FEATURE_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'feature-requirements.json');
 const CATEGORIES_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'categories.json');
-const DEFAULT_OUTPUT_FILE_PATH = path.join(__dirname, 'test-data', 'test-data.json');
+const DEFAULT_OUTPUT_DIR = path.join(__dirname, 'output');
+// const DEFAULT_OPPORTUNITY_TEST_DATA_OUTPUT_FILE_PATH = path.join(__dirname, 'output', 'opportunity-test-data.json');
 
 // # Constants - Config
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
@@ -64,38 +76,59 @@ const argv = yargs(process.argv.slice(2)) // eslint-disable-line prefer-destruct
     });
   })
   .options({
-    output: {
+    'output-dir': {
       type: 'string',
       alias: 'o',
       description: 'Output Directory',
-      default: DEFAULT_OUTPUT_FILE_PATH,
+      default: DEFAULT_OUTPUT_DIR,
     },
   })
   .argv;
 
-const { output: outputFilePath, 'category-or-feature': categoryOrFeatureUntyped } = argv;
+const { 'output-dir': outputDirectory, 'category-or-feature': categoryOrFeatureUntyped } = argv;
+const outputOpportunityTestDataFilePath = path.join(outputDirectory, 'opportunity-test-data.json');
+const outputTestInterfaceActionsFilePath = path.join(outputDirectory, 'test-interface-actions.json');
 const categoryOrFeature = /** @type {string} */(categoryOrFeatureUntyped); // yargs can only properly type the option args - not the positional ones. Hence the TS coercion here
 
 // # Main
 
 (async () => {
   // ## Load Requirements
-  console.info(`Reading: ${CRITERIA_REQUIREMENTS_JSON_FILE_PATH}`);
-  const criteriaRequirementsJsonRaw = await fs.readFile(CRITERIA_REQUIREMENTS_JSON_FILE_PATH);
-  /** @type {CriteriaRequirementsJson} */
-  const criteriaRequirementsJson = JSON.parse(criteriaRequirementsJsonRaw.toString());
+  console.info(`Reading: ${FEATURE_REQUIREMENTS_JSON_FILE_PATH}`);
+  const featureRequirementsJsonRaw = await fs.readFile(FEATURE_REQUIREMENTS_JSON_FILE_PATH);
+  /** @type {FeatureRequirementsJson} */
+  const featureRequirementsJson = JSON.parse(featureRequirementsJsonRaw.toString());
+
+  const featureIdentifiers = await getSelectedFeatureIdentifiers(categoryOrFeature);
 
   // ## Tally the requirements from each implemented feature
   const sellerRequirements = tallySellerCriteriaRequirements(
-    criteriaRequirementsJson,
-    (await getSelectedFeatureIdentifiers(categoryOrFeature)),
+    featureRequirementsJson,
+    featureIdentifiers,
   );
 
   // ## Create Test Data
+  const outputOpportunityTestData = createOutputOpportunityTestData(sellerRequirements);
+  const outputTestInterfaceActions = createOutputTestInterfaceActions(featureRequirementsJson, featureIdentifiers);
+  // ## Write Test Data
   //
+  // Create the directory if it doesn't exist
+  await fs.mkdir(outputDirectory, { recursive: true });
+  await fs.writeFile(outputOpportunityTestDataFilePath, JSON.stringify(outputOpportunityTestData, null, 2));
+  console.log(`FILE SAVED: ${outputOpportunityTestDataFilePath}`);
+  await fs.writeFile(outputTestInterfaceActionsFilePath, JSON.stringify(outputTestInterfaceActions, null, 2));
+  console.log(`FILE SAVED: ${outputTestInterfaceActionsFilePath}`);
+})();
+
+// # Utils
+
+/**
+ * @param {SellerCriteriaRequirements} sellerRequirements
+ */
+function createOutputOpportunityTestData(sellerRequirements) {
   // One for each seller x opportunity criteria
   const harvestStartTimeOverride = DateTime.now().toISO();
-  /** @type {TestDataListItem[]} */
+  /** @type {OutputOpportunityTestDataListItem[]} */
   const itemListElement = [];
   let numberOfItems = 0;
   for (const [sellerCriteria, opportunityCriteriaRequirements] of sellerRequirements) {
@@ -126,38 +159,76 @@ const categoryOrFeature = /** @type {string} */(categoryOrFeatureUntyped); // ya
       }
     }
   }
-  /** @type {TestData} */
-  const testData = {
+  /** @type {OutputOpportunityTestData} */
+  const outputOpportunityTestData = {
     '@context': ['https://openactive.io/', 'https://openactive.io/test-interface'],
     '@type': 'ItemList',
     numberOfItems,
     itemListElement,
   };
-  // ## Write Test Data
-  //
-  // Create the directory if it doesn't exist
-  await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
-  await fs.writeFile(outputFilePath, JSON.stringify(testData, null, 2));
-  console.log(`FILE SAVED: ${outputFilePath}`);
-})();
+  return outputOpportunityTestData;
+}
 
-// # Utils
+/**
+ * @param {FeatureRequirementsJson} featureRequirementsJson
+ * @param {string[]} featureIdentifiers
+ * @returns {OutputTestInterfaceActions}
+ */
+function createOutputTestInterfaceActions(featureRequirementsJson, featureIdentifiers) {
+  const allActionsSet = Object.entries(featureRequirementsJson.features)
+    .reduce((acc, [feature, { testInterfaceActionImplementationRequirements }]) => {
+      // Ignore any features which weren't specified
+      if (!featureIdentifiers.includes(feature)) { return acc; }
+      for (const action of testInterfaceActionImplementationRequirements) {
+        acc.add(action);
+      }
+      return acc;
+    }, /** @type {Set<string>} */(new Set()));
+  /* If the Booking System supports approval flow, then every test which creates
+  a successful booking will need to use the
+  `SellerAcceptOrderProposalSimulateAction` (which is not explicitly annotated
+  for each test as it depends on the implemented booking flows).
+
+  ! There is a sort-of bug here, which is that
+  test:SellerAcceptOrderProposalSimulateAction will be outputted even if Test
+  Data Generator has been called on a category or feature that doesn't include
+  successful bookings. This is technically incorrect. In the opinion of this
+  author, it's fine because every Booking System should be able to support
+  successful bookings (!) */
+  if (IMPLEMENTED_BOOKING_FLOWS.includes('OpenBookingApprovalFlow')) {
+    allActionsSet.add('test:SellerAcceptOrderProposalSimulateAction');
+  }
+  const sortedActions = [...allActionsSet].sort();
+  /** @type {OutputTestInterfaceActions['itemListElement']} */
+  const listItems = sortedActions.map(action => ({
+    '@type': 'ListItem',
+    item: {
+      '@type': action,
+    },
+  }));
+  return {
+    '@context': ['https://openactive.io/', 'https://openactive.io/test-interface'],
+    '@type': 'ItemList',
+    numberOfItems: listItems.length,
+    itemListElement: listItems,
+  };
+}
 
 /**
  * Count opportunity requirements for each seller, given the features which are selected and implemented
  *
- * @param {CriteriaRequirementsJson} criteriaRequirementsJson
+ * @param {FeatureRequirementsJson} featureRequirementsJson
  * @param {string[]} featureIdentifiers Only generates test data for these feature identifiers.
  * @returns {SellerCriteriaRequirements}
  */
-function tallySellerCriteriaRequirements(criteriaRequirementsJson, featureIdentifiers) {
+function tallySellerCriteriaRequirements(featureRequirementsJson, featureIdentifiers) {
   /**
    * The SellerCriteriaRequirements for every implemented features
    * @type {SellerCriteriaRequirements[]}
    */
   const sellerCriteriaRequirementMaps = [];
   for (const featureIdentifier of featureIdentifiers) {
-    const sellerCriteriaRequirementsObj = criteriaRequirementsJson.criteriaRequirements[featureIdentifier];
+    const sellerCriteriaRequirementsObj = featureRequirementsJson.features[featureIdentifier].criteriaRequirements;
     if (!sellerCriteriaRequirementsObj) {
       console.log(`WARNING: Missing Criteria Requirements for '${featureIdentifier}'. Try running \`npm run doc-gen\`.`);
     }
@@ -272,12 +343,12 @@ function onlyIncludeImplementedFeatures(featureIdentifiers) {
 // }
 
 /**
- * @param {CriteriaRequirementsJson['criteriaRequirements'][string]} sellerCriteriaRequirementsObj
+ * @param {FeatureRequirementsJson['features'][string]['criteriaRequirements']} sellerCriteriaRequirementsObj
  */
 function getSellerCriteriaRequirementsFromJsonObj(sellerCriteriaRequirementsObj) {
   // Type casting is necessary here as Object.entries, in TypeScript, does not endow keys with the more
   // specific key type (https://github.com/microsoft/TypeScript/issues/20322)
-  /** @type {[SellerCriteria, CriteriaRequirementsJson['criteriaRequirements'][string][SellerCriteria]][]} */
+  /** @type {[SellerCriteria, FeatureRequirementsJson['features'][string]['criteriaRequirements'][SellerCriteria]][]} */
   const sellerCriteriaRequirementsObjEntries = /** @type {any} */(Object.entries(sellerCriteriaRequirementsObj));
   // This is a bit baroque. It's converting the JSON object into Maps (specifically,
   // our SellerCriteriaRequirements maps).

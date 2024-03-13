@@ -1,0 +1,479 @@
+{
+  "_createdByDocumentationGeneratorScript": true,
+  "features": {
+    "agent-broker": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 8
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "amending-order-quote": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 32
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "availability-check": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 5,
+          "TestOpportunityBookableNoSpaces": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "common-error-conditions": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 29,
+          "TestOpportunityBookableInPast": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "dataset-site": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "order-deletion": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 12
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:SellerRequestedCancellationSimulateAction"
+      ]
+    },
+    "access-channel": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOnlineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "access-channel-update-notifications": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOnlineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:AccessChannelUpdateSimulateAction"
+      ]
+    },
+    "access-code": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOfflineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "access-code-update-notifications": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOfflineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:AccessCodeUpdateSimulateAction"
+      ]
+    },
+    "access-pass-barcode-seller-provided": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOfflineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "access-pass-image": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOfflineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "access-pass-update-notifications": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityOfflineBookable": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:AccessPassUpdateSimulateAction"
+      ]
+    },
+    "dynamic-payment": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "offer-overrides": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "minimal-proposal": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 16
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:SellerRejectOrderProposalSimulateAction"
+      ]
+    },
+    "proposal-amendment": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableWithNegotiation": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:SellerAmendOrderProposalSimulateAction",
+        "test:SellerAcceptOrderProposalSimulateAction"
+      ]
+    },
+    "booking-partner-authentication": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "dynamic-client-registration": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "no-broker": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 12
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "reseller-broker": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 12
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "reseller-broker-tax-calculation": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "cancellation-window": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableCancellableOutsideWindow": 3,
+          "TestOpportunityBookable": 2,
+          "TestOpportunityBookableCancellableWithinWindow": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "customer-requested-cancellation": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableCancellable": 18,
+          "TestOpportunityBookableNotCancellable": 1,
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "customer-requested-cancellation-always-allowed": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "seller-requested-cancellation": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:SellerRequestedCancellationSimulateAction"
+      ]
+    },
+    "seller-requested-cancellation-message": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:SellerRequestedCancellationWithMessageSimulateAction"
+      ]
+    },
+    "seller-requested-replacement": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:ReplacementSimulateAction"
+      ]
+    },
+    "multiple-sellers": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 1
+        },
+        "secondary": {
+          "TestOpportunityBookable": 5
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "opportunity-feed": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "single-seller": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "test-interface": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "additional-details-capture": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableAdditionalDetails": 9,
+          "TestOpportunityBookable": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "attendee-details-capture": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableAttendeeDetails": 6,
+          "TestOpportunityBookable": 2
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "customer-details-capture-identifier": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "customer-details-capture-non-essential": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "anonymous-leasing": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableFiveSpaces": 2,
+          "TestOpportunityBookableOneSpace": 2,
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "named-leasing": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableFiveSpaces": 2,
+          "TestOpportunityBookableOneSpace": 2,
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "change-of-logistics-notifications": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 12
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:ChangeOfLogisticsLocationSimulateAction",
+        "test:ChangeOfLogisticsNameSimulateAction",
+        "test:ChangeOfLogisticsTimeSimulateAction"
+      ]
+    },
+    "customer-notice-notifications": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:CustomerNoticeSimulateAction"
+      ]
+    },
+    "opportunity-attendance-updates": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 8
+        }
+      },
+      "testInterfaceActionImplementationRequirements": [
+        "test:AttendeeAbsentSimulateAction",
+        "test:AttendeeAttendedSimulateAction"
+      ]
+    },
+    "free-opportunities": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableFree": 14
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "non-free-opportunities": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFree": 9,
+          "TestOpportunityBookable": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "payment-reconciliation-detail-validation": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableFree": 12,
+          "TestOpportunityBookableUsingPayment": 15,
+          "TestOpportunityBookable": 5
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "prepayment-optional": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreePrepaymentOptional": 8
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "prepayment-required": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreePrepaymentRequired": 8
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "prepayment-required-unavailable": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreePrepaymentRequired": 1,
+          "TestOpportunityBookableNonFreePrepaymentUnavailable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "prepayment-unavailable": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreePrepaymentUnavailable": 9,
+          "TestOpportunityBookableFree": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "booking-restrictions": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "booking-window": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableWithinValidFromBeforeStartDate": 3,
+          "TestOpportunityBookable": 2,
+          "TestOpportunityBookableOutsideValidFromBeforeStartDate": 3
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "business-to-business-tax-calculation-gross": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreeTaxGross": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "business-to-business-tax-calculation-net": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreeTaxNet": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "business-to-consumer-tax-calculation-gross": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreeTaxGross": 8
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "business-to-consumer-tax-calculation-net": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableNonFreeTaxNet": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "terms-of-service-for-booking-system": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "terms-of-service-for-seller": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableSellerTermsOfService": 4
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "terms-of-service-with-consent": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "terms-of-service-with-consent-with-date-modified": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    }
+  }
+}
