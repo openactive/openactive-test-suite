@@ -13,6 +13,7 @@ const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
 const { harvestRPDE, createFeedContext, progressFromContext } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
+const path = require('path');
 
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./util/log');
@@ -50,7 +51,6 @@ const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInpu
 const { renderSampleOpportunities } = require('./sample-opportunities');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
-const path = require('path');
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -1779,7 +1779,6 @@ function harvestRpdeHowLongToSleepAtFeedEnd() {
 }
 
 function harvestRpdeOnError() {
-  console.log('lkjhdfslkjhasdlkjfhasldkjhf')
   process.exit(1);
 }
 
