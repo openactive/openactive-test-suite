@@ -52,7 +52,6 @@ const { createTestInterfaceOpportunity } = require('../test/helpers/test-interfa
 const FEATURE_REQUIREMENTS_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'feature-requirements.json');
 const CATEGORIES_JSON_FILE_PATH = path.join(__dirname, '..', 'test', 'features', 'categories.json');
 const DEFAULT_OUTPUT_DIR = path.join(__dirname, 'output');
-// const DEFAULT_OPPORTUNITY_TEST_DATA_OUTPUT_FILE_PATH = path.join(__dirname, 'output', 'opportunity-test-data.json');
 
 // # Constants - Config
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
