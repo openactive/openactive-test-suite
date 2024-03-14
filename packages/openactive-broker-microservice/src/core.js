@@ -13,6 +13,7 @@ const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
 const { harvestRPDE, createFeedContext, progressFromContext } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
+const path = require('path');
 
 const { OpportunityIdCache } = require('./util/opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./util/log');
@@ -401,7 +402,7 @@ function renderOpenValidatorHref(id) {
  */
 async function renderTemplate(templateName, data) {
   const getTemplate = async (name) => {
-    const file = await fs.readFile(`${__dirname}/templates/${name}.handlebars`, 'utf8');
+    const file = await fs.readFile(`${path.join(__dirname, '..')}/templates/${name}.handlebars`, 'utf8');
     return Handlebars.compile(file);
   };
 
