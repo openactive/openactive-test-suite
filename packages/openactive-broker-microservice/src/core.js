@@ -50,6 +50,7 @@ const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInpu
 const { renderSampleOpportunities } = require('./sample-opportunities');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
+const path = require('path');
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -401,7 +402,7 @@ function renderOpenValidatorHref(id) {
  */
 async function renderTemplate(templateName, data) {
   const getTemplate = async (name) => {
-    const file = await fs.readFile(`${__dirname}/templates/${name}.handlebars`, 'utf8');
+    const file = await fs.readFile(`${path.join(__dirname, '..')}/templates/${name}.handlebars`, 'utf8');
     return Handlebars.compile(file);
   };
 
@@ -1778,6 +1779,7 @@ function harvestRpdeHowLongToSleepAtFeedEnd() {
 }
 
 function harvestRpdeOnError() {
+  console.log('lkjhdfslkjhasdlkjfhasldkjhf')
   process.exit(1);
 }
 
