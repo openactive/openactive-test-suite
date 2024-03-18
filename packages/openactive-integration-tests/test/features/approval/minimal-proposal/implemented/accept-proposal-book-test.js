@@ -34,7 +34,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   const {
     fetchOpportunities,
     c1,
@@ -43,6 +43,7 @@ FeatureHelper.describeFeature(module, {
   } = FlowStageRecipes.initialiseSimpleC1C2Flow(
     orderItemCriteriaList,
     logger,
+    describeFeatureRecord,
   );
   const bookRecipe = FlowStageRecipes.bookApproval(orderItemCriteriaList, defaultFlowStageParams, {
     prerequisite: c2.getLastStage(),

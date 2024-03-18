@@ -1,3 +1,35 @@
+// TODO fix these issues!
+/* eslint-disable no-else-return */
+/* eslint-disable no-confusing-arrow */
+/* eslint-disable no-return-assign */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable operator-linebreak */
+/* eslint-disable comma-dangle */
+/* eslint-disable indent */
+/* eslint-disable no-shadow */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable arrow-parens */
+/* eslint-disable no-extra-semi */
+/* eslint-disable function-paren-newline */
+/* eslint-disable prefer-template */
+/* eslint-disable no-path-concat */
+/* eslint-disable semi */
+/* eslint-disable no-throw-literal */
+/* eslint-disable operator-assignment */
+/* eslint-disable no-var */
+/* eslint-disable padded-blocks */
+/* eslint-disable prefer-const */
+/* eslint-disable eqeqeq */
+/* eslint-disable block-spacing */
+/* eslint-disable spaced-comment */
+/* eslint-disable prefer-rest-params */
+/* eslint-disable quote-props */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable object-curly-spacing */
+/* eslint-disable import/order */
+/* eslint-disable quotes */
+/* eslint-disable no-unused-vars */
 const util = require('util');
 const chalk = require("chalk");
 const Handlebars = require("handlebars");
@@ -7,6 +39,7 @@ const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
 const { getConfigVarOrThrow } = require('./helpers/config-utils');
 const showdown = require('showdown');
+const { FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME } = require('./helpers/suite-name-constants');
 
 /**
  * @typedef {{
@@ -40,6 +73,9 @@ class BaseReportGenerator {
 
         return chalkFn(options.fn(this));
       },
+      /**
+       * @param {string[]} suiteName
+       */
       "renderSuiteName": function(suiteName, options) {
         if (suiteName.length <= 2) return "Test setup";
 
@@ -115,10 +151,15 @@ class BaseReportGenerator {
       "headers": function(data, options) {
         return ENABLE_HEADER_LOGGING && data && _.isObject(data.headers) ? `\n${Object.entries(data.headers).map(([k, v], i) => `* **${k}:** \`${JSON.stringify(v)}\`\n`).join('')}` : '';
       },
+      /**
+       * @param {string[]} suite
+       * @param {string} type
+       */
       "logsFor": (suite, type, options) => {
         let first = true;
-        // @ts-expect-error this.logger is only defined in ReportGenerator
-        let logs = this.logger.logsFor(suite, type);
+        // this.logger is only defined in ReportGenerator
+        let logs = /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .logsFor(suite, type);
         let ret = "";
         for (let [i, value] of logs.entries()) {
 
@@ -140,9 +181,13 @@ class BaseReportGenerator {
 
         return ret;
       },
+      /**
+       * @param {string[]} suite
+       */
       "statusFor": (suite) => {
-        // @ts-expect-error this.logger is only defined in ReportGenerator
-        let status = this.logger.statusFor(suite);
+        // this.logger is only defined in ReportGenerator
+        let status = /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .statusFor(suite);
         return status;
       },
       "eachSorted": (context, options) => {
@@ -151,6 +196,47 @@ class BaseReportGenerator {
           ret = ret + options.fn(context[key]);
         })
         return ret;
+      },
+      /**
+       * @param {string[]} suite
+       * @returns {boolean}
+       */
+      doRenderSuite: (suite) => {
+        if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
+          return true;
+        }
+        /* This is the Feature Description Assertions meta test. Only render it
+        if it has failed but everything else has succeeded.
+
+        This is because it will confuse a normal Test Suite user to see
+        information about this test, which is actually a "meta-test" i.e. it
+        tests that the test itself was annotated in a way that matches the run
+        profile. Therefore, the meta-test may fail if other tests fail, as this
+        impacts the run profile. But this is not a useful piece of information.
+        If all tests succeed and this meta-test fails, then the test is
+        annotated incorrectly. */
+
+        // this.logger is only defined in ReportGenerator
+        return /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .isSuiteTheOnlyFailure(suite);
+      },
+      /**
+       * @param {string[]} suite
+       * @returns {string}
+       */
+      maintainerInfo: (suite) => {
+        if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
+          return '';
+        }
+        /* This is the Feature Description Assertions meta test. This test is
+        different from other tests in that it tests that the test itself was
+        annotated correctly. Therefore, we provide a bit more information to
+        either users (who should never see this error) or maintainers */
+        // TODO use a more generic error message if we add different types of
+        // meta-tests. Currently, we only meta-test `testInterfaceActions`.
+        return `If you are NOT a Test Suite maintainer: this failure means that the there is an issue with the Test Suite test itself. Please [raise an issue on the Test Suite repository](https://github.com/openactive/openactive-test-suite/issues), attaching this full \`.html\` file.
+
+If you ARE a Test Suite maintainer: this failure indicates that the test's \`testInterfaceActions\` param to \`FeatureHelper.describeFeature(..)\` does not match the actual Test Interface Actions that were used in the test.`;
       },
     };
   }

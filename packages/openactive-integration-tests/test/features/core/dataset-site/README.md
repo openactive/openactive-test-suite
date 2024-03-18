@@ -12,6 +12,7 @@ See also: [.NET Tutorial](https://tutorials.openactive.io/open-booking-sdk/quick
 
 
 
+
 ### Running tests for only this feature
 
 ```bash
@@ -32,15 +33,15 @@ This feature is **required** by the Open Booking API specification, and so must 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [dataset-site-jsonld-valid](./implemented/dataset-site-jsonld-valid-test.js) | Dataset Site JSON-LD valid | Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice. |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [dataset-site-jsonld-valid](./implemented/dataset-site-jsonld-valid-test.js) | Dataset Site JSON-LD valid | Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice. |  |  |
 
 
 
 ## 'Not Implemented' tests
 
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [feature-required-noop](./not-implemented/feature-required-noop-test.js) | Feature required | This feature is required by the specification and must be implemented. |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [feature-required-noop](./not-implemented/feature-required-noop-test.js) | Feature required | This feature is required by the specification and must be implemented. |  |  |

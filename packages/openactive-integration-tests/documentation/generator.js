@@ -56,7 +56,13 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
  * @typedef {FeatureJson & {
  *   criteriaRequirement?: Map<string, number>,
  *   sellerCriteriaRequirements?: Map<string, Map<string, number>>,
+ *   testInterfaceActionImplementationRequirements?: Set<string>,
  * }} FeatureMetadataItem
+ *   - `criteriaRequirement`: `Map { [opportunityCriteria] => [numOpportunitiesRequired] }`
+ *     e.g. `Map { 'TestOpportunityBookable' => 1 }`
+ *   - `sellerCriteriaRequirements`: `Map { [sellerCriteria] => { [opportunityCriteria] => [numOpportunitiesRequired] } }`
+ *   - `testInterfaceActionImplementationRequirements`: Test Interface Actions
+ *     that need to be implemented for this feature to be tested.
  */
 
 const FEATURES_NOT_REQUIRED_FOR_DEFAULT_JSON = new Set([
@@ -117,6 +123,12 @@ for (const featureMetadataItem of featureMetadata) {
   const sellerCriteriaRequirements = SellerCriteriaRequirements.combine(testMetadataThatAreWithinFeature.map(t => t.sellerCriteriaRequirements));
   featureMetadataItem.criteriaRequirement = criteriaRequirement;
   featureMetadataItem.sellerCriteriaRequirements = sellerCriteriaRequirements;
+  featureMetadataItem.testInterfaceActionImplementationRequirements = new Set();
+  for (const t of testMetadataThatAreWithinFeature) {
+    for (const action of (t.testInterfaceActions ?? [])) {
+      featureMetadataItem.testInterfaceActionImplementationRequirements.add(action);
+    }
+  }
 }
 
 // Save implemented/not-implemented information to a machine-readable (JSON) file.
@@ -177,24 +189,24 @@ Stub tests are provided in many cases, and test coverage should not be regarded 
 
 The tests for these features cover all known edge cases, including both happy and unhappy paths.
 
-| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
-|----------|---------|---------------|-------------|-------------------|
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|----------|---------|---------------|-------------|-------------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'complete').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 ${!features.some(f => f.coverageStatus === 'partial') ? '' : `
 ## Partial Test Coverage
 
 The tests for these features provide partial coverage but do not include all known edgecases, and do not exercise all code paths and error conditions.
 
-| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
-|----------|---------|---------------|-------------|-------------------|
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|----------|---------|---------------|-------------|-------------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'partial').map(f => renderFeatureIndexFeatureFragment(f)).join('')}`}
 
 ## No Test Coverage
 
 The tests for these features are fully stubbed, and are not yet implemented.
 
-| Category | Feature | Specification | Description | Prerequisites per Opportunity Type |
-|----------|---------|---------------|-------------|-------------------|
+| Category | Feature | Specification | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|----------|---------|---------------|-------------|-------------------|-------------------|
 ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexFeatureFragment(f)).join('')}
 
   `;
@@ -204,7 +216,7 @@ ${features.filter(f => f.coverageStatus === 'none').map(f => renderFeatureIndexF
  * @param {FeatureMetadataItem} f
  */
 function renderFeatureIndexFeatureFragment(f) {
-  return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | ${f.required ? 'Required' : 'Optional'}<br>[View Spec](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} |
+  return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | ${f.required ? 'Required' : 'Optional'}<br>[View Spec](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} | ${renderTestInterfaceActionImplementationRequirements([...f.testInterfaceActionImplementationRequirements])} |
 `;
 }
 
@@ -237,8 +249,13 @@ ${f.explainer ? `\n${f.explainer}` : ''}${f.requiredCondition ? `\n${f.requiredC
 ${f.specificationReference}
 
 Coverage Status: **${f.coverageStatus}**${f.links ? `\n\nSee also: ${f.links.map(l => `[${l.name}](${l.href})`).join(', ')}` : ''}
-${renderCriteriaRequired(f.criteriaRequirement, `### Test prerequisites
+${renderCriteriaRequired(f.criteriaRequirement, `### Test prerequisites - Opportunities
 Opportunities that match the following criteria must exist in the booking system (for each configured \`bookableOpportunityTypesInScope\`) for the configured primary Seller in order to use \`useRandomOpportunities: true\`. Alternatively the following \`testOpportunityCriteria\` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for \`useRandomOpportunities: false\`.
+
+`)}
+${renderTestInterfaceActionImplementationRequirements([...f.testInterfaceActionImplementationRequirements], `### Test prerequisites - Test Interface Actions
+
+The following Test Interface Actions must be implemented by the [test interface](https://openactive.io/test-interface/) of the booking system in order to test this feature:
 
 `)}
 
@@ -265,8 +282,8 @@ ${'```'}json
 }
 ${'```'}
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
 ${implementedTests.map(t => renderFeatureTest(t)).join('')}` : ''}
 
 ${notImplementedTests.length > 0 ? `
@@ -283,8 +300,8 @@ ${'```'}json
 }
 ${'```'}
 ` : ''}
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
 ${notImplementedTests.map(t => renderFeatureTest(t)).join('')}` : ''}`;
 }
 
@@ -292,7 +309,7 @@ ${notImplementedTests.map(t => renderFeatureTest(t)).join('')}` : ''}`;
  * @param {TestModuleExports} t
  */
 function renderFeatureTest(t) {
-  return `| [${t.testIdentifier}](./${renderFeatureTestPath(t)}) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} |
+  return `| [${t.testIdentifier}](./${renderFeatureTestPath(t)}) | ${t.testName} | ${t.testDescription} | ${renderCriteriaRequired(t.criteriaRequirement, '')} | ${renderTestInterfaceActionImplementationRequirements(t.testInterfaceActions ?? [])} |
 `;
 }
 
@@ -322,6 +339,24 @@ function renderCriteriaRequired(criteriaRequired, prefixOverride) {
   return `${prefix}${Array.from(criteriaRequired.entries()).map(([key, value]) => (
     `[${key}](https://openactive.io/test-interface#${key}) x${value}`
   )).join(', ')}`;
+}
+
+/**
+ * @param {string[] | undefined} testInterfaceActions e.g.
+ *   `['test:AccessChannelUpdateSimulateAction']`
+ * @param {string} [prefix] If provided, this prefix will be rendered before the
+ *   test interface actions, if there are any.
+ */
+function renderTestInterfaceActionImplementationRequirements(testInterfaceActions, prefix = '') {
+  if (!testInterfaceActions || testInterfaceActions.length === 0) {
+    return '';
+  }
+  const sorted = [...testInterfaceActions].sort();
+  const result = sorted.map((r) => {
+    const nonPrefixed = r.replace(/^test:/, '');
+    return `[${nonPrefixed}](https://openactive.io/test-interface#${nonPrefixed})`;
+  }).join(', ');
+  return `${prefix}${result}`;
 }
 
 // # JSON rendering functions

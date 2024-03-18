@@ -10,6 +10,7 @@ Coverage Status: **complete**
 
 
 
+
 ### Running tests for only this feature
 
 ```bash
@@ -30,9 +31,9 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [only-primary-seller-configured](./implemented/only-primary-seller-configured-test.js) | Only the primary seller should be configured | If the single-seller feature is implemented, multiple-sellers is not enabled, and so a secondary seller should not be configured. |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [only-primary-seller-configured](./implemented/only-primary-seller-configured-test.js) | Only the primary seller should be configured | If the single-seller feature is implemented, multiple-sellers is not enabled, and so a secondary seller should not be configured. |  |  |
 
 
 
@@ -49,6 +50,6 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [multiple-sellers-implemented](./not-implemented/multiple-sellers-implemented-test.js) | Multiple Sellers feature must be implemented if Single Seller is not implemented | Either one, and only one, of the Multiple Sellers feature and Single Seller feature must be implemented |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [multiple-sellers-implemented](./not-implemented/multiple-sellers-implemented-test.js) | Multiple Sellers feature must be implemented if Single Seller is not implemented | Either one, and only one, of the Multiple Sellers feature and Single Seller feature must be implemented |  |  |

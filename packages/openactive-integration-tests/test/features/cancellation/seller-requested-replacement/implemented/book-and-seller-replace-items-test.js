@@ -14,8 +14,9 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  testInterfaceActions: ['test:ReplacementSimulateAction'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
   const {
     fetchOpportunities,
@@ -25,7 +26,7 @@ FeatureHelper.describeFeature(module, {
     testInterfaceAction,
     orderFeedUpdate,
     // defaultFlowStageParams,
-  } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, {
+  } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, describeFeatureRecord, {
     actionType: 'test:ReplacementSimulateAction',
   });
   /* TODO in order to do proper capacity assertions for this test:

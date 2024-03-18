@@ -19,9 +19,9 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableAttendeeDetails',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger) => {
+(configuration, orderItemCriteria, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteria, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteria, logger, describeFeatureRecord, {
     c2ExpectToFail: true,
     bookExpectToFail: true,
   });

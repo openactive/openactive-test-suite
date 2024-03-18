@@ -89,11 +89,12 @@ function itShouldCalculateNetTaxCorrectly(responseAccessor) {
  */
 function grossTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     // ## Init Flow Stages
     const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
       orderItemCriteriaList,
       logger,
+      describeFeatureRecord,
       { ...options, taxMode: 'https://openactive.io/TaxGross' },
     );
 
@@ -121,11 +122,12 @@ function grossTest(options) {
  */
 function netTest(options) {
   /** @type {import('../../helpers/feature-helper').RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     // ## Init Flow Stages
     const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
       orderItemCriteriaList,
       logger,
+      describeFeatureRecord,
       { ...options, taxMode: 'https://openactive.io/TaxNet' },
     );
 
