@@ -222,7 +222,8 @@ class FeatureHelper {
           })();
 
           /* JSON.stringify(..) used because otherwise the test output truncates
-          to `expected [Array(2)] to equal [Array(1)]`, which is useless. */
+          to `expected [Array(2)] to equal [Array(1)]`, which is useless. The
+          arrays are sorted, so string, so string comparison is fine. */
           expect(JSON.stringify(usedTestInterfaceActions))
             .to.deep.equal(JSON.stringify(expectedUsedTestInterfaceActions));
         });
