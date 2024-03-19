@@ -15,7 +15,7 @@ const { FeatureJsonSchema } = require('./featureJson.js');
 
 const FEATURES_ROOT = path.join(__dirname, '..', 'test', 'features');
 const INDEX_README_FILE = path.join(FEATURES_ROOT, 'README.md');
-const INDEX_CRITERIA_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'criteria-requirements.json');
+const INDEX_FEATURE_REQUIREMENTS_JSON_FILE = path.join(FEATURES_ROOT, 'feature-requirements.json');
 const INDEX_CATEGORIES_JSON_FILE = path.join(FEATURES_ROOT, 'categories.json');
 const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implemented.json');
 
@@ -32,12 +32,15 @@ const INDEX_TESTS_IMPLEMENTED_JSON_FILE = path.join(FEATURES_ROOT, 'tests-implem
  *
  * @typedef {{
  *   _createdByDocumentationGeneratorScript: true,
- *   criteriaRequirements: {
+ *   features: {
  *     [featureIdentifier: string]: {
- *       [sellerCriteria in SellerCriteria]?: OpportunityCriteriaRequirementsObj;
- *     },
- *   },
- * }} CriteriaRequirementsJson
+ *       criteriaRequirements: {
+ *         [sellerCriteria in SellerCriteria]?: OpportunityCriteriaRequirementsObj;
+ *       };
+ *       testInterfaceActionImplementationRequirements: string[];
+ *     };
+ *   };
+ * }} FeatureRequirementsJson
  *
  * @typedef {{
  *   _createdByDocumentationGeneratorScript: true,
@@ -145,8 +148,8 @@ writeFileSetErrorExitCodeButDontThrowIfFails(
 // This file will be used by the test-data-generator script to help seed random
 // mode tests.
 writeFileSetErrorExitCodeButDontThrowIfFails(
-  INDEX_CRITERIA_REQUIREMENTS_JSON_FILE,
-  renderCriteraRequirementsJson(featureMetadata),
+  INDEX_FEATURE_REQUIREMENTS_JSON_FILE,
+  renderFeatureRequirementsJson(featureMetadata),
 );
 
 // Save categories information to a machine-readable (JSON) file.
@@ -364,19 +367,32 @@ function renderTestInterfaceActionImplementationRequirements(testInterfaceAction
 /**
  * @param {FeatureMetadataItem[]} features
  */
-function renderCriteraRequirementsJson(features) {
-  /** @type {CriteriaRequirementsJson} */
+function renderFeatureRequirementsJson(features) {
+  /** @type {FeatureRequirementsJson} */
   const obj = {
     _createdByDocumentationGeneratorScript: true,
-    criteriaRequirements: Object.fromEntries(features.map(feature => ([
+    features: Object.fromEntries(features.map(feature => ([
       feature.identifier,
-      Object.fromEntries(Array.from(feature.sellerCriteriaRequirements).map(([sellerCriteria, tallyByCriteria]) => ([
-        sellerCriteria,
-        Object.fromEntries(tallyByCriteria),
-      ]))),
+      {
+        criteriaRequirements: renderFeatureCriteriaRequirements(feature),
+        testInterfaceActionImplementationRequirements: [
+          ...feature.testInterfaceActionImplementationRequirements,
+        ],
+      },
     ]))),
   };
   return JSON.stringify(obj, null, 2);
+}
+
+/**
+ * @param {FeatureMetadataItem} feature
+ * @returns {FeatureRequirementsJson['features'][string]['criteriaRequirements']}
+ */
+function renderFeatureCriteriaRequirements(feature) {
+  return Object.fromEntries(Array.from(feature.sellerCriteriaRequirements).map(([sellerCriteria, tallyByCriteria]) => ([
+    sellerCriteria,
+    Object.fromEntries(tallyByCriteria),
+  ])));
 }
 
 /**
