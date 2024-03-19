@@ -15,7 +15,7 @@ Opportunities that match the following criteria must exist in the booking system
 [TestOpportunityBookableWithNegotiation](https://openactive.io/test-interface#TestOpportunityBookableWithNegotiation) x3, [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x1
 ### Test prerequisites - Test Interface Actions
 
-The following Test Interface Actions must be implemented by the [test interface](https://openactive.io/test-interface/) of the booking system in order to test this feature:
+The following Test Interface Actions must be implemented by the [test interface](https://openactive.io/test-interface/) of the booking system in order to test this feature (see the [Developer Docs guide for implementing Test Interface Actions](https://developer.openactive.io/open-booking-api/test-suite/implementing-the-test-interface/test-interface-actions)):
 
 [SellerAcceptOrderProposalSimulateAction](https://openactive.io/test-interface#SellerAcceptOrderProposalSimulateAction), [SellerAmendOrderProposalSimulateAction](https://openactive.io/test-interface#SellerAmendOrderProposalSimulateAction)
 
