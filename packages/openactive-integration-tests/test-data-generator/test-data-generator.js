@@ -56,6 +56,7 @@ const DEFAULT_OUTPUT_DIR = path.join(__dirname, 'output');
 // # Constants - Config
 const IMPLEMENTED_FEATURES = getConfigVarOrThrow('integrationTests', 'implementedFeatures');
 const BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ = getConfigVarOrThrow('integrationTests', 'bookableOpportunityTypesInScope');
+const USE_SHAPE_EXPRESSIONS = getConfigVarOrThrow('integrationTests', 'useShapeExpressions');
 /** An array of those opportunity types which the Booking System is testing */
 const IMPLEMENTED_OPPORTUNITY_TYPES = Object.entries(BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE_OBJ)
   .filter(([, isInScope]) => isInScope)
@@ -148,6 +149,10 @@ function createOutputOpportunityTestData(sellerRequirements) {
             sellerId: seller['@id'],
             sellerType: seller['@type'],
             harvestStartTimeOverride,
+            // This must be specified here as the global will not be available
+            // to `createTestInterfaceOpportunity`, as this is set up in
+            // testEnvironment.js, which is only evaluated for jest test runs.
+            useShapeExpressions: USE_SHAPE_EXPRESSIONS,
           });
           itemListElement.push({
             '@type': 'ListItem',
