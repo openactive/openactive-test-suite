@@ -68,6 +68,7 @@ jobs:
         dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
       env:
         ASPNETCORE_ENVIRONMENT: ${{ matrix.profile }}
+        IS_CI: true
 
     - name: Install OpenActive Test Suite
       run: | 
