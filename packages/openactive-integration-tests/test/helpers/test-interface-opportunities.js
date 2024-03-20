@@ -18,9 +18,18 @@ const { HARVEST_START_TIME, USE_SHAPE_EXPRESSIONS } = global;
  * @param {string | null} [args.sellerType]
  * @param {string | null} [args.harvestStartTimeOverride] If provided, this value will be used instead of the
  *   global HARVEST_START_TIME.
+ * @param {boolean} [args.useShapeExpressions] If unspecified, the global USE_SHAPE_EXPRESSIONS will be used.
  * @returns {TestInterfaceOpportunity}
  */
-function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null, harvestStartTimeOverride = null }) {
+function createTestInterfaceOpportunity({
+  opportunityType,
+  testOpportunityCriteria,
+  bookingFlow,
+  sellerId = null,
+  sellerType = null,
+  harvestStartTimeOverride = null,
+  useShapeExpressions = USE_SHAPE_EXPRESSIONS,
+}) {
   const testDataShapeExpressions = getTestDataShapeExpressions(
     testOpportunityCriteria,
     bookingFlow,
@@ -36,7 +45,7 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
     // e.g. OpenBookingApprovalFlow -> https://openactive.io/test-interface#OpenBookingApprovalFlow
     'test:testOpenBookingFlow': `https://openactive.io/test-interface#${bookingFlow}`,
-    ...(USE_SHAPE_EXPRESSIONS ? {
+    ...(useShapeExpressions ? {
       'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
       'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
     } : {}),
