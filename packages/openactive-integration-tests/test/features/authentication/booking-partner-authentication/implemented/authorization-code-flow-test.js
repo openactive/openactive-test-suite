@@ -30,7 +30,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
         /* TODO: Add a test interface Action that resets consent for the
         specified user, and call it before this flow starts. Then this flow
         should assert consent. */
-        assertFlowRequiredConsent: null, 
+        assertFlowRequiredConsent: null,
         assertSellerIdClaim: SELLER_CONFIG.primary['@id'],
       })
       .refresh();
