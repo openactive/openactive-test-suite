@@ -1,7 +1,12 @@
 const FatalError = require('./fatal-error');
 const OpenActiveOpenIdTestClient = require('./client');
 
-// TODO Define the full types for sellersConfig and bookingPartnersConfig.
+/* TODO Define the full types for sellersConfig and bookingPartnersConfig. This
+can be done with these steps:
+
+1. Get the types from the config file. (see config-utils.js for an example of
+   this)
+2. Augment them to include the extra fields mentioned in the docs below. */
 /**
  * @typedef Config
  * @property {any} sellersConfig The augmented config for each seller. This starts with

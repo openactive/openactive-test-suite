@@ -1,4 +1,3 @@
-// TODO3 check for TODO2, weirdly capitalized TODO
 /* TODO many of the templates in this file are used by just one test It may be
 worth, therefore, having the templates defined in the test where they are used.
 This would reduce the chance of issues as the template definition is often
