@@ -1,7 +1,7 @@
 const FatalError = require('./fatal-error');
 const OpenActiveOpenIdTestClient = require('./client');
 
-// TODO Get full types for sellersConfig and bookingPartnersConfig
+// TODO Define the full types for sellersConfig and bookingPartnersConfig.
 /**
  * @typedef Config
  * @property {any} sellersConfig The augmented config for each seller. This starts with
@@ -38,7 +38,7 @@ const OpenActiveOpenIdTestClient = require('./client');
 class OpenActiveTestAuthKeyManager {
   constructor(log, baseUrl, sellersConfig, bookingPartnerConfig) {
     this.log = log;
-    // TODO: Improve deep copy
+    // TODO: Use lodash's cloneDeep to make the purpose here more clear.
     this.sellersConfig = JSON.parse(JSON.stringify(sellersConfig));
     this.bookingPartnersConfig = JSON.parse(JSON.stringify(bookingPartnerConfig));
     this.client = new OpenActiveOpenIdTestClient(baseUrl);

@@ -32,7 +32,7 @@ FeatureHelper.describeFeature(module, {
   /* TODO in order to do proper capacity assertions for this test:
   - uncomment the below stuff, which will assert capacity for items that were in the original Order (before replacement)
   - add logic which will assert capacity for items that have newly been added to Order
-  */
+  This will resolve this issue: https://github.com/openactive/openactive-test-suite/issues/671. */
   // const assertOpportunityCapacity = new AssertOpportunityCapacityFlowStage({
   //   ...defaultFlowStageParams,
   //   prerequisite: orderFeedUpdate,

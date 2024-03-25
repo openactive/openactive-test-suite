@@ -1,4 +1,5 @@
-// TODO fix this file so that it no longer needs to disable these rules
+/* TODO fix this file so that it no longer needs to disable these rules:
+https://github.com/openactive/openactive-test-suite/issues/648 */
 /* eslint-disable no-use-before-define */
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
@@ -94,7 +95,8 @@ global.documentationGenerationMode = true;
 // Load metadata from all tests
 const testMetadata = fg.sync(jestConfig.testMatch, { cwd: rootDirectory }).map(function (file) {
   console.log(`Reading: ${file}`);
-  // TODO: Verify that the data actually conforms to the type.
+  // TODO: Use code validation (e.g. with zod) to ensure that the data actually
+  // conforms to the TestModuleExports type
   // ## Load the test
   const data = /** @type {TestModuleExports} */(require(`${rootDirectory}${file}`));
   // ## Validate the test metadata
@@ -222,19 +224,6 @@ function renderFeatureIndexFeatureFragment(f) {
   return `| ${f.category} | ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md)) | ${f.required ? 'Required' : 'Optional'}<br>[View Spec](${f.specificationReference}) | ${f.description} | ${renderCriteriaRequired(f.criteriaRequirement, '')} | ${renderTestInterfaceActionImplementationRequirements([...f.testInterfaceActionImplementationRequirements])} |
 `;
 }
-
-// TODO - unused function - delete if not needed
-// function renderFeatureIndexFeatureFragmentOld(f) {
-//   return `
-// #### ${f.name} ([${f.identifier}](./${f.category}/${f.identifier}/README.md))
-
-// ${f.description}
-
-// ${f.specificationReference}
-// ${renderCriteriaRequired(f.criteriaRequirement)}
-
-// `;
-// }
 
 /**
  * @param {FeatureMetadataItem} f

@@ -70,13 +70,12 @@ FeatureHelper.describeFeature(module, {
     itShouldReturnOrderRequiresApprovalTrue(() => c2.getStage('c2').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
-    // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+    // TODO Validator should check this: https://github.com/openactive/data-model-validator/issues/449
     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
       const { uuid } = defaultFlowStageParams;
       expect(bookRecipe.p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
         .which.matches(RegExp(`${uuid}/versions/.+`));
     });
-    // TODO does validator check that full Seller details are included in the seller response?
     it('should have orderProposalStatus: SellerAccepted', () => {
       expect(bookRecipe.orderFeedUpdateCollector.getOutput().httpResponse.body)
         .to.have.nested.property('data.orderProposalStatus', 'https://openactive.io/SellerAccepted');

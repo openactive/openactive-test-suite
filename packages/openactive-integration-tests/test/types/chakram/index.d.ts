@@ -1,4 +1,10 @@
-// TODO: When completed, submit this to DefinitelyTyped
+/**
+ * Fill in the TypeScript interface for chakram, which does not have TypeScript
+ * definitions.
+ * This is a minimal set of types to allow the tests to compile.
+ * TODO: If completed, this could be submitted to
+ * https://github.com/DefinitelyTyped/DefinitelyTyped
+ */
 declare module 'chakram' {
   import { IncomingMessage } from 'http';
   import { Options } from 'request';

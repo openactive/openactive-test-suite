@@ -1,7 +1,7 @@
-// TODO Support specifying category in the CLI args e.g. "authorization"
-// This should be supported as well as feature, which is currently supported
-// This should look something like `npm run test-data-generator -- [category-or-feature]`
-// e.g. `npm run test-data-generator -- authorization`
+/* TODO Support specifying category in the CLI args e.g. "authorization"
+This should be supported as well as feature, which is currently supported
+This should look something like `npm run test-data-generator -- [category-or-feature]`
+e.g. `npm run test-data-generator -- authorization` */
 const fs = require('fs').promises;
 const path = require('path');
 const { DateTime } = require('luxon');
@@ -139,7 +139,14 @@ function createOutputOpportunityTestData(sellerRequirements) {
     for (const [opportunityCriteria, numOpportunitiesRequired] of opportunityCriteriaRequirements) {
       for (const bookingFlow of IMPLEMENTED_BOOKING_FLOWS) {
         for (const opportunityType of IMPLEMENTED_OPPORTUNITY_TYPES) {
-          // TODO this needs to take into account FeatureHelper.skipOpportunityTypes/skipBookingFlows
+          /* TODO: This currently over-counts the number of Opportunities
+          required because some tests implement `skipOpportunityTypes` or
+          `skipBookingFlows` in FeatureHelper. This means that, for these tests,
+          some opportunity types and/or booking flows should be ignored in the
+          count. Doing this would require adding more information to the
+          `feature-requirements.json` file that is output by documentation
+          generation.
+          It's not a huge issue as it's an over-count */
           numberOfItems += numOpportunitiesRequired;
           const testInterfaceOpportunity = createTestInterfaceOpportunity({
             opportunityType,

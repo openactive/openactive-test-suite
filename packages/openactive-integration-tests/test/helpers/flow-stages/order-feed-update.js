@@ -54,7 +54,9 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
-  // TODO allow specification of bookingPartnerIdentifier
+  /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
+  have any Order Feed Update tests which need to test anything other than the
+  primary bookingPartnerIdentifier so this hasn't yet been required. */
   await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid);
   return {};
 }
@@ -71,7 +73,9 @@ async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failE
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
-  // TODO allow specification of bookingPartnerIdentifier
+  /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
+  have any Order Feed Update tests which need to test anything other than the
+  primary bookingPartnerIdentifier so this hasn't yet been required. */
   const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
@@ -210,9 +214,7 @@ const OrderFeedUpdateFlowStageUtils = {
    *   Generally, this will be something like `failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400`.
    *
    *   Defaults to () => false (i.e. do not fail early).
-   * @returns {[TWrappedFlowStage, OrderFeedUpdateCollector]}
-   *   TODO update return signature to `{[wrappedStage: TWrappedFlowStage, orderFeedUpdateCollector: OrderFeedUpdateCollector]}`
-   *   when project upgrades TypeScript to v4
+   * @returns {[wrappedStage: TWrappedFlowStage, orderFeedUpdateCollector: OrderFeedUpdateCollector]}
    */
   wrap({ wrappedStageFn, orderFeedUpdateParams }) {
     const failEarlyIf = orderFeedUpdateParams.failEarlyIf ?? (() => false);
