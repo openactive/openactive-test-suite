@@ -32,10 +32,12 @@ class Reporter {
     this._options = options;
   }
 
+  // eslint-disable-next-line no-unused-vars
   async onRunStart(test, results) {
     await mkdirp(`${OUTPUT_PATH}json`);
-    // TODO: Replace the line below to remove any files that have not been created by this test run
-    // To allow Markdown auto-reload features to work (as file must be updated, not deleted, between test runs)
+    /* TODO: Replace the line below to have it only remove files that have NOT
+    been created by this test run This would allow Markdown auto-reload features
+    to work (as file must be updated, not deleted, between test runs) */
     // await rmfr(`${OUTPUT_PATH}*.md`, {glob: true});
     await rmfr(`${OUTPUT_PATH}json/*.json`, { glob: true });
     await rmfr(`${OUTPUT_PATH}certification/*.html`, { glob: true });
@@ -44,10 +46,12 @@ class Reporter {
     await mkdirp('./tmp');
   }
 
+  // eslint-disable-next-line no-unused-vars
   onTestStart(test) {
 
   }
 
+  // eslint-disable-next-line no-unused-vars
   async onTestResult(test, testResult, aggregatedResults) {
     // Workaround to skip reporting of empty todo tests, to handle implemented/not-implemented test.todo('') in feature-helper.js
     if (Array.isArray(testResult.testResults) && testResult.testResults.length === 1 && testResult.testResults[0].fullName === '' && testResult.testResults[0].status === 'todo') return;

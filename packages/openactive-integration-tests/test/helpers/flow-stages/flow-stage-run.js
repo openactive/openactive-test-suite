@@ -45,7 +45,6 @@ class FlowStageRun {
    */
   static getFlattenedStages(stagesByName, stageSequence) {
     /** @type {UnknownFlowStageType[]} */
-    // // @ts-expect-error TODO fix
     const stages = stageSequence.flatMap((stageName) => {
       const stage = stagesByName[stageName];
       assertIsNotNullish(stage);
