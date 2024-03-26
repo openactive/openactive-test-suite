@@ -76,6 +76,62 @@ const CriteriaOrientedOpportunityIdCache = {
     if (!typeBucket) throw new Error(`The specified opportunityType (${opportunityType}) is not currently supported.`);
     return typeBucket;
   },
+
+  /**
+   * ! `cache` is mutated.
+   *
+   * @param {OpportunityIdCacheType} cache
+   * @param {string} opportunityId
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  setOpportunityMatchesCriteria(cache, opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(cache, {
+      criteriaName, bookingFlow, opportunityType,
+    });
+    if (!typeBucket.contents.has(sellerId)) {
+      typeBucket.contents.set(sellerId, new Set());
+    }
+    const sellerCompartment = typeBucket.contents.get(sellerId);
+    sellerCompartment.add(opportunityId);
+    // Hide criteriaErrors if at least one matching item is found
+    typeBucket.criteriaErrors = undefined;
+  },
+
+  /**
+   * ! `cache` is mutated.
+   *
+   * @param {OpportunityIdCacheType} cache
+   * @param {string} opportunityId
+   * @param {unknown[]} unmetCriteriaDetails
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  setOpportunityDoesNotMatchCriteria(cache, opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(cache, {
+      criteriaName, bookingFlow, opportunityType,
+    });
+    if (!typeBucket.contents.has(sellerId)) {
+      typeBucket.contents.set(sellerId, new Set());
+    }
+    const sellerCompartment = typeBucket.contents.get(sellerId);
+    // Delete it in case it had previously matched
+    sellerCompartment.delete(opportunityId);
+    // Ignore errors if criteriaErrors is already hidden
+    if (typeBucket.criteriaErrors) {
+      // TODO3 here i am
+      for (const error of unmetCriteriaDetails) {
+        if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
+        typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
+      }
+    }
+  },
 };
 
 module.exports = {

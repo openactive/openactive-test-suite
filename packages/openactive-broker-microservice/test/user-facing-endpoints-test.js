@@ -6,6 +6,12 @@ const PauseResume = require('../src/util/pause-resume');
 describe('user-facing endpoints', () => {
   describe('GET /status', () => {
     it('should work', () => {
+      const cooiCache = CriteriaOrientedOpportunityIdCache.create();
+      CriteriaOrientedOpportunityIdCache.getTypeBucket(cooiCache, {
+        criteriaName: 'TestOpportunityBookable',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+      });
       const result = getStatus({
         DO_NOT_FILL_BUCKETS: false,
       }, {
