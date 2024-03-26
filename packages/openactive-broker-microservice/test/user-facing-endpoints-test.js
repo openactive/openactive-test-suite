@@ -1,3 +1,4 @@
+const { expect } = require('chai');
 const { getStatus } = require('../src/get-status');
 const { CriteriaOrientedOpportunityIdCache } = require('../src/util/criteria-oriented-opportunity-id-cache');
 const PauseResume = require('../src/util/pause-resume');
@@ -26,9 +27,9 @@ describe('user-facing endpoints', () => {
               waitingForParentToBeIngested: false,
             }],
             // Has no parent but doesn't need one either
-            ['id1', {
-              id: 'id1',
-              jsonLdId: 'id1',
+            ['id2', {
+              id: 'id2',
+              jsonLdId: 'id2',
               jsonLdParentId: null,
               jsonLdType: 'ScheduledSession',
               jsonLd: {
@@ -40,10 +41,10 @@ describe('user-facing endpoints', () => {
               waitingForParentToBeIngested: false,
             }],
             // Has no parent and should have one
-            ['id1', {
-              id: 'id1',
-              jsonLdId: 'id1',
-              jsonLdParentId: null,
+            ['id3', {
+              id: 'id3',
+              jsonLdId: 'id3',
+              jsonLdParentId: 'parentid3',
               jsonLdType: 'ScheduledSession',
               jsonLd: {
                 '@type': 'ScheduledSession',
@@ -60,7 +61,12 @@ describe('user-facing endpoints', () => {
         feedContextMap: new Map(),
         pauseResume: new PauseResume(),
       });
-      console.log('result:', result);
+      // Only two of the three opportunities are "child opportunities" i.e. have
+      // a parent
+      expect(result.orphans).to.equal('1 of 2 (50.00%)');
+      // Only two of the three opportunities count as being harvested — those
+      // that are not still waiting for parent
+      expect(result.totalOpportunitiesHarvested).to.equal(2);
     });
   });
 });
