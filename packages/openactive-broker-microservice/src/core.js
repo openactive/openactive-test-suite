@@ -1133,7 +1133,7 @@ async function touchChildOpportunityItems(parentIds) {
   await Promise.all([...opportunitiesToUpdate].map(async (jsonLdId) => {
     if (state.rowStoreMap.has(jsonLdId)) {
       const row = state.rowStoreMap.get(jsonLdId);
-      row.feedModified =  `${Date.now() + 1000}`; // 1 second in the future
+      row.feedModified = `${Date.now() + 1000}`; // 1 second in the future
       row.waitingForParentToBeIngested = false;
       await processRow(row);
     }
