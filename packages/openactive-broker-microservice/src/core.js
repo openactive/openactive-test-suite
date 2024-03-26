@@ -137,17 +137,7 @@ function getOrphansRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getStatusRoute(req, res) {
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
-  res.send({
-    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime()),
-    harvestingStatus: state.pauseResume.pauseHarvestingStatus,
-    feeds: mapToObjectSummary(state.feedContextMap),
-    orphans: {
-      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
-    },
-    totalOpportunitiesHarvested: totalOpportunities,
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.opportunityIdCache),
-  });
+  res.send(getStatus());
 }
 
 /**
@@ -364,6 +354,23 @@ function getSampleOpportunitiesRoute(req, res) {
       error: bookableOpportunity,
     });
   }
+}
+
+/**
+ * @param {Pick<typeof state, 'rowStoreMap' | 'startTime' | 'pauseResume' | 'feedContextMap' | 'opportunityIdCache'>} theState
+ */
+function getStatus(theState = state) {
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(theState);
+  return {
+    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - theState.startTime.getTime()),
+    harvestingStatus: theState.pauseResume.pauseHarvestingStatus,
+    feeds: mapToObjectSummary(theState.feedContextMap),
+    orphans: {
+      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
+    },
+    totalOpportunitiesHarvested: totalOpportunities,
+    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(theState.opportunityIdCache),
+  };
 }
 
 /**
@@ -771,13 +778,14 @@ function getOrphanJson() {
  */
 
 /**
+ * @param {Pick<typeof state, 'rowStoreMap'>} theState
  * @returns {OrphanStats}
  */
-function getOrphanStats() {
-  const childRows = Array.from(state.rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
+function getOrphanStats(theState = state) {
+  const childRows = Array.from(theState.rowStoreMap.values()).filter((x) => x.jsonLdParentId !== null);
   const childOrphans = childRows.filter((x) => x.waitingForParentToBeIngested).length;
   const totalChildren = childRows.length;
-  const totalOpportunities = Array.from(state.rowStoreMap.values()).filter((x) => !x.waitingForParentToBeIngested).length;
+  const totalOpportunities = Array.from(theState.rowStoreMap.values()).filter((x) => !x.waitingForParentToBeIngested).length;
   const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
   return {
     childOrphans,
@@ -1801,4 +1809,6 @@ module.exports = {
 
   onHttpServerError,
   startPolling,
+
+  getStatus,
 };
