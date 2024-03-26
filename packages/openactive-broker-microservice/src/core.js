@@ -51,6 +51,8 @@ const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInpu
 const { renderSampleOpportunities } = require('./sample-opportunities');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
+const { mapToObjectSummary } = require('./util/map-to-object-summary');
+const { getOrphanStats, getStatus } = require('./get-status');
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -137,7 +139,9 @@ function getOrphansRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getStatusRoute(req, res) {
-  res.send(getStatus());
+  res.send(getStatus({
+    DO_NOT_FILL_BUCKETS,
+  }, state));
 }
 
 /**
@@ -354,23 +358,6 @@ function getSampleOpportunitiesRoute(req, res) {
       error: bookableOpportunity,
     });
   }
-}
-
-/**
- * @param {Pick<typeof state, 'opportunityItemRowCache' | 'startTime' | 'pauseResume' | 'feedContextMap' | 'criteriaOrientedOpportunityIdCache'>} theState
- */
-function getStatus(theState = state) {
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
-  return {
-    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - theState.startTime.getTime()),
-    harvestingStatus: theState.pauseResume.pauseHarvestingStatus,
-    feeds: mapToObjectSummary(theState.feedContextMap),
-    orphans: {
-      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
-    },
-    totalOpportunitiesHarvested: totalOpportunities,
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(theState.criteriaOrientedOpportunityIdCache),
-  };
 }
 
 /**
@@ -598,7 +585,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   log('Harvesting is up-to-date');
 
   // Run some assertions to ensure that feed harvesting has lead to the correct state.
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
 
   let validationPassed = true;
 
@@ -686,70 +673,6 @@ function getConfig() {
   };
 }
 
-/**
- * Convert an ES Map to a plain object (recursively), summarising some aspects
- * as follows:
- *
- * - Any value that is an ES Set will be replaced with its size
- * - Hide any properties which start with the character '_' in objects
- * - OpportunityIdCacheTypeBucket objects have special handling
- *
- * @param {Map | Set} map
- * @returns {{[k: string]: any} | number}
- */
-function mapToObjectSummary(map) {
-  if (map instanceof Map) {
-    // Return a object representation of a Map
-    const obj = Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0
-      ? {}
-      : {
-        [v[0]]: mapToObjectSummary(v[1]),
-      })));
-    if (JSON.stringify(obj) === JSON.stringify({})) {
-      return undefined;
-    }
-    return obj;
-  }
-  if (map instanceof Set) {
-    // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
-    // instead of outputting the whole set contents. This reduces the size of the output for display.
-    return map.size;
-  }
-  // Special handling for OpportunityIdCacheTypeBuckets
-  // @ts-ignore
-  if (map.contents) {
-    // @ts-ignore
-    const result = mapToObjectSummary(map.contents);
-    if (result && Object.keys(result).length > 0) {
-      // @ts-ignore
-      return result;
-    }
-    // @ts-ignore
-    if (map.criteriaErrors && map.criteriaErrors.size > 0) {
-      return {
-        // @ts-ignore
-        criteriaErrors: Object.fromEntries(map.criteriaErrors),
-      };
-    }
-    return undefined;
-  }
-  // @ts-ignore
-  if (map instanceof Object) {
-    // Hide any properties that start with the character '_' in objects, as these are not intended for display
-    return Object.fromEntries(Object.entries(map).filter(([k]) => k.charAt(0) !== '_'));
-  }
-  return map;
-}
-
-/**
- * @param {number} millis
- */
-function millisToMinutesAndSeconds(millis) {
-  const minutes = Math.floor(millis / 60000);
-  const seconds = ((millis % 60000) / 1000);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
-}
-
 function getOrphanJson() {
   const rows = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
   return {
@@ -766,32 +689,6 @@ function getOrphanJson() {
         jsonLdParentId,
       }))),
     },
-  };
-}
-
-/**
- * @typedef {Object} OrphanStats
- * @property {number} childOrphans
- * @property {number} totalChildren
- * @property {string} percentageChildOrphans
- * @property {number} totalOpportunities
- */
-
-/**
- * @param {Pick<typeof state, 'opportunityItemRowCache'>} theState
- * @returns {OrphanStats}
- */
-function getOrphanStats(theState = state) {
-  const childRows = Array.from(theState.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
-  const childOrphans = childRows.filter((x) => x.waitingForParentToBeIngested).length;
-  const totalChildren = childRows.length;
-  const totalOpportunities = Array.from(theState.opportunityItemRowCache.store.values()).filter((x) => !x.waitingForParentToBeIngested).length;
-  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
-  return {
-    childOrphans,
-    totalChildren,
-    percentageChildOrphans,
-    totalOpportunities,
   };
 }
 
@@ -1812,6 +1709,4 @@ module.exports = {
 
   onHttpServerError,
   startPolling,
-
-  getStatus,
 };

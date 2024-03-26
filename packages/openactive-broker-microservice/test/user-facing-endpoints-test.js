@@ -1,4 +1,4 @@
-const { getStatus } = require('../src/core');
+const { getStatus } = require('../src/get-status');
 const { CriteriaOrientedOpportunityIdCache } = require('../src/util/criteria-oriented-opportunity-id-cache');
 const PauseResume = require('../src/util/pause-resume');
 
@@ -6,6 +6,8 @@ describe('user-facing endpoints', () => {
   describe('GET /status', () => {
     it('should work', () => {
       const result = getStatus({
+        DO_NOT_FILL_BUCKETS: false,
+      }, {
         startTime: new Date(),
         opportunityItemRowCache: {
           store: new Map([

@@ -250,6 +250,10 @@ function getGlobalValidatorWorkerPool() {
   return state._validatorWorkerPool;
 }
 
+/**
+ * @typedef {typeof state} State
+ */
+
 module.exports = {
   state,
   getLockedOpportunityIdsInTestDataset,
