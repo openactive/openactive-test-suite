@@ -11,7 +11,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
-const { harvestRPDE, createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
+const { createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
 
