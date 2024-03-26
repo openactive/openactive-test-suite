@@ -1595,7 +1595,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    await harvestRPDE({
+    await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
@@ -1678,7 +1678,7 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
   };
 
   state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
-  await harvestRPDE({
+  await harvestRPDELossless({
     baseUrl: feedUrl,
     feedContextIdentifier,
     headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
