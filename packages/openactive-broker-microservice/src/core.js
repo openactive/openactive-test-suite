@@ -11,7 +11,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
-const { harvestRPDE, createFeedContext, progressFromContext } = require('@openactive/harvesting-utils');
+const { harvestRPDE, createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
 
@@ -1133,7 +1133,7 @@ async function touchChildOpportunityItems(parentIds) {
   await Promise.all([...opportunitiesToUpdate].map(async (jsonLdId) => {
     if (state.rowStoreMap.has(jsonLdId)) {
       const row = state.rowStoreMap.get(jsonLdId);
-      row.feedModified = Date.now() + 1000; // 1 second in the future
+      row.feedModified =  `${Date.now() + 1000}`; // 1 second in the future
       row.waitingForParentToBeIngested = false;
       await processRow(row);
     }
@@ -1172,7 +1172,7 @@ async function storeChildOpportunityItem(item) {
     id: item.id,
     modified: item.modified,
     deleted: false,
-    feedModified: Date.now() + 1000, // 1 second in the future,
+    feedModified: `${Date.now() + 1000}`, // 1 second in the future,
     jsonLdId: item.data['@id'] || item.data.id || null,
     jsonLd: item.data,
     jsonLdType: item.data['@type'] || item.data.type,
@@ -1245,7 +1245,7 @@ async function processRow(row) {
     newItem = {
       state: row.deleted ? 'deleted' : 'updated',
       id: row.jsonLdId,
-      modified: row.feedModified,
+      modified: `${row.feedModified}`,
       data: row.jsonLd,
     };
   } else {
@@ -1265,7 +1265,7 @@ async function processRow(row) {
     newItem = {
       state: row.deleted ? 'deleted' : 'updated',
       id: row.jsonLdId,
-      modified: row.feedModified,
+      modified: `${row.feedModified}`,
       data: {
         '@context': mergedContexts,
         ...rowJsonLdWithoutContext,
@@ -1629,7 +1629,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    await harvestRPDE({
+    await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
