@@ -1,4 +1,5 @@
-// TODO fix these issues!
+/* TODO fix this file so that it no longer needs to disable these rules:
+https://github.com/openactive/openactive-test-suite/issues/648 */
 /* eslint-disable arrow-parens */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-var */

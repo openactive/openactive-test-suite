@@ -46,7 +46,7 @@ const { createPaymentPart, addOrderItemIntakeFormResponse } = require('./common'
  *     },
  *   },
  *   seller: string,
- *   customer: any, // ToDo: add this?
+ *   customer: import('../helpers/flow-stages/flow-stage-utils').Customer,
  *   orderedItem: {
  *     '@type': string,
  *     position: number,

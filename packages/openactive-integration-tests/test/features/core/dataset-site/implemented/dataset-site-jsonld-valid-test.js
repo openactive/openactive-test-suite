@@ -25,7 +25,10 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       });
     });
 
-    // TODO does validator check that endpointUrl does not end in a `/` (as per Open API 3 Base URL https://swagger.io/docs/specification/api-host-and-base-path/)
+    /* TODO have validator check that endpointUrl does not end in a `/` (as per
+    Open API 3 Base URL
+    https://swagger.io/docs/specification/api-host-and-base-path/). See GitHub
+    issue: https://github.com/openactive/data-model-validator/issues/450 */
     it('should include accessService.endpointUrl that does not end in a trailing "/"', () => {
       chai.expect(getDatasetSite.datasetSite.body.accessService.endpointUrl).not.to.match(/\/$/g, 'a trailing /');
     });

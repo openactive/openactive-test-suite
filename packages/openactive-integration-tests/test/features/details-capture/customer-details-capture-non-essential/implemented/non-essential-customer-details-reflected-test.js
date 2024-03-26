@@ -26,6 +26,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger, de
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected customer details', () => {
       const apiResponseJson = c2.getStage('c2').getOutput().httpResponse.body;
+      if (defaultFlowStageParams.customer['@type'] !== 'Person') {
+        throw new Error(`Tests expect customer to be a Person. Customer: ${JSON.stringify(defaultFlowStageParams.customer)}`);
+      }
       expect(apiResponseJson).to.have.nested.property('customer.email').that.match(new RegExp(defaultFlowStageParams.customer.email, 'i'));
       expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
       expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);
@@ -35,6 +38,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger, de
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include expected customer details', () => {
       const apiResponseJson = bookRecipe.b.getOutput().httpResponse.body;
+      if (defaultFlowStageParams.customer['@type'] !== 'Person') {
+        throw new Error(`Tests expect customer to be a Person. Customer: ${JSON.stringify(defaultFlowStageParams.customer)}`);
+      }
       expect(apiResponseJson).to.have.nested.property('customer.email').that.match(new RegExp(defaultFlowStageParams.customer.email, 'i'));
       expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
       expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);
