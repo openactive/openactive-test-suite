@@ -52,7 +52,11 @@ const { renderSampleOpportunities } = require('./sample-opportunities');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
 const { mapToObjectSummary } = require('./util/map-to-object-summary');
-const { getOrphanStats, getStatus } = require('./get-status');
+const { getOrphanStats, getStatus } = require('./util/get-status');
+const { getOrphanJson } = require('./util/get-orphans');
+const { getOpportunityMergedWithParentById } = require('./util/get-opportunity-by-id-from-cache');
+const { getMergedJsonLdContext } = require('./util/jsonld-utils');
+const { jsonLdHasReferencedParent } = require('./util/jsonld-utils');
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -131,7 +135,7 @@ function getDatasetSiteRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getOrphansRoute(req, res) {
-  res.send(getOrphanJson());
+  res.send(getOrphanJson(state));
 }
 
 /**
@@ -177,7 +181,7 @@ function getOpportunityCacheByIdRoute(req, res) {
   if (req.params.id) {
     const { id } = req.params;
 
-    const cachedResponse = getOpportunityMergedWithParentById(id);
+    const cachedResponse = getOpportunityMergedWithParentById(state, id);
 
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
@@ -349,6 +353,7 @@ function getSampleOpportunitiesRoute(req, res) {
 
   if (bookableOpportunity.opportunity) {
     const opportunityWithParent = getOpportunityMergedWithParentById(
+      state,
       bookableOpportunity.opportunity['@id'],
     );
     const json = renderSampleOpportunities(opportunityWithParent, criteriaName, sellerId);
@@ -502,54 +507,6 @@ function releaseOpportunityLocks(testDatasetIdentifier) {
 }
 
 /**
- * For a given `childOpportunityId`, fetch the full opportunity from the cache.
- * If the opportunity has a parent, the full opportunity for the parent will be
- * fetched and merged into the `superEvent` or `facilityUse` property.
- *
- * @param {string} childOpportunityId
- */
-function getOpportunityMergedWithParentById(childOpportunityId) {
-  const opportunity = state.opportunityCache.childMap.get(childOpportunityId);
-  if (!opportunity) {
-    return null;
-  }
-  if (!jsonLdHasReferencedParent(opportunity)) {
-    return opportunity;
-  }
-  const superEvent = state.opportunityCache.parentMap.get(/** @type {string} */(opportunity.superEvent));
-  const facilityUse = state.opportunityCache.parentMap.get(/** @type {string} */(opportunity.facilityUse));
-  if (superEvent || facilityUse) {
-    const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
-    delete opportunity['@context'];
-    const returnObj = {
-      '@context': mergedContexts,
-      ...opportunity,
-    };
-    if (superEvent) {
-      const superEventWithoutContext = {
-        ...superEvent,
-      };
-      delete superEventWithoutContext['@context'];
-      return {
-        ...returnObj,
-        superEvent: superEventWithoutContext,
-      };
-    }
-    if (facilityUse) {
-      const facilityUseWithoutContext = {
-        ...facilityUse,
-      };
-      delete facilityUseWithoutContext['@context'];
-      return {
-        ...returnObj,
-        facilityUse: facilityUseWithoutContext,
-      };
-    }
-  }
-  return null;
-}
-
-/**
  * Call this function on a feed when the last page has been fetched, indicating
  * that we have, as of the time of the last page fetch, read and cached all
  * data from the feed.
@@ -596,7 +553,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   } else if (totalChildren !== 0 && childOrphans === totalChildren) {
     logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities that reference a parent do not have a matching parent item from the parent feed, so all integration tests will fail.`);
     logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(state), null, 2));
     if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
       logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
     } else {
@@ -606,7 +563,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   } else if (childOrphans > 0) {
     logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities that reference a parent (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
     logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(state), null, 2));
     if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
       logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
     } else {
@@ -673,25 +630,6 @@ function getConfig() {
   };
 }
 
-function getOrphanJson() {
-  const rows = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
-  return {
-    children: {
-      matched: rows.filter((x) => !x.waitingForParentToBeIngested).length,
-      orphaned: rows.filter((x) => x.waitingForParentToBeIngested).length,
-      total: rows.length,
-      orphanedList: rows.filter((x) => x.waitingForParentToBeIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
-        jsonLdType,
-        id,
-        modified,
-        jsonLd,
-        jsonLdId,
-        jsonLdParentId,
-      }))),
-    },
-  };
-}
-
 /**
  * For an Opportunity being harvested from RPDE, check if there is a two-phase
  * listener listening for it.
@@ -733,7 +671,7 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
   state.onePhaseListeners.opportunity.createListener(opportunityId, doesItemMatchCriteria, res);
 
   if (useCacheIfAvailable) {
-    const cachedResponse = getOpportunityMergedWithParentById(opportunityId);
+    const cachedResponse = getOpportunityMergedWithParentById(state, opportunityId);
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
         logCharacter('.');
@@ -1101,39 +1039,6 @@ async function storeChildOpportunityItem(item) {
   if (!row.waitingForParentToBeIngested) {
     await processRow(row);
   }
-}
-
-/**
- * Does this Opportunity have a reference to a Parent Opportunity? (i.e. is it a Child Opportunity?)
- *
- * @param {import('./models/core').Opportunity} data
- */
-function jsonLdHasReferencedParent(data) {
-  return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
-}
-
-/**
- * Sort JSON-LD `@context` so that `https://openactive.io/` and
- * `https://schema.org/` are at the top, which is useful for consistency
- * and required by validator.
- *
- * @param {string[]} context
- */
-function sortJsonLdContextWithOpenActiveOnTop(context) {
-  const firstList = [];
-  if (context.includes('https://openactive.io/')) firstList.push('https://openactive.io/');
-  if (context.includes('https://schema.org/')) firstList.push('https://schema.org/');
-  const remainingList = context.filter((x) => x !== 'https://openactive.io/' && x !== 'https://schema.org/');
-  return firstList.concat(remainingList.sort());
-}
-
-/**
- * Merge and sort JSON-LD `@context` from multiple Opportunities.
- *
- * @param  {...import('./models/core').Opportunity} opportunities
- */
-function getMergedJsonLdContext(...opportunities) {
-  return sortJsonLdContextWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
 }
 
 /**

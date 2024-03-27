@@ -387,6 +387,8 @@ Shows the status of the Broker Microservice. Use this to check on the progress o
 
 #### `GET /validation-errors`
 
+TODO3 create an issue for this one mentioning cheerio
+
 **Response Type**: 🌐 HTML
 
 Shows any [validation](#data-model-validation) errors that have been found for Opportunities that have been harvested from the [Booking System](#booking-system-under-test).

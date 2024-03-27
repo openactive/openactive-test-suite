@@ -6,11 +6,11 @@
  * @property {number} totalOpportunities
  */
 
-const { mapToObjectSummary } = require('./util/map-to-object-summary');
+const { mapToObjectSummary } = require('./map-to-object-summary');
 
 /**
- * @param {Pick<import('./broker-config').BrokerConfig, 'DO_NOT_FILL_BUCKETS'>} config
- * @param {Pick<import('./state').State, 'opportunityItemRowCache' | 'startTime' | 'pauseResume' | 'feedContextMap' | 'criteriaOrientedOpportunityIdCache'>} state
+ * @param {Pick<import('../broker-config').BrokerConfig, 'DO_NOT_FILL_BUCKETS'>} config
+ * @param {Pick<import('../state').State, 'opportunityItemRowCache' | 'startTime' | 'pauseResume' | 'feedContextMap' | 'criteriaOrientedOpportunityIdCache'>} state
  */
 function getStatus(config, state) {
   const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
@@ -27,7 +27,7 @@ function getStatus(config, state) {
 }
 
 /**
- * @param {Pick<import('./state').State, 'opportunityItemRowCache'>} state
+ * @param {Pick<import('../state').State, 'opportunityItemRowCache'>} state
  * @returns {OrphanStats}
  */
 function getOrphanStats(state) {
