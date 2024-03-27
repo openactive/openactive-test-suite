@@ -22,9 +22,9 @@ const testDataGenerators = {
         jsonLd: {
           '@type': 'ScheduledSession',
         },
-        feedModified: Date.now(),
+        feedModified: String(Date.now()),
         deleted: false,
-        modified: 123,
+        modified: '123',
         waitingForParentToBeIngested: false,
       },
     ],
@@ -41,9 +41,9 @@ const testDataGenerators = {
         jsonLd: {
           '@type': 'ScheduledSession',
         },
-        feedModified: Date.now(),
+        feedModified: String(Date.now()),
         deleted: false,
-        modified: 123,
+        modified: '123',
         waitingForParentToBeIngested: false,
       },
     ],
@@ -61,9 +61,9 @@ const testDataGenerators = {
         jsonLd: {
           '@type': 'ScheduledSession',
         },
-        feedModified: Date.now(),
+        feedModified: String(Date.now()),
         deleted: false,
-        modified: 123,
+        modified: '123',
         waitingForParentToBeIngested: true,
       },
     ],
@@ -176,7 +176,7 @@ describe('user-facing endpoints', () => {
             jsonLd: {
               '@type': 'ScheduledSession',
             },
-            modified: 123,
+            modified: '123',
           }],
         },
       });
