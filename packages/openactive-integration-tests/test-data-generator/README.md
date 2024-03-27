@@ -24,7 +24,7 @@ npm run test-data-generator -- --output-dir ../../../test-data-generator-output 
 
 ## `opportunity-test-data.json` file format
 
-This file can be used by a script to add sufficient test data into your [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/) implementation's database for testing when using [random mode](../README.md#userandomopportunities).
+This file can be used by a script to add sufficient test data into your [Open Booking API](https://openactive.io/open-booking-api/EditorsDraft/) implementation's database for testing when using [random mode](../README.md#userandomopportunities). A guide on how to do this can be found in the Developer Docs: [Random Mode: Generating Test Opportunity Data](https://developer.openactive.io/open-booking-api/test-suite/random-mode-generating-test-opportunity-data).
 
 The `item` within the file format is identical to the Controlled Opportunity Creation endpoint defined within the [OpenActive Test Interface](https://openactive.io/test-interface/). This allows an implementation to use the same logic to generate data from the test data file and from the test interface.
 
@@ -49,6 +49,7 @@ The `item` within the file format is identical to the Controlled Opportunity Cre
           }
         },
         "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookable",
+        "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow",
         "test:testOpportunityDataShapeExpression": [
           {
             "@type": "test:TripleConstraint",
