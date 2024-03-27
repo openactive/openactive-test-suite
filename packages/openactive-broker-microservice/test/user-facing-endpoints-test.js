@@ -245,4 +245,43 @@ describe('user-facing endpoints', () => {
       });
     });
   });
+  describe('GET /sample-opportunities', () => {
+    const cooiCache = CriteriaOrientedOpportunityIdCache.create();
+    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
+      criteriaName: 'TestOpportunityBookable',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'seller1',
+    });
+    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
+      criteriaName: 'TestOpportunityBookableFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'seller1',
+    });
+    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id1', ['does not have one space'], {
+      criteriaName: 'TestOpportunityBookableOneSpace',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'seller1',
+    });
+    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id2', {
+      criteriaName: 'TestOpportunityBookable',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'seller1',
+    });
+    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id2', ['is not free'], {
+      criteriaName: 'TestOpportunityBookableFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'seller1',
+    });
+    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id1', ['does not have one space'], {
+      criteriaName: 'TestOpportunityBookableOneSpace',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'seller1',
+    });
+  });
 });

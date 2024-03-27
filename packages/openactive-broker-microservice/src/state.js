@@ -222,24 +222,6 @@ const state = {
 };
 
 /**
- * All Opportunity IDs that are considered "locked" (because they have already
- * been used in a test) for the specified [Test Dataset](https://openactive.io/test-interface/#datasets-endpoints).
- *
- * @param {string} testDatasetIdentifier
- * @returns {Set<string>}
- */
-function getLockedOpportunityIdsInTestDataset(testDatasetIdentifier) {
-  if (!state.lockedOpportunityIdsByTestDataset.has(testDatasetIdentifier)) {
-    state.lockedOpportunityIdsByTestDataset.set(testDatasetIdentifier, new Set());
-  }
-  return state.lockedOpportunityIdsByTestDataset.get(testDatasetIdentifier);
-}
-
-function getAllLockedOpportunityIds() {
-  return new Set(Array.from(state.lockedOpportunityIdsByTestDataset.values()).flatMap((x) => Array.from(x.values())));
-}
-
-/**
  * @param {ValidatorWorkerPoolType} validatorWorkerPool
  */
 function setGlobalValidatorWorkerPool(validatorWorkerPool) {
@@ -256,8 +238,6 @@ function getGlobalValidatorWorkerPool() {
 
 module.exports = {
   state,
-  getLockedOpportunityIdsInTestDataset,
-  getAllLockedOpportunityIds,
   setGlobalValidatorWorkerPool,
   getGlobalValidatorWorkerPool,
 };

@@ -41,22 +41,25 @@ const {
   BOOKING_PARTNER_IDENTIFIERS,
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
-const { state, getLockedOpportunityIdsInTestDataset, getAllLockedOpportunityIds, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
+const { state, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
 const { orderFeedContextIdentifier } = require('./util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./util/request-utils');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./util/api-utils');
 const { ValidatorWorkerPool } = require('./validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./validator/validator-inputs');
-const { renderSampleOpportunities } = require('./sample-opportunities');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
-const { mapToObjectSummary } = require('./util/map-to-object-summary');
 const { getOrphanStats, getStatus } = require('./util/get-status');
 const { getOrphanJson } = require('./util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('./util/get-opportunity-by-id-from-cache');
 const { getMergedJsonLdContext } = require('./util/jsonld-utils');
 const { jsonLdHasReferencedParent } = require('./util/jsonld-utils');
+const { getRandomBookableOpportunity } = require('./util/get-random-bookable-opportunity');
+const { getLockedOpportunityIdsInTestDataset } = require('./util/state-utils');
+const { detectOpportunityType } = require('./util/opportunity-utils');
+const { detectSellerId } = require('./util/opportunity-utils');
+const { getSampleOpportunities } = require('./util/sample-opportunities');
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -261,7 +264,7 @@ function getRandomOpportunityRoute(req, res) {
   // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
   const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const result = getRandomBookableOpportunity({
+  const result = getRandomBookableOpportunity(state, {
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
   });
   if (result && result.opportunity) {
@@ -338,31 +341,9 @@ function assertUnmatchedCriteriaRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getSampleOpportunitiesRoute(req, res) {
-  // Get random opportunity ID
-  const opportunity = req.body;
-  const opportunityType = detectOpportunityType(opportunity);
-  const sellerId = detectSellerId(opportunity);
-  const testDatasetIdentifier = 'sample-opportunities';
-
-  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
-
-  const bookableOpportunity = getRandomBookableOpportunity({
-    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
-  });
-
-  if (bookableOpportunity.opportunity) {
-    const opportunityWithParent = getOpportunityMergedWithParentById(
-      state,
-      bookableOpportunity.opportunity['@id'],
-    );
-    const json = renderSampleOpportunities(opportunityWithParent, criteriaName, sellerId);
-    res.json(json);
-  } else {
-    res.json({
-      error: bookableOpportunity,
-    });
-  }
+  res.json(getSampleOpportunities({
+    HARVEST_START_TIME,
+  }, state, req.body));
 }
 
 /**
@@ -430,59 +411,6 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
 }
 
 /**
- * Get a random opportunity from Broker Microservice's cache that matches the
- * criteria.
- *
- * @param {object} args
- * @param {string} args.sellerId
- * @param {string} args.bookingFlow
- * @param {string} args.opportunityType
- * @param {string} args.criteriaName
- * @param {string} args.testDatasetIdentifier
- * @returns {any}
- */
-function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
-  const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(state.criteriaOrientedOpportunityIdCache, {
-    criteriaName, bookingFlow, opportunityType,
-  });
-  const sellerCompartment = typeBucket.contents.get(sellerId);
-  if (!sellerCompartment || sellerCompartment.size === 0) {
-    const availableSellers = mapToObjectSummary(typeBucket.contents);
-    const noCriteriaErrors = bookingFlow === 'OpenBookingApprovalFlow'
-      ? "Ensure that some Offers have an 'openBookingFlowRequirement' property that includes the value 'https://openactive.io/OpenBookingApproval'"
-      : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
-    const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
-    return {
-      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors?.size > 0 ? ' The number represents the number of items that do not match.' : ''}`,
-      availableSellers,
-      criteriaErrors: typeBucket.criteriaErrors ? criteriaErrors : undefined,
-    };
-  } // Seller has no items
-
-  const allLockedOpportunityIds = getAllLockedOpportunityIds();
-  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allLockedOpportunityIds.has(x));
-
-  if (unusedBucketItems.length === 0) {
-    return {
-      suggestion: `No enough items matching criteria '${criteriaName}' were included in your feeds to run all tests. Try adding more test data to your system, or consider using 'Controlled Mode'.`,
-    };
-  }
-
-  const id = unusedBucketItems[Math.floor(Math.random() * unusedBucketItems.length)];
-
-  // Add the item to the testDataset to ensure it does not get reused
-  getLockedOpportunityIdsInTestDataset(testDatasetIdentifier).add(id);
-
-  return {
-    opportunity: {
-      '@context': 'https://openactive.io/',
-      '@type': getTypeFromOpportunityType(opportunityType),
-      '@id': id,
-    },
-  };
-}
-
-/**
  * @param {object} args
  * @param {string} args.opportunityType
  * @param {string} args.criteriaName
@@ -501,7 +429,7 @@ function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, book
  * @param {string} testDatasetIdentifier
  */
 function releaseOpportunityLocks(testDatasetIdentifier) {
-  const testDataset = getLockedOpportunityIdsInTestDataset(testDatasetIdentifier);
+  const testDataset = getLockedOpportunityIdsInTestDataset(state, testDatasetIdentifier);
   log(`Cleared dataset '${testDatasetIdentifier}' of opportunity locks ${Array.from(testDataset).join(', ')}`);
   testDataset.clear();
 }
@@ -692,84 +620,6 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
     logCharacter('.');
   } else {
     log(`listening for "${opportunityId}"`);
-  }
-}
-
-/**
- * @param {string} opportunityType
- */
-function getTypeFromOpportunityType(opportunityType) {
-  const mapping = {
-    ScheduledSession: 'ScheduledSession',
-    FacilityUseSlot: 'Slot',
-    IndividualFacilityUseSlot: 'Slot',
-    CourseInstance: 'CourseInstance',
-    HeadlineEvent: 'HeadlineEvent',
-    Event: 'Event',
-    HeadlineEventSubEvent: 'Event',
-    CourseInstanceSubEvent: 'Event',
-    OnDemandEvent: 'OnDemandEvent',
-  };
-  return mapping[opportunityType];
-}
-
-/**
- * @param {import('./models/core').Opportunity} opportunity
- */
-function detectSellerId(opportunity) {
-  const organizer = opportunity.organizer
-    || opportunity.superEvent?.organizer
-    || opportunity.superEvent?.superEvent?.organizer
-    || opportunity?.facilityUse?.provider
-    || opportunity?.facilityUse?.aggregateFacilityUse?.provider;
-
-  if (typeof organizer === 'string') return organizer;
-
-  return organizer?.['@id'] || organizer?.id;
-}
-
-/**
- * @param {import('./models/core').Opportunity} opportunity
- */
-function detectOpportunityType(opportunity) {
-  switch (opportunity['@type'] || opportunity.type) {
-    case 'ScheduledSession':
-      if (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent.type) === 'SessionSeries') {
-        return 'ScheduledSession';
-      }
-      throw new Error('ScheduledSession must have superEvent of SessionSeries');
-
-    case 'Slot':
-      if (opportunity.facilityUse && (opportunity.facilityUse['@type'] || opportunity.facilityUse.type) === 'IndividualFacilityUse') {
-        return 'IndividualFacilityUseSlot';
-      }
-      if (opportunity.facilityUse && (opportunity.facilityUse['@type'] || opportunity.facilityUse.type) === 'FacilityUse') {
-        return 'FacilityUseSlot';
-      }
-
-      throw new Error('Slot must have facilityUse of FacilityUse or IndividualFacilityUse');
-
-    case 'CourseInstance':
-      return 'CourseInstance';
-    case 'HeadlineEvent':
-      return 'HeadlineEvent';
-    case 'OnDemandEvent':
-      return 'OnDemandEvent';
-    case 'Event':
-      switch (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent.type)) {
-        case 'HeadlineEvent':
-          return 'HeadlineEventSubEvent';
-        case 'CourseInstance':
-          return 'CourseInstanceSubEvent';
-        case 'EventSeries':
-        case null:
-        case undefined:
-          return 'Event';
-        default:
-          throw new Error('Event has unrecognised @type of superEvent');
-      }
-    default:
-      throw new Error('Only bookable opportunities are permitted in the test interface');
   }
 }
 
