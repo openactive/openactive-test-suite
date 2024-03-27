@@ -7,7 +7,7 @@
   "scripts": {
     "gen-types-clean": "rimraf \"built-types/*\"",
     "gen-types-copy-d-ts-files": "copyfiles --up 1 \"src/**/*.d.ts\" built-types/",
-    "gen-types": "npm run gen-types-clean && tsc && npm run gen-types-copy-d-ts-files",
+    "gen-types": "npm run gen-types-clean && tsc --project tsconfig.gen.json && npm run gen-types-copy-d-ts-files",
     "run-tests": "jest",
     "test": "npm run lint && tsc && npm run run-tests",
     "lint": "eslint \"src/**/*.js\" \"test/**/*.js\"",

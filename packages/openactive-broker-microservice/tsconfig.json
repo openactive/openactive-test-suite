@@ -11,6 +11,8 @@
   "include": [
     "app.js",
     "src/**/*.js",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "test/**/*.js",
+    "test/**/*.d.ts"
   ]
 }
