@@ -1213,7 +1213,7 @@ async function processOpportunityItem(item) {
 
   // Store opportunity to criteria-oriented cache
   const matchingCriteria = [];
-  let unmetCriteriaDetails = [];
+  const unmetCriteriaDetails = [];
 
   if (!DO_NOT_FILL_BUCKETS) {
     const opportunityType = detectOpportunityType(item.data);
@@ -1227,26 +1227,24 @@ async function processOpportunityItem(item) {
       }),
     }))) {
       for (const bookingFlow of bookingFlows) {
-        const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(state.criteriaOrientedOpportunityIdCache, {
-          criteriaName, opportunityType, bookingFlow,
-        });
-        if (!typeBucket.contents.has(sellerId)) typeBucket.contents.set(sellerId, new Set());
-        const sellerCompartment = typeBucket.contents.get(sellerId);
         if (criteriaResult.matchesCriteria) {
-          sellerCompartment.add(id);
-          matchingCriteria.push(criteriaName);
-          // Hide criteriaErrors if at least one matching item is found
-          typeBucket.criteriaErrors = undefined;
+          CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(
+            state.criteriaOrientedOpportunityIdCache,
+            id,
+            {
+              criteriaName, bookingFlow, opportunityType, sellerId,
+            },
+          );
         } else {
-          sellerCompartment.delete(id);
-          unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
-          // Ignore errors if criteriaErrors is already hidden
-          if (typeBucket.criteriaErrors) {
-            for (const error of criteriaResult.unmetCriteriaDetails) {
-              if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
-              typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
-            }
-          }
+          CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
+            state.criteriaOrientedOpportunityIdCache,
+            id,
+            criteriaResult.unmetCriteriaDetails,
+            {
+              criteriaName, bookingFlow, opportunityType, sellerId,
+            },
+          );
+          unmetCriteriaDetails.push(...criteriaResult.unmetCriteriaDetails);
         }
       }
     }

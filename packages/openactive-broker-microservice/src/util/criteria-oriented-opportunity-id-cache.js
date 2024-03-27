@@ -2,7 +2,13 @@ const { criteria } = require('@openactive/test-interface-criteria');
 
 /**
  * @typedef {Set<string>} OpportunityIdCacheSellerCompartment
- * @typedef {{contents: Map<string, OpportunityIdCacheSellerCompartment>, criteriaErrors: Map<string, number> }} OpportunityIdCacheTypeBucket
+ * @typedef {{
+ *   contents: Map<string, OpportunityIdCacheSellerCompartment>,
+ *   criteriaErrors: Map<string, number> | undefined
+ *   }} OpportunityIdCacheTypeBucket If `criteriaErrors` is `undefined`, it
+ *   means that at least one item has matched the criteria and so criteria
+ *   errors are irrelevant. We only care about what types of errors are causing
+ *   opportunities to not match a criteria if none of them are.
  * @typedef {Map<string, OpportunityIdCacheTypeBucket>} OpportunityIdCacheBookingFlowBucket
  * @typedef {Map<string, OpportunityIdCacheBookingFlowBucket>} OpportunityIdCacheCriteriaBucket
  * @typedef {Map<string, OpportunityIdCacheCriteriaBucket>} OpportunityIdCacheType
@@ -106,7 +112,7 @@ const CriteriaOrientedOpportunityIdCache = {
    *
    * @param {OpportunityIdCacheType} cache
    * @param {string} opportunityId
-   * @param {unknown[]} unmetCriteriaDetails
+   * @param {string[]} unmetCriteriaDetails
    * @param {object} args
    * @param {string} args.criteriaName
    * @param {string} args.bookingFlow
@@ -125,7 +131,6 @@ const CriteriaOrientedOpportunityIdCache = {
     sellerCompartment.delete(opportunityId);
     // Ignore errors if criteriaErrors is already hidden
     if (typeBucket.criteriaErrors) {
-      // TODO3 here i am
       for (const error of unmetCriteriaDetails) {
         if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
         typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
