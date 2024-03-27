@@ -300,9 +300,7 @@ const OpportunityFeedUpdateFlowStageUtils = {
    * @param {RequestHelperType} args.opportunityFeedUpdateParams.requestHelper
    * @param {BaseLoggerType} args.opportunityFeedUpdateParams.logger
    * @param {string} args.opportunityFeedUpdateParams.uuid
-   * @returns {[TWrappedFlowStage, OpportunityFeedUpdateCollectorFlowStage]}
-   *   TODO update return signature to `{[wrappedStage: TWrappedFlowStage, opportunityFeedUpdateCollector: OpportunityFeedUpdateCollectorFlowStage]}`
-   *   when project upgrades TypeScript to v4
+   * @returns {[wrappedStage: TWrappedFlowStage, opportunityFeedUpdateCollector: OpportunityFeedUpdateCollectorFlowStage]}
    */
   wrap({ wrappedStageFn, opportunityFeedUpdateParams }) {
     const listenForOpportunityFeedUpdate = new OpportunityFeedUpdateListenerFlowStage({

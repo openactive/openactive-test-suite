@@ -1,4 +1,5 @@
-// TODO TODO think about this pattern of having a shell not-implemented test for non-free-opportunities but the main tests are in prepayment-* features
+/* TODO consider using this pattern of having a shell not-implemented test for
+non-free-opportunities but the main tests are in prepayment-* features */
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 
 FeatureHelper.describeUnmatchedCriteriaFeature(module, {

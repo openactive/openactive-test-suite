@@ -16,7 +16,9 @@ const WAIT_FOR_HARVEST = VALIDATE_ONLY ? false : config.get('broker.waitForHarve
 const VERBOSE = config.get('broker.verbose');
 const OUTPUT_PATH = config.get('broker.outputPath');
 const IS_RUNNING_IN_CI = config.has('ci') ? config.get('ci') : false;
-// TODO: move this property to the root of the config
+// TODO: move this property to the root of the config as it is used in both
+// broker and the integration tests. Broker should only access config from
+// either the root or within `.broker`
 const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
 
 const HARVEST_START_TIME = (new Date()).toISOString();

@@ -1,4 +1,5 @@
-// TODO fix these issues!
+/* TODO fix this file so that it no longer needs to disable these rules:
+https://github.com/openactive/openactive-test-suite/issues/648 */
 /* eslint-disable no-else-return */
 /* eslint-disable no-confusing-arrow */
 /* eslint-disable no-return-assign */
@@ -232,8 +233,9 @@ class BaseReportGenerator {
         different from other tests in that it tests that the test itself was
         annotated correctly. Therefore, we provide a bit more information to
         either users (who should never see this error) or maintainers */
-        // TODO use a more generic error message if we add different types of
-        // meta-tests. Currently, we only meta-test `testInterfaceActions`.
+        /* TODO: If we add different types of meta-tests, we'll need to convert
+        this to a more generic error message. Currently, we only meta-test
+        `testInterfaceActions`. */
         return `If you are NOT a Test Suite maintainer: this failure means that the there is an issue with the Test Suite test itself. Please [raise an issue on the Test Suite repository](https://github.com/openactive/openactive-test-suite/issues), attaching this full \`.html\` file.
 
 If you ARE a Test Suite maintainer: this failure indicates that the test's \`testInterfaceActions\` param to \`FeatureHelper.describeFeature(..)\` does not match the actual Test Interface Actions that were used in the test.`;

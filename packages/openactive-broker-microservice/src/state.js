@@ -2,7 +2,7 @@ const { OpenActiveTestAuthKeyManager } = require('@openactive/openactive-openid-
 const config = require('config');
 const { TwoPhaseListeners: Listeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const PauseResume = require('./util/pause-resume');
-const { OpportunityIdCache } = require('./util/opportunity-id-cache');
+const { CriteriaOrientedOpportunityIdCache } = require('./util/criteria-oriented-opportunity-id-cache');
 const { log } = require('./util/log');
 const { MICROSERVICE_BASE_URL } = require('./broker-config');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
@@ -101,78 +101,113 @@ const state = {
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
   // We use multiple strategies to cache opportunity data for different use cases.
-  /*
-  TODO, for clarity, consider splitting these caches into categories. I thiiiink
-  that there are three categories: OpportunityIdCache (criteria-oriented),
-  row-ish (rowStoreMap/parentIdIndex), and the rest. It would also be good to
-  more fully understand the latter two categories and see if they are still
-  both needed.
-  */
+  /* TODO investigate consolidation of opportunityItemRowCache and
+  opportunityCache to reduce memory usage & simplify code:
+  https://github.com/openactive/openactive-test-suite/issues/669 */
   /**
    * A criteria-oriented cache for opportunity data. Used to get criteria-matching
    * opportunities for tests.
    */
-  opportunityIdCache: OpportunityIdCache.create(),
-  // nSQL joins appear to be slow, even with indexes. This is an optimisation pending further investigation
+  criteriaOrientedOpportunityIdCache: CriteriaOrientedOpportunityIdCache.create(),
   /**
-   * Map { [jsonLdId] => opportunityData }
+   * The "row" cache stores OpportunityItemRows. These objects contain data
+   * about the underlying Opportunity as well as the RPDE item that it came
+   * from.
    *
-   * For parent opportunities (e.g. FacilityUse) only.
+   * The keys are the JSON-LD IDs of the Opportunities (i.e. .data['@id']).
    *
-   * @type {Map<string, Record<string, unknown>>}
+   * This cache is used to:
+   * - Determine which Opportunities are "orphans"
+   * - Determine which child Opportunities to re-process when a parent
+   *   Opportunity is updated.
    */
-  parentOpportunityMap: new Map(),
+  opportunityItemRowCache: {
+    /**
+     * Map { [jsonLdId] => opportunityItemRow }
+     *
+     * @type {Map<string, import('./models/core').OpportunityItemRow>}
+     */
+    store: new Map(),
+    /**
+     * Maps each parent Opportunity ID to a set of the IDs of its children.
+     *
+     * @type {Map<string, Set<string>>}
+     */
+    parentIdIndex: new Map(),
+  },
   /**
-   * Map { [feedItemIdentifier] => jsonLdId }
+   * The opportunity cache stores Opportunities found in the feeds.
    *
-   * This allows us to look up the JSON-LD ID of a deleted item in the feed,
-   * as deleted items do not contain the JSON-LD ID.
+   * This cache is used to:
+   * - Respond to opportunity listeners
+   * - For express routes which render opportunities found in the feed
+   * - To combine child/parent opportunity and, from there, determine which
+   *   criteria the duo match and so where to store them in the
+   *   criteria-oriented cache.
    *
-   * For parent opportunities (e.g. FacilityUse) only.
-   *
-   * @type {Map<string, string>}
+   * This cache used to use nSQL, but this turned out to be slow, even with
+   * indexes. It's current form is an optimisation pending further
+   * investigation.
    */
-  parentOpportunityRpdeMap: new Map(),
+  opportunityCache: {
+    /**
+     * Map { [jsonLdId] => opportunityData }
+     *
+     * For parent opportunities (e.g. FacilityUse) only.
+     *
+     * @type {Map<string, Record<string, unknown>>}
+     */
+    parentMap: new Map(),
+    /**
+     * Map { [jsonLdId] => opportunityData }
+     *
+     * For child opportunities (e.g. FacilityUseSlot) only.
+     *
+     * @type {Map<string, Record<string, unknown>>}
+     */
+    childMap: new Map(),
+  },
   /**
-   * Map { [jsonLdId] => subEventIds }
-   *
-   * Associates a parent opportunity (jsonLdId) with a list of its child
-   * Opportunity IDs.
-   *
-   * @type {Map<string, string[]>}
+   * Stores mappings between IDs which allow Broker to perform various kinds of
+   * housekeeping to ensure that its stored opportunity date is correct.
    */
-  parentOpportunitySubEventMap: new Map(),
-  /**
-   * Map { [jsonLdId] => opportunityData }
-   *
-   * For child opportunities (e.g. FacilityUseSlot) only.
-   *
-   * @type {Map<string, Record<string, unknown>>}
-   */
-  opportunityMap: new Map(),
-  /**
-   * Map { [feedItemIdentifier] => jsonLdId }
-   *
-   * This allows us to look up the JSON-LD ID of a deleted item in the feed,
-   * as deleted items do not contain the JSON-LD ID.
-   *
-   * For child opportunities (e.g. FacilityUseSlot) only.
-   *
-   * @type {Map<string, string>}
-   */
-  opportunityRpdeMap: new Map(),
-  /**
-   * Map { [jsonLdId] => opportunityItemRow }
-   *
-   * @type {Map<string, import('./models/core').OpportunityItemRow>}
-   */
-  rowStoreMap: new Map(),
-  /**
-   * Maps each parent Opportunity ID to a set of the IDs of its children.
-   *
-   * @type {Map<string, Set<string>>}
-   */
-  parentIdIndex: new Map(),
+  opportunityHousekeepingCaches: {
+    /**
+     * Map { [rpdeFeedItemIdentifier] => jsonLdId }
+     *
+     * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+     * as deleted items do not contain the JSON-LD ID.
+     *
+     * For parent opportunities (e.g. FacilityUse) only.
+     *
+     * @type {Map<string, string>}
+     */
+    parentOpportunityRpdeMap: new Map(),
+    /**
+     * Map { [jsonLdId] => subEventIds }
+     *
+     * Associates a parent opportunity (jsonLdId) with a list of its child
+     * Opportunity IDs.
+     *
+     * This allows us to delete `.subEvent` Opportunities when they are no
+     * longer present in the parent Opportunity's data.
+     *
+     * @type {Map<string, string[]>}
+     */
+    parentOpportunitySubEventMap: new Map(),
+    /**
+     * Map { [rpdeFeedItemIdentifier] => jsonLdId }
+     *
+     * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+     * as deleted items do not contain the JSON-LD ID.
+     *
+     * For child opportunities (e.g. FacilityUseSlot) only.
+     *
+     * @type {Map<string, string>}
+     */
+    opportunityRpdeMap: new Map(),
+  },
+
   // UI
   // create new progress bar container
   multibar: null,

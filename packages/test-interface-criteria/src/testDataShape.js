@@ -175,8 +175,8 @@ function openBookingFlowRequirementArrayConstraint(requirements) {
   });
 }
 
-/* TODO this is not a good match for an ArrayConstraint as they presently
-are defined and used. See
+/* TODO this is not a good match for an ArrayConstraint as they presently are
+defined and used. See
 https://github.com/openactive/openactive-test-suite/issues/629. */
 /**
  * @param {number} minLength
