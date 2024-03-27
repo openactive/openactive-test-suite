@@ -16,7 +16,12 @@ export type RpdeItem = {
   state: string;
   kind: string;
   id: string | number;
-  modified: string | number;
+  /** modified handled as a string as it could be a number bigger than JS's number limit.
+   * This causes issues with fidelity and ordering. It is not stored as a BigInt in memory as lots of libraries have
+   * problems with BigInts. It is stored as a string and converted to a BigInt when comparisons are needed, and then
+   * converted back.
+   */
+  modified: string;
   data?: Opportunity;
 };
 
@@ -28,8 +33,8 @@ export type OpportunityItemRow = {
   id: RpdeItem['id'];
   modified: RpdeItem['modified'];
   deleted: boolean;
-  /** Timestamp (Date.now()) when item was ingested */
-  feedModified: number;
+  /** Timestamp (Date.now()) when item was ingested. Handled as a string as all modifieds are strings for consistency. For more information see above. */
+  feedModified: string;
   jsonLdId: string;
   jsonLd: Opportunity;
   /** e.g 'Slot' */

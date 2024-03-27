@@ -3,7 +3,7 @@ const { omit, isNil, isEmpty } = require('lodash');
 /**
  * Inverts any FacilityUse items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
  * @typedef {{'@id'?: string, id?: string}} IndividualFacilityUse
- * @param {{state: string, modified:any, kind: string, id: string, data: {id: string, individualFacilityUse?: IndividualFacilityUse[] }}} item
+ * @param {{state: string, modified:string, kind: string, id: string, data: {id: string, individualFacilityUse?: IndividualFacilityUse[] }}} item
  */
 function invertFacilityUseItem(item) {
   if (!isNil(item.data?.individualFacilityUse) && !isEmpty(item.data.individualFacilityUse)) {
@@ -26,7 +26,7 @@ function invertFacilityUseItem(item) {
  * and using this function splits the subEvent into items to simulate a separate ScheduledSessions feed.
  *
  * @param {Record<string, any>} subEvent
- * @param {{modified: any, data: Record<string, any>}} item
+ * @param {{modified: string, data: Record<string, any>}} item
  */
 function createItemFromSubEvent(subEvent, item) {
   const opportunityItemData = {
