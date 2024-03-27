@@ -5,7 +5,7 @@ const { detectOpportunityType, detectSellerId } = require('./opportunity-utils')
 
 /**
  * @param {Pick<import('../broker-config').BrokerConfig, 'HARVEST_START_TIME'>} config
- * @param {import('../state').State} state
+ * @param {Pick<import('../state').State, 'criteriaOrientedOpportunityIdCache' | 'lockedOpportunityIdsByTestDataset' | 'opportunityCache'>} state
  * @param {import('../models/core').Opportunity} opportunity
  */
 function getSampleOpportunities(config, state, opportunity) {

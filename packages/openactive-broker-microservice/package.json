@@ -9,6 +9,7 @@
     "validate-feeds": "node app.js --validate-only",
     "test": "npm run lint && tsc && jest",
     "debug": "node --inspect app.js",
+    "debug-jest": "node --inspect ./node_modules/.bin/jest --runInBand",
     "lint": "eslint \"*.js\" \"src/**/*.js\" \"test/**/*.js\"",
     "lint-fix": "npm run lint -- --fix"
   },

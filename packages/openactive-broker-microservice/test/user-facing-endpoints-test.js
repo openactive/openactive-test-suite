@@ -4,13 +4,7 @@ const { CriteriaOrientedOpportunityIdCache } = require('../src/util/criteria-ori
 const PauseResume = require('../src/util/pause-resume');
 const { getOrphanJson } = require('../src/util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('../src/util/get-opportunity-by-id-from-cache');
-
-// /**
-//  * @template {Map<TKey, TValue>} TMap
-//  * @template TKey
-//  * @template TValue
-//  * @typedef {[key: TKey, value: TValue]} MapEntry
-//  */
+const { getSampleOpportunities } = require('../src/util/sample-opportunities');
 
 const testDataGenerators = {
   opportunityItemRowCacheStoreItems: {
@@ -78,7 +72,7 @@ const testDataGenerators = {
 
 describe('user-facing endpoints', () => {
   describe('GET /status', () => {
-    it('should work', () => {
+    it('should include stats about orphans and criteria matches', () => {
       const cooiCache = CriteriaOrientedOpportunityIdCache.create();
       CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
         criteriaName: 'TestOpportunityBookable',
@@ -155,7 +149,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /orphans', () => {
-    it('should work', () => {
+    it('should return stats about which opportunities are orphans i.e. have no parents', () => {
       const result = getOrphanJson({
         opportunityItemRowCache: {
           store: new Map([
@@ -189,7 +183,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /opportunity-cache/:id', () => {
-    it('should work', () => {
+    it('should get an opportunity from the cache, merged with its parent', () => {
       /** @type {import('../src/state').State['opportunityCache']} */
       const opportunityCache = {
         parentMap: new Map([
@@ -246,42 +240,210 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /sample-opportunities', () => {
-    const cooiCache = CriteriaOrientedOpportunityIdCache.create();
-    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
-      criteriaName: 'TestOpportunityBookable',
-      bookingFlow: 'OpenBookingSimpleFlow',
-      opportunityType: 'ScheduledSession',
-      sellerId: 'seller1',
-    });
-    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
-      criteriaName: 'TestOpportunityBookableFree',
-      bookingFlow: 'OpenBookingSimpleFlow',
-      opportunityType: 'ScheduledSession',
-      sellerId: 'seller1',
-    });
-    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id1', ['does not have one space'], {
-      criteriaName: 'TestOpportunityBookableOneSpace',
-      bookingFlow: 'OpenBookingSimpleFlow',
-      opportunityType: 'ScheduledSession',
-      sellerId: 'seller1',
-    });
-    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id2', {
-      criteriaName: 'TestOpportunityBookable',
-      bookingFlow: 'OpenBookingSimpleFlow',
-      opportunityType: 'ScheduledSession',
-      sellerId: 'seller1',
-    });
-    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id2', ['is not free'], {
-      criteriaName: 'TestOpportunityBookableFree',
-      bookingFlow: 'OpenBookingSimpleFlow',
-      opportunityType: 'ScheduledSession',
-      sellerId: 'seller1',
-    });
-    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id1', ['does not have one space'], {
-      criteriaName: 'TestOpportunityBookableOneSpace',
-      bookingFlow: 'OpenBookingSimpleFlow',
-      opportunityType: 'ScheduledSession',
-      sellerId: 'seller1',
+    it('should get a random opportunity matching a criteria, and then lock it', () => {
+      /**
+       * @param {any} result
+       * @param {string[]} idAllowlist
+       * @param {string[]} parentIdAllowlist
+       * @param {string[]} offerIdAllowlist
+       */
+      const testResult = (result, idAllowlist, parentIdAllowlist, offerIdAllowlist) => {
+        expect(result).to.have.property('sampleOpportunities').that.has.lengthOf(1);
+        const [sampleOpportunity] = result.sampleOpportunities;
+        expect(sampleOpportunity).to.have.property('@type', 'ScheduledSession');
+        expect(sampleOpportunity).to.have.property('@id').which.is.oneOf(idAllowlist);
+        expect(sampleOpportunity).to.have.nested.property('superEvent.@type', 'SessionSeries');
+        expect(sampleOpportunity).to.have.nested.property('superEvent.@id').which.is.oneOf(parentIdAllowlist);
+        expect(result).to.have.property('exampleOrderItems').that.has.lengthOf(1);
+        const [exampleOrderItem] = result.exampleOrderItems;
+        expect(exampleOrderItem).to.include({
+          '@type': 'OrderItem',
+          position: 0,
+        });
+        expect(exampleOrderItem).to.have.property('acceptedOffer').which.is.oneOf(offerIdAllowlist);
+        expect(exampleOrderItem).to.have.property('orderedItem', sampleOpportunity['@id']);
+      };
+
+      const cooiCache = CriteriaOrientedOpportunityIdCache.create();
+      CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
+        criteriaName: 'TestOpportunityBookable',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+        sellerId: 'seller1',
+      });
+      CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
+        criteriaName: 'TestOpportunityBookableFree',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+        sellerId: 'seller1',
+      });
+      CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id1', ['does not have one space'], {
+        criteriaName: 'TestOpportunityBookableOneSpace',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+        sellerId: 'seller1',
+      });
+      CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id2', {
+        criteriaName: 'TestOpportunityBookable',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+        sellerId: 'seller1',
+      });
+      CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id2', ['is not free'], {
+        criteriaName: 'TestOpportunityBookableFree',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+        sellerId: 'seller1',
+      });
+      CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(cooiCache, 'id1', ['does not have one space'], {
+        criteriaName: 'TestOpportunityBookableOneSpace',
+        bookingFlow: 'OpenBookingSimpleFlow',
+        opportunityType: 'ScheduledSession',
+        sellerId: 'seller1',
+      });
+      /** @type {import('../src/state').State['opportunityCache']} */
+      const opportunityCache = {
+        parentMap: new Map([
+          ['parentid1', {
+            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+            '@type': 'SessionSeries',
+            '@id': 'parentid1',
+            name: 'Session 1',
+            organizer: {
+              '@type': 'Organization',
+              isOpenBookingAllowed: true,
+            },
+            offers: [{
+              '@type': 'Offer',
+              '@id': 'offer1',
+              name: 'offer1',
+              price: 10,
+            }, {
+              '@type': 'Offer',
+              '@id': 'offer2',
+              name: 'offer2',
+              price: 0,
+            }, {
+              '@type': 'Offer',
+              '@id': 'offer3',
+              name: 'offer3',
+              // This one should not be bookable as "now" is Jan 1st 2001 and the
+              // session starts Jan 2nd.
+              validFromBeforeStartDate: 'PT1S',
+              price: 20,
+            }],
+          }],
+          ['parentid2', {
+            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+            '@type': 'SessionSeries',
+            '@id': 'parentid2',
+            description: 'Session 2',
+            organizer: {
+              '@type': 'Organization',
+              isOpenBookingAllowed: true,
+            },
+            offers: [{
+              '@type': 'Offer',
+              '@id': 'offer1',
+              name: 'offer1',
+              price: 10,
+            }, {
+              '@type': 'Offer',
+              '@id': 'offer2',
+              name: 'offer2',
+              price: 0,
+            }, {
+              '@type': 'Offer',
+              '@id': 'offer3',
+              name: 'offer3',
+              // This one should not be bookable as "now" is Jan 1st 2001 and the
+              // session starts Jan 2nd.
+              validThroughBeforeStartDate: 'P100D',
+              price: 20,
+            }],
+          }],
+        ]),
+        childMap: new Map([
+          ['id1', {
+            '@context': ['https://openactive.io/'],
+            '@type': 'ScheduledSession',
+            '@id': 'id1',
+            superEvent: 'parentid1',
+            startDate: '2001-01-02T00:00:00Z',
+          }],
+          ['id2', {
+            '@context': ['https://openactive.io/'],
+            '@type': 'ScheduledSession',
+            '@id': 'id2',
+            superEvent: 'parentid2',
+            name: 'ScheduledSession 2',
+            startDate: '2001-01-02T00:00:00Z',
+          }],
+        ]),
+      };
+      const lockedOpportunityIdsByTestDataset = new Map();
+      const brokerConfig = {
+        HARVEST_START_TIME: '2001-01-01T00:00:00Z',
+      };
+      const state = {
+        criteriaOrientedOpportunityIdCache: cooiCache,
+        opportunityCache,
+        lockedOpportunityIdsByTestDataset,
+      };
+      /**
+       * @param {string} criteria
+       */
+      const makeReqBody = (criteria) => ({
+        '@context': [
+          'https://openactive.io/',
+          'https://openactive.io/test-interface',
+        ],
+        '@type': 'ScheduledSession',
+        superEvent: {
+          '@type': 'SessionSeries',
+          organizer: {
+            '@type': 'Organization',
+            '@id': 'seller1',
+          },
+        },
+        'test:testOpportunityCriteria': criteria,
+        'test:testOpenBookingFlow': 'https://openactive.io/test-interface#OpenBookingSimpleFlow',
+      });
+      const result1 = getSampleOpportunities(
+        brokerConfig,
+        state,
+        makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
+      );
+      testResult(result1, ['id1', 'id2'], ['parentid1', 'parentid2'], ['offer1', 'offer2']);
+      // That item should now have been locked. So another call should get the other item
+      const result2 = getSampleOpportunities(
+        brokerConfig,
+        state,
+        makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
+      );
+      const isResult1Id1 = result1.sampleOpportunities[0]['@id'] === 'id1';
+      testResult(
+        result2,
+        isResult1Id1 ? ['id2'] : ['id1'],
+        isResult1Id1 ? ['parentid2'] : ['parentid1'],
+        ['offer1', 'offer2'],
+      );
+      // And then another call should get nothing
+      const result3 = getSampleOpportunities(
+        brokerConfig,
+        state,
+        makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
+      );
+      expect(result3).to.have.nested.property('error.suggestion');
+      // We reset by clearing the locks
+      lockedOpportunityIdsByTestDataset.clear();
+      const result4 = getSampleOpportunities(
+        brokerConfig,
+        state,
+        makeReqBody('https://openactive.io/test-interface#TestOpportunityBookableFree'),
+      );
+      // Only this combo supports free bookings
+      testResult(result4, ['id1'], ['parentid1'], ['offer2']);
     });
   });
 });
