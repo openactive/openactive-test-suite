@@ -52,4 +52,7 @@ function mapToObjectSummary(map) {
   }
   return map;
 }
-exports.mapToObjectSummary = mapToObjectSummary;
+
+module.exports = {
+  mapToObjectSummary,
+};
