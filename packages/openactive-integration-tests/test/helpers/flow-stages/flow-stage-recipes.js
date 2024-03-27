@@ -421,12 +421,13 @@ const FlowStageRecipes = {
    *
    * This therefore represents the Book step of either flow.
    *
-   * It is HIGHLY recommended that you use this function rather than manually creating B or P Flow Stages unless you
-   * are explicitly writing a test that uses one flow instead of another.
+   * It is HIGHLY recommended that you use this function rather than manually
+   * creating B or P Flow Stages unless you are explicitly writing a test that
+   * uses one flow instead of another.
    *
-   * The selected flow will be found in the `orderItemCriteriaList`, which will in almost all cases be based on the
-   * Booking Flow that is currently being tested. See (TODO) for more info about how Test Suite tests both Booking
-   * Flows.
+   * The selected flow will be found in the `orderItemCriteriaList`, which will
+   * in almost all cases be based on the Booking Flow that is currently being
+   * tested.
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {DefaultFlowStageParams} defaultFlowStageParams

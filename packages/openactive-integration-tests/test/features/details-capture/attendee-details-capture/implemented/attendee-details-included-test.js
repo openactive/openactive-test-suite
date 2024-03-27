@@ -19,7 +19,9 @@ FeatureHelper.describeFeature(module, {
     bookReqTemplateRef: 'attendeeDetails',
   });
 
-  // TODO: Check that attendee details are reflected back at B and P, and included in the Orders feed for A, as per https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#attendee-details-capture
+  /* TODO: Check that attendee details are reflected back at B and P, and
+  included in the Orders feed for Approval, as per
+  https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#attendee-details-capture */
 
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

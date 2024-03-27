@@ -9,9 +9,10 @@ const { criteria } = require('@openactive/test-interface-criteria');
  */
 
 /**
- * Cache of Opportunity IDs. They are stored here according to criteria that they match (e.g. Opportunity Criteria,
- * Opportunity Type, etc).
- * In this way, they can be selected when a request to get a random opportunity matching some criteria comes in.
+ * Cache of Opportunity IDs. They are stored here according to criteria that
+ * they match (e.g. Opportunity Criteria, Opportunity Type, etc). In this way,
+ * they can be selected when a request to get a random opportunity matching some
+ * criteria comes in.
  *
  * Schema:
  *
@@ -25,7 +26,7 @@ const { criteria } = require('@openactive/test-interface-criteria');
  *         -> {constraint name (name of the constraint that was not met)}
  *           -> {number of items which failed to meet the criteria due to this constraint}
  */
-const OpportunityIdCache = {
+const CriteriaOrientedOpportunityIdCache = {
   /**
    * @returns {OpportunityIdCacheType}
    */
@@ -78,5 +79,5 @@ const OpportunityIdCache = {
 };
 
 module.exports = {
-  OpportunityIdCache,
+  CriteriaOrientedOpportunityIdCache,
 };

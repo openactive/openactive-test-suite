@@ -6,7 +6,6 @@
  * @typedef {import('./assert-opportunity-capacity').AssertOpportunityCapacityFlowStageType} AssertOpportunityCapacityFlowStageType
  */
 
-// TODO construct this class using the generic FlowStageRun (e.g. with inheritance), rather than have it be a bespoke thing
 /**
  * The Flow Stages required to complete booking in either Simple or Approval flow.
  *

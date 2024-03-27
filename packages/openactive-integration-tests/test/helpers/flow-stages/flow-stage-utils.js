@@ -27,13 +27,13 @@ const { FlowStageRun } = require('./flow-stage-run');
 
 /**
  * @typedef {{
- *  '@type': 'Person' | 'Organization',
- *  identifier?: string
- *  telephone?: string,
- *  givenName?: string,
- *  familyName?: string,
- *  email: string,
- *  }} Customer
+ *   '@type': 'Person',
+ *   identifier?: string,
+ *   telephone?: string,
+ *   givenName?: string,
+ *   familyName?: string,
+ *   email: string,
+ * } | import('@openactive/models-ts').Organization} Customer
  *
  * @typedef {UnknownFlowStageType | BookRecipe | AnyFlowStageRun} FlowStageRunnable Something that can be run by the `describeRunAnd-` functions
  */

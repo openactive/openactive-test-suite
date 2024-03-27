@@ -3,11 +3,14 @@ export type OrderFeedIdentifier = 'OrdersFeed' | 'OrderProposalsFeed';
 export type BookingPartnerIdentifier = string;
 
 /*
-TODO in future we should put more thorough typing on this object (especially
-given that it has been validated [Could we couple TS with validator I wonder 🤔])
-and that would then immediately improve type-checking on all functions that
-act on opportunity data
- */
+TODO in future we should put more thorough typing on this object and that would
+then immediately improve type-checking on all functions that act on opportunity
+data.
+
+Since opportunities have (mostly) already been validated, we could make use of
+this, if it gets implemented, to automatically get a confirmed valid type for
+the Opportunity: https://github.com/openactive/data-model-validator/issues/448.
+*/
 export type Opportunity = Record<string, any>;
 export type RpdeItem = {
   state: string;

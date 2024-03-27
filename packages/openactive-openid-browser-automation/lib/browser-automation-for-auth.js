@@ -71,7 +71,13 @@ async function authorizeInteractive({ sessionKey, authorizationUrl, headless, bu
   const chromiumFlags = process.env.CHROMIUM_FLAGS ? process.env.CHROMIUM_FLAGS.split(' ') : [];
   const browser = await puppeteer.launch({
     // eslint-disable-next-line no-unneeded-ternary
-    headless: headless ? true : false, // ? 'new' : false, // TODO: once it is more stable use the "new" improved Chrome headless mode (https://developer.chrome.com/articles/new-headless/), which will become the default in future (at time of commit this "new" mode causes 1 in 20 runs to fail randomly
+    headless: headless ? true : false,
+    /* TODO: Once Chrome's "new" headless mode
+    (https://developer.chrome.com/articles/new-headless/) is more stable (or
+    puppeteer's integration with it is more stable), we should change the
+    default headless setting to `'new'` rather than `true`. This mode will
+    become the default in the future (as of Autumn 2023, this "new" mode causes
+    1 in 20 runs to fail randomly) */
     ignoreHTTPSErrors: true,
     args: chromiumFlags.concat(['--disable-gpu', '--single-process', '--disable-extensions']),
   });
@@ -225,7 +231,9 @@ function setupBrowserAutomationRoutes(expressApp, buttonSelectors) {
         throw new Error('The middleware express.json() must be set up before a call to setupBrowserAutomationRoutes(app) is made.');
       }
 
-      // TODO verify that req.body has the correct (and correctly typed properties)
+      /* TODO validate req.body and then type the response to ensure that it has
+      the correct fields for this function call. Validation and typing can
+      simultaneously be achieved with zod. */
       const result = await authorizeInteractive({
         sessionKey,
         context,
