@@ -1781,7 +1781,30 @@ function harvestRpdeHowLongToSleepAtFeedEnd() {
   return WAIT_FOR_HARVEST && state.incompleteFeeds.anyFeedsStillHarvesting() ? 5000 : 500;
 }
 
-function harvestRpdeOnError() {
+/**
+ * @param {any} error
+ */
+function harvestRpdeOnError(error) {
+  // Axios error
+  if (error.response) {
+    let errorMsg = `HTTP Error:\n\n- Status: ${error.response.status}`;
+    if (error.response.data) {
+      const errorDataAsString = typeof error.response.data === 'string'
+        ? error.response.data
+        : JSON.stringify(error.response.data, null, 2);
+      if (errorDataAsString.length < 1000) {
+        errorMsg += `\n- Data: ${errorDataAsString}`;
+      } else {
+        errorMsg += `\n- Data: ${errorDataAsString.substring(0, 1000)}...`;
+      }
+    }
+    if (error.response.headers) {
+      errorMsg += `\n- Headers: ${JSON.stringify(error.response.headers, null, 2)}`;
+    }
+    logError(errorMsg);
+  } else if (error.request) {
+    logError('HTTP error, but no response received');
+  }
   process.exit(1);
 }
 
