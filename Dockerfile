@@ -23,7 +23,9 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
+# where available (npm@5+).
+# package files are copied before the rest of the files to allow for caching of
+# the npm install step.
 COPY --chown=node:node package*.json /openactive-test-suite/
 COPY --chown=node:node packages/openactive-broker-microservice/package*.json /openactive-test-suite/packages/openactive-broker-microservice/
 COPY --chown=node:node packages/openactive-integration-tests/package*.json /openactive-test-suite/packages/openactive-integration-tests/
@@ -38,23 +40,8 @@ RUN cd /openactive-test-suite && npm install
 # Bundle app source
 COPY --chown=node:node . /openactive-test-suite/
 
-# RUN echo "root:P2sswrd!!!" | chpasswd
-# RUN mkdir -p /root/.ssh
-# RUN chmod 0700 /root/.ssh
-# RUN apk add openrc openssh
-# RUN ssh-keygen -A
-# RUN sed -i 's/prohibit-password/yes/' /etc/ssh/sshd_config
-# RUN echo 'StrictHostKeyChecking=no' >> /etc/ssh/ssh_config
-# RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
-# RUN mkdir -p /run/openrc
-# RUN touch /run/openrc/softlevel
-
 # Expose port 3000 for openactive-broker-microservice
 EXPOSE 3000
 
 RUN chmod +x /openactive-test-suite/docker-entrypoint.sh
 ENTRYPOINT ["/openactive-test-suite/docker-entrypoint.sh"]
-# ## Specify the working directory explicitly as GitHub Actions will overwrite it
-# ## Copy any config file specified by `INPUT_CONFIG` to the config directory (used by GitHub Actions)
-# ENTRYPOINT ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start -- "$@"
-# # ENTRYPOINT rc-status; rc-service sshd start; echo 'IP Address:'; hostname -i; echo 'Hostname:'; hostname; echo 'Hostname (full):'; hostname -f; echo 'Hostname (short):'; hostname -s; echo 'Starting...'; ( [ -f "${INPUT_CONFIG}" ] && cp "${INPUT_CONFIG}" /openactive-test-suite/config/ ) ; cd /openactive-test-suite && npm start ; sleep 60m
