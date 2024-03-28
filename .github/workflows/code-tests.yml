@@ -1,8 +1,10 @@
 name: Code Tests
 
 on:
-  push:
-    branches: [ feature/docker-and-package-upgrades-new ]
+  # This does not run on push to master, as tests will instead be run there as
+  # part of the docker.yml workflow.
+  # push:
+  #   branches: [ master ]
   pull_request:
     branches: [ master ]
 

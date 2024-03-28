@@ -261,19 +261,11 @@ npm start
 
 Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
 
-### GitHub Actions
-
-TODO: Improve README
-
-When using GitHub Actions, setting output directories to `/github/workspace/output` in `NODE_ENV` allows these files to be accessed by subsequent actions.
-
 ### Docker
 
-TODO: Improve README
+When using `docker run` locally, ensure that you specify `-it` to get the full interactive test suite experience.
 
-When using `docker run` locally, ensure that you specify `-t` to get the full interactive test suite experience.
-
-For example: `docker run -t ghcr.io/openactive/test-suite:latest -- core` is the equivalent of `npm start -- core`.
+For example: `docker run -it ghcr.io/openactive/test-suite:latest -- core` is the equivalent of `npm start -- core`.
 
 When using Docker in CI, ensure that `"ci": true`.
 
@@ -283,9 +275,7 @@ When using a hostname other than `localhost` for your booking system, it must in
 
 If your config is `./config/dev.json` and there's an output dir `./output/`, then the following will run test suite for "core" tests:
 
-`docker run -t -e INPUT_CONFIG=/config/dev.json -e NODE_ENV=dev -p 3000:3000 -v ${PWD}/config:/config -v ${PWD}/output:/output ghcr.io/openactive/test-suite:latest -- core`
-
-
+`docker run -it -e INPUT_CONFIG=/config/dev.json -e NODE_ENV=dev -p 3000:3000 -v ${PWD}/config:/config -v ${PWD}/output:/output ghcr.io/openactive/test-suite:latest -- core`
 
 ## Test Data Requirements
 

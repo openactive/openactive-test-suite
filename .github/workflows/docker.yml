@@ -3,14 +3,14 @@ name: Docker Publish
 on:
   push:
     branches: [ feature/docker-and-package-upgrades-new ]
+    # branches: [ master ]
 
 jobs:
+  # Publish to GitHub Container Registry
   build-and-push-docker-image:
-    # Publish to GitHub Container Registry
-    # Master branch only
+    # Master branch only - extra checks
     # if: ${{ github.ref == 'refs/heads/master' }}
-    # needs:
-    #  - tests
+    needs: code-tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,3 +47,19 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+  # Copied from code-tests.yml, TODO: Remove this duplication
+  code-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout OpenActive Test Suite
+      uses: actions/checkout@v2
+    - name: Setup Node.js 18.17.1
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.17.1
+    - name: Install OpenActive Test Suite
+      run: npm install
+    - name: Run Checks on the Code (Test the Tests!)
+      run: npm test
+
