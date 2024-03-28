@@ -11,12 +11,16 @@ describe('test/utils/item-transforms-test', () => {
           '@context': 'https://openactive.io/',
           name: 'Facility Use 1',
           '@type': 'FacilityUse',
-          individualFacilityUse: [{ '@type': 'IndividualFacilityUse', '@id': '1' }, { '@type': 'IndividualFacilityUse', '@id': '2' }]
-        }
+          individualFacilityUse: [{
+            '@type': 'IndividualFacilityUse', '@id': '1',
+          }, {
+            '@type': 'IndividualFacilityUse', '@id': '2',
+          }],
+        },
       };
 
       // Test
-      const result = invertFacilityUseItem(a);
+      const result = invertFacilityUseItem(/** @type {any} */(a));
 
       // Assertions
       expect(result).to.have.lengthOf(2);
@@ -25,15 +29,15 @@ describe('test/utils/item-transforms-test', () => {
       expect(result[0].kind).to.equal('IndividualFacilityUse');
       expect(result[0].data).to.have.property('@context', 'https://openactive.io/');
       expect(result[0].data).to.have.property('aggregateFacilityUse');
-      expect(result[0].data.aggregateFacilityUse).to.have.property('name', 'Facility Use 1');
-      expect(result[0].data.aggregateFacilityUse).to.not.have.property('@context');
+      expect(/** @type {any} */(result[0].data).aggregateFacilityUse).to.have.property('name', 'Facility Use 1');
+      expect(/** @type {any} */(result[0].data).aggregateFacilityUse).to.not.have.property('@context');
 
       expect(result[1]).to.have.property('id', '2');
       expect(result[1].kind).to.equal('IndividualFacilityUse');
       expect(result[1].data).to.have.property('@context', 'https://openactive.io/');
       expect(result[1].data).to.have.property('aggregateFacilityUse');
-      expect(result[1].data.aggregateFacilityUse).to.have.property('name', 'Facility Use 1');
-      expect(result[1].data.aggregateFacilityUse).to.not.have.property('@context');
+      expect(/** @type {any} */(result[1].data).aggregateFacilityUse).to.have.property('name', 'Facility Use 1');
+      expect(/** @type {any} */(result[1].data).aggregateFacilityUse).to.not.have.property('@context');
     });
     it('should not invert FacilityUse items if there are no IndividualFacilityUses', () => {
       // Test Objects
@@ -43,11 +47,11 @@ describe('test/utils/item-transforms-test', () => {
           '@context': 'https://openactive.io/',
           name: 'Facility Use 1',
           '@type': 'FacilityUse',
-        }
+        },
       };
 
       // Test
-      const result = invertFacilityUseItem(a);
+      const result = invertFacilityUseItem(/** @type {any} */(a));
 
       // Assertions
       expect(result).to.have.lengthOf(1);
@@ -93,5 +97,3 @@ describe('test/utils/item-transforms-test', () => {
     });
   });
 });
-
-

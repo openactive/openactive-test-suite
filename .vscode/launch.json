@@ -99,6 +99,16 @@
             },
         },
         {
+            "name": "broker-microservice - jest tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "18.17.1",
+            "runtimeArgs": ["run-script", "debug-jest"],
+            "port": 9229,
+        },
+        {
             "name": "test-interface-criteria - unit tests",
             "type": "node",
             "request": "launch",
