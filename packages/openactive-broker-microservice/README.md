@@ -114,7 +114,7 @@ These selectors would work for a login page whose HTML looks like:
 <input type="submit" class="btn-primary" value="Submit" />
 ```
 
-**Context**: For Sellers which use OpenID Connect for authorization, Broker needs to acquire these Sellers' tokens in order to authenticate as each of these Sellers. Broker does this by going through [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/), loading the Booking System's login page in a headless browser and entering username/password details therein.
+**Context**: For Sellers which use OpenID Connect for authorization (see [Sellers Authentication Configuration](../../README.md#openid-connect) to see how this is configured), Broker needs to acquire these Sellers' tokens in order to authenticate as each of these Sellers. Broker does this by going through [Authorization Code Flow](https://oauth.net/2/grant-types/authorization-code/), loading the Booking System's login page in a headless browser and entering username/password details therein. See the [openactive-openid-browser-automation](../openactive-openid-browser-automation/) package for more details.
 
 ### `opportunityFeedRequestHeaders`
 
@@ -582,7 +582,7 @@ Either this endpoint will:
 * If no update is found:
     * eventually timeout.
 
-### `POST /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
+#### `POST /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
 
 **Request params**:
 
@@ -603,7 +603,7 @@ The response contains info that may be useful to a user for debugging. Example:
 }
 ```
 
-### `GET /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
+#### `GET /order-listeners/:type/:bookingPartnerIdentifier/:uuid`
 
 **Request params**:
 
@@ -624,7 +624,7 @@ Either this endpoint will:
 * If no update is found:
     * eventually timeout.
 
-### `GET /is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid`
+#### `GET /is-order-uuid-present/:type/:bookingPartnerIdentifier/:uuid`
 
 **Request params**:
 
@@ -645,7 +645,7 @@ This endpoint will do one of the following:
 3. If the Order or OrderProposal has not been seen in the feeds yet but the feeds have not been fully harvested yet:
     * wait until either of conditions #1 or #2 are met, then return the appropriate result.
 
-### `GET /opportunity/:id`
+#### `GET /opportunity/:id`
 
 **Request params**:
 
@@ -667,7 +667,7 @@ This endpoint will do one of the following:
 2. If the Opportunity is never found:
     * eventually timeout
 
-### `POST /test-interface/datasets/:testDatasetIdentifier/opportunities`
+#### `POST /test-interface/datasets/:testDatasetIdentifier/opportunities`
 
 **Request params**:
 
@@ -685,7 +685,7 @@ If an Opportunity matching the Opportunity Criteria, Seller and Opportunity Type
 
 Any Opportunity returned from this endpoint will be [locked](#opportunity-locks) and so will not be available for subsequent calls until locks are released.
 
-### `DELETE /test-interface/datasets/:testDatasetIdentifier`
+#### `DELETE /test-interface/datasets/:testDatasetIdentifier`
 
 **Request params**:
 
@@ -697,7 +697,7 @@ This endpoint mirrors the [Test Interface](https://openactive.io/test-interface/
 
 In this way, it can be used by [Integration Tests](../openactive-integration-tests/) when it is running in [Random mode](../openactive-integration-tests/README.md#userandomopportunities) to get ready for a new test run.
 
-### `POST /assert-unmatched-criteria`
+#### `POST /assert-unmatched-criteria`
 
 **Request body**: The shape of [Child Opportunity](#orphans) to check. This data has the same specification as the request body to [Test Interface](https://openactive.io/test-interface/)'s [`POST /test-interface/datasets/:testDatasetIdentifier/opportunities`](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) endpoint.
 
@@ -707,7 +707,7 @@ Assert that an Opportunity matching the Opportunity Criteria, Seller and Opportu
 
 This is used by some [Non-Implemented tests](../openactive-integration-tests/README.md#structure) to ensure that a test feature MUST be implemented if a certain criteria of Opportunity is found in the Booking System's data. e.g. the [`cancellation-window` feature](../openactive-integration-tests/test/features/cancellation/cancellation-window) has a non-implemented test that asserts that there are no Opportunities with cancellation windows defined.
 
-## Browser Automation for Auth Endpoints
+#### Browser Automation for Auth Endpoints
 
 Broker Microservice also exposes endpoints created from the `setupBrowserAutomationRoutes(..)` function from [openactive-openid-browser-automation](../openactive-openid-browser-automation/).
 These endpoints are used by [Integration Tests](../openactive-integration-tests/) for tests which check the [OpenID Connect](https://openid.net/developers/how-connect-works/) authentication flow.

@@ -27,13 +27,13 @@ const { FlowStageRun } = require('./flow-stage-run');
 
 /**
  * @typedef {{
- *  '@type': 'Person' | 'Organization',
- *  identifier?: string
- *  telephone?: string,
- *  givenName?: string,
- *  familyName?: string,
- *  email: string,
- *  }} Customer
+ *   '@type': 'Person',
+ *   identifier?: string,
+ *   telephone?: string,
+ *   givenName?: string,
+ *   familyName?: string,
+ *   email: string,
+ * } | import('@openactive/models-ts').Organization} Customer
  *
  * @typedef {UnknownFlowStageType | BookRecipe | AnyFlowStageRun} FlowStageRunnable Something that can be run by the `describeRunAnd-` functions
  */
@@ -141,6 +141,7 @@ const FlowStageUtils = {
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
    * @param {boolean} [args.includeAllOptionalCustomerDetails]
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
   createDefaultFlowStageParams({
     requestHelper,
@@ -149,6 +150,7 @@ const FlowStageUtils = {
     sellerConfig,
     orderItemCriteriaList,
     includeAllOptionalCustomerDetails,
+    describeFeatureRecord,
   }) {
     return {
       requestHelper,
@@ -157,6 +159,7 @@ const FlowStageUtils = {
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
       customer: this.createRandomCustomerDetails(includeAllOptionalCustomerDetails ?? false),
       orderItemCriteriaList,
+      describeFeatureRecord,
     };
   },
 
@@ -199,12 +202,14 @@ const FlowStageUtils = {
    *   object will have all optional fields set. Otherwise, optional fields may or may not be set
    *   randomly.
    * @param {SellerConfig} [args.sellerConfig]
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
   createSimpleDefaultFlowStageParams({
     logger,
     orderItemCriteriaList,
     taxMode = null,
     includeAllOptionalCustomerDetails,
+    describeFeatureRecord,
     ...args
   }) {
     const sellerConfig = args.sellerConfig ?? (
@@ -218,6 +223,7 @@ const FlowStageUtils = {
       sellerConfig,
       orderItemCriteriaList,
       includeAllOptionalCustomerDetails,
+      describeFeatureRecord,
     });
   },
 

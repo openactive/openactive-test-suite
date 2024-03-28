@@ -15,9 +15,9 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookableCancellable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord, opportunityType, bookingFlow) {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   // Get all OrderItem IDs
   const allOrderItemPositions = [...Array(orderItemCriteriaList.length).keys()];

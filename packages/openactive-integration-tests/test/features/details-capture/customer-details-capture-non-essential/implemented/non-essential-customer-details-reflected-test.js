@@ -14,9 +14,9 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
     includeAllOptionalFieldsWhenGeneratingCustomer: true,
   });
 
@@ -26,6 +26,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
     it('should include expected customer details', () => {
       const apiResponseJson = c2.getStage('c2').getOutput().httpResponse.body;
+      if (defaultFlowStageParams.customer['@type'] !== 'Person') {
+        throw new Error(`Tests expect customer to be a Person. Customer: ${JSON.stringify(defaultFlowStageParams.customer)}`);
+      }
       expect(apiResponseJson).to.have.nested.property('customer.email').that.match(new RegExp(defaultFlowStageParams.customer.email, 'i'));
       expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
       expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);
@@ -35,6 +38,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
     it('should include expected customer details', () => {
       const apiResponseJson = bookRecipe.b.getOutput().httpResponse.body;
+      if (defaultFlowStageParams.customer['@type'] !== 'Person') {
+        throw new Error(`Tests expect customer to be a Person. Customer: ${JSON.stringify(defaultFlowStageParams.customer)}`);
+      }
       expect(apiResponseJson).to.have.nested.property('customer.email').that.match(new RegExp(defaultFlowStageParams.customer.email, 'i'));
       expect(apiResponseJson).to.have.nested.property('customer.telephone', defaultFlowStageParams.customer.telephone);
       expect(apiResponseJson).to.have.nested.property('customer.givenName', defaultFlowStageParams.customer.givenName);

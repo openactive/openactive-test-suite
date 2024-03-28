@@ -31,7 +31,7 @@
     "debug-tests": "cd packages/openactive-integration-tests && npm run debug",
     "certificate-validator": "cd packages/openactive-integration-tests && npm run certificate-validator",
     "doc-gen": "cd packages/openactive-integration-tests && npm run doc-gen",
-    "git-add-newly-generated-integration-test-docs": "git add \"packages/openactive-integration-tests/test/**/README.md\" packages/openactive-integration-tests/test/features/criteria-requirements.json",
+    "git-add-newly-generated-integration-test-docs": "git add \"packages/openactive-integration-tests/test/**/README.md\" packages/openactive-integration-tests/test/features/feature-requirements.json",
     "gen-interface-criteria-types": "cd packages/test-interface-criteria && npm run gen-types",
     "git-add-newly-generated-interface-criteria-types": "git add packages/test-interface-criteria/built-types",
     "test-data-generator": "cd packages/openactive-integration-tests && npm run test-data-generator",

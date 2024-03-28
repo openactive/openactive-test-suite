@@ -31,7 +31,7 @@ FeatureHelper.describeFeature(module, {
     sellerCriteria: 'secondary',
   }),
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /**
    * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
    */
@@ -45,10 +45,12 @@ FeatureHelper.describeFeature(module, {
     logger,
     sellerConfig: global.SELLER_CONFIG.secondary, // secondary seller is used to build request data.
     orderItemCriteriaList,
+    describeFeatureRecord,
   });
   const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
     orderItemCriteriaList,
     logger,
+    describeFeatureRecord,
     {
       defaultFlowStageParams,
       c1ExpectToFail: true,

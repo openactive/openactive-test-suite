@@ -16,9 +16,9 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
   const deleteOrderQuote1 = new OrderQuoteDeletionFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),

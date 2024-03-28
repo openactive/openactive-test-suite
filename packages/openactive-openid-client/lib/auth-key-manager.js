@@ -1,14 +1,49 @@
-/* eslint-disable no-console */
 const FatalError = require('./fatal-error');
 const OpenActiveOpenIdTestClient = require('./client');
+
+/* TODO Define the full types for sellersConfig and bookingPartnersConfig. This
+can be done with these steps:
+
+1. Get the types from the config file. (see config-utils.js for an example of
+   this)
+2. Augment them to include the extra fields mentioned in the docs below. */
 /**
- * Auth key manager for use by tests
+ * @typedef Config
+ * @property {any} sellersConfig The augmented config for each seller. This starts with
+ *   the config provided in the constructor, and is augmented with authentication info.
+ *
+ *   Augmented fields:
+ *
+ *   - `.[sellerIdentifier].authentication.bookingPartnerTokenSets.[bookingPartnerIdentifier]`:
+ *     An openid-client [TokenSet](https://github.com/panva/node-openid-client/blob/main/docs/README.md#tokenset),
+ *     containing `access_token`, etc.
+ * @property {any} bookingPartnersConfig The augmented config for each booking partner.
+ *   This stats with the config provided in the constructor, and is augmented with
+ *   authentication info.
+ *
+ *   Augmented fields:
+ *
+ *   - `.[bookingPartnerIdentifier].authentication.clientCredentials`: `{ clientId: string, clentSecret: string }`.
+ *     This is created by AuthKeyManager when the booking partner uses Dynamic
+ *     Client Registration.
+ *   - `.[bookingPartnerIdentifier].authentication.orderFeedTokenSet`: An openid-client
+ *     [TokenSet](https://github.com/panva/node-openid-client/blob/main/docs/README.md#tokenset),
+ *     containing `access_token`, etc.
+ * @property {boolean} authenticationFailure True if any of the authentication in
+ *   AuthKeyManager's `.initialise(..)` failed.
+ * @property {boolean} dynamicRegistrationFailure True if any of the dynamic client
+ *   registration in AuthKeyManager's `.initialise(..)` failed.
  */
 
-module.exports = class OpenActiveTestAuthKeyManager {
+/**
+ * AuthKeyManager manages Orders Feed Authentication (per-booking partner) and
+ * Booking Authentication (per-booking partner per-seller), using OAuth.
+ * It holds onto the access tokens, and can refresh them when they expire.
+ */
+class OpenActiveTestAuthKeyManager {
   constructor(log, baseUrl, sellersConfig, bookingPartnerConfig) {
     this.log = log;
-    // TODO: Improve deep copy
+    // TODO: Use lodash's cloneDeep to make the purpose here more clear.
     this.sellersConfig = JSON.parse(JSON.stringify(sellersConfig));
     this.bookingPartnersConfig = JSON.parse(JSON.stringify(bookingPartnerConfig));
     this.client = new OpenActiveOpenIdTestClient(baseUrl);
@@ -16,6 +51,15 @@ module.exports = class OpenActiveTestAuthKeyManager {
     this.dynamicRegistrationFailure = false;
   }
 
+  /**
+   * Config which includes:
+   *
+   * - Access tokens for connecting to the booking system for each booking partner
+   *   and seller.
+   * - Whether any authentication or dynamic client registration failed.
+   *
+   * @returns {Config}
+   */
   get config() {
     return {
       sellersConfig: this.sellersConfig,
@@ -25,6 +69,27 @@ module.exports = class OpenActiveTestAuthKeyManager {
     };
   }
 
+  /**
+   * Authenticate, using OAuth, every booking partner and seller that requires it.
+   * This also acts as a validation step, ensuring that the config and OIDC implementation
+   * are correct.
+   *
+   * - Validate live OpenID Provider configuration.
+   * - A client will be registered for each booking partner that uses Dynamic
+   *   Client Registration.
+   * - For each booking partner, use client credentials to get access tokens
+   *   (and therefore, validate the client credentials flow).
+   * - For each seller that uses Authorization Code Flow, complete this flow
+   *   using the endpoints provided by openactive-openid-browser-automation
+   *   (and therefore, validate the authorization code flow).
+   *
+   * @param {string} authenticationAuthority The location of the OpenID Provider
+   *   e.g. `https://auth.bookingsystem.com`. A `/.well-known/openid-configuration`
+   *   (https://openid.net/specs/openid-connect-discovery-1_0.html) endpoint should
+   *   exist at this base URL.
+   * @param {boolean} headlessAuth Whether to use headless authentication for the browser part of Authorization Code Flow.
+   *   If false, the browser window will be shown. Defaults to true
+   */
   async initialise(authenticationAuthority, headlessAuth = true) {
     try {
       if (!authenticationAuthority) {
@@ -44,6 +109,7 @@ module.exports = class OpenActiveTestAuthKeyManager {
 
       this.log(`\nAuthenticating using OpenID Connect with issuer '${authenticationAuthority}' with dynamic registration ${useDynamicRegistration ? 'enabled' : 'disabled'}...`);
 
+      // Check that valid OpenID coniguration exists at the authenticationAuthority
       try {
         const issuer = await this.client.discover(authenticationAuthority);
         this.log(`Discovered OpenID Connect issuer '${issuer.issuer}'`);
@@ -197,4 +263,6 @@ module.exports = class OpenActiveTestAuthKeyManager {
       }));
     }));
   }
-};
+}
+
+module.exports = OpenActiveTestAuthKeyManager;

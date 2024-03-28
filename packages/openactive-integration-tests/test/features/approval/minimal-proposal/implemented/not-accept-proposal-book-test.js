@@ -32,8 +32,8 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
   const paymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
   const p = new PFlowStage({
     ...defaultFlowStageParams,
@@ -69,12 +69,11 @@ FeatureHelper.describeFeature(module, {
     itShouldReturnOrderRequiresApprovalTrue(() => c2.getStage('c2').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
-    // TODO does validator check that orderProposalVersion is of form {orderId}/versions/{versionUuid}
+    // TODO Validator should check this: https://github.com/openactive/data-model-validator/issues/449
     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
       expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
         .which.matches(RegExp(`${defaultFlowStageParams.uuid}/versions/.+`));
     });
-    // TODO does validator check that full Seller details are included in the seller response?
   });
   FlowStageUtils.describeRunAndCheckIsValid(b, () => {
     itShouldReturnAnOpenBookingError('OrderCreationFailedError', 500, () => b.getStage('b').getOutput().httpResponse);

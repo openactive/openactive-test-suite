@@ -27,7 +27,10 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       .setClientCredentials(false, 'primary')
       .authorizeAuthorizationCodeFlow({
         loginCredentialsAccessor: () => SELLER_CONFIG.primary.authentication.loginCredentials,
-        assertFlowRequiredConsent: null, // TODO: Add a test interface Action that resets consent for the specified user, and call it before this flow starts. Then this flow should assert consent.
+        /* TODO: Add a test interface Action that resets consent for the
+        specified user, and call it before this flow starts. Then this flow
+        should assert consent. */
+        assertFlowRequiredConsent: null,
         assertSellerIdClaim: SELLER_CONFIG.primary['@id'],
       })
       .refresh();

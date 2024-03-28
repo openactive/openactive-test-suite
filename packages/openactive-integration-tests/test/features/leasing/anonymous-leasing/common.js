@@ -16,10 +16,12 @@ const { itShouldHaveCapacityForBatchedItems, multiplyFetchedOrderItemsIntoBatche
  * @param {boolean} unit True for `unit` tests
  */
 function runAnonymousLeasingCapacityTests(unit) {
-  return /** @type {RunTestsFn} */((configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  return /** @type {RunTestsFn} */((configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     // # First, get the Opportunity Feed Items which will be used in subsequent tests
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
-      ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList }),
+      ...FlowStageUtils.createSimpleDefaultFlowStageParams({
+        logger, orderItemCriteriaList, describeFeatureRecord,
+      }),
       orderItemCriteriaList,
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -43,7 +45,9 @@ function runAnonymousLeasingCapacityTests(unit) {
     }, itAdditionalTests) => {
       /* note that we use new params so that we get a new UUID - i.e. make sure that this is a NEW OrderQuoteTemplate
       rather than an amendment of the previous one */
-      const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList });
+      const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
+        logger, orderItemCriteriaList, describeFeatureRecord,
+      });
       const newBatchC1 = FlowStageRecipes.runs.book.c1AssertCapacity(prerequisiteFlowStage, defaultFlowStageParams, {
         c1Args: {
           // This test does its own more complicated capacity checks

@@ -11,10 +11,10 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableNonFree',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
   // Note this will automatically determine whether payment is available (e.g. in the case of openBookingPrepayment == 'https://openactive.io/Unavailable)
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);

@@ -19,6 +19,7 @@
   "dependencies": {
     "@openactive/data-model-validator": "^2.0.78",
     "@openactive/data-models": "^2.0.316",
+    "@openactive/models-ts": "^1.0.4",
     "@openactive/openactive-openid-client": "file:../openactive-openid-client",
     "@openactive/test-interface-criteria": "file:../test-interface-criteria",
     "async-mutex": "^0.3.1",
@@ -54,7 +55,8 @@
     "showdown": "^2.1.0",
     "strip-ansi": "^6.0.0",
     "uuid": "^8.3.0",
-    "yargs": "^16.2.0"
+    "yargs": "^16.2.0",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.12",

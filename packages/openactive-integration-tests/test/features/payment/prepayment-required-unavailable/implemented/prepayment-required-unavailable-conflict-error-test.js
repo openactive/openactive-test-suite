@@ -46,9 +46,9 @@ FeatureHelper.describeFeature(module, {
     ]
     : null,
   skipMultiple: !canDoTestWithControl,
-}, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+}, (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // Iniitate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
     c1ExpectToFail: true,
     c2ExpectToFail: true,
     bookExpectToFail: true,
