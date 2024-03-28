@@ -2,14 +2,13 @@ name: Docker Publish
 
 on:
   push:
-    branches: [ feature/docker-and-package-upgrades-new ]
-    # branches: [ master ]
+    branches: [ master ]
 
 jobs:
   # Publish to GitHub Container Registry
   build-and-push-docker-image:
     # Master branch only - extra checks
-    # if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs: code-tests
     runs-on: ubuntu-latest
     permissions:

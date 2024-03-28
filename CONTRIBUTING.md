@@ -104,5 +104,3 @@ To do this, see the [**Optimizing for Controlled Mode**](https://github.com/open
 Setting env var `NODE_APP_INSTANCE=dev` informs Test Suite to use the [`default-dev.json` config file](./config/default-dev.json), which is configured to run against the reference implementation running locally.
 
 `NODE_APP_INSTANCE` is a feature of the [`config`](https://github.com/node-config/node-config/) library.
-
-TODO some extra docs about Docker here. Link here from README
