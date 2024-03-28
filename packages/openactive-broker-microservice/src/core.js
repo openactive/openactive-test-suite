@@ -41,16 +41,25 @@ const {
   BOOKING_PARTNER_IDENTIFIERS,
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
-const { state, getLockedOpportunityIdsInTestDataset, getAllLockedOpportunityIds, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
+const { state, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
 const { orderFeedContextIdentifier } = require('./util/feed-context-identifier');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./util/request-utils');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./util/api-utils');
 const { ValidatorWorkerPool } = require('./validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./validator/validator-inputs');
-const { renderSampleOpportunities } = require('./sample-opportunities');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
+const { getOrphanStats, getStatus } = require('./util/get-status');
+const { getOrphanJson } = require('./util/get-orphans');
+const { getOpportunityMergedWithParentById } = require('./util/get-opportunity-by-id-from-cache');
+const { getMergedJsonLdContext } = require('./util/jsonld-utils');
+const { jsonLdHasReferencedParent } = require('./util/jsonld-utils');
+const { getRandomBookableOpportunity } = require('./util/get-random-bookable-opportunity');
+const { getLockedOpportunityIdsInTestDataset } = require('./util/state-utils');
+const { detectOpportunityType } = require('./util/opportunity-utils');
+const { detectSellerId } = require('./util/opportunity-utils');
+const { getSampleOpportunities } = require('./util/sample-opportunities');
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -129,7 +138,7 @@ function getDatasetSiteRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getOrphansRoute(req, res) {
-  res.send(getOrphanJson());
+  res.send(getOrphanJson(state));
 }
 
 /**
@@ -137,17 +146,9 @@ function getOrphansRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getStatusRoute(req, res) {
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
-  res.send({
-    elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime()),
-    harvestingStatus: state.pauseResume.pauseHarvestingStatus,
-    feeds: mapToObjectSummary(state.feedContextMap),
-    orphans: {
-      children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
-    },
-    totalOpportunitiesHarvested: totalOpportunities,
-    buckets: DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.criteriaOrientedOpportunityIdCache),
-  });
+  res.send(getStatus({
+    DO_NOT_FILL_BUCKETS,
+  }, state));
 }
 
 /**
@@ -183,7 +184,7 @@ function getOpportunityCacheByIdRoute(req, res) {
   if (req.params.id) {
     const { id } = req.params;
 
-    const cachedResponse = getOpportunityMergedWithParentById(id);
+    const cachedResponse = getOpportunityMergedWithParentById(state, id);
 
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
@@ -263,7 +264,7 @@ function getRandomOpportunityRoute(req, res) {
   // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
   const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const result = getRandomBookableOpportunity({
+  const result = getRandomBookableOpportunity(state, {
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
   });
   if (result && result.opportunity) {
@@ -340,30 +341,9 @@ function assertUnmatchedCriteriaRoute(req, res) {
  * @param {import('express').Response} res
  */
 function getSampleOpportunitiesRoute(req, res) {
-  // Get random opportunity ID
-  const opportunity = req.body;
-  const opportunityType = detectOpportunityType(opportunity);
-  const sellerId = detectSellerId(opportunity);
-  const testDatasetIdentifier = 'sample-opportunities';
-
-  const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
-  const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
-
-  const bookableOpportunity = getRandomBookableOpportunity({
-    sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
-  });
-
-  if (bookableOpportunity.opportunity) {
-    const opportunityWithParent = getOpportunityMergedWithParentById(
-      bookableOpportunity.opportunity['@id'],
-    );
-    const json = renderSampleOpportunities(opportunityWithParent, criteriaName, sellerId);
-    res.json(json);
-  } else {
-    res.json({
-      error: bookableOpportunity,
-    });
-  }
+  res.json(getSampleOpportunities({
+    HARVEST_START_TIME,
+  }, state, req.body));
 }
 
 /**
@@ -431,59 +411,6 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
 }
 
 /**
- * Get a random opportunity from Broker Microservice's cache that matches the
- * criteria.
- *
- * @param {object} args
- * @param {string} args.sellerId
- * @param {string} args.bookingFlow
- * @param {string} args.opportunityType
- * @param {string} args.criteriaName
- * @param {string} args.testDatasetIdentifier
- * @returns {any}
- */
-function getRandomBookableOpportunity({ sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
-  const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(state.criteriaOrientedOpportunityIdCache, {
-    criteriaName, bookingFlow, opportunityType,
-  });
-  const sellerCompartment = typeBucket.contents.get(sellerId);
-  if (!sellerCompartment || sellerCompartment.size === 0) {
-    const availableSellers = mapToObjectSummary(typeBucket.contents);
-    const noCriteriaErrors = bookingFlow === 'OpenBookingApprovalFlow'
-      ? "Ensure that some Offers have an 'openBookingFlowRequirement' property that includes the value 'https://openactive.io/OpenBookingApproval'"
-      : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
-    const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
-    return {
-      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors?.size > 0 ? ' The number represents the number of items that do not match.' : ''}`,
-      availableSellers,
-      criteriaErrors: typeBucket.criteriaErrors ? criteriaErrors : undefined,
-    };
-  } // Seller has no items
-
-  const allLockedOpportunityIds = getAllLockedOpportunityIds();
-  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allLockedOpportunityIds.has(x));
-
-  if (unusedBucketItems.length === 0) {
-    return {
-      suggestion: `No enough items matching criteria '${criteriaName}' were included in your feeds to run all tests. Try adding more test data to your system, or consider using 'Controlled Mode'.`,
-    };
-  }
-
-  const id = unusedBucketItems[Math.floor(Math.random() * unusedBucketItems.length)];
-
-  // Add the item to the testDataset to ensure it does not get reused
-  getLockedOpportunityIdsInTestDataset(testDatasetIdentifier).add(id);
-
-  return {
-    opportunity: {
-      '@context': 'https://openactive.io/',
-      '@type': getTypeFromOpportunityType(opportunityType),
-      '@id': id,
-    },
-  };
-}
-
-/**
  * @param {object} args
  * @param {string} args.opportunityType
  * @param {string} args.criteriaName
@@ -502,57 +429,9 @@ function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, book
  * @param {string} testDatasetIdentifier
  */
 function releaseOpportunityLocks(testDatasetIdentifier) {
-  const testDataset = getLockedOpportunityIdsInTestDataset(testDatasetIdentifier);
+  const testDataset = getLockedOpportunityIdsInTestDataset(state, testDatasetIdentifier);
   log(`Cleared dataset '${testDatasetIdentifier}' of opportunity locks ${Array.from(testDataset).join(', ')}`);
   testDataset.clear();
-}
-
-/**
- * For a given `childOpportunityId`, fetch the full opportunity from the cache.
- * If the opportunity has a parent, the full opportunity for the parent will be
- * fetched and merged into the `superEvent` or `facilityUse` property.
- *
- * @param {string} childOpportunityId
- */
-function getOpportunityMergedWithParentById(childOpportunityId) {
-  const opportunity = state.opportunityCache.childMap.get(childOpportunityId);
-  if (!opportunity) {
-    return null;
-  }
-  if (!jsonLdHasReferencedParent(opportunity)) {
-    return opportunity;
-  }
-  const superEvent = state.opportunityCache.parentMap.get(/** @type {string} */(opportunity.superEvent));
-  const facilityUse = state.opportunityCache.parentMap.get(/** @type {string} */(opportunity.facilityUse));
-  if (superEvent || facilityUse) {
-    const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
-    delete opportunity['@context'];
-    const returnObj = {
-      '@context': mergedContexts,
-      ...opportunity,
-    };
-    if (superEvent) {
-      const superEventWithoutContext = {
-        ...superEvent,
-      };
-      delete superEventWithoutContext['@context'];
-      return {
-        ...returnObj,
-        superEvent: superEventWithoutContext,
-      };
-    }
-    if (facilityUse) {
-      const facilityUseWithoutContext = {
-        ...facilityUse,
-      };
-      delete facilityUseWithoutContext['@context'];
-      return {
-        ...returnObj,
-        facilityUse: facilityUseWithoutContext,
-      };
-    }
-  }
-  return null;
 }
 
 /**
@@ -591,7 +470,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   log('Harvesting is up-to-date');
 
   // Run some assertions to ensure that feed harvesting has lead to the correct state.
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats();
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
 
   let validationPassed = true;
 
@@ -602,7 +481,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   } else if (totalChildren !== 0 && childOrphans === totalChildren) {
     logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities that reference a parent do not have a matching parent item from the parent feed, so all integration tests will fail.`);
     logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(state), null, 2));
     if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
       logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
     } else {
@@ -612,7 +491,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   } else if (childOrphans > 0) {
     logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities that reference a parent (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
     logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(), null, 2));
+    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(state), null, 2));
     if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
       logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
     } else {
@@ -680,114 +559,6 @@ function getConfig() {
 }
 
 /**
- * Convert an ES Map to a plain object (recursively), summarising some aspects
- * as follows:
- *
- * - Any value that is an ES Set will be replaced with its size
- * - Hide any properties which start with the character '_' in objects
- * - OpportunityIdCacheTypeBucket objects have special handling
- *
- * @param {Map | Set} map
- * @returns {{[k: string]: any} | number}
- */
-function mapToObjectSummary(map) {
-  if (map instanceof Map) {
-    // Return a object representation of a Map
-    const obj = Object.assign(Object.create(null), ...[...map].map((v) => (typeof v[1] === 'object' && v[1].size === 0
-      ? {}
-      : {
-        [v[0]]: mapToObjectSummary(v[1]),
-      })));
-    if (JSON.stringify(obj) === JSON.stringify({})) {
-      return undefined;
-    }
-    return obj;
-  }
-  if (map instanceof Set) {
-    // Return just the size of a Set, to render at the leaf nodes of the resulting tree,
-    // instead of outputting the whole set contents. This reduces the size of the output for display.
-    return map.size;
-  }
-  // Special handling for OpportunityIdCacheTypeBuckets
-  // @ts-ignore
-  if (map.contents) {
-    // @ts-ignore
-    const result = mapToObjectSummary(map.contents);
-    if (result && Object.keys(result).length > 0) {
-      // @ts-ignore
-      return result;
-    }
-    // @ts-ignore
-    if (map.criteriaErrors && map.criteriaErrors.size > 0) {
-      return {
-        // @ts-ignore
-        criteriaErrors: Object.fromEntries(map.criteriaErrors),
-      };
-    }
-    return undefined;
-  }
-  // @ts-ignore
-  if (map instanceof Object) {
-    // Hide any properties that start with the character '_' in objects, as these are not intended for display
-    return Object.fromEntries(Object.entries(map).filter(([k]) => k.charAt(0) !== '_'));
-  }
-  return map;
-}
-
-/**
- * @param {number} millis
- */
-function millisToMinutesAndSeconds(millis) {
-  const minutes = Math.floor(millis / 60000);
-  const seconds = ((millis % 60000) / 1000);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
-}
-
-function getOrphanJson() {
-  const rows = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
-  return {
-    children: {
-      matched: rows.filter((x) => !x.waitingForParentToBeIngested).length,
-      orphaned: rows.filter((x) => x.waitingForParentToBeIngested).length,
-      total: rows.length,
-      orphanedList: rows.filter((x) => x.waitingForParentToBeIngested).slice(0, 1000).map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
-        jsonLdType,
-        id,
-        modified,
-        jsonLd,
-        jsonLdId,
-        jsonLdParentId,
-      }))),
-    },
-  };
-}
-
-/**
- * @typedef {Object} OrphanStats
- * @property {number} childOrphans
- * @property {number} totalChildren
- * @property {string} percentageChildOrphans
- * @property {number} totalOpportunities
- */
-
-/**
- * @returns {OrphanStats}
- */
-function getOrphanStats() {
-  const childRows = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
-  const childOrphans = childRows.filter((x) => x.waitingForParentToBeIngested).length;
-  const totalChildren = childRows.length;
-  const totalOpportunities = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => !x.waitingForParentToBeIngested).length;
-  const percentageChildOrphans = totalChildren > 0 ? ((childOrphans / totalChildren) * 100).toFixed(2) : '0';
-  return {
-    childOrphans,
-    totalChildren,
-    percentageChildOrphans,
-    totalOpportunities,
-  };
-}
-
-/**
  * For an Opportunity being harvested from RPDE, check if there is a two-phase
  * listener listening for it.
  *
@@ -828,7 +599,7 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
   state.onePhaseListeners.opportunity.createListener(opportunityId, doesItemMatchCriteria, res);
 
   if (useCacheIfAvailable) {
-    const cachedResponse = getOpportunityMergedWithParentById(opportunityId);
+    const cachedResponse = getOpportunityMergedWithParentById(state, opportunityId);
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
         logCharacter('.');
@@ -849,84 +620,6 @@ function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, does
     logCharacter('.');
   } else {
     log(`listening for "${opportunityId}"`);
-  }
-}
-
-/**
- * @param {string} opportunityType
- */
-function getTypeFromOpportunityType(opportunityType) {
-  const mapping = {
-    ScheduledSession: 'ScheduledSession',
-    FacilityUseSlot: 'Slot',
-    IndividualFacilityUseSlot: 'Slot',
-    CourseInstance: 'CourseInstance',
-    HeadlineEvent: 'HeadlineEvent',
-    Event: 'Event',
-    HeadlineEventSubEvent: 'Event',
-    CourseInstanceSubEvent: 'Event',
-    OnDemandEvent: 'OnDemandEvent',
-  };
-  return mapping[opportunityType];
-}
-
-/**
- * @param {import('./models/core').Opportunity} opportunity
- */
-function detectSellerId(opportunity) {
-  const organizer = opportunity.organizer
-    || opportunity.superEvent?.organizer
-    || opportunity.superEvent?.superEvent?.organizer
-    || opportunity?.facilityUse?.provider
-    || opportunity?.facilityUse?.aggregateFacilityUse?.provider;
-
-  if (typeof organizer === 'string') return organizer;
-
-  return organizer?.['@id'] || organizer?.id;
-}
-
-/**
- * @param {import('./models/core').Opportunity} opportunity
- */
-function detectOpportunityType(opportunity) {
-  switch (opportunity['@type'] || opportunity.type) {
-    case 'ScheduledSession':
-      if (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent.type) === 'SessionSeries') {
-        return 'ScheduledSession';
-      }
-      throw new Error('ScheduledSession must have superEvent of SessionSeries');
-
-    case 'Slot':
-      if (opportunity.facilityUse && (opportunity.facilityUse['@type'] || opportunity.facilityUse.type) === 'IndividualFacilityUse') {
-        return 'IndividualFacilityUseSlot';
-      }
-      if (opportunity.facilityUse && (opportunity.facilityUse['@type'] || opportunity.facilityUse.type) === 'FacilityUse') {
-        return 'FacilityUseSlot';
-      }
-
-      throw new Error('Slot must have facilityUse of FacilityUse or IndividualFacilityUse');
-
-    case 'CourseInstance':
-      return 'CourseInstance';
-    case 'HeadlineEvent':
-      return 'HeadlineEvent';
-    case 'OnDemandEvent':
-      return 'OnDemandEvent';
-    case 'Event':
-      switch (opportunity.superEvent && (opportunity.superEvent['@type'] || opportunity.superEvent.type)) {
-        case 'HeadlineEvent':
-          return 'HeadlineEventSubEvent';
-        case 'CourseInstance':
-          return 'CourseInstanceSubEvent';
-        case 'EventSeries':
-        case null:
-        case undefined:
-          return 'Event';
-        default:
-          throw new Error('Event has unrecognised @type of superEvent');
-      }
-    default:
-      throw new Error('Only bookable opportunities are permitted in the test interface');
   }
 }
 
@@ -1199,39 +892,6 @@ async function storeChildOpportunityItem(item) {
 }
 
 /**
- * Does this Opportunity have a reference to a Parent Opportunity? (i.e. is it a Child Opportunity?)
- *
- * @param {import('./models/core').Opportunity} data
- */
-function jsonLdHasReferencedParent(data) {
-  return typeof data?.superEvent === 'string' || typeof data?.facilityUse === 'string';
-}
-
-/**
- * Sort JSON-LD `@context` so that `https://openactive.io/` and
- * `https://schema.org/` are at the top, which is useful for consistency
- * and required by validator.
- *
- * @param {string[]} context
- */
-function sortJsonLdContextWithOpenActiveOnTop(context) {
-  const firstList = [];
-  if (context.includes('https://openactive.io/')) firstList.push('https://openactive.io/');
-  if (context.includes('https://schema.org/')) firstList.push('https://schema.org/');
-  const remainingList = context.filter((x) => x !== 'https://openactive.io/' && x !== 'https://schema.org/');
-  return firstList.concat(remainingList.sort());
-}
-
-/**
- * Merge and sort JSON-LD `@context` from multiple Opportunities.
- *
- * @param  {...import('./models/core').Opportunity} opportunities
- */
-function getMergedJsonLdContext(...opportunities) {
-  return sortJsonLdContextWithOpenActiveOnTop([...new Set(opportunities.flatMap((x) => x && x['@context']).filter((x) => x))]);
-}
-
-/**
  * Merge a child- and parent- opportunity and then save them to the
  * criteria-oriented cache and notify any listeners.
  *
@@ -1308,7 +968,7 @@ async function processOpportunityItem(item) {
 
   // Store opportunity to criteria-oriented cache
   const matchingCriteria = [];
-  let unmetCriteriaDetails = [];
+  const unmetCriteriaDetails = [];
 
   if (!DO_NOT_FILL_BUCKETS) {
     const opportunityType = detectOpportunityType(item.data);
@@ -1322,26 +982,24 @@ async function processOpportunityItem(item) {
       }),
     }))) {
       for (const bookingFlow of bookingFlows) {
-        const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(state.criteriaOrientedOpportunityIdCache, {
-          criteriaName, opportunityType, bookingFlow,
-        });
-        if (!typeBucket.contents.has(sellerId)) typeBucket.contents.set(sellerId, new Set());
-        const sellerCompartment = typeBucket.contents.get(sellerId);
         if (criteriaResult.matchesCriteria) {
-          sellerCompartment.add(id);
-          matchingCriteria.push(criteriaName);
-          // Hide criteriaErrors if at least one matching item is found
-          typeBucket.criteriaErrors = undefined;
+          CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(
+            state.criteriaOrientedOpportunityIdCache,
+            id,
+            {
+              criteriaName, bookingFlow, opportunityType, sellerId,
+            },
+          );
         } else {
-          sellerCompartment.delete(id);
-          unmetCriteriaDetails = unmetCriteriaDetails.concat(criteriaResult.unmetCriteriaDetails);
-          // Ignore errors if criteriaErrors is already hidden
-          if (typeBucket.criteriaErrors) {
-            for (const error of criteriaResult.unmetCriteriaDetails) {
-              if (!typeBucket.criteriaErrors.has(error)) typeBucket.criteriaErrors.set(error, 0);
-              typeBucket.criteriaErrors.set(error, typeBucket.criteriaErrors.get(error) + 1);
-            }
-          }
+          CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
+            state.criteriaOrientedOpportunityIdCache,
+            id,
+            criteriaResult.unmetCriteriaDetails,
+            {
+              criteriaName, bookingFlow, opportunityType, sellerId,
+            },
+          );
+          unmetCriteriaDetails.push(...criteriaResult.unmetCriteriaDetails);
         }
       }
     }
