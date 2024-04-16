@@ -215,6 +215,77 @@ npm start -- availability-check
 
 Read about Jest's command line arguments in their [CLI docs](https://jestjs.io/docs/en/cli).
 
+### Running with Docker
+
+Alternatively, Docker can be used to run Test Suite.
+
+An example command to run Test Suite, with Docker, for the `core` tests, with the configuration in `./config/dev.json` and output in `./output/` is as follows:
+
+```sh
+docker run -it \
+  -e INPUT_CONFIG=/config/dev.json \
+  -e NODE_ENV=dev \
+  -p 3000:3000 \
+  -v ${PWD}/config:/config \
+  -v ${PWD}/packages/openactive-integration-tests/output:/openactive-test-suite/packages/openactive-integration-tests/output \
+  ghcr.io/openactive/test-suite:latest \
+  -- core
+```
+
+This is equivalent to running Test Suite with `NODE_ENV=dev npm start -- core`.
+
+An explanation of each part of this command:
+
+* Use `-it` to get the full interactive Test Suite experience.
+
+    ```sh
+    docker run -it \
+    ```
+* Copy the `dev.json` config file into the Docker container and instruct Test Suite to use it. Usually Test Suite is either configured using `config/dev.json` or via [`NODE_CONFIG`](#node_config).
+    ```sh
+      -e INPUT_CONFIG=/config/dev.json` \
+      -e NODE_ENV=dev \
+    ```
+* Expose [Broker Microservice's](./packages/openactive-broker-microservice/) HTTP server to port 3000. This can be useful as the Broker Microservice API can help debug issues.
+    ```sh
+      -p 3000:3000 \
+    ```
+* Allow the Docker container to read the config file from `./config` and to output results to `./packages/openactive-integration-tests/output` (assuming that you have the default value, `./output/` configured for [`integrationTests.outputPath`](./packages/openactive-integration-tests/README.md#outputpath) in your `dev.json` config file)
+
+   ```sh
+     -v ${PWD}/config:/config \
+     -v ${PWD}/packages/openactive-integration-tests/output:/openactive-test-suite/packages/openactive-integration-tests/output \
+   ```
+* Use the latest Test Suite docker image
+  
+    ```sh
+      ghcr.io/openactive/test-suite:latest \
+    ```
+* Run all the tests from the `core` category (see [Running specific tests](#running-specific-tests) for more information)
+
+    ```sh
+      -- core
+    ```
+
+Further reading:
+
+- [Running with Docker for Continuous Integration](#ci---docker)
+- See the documentation within [`Dockerfile`](./Dockerfile) to see how it is built.
+
+#### Running from a local Docker image
+
+1. Build the image
+
+    ```sh
+    docker build -t local-openactive-test-suite
+    ```
+2. Run the image
+
+    ```sh
+    docker run -it <OPTIONS> local-openactive-test-suite <...ARGS>
+    ```
+
+    See [Running with Docker](#running-with-docker) for more information on the options and arguments.
 
 ### Environment variables
 
@@ -260,6 +331,29 @@ npm start
 `"ci": true` must be included in the supplied `NODE_CONFIG` to ensure correct console logging output within a CI environment.
 
 Note that running `npm start` in the root `openactive-test-suite` directory will override [`waitForHarvestCompletion`](https://github.com/openactive/openactive-test-suite/tree/feature/project-start-script/packages/openactive-broker-microservice#waitforharvestcompletion) to `true` in `default.json`, so that the `openactive-integration-tests` will wait for the `openactive-broker-microservice` to be ready before it begins the test run.
+
+### CI - Docker
+
+You may find it useful to run Test Suite with Docker in your CI environment (general information on running with Docker [here](#running-with-docker)).
+
+Similarly to the [Continuous Integration section](#continuous-integration), if we assume that configuration is set using the [`NODE_CONFIG`](#node_config) environment variable, CI can use a command like the following:
+
+```sh
+docker run -it \
+  -e NODE_CONFIG=< PUT YOUR NODE CONFIG HERE > \
+  -p 3000:3000 \
+  -v ${PWD}/config:/config \
+  # Change this if using a custom `integrationTests.outputPath`
+  -v ${PWD}/packages/openactive-integration-tests/output:/openactive-test-suite/packages/openactive-integration-tests/output \
+  ghcr.io/openactive/test-suite:latest
+```
+
+And as in the parent section, `NODE_CONFIG` must include `"ci": true`.
+
+Some things to note:
+
+- When using a hostname other than `localhost` for your booking system, it must included at least one `.` to pass the validator.
+- `host.docker.internal` must be the host to access your booking system locally if it is not running in another Docker container. This hostname must also be used within `NODE_CONFIG`.
 
 ## Test Data Requirements
 
