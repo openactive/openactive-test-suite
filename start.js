@@ -92,9 +92,9 @@ if (!IS_RUNNING_IN_CI) {
       if (integrationTests !== null) integrationTests.kill();
     } else if (key.ctrl && key.name === 'c') {
       // A clean exit is achieved by killing the microservice first, which will then kill the integration tests:
-      //   microservice.kill() -> integrationTests.kill() -> process.exit()
+      //   microservice.kill() -> integrationTests.kill() + process.exit()
       // This is important as it allows the microservice to reset the terminal before it loses access to stdout at process.exit()
-      microservice.kill();
+      if (microservice !== null) microservice.kill();
     }
   });
   setupEscapeKey();
@@ -115,9 +115,7 @@ microservice.on('exit', (code) => {
   // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
   if (integrationTests !== null) integrationTests.kill();
   if (code !== 0 && code !== null) process.exitCode = code;
-  if (!IS_RUNNING_IN_CI) {
-    process.exit();
-  }
+  process.exit();
 });
 
 // Wait for microservice to start listening before starting integration tests
