@@ -51,12 +51,13 @@ let prompt;
 // Note this is triggered in CI mode when Ctrl+C is pressed, as well as when the process receives a SIGINT signal
 nodeCleanup(function (exitCode, signal) {
     // The first time Ctrl+C is pressed in CI mode, kill the microservice and integrationTests,
-    // and uninstall the cleanup handler, then wait for the process to exit gracefully
+    // and uninstall the cleanup handler, then wait for the parent process to exit naturally
+    // once both child processes have exited.
     if (microservice !== null) microservice.kill();
     microservice = null;
     if (integrationTests !== null) integrationTests.kill();
     nodeCleanup.uninstall(); // don't call this cleanup handler again
-    return false; // don't exit yet
+    return false; // don't exit yet, wait for child processes to exit
 });
 
 function setupEscapeKey()
