@@ -52,6 +52,8 @@ nodeCleanup(function (exitCode, signal) {
     if (microservice !== null) microservice.kill();
     microservice = null;
     if (integrationTests !== null) integrationTests.kill();
+    nodeCleanup.uninstall(); // don't call cleanup handler again
+    return false;
 });
 
 function setupEscapeKey()
@@ -115,7 +117,9 @@ microservice.on('exit', (code) => {
   // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
   if (integrationTests !== null) integrationTests.kill();
   if (code !== 0 && code !== null) process.exitCode = code;
-  process.exit();
+  if (!IS_RUNNING_IN_CI) {
+    process.exit();
+  }
 });
 
 // Wait for microservice to start listening before starting integration tests
