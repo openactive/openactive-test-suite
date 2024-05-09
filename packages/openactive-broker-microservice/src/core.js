@@ -14,6 +14,7 @@ const { isNil, partialRight } = require('lodash');
 const { createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
+const nodeCleanup = require('node-cleanup');
 
 const { CriteriaOrientedOpportunityIdCache } = require('./util/criteria-oriented-opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./util/log');
@@ -67,6 +68,14 @@ const { getSampleOpportunities } = require('./util/sample-opportunities');
  */
 
 const markdown = new Remarkable();
+
+// This is run when the process exits
+nodeCleanup(function () {
+  if (state.multibar !== null) {
+    // Restores terminal cursor settings before exiting
+    state.multibar.stop();
+  }
+});
 
 /**
  * @param {import('express').Request} req
