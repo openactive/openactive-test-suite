@@ -90,6 +90,14 @@ If `false` and `broker` and `openactive-integration-tests` are running in separa
   "waitForHarvestCompletion": true,
 ```
 
+### `doNotCacheItemsInThePast`
+
+If `true` will not store child opportunities in the past in memory. This is useful for memory constrained environments.
+
+```json
+  "doNotCacheItemsInThePast": true,
+```
+
 ### `loginPagesSelectors`
 
 [CSS Selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) which are used to find, in the Booking System's login page the following HTML elements:

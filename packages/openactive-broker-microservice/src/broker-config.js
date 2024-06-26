@@ -46,6 +46,7 @@ function getBrokerConfig() {
   const DO_NOT_HARVEST_ORDERS_FEED = config.has('broker.disableOrdersFeedHarvesting') ? config.get('broker.disableOrdersFeedHarvesting') : false;
   const DISABLE_BROKER_TIMEOUT = config.has('broker.disableBrokerMicroserviceTimeout') ? config.get('broker.disableBrokerMicroserviceTimeout') : false;
   const LOG_AUTH_CONFIG = config.has('broker.logAuthConfig') ? config.get('broker.logAuthConfig') : false;
+  const DO_NOT_CACHE_ITEMS_IN_THE_PAST = config.has('broker.doNotCacheItemsInThePast') ? config.get('broker.doNotCacheItemsInThePast') : false;
 
   const BUTTON_SELECTORS = config.has('broker.loginPagesSelectors') ? config.get('broker.loginPagesSelectors') : {
     username: "[name='username' i]",
@@ -88,6 +89,7 @@ function getBrokerConfig() {
     VALIDATOR_TMP_DIR,
     VALIDATOR_INPUT_TMP_DIR,
     BOOKING_PARTNER_IDENTIFIERS,
+    DO_NOT_CACHE_ITEMS_IN_THE_PAST,
   };
 }
 

@@ -40,6 +40,7 @@ const {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
   BOOKING_PARTNER_IDENTIFIERS,
+  DO_NOT_CACHE_ITEMS_IN_THE_PAST,
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const { state, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
@@ -61,6 +62,23 @@ const { getLockedOpportunityIdsInTestDataset } = require('./util/state-utils');
 const { detectOpportunityType } = require('./util/opportunity-utils');
 const { detectSellerId } = require('./util/opportunity-utils');
 const { getSampleOpportunities } = require('./util/sample-opportunities');
+const _ = require('lodash');
+
+const WESTMINSTER_SITE_IDS = [
+'0153',
+'0154',
+'0155',
+'0156',
+'0157',
+'0158',
+'0159',
+'0160',
+'0229',
+'0262',
+'0270',
+'0282',
+'0323',
+]
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -683,7 +701,18 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   // these embedded IndividualFacilityUses. However the rest of the code assumes
   // the linked item is the top-level item from the parent feed, so we need to
   // invert the FacilityUse/IndividualFacilityUse relationship.
-  const items = rpdePage.items.flatMap((item) => invertFacilityUseItemIfPossible(item));
+  let items = rpdePage.items.flatMap((item) => invertFacilityUseItemIfPossible(item));
+  
+  // Filter out anything that is not Westminster
+  // TODO(civ): Make this "true" a general env var
+  if (true) {
+    items = items.filter((item) => {
+      if (_.get(item, 'data.location.identifier')) {
+        return WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'));
+      }
+    })
+  }
+
 
   for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -700,6 +729,8 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
 
       // Store the parent opportunity data in the maps
       const jsonLdId = item.data['@id'] || item.data.id;
+
+      
 
       state.opportunityHousekeepingCaches.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityCache.parentMap.set(jsonLdId, item.data);
@@ -885,6 +916,12 @@ async function storeChildOpportunityItem(item) {
   if (row.jsonLdId == null) {
     throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
   }
+  if (DO_NOT_CACHE_ITEMS_IN_THE_PAST) {
+    if (item.data && item.data.startDate && new Date(item.data.startDate) < new Date()) {
+      return;
+    }
+  }
+
   // Associate the child with its parent
   if (row.jsonLdParentId != null) {
     if (!state.opportunityItemRowCache.parentIdIndex.has(row.jsonLdParentId)) state.opportunityItemRowCache.parentIdIndex.set(row.jsonLdParentId, new Set());
