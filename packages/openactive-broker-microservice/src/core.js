@@ -10,7 +10,7 @@ const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
-const { isNil, partialRight } = require('lodash');
+const { isNil, partialRight, get } = require('lodash');
 const { createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
@@ -702,17 +702,16 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   // the linked item is the top-level item from the parent feed, so we need to
   // invert the FacilityUse/IndividualFacilityUse relationship.
   let items = rpdePage.items.flatMap((item) => invertFacilityUseItemIfPossible(item));
-  
-  // Filter out anything that is not Westminster
-  // TODO(civ): Make this "true" a general env var
-  if (true) {
-    items = items.filter((item) => {
-      if (_.get(item, 'data.location.identifier')) {
-        return WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'));
-      }
-    })
-  }
 
+// // Filter out anything that is not Westminster
+//       // TODO(civ): Make this "true" a general env var
+//       if (true) {
+//         items = items.filter((item) => {
+//           if (_.get(item, 'data.location.identifier')) {
+//             return WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'));
+//           }
+//         })
+//       } 
 
   for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -731,6 +730,17 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       const jsonLdId = item.data['@id'] || item.data.id;
 
       
+      // Westminster specific memory improvements
+      // This removes any children that have already come in that belong to Westminster
+      if (_.get(item, 'data.location.identifier') && !WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'))) {
+        const childIds = state.opportunityItemRowCache.parentIdIndex.get(jsonLdId);
+        if (childIds) {
+          for (const childId of childIds) {
+            deleteChildOpportunityItem(childId);
+          }
+        }
+        continue;
+      }
 
       state.opportunityHousekeepingCaches.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityCache.parentMap.set(jsonLdId, item.data);
@@ -784,9 +794,11 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  await touchChildOpportunityItems(items
+  await touchChildOpportunityItems(
+    items
     .filter((item) => item.state !== 'deleted')
-    .map((item) => item.data['@id'] || item.data.id));
+    .map((item) => ({parentId: (item.data['@id'] || item.data.id), isSessionSeriesWestminster: WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'))}))
+  );
 }
 
 /**
@@ -849,16 +861,21 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
  * trigger any actions (e.g. notifying listeners) that should be triggered when
  * an Opportunity (or child/parent pair) is updated.
  *
- * @param {string[]} parentIds
+ * @param {{parentId:string, isSessionSeriesWestminster: boolean}[]} parentIds
  */
 async function touchChildOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
   // Get IDs of all opportunities which are children of the specified parents.
-  parentIds.forEach((parentId) => {
+  parentIds.forEach(({parentId, isSessionSeriesWestminster}) => {
     if (state.opportunityItemRowCache.parentIdIndex.has(parentId)) {
       state.opportunityItemRowCache.parentIdIndex.get(parentId).forEach((jsonLdId) => {
-        opportunitiesToUpdate.add(jsonLdId);
+        if (!isSessionSeriesWestminster) {
+          // If the SessionSeries is not Westminster, remove the ScheduledSessions from the cache
+          deleteChildOpportunityItem(jsonLdId);
+        } else {
+          opportunitiesToUpdate.add(jsonLdId);
+        }
       });
     }
   });
@@ -1296,6 +1313,30 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     });
   };
 
+  const onFeedEndParent = async () => {
+    // Delete all Parent opportunites from the caches that are not Westminster
+    for (let [parentId, parentOpportunity] of state.opportunityCache.parentMap.entries()) {
+      const siteId = /** @type {string} */ (get(parentOpportunity, 'location.identifier'));
+      if (!WESTMINSTER_SITE_IDS.includes(siteId)) {
+        state.opportunityCache.parentMap.delete(parentId);
+      }
+    }
+    
+    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+      multibar: state.multibar,
+    });
+  };
+
+  const onFeedEndChild = async () => {
+    // Delete all orphaned child opportunites from the caches
+    for (let [childId, childOpportunity] of state.opportunityCache.childMap.entries()) {
+      const parentId = get(childOpportunity, 'superEvent') || get(childOpportunity, 'facilityUse');
+      if (!state.opportunityCache.parentMap.has(parentId)) {
+        state.opportunityCache.childMap.delete(childId);
+      }
+    }
+  }
+
   // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
     log(`Found parent opportunity feed: ${datasetDistributionItem.contentUrl}`);
@@ -1307,7 +1348,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
       processPage: ingestParentOpportunityPageForThisFeed,
-      onFeedEnd,
+      onFeedEnd: onFeedEndParent,
       onError: harvestRpdeOnError,
       isOrdersFeed: false,
       state: {
@@ -1341,7 +1382,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
       processPage: ingestOpportunityPageForThisFeed,
-      onFeedEnd,
+      onFeedEnd: onFeedEndChild,
       onError: harvestRpdeOnError,
       isOrdersFeed: false,
       state: {
