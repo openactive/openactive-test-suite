@@ -9,17 +9,18 @@ const { log, logError } = require('./log');
  * @param {string} url
  */
 async function extractJSONLDfromDatasetSiteUrl(url) {
-  if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
-    log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
-    return {
-      distribution: DATASET_DISTRIBUTION_OVERRIDE,
-    };
-  }
   try {
     log(`Downloading Dataset Site JSON-LD from "${url}"...`);
     const response = await axios.get(url);
-
     const jsonld = extractJSONLDfromHTML(url, response.data);
+    if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
+      log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
+      return {
+        ...jsonld,
+        distribution: DATASET_DISTRIBUTION_OVERRIDE,
+      };
+    }
+
     return jsonld;
   } catch (error) {
     if (!error.response) {
