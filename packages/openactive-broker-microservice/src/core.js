@@ -1322,7 +1322,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
   };
 
   const onFeedEndParent = async () => {
-    log('dsfljadshlfkush')
+
     // Delete all Parent opportunites from the caches that are not Westminster
     for (let [parentId, parentOpportunity] of state.opportunityCache.parentMap.entries()) {
       const siteId = /** @type {string} */ (get(parentOpportunity, 'location.identifier'));
@@ -1333,15 +1333,14 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
         log(`Size of parent opportunity cache after deletion: ${state.opportunityCache.childMap.size}`);
       }
     }
-    log('lkjhdflkajhdf')
+
      // Delete all orphaned child opportunites from the caches
     for (let [childId, childOpportunity] of state.opportunityCache.childMap.entries()) {
       const parentId = get(childOpportunity, 'superEvent') || get(childOpportunity, 'facilityUse');
       if (!state.opportunityCache.parentMap.has(parentId)) {
-        log(`Deleting orphaned child opportunity: ${childId}`)
-        log(`Size of child opportunity cache before deletion: ${state.opportunityCache.childMap.size}`);
+        // TODO fix this
         deleteChildOpportunityItem(childId);
-        log(`Size of child opportunity cache after deletion: ${state.opportunityCache.childMap.size}`);
+
 
       }
     }
