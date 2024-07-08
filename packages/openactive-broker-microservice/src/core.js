@@ -903,11 +903,14 @@ function deleteChildOpportunityItem(jsonLdId) {
       idx.delete(jsonLdId);
     }
     state.opportunityItemRowCache.store.delete(jsonLdId);
+    state.opportunityCache.childMap.delete(jsonLdId);
   }
+  state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(jsonLdId);
 }
 
 function deleteParentOppportunityItem(jsonLdId) {
   state.opportunityCache.parentMap.delete(jsonLdId);
+  state.opportunityItemRowCache.store.delete(jsonLdId);
   state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
 }
 
@@ -1331,13 +1334,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       }
     }
     log('lkjhdflkajhdf')
-    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
-      multibar: state.multibar,
-    });
-  };
-
-  const onFeedEndChild = async () => {
-    // Delete all orphaned child opportunites from the caches
+     // Delete all orphaned child opportunites from the caches
     for (let [childId, childOpportunity] of state.opportunityCache.childMap.entries()) {
       const parentId = get(childOpportunity, 'superEvent') || get(childOpportunity, 'facilityUse');
       if (!state.opportunityCache.parentMap.has(parentId)) {
@@ -1348,9 +1345,11 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
 
       }
     }
-  }
+    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+      multibar: state.multibar,
+    });
+  };
 
-  
 
   // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
@@ -1394,11 +1393,13 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       return {isSuccess: false};
     }
   }
-  for (let i = 0; i < 5; i++) {
-    const result = await harvest();
-    if (result.isSuccess) {
-      break;
-    }
+  // keep trying to harvest until it is successful
+  let result = await harvest();
+  let numRetries = 0;
+  while (!result.isSuccess) {
+    log('Retrying to harvest parent opportunity feed, attempt: ' + numRetries);
+    numRetries++;
+    result = await harvest();
   }
     return;
   }
@@ -1413,7 +1414,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
       processPage: ingestOpportunityPageForThisFeed,
-      onFeedEnd: onFeedEndChild,
+      onFeedEnd,
       onError: harvestRpdeOnError,
       isOrdersFeed: false,
       state: {

@@ -16,7 +16,7 @@ async function extractJSONLDfromDatasetSiteUrl(url) {
     if (DATASET_DISTRIBUTION_OVERRIDE.length > 0) {
       log('Simulating Dataset Site based on datasetDistributionOverride config setting...');
       return {
-        ...jsonld,
+        ...jsonld, 
         distribution: DATASET_DISTRIBUTION_OVERRIDE,
       };
     }
