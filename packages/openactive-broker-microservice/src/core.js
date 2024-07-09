@@ -1576,7 +1576,7 @@ function harvestRpdeHowLongToSleepAtFeedEnd() {
 }
 
 function harvestRpdeOnError() {
-  process.exit(1);
+  //process.exit(1);
 }
 
 module.exports = {
