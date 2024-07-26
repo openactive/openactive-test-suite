@@ -1456,7 +1456,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     let childHarvestResult = await childHarvest();
     let numRetries = 0;
     while (!childHarvestResult.isSuccess) {
-      log('Retrying to harvest child opportunity feed, attempt: ' + numRetries);
+      logError('Retrying to harvest child opportunity feed, attempt: ' + numRetries);
       numRetries++;
       childHarvestResult = await childHarvest();
     }
