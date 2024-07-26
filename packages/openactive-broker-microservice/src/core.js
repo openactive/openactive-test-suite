@@ -373,6 +373,10 @@ function getSampleOpportunitiesRoute(req, res) {
   }, state, req.body));
 }
 
+function getDeletedIdsRoute(req, res) {
+  res.json(state.deletedIds);
+}
+
 /**
  * Render the currently stored validation errors as HTML
  *
@@ -496,6 +500,12 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
 
   log('Harvesting is up-to-date');
 
+  const childRows = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
+  const childOrphanRows = childRows.filter((x) => x.waitingForParentToBeIngested);
+  log(`Deleting ${childOrphanRows.length} orphaned child opportunities`);
+  for (const orphan of childOrphanRows) {
+    deleteChildOpportunityItem(orphan.jsonLdId, 'Deleting orphaned child opportunity after feed is up-to-date');
+  }
   // Run some assertions to ensure that feed harvesting has lead to the correct state.
   const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
 
@@ -701,17 +711,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   // these embedded IndividualFacilityUses. However the rest of the code assumes
   // the linked item is the top-level item from the parent feed, so we need to
   // invert the FacilityUse/IndividualFacilityUse relationship.
-  let items = rpdePage.items.flatMap((item) => invertFacilityUseItemIfPossible(item));
-
-// // Filter out anything that is not Westminster
-//       // TODO(civ): Make this "true" a general env var
-//       if (true) {
-//         items = items.filter((item) => {
-//           if (_.get(item, 'data.location.identifier')) {
-//             return WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'));
-//           }
-//         })
-//       } 
+  const items = rpdePage.items.flatMap((item) => invertFacilityUseItemIfPossible(item));
 
   for (const item of items) {
     const feedItemIdentifier = feedPrefix + item.id;
@@ -728,7 +728,6 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
 
       // Store the parent opportunity data in the maps
       const jsonLdId = item.data['@id'] || item.data.id;
-
       
       // Westminster specific memory improvements
       // This removes any children that have already come in that belong to Westminster
@@ -736,9 +735,10 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
         const childIds = state.opportunityItemRowCache.parentIdIndex.get(jsonLdId);
         if (childIds) {
           for (const childId of childIds) {
-            deleteChildOpportunityItem(childId);
+            deleteChildOpportunityItem(childId, 'Deleting updated child opportunity during ingestParentOpportunityPage as parent is not Westminster');
           }
         }
+        deleteParentOppportunityItem(jsonLdId, 'Deleting updated parent opportunity during ingestParentOpportunityPage as parent is not Westminster');
         continue;
       }
 
@@ -780,7 +780,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       // that were made for them:
       if (state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
         for (const subEventId of state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
-          deleteChildOpportunityItem(subEventId);
+          deleteChildOpportunityItem(subEventId, 'Deleted child opportunity as parent opportunity is deleted during ingestParentOpportunityPage');
         }
       }
 
@@ -817,7 +817,7 @@ function updateParentOpportunitySubEventMap(item, jsonLdId) {
   } else {
     for (const subEventId of oldSubEventIds) {
       if (!newSubEventIds.includes(subEventId)) {
-        deleteChildOpportunityItem(subEventId);
+        deleteChildOpportunityItem(subEventId, 'Deleting deleted child opportunity during ingestParentOpportunityPage as parent is not Westminster');
         state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
       }
     }
@@ -844,13 +844,22 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
       state.opportunityCache.childMap.delete(jsonLdId);
       state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(feedItemIdentifier);
 
-      deleteChildOpportunityItem(jsonLdId);
+      deleteChildOpportunityItem(jsonLdId, 'Deleted deleted child opportunity during ingestChildOpportunityPage');
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
+      const westminsterLocationIdStrings = WESTMINSTER_SITE_IDS
+      // trim first character off id
+      .map((id) => id.slice(1))
+      // prepend with 'scheduled-sessions/'
+      .map((id) => `scheduled-sessions/${id}`); 
+
+      // Only store item if the jsonLdId contains on the westmibnsterLocationIdStrings
+      if (westminsterLocationIdStrings.some((id) => jsonLdId.includes(id))) {
       state.opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityCache.childMap.set(jsonLdId, item.data);
 
       await storeChildOpportunityItem(item);
+      }
     }
   }
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
@@ -872,7 +881,7 @@ async function touchChildOpportunityItems(parentIds) {
       state.opportunityItemRowCache.parentIdIndex.get(parentId).forEach((jsonLdId) => {
         if (!isSessionSeriesWestminster) {
           // If the SessionSeries is not Westminster, remove the ScheduledSessions from the cache
-          deleteChildOpportunityItem(jsonLdId);
+          deleteChildOpportunityItem(jsonLdId, 'Deleting child opportunity during touchChildOpportunityItems');
         } else {
           opportunitiesToUpdate.add(jsonLdId);
         }
@@ -894,8 +903,9 @@ async function touchChildOpportunityItems(parentIds) {
  * Delete a (child) Opportunity from parts of the cache.
  *
  * @param {string} jsonLdId
+ * @param {string} reason
  */
-function deleteChildOpportunityItem(jsonLdId) {
+function deleteChildOpportunityItem(jsonLdId, reason) {
   const row = state.opportunityItemRowCache.store.get(jsonLdId);
   if (row) {
     const idx = state.opportunityItemRowCache.parentIdIndex.get(row.jsonLdParentId);
@@ -904,14 +914,22 @@ function deleteChildOpportunityItem(jsonLdId) {
     }
     state.opportunityItemRowCache.store.delete(jsonLdId);
     state.opportunityCache.childMap.delete(jsonLdId);
+    state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(jsonLdId);
+    state.deletedIds.child[jsonLdId] = reason;
   }
-  state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(jsonLdId);
 }
 
-function deleteParentOppportunityItem(jsonLdId) {
+/**
+ * Deletes a parent Opportunity from parts of the cache.
+ * 
+ * @param {string} jsonLdId 
+ * @param {string} reason 
+ */
+function deleteParentOppportunityItem(jsonLdId, reason) {
   state.opportunityCache.parentMap.delete(jsonLdId);
   state.opportunityItemRowCache.store.delete(jsonLdId);
   state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
+  state.deletedIds.parent[jsonLdId] = reason;
 }
 
 /**
@@ -943,6 +961,7 @@ async function storeChildOpportunityItem(item) {
   }
   if (DO_NOT_CACHE_ITEMS_IN_THE_PAST) {
     if (item.data && item.data.startDate && new Date(item.data.startDate) < new Date()) {
+      deleteChildOpportunityItem(row.jsonLdId, 'Deleting child opportunity as it has a startDate in the past');
       return;
     }
   }
@@ -1322,28 +1341,17 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
   };
 
   const onFeedEndParent = async () => {
-
     // Delete all Parent opportunites from the caches that are not Westminster
     for (let [parentId, parentOpportunity] of state.opportunityCache.parentMap.entries()) {
       const siteId = /** @type {string} */ (get(parentOpportunity, 'location.identifier'));
       if (!WESTMINSTER_SITE_IDS.includes(siteId)) {
         log(`Deleting non-Westminster parent opportunity: ${parentId}`)
         log(`Size of parent opportunity cache before deletion: ${state.opportunityCache.parentMap.size}`);
-        deleteParentOppportunityItem(parentId);
+        deleteParentOppportunityItem(parentId, 'Deleting non-Westminster parent opportunity at end of feed');
         log(`Size of parent opportunity cache after deletion: ${state.opportunityCache.childMap.size}`);
       }
     }
 
-     // Delete all orphaned child opportunites from the caches
-    for (let [childId, childOpportunity] of state.opportunityCache.childMap.entries()) {
-      const parentId = get(childOpportunity, 'superEvent') || get(childOpportunity, 'facilityUse');
-      if (!state.opportunityCache.parentMap.has(parentId)) {
-        // TODO fix this
-        deleteChildOpportunityItem(childId);
-
-
-      }
-    }
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
       multibar: state.multibar,
     });
@@ -1595,6 +1603,7 @@ module.exports = {
   deleteTestDatasetRoute,
   assertUnmatchedCriteriaRoute,
   getSampleOpportunitiesRoute,
+  getDeletedIdsRoute,
 
   onHttpServerError,
   startPolling,
