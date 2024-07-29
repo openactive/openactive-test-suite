@@ -44,6 +44,7 @@ const {
   deleteTestDatasetRoute,
   assertUnmatchedCriteriaRoute,
   getSampleOpportunitiesRoute,
+  getDeletedIdsRoute,
   onHttpServerError,
   startPolling,
 } = require('./src/core');
@@ -89,6 +90,9 @@ app.post('/assert-unmatched-criteria', assertUnmatchedCriteriaRoute);
 
 // Sample Requests endpoint, used to underpin the Postman collection
 app.get('/sample-opportunities', getSampleOpportunitiesRoute);
+
+// Get Deleted IDs route
+app.get('/get-deleted-ids', getDeletedIdsRoute)
 
 /* Ensure that processing the Dataset Site, and initiating polling on all the
 feeds therein, delays the Broker Microservice from being "ready".

@@ -208,6 +208,12 @@ const state = {
     opportunityRpdeMap: new Map(),
   },
 
+  // Array of deleted parent and child IDs
+  deletedIds: {
+    parent: {},
+    child: {},
+  },
+
   // UI
   // create new progress bar container
   multibar: null,

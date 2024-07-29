@@ -95,7 +95,8 @@
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
             "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
             "env": {
-              "NODE_APP_INSTANCE": "dev"
+              "NODE_ENV": "gladstone-booking-facade",
+              "DEBUG_BROKER_NO_VALIDATE": "true",
             },
         },
         {

@@ -4,7 +4,7 @@
   "description": "OpenActive Broker Microservice",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node --inspect app.js",
     "auto-restart": "./auto-restart.sh",
     "validate-feeds": "node app.js --validate-only",
     "test": "npm run lint && tsc && jest",

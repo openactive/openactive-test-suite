@@ -18,7 +18,7 @@
   "dependencies": {
     "cookie-session": "^1.4.0",
     "openid-client": "^4.2.1",
-    "puppeteer": "^20.9.0"
+    "puppeteer": "^22.14.0"
   },
   "devDependencies": {
     "@types/cookie-session": "^2.0.41",

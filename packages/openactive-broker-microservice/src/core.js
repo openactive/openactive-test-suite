@@ -10,7 +10,7 @@ const mkdirp = require('mkdirp');
 const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
-const { isNil, partialRight } = require('lodash');
+const { isNil, partialRight, get } = require('lodash');
 const { createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
@@ -40,6 +40,7 @@ const {
   HEADLESS_AUTH,
   VALIDATOR_TMP_DIR,
   BOOKING_PARTNER_IDENTIFIERS,
+  DO_NOT_CACHE_ITEMS_IN_THE_PAST,
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const { state, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
@@ -61,6 +62,23 @@ const { getLockedOpportunityIdsInTestDataset } = require('./util/state-utils');
 const { detectOpportunityType } = require('./util/opportunity-utils');
 const { detectSellerId } = require('./util/opportunity-utils');
 const { getSampleOpportunities } = require('./util/sample-opportunities');
+const _ = require('lodash');
+
+const WESTMINSTER_SITE_IDS = [
+'0153',
+'0154',
+'0155',
+'0156',
+'0157',
+'0158',
+'0159',
+'0160',
+'0229',
+'0262',
+'0270',
+'0282',
+'0323',
+]
 
 /**
  * @typedef {import('./models/core').OrderFeedType} OrderFeedType
@@ -355,6 +373,10 @@ function getSampleOpportunitiesRoute(req, res) {
   }, state, req.body));
 }
 
+function getDeletedIdsRoute(req, res) {
+  res.json(state.deletedIds);
+}
+
 /**
  * Render the currently stored validation errors as HTML
  *
@@ -478,6 +500,12 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
 
   log('Harvesting is up-to-date');
 
+  const childRows = Array.from(state.opportunityItemRowCache.store.values()).filter((x) => x.jsonLdParentId !== null);
+  const childOrphanRows = childRows.filter((x) => x.waitingForParentToBeIngested);
+  log(`Deleting ${childOrphanRows.length} orphaned child opportunities`);
+  for (const orphan of childOrphanRows) {
+    deleteChildOpportunityItem(orphan.jsonLdId, 'Deleting orphaned child opportunity after feed is up-to-date');
+  }
   // Run some assertions to ensure that feed harvesting has lead to the correct state.
   const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
 
@@ -700,6 +728,19 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
 
       // Store the parent opportunity data in the maps
       const jsonLdId = item.data['@id'] || item.data.id;
+      
+      // Westminster specific memory improvements
+      // This removes any children that have already come in that belong to Westminster
+      if (_.get(item, 'data.location.identifier') && !WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'))) {
+        const childIds = state.opportunityItemRowCache.parentIdIndex.get(jsonLdId);
+        if (childIds) {
+          for (const childId of childIds) {
+            deleteChildOpportunityItem(childId, 'Deleting updated child opportunity during ingestParentOpportunityPage as parent is not Westminster');
+          }
+        }
+        deleteParentOppportunityItem(jsonLdId, 'Deleting updated parent opportunity during ingestParentOpportunityPage as parent is not Westminster');
+        continue;
+      }
 
       state.opportunityHousekeepingCaches.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityCache.parentMap.set(jsonLdId, item.data);
@@ -739,7 +780,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       // that were made for them:
       if (state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
         for (const subEventId of state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
-          deleteChildOpportunityItem(subEventId);
+          deleteChildOpportunityItem(subEventId, 'Deleted child opportunity as parent opportunity is deleted during ingestParentOpportunityPage');
         }
       }
 
@@ -753,9 +794,11 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
 
   // As these parent opportunities have been updated, update all child items for these parent IDs
-  await touchChildOpportunityItems(items
+  await touchChildOpportunityItems(
+    items
     .filter((item) => item.state !== 'deleted')
-    .map((item) => item.data['@id'] || item.data.id));
+    .map((item) => ({parentId: (item.data['@id'] || item.data.id), isSessionSeriesWestminster: WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'))}))
+  );
 }
 
 /**
@@ -774,7 +817,7 @@ function updateParentOpportunitySubEventMap(item, jsonLdId) {
   } else {
     for (const subEventId of oldSubEventIds) {
       if (!newSubEventIds.includes(subEventId)) {
-        deleteChildOpportunityItem(subEventId);
+        deleteChildOpportunityItem(subEventId, 'Deleting deleted child opportunity during ingestParentOpportunityPage as parent is not Westminster');
         state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId).filter((x) => x !== subEventId);
       }
     }
@@ -801,13 +844,22 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
       state.opportunityCache.childMap.delete(jsonLdId);
       state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(feedItemIdentifier);
 
-      deleteChildOpportunityItem(jsonLdId);
+      deleteChildOpportunityItem(jsonLdId, 'Deleted deleted child opportunity during ingestChildOpportunityPage');
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
+      const westminsterLocationIdStrings = WESTMINSTER_SITE_IDS
+      // trim first character off id
+      .map((id) => id.slice(1))
+      // prepend with 'scheduled-sessions/'
+      .map((id) => `scheduled-sessions/${id}`); 
+
+      // Only store item if the jsonLdId contains on the westmibnsterLocationIdStrings
+      if (westminsterLocationIdStrings.some((id) => jsonLdId.includes(id))) {
       state.opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
       state.opportunityCache.childMap.set(jsonLdId, item.data);
 
       await storeChildOpportunityItem(item);
+      }
     }
   }
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
@@ -818,16 +870,21 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
  * trigger any actions (e.g. notifying listeners) that should be triggered when
  * an Opportunity (or child/parent pair) is updated.
  *
- * @param {string[]} parentIds
+ * @param {{parentId:string, isSessionSeriesWestminster: boolean}[]} parentIds
  */
 async function touchChildOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
   // Get IDs of all opportunities which are children of the specified parents.
-  parentIds.forEach((parentId) => {
+  parentIds.forEach(({parentId, isSessionSeriesWestminster}) => {
     if (state.opportunityItemRowCache.parentIdIndex.has(parentId)) {
       state.opportunityItemRowCache.parentIdIndex.get(parentId).forEach((jsonLdId) => {
-        opportunitiesToUpdate.add(jsonLdId);
+        if (!isSessionSeriesWestminster) {
+          // If the SessionSeries is not Westminster, remove the ScheduledSessions from the cache
+          deleteChildOpportunityItem(jsonLdId, 'Deleting child opportunity during touchChildOpportunityItems');
+        } else {
+          opportunitiesToUpdate.add(jsonLdId);
+        }
       });
     }
   });
@@ -846,8 +903,9 @@ async function touchChildOpportunityItems(parentIds) {
  * Delete a (child) Opportunity from parts of the cache.
  *
  * @param {string} jsonLdId
+ * @param {string} reason
  */
-function deleteChildOpportunityItem(jsonLdId) {
+function deleteChildOpportunityItem(jsonLdId, reason) {
   const row = state.opportunityItemRowCache.store.get(jsonLdId);
   if (row) {
     const idx = state.opportunityItemRowCache.parentIdIndex.get(row.jsonLdParentId);
@@ -855,7 +913,23 @@ function deleteChildOpportunityItem(jsonLdId) {
       idx.delete(jsonLdId);
     }
     state.opportunityItemRowCache.store.delete(jsonLdId);
+    state.opportunityCache.childMap.delete(jsonLdId);
+    state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(jsonLdId);
+    state.deletedIds.child[jsonLdId] = reason;
   }
+}
+
+/**
+ * Deletes a parent Opportunity from parts of the cache.
+ * 
+ * @param {string} jsonLdId 
+ * @param {string} reason 
+ */
+function deleteParentOppportunityItem(jsonLdId, reason) {
+  state.opportunityCache.parentMap.delete(jsonLdId);
+  state.opportunityItemRowCache.store.delete(jsonLdId);
+  state.opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
+  state.deletedIds.parent[jsonLdId] = reason;
 }
 
 /**
@@ -885,6 +959,13 @@ async function storeChildOpportunityItem(item) {
   if (row.jsonLdId == null) {
     throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
   }
+  if (DO_NOT_CACHE_ITEMS_IN_THE_PAST) {
+    if (item.data && item.data.startDate && new Date(item.data.startDate) < new Date()) {
+      deleteChildOpportunityItem(row.jsonLdId, 'Deleting child opportunity as it has a startDate in the past');
+      return;
+    }
+  }
+
   // Associate the child with its parent
   if (row.jsonLdParentId != null) {
     if (!state.opportunityItemRowCache.parentIdIndex.has(row.jsonLdParentId)) state.opportunityItemRowCache.parentIdIndex.set(row.jsonLdParentId, new Set());
@@ -1259,38 +1340,74 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     });
   };
 
+  const onFeedEndParent = async () => {
+    // Delete all Parent opportunites from the caches that are not Westminster
+    for (let [parentId, parentOpportunity] of state.opportunityCache.parentMap.entries()) {
+      const siteId = /** @type {string} */ (get(parentOpportunity, 'location.identifier'));
+      if (!WESTMINSTER_SITE_IDS.includes(siteId)) {
+        log(`Deleting non-Westminster parent opportunity: ${parentId}`)
+        log(`Size of parent opportunity cache before deletion: ${state.opportunityCache.parentMap.size}`);
+        deleteParentOppportunityItem(parentId, 'Deleting non-Westminster parent opportunity at end of feed');
+        log(`Size of parent opportunity cache after deletion: ${state.opportunityCache.childMap.size}`);
+      }
+    }
+
+    await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
+      multibar: state.multibar,
+    });
+  };
+
+
   // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
     log(`Found parent opportunity feed: ${datasetDistributionItem.contentUrl}`);
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    await harvestRPDELossless({
-      baseUrl: datasetDistributionItem.contentUrl,
-      feedContextIdentifier,
-      headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-      processPage: ingestParentOpportunityPageForThisFeed,
-      onFeedEnd,
-      onError: harvestRpdeOnError,
-      isOrdersFeed: false,
-      state: {
-        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
-      },
-      loggingFns: {
-        log, logError, logErrorDuringHarvest,
-      },
-      config: {
-        howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-        WAIT_FOR_HARVEST,
-        VALIDATE_ONLY,
-        VERBOSE,
-        ORDER_PROPOSALS_FEED_IDENTIFIER,
-        REQUEST_LOGGING_ENABLED,
-      },
-      options: {
-        multibar: state.multibar, pauseResume: state.pauseResume,
-      },
-    });
+    async function harvest() {
+    try {
+      await harvestRPDELossless({
+        baseUrl: datasetDistributionItem.contentUrl,
+        feedContextIdentifier,
+        headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+        processPage: ingestParentOpportunityPageForThisFeed,
+        onFeedEnd: onFeedEndParent,
+        onError: harvestRpdeOnError,
+        isOrdersFeed: false,
+        state: {
+          context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+        },
+        loggingFns: {
+          log, logError, logErrorDuringHarvest,
+        },
+        config: {
+          howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
+          WAIT_FOR_HARVEST,
+          VALIDATE_ONLY,
+          VERBOSE,
+          ORDER_PROPOSALS_FEED_IDENTIFIER,
+          REQUEST_LOGGING_ENABLED,
+        },
+        options: {
+          multibar: state.multibar, pauseResume: state.pauseResume,
+        },
+      });
+
+      return {isSuccess: true};
+    } catch (error) {
+      logError(`Error while harvesting parent opportunity feed: ${error.message}`);
+      await sleep(5000);
+      return {isSuccess: false};
+    }
+  }
+  // keep trying to harvest until it is successful
+  let parentHarvestResult = await harvest();
+  let numRetries = 0;
+  while (!parentHarvestResult.isSuccess) {
+    log('Retrying to harvest parent opportunity feed, attempt: ' + numRetries);
+    numRetries++;
+    parentHarvestResult = await harvest();
+  }
     return;
   }
   // Harvest a child opportunity feed
@@ -1299,32 +1416,50 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    await harvestRPDELossless({
-      baseUrl: datasetDistributionItem.contentUrl,
-      feedContextIdentifier,
-      headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-      processPage: ingestOpportunityPageForThisFeed,
-      onFeedEnd,
-      onError: harvestRpdeOnError,
-      isOrdersFeed: false,
-      state: {
-        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
-      },
-      loggingFns: {
-        log, logError, logErrorDuringHarvest,
-      },
-      config: {
-        howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-        WAIT_FOR_HARVEST,
-        VALIDATE_ONLY,
-        VERBOSE,
-        ORDER_PROPOSALS_FEED_IDENTIFIER,
-        REQUEST_LOGGING_ENABLED,
-      },
-      options: {
-        multibar: state.multibar, pauseResume: state.pauseResume,
-      },
-    });
+    async function childHarvest() {
+      try {
+        await harvestRPDELossless({
+          baseUrl: datasetDistributionItem.contentUrl,
+          feedContextIdentifier,
+          headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+          processPage: ingestOpportunityPageForThisFeed,
+          onFeedEnd,
+          onError: harvestRpdeOnError,
+          isOrdersFeed: false,
+          state: {
+            context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+          },
+          loggingFns: {
+            log, logError, logErrorDuringHarvest,
+          },
+          config: {
+            howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
+            WAIT_FOR_HARVEST,
+            VALIDATE_ONLY,
+            VERBOSE,
+            ORDER_PROPOSALS_FEED_IDENTIFIER,
+            REQUEST_LOGGING_ENABLED,
+          },
+          options: {
+            multibar: state.multibar, pauseResume: state.pauseResume,
+          },
+        });
+        return {isSuccess: true};
+      } catch (error) {
+      logError(`Error while harvesting child opportunity feed: ${error.message}`);
+      await sleep(5000);
+      return {isSuccess: false};
+      }
+    }
+
+    // keep trying to harvest until it is successful
+    let childHarvestResult = await childHarvest();
+    let numRetries = 0;
+    while (!childHarvestResult.isSuccess) {
+      logError('Retrying to harvest child opportunity feed, attempt: ' + numRetries);
+      numRetries++;
+      childHarvestResult = await childHarvest();
+    }
     return;
   }
   logError(`\nERROR: Found unsupported feed in dataset site "${datasetDistributionItem.contentUrl}" with additionalType "${datasetDistributionItem.additionalType}"`);
@@ -1449,7 +1584,7 @@ function harvestRpdeHowLongToSleepAtFeedEnd() {
 }
 
 function harvestRpdeOnError() {
-  process.exit(1);
+  //process.exit(1);
 }
 
 module.exports = {
@@ -1468,6 +1603,7 @@ module.exports = {
   deleteTestDatasetRoute,
   assertUnmatchedCriteriaRoute,
   getSampleOpportunitiesRoute,
+  getDeletedIdsRoute,
 
   onHttpServerError,
   startPolling,
