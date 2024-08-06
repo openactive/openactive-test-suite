@@ -1,14 +1,14 @@
+const querystring = require('querystring');
 const chakram = require('chakram');
 const config = require('config');
 const { isNil } = require('lodash');
-const querystring = require('querystring');
 
-const { c1ReqTemplates } = require('../templates/c1-req.js');
-const { c2ReqTemplates } = require('../templates/c2-req.js');
-const { bReqTemplates } = require('../templates/b-req.js');
-const { uReqTemplates } = require('../templates/u-req.js');
-const { uProposalReqTemplates } = require('../templates/u-proposal-req.js');
-const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
+const { c1ReqTemplates } = require('../templates/c1-req');
+const { c2ReqTemplates } = require('../templates/c2-req');
+const { bReqTemplates } = require('../templates/b-req');
+const { cancelOrderReqTemplates } = require('../templates/cancel-order-req');
+const { rejectOrderProposalReqTemplates } = require('../templates/reject-order-proposal-req');
+const { createTestInterfaceOpportunity } = require('./test-interface-opportunities');
 
 /**
  * @typedef {import('chakram').RequestMethod} RequestMethod
@@ -365,11 +365,11 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/u-proposal-req').UProposalReqTemplateRef | null} [maybeUProposalReqTemplateRef]
+   * @param {import('../templates/reject-order-proposal-req.js').RejectOrderProposalReqTemplateRef | null} [maybeRejectOrderProposalReqTemplateRef]
    */
-  async customerRejectOrderProposal(uuid, maybeUProposalReqTemplateRef) {
-    const uProposalReqTemplateRef = maybeUProposalReqTemplateRef || 'standard';
-    const templateFn = uProposalReqTemplates[uProposalReqTemplateRef];
+  async customerRejectOrderProposal(uuid, maybeRejectOrderProposalReqTemplateRef) {
+    const rejectOrderProposalReqTemplateRef = maybeRejectOrderProposalReqTemplateRef || 'standard';
+    const templateFn = rejectOrderProposalReqTemplates[rejectOrderProposalReqTemplateRef];
     const payload = templateFn();
 
     const uResponse = await this.patch(
@@ -387,12 +387,12 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/u-req.js').UReqTemplateData} params
-   * @param {import('../templates/u-req').UReqTemplateRef | null} [maybeUReqTemplateRef]
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateData} params
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateRef | null} [maybeCancelOrderReqTemplateRef]
    */
-  async cancelOrder(uuid, params, maybeUReqTemplateRef) {
-    const uReqTemplateRef = maybeUReqTemplateRef || 'standard';
-    const templateFn = uReqTemplates[uReqTemplateRef];
+  async cancelOrder(uuid, params, maybeCancelOrderReqTemplateRef) {
+    const cancelOrderReqTemplateRef = maybeCancelOrderReqTemplateRef || 'standard';
+    const templateFn = cancelOrderReqTemplates[cancelOrderReqTemplateRef];
     const payload = templateFn(params);
 
     const uResponse = await this.patch(
@@ -448,8 +448,9 @@ class RequestHelper {
     sellerId,
     sellerType,
   }) {
+    const stage = `Local Microservice Test Interface for OrderItem ${orderItemPosition}`;
     const respObj = await this.post(
-      `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
+      stage,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       createTestInterfaceOpportunity({
         opportunityType,
@@ -461,6 +462,19 @@ class RequestHelper {
         timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
+    const opportunityNotFound = (
+      respObj.response.statusCode === 404
+      && respObj.body?.type === 'OpportunityNotFound'
+    );
+    if (opportunityNotFound) {
+      this.logger.recordFlowStageEvent(stage, {
+        type: 'OpportunityNotFound',
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+      });
+    }
 
     return respObj;
   }

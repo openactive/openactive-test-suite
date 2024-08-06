@@ -5,7 +5,7 @@ const { getTestDataShapeExpressions } = require('@openactive/test-interface-crit
  * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
  */
 
-const { HARVEST_START_TIME } = global;
+const { HARVEST_START_TIME, USE_SHAPE_EXPRESSIONS } = global;
 
 /**
  * Create opportunity data for sending to https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities
@@ -18,16 +18,22 @@ const { HARVEST_START_TIME } = global;
  * @param {string | null} [args.sellerType]
  * @param {string | null} [args.harvestStartTimeOverride] If provided, this value will be used instead of the
  *   global HARVEST_START_TIME.
+ * @param {boolean} [args.useShapeExpressions] If unspecified, the global USE_SHAPE_EXPRESSIONS will be used.
  * @returns {TestInterfaceOpportunity}
  */
-function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriteria, bookingFlow, sellerId = null, sellerType = null, harvestStartTimeOverride = null }) {
-  const remainingCapacityPredicate = (opportunityType === 'FacilityUseSlot' || opportunityType === 'IndividualFacilityUseSlot')
-    ? 'oa:remainingUses'
-    : 'schema:remainingAttendeeCapacity';
+function createTestInterfaceOpportunity({
+  opportunityType,
+  testOpportunityCriteria,
+  bookingFlow,
+  sellerId = null,
+  sellerType = null,
+  harvestStartTimeOverride = null,
+  useShapeExpressions = USE_SHAPE_EXPRESSIONS,
+}) {
   const testDataShapeExpressions = getTestDataShapeExpressions(
     testOpportunityCriteria,
     bookingFlow,
-    remainingCapacityPredicate,
+    opportunityType,
     { harvestStartTime: harvestStartTimeOverride ?? HARVEST_START_TIME },
   );
   /** @type {Pick<TestInterfaceOpportunity, '@context' | 'test:testOpportunityCriteria' | 'test:testOpenBookingFlow' | 'test:testOpportunityDataShapeExpression' | 'test:testOfferDataShapeExpression'>} */
@@ -39,8 +45,10 @@ function createTestInterfaceOpportunity({ opportunityType, testOpportunityCriter
     'test:testOpportunityCriteria': `https://openactive.io/test-interface#${testOpportunityCriteria}`,
     // e.g. OpenBookingApprovalFlow -> https://openactive.io/test-interface#OpenBookingApprovalFlow
     'test:testOpenBookingFlow': `https://openactive.io/test-interface#${bookingFlow}`,
-    'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
-    'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
+    ...(useShapeExpressions ? {
+      'test:testOpportunityDataShapeExpression': testDataShapeExpressions['test:testOpportunityDataShapeExpression'],
+      'test:testOfferDataShapeExpression': testDataShapeExpressions['test:testOfferDataShapeExpression'],
+    } : {}),
   };
   const seller = sellerId ? {
     '@type': sellerType,

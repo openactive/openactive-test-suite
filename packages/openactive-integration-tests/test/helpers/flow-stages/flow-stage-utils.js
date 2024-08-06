@@ -27,13 +27,13 @@ const { FlowStageRun } = require('./flow-stage-run');
 
 /**
  * @typedef {{
- *  '@type': 'Person' | 'Organization',
- *  identifier: string
- *  telephone: string,
- *  givenName: string,
- *  familyName: string,
- *  email: string,
- *  }} Customer
+ *   '@type': 'Person',
+ *   identifier?: string,
+ *   telephone?: string,
+ *   givenName?: string,
+ *   familyName?: string,
+ *   email: string,
+ * } | import('@openactive/models-ts').Organization} Customer
  *
  * @typedef {UnknownFlowStageType | BookRecipe | AnyFlowStageRun} FlowStageRunnable Something that can be run by the `describeRunAnd-` functions
  */
@@ -140,32 +140,53 @@ const FlowStageUtils = {
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
-   * @param {Customer} [args.customer]
+   * @param {boolean} [args.includeAllOptionalCustomerDetails]
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
-  createDefaultFlowStageParams({ requestHelper, logger, uuid, sellerConfig, customer, orderItemCriteriaList }) {
+  createDefaultFlowStageParams({
+    requestHelper,
+    logger,
+    uuid,
+    sellerConfig,
+    orderItemCriteriaList,
+    includeAllOptionalCustomerDetails,
+    describeFeatureRecord,
+  }) {
     return {
       requestHelper,
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: customer || this.createRandomCustomerDetails(),
+      customer: this.createRandomCustomerDetails(includeAllOptionalCustomerDetails ?? false),
       orderItemCriteriaList,
+      describeFeatureRecord,
     };
   },
 
   /**
    * Randomly generate customer details
+   * @param {boolean} [includeAllOptionalFields]
    * @returns {Customer}
    */
-  createRandomCustomerDetails() {
-    return {
+  createRandomCustomerDetails(includeAllOptionalFields) {
+    /** @type {Customer} */
+    const person = {
       '@type': 'Person',
       email: faker.internet.email(),
-      telephone: faker.phone.phoneNumber(),
-      givenName: faker.name.lastName(),
-      familyName: faker.name.firstName(),
-      identifier: faker.datatype.uuid(),
     };
+    if (includeAllOptionalFields || Math.random() < 0.5) {
+      person.telephone = faker.phone.phoneNumber();
+    }
+    if (includeAllOptionalFields || Math.random() < 0.5) {
+      person.givenName = faker.name.lastName();
+    }
+    if (includeAllOptionalFields || Math.random() < 0.5) {
+      person.familyName = faker.name.firstName();
+    }
+    if (includeAllOptionalFields || Math.random() < 0.5) {
+      person.identifier = faker.datatype.uuid();
+    }
+    return person;
   },
 
   /**
@@ -177,16 +198,32 @@ const FlowStageUtils = {
    * @param {BaseLoggerType} args.logger
    * @param {OpportunityCriteria[]} args.orderItemCriteriaList
    * @param {string | null} [args.taxMode] If sellerConfig is not specified, it is derived from this
+   * @param {boolean} [args.includeAllOptionalCustomerDetails] If `true`, then the created `customer`
+   *   object will have all optional fields set. Otherwise, optional fields may or may not be set
+   *   randomly.
    * @param {SellerConfig} [args.sellerConfig]
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
-  createSimpleDefaultFlowStageParams({ logger, orderItemCriteriaList, taxMode = null, ...args }) {
+  createSimpleDefaultFlowStageParams({
+    logger,
+    orderItemCriteriaList,
+    taxMode = null,
+    includeAllOptionalCustomerDetails,
+    describeFeatureRecord,
+    ...args
+  }) {
     const sellerConfig = args.sellerConfig ?? (
       taxMode
         ? getSellerConfigWithTaxMode(taxMode)
         : SELLER_CONFIG.primary);
     const requestHelper = new RequestHelper(logger, sellerConfig);
     return FlowStageUtils.createDefaultFlowStageParams({
-      requestHelper, logger, sellerConfig, orderItemCriteriaList,
+      requestHelper,
+      logger,
+      sellerConfig,
+      orderItemCriteriaList,
+      includeAllOptionalCustomerDetails,
+      describeFeatureRecord,
     });
   },
 

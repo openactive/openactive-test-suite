@@ -1,0 +1,23 @@
+/* This tsconfig.json is used to check the types of all files in this library.
+There is another, tsconfig.gen.json, which is used to emit .d.ts files for
+clients of this library. These have to be separate because we cannot emit .d.ts
+files for unit tests.
+This one is the base because it encourages IDEs like VSCode to use it and thus
+properly engage in type checking across all files. */
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "downlevelIteration": true,
+    "target": "ES2019",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.js",
+    "test/**/*.js",
+    "test/**/*.d.ts"
+  ]
+}

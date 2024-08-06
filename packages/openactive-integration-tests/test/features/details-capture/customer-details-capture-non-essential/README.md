@@ -7,10 +7,11 @@ Support for capturing forename, surname, and telephone number from the Customer.
 https://www.openactive.io/open-booking-api/EditorsDraft/#customer-details-capture
 
 Coverage Status: **complete**
-### Test prerequisites
+### Test prerequisites - Opportunities
 Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
 [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4
+
 
 
 ### Running tests for only this feature
@@ -33,8 +34,8 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [non-essential-customer-details-reflected](./implemented/non-essential-customer-details-reflected-test.js) | givenName, familyName, and telephone number are reflected back at C2 and B | Forename, surname, and telephone number from the Customer supplied by Broker should be reflected back by booking system. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [non-essential-customer-details-reflected](./implemented/non-essential-customer-details-reflected-test.js) | givenName, familyName, and telephone number are reflected back at C2 and B | Forename, surname, and telephone number from the Customer supplied by Broker should be reflected back by booking system. | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |  |
 
 

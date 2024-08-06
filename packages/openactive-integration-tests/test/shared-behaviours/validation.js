@@ -74,6 +74,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
      *   validationMode?: string,
      * }} & typeof options
      */
+    // eslint-disable-next-line prefer-object-spread
     const optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
       remoteJsonCachePath: './tmp',
@@ -101,7 +102,9 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
 
     // Note C1Response, C2Response, BResponse and PResponse are permitted to return 409 errors of type `OrderQuote`, `OrderProposal`, or `Order` instead of `OpenBookingError`
     if (statusCode < 200 || statusCode >= 300) {
-      // TODO: Test suite should assert whether the response is expected to be an OrderItemError, instead of basing validation on the response status code
+      /* TODO: callers of this function should define whether the response is
+      expected to be an OrderItemError, rather than basing the validation
+      dynamically on the response status code */
       if (statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response' || options.validationMode === 'BResponse' || options.validationMode === 'PResponse')) {
         optionsWithRemoteJson.validationMode = `${options.validationMode}OrderItemError`;
       } else {
@@ -128,6 +131,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
 
   describe(`validation of ${name}`, function () {
     it('passes validation checks', async function () {
+      // eslint-disable-next-line no-shadow
       const results = await doValidate();
 
       logger.recordResponseValidations(name, results);

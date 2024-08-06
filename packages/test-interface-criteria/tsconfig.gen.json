@@ -1,7 +1,16 @@
+/* For emitting .d.ts files, we use a separate tsconfig file, because we do not
+want to emit .d.ts files for unit tests */
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
+    "outDir": "built-types/",
+    "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true
-  }
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.js"
+    // Exclude test files when generating
+  ]
 }

@@ -35,9 +35,9 @@ FeatureHelper.describeFeature(module, {
   ],
   skipMultiple: true,
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   // ### Cancel 2nd and 3rd Order Items, one of which is not cancellable
   const cancelNotCancellableOrderItems = FlowStageRecipes.runs.customerCancel.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {

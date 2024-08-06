@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const chai = require('chai');
-const { OpenActiveOpenIdTestClient, recordWithIntercept } = require('@openactive/openactive-openid-test-client');
+const { OpenActiveOpenIdTestClient, recordWithIntercept } = require('@openactive/openactive-openid-client');
 const { getConfigVarOrDefault, getConfigVarOrThrow } = require('../helpers/config-utils');
 
 /**

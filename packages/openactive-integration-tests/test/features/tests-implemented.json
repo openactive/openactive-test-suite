@@ -115,11 +115,15 @@
     },
     "multiple-sellers": {
       "implementedTestFiles": 2,
-      "notImplementedTestFiles": 0
+      "notImplementedTestFiles": 1
     },
     "opportunity-feed": {
       "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
+    },
+    "single-seller": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "test-interface": {
       "implementedTestFiles": 1,
@@ -162,11 +166,11 @@
       "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTestFiles": 5,
+      "implementedTestFiles": 6,
       "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTestFiles": 2,
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {

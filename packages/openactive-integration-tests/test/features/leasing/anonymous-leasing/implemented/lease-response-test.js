@@ -33,8 +33,8 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
-  const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger);
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
+  const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   it('should implement named leasing as well', () => {
     // eslint-disable-next-line no-unused-expressions

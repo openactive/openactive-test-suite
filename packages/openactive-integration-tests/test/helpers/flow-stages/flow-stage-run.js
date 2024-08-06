@@ -6,6 +6,8 @@ const { assertIsNotNullish } = require('../asserts');
  */
 
 /**
+ * A set of FlowStages and/or FlowStageRuns, which can be treated as a single sequence to be run.
+ *
  * @template {{ [stageName: string]: UnknownFlowStageType | FlowStageRun<any> }} TStages
  */
 class FlowStageRun {
@@ -43,7 +45,6 @@ class FlowStageRun {
    */
   static getFlattenedStages(stagesByName, stageSequence) {
     /** @type {UnknownFlowStageType[]} */
-    // // @ts-expect-error TODO fix
     const stages = stageSequence.flatMap((stageName) => {
       const stage = stagesByName[stageName];
       assertIsNotNullish(stage);

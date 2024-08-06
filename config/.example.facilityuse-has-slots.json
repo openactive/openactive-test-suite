@@ -1,0 +1,8 @@
+{
+  "integrationTests": {
+    "bookableOpportunityTypesInScope": {
+      "IndividualFacilityUseSlot": false,
+      "FacilityUseSlot": true
+    }
+  }
+}

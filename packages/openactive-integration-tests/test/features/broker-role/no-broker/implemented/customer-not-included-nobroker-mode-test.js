@@ -14,11 +14,11 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   describe('Booking should fail if Customer is not included in Order, because we are in NoBroker mode', () => {
     // Note that we ignore testing at C1 because C1 has no customer anyway
     describe('at C2', () => {
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
         c1ReqTemplateRef: 'noBroker',
         c2ReqTemplateRef: 'noCustomerAndNoBroker',
         brokerRole: 'https://openactive.io/NoBroker',
@@ -29,7 +29,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       runFlowStageAndExpectIncompleteCustomerDetailsError(c2.getStage('c2'), c2);
     });
     describe('at B or P', () => {
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
         c1ReqTemplateRef: 'noBroker',
         c2ReqTemplateRef: 'noBroker',
         bookReqTemplateRef: 'noCustomerAndNoBroker',

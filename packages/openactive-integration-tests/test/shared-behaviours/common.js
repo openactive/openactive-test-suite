@@ -1,5 +1,7 @@
 const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { expect } = require('chai');
+const { BFlowStage } = require('../helpers/flow-stages/b');
+const { expectSuccessfulIdempotentRequestResponsesToBeDeepEqual } = require('../helpers/chakram-response-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -150,6 +152,25 @@ class Common {
       const feedCapacity = getRemainingCapacity(feedOrderItem.orderedItem);
       const apiResponseCapacity = getRemainingCapacity(apiResponseOrderItem.orderedItem);
       expect(apiResponseCapacity).to.equal(feedCapacity);
+    });
+  }
+
+  /**
+   * When an idempotent B request has been made after a successful booking, the response to both
+   * requests should be identical.
+   *
+   * @param {BFlowStage} firstB
+   * @param {BFlowStage | import('../helpers/flow-stages/book-recipe').BookRecipeType} idempotentB
+   */
+  static itIdempotentBShouldHaveOutputEqualToFirstB(firstB, idempotentB) {
+    it('should get a same response as with the first B', () => {
+      const actualIdempotentB = (idempotentB instanceof BFlowStage)
+        ? idempotentB
+        : idempotentB.b;
+      expectSuccessfulIdempotentRequestResponsesToBeDeepEqual(
+        firstB.getOutput().httpResponse,
+        actualIdempotentB.getOutput().httpResponse,
+      );
     });
   }
 }

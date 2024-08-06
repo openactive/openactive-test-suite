@@ -21,7 +21,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   numOpportunitiesUsedPerCriteria: 2, // one for each of the C2 and B tests
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /**
    * @param {C2FlowStageType | BFlowStageType} flowStage
    */
@@ -30,7 +30,7 @@ FeatureHelper.describeFeature(module, {
 
   describe('Missing customer email property at C2', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
       c2ReqTemplateRef: 'noCustomerEmail',
       c2ExpectToFail: true,
     });
@@ -45,7 +45,7 @@ FeatureHelper.describeFeature(module, {
 
   describe('Missing customer email property at B', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
       bookReqTemplateRef: 'noCustomerEmail',
       bookExpectToFail: true,
     });
