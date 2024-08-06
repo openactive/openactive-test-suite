@@ -14,10 +14,10 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   describe('Booking should fail because Broker is not included in Order in ResellerBroker mode', () => {
     describe('at C1', () => {
-      const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
         c1ReqTemplateRef: 'noBroker',
         brokerRole: 'https://openactive.io/ResellerBroker',
         c1ExpectToFail: true,
@@ -26,7 +26,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       runFlowStageAndExpectIncompleteBrokerDetailsError(c1.getStage('c1'), c1);
     });
     describe('at C2', () => {
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
         c2ReqTemplateRef: 'noBroker',
         brokerRole: 'https://openactive.io/ResellerBroker',
         c2ExpectToFail: true,
@@ -36,7 +36,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       runFlowStageAndExpectIncompleteBrokerDetailsError(c2.getStage('c2'), c2);
     });
     describe('at B or P', () => {
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
         bookReqTemplateRef: 'noBroker',
         brokerRole: 'https://openactive.io/ResellerBroker',
         bookExpectToFail: true,

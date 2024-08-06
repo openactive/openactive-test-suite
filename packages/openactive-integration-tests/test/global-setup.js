@@ -114,6 +114,7 @@ module.exports = async () => {
     try {
       console.log('Purging test dataset cache within local broker microservice...');
       await purgeCache();
+      console.log('...purged');
     } catch (error) {
       throw new Error(`The broker microservice is unreachable. This is a pre-requisite for the test suite. \n${error}`);
     }

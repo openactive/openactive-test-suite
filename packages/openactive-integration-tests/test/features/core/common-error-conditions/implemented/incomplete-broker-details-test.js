@@ -22,7 +22,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   numOpportunitiesUsedPerCriteria: 3, // one for each of the C1, C2 and B tests
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /**
    * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
    */
@@ -31,7 +31,7 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at C1', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
       c1ReqTemplateRef: 'noBrokerName',
       c1ExpectToFail: true,
     });
@@ -45,7 +45,7 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at C2', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
       c2ReqTemplateRef: 'noBrokerName',
       c2ExpectToFail: true,
     });
@@ -60,7 +60,7 @@ FeatureHelper.describeFeature(module, {
 
   describe('Incomplete Broker Details at B', () => {
     // # Initialise Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
       bookReqTemplateRef: 'noBrokerName',
       bookExpectToFail: true,
     });

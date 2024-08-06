@@ -21,14 +21,14 @@ FeatureHelper.describeFeature(module, {
   runOnlyIf: !IMPLEMENTED_FEATURES['business-to-consumer-tax-calculation-gross']
     && !IMPLEMENTED_FEATURES['business-to-consumer-tax-calculation-net'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // Initiate Flow Stages
   const {
     fetchOpportunities,
     bookRecipe,
     defaultFlowStageParams,
     bookRecipeArgs,
-  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
+  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, describeFeatureRecord);
   const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(
     orderItemCriteriaList,
     bookRecipe,

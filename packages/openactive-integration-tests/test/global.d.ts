@@ -24,6 +24,7 @@ declare global {
       BOOKING_FLOWS_IN_SCOPE: { [bookingFlow in BookingFlow]: boolean }
       IMPLEMENTED_FEATURES: { [featureIdentifier: string]: boolean | null };
       USE_RANDOM_OPPORTUNITIES: boolean;
+      USE_SHAPE_EXPRESSIONS: boolean;
       // Created in packages/openactive-integration-tests/documentation/generator.js
       documentationGenerationMode?: boolean;
       // Created in packages/openactive-integration-tests/test/setup.js
@@ -34,7 +35,7 @@ declare global {
       };
       SELLER_CONFIG: {
         primary: SellerConfig;
-        secondary: SellerConfig
+        secondary?: SellerConfig
       };
       AUTHENTICATION_FAILURE: boolean;
       DYNAMIC_REGISTRATION_FAILURE: boolean;

@@ -87,9 +87,10 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
    */
-  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
     bookReqTemplateRef = null,
     brokerRole = null,
     accessPass = null,
@@ -104,6 +105,7 @@ const FlowStageRecipes = {
     } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
       logger,
+      describeFeatureRecord,
       {
         ...options,
         brokerRole,
@@ -152,9 +154,10 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef'>} [options]
    */
-  initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+  initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
     c2ReqTemplateRef = null,
     brokerRole = null,
     taxMode = null,
@@ -162,11 +165,16 @@ const FlowStageRecipes = {
   } = {}) {
     const c2ExpectToFail = options.c2ExpectToFail ?? false;
 
-    const { fetchOpportunities, c1, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
-      brokerRole,
-      taxMode,
-      ...options,
-    });
+    const { fetchOpportunities, c1, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1Flow(
+      orderItemCriteriaList,
+      logger,
+      describeFeatureRecord,
+      {
+        brokerRole,
+        taxMode,
+        ...options,
+      },
+    );
     const c2 = FlowStageRecipes.runs.book.c2AssertCapacity(c1.getLastStage(), defaultFlowStageParams, {
       c2Args: {
         templateRef: c2ReqTemplateRef,
@@ -208,9 +216,10 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef' | 'c2ReqTemplateRef'>} [options]
    */
-  initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+  initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
     c1ReqTemplateRef = null,
     taxMode = null,
     brokerRole = null,
@@ -222,6 +231,7 @@ const FlowStageRecipes = {
       logger,
       taxMode,
       includeAllOptionalCustomerDetails: includeAllOptionalFieldsWhenGeneratingCustomer,
+      describeFeatureRecord,
     });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
@@ -260,12 +270,17 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {object} [args]
    * @param {boolean} [args.isExpectedToSucceed]
    */
-  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, args = {}) {
+  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, describeFeatureRecord, args = {}) {
     const isExpectedToSucceed = args.isExpectedToSucceed ?? true;
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ orderItemCriteriaList, logger });
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
+      orderItemCriteriaList,
+      logger,
+      describeFeatureRecord,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
     });
@@ -336,13 +351,14 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {{
    *   actionType: TestInterfaceActionType,
    * }} testInterfaceActionParams
    */
-  successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, testInterfaceActionParams) {
+  successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, describeFeatureRecord, testInterfaceActionParams) {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
     const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
@@ -409,12 +425,13 @@ const FlowStageRecipes = {
    *
    * This therefore represents the Book step of either flow.
    *
-   * It is HIGHLY recommended that you use this function rather than manually creating B or P Flow Stages unless you
-   * are explicitly writing a test that uses one flow instead of another.
+   * It is HIGHLY recommended that you use this function rather than manually
+   * creating B or P Flow Stages unless you are explicitly writing a test that
+   * uses one flow instead of another.
    *
-   * The selected flow will be found in the `orderItemCriteriaList`, which will in almost all cases be based on the
-   * Booking Flow that is currently being tested. See (TODO) for more info about how Test Suite tests both Booking
-   * Flows.
+   * The selected flow will be found in the `orderItemCriteriaList`, which will
+   * in almost all cases be based on the Booking Flow that is currently being
+   * tested.
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {DefaultFlowStageParams} defaultFlowStageParams

@@ -3,7 +3,7 @@ const { isObject, cloneDeep } = require('lodash');
 const { DateTime, Duration } = require('luxon');
 
 /**
- * @typedef {import('luxon').DateTime} DateTime
+ * @typedef {import('luxon').DateTime} DateTimeType
  * @typedef {import('../types/Opportunity').Opportunity} Opportunity
  * @typedef {import('../types/Offer').Offer} Offer
  * @typedef {import('../types/Options').Options} Options
@@ -36,25 +36,30 @@ function assertNodeConstraintType(expectedType, requirement, criteriaName) {
  * @template {TestDataNodeConstraint} TNodeConstraint
  * @template {keyof TNodeConstraint} TFieldName
  * @param {TFieldName} fieldName
- * @param {TNodeConstraint} reqA
- * @param {TNodeConstraint} reqB
+ * @param {TNodeConstraint} baseConstraint
+ * @param {TNodeConstraint} extensionConstraint
  * @param {(reqAField: TNodeConstraint[TFieldName], reqBField: TNodeConstraint[TFieldName]) => TNodeConstraint[TFieldName] | null} getValueIfBothExist
  * @returns {{} | Pick<TNodeConstraint, TFieldName>} This format makes it easy to merge this data into an object literal.
  *   The result will look like e.g. `{ mininclusive: 3 }`.
  *   It can also be an empty object to cater for instances in which neither of the requirements have the field
  *   and therefore this field should not be added to the merged requirement.
  */
-function mergeTestDataNodeConstraintField(fieldName, reqA, reqB, getValueIfBothExist) {
-  if (reqA[fieldName] == null && reqB[fieldName] == null) {
+function mergeTestDataNodeConstraintField(
+  fieldName,
+  baseConstraint,
+  extensionConstraint,
+  getValueIfBothExist,
+) {
+  if (baseConstraint[fieldName] == null && extensionConstraint[fieldName] == null) {
     return {};
   }
-  if (reqA[fieldName] != null) {
-    return { [fieldName]: reqA[fieldName] };
+  if (extensionConstraint[fieldName] != null && baseConstraint[fieldName] == null) {
+    return { [fieldName]: extensionConstraint[fieldName] };
   }
-  if (reqB[fieldName] != null) {
-    return { [fieldName]: reqB[fieldName] };
+  if (baseConstraint[fieldName] != null && extensionConstraint[fieldName] == null) {
+    return { [fieldName]: baseConstraint[fieldName] };
   }
-  const mergedValue = getValueIfBothExist(reqA[fieldName], reqB[fieldName]);
+  const mergedValue = getValueIfBothExist(baseConstraint[fieldName], extensionConstraint[fieldName]);
   if (mergedValue == null) { return {}; }
   return { [fieldName]: mergedValue };
 }
@@ -77,15 +82,27 @@ function mergeDateRangeNodeConstraints(reqA, reqB) {
 }
 
 /**
- * @param {NumericNodeConstraint} reqA
- * @param {NumericNodeConstraint} reqB
+ * @param {NumericNodeConstraint} baseConstraint
+ * @param {NumericNodeConstraint} extensionConstraint
  * @returns {NumericNodeConstraint}
  */
-function mergeNumericNodeConstraints(reqA, reqB) {
+function mergeNumericNodeConstraints(baseConstraint, extensionConstraint) {
   return {
     '@type': 'NumericNodeConstraint',
-    ...mergeTestDataNodeConstraintField('mininclusive', reqA, reqB, Math.max),
-    ...mergeTestDataNodeConstraintField('maxinclusive', reqA, reqB, Math.min),
+    ...mergeTestDataNodeConstraintField(
+      'mininclusive',
+      baseConstraint,
+      extensionConstraint,
+      // The extension should overwrite the base if they both exist
+      (base, extension) => extension,
+    ),
+    ...mergeTestDataNodeConstraintField(
+      'maxinclusive',
+      baseConstraint,
+      extensionConstraint,
+      // The extension should overwrite the base if they both exist
+      (base, extension) => extension,
+    ),
   };
 }
 
@@ -278,7 +295,7 @@ function dateMinusDuration(datetimeIso, durationIso) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window lower limit defined.
+ * @returns {DateTimeType | null} null if there is no booking window lower limit defined.
  */
 function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validFromBeforeStartDate) {
@@ -293,7 +310,7 @@ function getDateAfterWhichBookingsCanBeMade(offer, opportunity) {
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window upper limit defined.
+ * @returns {DateTimeType | null} null if there is no booking window upper limit defined.
  */
 function getDateBeforeWhichBookingsCanBeMade(offer, opportunity) {
   if (!offer || !offer.validThroughBeforeStartDate) {
@@ -341,7 +358,7 @@ function mustAllowProposalAmendment(offer) {
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no cancellation window defined.
+ * @returns {DateTimeType | null} null if there is no cancellation window defined.
  */
 function getDateBeforeWhichCancellationsCanBeMade(offer, opportunity) {
   if (!offer || !offer.latestCancellationBeforeStartDate) {
@@ -362,7 +379,7 @@ function remainingCapacityMustBeAtLeastTwo(opportunity) {
 /**
 * @type {OpportunityConstraint}
 */
-function startDateMustBe2HrsInAdvance(opportunity, options) {
+function startDateMustBeOver2HrsInAdvance(opportunity, options) {
   return options.harvestStartTimeTwoHoursLater < DateTime.fromISO(opportunity.startDate);
 }
 
@@ -503,7 +520,7 @@ module.exports = {
   mustRequireAttendeeDetails,
   mustNotRequireAttendeeDetails,
   mustAllowProposalAmendment,
-  startDateMustBe2HrsInAdvance,
+  startDateMustBeOver2HrsInAdvance,
   endDateMustBeInThePast,
   eventStatusMustNotBeCancelledOrPostponed,
   mustNotBeOpenBookingInAdvanceUnavailable,

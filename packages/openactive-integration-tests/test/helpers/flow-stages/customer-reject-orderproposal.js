@@ -2,7 +2,7 @@ const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
- * @typedef {import('../../templates/u-proposal-req').UProposalReqTemplateRef} UProposalReqTemplateRef
+ * @typedef {import('../../templates/reject-order-proposal-req').RejectOrderProposalReqTemplateRef} RejectOrderProposalReqTemplateRef
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  */
@@ -14,7 +14,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @param {object} args
- * @param {UProposalReqTemplateRef} [args.templateRef]
+ * @param {RejectOrderProposalReqTemplateRef} [args.templateRef]
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  */
@@ -29,7 +29,7 @@ async function runCustomerRejectOrderProposal({ templateRef, uuid, requestHelper
 class CustomerRejectOrderProposalFlowStage extends FlowStage {
   /**
    * @param {object} args
-   * @param {UProposalReqTemplateRef} [args.templateRef]
+   * @param {RejectOrderProposalReqTemplateRef} [args.templateRef]
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid

@@ -1,4 +1,4 @@
-﻿# openactive-openid-test-cli
+# openactive-openid-test-cli
 
 This package forms part of the suite of [OpenID Connect](https://openid.net/developers/how-connect-works/) helper libraries and tools used within the Test Suite. The other packages are:
 
@@ -32,4 +32,3 @@ TypeScript-related scripts:
 - `gen-types`: This uses the `tsconfig.gen.json` config, which emits TS declaration files into `built-types/`.
 
   Additionally, it copies programmer-created `.d.ts` files from our source code (e.g. `src/types/Criteria.d.ts`) into `built-types/`. This is because our code references these types, so they must be in the `built-types/` directory so that the relative paths match (e.g. so that `import('../types/Criteria').Criteria` works).
-

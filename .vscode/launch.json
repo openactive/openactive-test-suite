@@ -99,6 +99,29 @@
             },
         },
         {
+            "name": "broker-microservice - jest tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "18.17.1",
+            "runtimeArgs": ["run-script", "debug-jest"],
+            "port": 9229,
+        },
+        {
+            "name": "test-interface-criteria - unit tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/test-interface-criteria/",
+            "runtimeArgs": [
+              "--inspect-brk",
+              "node_modules/.bin/jest",
+              "--runInBand"
+              ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
             "name": "validate-feeds",
             "type": "node",
             "request": "launch",

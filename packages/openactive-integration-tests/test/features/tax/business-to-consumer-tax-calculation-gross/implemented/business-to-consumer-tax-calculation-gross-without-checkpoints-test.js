@@ -15,13 +15,13 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
   // the simple tests can only work if all OrderItems have the same tax mode
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
-}, (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+}, (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   const {
     fetchOpportunities,
     bookRecipe,
     defaultFlowStageParams,
     bookRecipeArgs,
-  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
+  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, describeFeatureRecord);
   const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(
     orderItemCriteriaList,
     bookRecipe,

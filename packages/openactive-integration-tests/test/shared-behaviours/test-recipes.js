@@ -32,7 +32,7 @@ const TestRecipes = {
    */
   simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(testInterfaceActionParams, itAdditionalTestsForOrderFeedUpdate) {
     /** @type {RunTestsFn} */
-    const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+    const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
       // ## Initiate Flow Stages
       const {
         fetchOpportunities,
@@ -41,7 +41,12 @@ const TestRecipes = {
         bookRecipe,
         testInterfaceAction,
         orderFeedUpdate,
-      } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, testInterfaceActionParams);
+      } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(
+        orderItemCriteriaList,
+        logger,
+        describeFeatureRecord,
+        testInterfaceActionParams,
+      );
 
       // ## Set up tests
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
@@ -83,9 +88,9 @@ const TestRecipes = {
    */
   simulateChangeOfLogisticsActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book(testInterfaceActionParams, itAdditionalTestsForOrderFeedUpdate) {
     /** @type {RunTestsFn} */
-    const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+    const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+      const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
       const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
         wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
           ...defaultFlowStageParams,
