@@ -855,10 +855,10 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
 
       // Only store item if the jsonLdId contains on the westmibnsterLocationIdStrings
       if (westminsterLocationIdStrings.some((id) => jsonLdId.includes(id))) {
-      state.opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-      state.opportunityCache.childMap.set(jsonLdId, item.data);
+        state.opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
+        state.opportunityCache.childMap.set(jsonLdId, item.data);
 
-      await storeChildOpportunityItem(item);
+        await storeChildOpportunityItem(item);
       }
     }
   }
