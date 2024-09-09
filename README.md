@@ -24,6 +24,7 @@ You can check that the test suite works in your local environment by running it 
 ``` bash
 git clone git@github.com:openactive/openactive-test-suite.git
 cd openactive-test-suite
+nvm use
 npm install
 npm start -- core
 ```
