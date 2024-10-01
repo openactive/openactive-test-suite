@@ -797,7 +797,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
   await touchChildOpportunityItems(
     items
     .filter((item) => item.state !== 'deleted')
-    .map((item) => ({parentId: (item.data['@id'] || item.data.id), isSessionSeriesWestminster: WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'))}))
+    .map((item) => ({parentId: (item.data['@id'] || item.data.id), isParentWestminster: WESTMINSTER_SITE_IDS.includes(_.get(item, 'data.location.identifier'))}))
   );
 }
 
@@ -847,14 +847,12 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
       deleteChildOpportunityItem(jsonLdId, 'Deleted deleted child opportunity during ingestChildOpportunityPage');
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
-      const westminsterLocationIdStrings = WESTMINSTER_SITE_IDS
+      
       // trim first character off id
-      .map((id) => id.slice(1))
-      // prepend with 'scheduled-sessions/'
-      .map((id) => `scheduled-sessions/${id}`); 
+      const westminsterLocationIdStrings = WESTMINSTER_SITE_IDS.map((id) => id.slice(1));
 
-      // Only store item if the jsonLdId contains on the westmibnsterLocationIdStrings
-      if (westminsterLocationIdStrings.some((id) => jsonLdId.includes(id))) {
+      // Only store item if the jsonLdId contains on the westminsterLocationIdStrings
+      if (westminsterLocationIdStrings.some((id) => jsonLdId.includes(`scheduled-sessions/${id}`) || jsonLdId.includes(`facility-use-slots/${id}`))) {
         state.opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
         state.opportunityCache.childMap.set(jsonLdId, item.data);
 
@@ -870,16 +868,16 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
  * trigger any actions (e.g. notifying listeners) that should be triggered when
  * an Opportunity (or child/parent pair) is updated.
  *
- * @param {{parentId:string, isSessionSeriesWestminster: boolean}[]} parentIds
+ * @param {{parentId:string, isParentWestminster: boolean}[]} parentIds
  */
 async function touchChildOpportunityItems(parentIds) {
   const opportunitiesToUpdate = new Set();
 
   // Get IDs of all opportunities which are children of the specified parents.
-  parentIds.forEach(({parentId, isSessionSeriesWestminster}) => {
+  parentIds.forEach(({parentId, isParentWestminster}) => {
     if (state.opportunityItemRowCache.parentIdIndex.has(parentId)) {
       state.opportunityItemRowCache.parentIdIndex.get(parentId).forEach((jsonLdId) => {
-        if (!isSessionSeriesWestminster) {
+        if (!isParentWestminster) {
           // If the SessionSeries is not Westminster, remove the ScheduledSessions from the cache
           deleteChildOpportunityItem(jsonLdId, 'Deleting child opportunity during touchChildOpportunityItems');
         } else {
