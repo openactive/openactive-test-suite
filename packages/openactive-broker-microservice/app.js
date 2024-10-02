@@ -134,4 +134,4 @@ setTimeout(() => {
     logError(`${message}\n`);
     throw new Error(message);
   }
-}, 86400000); // 3600000 ms = 1 hour
+}, 86400000); // 86400000 ms = 1 day

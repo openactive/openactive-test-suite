@@ -1362,11 +1362,9 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    async function harvest() {
-    try {
-      await harvestRPDELossless({
-        baseUrl: datasetDistributionItem.contentUrl,
-        feedContextIdentifier,
+    await harvestRPDELossless({
+      baseUrl: datasetDistributionItem.contentUrl,
+      feedContextIdentifier,
         headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
         processPage: ingestParentOpportunityPageForThisFeed,
         onFeedEnd: onFeedEndParent,
@@ -1388,24 +1386,8 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
         },
         options: {
           multibar: state.multibar, pauseResume: state.pauseResume,
-        },
-      });
-
-      return {isSuccess: true};
-    } catch (error) {
-      logError(`Error while harvesting parent opportunity feed: ${error.message}`);
-      await sleep(5000);
-      return {isSuccess: false};
-    }
-  }
-  // keep trying to harvest until it is successful
-  let parentHarvestResult = await harvest();
-  let numRetries = 0;
-  while (!parentHarvestResult.isSuccess) {
-    log('Retrying to harvest parent opportunity feed, attempt: ' + numRetries);
-    numRetries++;
-    parentHarvestResult = await harvest();
-  }
+      },
+    });
     return;
   }
   // Harvest a child opportunity feed
@@ -1414,50 +1396,33 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    async function childHarvest() {
-      try {
-        await harvestRPDELossless({
-          baseUrl: datasetDistributionItem.contentUrl,
-          feedContextIdentifier,
-          headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-          processPage: ingestOpportunityPageForThisFeed,
-          onFeedEnd,
-          onError: harvestRpdeOnError,
-          isOrdersFeed: false,
-          state: {
-            context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
-          },
-          loggingFns: {
-            log, logError, logErrorDuringHarvest,
-          },
-          config: {
-            howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-            WAIT_FOR_HARVEST,
-            VALIDATE_ONLY,
-            VERBOSE,
-            ORDER_PROPOSALS_FEED_IDENTIFIER,
-            REQUEST_LOGGING_ENABLED,
-          },
-          options: {
-            multibar: state.multibar, pauseResume: state.pauseResume,
-          },
-        });
-        return {isSuccess: true};
-      } catch (error) {
-      logError(`Error while harvesting child opportunity feed: ${error.message}`);
-      await sleep(5000);
-      return {isSuccess: false};
-      }
-    }
+    await harvestRPDELossless({
+      baseUrl: datasetDistributionItem.contentUrl,
+      feedContextIdentifier,
+      headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
+      processPage: ingestOpportunityPageForThisFeed,
+      onFeedEnd,
+      onError: harvestRpdeOnError,
+      isOrdersFeed: false,
+      state: {
+        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+      },
+      loggingFns: {
+        log, logError, logErrorDuringHarvest,
+      },
+      config: {
+        howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
+        WAIT_FOR_HARVEST,
+        VALIDATE_ONLY,
+        VERBOSE,
+        ORDER_PROPOSALS_FEED_IDENTIFIER,
+        REQUEST_LOGGING_ENABLED,
+      },
+      options: {
+        multibar: state.multibar, pauseResume: state.pauseResume,
+      },
+    });
 
-    // keep trying to harvest until it is successful
-    let childHarvestResult = await childHarvest();
-    let numRetries = 0;
-    while (!childHarvestResult.isSuccess) {
-      logError('Retrying to harvest child opportunity feed, attempt: ' + numRetries);
-      numRetries++;
-      childHarvestResult = await childHarvest();
-    }
     return;
   }
   logError(`\nERROR: Found unsupported feed in dataset site "${datasetDistributionItem.contentUrl}" with additionalType "${datasetDistributionItem.additionalType}"`);
