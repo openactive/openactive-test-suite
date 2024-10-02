@@ -19,7 +19,7 @@
     "@openactive/data-model-validator": "^2.0.78",
     "@openactive/data-models": "^2.0.316",
     "@openactive/dataset-utils": "^1.0.1",
-    "@openactive/harvesting-utils": "github:openactive/harvesting-utils#1b2877834055549572fa059a491ac17d306942fd",
+    "@openactive/harvesting-utils": "github:openactive/harvesting-utils#2231c78",
     "@openactive/openactive-openid-browser-automation": "file:../openactive-openid-browser-automation",
     "@openactive/openactive-openid-client": "file:../openactive-openid-client",
     "@openactive/rpde-validator": "^2.0.20",
