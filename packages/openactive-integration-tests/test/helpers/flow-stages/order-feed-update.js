@@ -47,9 +47,10 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
  * @param {() => boolean} args.failEarlyIf
+ * @param {import('../item-listener-requirements').ItemListenerRequirement[]} [args.itemListenerRequirements]
  * @returns {Promise<ListenerOutput>}
  */
-async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEarlyIf, itemListenerRequirements }) {
   // If a previous stage has failed, don't bother listening for the expected feed update.
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
@@ -57,7 +58,7 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
   /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
   have any Order Feed Update tests which need to test anything other than the
   primary bookingPartnerIdentifier so this hasn't yet been required. */
-  await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid);
+  await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid, itemListenerRequirements);
   return {};
 }
 
@@ -67,16 +68,17 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
  * @param {() => boolean} args.failEarlyIf
+ * @param {import('../item-listener-requirements').ItemListenerRequirement[]} [args.itemListenerRequirements]
  * @returns {Promise<CollectorOutput>}
  */
-async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failEarlyIf, itemListenerRequirements }) {
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
   /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
   have any Order Feed Update tests which need to test anything other than the
   primary bookingPartnerIdentifier so this hasn't yet been required. */
-  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
+  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid, itemListenerRequirements);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {
@@ -101,8 +103,9 @@ class OrderFeedUpdateListener extends FlowStage {
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
    * @param {() => boolean} args.failEarlyIf
+   * @param {import('../item-listener-requirements').ItemListenerRequirement[]} [args.itemListenerRequirements]
    */
-  constructor({ prerequisite, uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  constructor({ prerequisite, uuid, requestHelper, orderFeedType, failEarlyIf, itemListenerRequirements }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -114,6 +117,7 @@ class OrderFeedUpdateListener extends FlowStage {
           requestHelper,
           orderFeedType,
           failEarlyIf,
+          itemListenerRequirements,
         });
       },
       itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdateCollector stage */ },
@@ -140,8 +144,9 @@ class OrderFeedUpdateCollector extends FlowStage {
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
    * @param {() => boolean} args.failEarlyIf
+   * @param {import('../item-listener-requirements').ItemListenerRequirement[]} [args.itemListenerRequirements]
    */
-  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, failEarlyIf, itemListenerRequirements }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -152,6 +157,7 @@ class OrderFeedUpdateCollector extends FlowStage {
           requestHelper,
           orderFeedType,
           failEarlyIf,
+          itemListenerRequirements,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
@@ -214,6 +220,7 @@ const OrderFeedUpdateFlowStageUtils = {
    *   Generally, this will be something like `failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400`.
    *
    *   Defaults to () => false (i.e. do not fail early).
+   * @param {import('../item-listener-requirements').ItemListenerRequirement[]} [args.orderFeedUpdateParams.itemListenerRequirements]
    * @returns {[wrappedStage: TWrappedFlowStage, orderFeedUpdateCollector: OrderFeedUpdateCollector]}
    */
   wrap({ wrappedStageFn, orderFeedUpdateParams }) {
@@ -225,6 +232,7 @@ const OrderFeedUpdateFlowStageUtils = {
       prerequisite: orderFeedUpdateParams.prerequisite,
       orderFeedType,
       failEarlyIf,
+      itemListenerRequirements: orderFeedUpdateParams.itemListenerRequirements,
     });
     const wrappedStage = wrappedStageFn(listenForOrderFeedUpdate);
     const collectOrderFeedUpdate = new OrderFeedUpdateCollector({
@@ -240,6 +248,7 @@ const OrderFeedUpdateFlowStageUtils = {
         if ((wrappedStage.getOutput()?.httpResponse?.response?.statusCode ?? 200) >= 400) { return true; }
         return false;
       },
+      itemListenerRequirements: orderFeedUpdateParams.itemListenerRequirements,
     });
     return [wrappedStage, collectOrderFeedUpdate];
   },

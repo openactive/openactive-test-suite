@@ -12,6 +12,7 @@ const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 const { fixCalculatedMoneyValue } = require('../money-utils');
+const { ItemListenerRequirementRecipes } = require('../item-listener-requirements');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -712,6 +713,8 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
+            // TODO3 document the rationale here. Systems like bookteq, etc
+            itemListenerRequirements: [ItemListenerRequirementRecipes.nonConfirmedOrderItem()],
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({

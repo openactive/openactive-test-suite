@@ -33,7 +33,8 @@ function getIsOrderUuidPresentApi(req, res) {
   }
   // Otherwise, we do not yet have sufficient information. Wait until we do.
   const listenerId = Listeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
-  state.orderUuidTracking.isPresentListeners.set(listenerId, Listeners.createPendingListener(res));
+  // Since we're just tracking that it's UUID has been seend, and so we don't need any item requirements
+  state.orderUuidTracking.isPresentListeners.set(listenerId, Listeners.createPendingListener(res, []));
 }
 
 module.exports = {
