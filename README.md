@@ -241,7 +241,7 @@ An explanation of each part of this command:
     ```sh
     docker run -it \
     ```
-* Copy the `dev.json` config file into the Docker container and instruct Test Suite to use it. Usually Test Suite is either configured using `config/dev.json` or via [`NODE_CONFIG`](#node_config).
+* Copy the `dev.json` config file into the Docker container and instruct Test Suite to use it. Usually Test Suite is either configured using `config/dev.json` or via [`NODE_CONFIG`](#node_config) (Note that you can use a different config file e.g. `acme.json` simply by setting `NODE_ENV=acme` and `INPUT_CONFIG=/config/acme.json`).
     ```sh
       -e INPUT_CONFIG=/config/dev.json` \
       -e NODE_ENV=dev \
