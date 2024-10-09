@@ -175,22 +175,14 @@ const state = {
       },
       get: (childId) => {
         const childFile = path.join(__dirname, '..', 'data',`${encodeURIComponent(childId)}.json`);
-        const childData = fs.readFile(childFile, 'utf8', (err, data) => {
-          if (err) {
-            console.error(err);
-            return null;
-          }
-          return JSON.parse(data);
-        });
-        return childData;
+        const childData = fs.readFileSync(childFile, 'utf8');
+        return JSON.parse(childData);
       },
       delete: (childId) => {
         const childFile = path.join(__dirname, '..', 'data',`${encodeURIComponent(childId)}.json`);
-        fs.unlink(childFile, (err) => {
-          if (err) {
-            console.error(err);
-          }
-        });
+        if (fs.existsSync(childFile)) {
+          fs.unlinkSync(childFile);
+        }
       },
       size: () => {
         const childDir = path.join(__dirname, '..', 'data');
