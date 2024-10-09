@@ -104,16 +104,18 @@ state.incompleteFeeds.markFeedHarvestStarted('DatasetSite');
 const server = http.createServer(app);
 server.on('error', onHttpServerError);
 
+
 app.listen(PORT, () => {
   log(`Broker Microservice running on port ${PORT}
-
-Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
-`);
-  // if this has been run as a child process in the `npm start` script, `process.send` will be defined.
-  if (process.send) {
-    // Notify parent process that the server is up
-    process.send('listening');
-  }
+    
+    Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
+    `);
+    // if this has been run as a child process in the `npm start` script, `process.send` will be defined.
+    if (process.send) {
+      // Notify parent process that the server is up
+      process.send('listening');
+    }
+    state.opportunityCache.childMap.init();
 
   // Start polling after HTTP server starts listening
   (async () => {

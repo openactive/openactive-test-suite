@@ -1346,7 +1346,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
         log(`Deleting non-Westminster parent opportunity: ${parentId}`)
         log(`Size of parent opportunity cache before deletion: ${state.opportunityCache.parentMap.size}`);
         deleteParentOppportunityItem(parentId, 'Deleting non-Westminster parent opportunity at end of feed');
-        log(`Size of parent opportunity cache after deletion: ${state.opportunityCache.childMap.size}`);
+        log(`Size of parent opportunity cache after deletion: ${state.opportunityCache.childMap.size()}`);
       }
     }
 

@@ -8,7 +8,8 @@ const { MICROSERVICE_BASE_URL } = require('./broker-config');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { OnePhaseListeners } = require('./onePhaseListeners');
 const { IncompleteFeeds } = require('./incomplete-feeds');
-
+const path = require('path');
+const fs = require('fs');
 /**
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
  * @typedef {import('@openactive/harvesting-utils').FeedContext} FeedContext
@@ -159,13 +160,52 @@ const state = {
      */
     parentMap: new Map(),
     /**
-     * Map { [jsonLdId] => opportunityData }
      *
      * For child opportunities (e.g. FacilityUseSlot) only.
      *
-     * @type {Map<string, Record<string, unknown>>}
      */
-    childMap: new Map(),
+    childMap: {
+      set: (childId, childData) => {
+        const childFile = path.join(__dirname, '..', 'data',`${encodeURIComponent(childId)}.json`);
+        fs.writeFile(childFile, JSON.stringify(childData, null, 2), (err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      },
+      get: (childId) => {
+        const childFile = path.join(__dirname, '..', 'data',`${encodeURIComponent(childId)}.json`);
+        const childData = fs.readFile(childFile, 'utf8', (err, data) => {
+          if (err) {
+            console.error(err);
+            return null;
+          }
+          return JSON.parse(data);
+        });
+        return childData;
+      },
+      delete: (childId) => {
+        const childFile = path.join(__dirname, '..', 'data',`${encodeURIComponent(childId)}.json`);
+        fs.unlink(childFile, (err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      },
+      size: () => {
+        const childDir = path.join(__dirname, '..', 'data');
+        const childFiles = fs.readdirSync(childDir);
+        return childFiles.length;
+      },
+      clear: () => {
+        const childDir = path.join(__dirname, '..', 'data');
+        fs.rmdirSync(childDir, { recursive: true });
+      },
+      init: () => {
+        const childDir = path.join(__dirname, '..', 'data');
+        fs.mkdirSync(childDir, { recursive: true });
+      },
+    },
   },
   /**
    * Stores mappings between IDs which allow Broker to perform various kinds of
