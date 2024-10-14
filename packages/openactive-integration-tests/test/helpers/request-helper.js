@@ -233,7 +233,7 @@ class RequestHelper {
    * @param {import('./item-listener-requirements').ItemListenerRequirement[]} [itemListenerRequirements]
    */
   async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, itemListenerRequirements) {
-    // TODO3 only if there's a flag enabled
+    // TODO2 only if there's a flag enabled
     return await this.post(
       `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
@@ -251,7 +251,7 @@ class RequestHelper {
    * @param {import('./item-listener-requirements').ItemListenerRequirement[]} [itemListenerRequirements]
    */
   async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid, itemListenerRequirements) {
-    // TODO3 only if there's a flag enabled
+    // TODO2 only if there's a flag enabled
     const query = (itemListenerRequirements && itemListenerRequirements.length > 0)
       ? `?itemRequirements=${encodeURIComponent(JSON.stringify(itemListenerRequirements))}`
       : '';

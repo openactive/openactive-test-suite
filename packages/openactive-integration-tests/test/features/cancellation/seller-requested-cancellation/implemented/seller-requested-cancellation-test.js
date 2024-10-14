@@ -5,6 +5,8 @@ const {
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 
+// TODO2 then apply to customer cancellation and any other such tests
+
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
   testFeature: 'seller-requested-cancellation',

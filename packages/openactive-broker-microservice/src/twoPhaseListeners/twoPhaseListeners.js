@@ -1,5 +1,5 @@
 const jsonpath = require('jsonpath');
-const { isEqual } = require('lodash');
+const { isEqual, isNil } = require('lodash');
 
 /**
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType
@@ -19,17 +19,23 @@ const { isEqual } = require('lodash');
  * @property {string} jsonPath A JSONPath query. This query will extract an
  *   array of specific values from the item. The extracted values will be
  *   checked against the `checkValue` property using the specified `checkType`.
- * @property {'anyNotEquals'} checkType What type of check to perform. Types:
- *   - `anyNotEquals`: At least one of the extracted values must not equal
+ * @property {'allNotEqual' | `atLeastNNotEqual`} checkType What type of check to perform. Types:
+ *   - `allNotEqual`: All of the extracted values must not equal `checkValue`.
+ *     This will return `false` if there are no extracted values.
+ *   - `atLeastNNotEqual`: At least N of the extracted values must not equal
  *     `checkValue`. This will return `false` if there are no extracted values.
- *     Equality is determined using `lodash.isEqual`, so arrays/objects/etc can
- *     be compared.
+ *     `N` must be specified in `checkArgs.n`.
+ *
+ *   Equality is determined using `lodash.isEqual`, so arrays/objects/etc can be
+ *   compared.
  * @property {unknown} checkValue The value to compare against.
+ * @property {{ n?: number }} [checkArgs] Arguments that can modify the kind of
+ *   check.
  */
 /**
  * @typedef {object} Listener
  * @property {ListenerItemRequirement[]} itemRequirements
- *   TODO3 document
+ *   TODO2 document
  * @property {any | null} item When the listener finds the item, it will be
  *   stored here if collection has not yet been requested.
  * @property {import('express').Response | null} collectRes When collection is
@@ -122,7 +128,7 @@ const TwoPhaseListeners = {
     // the collection request must be fulfilled
     if (listenersMap.has(listenerId)) {
       const { collectRes, itemRequirements } = listenersMap.get(listenerId);
-      const meetsRequirements = doesItemMeetItemRequirements(item, itemRequirements);
+      const meetsRequirements = doesItemMeetItemRequirements(listenerId, itemRequirements, item);
       if (!meetsRequirements) {
         return;
       }
@@ -137,7 +143,7 @@ const TwoPhaseListeners = {
   },
 
   /**
-   * TODO3 document this. Similar style to `doNotifyListener`.
+   * TODO2 document this. Similar style to `doNotifyListener`.
    *
    * @param {import('express').Response} res
    * @param {Map<string, Listener>} listenersMap
@@ -174,21 +180,34 @@ function doRespondToAndDeleteListener(listenersMap, listenerId, res, item) {
 }
 
 /**
+ * @param {string} listenerId Used for error messages
  * @param {unknown} item
  * @param {ListenerItemRequirement[]} itemRequirements
  */
-function doesItemMeetItemRequirements(item, itemRequirements) {
+function doesItemMeetItemRequirements(listenerId, itemRequirements, item) {
   if (itemRequirements.length === 0) {
     return true;
   }
-  return itemRequirements.every(({ jsonPath, checkType, checkValue }) => {
+  return itemRequirements.every(({ jsonPath, checkType, checkValue, checkArgs }, i) => {
     const extractedValues = jsonpath.query(item, jsonPath);
     switch (checkType) {
-      case 'anyNotEquals': {
+      case 'allNotEqual': {
         if (extractedValues.length === 0) {
           return false;
         }
-        return extractedValues.some((value) => !isEqual(value, checkValue));
+        return extractedValues.every((value) => !isEqual(value, checkValue));
+      }
+      case 'atLeastNNotEqual': {
+        if (extractedValues.length === 0) {
+          return false;
+        }
+        const { n } = checkArgs;
+        if (isNil(n)) {
+          throw new Error(`ListenerItemRequirement (index: ${i}, for listener ID: ${listenerId}) is missing \`n\` in \`checkArgs\` for \`atLeastNNotEqual\` check type`);
+        }
+        const valuesWhichAreNotEqual = extractedValues.filter((value) => !isEqual(value, checkValue));
+        const amountWhichAreNotEqual = valuesWhichAreNotEqual.length;
+        return amountWhichAreNotEqual >= n;
       }
       default:
         throw new Error(`Unknown check type: ${checkType}`);

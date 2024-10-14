@@ -619,7 +619,9 @@ const FlowStageRecipes = {
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
        * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
-      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, {
+        cancelArgs, assertOpportunityCapacityArgs,
+      }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
         const [cancel, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
           wrappedStageFn: orderFeedListener => (new CancelOrderFlowStage({
@@ -713,8 +715,10 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
-            // TODO3 document the rationale here. Systems like bookteq, etc
-            itemListenerRequirements: [ItemListenerRequirementRecipes.nonConfirmedOrderItem()],
+            // TODO2 document the rationale here. Systems like bookteq, etc.
+            // Incl. that all OrderItems should be cancelled for a seller
+            // cancel.
+            itemListenerRequirements: [ItemListenerRequirementRecipes.allNonConfirmedOrderItems()],
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
