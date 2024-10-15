@@ -61,6 +61,7 @@
       "dataset-site": true,
       "availability-check": true,
       "common-error-conditions": true,
+      "past-opportunities": true,
       "amending-order-quote": true,
       "order-deletion": true,
       "agent-broker": true,
