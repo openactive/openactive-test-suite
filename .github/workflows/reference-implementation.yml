@@ -8,7 +8,9 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    # env:
+    #   DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
     strategy:
       fail-fast: false
       matrix:
@@ -52,6 +54,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 18.17.1
+
+    # # These are required for .NET globalization
+    # - name: Install ICU packages
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install -y libicu-dev
 
     - name: Install OpenActive.Server.NET dependencies
       run: dotnet restore ./server/
@@ -98,7 +106,7 @@ jobs:
     # Master branch only
     if: ${{ github.ref == 'refs/heads/master' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     # Checkout the repo to seed the contents of ./tests/publish/
