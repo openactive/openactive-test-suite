@@ -1,0 +1,10 @@
+{
+  "category": "core",
+  "identifier": "past-opportunities",
+  "name": "Past opportunities",
+  "description": "For booking systems that support opportunities in the past, ensure that these are not bookable",
+  "explainer": "",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#error-model",
+  "required": false,
+  "coverageStatus": "complete"
+}
