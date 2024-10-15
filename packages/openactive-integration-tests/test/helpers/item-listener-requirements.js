@@ -7,17 +7,17 @@
  *   checkArgs?: {
  *     n?: number;
  *   };
- * }} ItemListenerRequirement
+ * }} ListenerItemRequirement
  */
 
-const ItemListenerRequirementRecipes = {
+const ListenerItemRequirementRecipes = {
   /**
    * Use this to specifically wait for an OrderItem to change its status from
    * OrderItemConfirmed to something else.
    * This is useful for cancellation tests, where (TODO2 continue)
    *
    * @param {number} n - The number of OrderItems that must not be confirmed.
-   * @returns {ItemListenerRequirement}
+   * @returns {ListenerItemRequirement}
    */
   nonConfirmedOrderItems(n) {
     return {
@@ -35,7 +35,7 @@ const ItemListenerRequirementRecipes = {
    *
    * This is useful for cancellation tests, where (TODO2 continue)
    *
-   * @returns {ItemListenerRequirement}
+   * @returns {ListenerItemRequirement}
    */
   allNonConfirmedOrderItems() {
     return {
@@ -47,5 +47,5 @@ const ItemListenerRequirementRecipes = {
 };
 
 module.exports = {
-  ItemListenerRequirementRecipes,
+  ListenerItemRequirementRecipes,
 };

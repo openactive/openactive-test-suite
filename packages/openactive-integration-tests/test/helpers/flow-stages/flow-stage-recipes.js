@@ -12,7 +12,7 @@ const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 const { fixCalculatedMoneyValue } = require('../money-utils');
-const { ItemListenerRequirementRecipes } = require('../item-listener-requirements');
+const { ListenerItemRequirementRecipes } = require('../item-listener-requirements');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -718,7 +718,7 @@ const FlowStageRecipes = {
             // TODO2 document the rationale here. Systems like bookteq, etc.
             // Incl. that all OrderItems should be cancelled for a seller
             // cancel.
-            itemListenerRequirements: [ItemListenerRequirementRecipes.allNonConfirmedOrderItems()],
+            listenerItemRequirements: [ListenerItemRequirementRecipes.allNonConfirmedOrderItems()],
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({

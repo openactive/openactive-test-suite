@@ -230,15 +230,15 @@ class RequestHelper {
    * @param {'orders' | 'order-proposals'} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
-   * @param {import('./item-listener-requirements').ItemListenerRequirement[]} [itemListenerRequirements]
+   * @param {import('./item-listener-requirements').ListenerItemRequirement[]} [listenerItemRequirements]
    */
-  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, itemListenerRequirements) {
+  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, listenerItemRequirements) {
     // TODO2 only if there's a flag enabled
     return await this.post(
       `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
       {
-        itemRequirements: itemListenerRequirements,
+        itemRequirements: listenerItemRequirements,
       },
       BROKER_CHAKRAM_REQUEST_OPTIONS,
     );
@@ -248,12 +248,12 @@ class RequestHelper {
    * @param {'orders' | 'order-proposals'} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
-   * @param {import('./item-listener-requirements').ItemListenerRequirement[]} [itemListenerRequirements]
+   * @param {import('./item-listener-requirements').ListenerItemRequirement[]} [listenerItemRequirements]
    */
-  async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid, itemListenerRequirements) {
+  async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid, listenerItemRequirements) {
     // TODO2 only if there's a flag enabled
-    const query = (itemListenerRequirements && itemListenerRequirements.length > 0)
-      ? `?itemRequirements=${encodeURIComponent(JSON.stringify(itemListenerRequirements))}`
+    const query = (listenerItemRequirements && listenerItemRequirements.length > 0)
+      ? `?itemRequirements=${encodeURIComponent(JSON.stringify(listenerItemRequirements))}`
       : '';
     return await this.get(
       `Orders (${type}) Feed collect for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
