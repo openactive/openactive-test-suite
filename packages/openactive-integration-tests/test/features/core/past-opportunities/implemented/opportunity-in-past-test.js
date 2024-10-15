@@ -9,7 +9,7 @@ const { itShouldIncludeErrorForOnlyPrimaryOrderItems } = require('../../../../sh
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
-  testFeature: 'common-error-conditions',
+  testFeature: 'past-opportunities',
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-in-past',
   testName: 'Expect an OpportunityOfferPairNotBookableError when opportunity is in the past',
