@@ -14,7 +14,7 @@
       "notImplementedTestFiles": 1
     },
     "common-error-conditions": {
-      "implementedTestFiles": 6,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 1
     },
     "dataset-site": {
@@ -120,6 +120,10 @@
     "opportunity-feed": {
       "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
+    },
+    "past-opportunities": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "single-seller": {
       "implementedTestFiles": 1,
