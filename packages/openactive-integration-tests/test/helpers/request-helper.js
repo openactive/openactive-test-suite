@@ -38,6 +38,9 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CON
 
 const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
 const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
+const USE_LISTENER_ITEM_REQUIREMENTS = config.has('integrationTests.useListenerItemRequirements')
+  ? config.get('integrationTests.useListenerItemRequirements')
+  : false;
 
 const BROKER_CHAKRAM_REQUEST_OPTIONS = {
   timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
@@ -233,12 +236,11 @@ class RequestHelper {
    * @param {import('./item-listener-requirements').ListenerItemRequirement[]} [listenerItemRequirements]
    */
   async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, listenerItemRequirements) {
-    // TODO2 only if there's a flag enabled
     return await this.post(
       `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
       {
-        itemRequirements: listenerItemRequirements,
+        itemRequirements: USE_LISTENER_ITEM_REQUIREMENTS ? listenerItemRequirements : undefined,
       },
       BROKER_CHAKRAM_REQUEST_OPTIONS,
     );
@@ -251,8 +253,7 @@ class RequestHelper {
    * @param {import('./item-listener-requirements').ListenerItemRequirement[]} [listenerItemRequirements]
    */
   async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid, listenerItemRequirements) {
-    // TODO2 only if there's a flag enabled
-    const query = (listenerItemRequirements && listenerItemRequirements.length > 0)
+    const query = (USE_LISTENER_ITEM_REQUIREMENTS && listenerItemRequirements && listenerItemRequirements.length > 0)
       ? `?itemRequirements=${encodeURIComponent(JSON.stringify(listenerItemRequirements))}`
       : '';
     return await this.get(

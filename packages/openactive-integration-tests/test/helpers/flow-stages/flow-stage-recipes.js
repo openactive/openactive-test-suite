@@ -715,9 +715,13 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
-            // TODO2 document the rationale here. Systems like bookteq, etc.
-            // Incl. that all OrderItems should be cancelled for a seller
-            // cancel.
+            /* This allows us to support Booking Systems which update OrderItem
+            statuses one at a time, rather than all at once.
+            (The Seller Requested Cancellation action is expected to cancel all
+            OrderItems)
+            Using ListenerItemRequirements, an update which does not have all
+            OrderItem statuses changed will be ignored (if the config option is
+            enabled). */
             listenerItemRequirements: [ListenerItemRequirementRecipes.allNonConfirmedOrderItems()],
           },
         });

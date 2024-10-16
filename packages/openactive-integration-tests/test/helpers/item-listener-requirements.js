@@ -1,4 +1,4 @@
-// TODO2 import this type from broker
+// TODO import this type from broker, to ensure consistency
 /**
  * @typedef {{
  *   jsonPath: string;
@@ -12,9 +12,8 @@
 
 const ListenerItemRequirementRecipes = {
   /**
-   * Use this to specifically wait for an OrderItem to change its status from
-   * OrderItemConfirmed to something else.
-   * This is useful for cancellation tests, where (TODO2 continue)
+   * Use this to specifically wait for one or more (`n`) OrderItems to change
+   * their status from OrderItemConfirmed to something else.
    *
    * @param {number} n - The number of OrderItems that must not be confirmed.
    * @returns {ListenerItemRequirement}
@@ -32,8 +31,6 @@ const ListenerItemRequirementRecipes = {
   /**
    * Use this to specifically wait for ALL OrderItems to change their status
    * from OrderItemConfirmed to something else.
-   *
-   * This is useful for cancellation tests, where (TODO2 continue)
    *
    * @returns {ListenerItemRequirement}
    */

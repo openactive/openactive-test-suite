@@ -35,7 +35,11 @@ const { isEqual, isNil } = require('lodash');
 /**
  * @typedef {object} Listener
  * @property {ListenerItemRequirement[]} itemRequirements
- *   TODO2 document
+ *   What kind of item to look for. If an item does not meet all the
+ *   requirements, then it will be ignored. For example, for a Seller Requested
+ *   Cancellation test, a listener might be created which requires the Order to
+ *   have all OrderItems set to cancelled, so that it can ignore irrelevant
+ *   Order updates.
  * @property {any | null} item When the listener finds the item, it will be
  *   stored here if collection has not yet been requested.
  * @property {import('express').Response | null} collectRes When collection is
@@ -143,7 +147,14 @@ const TwoPhaseListeners = {
   },
 
   /**
-   * TODO2 document this. Similar style to `doNotifyListener`.
+   * This function is for the 2nd phase of the 2-phase listeners: getting the
+   * item.
+   *
+   * If the item has already been found, the client is responded to immediately
+   * using `res`.
+   * Otherwise, the existing listener (which will have been set up in the 1st
+   * phase) is transitioned to a pending state, storing `collectRes`, so that
+   * the client can be responded to when the item is found.
    *
    * @param {import('express').Response} res
    * @param {Map<string, Listener>} listenersMap
