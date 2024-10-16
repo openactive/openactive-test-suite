@@ -30,7 +30,7 @@ function getOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
   // At present, item requirements are only supported for Orders.
-  if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOpportunityId, id, [])) {
+  if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOpportunityId, id)) {
     res.status(404).json({
       error: `Listener for Opportunity with @id "${id}" not found`,
     });
@@ -43,11 +43,8 @@ function getOpportunityListenerApi(req, res) {
 function getOrderListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['type', 'bookingPartnerIdentifier', 'uuid'])) { return; }
   const { type, bookingPartnerIdentifier, uuid } = req.params;
-  const itemRequirements = typeof req.query?.itemRequirements === 'string'
-    ? JSON.parse(req.query.itemRequirements)
-    : [];
   const listenerId = TwoPhaseListeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
-  if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOrderUuid, listenerId, itemRequirements)) {
+  if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOrderUuid, listenerId)) {
     res.status(404).json({
       error: `Listener for Order with Listener ID "${listenerId}" not found`,
     });

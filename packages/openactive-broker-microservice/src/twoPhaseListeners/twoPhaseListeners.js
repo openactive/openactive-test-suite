@@ -10,16 +10,18 @@ const { isEqual, isNil } = require('lodash');
  *   ```
  *   {
  *     jsonPath: '$.data.orderedItem[*].orderItemStatus',
- *     checkType: 'anyNotEquals',
+ *     checkType: 'allNotEqual',
  *     checkValue: 'https://openactive.io/OrderItemConfirmed'
  *   }
  *   ```
- *   This requirement will be satisfied by an Order, which, for example, has one
- *   cancelled OrderItem.
+ *   This requirement will be satisfied by an Order, which, for example, has all
+ *   cancelled OrderItems.
  * @property {string} jsonPath A JSONPath query. This query will extract an
  *   array of specific values from the item. The extracted values will be
  *   checked against the `checkValue` property using the specified `checkType`.
- * @property {'allNotEqual' | `atLeastNNotEqual`} checkType What type of check to perform. Types:
+ * @property {'allNotEqual' | `atLeastNNotEqual`} checkType What type of check
+ *   to perform. Types:
+ *
  *   - `allNotEqual`: All of the extracted values must not equal `checkValue`.
  *     This will return `false` if there are no extracted values.
  *   - `atLeastNNotEqual`: At least N of the extracted values must not equal
@@ -159,17 +161,19 @@ const TwoPhaseListeners = {
    * @param {import('express').Response} res
    * @param {Map<string, Listener>} listenersMap
    * @param {string} listenerId
-   * @param {import('./twoPhaseListeners').ListenerItemRequirement[]} itemRequirements
    * @returns {boolean} `true` if it was found. `false` if no listener was found.
    */
-  doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId, itemRequirements) {
-    if (!listenersMap.has(listenerId)) {
+  doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId) {
+    const listener = listenersMap.get(listenerId);
+    if (!listener) {
       return false;
     }
-    const { item } = listenersMap.get(listenerId);
+    const { item, itemRequirements } = listener;
     if (!item) {
+      // item has not yet been found, so listen for it
       listenersMap.set(listenerId, TwoPhaseListeners.createPendingListener(res, itemRequirements));
     } else {
+      // item has already been found
       doRespondToAndDeleteListener(listenersMap, listenerId, res, item);
     }
     return true;
@@ -192,8 +196,8 @@ function doRespondToAndDeleteListener(listenersMap, listenerId, res, item) {
 
 /**
  * @param {string} listenerId Used for error messages
- * @param {unknown} item
  * @param {ListenerItemRequirement[]} itemRequirements
+ * @param {unknown} item
  */
 function doesItemMeetItemRequirements(listenerId, itemRequirements, item) {
   if (itemRequirements.length === 0) {

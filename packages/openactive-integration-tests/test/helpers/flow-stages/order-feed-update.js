@@ -68,17 +68,16 @@ async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEa
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
  * @param {() => boolean} args.failEarlyIf
- * @param {import('../item-listener-requirements').ListenerItemRequirement[]} [args.listenerItemRequirements]
  * @returns {Promise<CollectorOutput>}
  */
-async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failEarlyIf, listenerItemRequirements }) {
+async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
   /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
   have any Order Feed Update tests which need to test anything other than the
   primary bookingPartnerIdentifier so this hasn't yet been required. */
-  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid, listenerItemRequirements);
+  const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
   return {
@@ -144,9 +143,8 @@ class OrderFeedUpdateCollector extends FlowStage {
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
    * @param {() => boolean} args.failEarlyIf
-   * @param {import('../item-listener-requirements').ListenerItemRequirement[]} [args.listenerItemRequirements]
    */
-  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, failEarlyIf, listenerItemRequirements }) {
+  constructor({ testName, prerequisite, logger, uuid, requestHelper, orderFeedType, failEarlyIf }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -157,7 +155,6 @@ class OrderFeedUpdateCollector extends FlowStage {
           requestHelper,
           orderFeedType,
           failEarlyIf,
-          listenerItemRequirements,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp200SuccessChecks(),
@@ -248,7 +245,6 @@ const OrderFeedUpdateFlowStageUtils = {
         if ((wrappedStage.getOutput()?.httpResponse?.response?.statusCode ?? 200) >= 400) { return true; }
         return false;
       },
-      listenerItemRequirements: orderFeedUpdateParams.listenerItemRequirements,
     });
     return [wrappedStage, collectOrderFeedUpdate];
   },

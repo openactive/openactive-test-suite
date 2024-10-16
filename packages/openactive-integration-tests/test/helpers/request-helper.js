@@ -250,15 +250,11 @@ class RequestHelper {
    * @param {'orders' | 'order-proposals'} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
-   * @param {import('./item-listener-requirements').ListenerItemRequirement[]} [listenerItemRequirements]
    */
-  async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid, listenerItemRequirements) {
-    const query = (USE_LISTENER_ITEM_REQUIREMENTS && listenerItemRequirements && listenerItemRequirements.length > 0)
-      ? `?itemRequirements=${encodeURIComponent(JSON.stringify(listenerItemRequirements))}`
-      : '';
+  async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid) {
     return await this.get(
       `Orders (${type}) Feed collect for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
-      `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}${query}`,
+      `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
       BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {
