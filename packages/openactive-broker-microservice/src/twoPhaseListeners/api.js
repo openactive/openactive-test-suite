@@ -18,7 +18,7 @@ function createOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
   if (!error409IfListenerAlreadyExists(res, state.twoPhaseListeners.byOpportunityId, 'opportunities', id)) { return; }
-  // At present, item requirements are only supported for Orders.
+  // At present, item expectations are only supported for Orders.
   state.twoPhaseListeners.byOpportunityId.set(id, TwoPhaseListeners.createNewListener([]));
   res.status(204).send();
 }
@@ -29,7 +29,7 @@ function createOpportunityListenerApi(req, res) {
 function getOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
-  // At present, item requirements are only supported for Orders.
+  // At present, item expectations are only supported for Orders.
   if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOpportunityId, id)) {
     res.status(404).json({
       error: `Listener for Opportunity with @id "${id}" not found`,
