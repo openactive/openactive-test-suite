@@ -12,7 +12,7 @@ const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 const { fixCalculatedMoneyValue } = require('../money-utils');
-const { ListenerItemRequirementRecipes } = require('../item-listener-requirements');
+const { ListenerItemExpectationRecipes } = require('../listener-item-expectations');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -719,10 +719,10 @@ const FlowStageRecipes = {
             statuses one at a time, rather than all at once.
             (The Seller Requested Cancellation action is expected to cancel all
             OrderItems)
-            Using ListenerItemRequirements, an update which does not have all
+            Using ListenerItemExpectations, an update which does not have all
             OrderItem statuses changed will be ignored (if the config option is
             enabled). */
-            listenerItemRequirements: [ListenerItemRequirementRecipes.allNonConfirmedOrderItems()],
+            listenerItemExpectations: [ListenerItemExpectationRecipes.allNonConfirmedOrderItems()],
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({

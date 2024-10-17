@@ -136,16 +136,18 @@ If turned on, you may be able to build a simpler and more extensible:
   "useShapeExpressions": false
 ```
 
-### `useListenerItemRequirements`
+### `ignoreUnexpectedFeedUpdates`
 
-Whether or not to use the experimental Listener Item Requirements feature (introduced in this [issue](https://github.com/openactive/openactive-test-suite/issues/698)). This experimental feature is not advised as 1). it is not yet fully implemented across all tests, and 2). it may lead to confusing results when a test fails (as is discussed in the issue).
+Whether or not to use the experimental Listener Item Expectations feature (introduced in this [issue](https://github.com/openactive/openactive-test-suite/issues/698)). This experimental feature is not advised as 1). it is not yet fully implemented across all tests, and 2). it may lead to confusing results when a test fails (as is discussed in the issue).
 
-It is off by default.
+It is `false` by default.
 
-If turned on, [Broker Microservice](../openactive-broker-microservice/) will be more picky when listening for updates in the Orders Feeds or Opportunity Feeds. This is necessary if the booking system under test produces RPDE feed updates which are additional to (and irrelevant to) the updates that the tests are listening for.
+If turned on, [Broker Microservice](../openactive-broker-microservice/) will be more picky when listening for updates in the Orders Feeds or Opportunity Feeds. Specifically, it will ignore feed updates which it was not expecting.
+
+This is necessary if the booking system under test produces RPDE feed updates which are additional to (and irrelevant to) the updates that the tests are listening for.
 
 ```json
-  "useListenerItemRequirements": false
+  "ignoreUnexpectedFeedUpdates": false
 ```
 
 ## Reading test results

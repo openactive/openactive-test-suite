@@ -64,10 +64,10 @@ async function createOrderListenerApi(req, res) {
   }
   if (!error400IfExpressParamsAreMissing(req, res, ['type', 'bookingPartnerIdentifier', 'uuid'])) { return; }
   const { type, bookingPartnerIdentifier, uuid } = req.params;
-  const itemRequirements = req.body?.itemRequirements ?? [];
+  const itemExpectations = req.body?.itemExpectations ?? [];
   const listenerId = TwoPhaseListeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
   if (!error409IfListenerAlreadyExists(res, state.twoPhaseListeners.byOrderUuid, type, listenerId)) { return; }
-  state.twoPhaseListeners.byOrderUuid.set(listenerId, TwoPhaseListeners.createNewListener(itemRequirements));
+  state.twoPhaseListeners.byOrderUuid.set(listenerId, TwoPhaseListeners.createNewListener(itemExpectations));
   const feedContext = state.feedContextMap.get(
     orderFeedContextIdentifier(
       type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER,

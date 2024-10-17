@@ -5,8 +5,8 @@ const { isEqual, isNil } = require('lodash');
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType
  */
 /**
- * @typedef {object} ListenerItemRequirement
- *   As an example, with the following requirement:
+ * @typedef {object} ListenerItemExpectation
+ *   As an example, with the following expectation:
  *   ```
  *   {
  *     jsonPath: '$.data.orderedItem[*].orderItemStatus',
@@ -14,7 +14,7 @@ const { isEqual, isNil } = require('lodash');
  *     checkValue: 'https://openactive.io/OrderItemConfirmed'
  *   }
  *   ```
- *   This requirement will be satisfied by an Order, which, for example, has all
+ *   This expectation will be satisfied by an Order, which, for example, has all
  *   cancelled OrderItems.
  * @property {string} jsonPath A JSONPath query. This query will extract an
  *   array of specific values from the item. The extracted values will be
@@ -36,9 +36,9 @@ const { isEqual, isNil } = require('lodash');
  */
 /**
  * @typedef {object} Listener
- * @property {ListenerItemRequirement[]} itemRequirements
+ * @property {ListenerItemExpectation[]} itemExpectations
  *   What kind of item to look for. If an item does not meet all the
- *   requirements, then it will be ignored. For example, for a Seller Requested
+ *   expectations, then it will be ignored. For example, for a Seller Requested
  *   Cancellation test, a listener might be created which requires the Order to
  *   have all OrderItems set to cancelled, so that it can ignore irrelevant
  *   Order updates.
@@ -82,12 +82,12 @@ const TwoPhaseListeners = {
   /**
    * Listener that has just been created.
    *
-   * @param {ListenerItemRequirement[]} itemRequirements
+   * @param {ListenerItemExpectation[]} itemExpectations
    * @returns {Listener}
    */
-  createNewListener(itemRequirements) {
+  createNewListener(itemExpectations) {
     return {
-      itemRequirements,
+      itemExpectations,
       item: null,
       collectRes: null,
     };
@@ -96,12 +96,12 @@ const TwoPhaseListeners = {
    * Listener which is awaiting response from a Broker API client.
    *
    * @param {import('express').Response} res
-   * @param {ListenerItemRequirement[]} itemRequirements
+   * @param {ListenerItemExpectation[]} itemExpectations
    * @returns {Listener}
    */
-  createPendingListener(res, itemRequirements) {
+  createPendingListener(res, itemExpectations) {
     return {
-      itemRequirements,
+      itemExpectations,
       item: null,
       collectRes: res,
     };
@@ -110,12 +110,12 @@ const TwoPhaseListeners = {
    * Listener whose item has been found but it is not yet awaiting response from a Broker API client.
    *
    * @param {Listener['item']} item
-   * @param {ListenerItemRequirement[]} itemRequirements
+   * @param {ListenerItemExpectation[]} itemExpectations
    * @returns {Listener}
    */
-  createResolvedButNotPendingListener(item, itemRequirements) {
+  createResolvedButNotPendingListener(item, itemExpectations) {
     return {
-      itemRequirements,
+      itemExpectations,
       item,
       collectRes: null,
     };
@@ -123,7 +123,7 @@ const TwoPhaseListeners = {
   /**
    * For an item being harvested from RPDE, check if there is a listener listening for it.
    *
-   * If yes, and the item meets the listener's requirements, respond to that listener.
+   * If yes, and the item meets the listener's expectations, respond to that listener.
    *
    * @param {ListenersMap} listenersMap
    * @param {string} listenerId
@@ -133,9 +133,9 @@ const TwoPhaseListeners = {
     // If there is a listener for this ID, either the listener map needs to be populated with the item or
     // the collection request must be fulfilled
     if (listenersMap.has(listenerId)) {
-      const { collectRes, itemRequirements } = listenersMap.get(listenerId);
-      const meetsRequirements = doesItemMeetItemRequirements(listenerId, itemRequirements, item);
-      if (!meetsRequirements) {
+      const { collectRes, itemExpectations } = listenersMap.get(listenerId);
+      const meetsExpectations = doesItemMeetItemExpectations(listenerId, itemExpectations, item);
+      if (!meetsExpectations) {
         return;
       }
       // If there's already a collection request, fulfill it
@@ -143,7 +143,7 @@ const TwoPhaseListeners = {
         doRespondToAndDeleteListener(listenersMap, listenerId, collectRes, item);
       } else {
         // If not, set the opportunity so that it can returned when the collection call arrives
-        listenersMap.set(listenerId, TwoPhaseListeners.createResolvedButNotPendingListener(item, itemRequirements));
+        listenersMap.set(listenerId, TwoPhaseListeners.createResolvedButNotPendingListener(item, itemExpectations));
       }
     }
   },
@@ -168,10 +168,10 @@ const TwoPhaseListeners = {
     if (!listener) {
       return false;
     }
-    const { item, itemRequirements } = listener;
+    const { item, itemExpectations } = listener;
     if (!item) {
       // item has not yet been found, so listen for it
-      listenersMap.set(listenerId, TwoPhaseListeners.createPendingListener(res, itemRequirements));
+      listenersMap.set(listenerId, TwoPhaseListeners.createPendingListener(res, itemExpectations));
     } else {
       // item has already been found
       doRespondToAndDeleteListener(listenersMap, listenerId, res, item);
@@ -196,14 +196,14 @@ function doRespondToAndDeleteListener(listenersMap, listenerId, res, item) {
 
 /**
  * @param {string} listenerId Used for error messages
- * @param {ListenerItemRequirement[]} itemRequirements
+ * @param {ListenerItemExpectation[]} itemExpectations
  * @param {unknown} item
  */
-function doesItemMeetItemRequirements(listenerId, itemRequirements, item) {
-  if (itemRequirements.length === 0) {
+function doesItemMeetItemExpectations(listenerId, itemExpectations, item) {
+  if (itemExpectations.length === 0) {
     return true;
   }
-  return itemRequirements.every(({ jsonPath, checkType, checkValue, checkArgs }, i) => {
+  return itemExpectations.every(({ jsonPath, checkType, checkValue, checkArgs }, i) => {
     const extractedValues = jsonpath.query(item, jsonPath);
     switch (checkType) {
       case 'allNotEqual': {
@@ -218,7 +218,7 @@ function doesItemMeetItemRequirements(listenerId, itemRequirements, item) {
         }
         const { n } = checkArgs;
         if (isNil(n)) {
-          throw new Error(`ListenerItemRequirement (index: ${i}, for listener ID: ${listenerId}) is missing \`n\` in \`checkArgs\` for \`atLeastNNotEqual\` check type`);
+          throw new Error(`ListenerItemExpectation (index: ${i}, for listener ID: ${listenerId}) is missing \`n\` in \`checkArgs\` for \`atLeastNNotEqual\` check type`);
         }
         const valuesWhichAreNotEqual = extractedValues.filter((value) => !isEqual(value, checkValue));
         const amountWhichAreNotEqual = valuesWhichAreNotEqual.length;

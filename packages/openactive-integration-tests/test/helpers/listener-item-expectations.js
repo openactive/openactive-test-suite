@@ -7,16 +7,16 @@
  *   checkArgs?: {
  *     n?: number;
  *   };
- * }} ListenerItemRequirement
+ * }} ListenerItemExpectation
  */
 
-const ListenerItemRequirementRecipes = {
+const ListenerItemExpectationRecipes = {
   /**
    * Use this to specifically wait for one or more (`n`) OrderItems to change
    * their status from OrderItemConfirmed to something else.
    *
    * @param {number} n - The number of OrderItems that must not be confirmed.
-   * @returns {ListenerItemRequirement}
+   * @returns {ListenerItemExpectation}
    */
   nonConfirmedOrderItems(n) {
     return {
@@ -32,7 +32,7 @@ const ListenerItemRequirementRecipes = {
    * Use this to specifically wait for ALL OrderItems to change their status
    * from OrderItemConfirmed to something else.
    *
-   * @returns {ListenerItemRequirement}
+   * @returns {ListenerItemExpectation}
    */
   allNonConfirmedOrderItems() {
     return {
@@ -44,5 +44,5 @@ const ListenerItemRequirementRecipes = {
 };
 
 module.exports = {
-  ListenerItemRequirementRecipes,
+  ListenerItemExpectationRecipes,
 };
