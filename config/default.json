@@ -137,7 +137,8 @@
         }
       }
     },
-    "useShapeExpressions": false
+    "useShapeExpressions": false,
+    "ignoreUnexpectedFeedUpdates": false
   },
   "sellers": {
     "primary": {

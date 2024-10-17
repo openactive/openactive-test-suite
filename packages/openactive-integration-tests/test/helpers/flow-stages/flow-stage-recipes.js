@@ -12,6 +12,7 @@ const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
 const { fixCalculatedMoneyValue } = require('../money-utils');
+const { ListenerItemExpectationRecipes } = require('../listener-item-expectations');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -618,7 +619,9 @@ const FlowStageRecipes = {
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
        * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
        */
-      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, {
+        cancelArgs, assertOpportunityCapacityArgs,
+      }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
         const [cancel, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
           wrappedStageFn: orderFeedListener => (new CancelOrderFlowStage({
@@ -712,6 +715,14 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
+            /* This allows us to support Booking Systems which update OrderItem
+            statuses one at a time, rather than all at once.
+            (The Seller Requested Cancellation action is expected to cancel all
+            OrderItems)
+            Using ListenerItemExpectations, an update which does not have all
+            OrderItem statuses changed will be ignored (if the config option is
+            enabled). */
+            listenerItemExpectations: [ListenerItemExpectationRecipes.allNonConfirmedOrderItems()],
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({

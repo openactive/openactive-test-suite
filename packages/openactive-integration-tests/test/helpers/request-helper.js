@@ -38,6 +38,9 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CON
 
 const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
 const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
+const IGNORE_UNEXPECTED_FEED_UPDATES = config.has('integrationTests.ignoreUnexpectedFeedUpdates')
+  ? config.get('integrationTests.ignoreUnexpectedFeedUpdates')
+  : false;
 
 const BROKER_CHAKRAM_REQUEST_OPTIONS = {
   timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
@@ -230,12 +233,15 @@ class RequestHelper {
    * @param {'orders' | 'order-proposals'} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
+   * @param {import('./listener-item-expectations').ListenerItemExpectation[]} [listenerItemExpectations]
    */
-  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid) {
+  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, listenerItemExpectations) {
     return await this.post(
       `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
-      null,
+      {
+        itemExpectations: IGNORE_UNEXPECTED_FEED_UPDATES ? listenerItemExpectations : undefined,
+      },
       BROKER_CHAKRAM_REQUEST_OPTIONS,
     );
   }

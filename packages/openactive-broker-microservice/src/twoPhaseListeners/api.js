@@ -18,7 +18,8 @@ function createOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
   if (!error409IfListenerAlreadyExists(res, state.twoPhaseListeners.byOpportunityId, 'opportunities', id)) { return; }
-  state.twoPhaseListeners.byOpportunityId.set(id, TwoPhaseListeners.createNewListener());
+  // At present, item expectations are only supported for Orders.
+  state.twoPhaseListeners.byOpportunityId.set(id, TwoPhaseListeners.createNewListener([]));
   res.status(204).send();
 }
 
@@ -28,7 +29,8 @@ function createOpportunityListenerApi(req, res) {
 function getOpportunityListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
-  if (!doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOpportunityId, id)) {
+  // At present, item expectations are only supported for Orders.
+  if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOpportunityId, id)) {
     res.status(404).json({
       error: `Listener for Opportunity with @id "${id}" not found`,
     });
@@ -42,30 +44,11 @@ function getOrderListenerApi(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['type', 'bookingPartnerIdentifier', 'uuid'])) { return; }
   const { type, bookingPartnerIdentifier, uuid } = req.params;
   const listenerId = TwoPhaseListeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
-  if (!doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOrderUuid, listenerId)) {
+  if (!TwoPhaseListeners.doPendOrRespondToGetListenerRequest(res, state.twoPhaseListeners.byOrderUuid, listenerId)) {
     res.status(404).json({
       error: `Listener for Order with Listener ID "${listenerId}" not found`,
     });
   }
-}
-
-/**
- * @param {import('express').Response} res
- * @param {Map<string, Listener>} listenersMap
- * @param {string} listenerId
- * @returns {boolean} `true` if it was found. `false` if no listener was found.
- */
-function doPendOrRespondToGetListenerRequest(res, listenersMap, listenerId) {
-  if (!listenersMap.has(listenerId)) {
-    return false;
-  }
-  const { item } = listenersMap.get(listenerId);
-  if (!item) {
-    listenersMap.set(listenerId, TwoPhaseListeners.createPendingListener(res));
-  } else {
-    TwoPhaseListeners.doRespondToAndDeleteListener(listenersMap, listenerId, res, item);
-  }
-  return true;
 }
 
 /**
@@ -81,9 +64,10 @@ async function createOrderListenerApi(req, res) {
   }
   if (!error400IfExpressParamsAreMissing(req, res, ['type', 'bookingPartnerIdentifier', 'uuid'])) { return; }
   const { type, bookingPartnerIdentifier, uuid } = req.params;
+  const itemExpectations = req.body?.itemExpectations ?? [];
   const listenerId = TwoPhaseListeners.getOrderListenerId(/** @type {OrderFeedType} */(type), bookingPartnerIdentifier, uuid);
   if (!error409IfListenerAlreadyExists(res, state.twoPhaseListeners.byOrderUuid, type, listenerId)) { return; }
-  state.twoPhaseListeners.byOrderUuid.set(listenerId, TwoPhaseListeners.createNewListener());
+  state.twoPhaseListeners.byOrderUuid.set(listenerId, TwoPhaseListeners.createNewListener(itemExpectations));
   const feedContext = state.feedContextMap.get(
     orderFeedContextIdentifier(
       type === 'orders' ? ORDERS_FEED_IDENTIFIER : ORDER_PROPOSALS_FEED_IDENTIFIER,
