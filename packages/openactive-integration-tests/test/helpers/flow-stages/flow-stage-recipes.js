@@ -618,9 +618,12 @@ const FlowStageRecipes = {
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
        * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+       * @param {import('../listener-item-expectations').ListenerItemExpectation[]} args.listenerItemExpectations
        */
       successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, {
-        cancelArgs, assertOpportunityCapacityArgs,
+        cancelArgs,
+        assertOpportunityCapacityArgs,
+        listenerItemExpectations,
       }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
         const [cancel, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
@@ -633,6 +636,9 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
+            /* This allows us to support Booking Systems which update OrderItem
+            statuses one at a time, rather than all at once. */
+            listenerItemExpectations,
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
