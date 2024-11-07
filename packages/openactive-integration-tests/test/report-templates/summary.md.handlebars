@@ -1,20 +1,20 @@
 <head>
 <style>
-h2 {
+h3 {
     cursor: pointer;
     border-top-color: #CCC;
     border-top-width: 1px;
     border-top-style: solid;
     padding-top: 5px;
 }
-h2:hover {
+h3:hover {
     color: #0056b3; /* Example color change on hover */
 }
 </style>
 </head>
 
-<button id="collapseH2Button">Collapse All Sections</button>
-<button id="showH2Button">Show All Sections</button>
+<button id="collapseH3Button">Collapse All Sections</button>
+<button id="showH3Button">Show All Sections</button>
 <button id="showOnlyErrorsButton">Show All Errors</button>
 
 
@@ -70,22 +70,27 @@ were found, that also includes a list of which tests failed as a result:
 
 {{#eachSorted opportunityTypeGroups }}
 
-### {{{ opportunityTypeName }}}
+<h3> {{{ opportunityTypeName }}} </h3>
 
+<ul>
   {{#each featureGroups }}
-  * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
-    {{#each loggers}}
-    - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ htmlLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
-    {{/each}}
+  <li> {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
+    <ul>
+      {{#each loggers}}
+      <li> {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ htmlLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)</li>
+      {{/each}}
+    </ul>
+  </li>
   {{/each}}
+</ul>
 
 {{/eachSorted}}
 
 ---
 
 <script>
-  function collapseH2Section(nextElement) {
-    while (nextElement && nextElement.tagName !== 'H2') {
+  function collapseH3Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H3') {
       if (nextElement.style.display !== 'none') {
         nextElement.style.display = 'none';
       }
@@ -93,76 +98,75 @@ were found, that also includes a list of which tests failed as a result:
     }
   }
 
-  function showH2Section(nextElement) {
-    while (nextElement && nextElement.tagName !== 'H2') {
-      if (nextElement.style.display !== '') {
-        nextElement.style.display = '';
-      }
+  function showH3Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H3') {
+      // Explicitly set display to '' to revert to default
+      nextElement.style.display = ''; 
       nextElement = nextElement.nextElementSibling;
     }
   }
 
-  function toggleH2Section(nextElement) {
-    while (nextElement && nextElement.tagName !== 'H2') {
+  function toggleH3Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H3') {
       // Toggle visibility
       nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
       nextElement = nextElement.nextElementSibling;
     }
   }
 
-  function collapseAllH2Sections() {
-    var h2Elements = document.querySelectorAll('h2');
-    h2Elements.forEach(function (h2) {
-      var nextElement = h2.nextElementSibling;
-      collapseH2Section(nextElement);
-    });
-  }
-  function showAllH2Sections() {
-    var h2Elements = document.querySelectorAll('h2');
-    h2Elements.forEach(function (h2) {
-      var nextElement = h2.nextElementSibling;
-      showH2Section(nextElement);
+  function collapseAllH3Sections() {
+    var H3Elements = document.querySelectorAll('H3');
+    H3Elements.forEach(function (H3) {
+      var nextElement = H3.nextElementSibling;
+      collapseH3Section(nextElement);
     });
   }
 
-  function showOnlyErrorH2() {
-    var h2Elements = document.querySelectorAll('h2');
-    h2Elements.forEach(function (h2) {
-      var nextElement = h2.nextElementSibling;
-      if (nextElement.innerHTML.includes('❌')) {
-        showH2Section(nextElement);
-      } else {
-        collapseH2Section(nextElement);
-      }
+  function showH3Sections(mode) {
+    var H3Elements = document.querySelectorAll('H3');
+    H3Elements.forEach(function (H3) {
+      var nextElement = H3.nextElementSibling;
+
+      // Always show the H3 section
+      showH3Section(H3);
+      showH3Section(nextElement);
+
+      // Iterate through each li element
+      var liElements = nextElement.querySelectorAll('li');
+      liElements.forEach(function (li) {
+        if (mode === 'all' || (mode === 'error' && li.innerHTML.includes('❌'))) {
+          showH3Section(li); // Show the li element if mode is 'all' or it contains an error and mode is 'error'
+        } else {
+          collapseH3Section(li); // Collapse the li element
+        }
+      });
     });
   }
-
-
-  // Show/Hide each header section
-  document.querySelectorAll('h2').forEach(function (h2) {
-    h2.addEventListener('click', function () {
+  
+  // Show/Hide each header section  - toggle
+  document.querySelectorAll('H3').forEach(function (H3) {
+    H3.addEventListener('click', function () {
       let nextElement = this.nextElementSibling;
-      toggleH2Section(nextElement)
+      toggleH3Section(nextElement)
     });
   });
 
-  // Show all header sections
-  document.getElementById('showH2Button').addEventListener('click', function () {
-    showAllH2Sections();
+  // Collapse all header sections button
+  document.getElementById('collapseH3Button').addEventListener('click', function () {
+    collapseAllH3Sections();
   });
 
-  // Collapse all header sections
-  document.getElementById('collapseH2Button').addEventListener('click', function () {
-    collapseAllH2Sections();
+  // Update button event listeners to use the new function
+  document.getElementById('showH3Button').addEventListener('click', function () {
+    showH3Sections('all'); // Show all sections
   });
 
-  // Show only error sections button
   document.getElementById('showOnlyErrorsButton').addEventListener('click', function () {
-    showOnlyErrorH2();
+    showH3Sections('error'); // Show only errors
   });
 
   // Show only errors by default
-  showOnlyErrorH2();
+  showH3Sections('error'); 
 </script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
