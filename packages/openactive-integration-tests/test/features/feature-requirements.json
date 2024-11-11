@@ -29,8 +29,7 @@
     "common-error-conditions": {
       "criteriaRequirements": {
         "primary": {
-          "TestOpportunityBookable": 29,
-          "TestOpportunityBookableInPast": 3
+          "TestOpportunityBookable": 28
         }
       },
       "testInterfaceActionImplementationRequirements": []
@@ -243,6 +242,15 @@
     },
     "opportunity-feed": {
       "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "past-opportunities": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableInPast": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
       "testInterfaceActionImplementationRequirements": []
     },
     "single-seller": {

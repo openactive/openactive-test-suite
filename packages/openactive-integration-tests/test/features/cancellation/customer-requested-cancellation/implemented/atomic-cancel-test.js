@@ -3,6 +3,7 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
 const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { ListenerItemExpectationRecipes } = require('../../../../helpers/listener-item-expectations');
 
 const { IMPLEMENTED_FEATURES } = global;
 
@@ -51,21 +52,26 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger, de
   });
 
   // ### Cancel 1st Order Item which is cancellable
-  const cancelCancellableOrderItem = FlowStageRecipes.runs.customerCancel.successfulCancelAssertOrderUpdateAndCapacity(cancelNotCancellableOrderItems.getLastStage(), defaultFlowStageParams, {
-    cancelArgs: {
-      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
-      testName: 'Cancel Order for cancellable item',
+  const cancelCancellableOrderItem = FlowStageRecipes.runs.customerCancel.successfulCancelAssertOrderUpdateAndCapacity(
+    cancelNotCancellableOrderItems.getLastStage(),
+    defaultFlowStageParams,
+    {
+      cancelArgs: {
+        getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, [0]),
+        testName: 'Cancel Order for cancellable item',
+      },
+      assertOpportunityCapacityArgs: {
+        orderItemCriteriaList,
+        // Opportunity capacity should have incremented for the Opportunity at Order Item position 0
+        getInput: () => ({
+          opportunityFeedExtractResponses: bookRecipe.getAssertOpportunityCapacityAfterBook().getOutput().opportunityFeedExtractResponses,
+          orderItems: fetchOpportunities.getOutput().orderItems,
+        }),
+        getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions([0]),
+      },
+      listenerItemExpectations: [ListenerItemExpectationRecipes.nonConfirmedOrderItems(1)],
     },
-    assertOpportunityCapacityArgs: {
-      orderItemCriteriaList,
-      // Opportunity capacity should have incremented for the Opportunity at Order Item position 0
-      getInput: () => ({
-        opportunityFeedExtractResponses: bookRecipe.getAssertOpportunityCapacityAfterBook().getOutput().opportunityFeedExtractResponses,
-        orderItems: fetchOpportunities.getOutput().orderItems,
-      }),
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions([0]),
-    },
-  });
+  );
 
   // ## Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
