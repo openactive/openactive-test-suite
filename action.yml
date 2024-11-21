@@ -6,7 +6,11 @@ inputs:
     required: false
     default: ''
   NODE_CONFIG_DIR:
-    description: 'The path of a config file to copy into ./config/ of OpenActive Test Suite'
+    description: 'The path of a config directory to copy into ./config/ of OpenActive Test Suite'
+    required: false
+    default: ''
+  NODE_CONFIG_FILE:
+    description: 'The path of a config file to copy into ./config/ of OpenActive Test Suite. This will also set NODE_CONFIG and NODE_APP_INSTANCE to ensure that the test suite uses this file.'
     required: false
     default: ''
   NODE_CONFIG:
@@ -29,6 +33,7 @@ runs:
   env:
     FORCE_COLOR: 1
     NODE_CONFIG_DIR: ${{ inputs.NODE_CONFIG_DIR }}
+    NODE_CONFIG_FILE: ${{ inputs.NODE_CONFIG_FILE }}
     NODE_CONFIG: ${{ inputs.NODE_CONFIG }}
     NODE_ENV: ${{ inputs.NODE_ENV }}
     NODE_APP_INSTANCE: ${{ inputs.NODE_APP_INSTANCE }}
