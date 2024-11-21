@@ -371,7 +371,7 @@ The following steps may be used within a GitHub Actions script:
           NODE_CONFIG: |
             {"ci": true, "broker": {"outputPath": "/github/workspace/test-suite/output/", "datasetSiteUrl": "http://host.docker.internal/openactive"}, "integrationTests": { "outputPath": "/github/workspace/test-suite/output/", "conformanceCertificatePath": "/github/workspace/test-suite/conformance/", "conformanceCertificateId": "https://certificates.example.com/openactive/" }, "sellers": {"primary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/1","secondary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/2"}}}}
       - name: Upload test output as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: ${{ success() || failure() }}
         with:
           name: openactive-test-suite
