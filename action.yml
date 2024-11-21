@@ -1,23 +1,23 @@
 name: 'OpenActive Test Suite'
 description: 'Test suite for OpenActive implementations'
 inputs:
-  args:  # id of input
+  args:
     description: 'Arguments to pass to `npm start` of OpenActive Test Suite'
     required: false
     default: ''
-  config:  # id of input
+  NODE_CONFIG_DIR:
     description: 'The path of a config file to copy into ./config/ of OpenActive Test Suite'
     required: false
     default: ''
-  NODE_CONFIG:  # id of input
+  NODE_CONFIG:
     description: 'JSON configuration string to pass into OpenActive Test Suite'
     required: true
     default: '{ "ci": true }'
-  NODE_ENV:  # id of input
+  NODE_ENV:
     description: 'Value of NODE_ENV environment variable to pass into OpenActive Test Suite'
     required: false
     default: ''
-  NODE_APP_INSTANCE:  # id of input
+  NODE_APP_INSTANCE:
     description: 'Value of NODE_APP_INSTANCE environment variable to pass into OpenActive Test Suite'
     required: false
     default: ''
@@ -28,6 +28,7 @@ runs:
     - ${{ inputs.args }}
   env:
     FORCE_COLOR: 1
+    NODE_CONFIG_DIR: ${{ inputs.NODE_CONFIG_DIR }}
     NODE_CONFIG: ${{ inputs.NODE_CONFIG }}
     NODE_ENV: ${{ inputs.NODE_ENV }}
     NODE_APP_INSTANCE: ${{ inputs.NODE_APP_INSTANCE }}
