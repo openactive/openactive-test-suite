@@ -1,0 +1,2124 @@
+{
+  "flow": {
+    "Booking System Test Interface for OrderItem 0": {
+      "events": [],
+      "request": {
+        "@type": "Slot",
+        "facilityUse": {
+          "@type": "IndividualFacilityUse",
+          "provider": {
+            "@type": "Organization",
+            "@id": "https://localhost:5001/api/identifiers/sellers/1"
+          }
+        },
+        "@context": [
+          "https://openactive.io/",
+          "https://openactive.io/test-interface"
+        ],
+        "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableFree",
+        "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow"
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "Slot",
+          "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707"
+        },
+        "responseTime": 15.656262,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:25:29 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "157"
+        }
+      }
+    },
+    "Opportunity Feed extract for OrderItem 0": {
+      "events": [],
+      "response": {
+        "body": {
+          "state": "updated",
+          "id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707",
+          "modified": "1732209931612",
+          "data": {
+            "@context": [
+              "https://openactive.io/"
+            ],
+            "@type": "Slot",
+            "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707",
+            "identifier": 20707,
+            "duration": "PT1H",
+            "facilityUse": {
+              "@type": "IndividualFacilityUse",
+              "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1",
+              "name": "Court 1 on [OPEN BOOKING API TEST INTERFACE] Bookable Free Facility",
+              "aggregateFacilityUse": {
+                "@type": "FacilityUse",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707",
+                "identifier": 2707,
+                "name": "GOLDEN: [OPEN BOOKING API TEST INTERFACE] Bookable Free Facility",
+                "facilityType": [
+                  {
+                    "@type": "Concept",
+                    "@id": "https://openactive.io/facility-types#a1f82b7a-1258-4d9a-8dc5-bfc2ae961651",
+                    "inScheme": "https://openactive.io/facility-types",
+                    "prefLabel": "Squash Court"
+                  }
+                ],
+                "location": {
+                  "@type": "Place",
+                  "@id": "https://example.com/place/1",
+                  "identifier": 1,
+                  "name": "Post-ercise Plaza",
+                  "description": "Sorting Out Your Fitness One Parcel Lift at a Time! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressCountry": "GB",
+                    "addressLocality": "Oxford",
+                    "addressRegion": "Oxfordshire",
+                    "postalCode": "OX1 1AA",
+                    "streetAddress": "Kings Mead House"
+                  },
+                  "amenityFeature": [
+                    {
+                      "@type": "ChangingFacilities",
+                      "name": "Changing Facilities",
+                      "value": true
+                    },
+                    {
+                      "@type": "Showers",
+                      "name": "Showers",
+                      "value": true
+                    },
+                    {
+                      "@type": "Lockers",
+                      "name": "Lockers",
+                      "value": true
+                    },
+                    {
+                      "@type": "Towels",
+                      "name": "Towels",
+                      "value": false
+                    },
+                    {
+                      "@type": "Creche",
+                      "name": "Creche",
+                      "value": false
+                    },
+                    {
+                      "@type": "Parking",
+                      "name": "Parking",
+                      "value": false
+                    }
+                  ],
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": 51.7502,
+                    "longitude": -1.2674
+                  },
+                  "image": [
+                    {
+                      "@type": "ImageObject",
+                      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Oxford_StAldates_PostOffice.jpg"
+                    }
+                  ],
+                  "openingHoursSpecification": [
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "17:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Sunday"
+                      ],
+                      "opens": "09:00"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Monday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Tuesday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Wednesday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Thursday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Friday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "17:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Saturday"
+                      ],
+                      "opens": "09:00"
+                    }
+                  ],
+                  "telephone": "01865 000001",
+                  "url": "https://en.wikipedia.org/wiki/Post_Office_Limited"
+                },
+                "provider": {
+                  "@type": "Organization",
+                  "@id": "https://localhost:5001/api/identifiers/sellers/1",
+                  "name": "Acme Fitness Ltd",
+                  "isOpenBookingAllowed": true,
+                  "sameAs": [
+                    "https://socialmedia.com/AcmeFitnessLtd"
+                  ],
+                  "taxMode": "https://openactive.io/TaxGross",
+                  "telephone": "03275 846858",
+                  "termsOfService": [
+                    {
+                      "@type": "PrivacyPolicy",
+                      "name": "Privacy Policy",
+                      "requiresExplicitConsent": false,
+                      "url": "https://example.com/privacy.html"
+                    }
+                  ],
+                  "url": "http://tito.info"
+                },
+                "url": "https://www.example.com/facilities/2707"
+              }
+            },
+            "maximumUses": 10,
+            "offers": [
+              {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+                "acceptedPaymentMethod": [
+                  "http://purl.org/goodrelations/v1#Cash",
+                  "http://purl.org/goodrelations/v1#PaymentMethodCreditCard"
+                ],
+                "allowCustomerCancellationFullRefund": true,
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+                "acceptedPaymentMethod": [
+                  "http://purl.org/goodrelations/v1#Cash",
+                  "http://purl.org/goodrelations/v1#PaymentMethodCreditCard"
+                ],
+                "allowCustomerCancellationFullRefund": true,
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+                "acceptedPaymentMethod": [
+                  "http://purl.org/goodrelations/v1#Cash",
+                  "http://purl.org/goodrelations/v1#PaymentMethodCreditCard"
+                ],
+                "allowCustomerCancellationFullRefund": true,
+                "price": 0,
+                "priceCurrency": "GBP"
+              }
+            ],
+            "remainingUses": 10,
+            "startDate": "2024-11-22T17:25:29+00:00",
+            "endDate": "2024-11-22T18:25:29+00:00"
+          }
+        },
+        "responseTime": 1002.500427,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "4828",
+          "etag": "W/\"12dc-6+6rapOv9MPYrgTGL1EOcHFlOz4\"",
+          "date": "Thu, 21 Nov 2024 17:25:30 GMT",
+          "connection": "close"
+        },
+        "validations": [
+          {
+            "path": "$.facilityUse.description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+          },
+          {
+            "path": "$.facilityUse.image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.facilityUse.hoursAvailable",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `hoursAvailable` is missing from `IndividualFacilityUse`."
+          },
+          {
+            "path": "$.facilityUse.aggregateFacilityUse.description",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `description` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+          },
+          {
+            "path": "$.facilityUse.aggregateFacilityUse.image",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `image` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+          },
+          {
+            "path": "$.facilityUse.aggregateFacilityUse.hoursAvailable",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `hoursAvailable` is missing from `FacilityUse`."
+          },
+          {
+            "path": "$.facilityUse.aggregateFacilityUse.offers",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `offers` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"offers\": {\n  \"@type\": \"Offer\",\n  \"identifier\": \"OX-AD\",\n  \"name\": \"Adult\",\n  \"price\": 7.5,\n  \"priceCurrency\": \"GBP\",\n  \"url\": \"https://profile.everyoneactive.com/booking?Site=0140&Activities=1402CBP20150217&Culture=en-GB\"\n}\n```"
+          },
+          {
+            "path": "$.offers[0].name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.offers[0].ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.offers[1].name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.offers[1].ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          },
+          {
+            "path": "$.offers[2].name",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+          },
+          {
+            "path": "$.offers[2].ageRestriction",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+          }
+        ]
+      }
+    },
+    "C1": {
+      "events": [],
+      "request": {
+        "@context": "https://openactive.io/",
+        "@type": "OrderQuote",
+        "brokerRole": "https://openactive.io/AgentBroker",
+        "broker": {
+          "@type": "Organization",
+          "name": "MyFitnessApp",
+          "url": "https://myfitnessapp.example.com",
+          "description": "A fitness app for all the community",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Alan Peacock Way",
+            "addressLocality": "Village East",
+            "addressRegion": "Middlesbrough",
+            "postalCode": "TS4 3AE",
+            "addressCountry": "GB"
+          }
+        },
+        "seller": "https://localhost:5001/api/identifiers/sellers/1",
+        "orderedItem": [
+          {
+            "@type": "OrderItem",
+            "position": 0,
+            "acceptedOffer": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+            "orderedItem": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707"
+          }
+        ],
+        "payment": {
+          "@type": "Payment"
+        }
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "InvalidPaymentDetailsError",
+          "name": "The 'payment' property of the 'OrderQuote' or 'Order' contains data that is not accepted by the Booking System for reconciliation, e.g. an invalid 'accountId'.",
+          "statusCode": 400,
+          "description": "Payment reconciliation details do not match"
+        },
+        "responseTime": 33.73557,
+        "status": 400,
+        "statusMessage": "Bad Request",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:25:30 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "320"
+        },
+        "validations": [
+          {
+            "path": "$.instance",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `instance` is missing from `InvalidPaymentDetailsError`."
+          }
+        ],
+        "specs": [
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "C1",
+              "validation of C1"
+            ],
+            "duration": 3,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C1 validation of C1 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          }
+        ]
+      }
+    },
+    "C2": {
+      "events": [],
+      "request": {
+        "@context": "https://openactive.io/",
+        "@type": "OrderQuote",
+        "brokerRole": "https://openactive.io/AgentBroker",
+        "broker": {
+          "@type": "Organization",
+          "name": "MyFitnessApp",
+          "url": "https://myfitnessapp.example.com",
+          "description": "A fitness app for all the community",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Alan Peacock Way",
+            "addressLocality": "Village East",
+            "addressRegion": "Middlesbrough",
+            "postalCode": "TS4 3AE",
+            "addressCountry": "GB"
+          }
+        },
+        "seller": "https://localhost:5001/api/identifiers/sellers/1",
+        "customer": {
+          "@type": "Person",
+          "email": "Laisha53@yahoo.com",
+          "identifier": "e306c27c-0269-46a3-b63d-57dc8c77852e"
+        },
+        "orderedItem": [
+          {
+            "@type": "OrderItem",
+            "position": 0,
+            "acceptedOffer": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+            "orderedItem": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707"
+          }
+        ],
+        "payment": {
+          "@type": "Payment"
+        }
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "InvalidPaymentDetailsError",
+          "name": "The 'payment' property of the 'OrderQuote' or 'Order' contains data that is not accepted by the Booking System for reconciliation, e.g. an invalid 'accountId'.",
+          "statusCode": 400,
+          "description": "Payment reconciliation details do not match"
+        },
+        "responseTime": 50.242417,
+        "status": 400,
+        "statusMessage": "Bad Request",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:25:30 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "320"
+        },
+        "validations": [
+          {
+            "path": "$.instance",
+            "rule": "RecommendedFieldsRule",
+            "category": "conformance",
+            "type": "missing_recommended_field",
+            "severity": "warning",
+            "message": "Recommended property `instance` is missing from `InvalidPaymentDetailsError`."
+          }
+        ],
+        "specs": [
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "C2",
+              "validation of C2"
+            ],
+            "duration": 5,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C2 validation of C2 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          }
+        ]
+      }
+    },
+    "Fetch Opportunities": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Fetch Opportunities"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities should return 200 on success for request relevant to OrderItem 0",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 200 on success for request relevant to OrderItem 0"
+          },
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Fetch Opportunities",
+              "validation of Opportunity Feed extract for OrderItem 0"
+            ],
+            "duration": 126,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          },
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Fetch Opportunities",
+              "validation of Opportunity Feed extract for OrderItem 0"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableFree' required for this test",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "matches the criteria 'TestOpportunityBookableFree' required for this test"
+          }
+        ]
+      }
+    },
+    "Assert Opportunity Capacity (after C1)": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Assert Opportunity Capacity (after C1)"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return 200 on success for request relevant to OrderItem 0",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 200 on success for request relevant to OrderItem 0"
+          },
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Assert Opportunity Capacity (after C1)",
+              "validation of Opportunity Feed extract for OrderItem 0"
+            ],
+            "duration": 172,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          },
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Assert Opportunity Capacity (after C1)"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`"
+          }
+        ]
+      }
+    },
+    "Assert Opportunity Capacity (after C2)": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Assert Opportunity Capacity (after C2)"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) should return 200 on success for request relevant to OrderItem 0",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return 200 on success for request relevant to OrderItem 0"
+          },
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Assert Opportunity Capacity (after C2)",
+              "validation of Opportunity Feed extract for OrderItem 0"
+            ],
+            "duration": 139,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "passes validation checks"
+          },
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Assert Opportunity Capacity (after C2)"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`"
+          }
+        ]
+      }
+    },
+    "Feature Description Assertions (for OpenActive maintainers)": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "payment-reconciliation-detail-validation",
+              "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+              "OpenBookingSimpleFlow",
+              "IndividualFacilityUseSlot",
+              "Feature Description Assertions (for OpenActive maintainers)"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+          }
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Fetch Opportunities"
+      ],
+      "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow ScheduledSession Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "type": "request",
+      "stage": "Booking System Test Interface for OrderItem 0",
+      "request": {
+        "method": "POST",
+        "url": "https://localhost:5001/api/openbooking/test-interface/datasets/uat-ci/opportunities",
+        "jsonBody": {
+          "@type": "Slot",
+          "facilityUse": {
+            "@type": "IndividualFacilityUse",
+            "provider": {
+              "@type": "Organization",
+              "@id": "https://localhost:5001/api/identifiers/sellers/1"
+            }
+          },
+          "@context": [
+            "https://openactive.io/",
+            "https://openactive.io/test-interface"
+          ],
+          "test:testOpportunityCriteria": "https://openactive.io/test-interface#TestOpportunityBookableFree",
+          "test:testOpenBookingFlow": "https://openactive.io/test-interface#OpenBookingSimpleFlow"
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkIwNEY3QjkxREUzQjk0NzhDNjE4MzNGQjI0QUE1Q0RCIiwidHlwIjoiYXQrand0In0.eyJuYmYiOjE3MzIyMDgxNzQsImV4cCI6MTczMjIxMTc3NCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiNDJhNWRiODktMTk4Ni00MzliLTk5MmUtYjBiY2ZjNzMyZDQyIiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiNDJhNWRiODktMTk4Ni00MzliLTk5MmUtYjBiY2ZjNzMyZDQyIiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNzMyMjA4MTc0LCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsImp0aSI6IjdDRTc5MkM4MkQ2NEQ2MkY0MkVEQzM5QjE4QTlEMEZEIiwic2lkIjoiQzUwNTA1OUE4RTc1NEY3M0MxRkQyMUZGQjUzQkVBNjgiLCJpYXQiOjE3MzIyMDgxNzQsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtb3BlbmJvb2tpbmciLCJvcGVuYWN0aXZlLWlkZW50aXR5Iiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.H2uNclHIT_QycnKhYstfMtWn2uGIinc_bFzKDGZzPkffFAvbDD1rG3xNl5-eqxp0NhYCm9TXObDwSkD7lKdenIkoSbu9EqAvW6EnkCR4T1fGBqR6YdhzjB9_tEYQnFXaIKGRfIKYQN9FPM880Af4kILXYEen-UIGYRa4d-1uIYdwNmDOV3kUmRkmJqC7_0m9sFxbJW9h_2T9JHzUywaBwEasru7A5xf-u_Y-gsmbASGxZN4WA9mKAydU3H5sRlLYbgFuDdF4m5GVIrVNIdZeCmdokqsyxBPncr_6YlgMNzUjx2OmsrekLtOeyK9c2-7IMvmglO_zX98sslVtzVu65w"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "Slot",
+          "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707"
+        },
+        "responseTime": 15.656262,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:25:29 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "157"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Fetch Opportunities"
+      ],
+      "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow ScheduledSession Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "type": "request",
+      "stage": "Opportunity Feed extract for OrderItem 0",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/opportunity/https%3A%2F%2Flocalhost%3A5001%2Fapi%2Fidentifiers%2Ffacility-uses%2F2707%2Findividual-facility-uses%2F1%2Fslots%2F20707?useCacheIfAvailable=true",
+        "jsonBody": null,
+        "requestOptions": {
+          "timeout": 60000
+        }
+      },
+      "isPending": false,
+      "requestMetadata": {
+        "feedExtract": {
+          "id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707",
+          "type": "opportunities"
+        }
+      },
+      "duration": 900,
+      "response": {
+        "body": {
+          "state": "updated",
+          "id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707",
+          "modified": "1732209931612",
+          "data": {
+            "@context": [
+              "https://openactive.io/"
+            ],
+            "@type": "Slot",
+            "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707",
+            "identifier": 20707,
+            "duration": "PT1H",
+            "facilityUse": {
+              "@type": "IndividualFacilityUse",
+              "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1",
+              "name": "Court 1 on [OPEN BOOKING API TEST INTERFACE] Bookable Free Facility",
+              "aggregateFacilityUse": {
+                "@type": "FacilityUse",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707",
+                "identifier": 2707,
+                "name": "GOLDEN: [OPEN BOOKING API TEST INTERFACE] Bookable Free Facility",
+                "facilityType": [
+                  {
+                    "@type": "Concept",
+                    "@id": "https://openactive.io/facility-types#a1f82b7a-1258-4d9a-8dc5-bfc2ae961651",
+                    "inScheme": "https://openactive.io/facility-types",
+                    "prefLabel": "Squash Court"
+                  }
+                ],
+                "location": {
+                  "@type": "Place",
+                  "@id": "https://example.com/place/1",
+                  "identifier": 1,
+                  "name": "Post-ercise Plaza",
+                  "description": "Sorting Out Your Fitness One Parcel Lift at a Time! Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressCountry": "GB",
+                    "addressLocality": "Oxford",
+                    "addressRegion": "Oxfordshire",
+                    "postalCode": "OX1 1AA",
+                    "streetAddress": "Kings Mead House"
+                  },
+                  "amenityFeature": [
+                    {
+                      "@type": "ChangingFacilities",
+                      "name": "Changing Facilities",
+                      "value": true
+                    },
+                    {
+                      "@type": "Showers",
+                      "name": "Showers",
+                      "value": true
+                    },
+                    {
+                      "@type": "Lockers",
+                      "name": "Lockers",
+                      "value": true
+                    },
+                    {
+                      "@type": "Towels",
+                      "name": "Towels",
+                      "value": false
+                    },
+                    {
+                      "@type": "Creche",
+                      "name": "Creche",
+                      "value": false
+                    },
+                    {
+                      "@type": "Parking",
+                      "name": "Parking",
+                      "value": false
+                    }
+                  ],
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": 51.7502,
+                    "longitude": -1.2674
+                  },
+                  "image": [
+                    {
+                      "@type": "ImageObject",
+                      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Oxford_StAldates_PostOffice.jpg"
+                    }
+                  ],
+                  "openingHoursSpecification": [
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "17:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Sunday"
+                      ],
+                      "opens": "09:00"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Monday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Tuesday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Wednesday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Thursday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "21:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Friday"
+                      ],
+                      "opens": "06:30"
+                    },
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "closes": "17:30",
+                      "dayOfWeek": [
+                        "https://schema.org/Saturday"
+                      ],
+                      "opens": "09:00"
+                    }
+                  ],
+                  "telephone": "01865 000001",
+                  "url": "https://en.wikipedia.org/wiki/Post_Office_Limited"
+                },
+                "provider": {
+                  "@type": "Organization",
+                  "@id": "https://localhost:5001/api/identifiers/sellers/1",
+                  "name": "Acme Fitness Ltd",
+                  "isOpenBookingAllowed": true,
+                  "sameAs": [
+                    "https://socialmedia.com/AcmeFitnessLtd"
+                  ],
+                  "taxMode": "https://openactive.io/TaxGross",
+                  "telephone": "03275 846858",
+                  "termsOfService": [
+                    {
+                      "@type": "PrivacyPolicy",
+                      "name": "Privacy Policy",
+                      "requiresExplicitConsent": false,
+                      "url": "https://example.com/privacy.html"
+                    }
+                  ],
+                  "url": "http://tito.info"
+                },
+                "url": "https://www.example.com/facilities/2707"
+              }
+            },
+            "maximumUses": 10,
+            "offers": [
+              {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+                "acceptedPaymentMethod": [
+                  "http://purl.org/goodrelations/v1#Cash",
+                  "http://purl.org/goodrelations/v1#PaymentMethodCreditCard"
+                ],
+                "allowCustomerCancellationFullRefund": true,
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+                "acceptedPaymentMethod": [
+                  "http://purl.org/goodrelations/v1#Cash",
+                  "http://purl.org/goodrelations/v1#PaymentMethodCreditCard"
+                ],
+                "allowCustomerCancellationFullRefund": true,
+                "price": 0,
+                "priceCurrency": "GBP"
+              },
+              {
+                "@type": "Offer",
+                "@id": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+                "acceptedPaymentMethod": [
+                  "http://purl.org/goodrelations/v1#Cash",
+                  "http://purl.org/goodrelations/v1#PaymentMethodCreditCard"
+                ],
+                "allowCustomerCancellationFullRefund": true,
+                "price": 0,
+                "priceCurrency": "GBP"
+              }
+            ],
+            "remainingUses": 10,
+            "startDate": "2024-11-22T17:25:29+00:00",
+            "endDate": "2024-11-22T18:25:29+00:00"
+          }
+        },
+        "responseTime": 1002.500427,
+        "status": 200,
+        "statusMessage": "OK",
+        "headers": {
+          "x-powered-by": "Express",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "4828",
+          "etag": "W/\"12dc-6+6rapOv9MPYrgTGL1EOcHFlOz4\"",
+          "date": "Thu, 21 Nov 2024 17:25:30 GMT",
+          "connection": "close"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Fetch Opportunities",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "type": "validations",
+      "stage": "Opportunity Feed extract for OrderItem 0",
+      "validations": [
+        {
+          "path": "$.facilityUse.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.facilityUse.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.facilityUse.hoursAvailable",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `hoursAvailable` is missing from `IndividualFacilityUse`."
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.hoursAvailable",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `hoursAvailable` is missing from `FacilityUse`."
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.offers",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `offers` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"offers\": {\n  \"@type\": \"Offer\",\n  \"identifier\": \"OX-AD\",\n  \"name\": \"Adult\",\n  \"price\": 7.5,\n  \"priceCurrency\": \"GBP\",\n  \"url\": \"https://profile.everyoneactive.com/booking?Site=0140&Activities=1402CBP20150217&Culture=en-GB\"\n}\n```"
+        },
+        {
+          "path": "$.offers[0].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[0].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.offers[1].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[1].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.offers[2].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[2].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "C1"
+      ],
+      "title": "matches the criteria 'TestOpportunityBookableFree' required for this test",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableFree' required for this test",
+      "type": "request",
+      "stage": "C1",
+      "request": {
+        "method": "PUT",
+        "url": "https://localhost:5001/api/openbooking/order-quote-templates/ad080abb-f81d-4843-9be0-23ba44fa5941",
+        "jsonBody": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com",
+            "description": "A fitness app for all the community",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Alan Peacock Way",
+              "addressLocality": "Village East",
+              "addressRegion": "Middlesbrough",
+              "postalCode": "TS4 3AE",
+              "addressCountry": "GB"
+            }
+          },
+          "seller": "https://localhost:5001/api/identifiers/sellers/1",
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "position": 0,
+              "acceptedOffer": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+              "orderedItem": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707"
+            }
+          ],
+          "payment": {
+            "@type": "Payment"
+          }
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkIwNEY3QjkxREUzQjk0NzhDNjE4MzNGQjI0QUE1Q0RCIiwidHlwIjoiYXQrand0In0.eyJuYmYiOjE3MzIyMDgxNzQsImV4cCI6MTczMjIxMTc3NCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiNDJhNWRiODktMTk4Ni00MzliLTk5MmUtYjBiY2ZjNzMyZDQyIiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiNDJhNWRiODktMTk4Ni00MzliLTk5MmUtYjBiY2ZjNzMyZDQyIiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNzMyMjA4MTc0LCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsImp0aSI6IjdDRTc5MkM4MkQ2NEQ2MkY0MkVEQzM5QjE4QTlEMEZEIiwic2lkIjoiQzUwNTA1OUE4RTc1NEY3M0MxRkQyMUZGQjUzQkVBNjgiLCJpYXQiOjE3MzIyMDgxNzQsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtb3BlbmJvb2tpbmciLCJvcGVuYWN0aXZlLWlkZW50aXR5Iiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.H2uNclHIT_QycnKhYstfMtWn2uGIinc_bFzKDGZzPkffFAvbDD1rG3xNl5-eqxp0NhYCm9TXObDwSkD7lKdenIkoSbu9EqAvW6EnkCR4T1fGBqR6YdhzjB9_tEYQnFXaIKGRfIKYQN9FPM880Af4kILXYEen-UIGYRa4d-1uIYdwNmDOV3kUmRkmJqC7_0m9sFxbJW9h_2T9JHzUywaBwEasru7A5xf-u_Y-gsmbASGxZN4WA9mKAydU3H5sRlLYbgFuDdF4m5GVIrVNIdZeCmdokqsyxBPncr_6YlgMNzUjx2OmsrekLtOeyK9c2-7IMvmglO_zX98sslVtzVu65w"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "InvalidPaymentDetailsError",
+          "name": "The 'payment' property of the 'OrderQuote' or 'Order' contains data that is not accepted by the Booking System for reconciliation, e.g. an invalid 'accountId'.",
+          "statusCode": 400,
+          "description": "Payment reconciliation details do not match"
+        },
+        "responseTime": 33.73557,
+        "status": 400,
+        "statusMessage": "Bad Request",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:25:30 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "320"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "C1",
+        "validation of C1"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C1 validation of C1 passes validation checks",
+      "type": "validations",
+      "stage": "C1",
+      "validations": [
+        {
+          "path": "$.instance",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `instance` is missing from `InvalidPaymentDetailsError`."
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C1)",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "type": "validations",
+      "stage": "Opportunity Feed extract for OrderItem 0",
+      "validations": [
+        {
+          "path": "$.facilityUse.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.facilityUse.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.facilityUse.hoursAvailable",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `hoursAvailable` is missing from `IndividualFacilityUse`."
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.hoursAvailable",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `hoursAvailable` is missing from `FacilityUse`."
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.offers",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `offers` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"offers\": {\n  \"@type\": \"Offer\",\n  \"identifier\": \"OX-AD\",\n  \"name\": \"Adult\",\n  \"price\": 7.5,\n  \"priceCurrency\": \"GBP\",\n  \"url\": \"https://profile.everyoneactive.com/booking?Site=0140&Activities=1402CBP20150217&Culture=en-GB\"\n}\n```"
+        },
+        {
+          "path": "$.offers[0].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[0].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.offers[1].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[1].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.offers[2].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[2].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "C2"
+      ],
+      "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+      "type": "request",
+      "stage": "C2",
+      "request": {
+        "method": "PUT",
+        "url": "https://localhost:5001/api/openbooking/order-quotes/ad080abb-f81d-4843-9be0-23ba44fa5941",
+        "jsonBody": {
+          "@context": "https://openactive.io/",
+          "@type": "OrderQuote",
+          "brokerRole": "https://openactive.io/AgentBroker",
+          "broker": {
+            "@type": "Organization",
+            "name": "MyFitnessApp",
+            "url": "https://myfitnessapp.example.com",
+            "description": "A fitness app for all the community",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "http://data.myfitnessapp.org.uk/images/logo.png"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Alan Peacock Way",
+              "addressLocality": "Village East",
+              "addressRegion": "Middlesbrough",
+              "postalCode": "TS4 3AE",
+              "addressCountry": "GB"
+            }
+          },
+          "seller": "https://localhost:5001/api/identifiers/sellers/1",
+          "customer": {
+            "@type": "Person",
+            "email": "Laisha53@yahoo.com",
+            "identifier": "e306c27c-0269-46a3-b63d-57dc8c77852e"
+          },
+          "orderedItem": [
+            {
+              "@type": "OrderItem",
+              "position": 0,
+              "acceptedOffer": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707#/offers/0",
+              "orderedItem": "https://localhost:5001/api/identifiers/facility-uses/2707/individual-facility-uses/1/slots/20707"
+            }
+          ],
+          "payment": {
+            "@type": "Payment"
+          }
+        },
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkIwNEY3QjkxREUzQjk0NzhDNjE4MzNGQjI0QUE1Q0RCIiwidHlwIjoiYXQrand0In0.eyJuYmYiOjE3MzIyMDgxNzQsImV4cCI6MTczMjIxMTc3NCwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiNDJhNWRiODktMTk4Ni00MzliLTk5MmUtYjBiY2ZjNzMyZDQyIiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiNDJhNWRiODktMTk4Ni00MzliLTk5MmUtYjBiY2ZjNzMyZDQyIiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNzMyMjA4MTc0LCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsImp0aSI6IjdDRTc5MkM4MkQ2NEQ2MkY0MkVEQzM5QjE4QTlEMEZEIiwic2lkIjoiQzUwNTA1OUE4RTc1NEY3M0MxRkQyMUZGQjUzQkVBNjgiLCJpYXQiOjE3MzIyMDgxNzQsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtb3BlbmJvb2tpbmciLCJvcGVuYWN0aXZlLWlkZW50aXR5Iiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.H2uNclHIT_QycnKhYstfMtWn2uGIinc_bFzKDGZzPkffFAvbDD1rG3xNl5-eqxp0NhYCm9TXObDwSkD7lKdenIkoSbu9EqAvW6EnkCR4T1fGBqR6YdhzjB9_tEYQnFXaIKGRfIKYQN9FPM880Af4kILXYEen-UIGYRa4d-1uIYdwNmDOV3kUmRkmJqC7_0m9sFxbJW9h_2T9JHzUywaBwEasru7A5xf-u_Y-gsmbASGxZN4WA9mKAydU3H5sRlLYbgFuDdF4m5GVIrVNIdZeCmdokqsyxBPncr_6YlgMNzUjx2OmsrekLtOeyK9c2-7IMvmglO_zX98sslVtzVu65w"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "InvalidPaymentDetailsError",
+          "name": "The 'payment' property of the 'OrderQuote' or 'Order' contains data that is not accepted by the Booking System for reconciliation, e.g. an invalid 'accountId'.",
+          "statusCode": 400,
+          "description": "Payment reconciliation details do not match"
+        },
+        "responseTime": 50.242417,
+        "status": 400,
+        "statusMessage": "Bad Request",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:25:30 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "320"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "C2",
+        "validation of C2"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C2 validation of C2 passes validation checks",
+      "type": "validations",
+      "stage": "C2",
+      "validations": [
+        {
+          "path": "$.instance",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `instance` is missing from `InvalidPaymentDetailsError`."
+        }
+      ]
+    },
+    {
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C2)",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "type": "validations",
+      "stage": "Opportunity Feed extract for OrderItem 0",
+      "validations": [
+        {
+          "path": "$.facilityUse.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.facilityUse.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `IndividualFacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.facilityUse.hoursAvailable",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `hoursAvailable` is missing from `IndividualFacilityUse`."
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.description",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `description` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"description\": \"An fast paced game that incorporates netball, handball and football.\"\n```"
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.image",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `image` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"image\": [\n  {\n    \"thumbnail\": \"http://example.com/static/image/speedball_thumbnail.jpg\",\n    \"@type\": \"ImageObject\",\n    \"url\": \"http://example.com/static/image/speedball_large.jpg\"\n  }\n]\n```"
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.hoursAvailable",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `hoursAvailable` is missing from `FacilityUse`."
+        },
+        {
+          "path": "$.facilityUse.aggregateFacilityUse.offers",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `offers` is missing from `FacilityUse`.\n\nA full example looks like this:\n\n```\n\"offers\": {\n  \"@type\": \"Offer\",\n  \"identifier\": \"OX-AD\",\n  \"name\": \"Adult\",\n  \"price\": 7.5,\n  \"priceCurrency\": \"GBP\",\n  \"url\": \"https://profile.everyoneactive.com/booking?Site=0140&Activities=1402CBP20150217&Culture=en-GB\"\n}\n```"
+        },
+        {
+          "path": "$.offers[0].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[0].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.offers[1].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[1].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        },
+        {
+          "path": "$.offers[2].name",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `name` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"name\": \"Speedball winger position\"\n```"
+        },
+        {
+          "path": "$.offers[2].ageRestriction",
+          "rule": "RecommendedFieldsRule",
+          "category": "conformance",
+          "type": "missing_recommended_field",
+          "severity": "warning",
+          "message": "Recommended property `ageRestriction` is missing from `Offer`.\n\nA full example looks like this:\n\n```\n\"ageRestriction\": {\n  \"@type\": \"QuantitativeValue\",\n  \"minValue\": 15,\n  \"maxValue\": 60\n}\n```"
+        }
+      ]
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Fetch Opportunities"
+      ],
+      "title": "should return 200 on success for request relevant to OrderItem 0",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities should return 200 on success for request relevant to OrderItem 0",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Fetch Opportunities"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities should return 200 on success for request relevant to OrderItem 0",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 200 on success for request relevant to OrderItem 0"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Fetch Opportunities",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Fetch Opportunities",
+          "validation of Opportunity Feed extract for OrderItem 0"
+        ],
+        "duration": 126,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Fetch Opportunities",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "matches the criteria 'TestOpportunityBookableFree' required for this test",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableFree' required for this test",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Fetch Opportunities",
+          "validation of Opportunity Feed extract for OrderItem 0"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Fetch Opportunities validation of Opportunity Feed extract for OrderItem 0 matches the criteria 'TestOpportunityBookableFree' required for this test",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "matches the criteria 'TestOpportunityBookableFree' required for this test"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "C1",
+        "validation of C1"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C1 validation of C1 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "C1",
+          "validation of C1"
+        ],
+        "duration": 3,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C1 validation of C1 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C1)"
+      ],
+      "title": "should return 200 on success for request relevant to OrderItem 0",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return 200 on success for request relevant to OrderItem 0",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Assert Opportunity Capacity (after C1)"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return 200 on success for request relevant to OrderItem 0",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 200 on success for request relevant to OrderItem 0"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C1)",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Assert Opportunity Capacity (after C1)",
+          "validation of Opportunity Feed extract for OrderItem 0"
+        ],
+        "duration": 172,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C1)"
+      ],
+      "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Assert Opportunity Capacity (after C1)"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C1) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "C2",
+        "validation of C2"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C2 validation of C2 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "C2",
+          "validation of C2"
+        ],
+        "duration": 5,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot C2 validation of C2 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C2)"
+      ],
+      "title": "should return 200 on success for request relevant to OrderItem 0",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) should return 200 on success for request relevant to OrderItem 0",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Assert Opportunity Capacity (after C2)"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) should return 200 on success for request relevant to OrderItem 0",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return 200 on success for request relevant to OrderItem 0"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C2)",
+        "validation of Opportunity Feed extract for OrderItem 0"
+      ],
+      "title": "passes validation checks",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Assert Opportunity Capacity (after C2)",
+          "validation of Opportunity Feed extract for OrderItem 0"
+        ],
+        "duration": 139,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) validation of Opportunity Feed extract for OrderItem 0 passes validation checks",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "passes validation checks"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Assert Opportunity Capacity (after C2)"
+      ],
+      "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Assert Opportunity Capacity (after C2)"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Assert Opportunity Capacity (after C2) should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "payment-reconciliation-detail-validation",
+        "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+        "OpenBookingSimpleFlow",
+        "IndividualFacilityUseSlot",
+        "Feature Description Assertions (for OpenActive maintainers)"
+      ],
+      "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "spec": {
+        "ancestorTitles": [
+          "payment-reconciliation-detail-validation",
+          "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+          "OpenBookingSimpleFlow",
+          "IndividualFacilityUseSlot",
+          "Feature Description Assertions (for OpenActive maintainers)"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+      }
+    }
+  ],
+  "timestamp": "Thu Nov 21 2024 17:25:24 GMT+0000 (Coordinated Universal Time)",
+  "config": {
+    "testCategory": "payment",
+    "testFeature": "payment-reconciliation-detail-validation",
+    "testFeatureImplemented": true,
+    "testIdentifier": "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+    "testName": "Payment reconciliation detail validation - missing reconciliation details, when no payment required",
+    "testDescription": "B should return an InvalidPaymentDetailsError due to missing reconciliation data",
+    "testOpportunityCriteria": "TestOpportunityBookableFree",
+    "controlOpportunityCriteria": "TestOpportunityBookableFree",
+    "runOnlyIf": true
+  },
+  "implemented": true,
+  "testFileIdentifier": "payment-reconciliation-detail-validation payment-reconciliation-detail-validation-missing-details-no-payment-required OpenBookingSimpleFlow IndividualFacilityUseSlot",
+  "suites": [
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Fetch Opportunities"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Fetch Opportunities",
+      "validation of Opportunity Feed extract for OrderItem 0"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "C1"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "C1",
+      "validation of C1"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Assert Opportunity Capacity (after C1)"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Assert Opportunity Capacity (after C1)",
+      "validation of Opportunity Feed extract for OrderItem 0"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "C2"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "C2",
+      "validation of C2"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Assert Opportunity Capacity (after C2)"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Assert Opportunity Capacity (after C2)",
+      "validation of Opportunity Feed extract for OrderItem 0"
+    ],
+    [
+      "payment-reconciliation-detail-validation",
+      "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+      "OpenBookingSimpleFlow",
+      "IndividualFacilityUseSlot",
+      "Feature Description Assertions (for OpenActive maintainers)"
+    ]
+  ],
+  "title": "payment-reconciliation-detail-validation >> payment-reconciliation-detail-validation-missing-details-no-payment-required (OpenBookingSimpleFlow >> IndividualFacilityUseSlot)",
+  "workingLog": "",
+  "specs": {
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Fetch Opportunities": [
+      "should return 200 on success for request relevant to OrderItem 0"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Fetch Opportunities,validation of Opportunity Feed extract for OrderItem 0": [
+      "passes validation checks",
+      "matches the criteria 'TestOpportunityBookableFree' required for this test"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,C1,validation of C1": [
+      "passes validation checks"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Assert Opportunity Capacity (after C1)": [
+      "should return 200 on success for request relevant to OrderItem 0",
+      "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Assert Opportunity Capacity (after C1),validation of Opportunity Feed extract for OrderItem 0": [
+      "passes validation checks"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,C2,validation of C2": [
+      "passes validation checks"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Assert Opportunity Capacity (after C2)": [
+      "should return 200 on success for request relevant to OrderItem 0",
+      "should return a response containing `\"@type\": \"InvalidPaymentDetailsError\"` with status code `400`"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Assert Opportunity Capacity (after C2),validation of Opportunity Feed extract for OrderItem 0": [
+      "passes validation checks"
+    ],
+    "payment-reconciliation-detail-validation,payment-reconciliation-detail-validation-missing-details-no-payment-required,OpenBookingSimpleFlow,IndividualFacilityUseSlot,Feature Description Assertions (for OpenActive maintainers)": [
+      "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+    ]
+  },
+  "description": "B should return an InvalidPaymentDetailsError due to missing reconciliation data",
+  "bookingFlow": "OpenBookingSimpleFlow",
+  "opportunityType": "IndividualFacilityUseSlot",
+  "baseAncestorTitles": [
+    "payment-reconciliation-detail-validation",
+    "payment-reconciliation-detail-validation-missing-details-no-payment-required",
+    "OpenBookingSimpleFlow",
+    "IndividualFacilityUseSlot"
+  ]
+}

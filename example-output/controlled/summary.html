@@ -1,0 +1,978 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body>
+<p><head></p>
+<style>
+h2 {
+    cursor: pointer;
+    border-top-color: #CCC;
+    border-top-width: 1px;
+    border-top-style: solid;
+    padding-top: 5px;
+}
+h2:hover {
+    color: #0056b3; /* Example color change on hover */
+}
+</style>
+<p></head></p>
+<p><button id="collapseH2Button">Collapse All Sections</button>
+<button id="showH2Button">Show All Sections</button>
+<button id="showOnlyErrorsButton">Show All Errors</button></p>
+<h1 id="summaryoftestsuiteresultsforopenactivereferenceimplementation">Summary of Test Suite Results for 'OpenActive Reference Implementation'</h1>
+<p>Mode: <strong>Controlled</strong></p>
+<p>✅ 22850 passing</p>
+<h2 id="tests">Tests</h2>
+<h3 id="generic">Generic</h3>
+<ul>
+<li>✅ Authentication / Booking Partner Authentication for Multiple Seller Systems (Implemented)<ul>
+<li>✅ <a href="booking-partner-authentication_authentication-authority-present__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">authenticationAuthority present in dataset site</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li>
+<li>✅ <a href="booking-partner-authentication_authorization-code-flow__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Authorization Code Flow</a>: (0 failures, 0 warnings, 0 suggestions, 6 passes)</li>
+<li>✅ <a href="booking-partner-authentication_authorization-persisted__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Authorization persists when not requesting offline access</a>: (0 failures, 0 warnings, 0 suggestions, 9 passes)</li>
+<li>✅ <a href="booking-partner-authentication_client-credentials-flow__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Client Credentials Flow</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>✅ <a href="common-error-conditions_unknown-endpoint__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Expect an UnknownOrIncorrectEndpointError for requests to unknown endpoints</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li></ul></li>
+<li>✅ Core / Dataset Site (Implemented)<ul>
+<li>✅ <a href="dataset-site_dataset-site-jsonld-valid__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Dataset Site JSON-LD valid</a>: (0 failures, 0 warnings, 0 suggestions, 4 passes)</li></ul></li>
+<li>✅ Authentication / Dynamic Client Registration for Multiple Seller Systems (Implemented)<ul>
+<li>✅ <a href="dynamic-client-registration_authorization-code-flow__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Authorization Code Flow</a>: (0 failures, 0 warnings, 0 suggestions, 8 passes)</li>
+<li>✅ <a href="dynamic-client-registration_client-credentials-flow__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Client Credentials Flow</a>: (0 failures, 0 warnings, 0 suggestions, 4 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>✅ <a href="order-deletion_unknown-order__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Expect a UnknownOrderError for an Order that does not exist</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li></ul></li>
+<li>✅ Core / Single Seller (Not Implemented)<ul>
+<li>✅ <a href="single-seller_multiple-sellers-implemented__NoFlow___NoOpportunityType_.html" rel="noopener noreferrer" target="_blank">Multiple Sellers feature must be implemented if Single Seller is not implemented</a>: (0 failures, 0 warnings, 0 suggestions, 2 passes)</li></ul></li>
+</ul>
+<h3 id="openbookingapprovalflowindividualfacilityuseslot">OpenBookingApprovalFlow &gt;&gt; IndividualFacilityUseSlot</h3>
+<ul>
+<li>✅ Access / accessCode update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-code-update-notifications_access-code-update-notifications_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Access code updated after B request.</a>: (0 failures, 116 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Access / accessCode - manual access codes (Implemented)<ul>
+<li>⚠️ <a href="access-code_manual-access-codes_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with access codes.</a>: (0 failures, 120 warnings, 0 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control barcodes  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-barcode-seller-provided_access-barcode-seller_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with access barcode from seller.</a>: (0 failures, 112 warnings, 0 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control images  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-image_access-pass-image_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with access pass image.</a>: (0 failures, 120 warnings, 0 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessPass update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-pass-update-notifications_access-pass-update-notifications_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Access pass updated after B request.</a>: (0 failures, 124 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Details Capture / Additional Details capture (Implemented)<ul>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-and-supplied_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied</a>: (0 failures, 112 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-but-not-supplied_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details required but not supplied</a>: (0 failures, 81 warnings, 0 suggestions, 10 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-invalid-details-supplied_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied but invalid details supplied</a>: (0 failures, 87 warnings, 0 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / AgentBroker mode (Implemented)<ul>
+<li>⚠️ <a href="agent-broker_customer-included_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful request when customer is included in Order in AgentBroker mode</a>: (0 failures, 120 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="agent-broker_customer-not-included_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in AgentBroker mode</a>: (0 failures, 128 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Amending the OrderQuote before B (Implemented)<ul>
+<li>⚠️ <a href="amending-order-quote_amend-c1-and-c2_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Amend, at C1 and C2, an existing OrderQuote</a>: (0 failures, 182 warnings, 0 suggestions, 30 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c1_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Amend, at C1, an existing OrderQuote</a>: (0 failures, 147 warnings, 0 suggestions, 26 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c2_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Amend, at C2, an existing OrderQuote</a>: (0 failures, 169 warnings, 0 suggestions, 30 passes)</li>
+<li>⚠️ <a href="amending-order-quote_c2-with-different-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Run C2 with different details from C1</a>: (0 failures, 126 warnings, 0 suggestions, 24 passes)</li></ul></li>
+<li>✅ Leasing / Anonymous leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-unit-capacity-update_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Single anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 63 warnings, 0 suggestions, 12 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-response_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 44 warnings, 0 suggestions, 9 passes)</li></ul></li>
+<li>✅ Details Capture / Simple Book including Attendee Details capture (Implemented)<ul>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-included_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails included</a>: (0 failures, 104 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-not-included_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails not included</a>: (0 failures, 91 warnings, 0 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / Availability Checking (Implemented)<ul>
+<li>⚠️ <a href="availability-check_availability-confirmed_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Occupancy in C1 and C2 matches feed</a>: (0 failures, 61 warnings, 0 suggestions, 15 passes)</li>
+<li>⚠️ <a href="availability-check_opportunity-full_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">OpportunityIsFullError returned for full OrderItems</a>: (0 failures, 59 warnings, 0 suggestions, 11 passes)</li></ul></li>
+<li>✅ Restrictions / validFromBeforeStartDate booking window (Implemented)<ul>
+<li>⚠️ <a href="booking-window_opportunity-in-range-c1-c2_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity in range should succeed</a>: (0 failures, 61 warnings, 0 suggestions, 11 passes)</li>
+<li>⚠️ <a href="booking-window_opportunity-outside-range-c1-c2_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity outside range should fail</a>: (0 failures, 69 warnings, 0 suggestions, 11 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-gross_business-to-business-tax-calculation-gross_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 104 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-net_business-to-business-tax-calculation-net_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 96 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross-without-checkpoints_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 65 warnings, 0 suggestions, 11 passes)</li>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 112 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-net_business-to-consumer-tax-calculation-net_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Business-to-consumer tax calculation (net)</a>: (0 failures, 112 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Cancellation / latestCancellationBeforeStartDate cancellation window (Implemented)<ul>
+<li>⚠️ <a href="cancellation-window_fail-outside-window_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and failed cancellation outside window.</a>: (0 failures, 125 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="cancellation-window_succeed-within-window_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation within window.</a>: (0 failures, 125 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>⚠️ <a href="common-error-conditions_incomplete-broker-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteBrokerDetailsError when broker details are missing name</a>: (0 failures, 150 warnings, 0 suggestions, 24 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-customer-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteCustomerDetailsError when customer details are missing the required email property</a>: (0 failures, 112 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-offer_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>acceptedOffer</code></a>: (0 failures, 12 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-opportunity_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>orderedItem</code></a>: (0 failures, 9 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details identifier capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-identifier_customer-identifier-capture_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer identifier is reflected back at C2 and B</a>: (0 failures, 112 warnings, 0 suggestions, 19 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details non-essential capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-non-essential_non-essential-customer-details-reflected_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">givenName, familyName, and telephone number are reflected back at C2 and B</a>: (0 failures, 96 warnings, 0 suggestions, 19 passes)</li></ul></li>
+<li>✅ Notifications / Customer notice notifications (Implemented)<ul>
+<li>⚠️ <a href="customer-notice-notifications_customer-notice-notification_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.</a>: (0 failures, 100 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Cancellation / Customer Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="customer-requested-cancellation_atomic-cancel_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and successful cancellation after atomic failed cancellation request</a>: (0 failures, 416 warnings, 0 suggestions, 45 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_book-and-cancel_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation.</a>: (0 failures, 130 warnings, 0 suggestions, 26 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-id-invalid-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemIdInvalidError for an Order that does not exist</a>: (0 failures, 135 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-not-within-order-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemNotWithinOrderError for an Order that does not exist</a>: (0 failures, 134 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-contains-excessive-properties-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError</a>: (0 failures, 114 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-not-allowed-on-property-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchNotAllowedOnPropertyError</a>: (0 failures, 115 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / Free opportunities (Implemented)<ul>
+<li>⚠️ <a href="free-opportunities_opportunity-free-idempotency_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking of free opportunity with idempotency</a>: (0 failures, 65 warnings, 0 suggestions, 11 passes)</li>
+<li>✅ <a href="free-opportunities_opportunity-free-must-not-include-prepayment_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Free opportunities must have either a <code>openBookingPrepayment</code> value of Unspecified, or have no <code>openBookingPrepayment</code> specified</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-unnecessary-payment-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Fail free bookings which include erroneous payment property</a>: (0 failures, 62 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-without-checkpoints_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 78 warnings, 0 suggestions, 11 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking without payment property</a>: (0 failures, 112 warnings, 0 suggestions, 21 passes)</li>
+<li>⚠️ <a href="free-opportunities_payment-mismatch_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities</a>: (0 failures, 68 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Approval Flow / Minimal Proposal Implementation - Book an opportunity using an OrderProposal (Implemented)<ul>
+<li>⚠️ <a href="minimal-proposal_accept-proposal-book_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking using the Booking Flow with Approval</a>: (0 failures, 120 warnings, 0 suggestions, 23 passes)</li>
+<li>⚠️ <a href="minimal-proposal_customer-reject-proposal_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">OrderProposal rejected by the Customer</a>: (0 failures, 106 warnings, 0 suggestions, 22 passes)</li>
+<li>⚠️ <a href="minimal-proposal_not-accept-proposal-book_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">OrderProposal not yet accepted by the Seller</a>: (0 failures, 86 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="minimal-proposal_seller-reject-proposal_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">OrderProposal rejected by the Seller</a>: (0 failures, 89 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Core / Multiple Sellers (Implemented)<ul>
+<li>⚠️ <a href="multiple-sellers_conflicting-seller_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">SellerMismatchError for inconsistent Sellers of OrderItems</a>: (0 failures, 72 warnings, 0 suggestions, 12 passes)</li>
+<li>⚠️ <a href="multiple-sellers_seller-access-restricted-by-auth_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Credentials for Seller (a) must not provide access to make bookings for Seller (b)</a>: (0 failures, 51 warnings, 0 suggestions, 8 passes)</li></ul></li>
+<li>✅ Leasing / Named leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="named-leasing_lease-opportunity-unit-capacity-update_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Single named leased space is unavailable for purchase by other users</a>: (0 failures, 119 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-response_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 67 warnings, 0 suggestions, 12 passes)</li></ul></li>
+<li>✅ Broker Role / NoBroker mode (Implemented)<ul>
+<li>⚠️ <a href="no-broker_broker-included-nobroker-mode_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Broker included in Order in NoBroker mode</a>: (0 failures, 156 warnings, 0 suggestions, 24 passes)</li>
+<li>⚠️ <a href="no-broker_customer-included-nobroker-mode_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer included in Order in NoBroker mode</a>: (0 failures, 120 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="no-broker_customer-not-included-nobroker-mode_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in NoBroker mode</a>: (0 failures, 121 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / Opportunities with a non-zero price (Implemented)<ul>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid-idempotency_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking of paid opportunity with idempotency</a>: (0 failures, 69 warnings, 0 suggestions, 11 passes)</li>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 112 warnings, 0 suggestions, 17 passes)</li></ul></li>
+<li>✅ Notifications / Opportunity attendance updates (Implemented)<ul>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-absent_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAbsentSimulateAction) should update the Order Feed.</a>: (0 failures, 116 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-attended_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAttendedSimulateAction) should update the Order Feed.</a>: (0 failures, 124 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>⚠️ <a href="order-deletion_order-delete-idempotent_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Order successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 112 warnings, 0 suggestions, 21 passes)</li>
+<li>⚠️ <a href="order-deletion_order-quote-delete-idempotent_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Order quote successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 61 warnings, 0 suggestions, 15 passes)</li>
+<li>⚠️ <a href="order-deletion_orders-updated-then-deleted_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Order successfully deleted</a>: (0 failures, 109 warnings, 0 suggestions, 25 passes)</li></ul></li>
+<li>✅ Core / Past opportunities (Implemented)<ul>
+<li>⚠️ <a href="past-opportunities_opportunity-in-past_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect an OpportunityOfferPairNotBookableError when opportunity is in the past</a>: (0 failures, 84 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / Payment reconciliation detail validation (Implemented)<ul>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details-no-payment-required_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when no payment required</a>: (0 failures, 47 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when payment required</a>: (0 failures, 32 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details-no-payment-required_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when no payment required</a>: (0 failures, 35 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when payment required</a>: (0 failures, 35 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-no-payment-required_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is not required</a>: (0 failures, 96 warnings, 0 suggestions, 21 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is required</a>: (0 failures, 104 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment optional (Implemented)<ul>
+<li>⚠️ <a href="prepayment-optional_opportunity-paid-incomplete-payment-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment <code>identifier</code> is not supplied</a>: (0 failures, 62 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_payment-mismatch_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 68 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_with-payment_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Prepayment optional, with <code>payment</code> supplied, is successful</a>: (0 failures, 120 warnings, 0 suggestions, 21 passes)</li>
+<li>⚠️ <a href="prepayment-optional_without-payment_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Prepayment optional, without <code>payment</code> supplied, is successful</a>: (0 failures, 104 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment required and unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required-unavailable_prepayment-required-unavailable-conflict-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Fail when required and unavailable OrderItems are mixed</a>: (0 failures, 150 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment required (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-incomplete-payment-details_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment details are not supplied</a>: (0 failures, 56 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-no-payment-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Unsuccessful booking without payment property</a>: (0 failures, 56 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 112 warnings, 0 suggestions, 21 passes)</li>
+<li>⚠️ <a href="prepayment-required_payment-mismatch_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 67 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / prepayment unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid-unnecessary-payment-error_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Fail on unnecessary payment property</a>: (0 failures, 56 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successfully book paid Opportunity</a>: (0 failures, 112 warnings, 0 suggestions, 21 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_payment-mismatch_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 79 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Approval Flow / Proposal Amendment - Amend an opportunity using an OrderProposal (Implemented)<ul>
+<li>⚠️ <a href="proposal-amendment_proposal-amendment-book_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking using the Booking Flow with Approval, creating an amendment</a>: (0 failures, 140 warnings, 0 suggestions, 27 passes)</li></ul></li>
+<li>✅ Broker Role / ResellerBroker mode (Implemented)<ul>
+<li>⚠️ <a href="reseller-broker_broker-not-included-resellerbroker-mode_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Broker not included in Order in ResellerBroker mode</a>: (0 failures, 134 warnings, 0 suggestions, 24 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-included-resellerbroker-mode_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer included in Order in ResellerBroker mode</a>: (0 failures, 120 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-not-included-resellerbroker-mode_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in ResellerBroker mode</a>: (0 failures, 120 warnings, 0 suggestions, 17 passes)</li></ul></li>
+<li>✅ Cancellation / cancellationMessage for Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation-message_seller-requested-cancellation-with-message_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Seller cancellation with message of order request.</a>: (0 failures, 129 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation_seller-requested-cancellation_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Seller cancellation of order request.</a>: (0 failures, 129 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Replacement (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-replacement_book-and-seller-replace-items_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Book and seller replaces order items.</a>: (0 failures, 108 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-booking-system_booking-system-terms-of-service_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Terms of service defined by bookingService in  C1, C2 and B</a>: (0 failures, 112 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-seller_seller-terms-of-service_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Terms of service defined by seller in opportunity feed, C1, C2 and B</a>: (0 failures, 87 warnings, 0 suggestions, 15 passes)</li></ul></li>
+<li>✅ Core / Test interface (Implemented)<ul>
+<li>⚠️ <a href="test-interface_create-opportunity_OpenBookingApprovalFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Create opportunity</a>: (0 failures, 11 warnings, 0 suggestions, 3 passes)</li></ul></li>
+</ul>
+<h3 id="openbookingapprovalflowmultiple">OpenBookingApprovalFlow &gt;&gt; Multiple</h3>
+<ul>
+<li>✅ Access / accessChannel update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-channel-update-notifications_access-channel-update-notifications_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Access channel updated after B request.</a>: (0 failures, 229 warnings, 144 suggestions, 34 passes)</li></ul></li>
+<li>✅ Access / accessChannel - Seller provided remote access (Implemented)<ul>
+<li>⚠️ <a href="access-channel_includes-access-channel-or-customer-notice_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Details about virtual location included in B response.</a>: (0 failures, 232 warnings, 144 suggestions, 32 passes)</li></ul></li>
+<li>✅ Access / accessCode update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-code-update-notifications_access-code-update-notifications_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Access code updated after B request.</a>: (0 failures, 550 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Access / accessCode - manual access codes (Implemented)<ul>
+<li>⚠️ <a href="access-code_manual-access-codes_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with access codes.</a>: (0 failures, 494 warnings, 144 suggestions, 53 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control barcodes  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-barcode-seller-provided_access-barcode-seller_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with access barcode from seller.</a>: (0 failures, 494 warnings, 144 suggestions, 53 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control images  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-image_access-pass-image_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with access pass image.</a>: (0 failures, 494 warnings, 144 suggestions, 53 passes)</li></ul></li>
+<li>✅ Access / accessPass update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-pass-update-notifications_access-pass-update-notifications_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Access pass updated after B request.</a>: (0 failures, 534 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Details Capture / Additional Details capture (Implemented)<ul>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-and-supplied_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied</a>: (0 failures, 502 warnings, 144 suggestions, 52 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-but-not-supplied_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details required but not supplied</a>: (0 failures, 354 warnings, 108 suggestions, 35 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-invalid-details-supplied_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied but invalid details supplied</a>: (0 failures, 348 warnings, 108 suggestions, 35 passes)</li></ul></li>
+<li>✅ Core / AgentBroker mode (Implemented)<ul>
+<li>⚠️ <a href="agent-broker_customer-included_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful request when customer is included in Order in AgentBroker mode</a>: (0 failures, 542 warnings, 144 suggestions, 52 passes)</li>
+<li>⚠️ <a href="agent-broker_customer-not-included_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in AgentBroker mode</a>: (0 failures, 599 warnings, 162 suggestions, 75 passes)</li></ul></li>
+<li>✅ Core / Amending the OrderQuote before B (Implemented)<ul>
+<li>⚠️ <a href="amending-order-quote_amend-c1-and-c2_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Amend, at C1 and C2, an existing OrderQuote</a>: (0 failures, 890 warnings, 252 suggestions, 105 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c1_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Amend, at C1, an existing OrderQuote</a>: (0 failures, 766 warnings, 216 suggestions, 91 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c2_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Amend, at C2, an existing OrderQuote</a>: (0 failures, 764 warnings, 216 suggestions, 100 passes)</li>
+<li>⚠️ <a href="amending-order-quote_c2-with-different-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Run C2 with different details from C1</a>: (0 failures, 662 warnings, 180 suggestions, 84 passes)</li></ul></li>
+<li>✅ Leasing / Anonymous leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-multiple-capacity-update_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Multiple anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 175 warnings, 126 suggestions, 32 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-unit-capacity-update_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Single anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 116 warnings, 30 suggestions, 18 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-response_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 183 warnings, 54 suggestions, 29 passes)</li></ul></li>
+<li>✅ Details Capture / Simple Book including Attendee Details capture (Implemented)<ul>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-included_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails included</a>: (0 failures, 542 warnings, 144 suggestions, 52 passes)</li>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-not-included_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails not included</a>: (0 failures, 358 warnings, 108 suggestions, 35 passes)</li></ul></li>
+<li>✅ Core / Availability Checking (Implemented)<ul>
+<li>⚠️ <a href="availability-check_availability-confirmed_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Occupancy in C1 and C2 matches feed</a>: (0 failures, 325 warnings, 90 suggestions, 55 passes)</li>
+<li>⚠️ <a href="availability-check_opportunity-full_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">OpportunityIsFullError returned for full OrderItems</a>: (0 failures, 317 warnings, 90 suggestions, 41 passes)</li></ul></li>
+<li>✅ Restrictions / validFromBeforeStartDate booking window (Implemented)<ul>
+<li>⚠️ <a href="booking-window_opportunity-in-range-c1-c2_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity in range should succeed</a>: (0 failures, 313 warnings, 90 suggestions, 41 passes)</li>
+<li>⚠️ <a href="booking-window_opportunity-outside-range-c1-c2_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity outside range should fail</a>: (0 failures, 301 warnings, 90 suggestions, 41 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-gross_business-to-business-tax-calculation-gross_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 534 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-net_business-to-business-tax-calculation-net_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 510 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross-without-checkpoints_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 328 warnings, 90 suggestions, 26 passes)</li>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 518 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-net_business-to-consumer-tax-calculation-net_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Business-to-consumer tax calculation (net)</a>: (0 failures, 494 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Cancellation / latestCancellationBeforeStartDate cancellation window (Implemented)<ul>
+<li>⚠️ <a href="cancellation-window_fail-outside-window_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and failed cancellation outside window.</a>: (0 failures, 597 warnings, 162 suggestions, 60 passes)</li>
+<li>⚠️ <a href="cancellation-window_succeed-within-window_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation within window.</a>: (0 failures, 537 warnings, 162 suggestions, 60 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>⚠️ <a href="common-error-conditions_incomplete-broker-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteBrokerDetailsError when broker details are missing name</a>: (0 failures, 678 warnings, 198 suggestions, 94 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-customer-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteCustomerDetailsError when customer details are missing the required email property</a>: (0 failures, 560 warnings, 162 suggestions, 75 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-offer_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>acceptedOffer</code></a>: (0 failures, 71 warnings, 18 suggestions, 49 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-opportunity_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>orderedItem</code></a>: (0 failures, 70 warnings, 18 suggestions, 49 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details identifier capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-identifier_customer-identifier-capture_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer identifier is reflected back at C2 and B</a>: (0 failures, 534 warnings, 144 suggestions, 54 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details non-essential capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-non-essential_non-essential-customer-details-reflected_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">givenName, familyName, and telephone number are reflected back at C2 and B</a>: (0 failures, 534 warnings, 144 suggestions, 54 passes)</li></ul></li>
+<li>✅ Notifications / Customer notice notifications (Implemented)<ul>
+<li>⚠️ <a href="customer-notice-notifications_customer-notice-notification_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.</a>: (0 failures, 534 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Cancellation / Customer Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="customer-requested-cancellation_book-and-cancel_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation.</a>: (0 failures, 678 warnings, 180 suggestions, 71 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-id-invalid-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemIdInvalidError for an Order that does not exist</a>: (0 failures, 556 warnings, 162 suggestions, 60 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-not-within-order-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemNotWithinOrderError for an Order that does not exist</a>: (0 failures, 604 warnings, 162 suggestions, 60 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-contains-excessive-properties-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError</a>: (0 failures, 596 warnings, 162 suggestions, 60 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-not-allowed-on-property-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchNotAllowedOnPropertyError</a>: (0 failures, 586 warnings, 162 suggestions, 60 passes)</li></ul></li>
+<li>✅ Payment / Free opportunities (Implemented)<ul>
+<li>⚠️ <a href="free-opportunities_opportunity-free-idempotency_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking of free opportunity with idempotency</a>: (0 failures, 333 warnings, 90 suggestions, 26 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-unnecessary-payment-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Fail free bookings which include erroneous payment property</a>: (0 failures, 113 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-without-checkpoints_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 325 warnings, 90 suggestions, 26 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking without payment property</a>: (0 failures, 186 warnings, 48 suggestions, 28 passes)</li>
+<li>⚠️ <a href="free-opportunities_payment-mismatch_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities</a>: (0 failures, 101 warnings, 30 suggestions, 20 passes)</li></ul></li>
+<li>✅ Approval Flow / Minimal Proposal Implementation - Book an opportunity using an OrderProposal (Implemented)<ul>
+<li>⚠️ <a href="minimal-proposal_accept-proposal-book_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking using the Booking Flow with Approval</a>: (0 failures, 518 warnings, 144 suggestions, 58 passes)</li>
+<li>⚠️ <a href="minimal-proposal_customer-reject-proposal_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">OrderProposal rejected by the Customer</a>: (0 failures, 443 warnings, 126 suggestions, 57 passes)</li>
+<li>⚠️ <a href="minimal-proposal_not-accept-proposal-book_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">OrderProposal not yet accepted by the Seller</a>: (0 failures, 455 warnings, 126 suggestions, 52 passes)</li>
+<li>⚠️ <a href="minimal-proposal_seller-reject-proposal_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">OrderProposal rejected by the Seller</a>: (0 failures, 476 warnings, 126 suggestions, 56 passes)</li></ul></li>
+<li>✅ Core / Multiple Sellers (Implemented)<ul>
+<li>⚠️ <a href="multiple-sellers_seller-access-restricted-by-auth_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Credentials for Seller (a) must not provide access to make bookings for Seller (b)</a>: (0 failures, 201 warnings, 54 suggestions, 28 passes)</li></ul></li>
+<li>✅ Leasing / Named leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="named-leasing_lease-opportunity-multiple-capacity-update_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Multiple named leased spaces are unavailable for purchase by other users</a>: (0 failures, 327 warnings, 240 suggestions, 39 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-opportunity-unit-capacity-update_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Single named leased space is unavailable for purchase by other users</a>: (0 failures, 176 warnings, 48 suggestions, 23 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-response_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 296 warnings, 90 suggestions, 42 passes)</li></ul></li>
+<li>✅ Broker Role / NoBroker mode (Implemented)<ul>
+<li>⚠️ <a href="no-broker_broker-included-nobroker-mode_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Broker included in Order in NoBroker mode</a>: (0 failures, 710 warnings, 198 suggestions, 94 passes)</li>
+<li>⚠️ <a href="no-broker_customer-included-nobroker-mode_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer included in Order in NoBroker mode</a>: (0 failures, 510 warnings, 144 suggestions, 52 passes)</li>
+<li>⚠️ <a href="no-broker_customer-not-included-nobroker-mode_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in NoBroker mode</a>: (0 failures, 574 warnings, 162 suggestions, 75 passes)</li></ul></li>
+<li>✅ Payment / Opportunities with a non-zero price (Implemented)<ul>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid-idempotency_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking of paid opportunity with idempotency</a>: (0 failures, 344 warnings, 90 suggestions, 26 passes)</li>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 486 warnings, 144 suggestions, 52 passes)</li></ul></li>
+<li>✅ Notifications / Opportunity attendance updates (Implemented)<ul>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-absent_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAbsentSimulateAction) should update the Order Feed.</a>: (0 failures, 582 warnings, 144 suggestions, 55 passes)</li>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-attended_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAttendedSimulateAction) should update the Order Feed.</a>: (0 failures, 510 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>⚠️ <a href="order-deletion_order-delete-idempotent_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Order successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 534 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="order-deletion_order-quote-delete-idempotent_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Order quote successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 301 warnings, 90 suggestions, 45 passes)</li>
+<li>⚠️ <a href="order-deletion_orders-updated-then-deleted_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Order successfully deleted</a>: (0 failures, 610 warnings, 162 suggestions, 65 passes)</li></ul></li>
+<li>✅ Core / Past opportunities (Implemented)<ul>
+<li>⚠️ <a href="past-opportunities_opportunity-in-past_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect an OpportunityOfferPairNotBookableError when opportunity is in the past</a>: (0 failures, 366 warnings, 108 suggestions, 49 passes)</li></ul></li>
+<li>✅ Payment / Payment reconciliation detail validation (Implemented)<ul>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details-no-payment-required_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when no payment required</a>: (0 failures, 212 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when payment required</a>: (0 failures, 182 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details-no-payment-required_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when no payment required</a>: (0 failures, 227 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when payment required</a>: (0 failures, 200 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-no-payment-required_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is not required</a>: (0 failures, 526 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is required</a>: (0 failures, 502 warnings, 144 suggestions, 56 passes)</li></ul></li>
+<li>✅ Payment / prepayment optional (Implemented)<ul>
+<li>⚠️ <a href="prepayment-optional_opportunity-paid-incomplete-payment-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment <code>identifier</code> is not supplied</a>: (0 failures, 123 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-optional_payment-mismatch_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 101 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-optional_with-payment_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Prepayment optional, with <code>payment</code> supplied, is successful</a>: (0 failures, 186 warnings, 48 suggestions, 28 passes)</li>
+<li>⚠️ <a href="prepayment-optional_without-payment_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Prepayment optional, without <code>payment</code> supplied, is successful</a>: (0 failures, 170 warnings, 48 suggestions, 28 passes)</li></ul></li>
+<li>✅ Payment / prepayment required and unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required-unavailable_prepayment-required-unavailable-conflict-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Fail when required and unavailable OrderItems are mixed</a>: (0 failures, 372 warnings, 108 suggestions, 49 passes)</li></ul></li>
+<li>✅ Payment / prepayment required (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-incomplete-payment-details_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment details are not supplied</a>: (0 failures, 107 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-no-payment-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Unsuccessful booking without payment property</a>: (0 failures, 95 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 170 warnings, 48 suggestions, 28 passes)</li>
+<li>⚠️ <a href="prepayment-required_payment-mismatch_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 118 warnings, 30 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / prepayment unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid-unnecessary-payment-error_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Fail on unnecessary payment property</a>: (0 failures, 315 warnings, 90 suggestions, 44 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successfully book paid Opportunity</a>: (0 failures, 510 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_payment-mismatch_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 308 warnings, 90 suggestions, 44 passes)</li></ul></li>
+<li>✅ Approval Flow / Proposal Amendment - Amend an opportunity using an OrderProposal (Implemented)<ul>
+<li>⚠️ <a href="proposal-amendment_proposal-amendment-book_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking using the Booking Flow with Approval, creating an amendment</a>: (0 failures, 585 warnings, 162 suggestions, 67 passes)</li></ul></li>
+<li>✅ Broker Role / ResellerBroker mode (Implemented)<ul>
+<li>⚠️ <a href="reseller-broker_broker-not-included-resellerbroker-mode_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Broker not included in Order in ResellerBroker mode</a>: (0 failures, 695 warnings, 198 suggestions, 94 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-included-resellerbroker-mode_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer included in Order in ResellerBroker mode</a>: (0 failures, 510 warnings, 144 suggestions, 52 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-not-included-resellerbroker-mode_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in ResellerBroker mode</a>: (0 failures, 494 warnings, 144 suggestions, 52 passes)</li></ul></li>
+<li>✅ Cancellation / cancellationMessage for Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation-message_seller-requested-cancellation-with-message_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Seller cancellation with message of order request.</a>: (0 failures, 659 warnings, 162 suggestions, 61 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation_seller-requested-cancellation_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Seller cancellation of order request.</a>: (0 failures, 561 warnings, 162 suggestions, 61 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Replacement (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-replacement_book-and-seller-replace-items_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Book and seller replaces order items.</a>: (0 failures, 574 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-booking-system_booking-system-terms-of-service_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Terms of service defined by bookingService in  C1, C2 and B</a>: (0 failures, 510 warnings, 144 suggestions, 55 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-seller_seller-terms-of-service_OpenBookingApprovalFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Terms of service defined by seller in opportunity feed, C1, C2 and B</a>: (0 failures, 372 warnings, 108 suggestions, 45 passes)</li></ul></li>
+</ul>
+<h3 id="openbookingapprovalflowscheduledsession">OpenBookingApprovalFlow &gt;&gt; ScheduledSession</h3>
+<ul>
+<li>✅ Access / accessChannel update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-channel-update-notifications_access-channel-update-notifications_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Access channel updated after B request.</a>: (0 failures, 84 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Access / accessChannel - Seller provided remote access (Implemented)<ul>
+<li>⚠️ <a href="access-channel_includes-access-channel-or-customer-notice_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Details about virtual location included in B response.</a>: (0 failures, 89 warnings, 48 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessCode update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-code-update-notifications_access-code-update-notifications_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Access code updated after B request.</a>: (0 failures, 94 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Access / accessCode - manual access codes (Implemented)<ul>
+<li>⚠️ <a href="access-code_manual-access-codes_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with access codes.</a>: (0 failures, 90 warnings, 48 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control barcodes  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-barcode-seller-provided_access-barcode-seller_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with access barcode from seller.</a>: (0 failures, 82 warnings, 48 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control images  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-image_access-pass-image_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with access pass image.</a>: (0 failures, 82 warnings, 48 suggestions, 18 passes)</li></ul></li>
+<li>✅ Access / accessPass update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-pass-update-notifications_access-pass-update-notifications_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Access pass updated after B request.</a>: (0 failures, 86 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Details Capture / Additional Details capture (Implemented)<ul>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-and-supplied_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied</a>: (0 failures, 82 warnings, 48 suggestions, 17 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-but-not-supplied_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details required but not supplied</a>: (0 failures, 63 warnings, 36 suggestions, 10 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-invalid-details-supplied_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied but invalid details supplied</a>: (0 failures, 57 warnings, 36 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / AgentBroker mode (Implemented)<ul>
+<li>⚠️ <a href="agent-broker_customer-included_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful request when customer is included in Order in AgentBroker mode</a>: (0 failures, 82 warnings, 48 suggestions, 17 passes)</li>
+<li>⚠️ <a href="agent-broker_customer-not-included_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in AgentBroker mode</a>: (0 failures, 109 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Amending the OrderQuote before B (Implemented)<ul>
+<li>⚠️ <a href="amending-order-quote_amend-c1-and-c2_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Amend, at C1 and C2, an existing OrderQuote</a>: (0 failures, 146 warnings, 84 suggestions, 30 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c1_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Amend, at C1, an existing OrderQuote</a>: (0 failures, 123 warnings, 72 suggestions, 26 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c2_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Amend, at C2, an existing OrderQuote</a>: (0 failures, 127 warnings, 72 suggestions, 30 passes)</li>
+<li>⚠️ <a href="amending-order-quote_c2-with-different-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Run C2 with different details from C1</a>: (0 failures, 110 warnings, 60 suggestions, 24 passes)</li></ul></li>
+<li>✅ Leasing / Anonymous leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-multiple-capacity-update_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Multiple anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 196 warnings, 126 suggestions, 32 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-unit-capacity-update_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Single anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 54 warnings, 30 suggestions, 12 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-response_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 35 warnings, 18 suggestions, 9 passes)</li></ul></li>
+<li>✅ Details Capture / Simple Book including Attendee Details capture (Implemented)<ul>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-included_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails included</a>: (0 failures, 82 warnings, 48 suggestions, 17 passes)</li>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-not-included_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails not included</a>: (0 failures, 61 warnings, 36 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / Availability Checking (Implemented)<ul>
+<li>⚠️ <a href="availability-check_availability-confirmed_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Occupancy in C1 and C2 matches feed</a>: (0 failures, 53 warnings, 30 suggestions, 15 passes)</li>
+<li>⚠️ <a href="availability-check_opportunity-full_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">OpportunityIsFullError returned for full OrderItems</a>: (0 failures, 51 warnings, 30 suggestions, 11 passes)</li></ul></li>
+<li>✅ Restrictions / validFromBeforeStartDate booking window (Implemented)<ul>
+<li>⚠️ <a href="booking-window_opportunity-in-range-c1-c2_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity in range should succeed</a>: (0 failures, 47 warnings, 30 suggestions, 11 passes)</li>
+<li>⚠️ <a href="booking-window_opportunity-outside-range-c1-c2_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity outside range should fail</a>: (0 failures, 49 warnings, 30 suggestions, 11 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-gross_business-to-business-tax-calculation-gross_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 82 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-net_business-to-business-tax-calculation-net_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 82 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross-without-checkpoints_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 60 warnings, 30 suggestions, 11 passes)</li>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 82 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-net_business-to-consumer-tax-calculation-net_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Business-to-consumer tax calculation (net)</a>: (0 failures, 82 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Cancellation / latestCancellationBeforeStartDate cancellation window (Implemented)<ul>
+<li>⚠️ <a href="cancellation-window_fail-outside-window_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and failed cancellation outside window.</a>: (0 failures, 91 warnings, 54 suggestions, 20 passes)</li>
+<li>⚠️ <a href="cancellation-window_succeed-within-window_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation within window.</a>: (0 failures, 91 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>⚠️ <a href="common-error-conditions_incomplete-broker-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteBrokerDetailsError when broker details are missing name</a>: (0 failures, 118 warnings, 66 suggestions, 24 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-customer-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteCustomerDetailsError when customer details are missing the required email property</a>: (0 failures, 100 warnings, 54 suggestions, 20 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-offer_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>acceptedOffer</code></a>: (0 failures, 12 warnings, 6 suggestions, 14 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-opportunity_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>orderedItem</code></a>: (0 failures, 9 warnings, 6 suggestions, 14 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details identifier capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-identifier_customer-identifier-capture_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer identifier is reflected back at C2 and B</a>: (0 failures, 98 warnings, 48 suggestions, 19 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details non-essential capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-non-essential_non-essential-customer-details-reflected_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">givenName, familyName, and telephone number are reflected back at C2 and B</a>: (0 failures, 90 warnings, 48 suggestions, 19 passes)</li></ul></li>
+<li>✅ Notifications / Customer notice notifications (Implemented)<ul>
+<li>⚠️ <a href="customer-notice-notifications_customer-notice-notification_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.</a>: (0 failures, 94 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Cancellation / Customer Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="customer-requested-cancellation_atomic-cancel_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and successful cancellation after atomic failed cancellation request</a>: (0 failures, 280 warnings, 180 suggestions, 45 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_book-and-cancel_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation.</a>: (0 failures, 104 warnings, 60 suggestions, 26 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-id-invalid-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemIdInvalidError for an Order that does not exist</a>: (0 failures, 100 warnings, 54 suggestions, 20 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-not-within-order-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemNotWithinOrderError for an Order that does not exist</a>: (0 failures, 91 warnings, 54 suggestions, 20 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-contains-excessive-properties-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError</a>: (0 failures, 100 warnings, 54 suggestions, 20 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-not-allowed-on-property-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchNotAllowedOnPropertyError</a>: (0 failures, 100 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / Free opportunities (Implemented)<ul>
+<li>⚠️ <a href="free-opportunities_opportunity-free-idempotency_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking of free opportunity with idempotency</a>: (0 failures, 59 warnings, 30 suggestions, 11 passes)</li>
+<li>✅ <a href="free-opportunities_opportunity-free-must-not-include-prepayment_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Free opportunities must have either a <code>openBookingPrepayment</code> value of Unspecified, or have no <code>openBookingPrepayment</code> specified</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-unnecessary-payment-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Fail free bookings which include erroneous payment property</a>: (0 failures, 59 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-without-checkpoints_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 64 warnings, 30 suggestions, 11 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking without payment property</a>: (0 failures, 90 warnings, 48 suggestions, 21 passes)</li>
+<li>⚠️ <a href="free-opportunities_payment-mismatch_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities</a>: (0 failures, 54 warnings, 30 suggestions, 14 passes)</li></ul></li>
+<li>✅ Approval Flow / Minimal Proposal Implementation - Book an opportunity using an OrderProposal (Implemented)<ul>
+<li>⚠️ <a href="minimal-proposal_accept-proposal-book_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking using the Booking Flow with Approval</a>: (0 failures, 90 warnings, 48 suggestions, 23 passes)</li>
+<li>⚠️ <a href="minimal-proposal_customer-reject-proposal_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">OrderProposal rejected by the Customer</a>: (0 failures, 79 warnings, 42 suggestions, 22 passes)</li>
+<li>⚠️ <a href="minimal-proposal_not-accept-proposal-book_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">OrderProposal not yet accepted by the Seller</a>: (0 failures, 69 warnings, 42 suggestions, 17 passes)</li>
+<li>⚠️ <a href="minimal-proposal_seller-reject-proposal_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">OrderProposal rejected by the Seller</a>: (0 failures, 72 warnings, 42 suggestions, 21 passes)</li></ul></li>
+<li>✅ Core / Multiple Sellers (Implemented)<ul>
+<li>⚠️ <a href="multiple-sellers_conflicting-seller_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">SellerMismatchError for inconsistent Sellers of OrderItems</a>: (0 failures, 66 warnings, 36 suggestions, 12 passes)</li>
+<li>⚠️ <a href="multiple-sellers_seller-access-restricted-by-auth_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Credentials for Seller (a) must not provide access to make bookings for Seller (b)</a>: (0 failures, 42 warnings, 18 suggestions, 8 passes)</li></ul></li>
+<li>✅ Leasing / Named leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="named-leasing_lease-opportunity-multiple-capacity-update_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Multiple named leased spaces are unavailable for purchase by other users</a>: (0 failures, 327 warnings, 240 suggestions, 39 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-opportunity-unit-capacity-update_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Single named leased space is unavailable for purchase by other users</a>: (0 failures, 89 warnings, 48 suggestions, 16 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-response_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 47 warnings, 30 suggestions, 12 passes)</li></ul></li>
+<li>✅ Broker Role / NoBroker mode (Implemented)<ul>
+<li>⚠️ <a href="no-broker_broker-included-nobroker-mode_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Broker included in Order in NoBroker mode</a>: (0 failures, 119 warnings, 66 suggestions, 24 passes)</li>
+<li>⚠️ <a href="no-broker_customer-included-nobroker-mode_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer included in Order in NoBroker mode</a>: (0 failures, 98 warnings, 48 suggestions, 17 passes)</li>
+<li>⚠️ <a href="no-broker_customer-not-included-nobroker-mode_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in NoBroker mode</a>: (0 failures, 94 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / Opportunities with a non-zero price (Implemented)<ul>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid-idempotency_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking of paid opportunity with idempotency</a>: (0 failures, 55 warnings, 30 suggestions, 11 passes)</li>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 82 warnings, 48 suggestions, 17 passes)</li></ul></li>
+<li>✅ Notifications / Opportunity attendance updates (Implemented)<ul>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-absent_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAbsentSimulateAction) should update the Order Feed.</a>: (0 failures, 102 warnings, 48 suggestions, 20 passes)</li>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-attended_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAttendedSimulateAction) should update the Order Feed.</a>: (0 failures, 94 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>⚠️ <a href="order-deletion_order-delete-idempotent_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Order successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 90 warnings, 48 suggestions, 21 passes)</li>
+<li>⚠️ <a href="order-deletion_order-quote-delete-idempotent_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Order quote successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 52 warnings, 30 suggestions, 15 passes)</li>
+<li>⚠️ <a href="order-deletion_orders-updated-then-deleted_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Order successfully deleted</a>: (0 failures, 95 warnings, 54 suggestions, 25 passes)</li></ul></li>
+<li>✅ Core / Past opportunities (Implemented)<ul>
+<li>⚠️ <a href="past-opportunities_opportunity-in-past_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect an OpportunityOfferPairNotBookableError when opportunity is in the past</a>: (0 failures, 66 warnings, 36 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / Payment reconciliation detail validation (Implemented)<ul>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details-no-payment-required_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when no payment required</a>: (0 failures, 35 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when payment required</a>: (0 failures, 29 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details-no-payment-required_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when no payment required</a>: (0 failures, 35 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when payment required</a>: (0 failures, 32 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-no-payment-required_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is not required</a>: (0 failures, 90 warnings, 48 suggestions, 21 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is required</a>: (0 failures, 82 warnings, 48 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment optional (Implemented)<ul>
+<li>⚠️ <a href="prepayment-optional_opportunity-paid-incomplete-payment-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment <code>identifier</code> is not supplied</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_payment-mismatch_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_with-payment_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Prepayment optional, with <code>payment</code> supplied, is successful</a>: (0 failures, 82 warnings, 48 suggestions, 21 passes)</li>
+<li>⚠️ <a href="prepayment-optional_without-payment_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Prepayment optional, without <code>payment</code> supplied, is successful</a>: (0 failures, 82 warnings, 48 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment required and unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required-unavailable_prepayment-required-unavailable-conflict-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Fail when required and unavailable OrderItems are mixed</a>: (0 failures, 108 warnings, 72 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment required (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-incomplete-payment-details_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment details are not supplied</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-no-payment-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Unsuccessful booking without payment property</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 82 warnings, 48 suggestions, 21 passes)</li>
+<li>⚠️ <a href="prepayment-required_payment-mismatch_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / prepayment unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid-unnecessary-payment-error_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Fail on unnecessary payment property</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successfully book paid Opportunity</a>: (0 failures, 90 warnings, 48 suggestions, 21 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_payment-mismatch_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li></ul></li>
+<li>✅ Approval Flow / Proposal Amendment - Amend an opportunity using an OrderProposal (Implemented)<ul>
+<li>⚠️ <a href="proposal-amendment_proposal-amendment-book_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking using the Booking Flow with Approval, creating an amendment</a>: (0 failures, 96 warnings, 54 suggestions, 27 passes)</li></ul></li>
+<li>✅ Broker Role / ResellerBroker mode (Implemented)<ul>
+<li>⚠️ <a href="reseller-broker_broker-not-included-resellerbroker-mode_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Broker not included in Order in ResellerBroker mode</a>: (0 failures, 114 warnings, 66 suggestions, 24 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-included-resellerbroker-mode_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer included in Order in ResellerBroker mode</a>: (0 failures, 82 warnings, 48 suggestions, 17 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-not-included-resellerbroker-mode_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in ResellerBroker mode</a>: (0 failures, 98 warnings, 48 suggestions, 17 passes)</li></ul></li>
+<li>✅ Cancellation / cancellationMessage for Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation-message_seller-requested-cancellation-with-message_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Seller cancellation with message of order request.</a>: (0 failures, 105 warnings, 54 suggestions, 21 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation_seller-requested-cancellation_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Seller cancellation of order request.</a>: (0 failures, 104 warnings, 54 suggestions, 21 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Replacement (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-replacement_book-and-seller-replace-items_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Book and seller replaces order items.</a>: (0 failures, 102 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-booking-system_booking-system-terms-of-service_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Terms of service defined by bookingService in  C1, C2 and B</a>: (0 failures, 90 warnings, 48 suggestions, 20 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-seller_seller-terms-of-service_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Terms of service defined by seller in opportunity feed, C1, C2 and B</a>: (0 failures, 59 warnings, 36 suggestions, 15 passes)</li></ul></li>
+<li>✅ Core / Test interface (Implemented)<ul>
+<li>⚠️ <a href="test-interface_create-opportunity_OpenBookingApprovalFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Create opportunity</a>: (0 failures, 11 warnings, 6 suggestions, 3 passes)</li></ul></li>
+</ul>
+<h3 id="openbookingsimpleflowindividualfacilityuseslot">OpenBookingSimpleFlow &gt;&gt; IndividualFacilityUseSlot</h3>
+<ul>
+<li>✅ Access / accessCode update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-code-update-notifications_access-code-update-notifications_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Access code updated after B request.</a>: (0 failures, 83 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Access / accessCode - manual access codes (Implemented)<ul>
+<li>⚠️ <a href="access-code_manual-access-codes_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with access codes.</a>: (0 failures, 102 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control barcodes  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-barcode-seller-provided_access-barcode-seller_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with access barcode from seller.</a>: (0 failures, 95 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control images  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-image_access-pass-image_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with access pass image.</a>: (0 failures, 102 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessPass update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-pass-update-notifications_access-pass-update-notifications_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Access pass updated after B request.</a>: (0 failures, 114 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Details Capture / Additional Details capture (Implemented)<ul>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-and-supplied_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied</a>: (0 failures, 79 warnings, 0 suggestions, 13 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-but-not-supplied_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details required but not supplied</a>: (0 failures, 78 warnings, 0 suggestions, 10 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-invalid-details-supplied_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied but invalid details supplied</a>: (0 failures, 90 warnings, 0 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / AgentBroker mode (Implemented)<ul>
+<li>⚠️ <a href="agent-broker_customer-included_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful request when customer is included in Order in AgentBroker mode</a>: (0 failures, 103 warnings, 0 suggestions, 13 passes)</li>
+<li>⚠️ <a href="agent-broker_customer-not-included_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in AgentBroker mode</a>: (0 failures, 133 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Amending the OrderQuote before B (Implemented)<ul>
+<li>⚠️ <a href="amending-order-quote_amend-c1-and-c2_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Amend, at C1 and C2, an existing OrderQuote</a>: (0 failures, 191 warnings, 0 suggestions, 26 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c1_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Amend, at C1, an existing OrderQuote</a>: (0 failures, 162 warnings, 0 suggestions, 22 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c2_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Amend, at C2, an existing OrderQuote</a>: (0 failures, 145 warnings, 0 suggestions, 26 passes)</li>
+<li>⚠️ <a href="amending-order-quote_c2-with-different-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Run C2 with different details from C1</a>: (0 failures, 118 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Leasing / Anonymous leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-unit-capacity-update_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Single anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 57 warnings, 0 suggestions, 12 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-response_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 40 warnings, 0 suggestions, 9 passes)</li></ul></li>
+<li>✅ Details Capture / Simple Book including Attendee Details capture (Implemented)<ul>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-included_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails included</a>: (0 failures, 86 warnings, 0 suggestions, 13 passes)</li>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-not-included_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails not included</a>: (0 failures, 82 warnings, 0 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / Availability Checking (Implemented)<ul>
+<li>⚠️ <a href="availability-check_availability-confirmed_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Occupancy in C1 and C2 matches feed</a>: (0 failures, 60 warnings, 0 suggestions, 15 passes)</li>
+<li>⚠️ <a href="availability-check_opportunity-full_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">OpportunityIsFullError returned for full OrderItems</a>: (0 failures, 64 warnings, 0 suggestions, 11 passes)</li></ul></li>
+<li>✅ Restrictions / validFromBeforeStartDate booking window (Implemented)<ul>
+<li>⚠️ <a href="booking-window_opportunity-in-range-c1-c2_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity in range should succeed</a>: (0 failures, 61 warnings, 0 suggestions, 11 passes)</li>
+<li>⚠️ <a href="booking-window_opportunity-outside-range-c1-c2_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity outside range should fail</a>: (0 failures, 69 warnings, 0 suggestions, 11 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-gross_business-to-business-tax-calculation-gross_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 110 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-net_business-to-business-tax-calculation-net_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 79 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross-without-checkpoints_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 68 warnings, 0 suggestions, 8 passes)</li>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 103 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-net_business-to-consumer-tax-calculation-net_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Business-to-consumer tax calculation (net)</a>: (0 failures, 95 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Cancellation / latestCancellationBeforeStartDate cancellation window (Implemented)<ul>
+<li>⚠️ <a href="cancellation-window_fail-outside-window_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and failed cancellation outside window.</a>: (0 failures, 96 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="cancellation-window_succeed-within-window_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation within window.</a>: (0 failures, 108 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>⚠️ <a href="common-error-conditions_incomplete-broker-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteBrokerDetailsError when broker details are missing name</a>: (0 failures, 138 warnings, 0 suggestions, 24 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-customer-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteCustomerDetailsError when customer details are missing the required email property</a>: (0 failures, 124 warnings, 0 suggestions, 20 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-offer_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>acceptedOffer</code></a>: (0 failures, 14 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-opportunity_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>orderedItem</code></a>: (0 failures, 16 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details identifier capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-identifier_customer-identifier-capture_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer identifier is reflected back at C2 and B</a>: (0 failures, 87 warnings, 0 suggestions, 15 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details non-essential capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-non-essential_non-essential-customer-details-reflected_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">givenName, familyName, and telephone number are reflected back at C2 and B</a>: (0 failures, 94 warnings, 0 suggestions, 15 passes)</li></ul></li>
+<li>✅ Notifications / Customer notice notifications (Implemented)<ul>
+<li>⚠️ <a href="customer-notice-notifications_customer-notice-notification_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.</a>: (0 failures, 90 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Cancellation / Customer Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="customer-requested-cancellation_atomic-cancel_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and successful cancellation after atomic failed cancellation request</a>: (0 failures, 336 warnings, 0 suggestions, 41 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_book-and-cancel_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation.</a>: (0 failures, 125 warnings, 0 suggestions, 22 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-id-invalid-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemIdInvalidError for an Order that does not exist</a>: (0 failures, 108 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-not-within-order-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemNotWithinOrderError for an Order that does not exist</a>: (0 failures, 98 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-contains-excessive-properties-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError</a>: (0 failures, 118 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-not-allowed-on-property-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchNotAllowedOnPropertyError</a>: (0 failures, 98 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Payment / Free opportunities (Implemented)<ul>
+<li>⚠️ <a href="free-opportunities_opportunity-free-idempotency_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking of free opportunity with idempotency</a>: (0 failures, 80 warnings, 0 suggestions, 8 passes)</li>
+<li>✅ <a href="free-opportunities_opportunity-free-must-not-include-prepayment_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Free opportunities must have either a <code>openBookingPrepayment</code> value of Unspecified, or have no <code>openBookingPrepayment</code> specified</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-unnecessary-payment-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Fail free bookings which include erroneous payment property</a>: (0 failures, 79 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-without-checkpoints_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 80 warnings, 0 suggestions, 8 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking without payment property</a>: (0 failures, 87 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="free-opportunities_payment-mismatch_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities</a>: (0 failures, 67 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Core / Multiple Sellers (Implemented)<ul>
+<li>⚠️ <a href="multiple-sellers_conflicting-seller_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">SellerMismatchError for inconsistent Sellers of OrderItems</a>: (0 failures, 81 warnings, 0 suggestions, 12 passes)</li>
+<li>⚠️ <a href="multiple-sellers_seller-access-restricted-by-auth_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Credentials for Seller (a) must not provide access to make bookings for Seller (b)</a>: (0 failures, 45 warnings, 0 suggestions, 8 passes)</li></ul></li>
+<li>✅ Leasing / Named leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="named-leasing_lease-opportunity-unit-capacity-update_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Single named leased space is unavailable for purchase by other users</a>: (0 failures, 115 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-response_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 73 warnings, 0 suggestions, 12 passes)</li></ul></li>
+<li>✅ Broker Role / NoBroker mode (Implemented)<ul>
+<li>⚠️ <a href="no-broker_broker-included-nobroker-mode_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Broker included in Order in NoBroker mode</a>: (0 failures, 148 warnings, 0 suggestions, 24 passes)</li>
+<li>⚠️ <a href="no-broker_customer-included-nobroker-mode_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer included in Order in NoBroker mode</a>: (0 failures, 103 warnings, 0 suggestions, 13 passes)</li>
+<li>⚠️ <a href="no-broker_customer-not-included-nobroker-mode_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in NoBroker mode</a>: (0 failures, 105 warnings, 0 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / Opportunities with a non-zero price (Implemented)<ul>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid-idempotency_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking of paid opportunity with idempotency</a>: (0 failures, 75 warnings, 0 suggestions, 8 passes)</li>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 95 warnings, 0 suggestions, 13 passes)</li></ul></li>
+<li>✅ Notifications / Opportunity attendance updates (Implemented)<ul>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-absent_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAbsentSimulateAction) should update the Order Feed.</a>: (0 failures, 99 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-attended_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAttendedSimulateAction) should update the Order Feed.</a>: (0 failures, 83 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>⚠️ <a href="order-deletion_order-delete-idempotent_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Order successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 103 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="order-deletion_order-quote-delete-idempotent_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Order quote successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 67 warnings, 0 suggestions, 15 passes)</li>
+<li>⚠️ <a href="order-deletion_orders-updated-then-deleted_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Order successfully deleted</a>: (0 failures, 130 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Core / Past opportunities (Implemented)<ul>
+<li>⚠️ <a href="past-opportunities_opportunity-in-past_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect an OpportunityOfferPairNotBookableError when opportunity is in the past</a>: (0 failures, 93 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / Payment reconciliation detail validation (Implemented)<ul>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details-no-payment-required_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when no payment required</a>: (0 failures, 29 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when payment required</a>: (0 failures, 38 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details-no-payment-required_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when no payment required</a>: (0 failures, 41 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when payment required</a>: (0 failures, 47 warnings, 0 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-no-payment-required_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is not required</a>: (0 failures, 102 warnings, 0 suggestions, 17 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is required</a>: (0 failures, 103 warnings, 0 suggestions, 17 passes)</li></ul></li>
+<li>✅ Payment / prepayment optional (Implemented)<ul>
+<li>⚠️ <a href="prepayment-optional_opportunity-paid-incomplete-payment-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment <code>identifier</code> is not supplied</a>: (0 failures, 74 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_payment-mismatch_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 68 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_with-payment_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Prepayment optional, with <code>payment</code> supplied, is successful</a>: (0 failures, 95 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="prepayment-optional_without-payment_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Prepayment optional, without <code>payment</code> supplied, is successful</a>: (0 failures, 87 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Payment / prepayment required and unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required-unavailable_prepayment-required-unavailable-conflict-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Fail when required and unavailable OrderItems are mixed</a>: (0 failures, 150 warnings, 0 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment required (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-incomplete-payment-details_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment details are not supplied</a>: (0 failures, 67 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-no-payment-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Unsuccessful booking without payment property</a>: (0 failures, 67 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 103 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="prepayment-required_payment-mismatch_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 61 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / prepayment unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid-unnecessary-payment-error_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Fail on unnecessary payment property</a>: (0 failures, 74 warnings, 0 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Successfully book paid Opportunity</a>: (0 failures, 79 warnings, 0 suggestions, 16 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_payment-mismatch_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 56 warnings, 0 suggestions, 14 passes)</li></ul></li>
+<li>✅ Broker Role / ResellerBroker mode (Implemented)<ul>
+<li>⚠️ <a href="reseller-broker_broker-not-included-resellerbroker-mode_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Broker not included in Order in ResellerBroker mode</a>: (0 failures, 143 warnings, 0 suggestions, 24 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-included-resellerbroker-mode_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer included in Order in ResellerBroker mode</a>: (0 failures, 95 warnings, 0 suggestions, 13 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-not-included-resellerbroker-mode_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in ResellerBroker mode</a>: (0 failures, 102 warnings, 0 suggestions, 13 passes)</li></ul></li>
+<li>✅ Cancellation / cancellationMessage for Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation-message_seller-requested-cancellation-with-message_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Seller cancellation with message of order request.</a>: (0 failures, 92 warnings, 0 suggestions, 17 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation_seller-requested-cancellation_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Seller cancellation of order request.</a>: (0 failures, 122 warnings, 0 suggestions, 17 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Replacement (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-replacement_book-and-seller-replace-items_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Book and seller replaces order items.</a>: (0 failures, 98 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-booking-system_booking-system-terms-of-service_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Terms of service defined by bookingService in  C1, C2 and B</a>: (0 failures, 79 warnings, 0 suggestions, 16 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-seller_seller-terms-of-service_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Terms of service defined by seller in opportunity feed, C1, C2 and B</a>: (0 failures, 88 warnings, 0 suggestions, 15 passes)</li></ul></li>
+<li>✅ Core / Test interface (Implemented)<ul>
+<li>⚠️ <a href="test-interface_create-opportunity_OpenBookingSimpleFlow_IndividualFacilityUseSlot.html" rel="noopener noreferrer" target="_blank">Create opportunity</a>: (0 failures, 10 warnings, 0 suggestions, 3 passes)</li></ul></li>
+</ul>
+<h3 id="openbookingsimpleflowmultiple">OpenBookingSimpleFlow &gt;&gt; Multiple</h3>
+<ul>
+<li>✅ Access / accessChannel update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-channel-update-notifications_access-channel-update-notifications_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Access channel updated after B request.</a>: (0 failures, 197 warnings, 126 suggestions, 30 passes)</li></ul></li>
+<li>✅ Access / accessChannel - Seller provided remote access (Implemented)<ul>
+<li>⚠️ <a href="access-channel_includes-access-channel-or-customer-notice_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Details about virtual location included in B response.</a>: (0 failures, 198 warnings, 126 suggestions, 28 passes)</li></ul></li>
+<li>✅ Access / accessCode update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-code-update-notifications_access-code-update-notifications_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Access code updated after B request.</a>: (0 failures, 463 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Access / accessCode - manual access codes (Implemented)<ul>
+<li>⚠️ <a href="access-code_manual-access-codes_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with access codes.</a>: (0 failures, 415 warnings, 126 suggestions, 49 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control barcodes  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-barcode-seller-provided_access-barcode-seller_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with access barcode from seller.</a>: (0 failures, 414 warnings, 126 suggestions, 49 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control images  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-image_access-pass-image_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with access pass image.</a>: (0 failures, 429 warnings, 126 suggestions, 49 passes)</li></ul></li>
+<li>✅ Access / accessPass update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-pass-update-notifications_access-pass-update-notifications_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Access pass updated after B request.</a>: (0 failures, 438 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Details Capture / Additional Details capture (Implemented)<ul>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-and-supplied_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied</a>: (0 failures, 437 warnings, 126 suggestions, 48 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-but-not-supplied_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details required but not supplied</a>: (0 failures, 402 warnings, 108 suggestions, 35 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-invalid-details-supplied_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied but invalid details supplied</a>: (0 failures, 378 warnings, 108 suggestions, 35 passes)</li></ul></li>
+<li>✅ Core / AgentBroker mode (Implemented)<ul>
+<li>⚠️ <a href="agent-broker_customer-included_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful request when customer is included in Order in AgentBroker mode</a>: (0 failures, 444 warnings, 126 suggestions, 48 passes)</li>
+<li>⚠️ <a href="agent-broker_customer-not-included_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in AgentBroker mode</a>: (0 failures, 585 warnings, 162 suggestions, 75 passes)</li></ul></li>
+<li>✅ Core / Amending the OrderQuote before B (Implemented)<ul>
+<li>⚠️ <a href="amending-order-quote_amend-c1-and-c2_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Amend, at C1 and C2, an existing OrderQuote</a>: (0 failures, 828 warnings, 234 suggestions, 101 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c1_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Amend, at C1, an existing OrderQuote</a>: (0 failures, 676 warnings, 198 suggestions, 87 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c2_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Amend, at C2, an existing OrderQuote</a>: (0 failures, 687 warnings, 198 suggestions, 96 passes)</li>
+<li>⚠️ <a href="amending-order-quote_c2-with-different-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Run C2 with different details from C1</a>: (0 failures, 601 warnings, 162 suggestions, 80 passes)</li></ul></li>
+<li>✅ Leasing / Anonymous leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-multiple-capacity-update_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Multiple anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 175 warnings, 126 suggestions, 32 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-unit-capacity-update_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Single anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 115 warnings, 30 suggestions, 18 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-response_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 195 warnings, 54 suggestions, 29 passes)</li></ul></li>
+<li>✅ Details Capture / Simple Book including Attendee Details capture (Implemented)<ul>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-included_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails included</a>: (0 failures, 444 warnings, 126 suggestions, 48 passes)</li>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-not-included_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails not included</a>: (0 failures, 382 warnings, 108 suggestions, 35 passes)</li></ul></li>
+<li>✅ Core / Availability Checking (Implemented)<ul>
+<li>⚠️ <a href="availability-check_availability-confirmed_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Occupancy in C1 and C2 matches feed</a>: (0 failures, 298 warnings, 90 suggestions, 55 passes)</li>
+<li>⚠️ <a href="availability-check_opportunity-full_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">OpportunityIsFullError returned for full OrderItems</a>: (0 failures, 306 warnings, 90 suggestions, 41 passes)</li></ul></li>
+<li>✅ Restrictions / validFromBeforeStartDate booking window (Implemented)<ul>
+<li>⚠️ <a href="booking-window_opportunity-in-range-c1-c2_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity in range should succeed</a>: (0 failures, 301 warnings, 90 suggestions, 41 passes)</li>
+<li>⚠️ <a href="booking-window_opportunity-outside-range-c1-c2_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity outside range should fail</a>: (0 failures, 314 warnings, 90 suggestions, 41 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-gross_business-to-business-tax-calculation-gross_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 424 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-net_business-to-business-tax-calculation-net_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 431 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross-without-checkpoints_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 325 warnings, 90 suggestions, 28 passes)</li>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 414 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-net_business-to-consumer-tax-calculation-net_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Business-to-consumer tax calculation (net)</a>: (0 failures, 444 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Cancellation / latestCancellationBeforeStartDate cancellation window (Implemented)<ul>
+<li>⚠️ <a href="cancellation-window_fail-outside-window_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and failed cancellation outside window.</a>: (0 failures, 534 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="cancellation-window_succeed-within-window_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation within window.</a>: (0 failures, 524 warnings, 144 suggestions, 56 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>⚠️ <a href="common-error-conditions_incomplete-broker-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteBrokerDetailsError when broker details are missing name</a>: (0 failures, 746 warnings, 198 suggestions, 94 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-customer-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteCustomerDetailsError when customer details are missing the required email property</a>: (0 failures, 597 warnings, 162 suggestions, 75 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-offer_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>acceptedOffer</code></a>: (0 failures, 71 warnings, 18 suggestions, 49 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-opportunity_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>orderedItem</code></a>: (0 failures, 74 warnings, 18 suggestions, 49 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details identifier capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-identifier_customer-identifier-capture_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer identifier is reflected back at C2 and B</a>: (0 failures, 461 warnings, 126 suggestions, 50 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details non-essential capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-non-essential_non-essential-customer-details-reflected_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">givenName, familyName, and telephone number are reflected back at C2 and B</a>: (0 failures, 452 warnings, 126 suggestions, 50 passes)</li></ul></li>
+<li>✅ Notifications / Customer notice notifications (Implemented)<ul>
+<li>⚠️ <a href="customer-notice-notifications_customer-notice-notification_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.</a>: (0 failures, 471 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Cancellation / Customer Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="customer-requested-cancellation_book-and-cancel_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation.</a>: (0 failures, 540 warnings, 162 suggestions, 67 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-id-invalid-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemIdInvalidError for an Order that does not exist</a>: (0 failures, 498 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-not-within-order-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemNotWithinOrderError for an Order that does not exist</a>: (0 failures, 512 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-contains-excessive-properties-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError</a>: (0 failures, 540 warnings, 144 suggestions, 56 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-not-allowed-on-property-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchNotAllowedOnPropertyError</a>: (0 failures, 502 warnings, 144 suggestions, 56 passes)</li></ul></li>
+<li>✅ Payment / Free opportunities (Implemented)<ul>
+<li>⚠️ <a href="free-opportunities_opportunity-free-idempotency_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking of free opportunity with idempotency</a>: (0 failures, 350 warnings, 90 suggestions, 28 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-unnecessary-payment-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Fail free bookings which include erroneous payment property</a>: (0 failures, 107 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-without-checkpoints_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 350 warnings, 90 suggestions, 28 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking without payment property</a>: (0 failures, 175 warnings, 42 suggestions, 23 passes)</li>
+<li>⚠️ <a href="free-opportunities_payment-mismatch_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities</a>: (0 failures, 106 warnings, 30 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Multiple Sellers (Implemented)<ul>
+<li>⚠️ <a href="multiple-sellers_seller-access-restricted-by-auth_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Credentials for Seller (a) must not provide access to make bookings for Seller (b)</a>: (0 failures, 204 warnings, 54 suggestions, 28 passes)</li></ul></li>
+<li>✅ Leasing / Named leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="named-leasing_lease-opportunity-multiple-capacity-update_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Multiple named leased spaces are unavailable for purchase by other users</a>: (0 failures, 327 warnings, 240 suggestions, 39 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-opportunity-unit-capacity-update_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Single named leased space is unavailable for purchase by other users</a>: (0 failures, 188 warnings, 48 suggestions, 23 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-response_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 313 warnings, 90 suggestions, 42 passes)</li></ul></li>
+<li>✅ Broker Role / NoBroker mode (Implemented)<ul>
+<li>⚠️ <a href="no-broker_broker-included-nobroker-mode_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Broker included in Order in NoBroker mode</a>: (0 failures, 717 warnings, 198 suggestions, 94 passes)</li>
+<li>⚠️ <a href="no-broker_customer-included-nobroker-mode_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer included in Order in NoBroker mode</a>: (0 failures, 471 warnings, 126 suggestions, 48 passes)</li>
+<li>⚠️ <a href="no-broker_customer-not-included-nobroker-mode_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in NoBroker mode</a>: (0 failures, 560 warnings, 162 suggestions, 75 passes)</li></ul></li>
+<li>✅ Payment / Opportunities with a non-zero price (Implemented)<ul>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid-idempotency_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking of paid opportunity with idempotency</a>: (0 failures, 351 warnings, 90 suggestions, 28 passes)</li>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 437 warnings, 126 suggestions, 48 passes)</li></ul></li>
+<li>✅ Notifications / Opportunity attendance updates (Implemented)<ul>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-absent_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAbsentSimulateAction) should update the Order Feed.</a>: (0 failures, 440 warnings, 126 suggestions, 51 passes)</li>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-attended_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAttendedSimulateAction) should update the Order Feed.</a>: (0 failures, 461 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>⚠️ <a href="order-deletion_order-delete-idempotent_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Order successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 422 warnings, 126 suggestions, 52 passes)</li>
+<li>⚠️ <a href="order-deletion_order-quote-delete-idempotent_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Order quote successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 300 warnings, 90 suggestions, 45 passes)</li>
+<li>⚠️ <a href="order-deletion_orders-updated-then-deleted_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Order successfully deleted</a>: (0 failures, 520 warnings, 144 suggestions, 61 passes)</li></ul></li>
+<li>✅ Core / Past opportunities (Implemented)<ul>
+<li>⚠️ <a href="past-opportunities_opportunity-in-past_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect an OpportunityOfferPairNotBookableError when opportunity is in the past</a>: (0 failures, 408 warnings, 108 suggestions, 49 passes)</li></ul></li>
+<li>✅ Payment / Payment reconciliation detail validation (Implemented)<ul>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details-no-payment-required_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when no payment required</a>: (0 failures, 200 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when payment required</a>: (0 failures, 212 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details-no-payment-required_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when no payment required</a>: (0 failures, 209 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when payment required</a>: (0 failures, 206 warnings, 54 suggestions, 27 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-no-payment-required_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is not required</a>: (0 failures, 477 warnings, 126 suggestions, 52 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is required</a>: (0 failures, 447 warnings, 126 suggestions, 52 passes)</li></ul></li>
+<li>✅ Payment / prepayment optional (Implemented)<ul>
+<li>⚠️ <a href="prepayment-optional_opportunity-paid-incomplete-payment-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment <code>identifier</code> is not supplied</a>: (0 failures, 118 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-optional_payment-mismatch_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 112 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-optional_with-payment_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Prepayment optional, with <code>payment</code> supplied, is successful</a>: (0 failures, 143 warnings, 42 suggestions, 23 passes)</li>
+<li>⚠️ <a href="prepayment-optional_without-payment_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Prepayment optional, without <code>payment</code> supplied, is successful</a>: (0 failures, 143 warnings, 42 suggestions, 23 passes)</li></ul></li>
+<li>✅ Payment / prepayment required and unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required-unavailable_prepayment-required-unavailable-conflict-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Fail when required and unavailable OrderItems are mixed</a>: (0 failures, 396 warnings, 108 suggestions, 49 passes)</li></ul></li>
+<li>✅ Payment / prepayment required (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-incomplete-payment-details_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment details are not supplied</a>: (0 failures, 106 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-no-payment-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Unsuccessful booking without payment property</a>: (0 failures, 101 warnings, 30 suggestions, 20 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 144 warnings, 42 suggestions, 23 passes)</li>
+<li>⚠️ <a href="prepayment-required_payment-mismatch_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 117 warnings, 30 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / prepayment unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid-unnecessary-payment-error_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Fail on unnecessary payment property</a>: (0 failures, 285 warnings, 90 suggestions, 44 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Successfully book paid Opportunity</a>: (0 failures, 422 warnings, 126 suggestions, 51 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_payment-mismatch_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 307 warnings, 90 suggestions, 44 passes)</li></ul></li>
+<li>✅ Broker Role / ResellerBroker mode (Implemented)<ul>
+<li>⚠️ <a href="reseller-broker_broker-not-included-resellerbroker-mode_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Broker not included in Order in ResellerBroker mode</a>: (0 failures, 711 warnings, 198 suggestions, 94 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-included-resellerbroker-mode_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer included in Order in ResellerBroker mode</a>: (0 failures, 422 warnings, 126 suggestions, 48 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-not-included-resellerbroker-mode_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in ResellerBroker mode</a>: (0 failures, 422 warnings, 126 suggestions, 48 passes)</li></ul></li>
+<li>✅ Cancellation / cancellationMessage for Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation-message_seller-requested-cancellation-with-message_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Seller cancellation with message of order request.</a>: (0 failures, 548 warnings, 144 suggestions, 57 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation_seller-requested-cancellation_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Seller cancellation of order request.</a>: (0 failures, 538 warnings, 144 suggestions, 57 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Replacement (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-replacement_book-and-seller-replace-items_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Book and seller replaces order items.</a>: (0 failures, 486 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-booking-system_booking-system-terms-of-service_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Terms of service defined by bookingService in  C1, C2 and B</a>: (0 failures, 477 warnings, 126 suggestions, 51 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-seller_seller-terms-of-service_OpenBookingSimpleFlow_Multiple.html" rel="noopener noreferrer" target="_blank">Terms of service defined by seller in opportunity feed, C1, C2 and B</a>: (0 failures, 354 warnings, 108 suggestions, 45 passes)</li></ul></li>
+</ul>
+<h3 id="openbookingsimpleflowscheduledsession">OpenBookingSimpleFlow &gt;&gt; ScheduledSession</h3>
+<ul>
+<li>✅ Access / accessChannel update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-channel-update-notifications_access-channel-update-notifications_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Access channel updated after B request.</a>: (0 failures, 75 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Access / accessChannel - Seller provided remote access (Implemented)<ul>
+<li>⚠️ <a href="access-channel_includes-access-channel-or-customer-notice_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Details about virtual location included in B response.</a>: (0 failures, 70 warnings, 42 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessCode update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-code-update-notifications_access-code-update-notifications_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Access code updated after B request.</a>: (0 failures, 80 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Access / accessCode - manual access codes (Implemented)<ul>
+<li>⚠️ <a href="access-code_manual-access-codes_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with access codes.</a>: (0 failures, 69 warnings, 42 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control barcodes  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-barcode-seller-provided_access-barcode-seller_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with access barcode from seller.</a>: (0 failures, 76 warnings, 42 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessPass - Seller provided access control images  (Implemented)<ul>
+<li>⚠️ <a href="access-pass-image_access-pass-image_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with access pass image.</a>: (0 failures, 69 warnings, 42 suggestions, 14 passes)</li></ul></li>
+<li>✅ Access / accessPass update notifications (Implemented)<ul>
+<li>⚠️ <a href="access-pass-update-notifications_access-pass-update-notifications_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Access pass updated after B request.</a>: (0 failures, 73 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Details Capture / Additional Details capture (Implemented)<ul>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-and-supplied_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied</a>: (0 failures, 76 warnings, 42 suggestions, 13 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-but-not-supplied_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details required but not supplied</a>: (0 failures, 60 warnings, 36 suggestions, 10 passes)</li>
+<li>⚠️ <a href="additional-details-capture_additional-details-required-invalid-details-supplied_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with additional details supplied but invalid details supplied</a>: (0 failures, 66 warnings, 36 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / AgentBroker mode (Implemented)<ul>
+<li>⚠️ <a href="agent-broker_customer-included_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful request when customer is included in Order in AgentBroker mode</a>: (0 failures, 84 warnings, 42 suggestions, 13 passes)</li>
+<li>⚠️ <a href="agent-broker_customer-not-included_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in AgentBroker mode</a>: (0 failures, 105 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Core / Amending the OrderQuote before B (Implemented)<ul>
+<li>⚠️ <a href="amending-order-quote_amend-c1-and-c2_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Amend, at C1 and C2, an existing OrderQuote</a>: (0 failures, 148 warnings, 78 suggestions, 26 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c1_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Amend, at C1, an existing OrderQuote</a>: (0 failures, 110 warnings, 66 suggestions, 22 passes)</li>
+<li>⚠️ <a href="amending-order-quote_amend-c2_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Amend, at C2, an existing OrderQuote</a>: (0 failures, 106 warnings, 66 suggestions, 26 passes)</li>
+<li>⚠️ <a href="amending-order-quote_c2-with-different-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Run C2 with different details from C1</a>: (0 failures, 104 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Leasing / Anonymous leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-multiple-capacity-update_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Multiple anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 175 warnings, 126 suggestions, 32 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-opportunity-unit-capacity-update_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Single anonymous leased spaces are unavailable for purchase by other users</a>: (0 failures, 54 warnings, 30 suggestions, 12 passes)</li>
+<li>⚠️ <a href="anonymous-leasing_lease-response_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 35 warnings, 18 suggestions, 9 passes)</li></ul></li>
+<li>✅ Details Capture / Simple Book including Attendee Details capture (Implemented)<ul>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-included_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails included</a>: (0 failures, 69 warnings, 42 suggestions, 13 passes)</li>
+<li>⚠️ <a href="attendee-details-capture_attendee-details-not-included_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Booking opportunity with attendeeDetails not included</a>: (0 failures, 70 warnings, 36 suggestions, 10 passes)</li></ul></li>
+<li>✅ Core / Availability Checking (Implemented)<ul>
+<li>⚠️ <a href="availability-check_availability-confirmed_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Occupancy in C1 and C2 matches feed</a>: (0 failures, 53 warnings, 30 suggestions, 15 passes)</li>
+<li>⚠️ <a href="availability-check_opportunity-full_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">OpportunityIsFullError returned for full OrderItems</a>: (0 failures, 51 warnings, 30 suggestions, 11 passes)</li></ul></li>
+<li>✅ Restrictions / validFromBeforeStartDate booking window (Implemented)<ul>
+<li>⚠️ <a href="booking-window_opportunity-in-range-c1-c2_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity in range should succeed</a>: (0 failures, 47 warnings, 30 suggestions, 11 passes)</li>
+<li>⚠️ <a href="booking-window_opportunity-outside-range-c1-c2_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Running C1 and C2 for opportunity outside range should fail</a>: (0 failures, 49 warnings, 30 suggestions, 11 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-gross_business-to-business-tax-calculation-gross_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Tax / Business-to-business Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-business-tax-calculation-net_business-to-business-tax-calculation-net_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxGross) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross-without-checkpoints_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 53 warnings, 30 suggestions, 8 passes)</li>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-gross_business-to-consumer-tax-calculation-gross_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Tax calculations</a>: (0 failures, 76 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Tax / Business-to-consumer Tax Calculation (TaxNet) (Implemented)<ul>
+<li>⚠️ <a href="business-to-consumer-tax-calculation-net_business-to-consumer-tax-calculation-net_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Business-to-consumer tax calculation (net)</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Cancellation / latestCancellationBeforeStartDate cancellation window (Implemented)<ul>
+<li>⚠️ <a href="cancellation-window_fail-outside-window_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and failed cancellation outside window.</a>: (0 failures, 78 warnings, 48 suggestions, 16 passes)</li>
+<li>⚠️ <a href="cancellation-window_succeed-within-window_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation within window.</a>: (0 failures, 78 warnings, 48 suggestions, 16 passes)</li></ul></li>
+<li>✅ Core / Common error conditions (Implemented)<ul>
+<li>⚠️ <a href="common-error-conditions_incomplete-broker-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteBrokerDetailsError when broker details are missing name</a>: (0 failures, 131 warnings, 66 suggestions, 24 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-customer-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect an IncompleteCustomerDetailsError when customer details are missing the required email property</a>: (0 failures, 94 warnings, 54 suggestions, 20 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-offer_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>acceptedOffer</code></a>: (0 failures, 9 warnings, 6 suggestions, 14 passes)</li>
+<li>⚠️ <a href="common-error-conditions_incomplete-order-item-no-opportunity_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Test for IncompleteOrderItemError with missing <code>orderedItem</code></a>: (0 failures, 10 warnings, 6 suggestions, 14 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details identifier capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-identifier_customer-identifier-capture_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer identifier is reflected back at C2 and B</a>: (0 failures, 77 warnings, 42 suggestions, 15 passes)</li></ul></li>
+<li>✅ Details Capture / Customer Details non-essential capture (Implemented)<ul>
+<li>⚠️ <a href="customer-details-capture-non-essential_non-essential-customer-details-reflected_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">givenName, familyName, and telephone number are reflected back at C2 and B</a>: (0 failures, 69 warnings, 42 suggestions, 15 passes)</li></ul></li>
+<li>✅ Notifications / Customer notice notifications (Implemented)<ul>
+<li>⚠️ <a href="customer-notice-notifications_customer-notice-notification_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Changes to an OrderItem's customerNotice (via CustomerNoticeSimulateAction) should update the Order Feed.</a>: (0 failures, 80 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Cancellation / Customer Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="customer-requested-cancellation_atomic-cancel_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and successful cancellation after atomic failed cancellation request</a>: (0 failures, 258 warnings, 162 suggestions, 41 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_book-and-cancel_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and cancellation.</a>: (0 failures, 91 warnings, 54 suggestions, 22 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-id-invalid-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemIdInvalidError for an Order that does not exist</a>: (0 failures, 78 warnings, 48 suggestions, 16 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_orderitem-not-within-order-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a OrderItemNotWithinOrderError for an Order that does not exist</a>: (0 failures, 86 warnings, 48 suggestions, 16 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-contains-excessive-properties-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchContainsExcessivePropertiesError</a>: (0 failures, 86 warnings, 48 suggestions, 16 passes)</li>
+<li>⚠️ <a href="customer-requested-cancellation_patch-not-allowed-on-property-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking and unsuccessful cancellation due to PatchNotAllowedOnPropertyError</a>: (0 failures, 86 warnings, 48 suggestions, 16 passes)</li></ul></li>
+<li>✅ Payment / Free opportunities (Implemented)<ul>
+<li>⚠️ <a href="free-opportunities_opportunity-free-idempotency_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking of free opportunity with idempotency</a>: (0 failures, 59 warnings, 30 suggestions, 8 passes)</li>
+<li>✅ <a href="free-opportunities_opportunity-free-must-not-include-prepayment_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Free opportunities must have either a <code>openBookingPrepayment</code> value of Unspecified, or have no <code>openBookingPrepayment</code> specified</a>: (0 failures, 0 warnings, 0 suggestions, 3 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-unnecessary-payment-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Fail free bookings which include erroneous payment property</a>: (0 failures, 54 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free-without-checkpoints_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking without Checkpoints</a>: (0 failures, 59 warnings, 30 suggestions, 8 passes)</li>
+<li>⚠️ <a href="free-opportunities_opportunity-free_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking without payment property</a>: (0 failures, 84 warnings, 42 suggestions, 16 passes)</li>
+<li>⚠️ <a href="free-opportunities_payment-mismatch_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property is non-zero for free opportunities</a>: (0 failures, 54 warnings, 30 suggestions, 14 passes)</li></ul></li>
+<li>✅ Core / Multiple Sellers (Implemented)<ul>
+<li>⚠️ <a href="multiple-sellers_conflicting-seller_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">SellerMismatchError for inconsistent Sellers of OrderItems</a>: (0 failures, 72 warnings, 36 suggestions, 12 passes)</li>
+<li>⚠️ <a href="multiple-sellers_seller-access-restricted-by-auth_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Credentials for Seller (a) must not provide access to make bookings for Seller (b)</a>: (0 failures, 39 warnings, 18 suggestions, 8 passes)</li></ul></li>
+<li>✅ Leasing / Named leasing, including leaseExpires (Implemented)<ul>
+<li>⚠️ <a href="named-leasing_lease-opportunity-multiple-capacity-update_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Multiple named leased spaces are unavailable for purchase by other users</a>: (0 failures, 327 warnings, 240 suggestions, 39 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-opportunity-unit-capacity-update_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Single named leased space is unavailable for purchase by other users</a>: (0 failures, 81 warnings, 48 suggestions, 16 passes)</li>
+<li>⚠️ <a href="named-leasing_lease-response_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Response at C2 includes a "lease" with a "leaseExpires" in the future</a>: (0 failures, 53 warnings, 30 suggestions, 12 passes)</li></ul></li>
+<li>✅ Broker Role / NoBroker mode (Implemented)<ul>
+<li>⚠️ <a href="no-broker_broker-included-nobroker-mode_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Broker included in Order in NoBroker mode</a>: (0 failures, 119 warnings, 66 suggestions, 24 passes)</li>
+<li>⚠️ <a href="no-broker_customer-included-nobroker-mode_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer included in Order in NoBroker mode</a>: (0 failures, 84 warnings, 42 suggestions, 13 passes)</li>
+<li>⚠️ <a href="no-broker_customer-not-included-nobroker-mode_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in NoBroker mode</a>: (0 failures, 104 warnings, 54 suggestions, 20 passes)</li></ul></li>
+<li>✅ Payment / Opportunities with a non-zero price (Implemented)<ul>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid-idempotency_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking of paid opportunity with idempotency</a>: (0 failures, 58 warnings, 30 suggestions, 8 passes)</li>
+<li>⚠️ <a href="non-free-opportunities_opportunity-paid_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 69 warnings, 42 suggestions, 13 passes)</li></ul></li>
+<li>✅ Notifications / Opportunity attendance updates (Implemented)<ul>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-absent_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAbsentSimulateAction) should update the Order Feed.</a>: (0 failures, 73 warnings, 42 suggestions, 16 passes)</li>
+<li>⚠️ <a href="opportunity-attendance-updates_opportunity-attendance-update-customer-attended_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Changes to an opportunity's attendance (via AttendeeAttendedSimulateAction) should update the Order Feed.</a>: (0 failures, 81 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Core / Order Deletion Endpoint (Implemented)<ul>
+<li>⚠️ <a href="order-deletion_order-delete-idempotent_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Order successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 77 warnings, 42 suggestions, 17 passes)</li>
+<li>⚠️ <a href="order-deletion_order-quote-delete-idempotent_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Order quote successfully deleted, second delete does not change the state of the first delete</a>: (0 failures, 53 warnings, 30 suggestions, 15 passes)</li>
+<li>⚠️ <a href="order-deletion_orders-updated-then-deleted_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Order successfully deleted</a>: (0 failures, 82 warnings, 48 suggestions, 21 passes)</li></ul></li>
+<li>✅ Core / Past opportunities (Implemented)<ul>
+<li>⚠️ <a href="past-opportunities_opportunity-in-past_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect an OpportunityOfferPairNotBookableError when opportunity is in the past</a>: (0 failures, 69 warnings, 36 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / Payment reconciliation detail validation (Implemented)<ul>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details-no-payment-required_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when no payment required</a>: (0 failures, 35 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-incorrect-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - incorrect reconciliation details, when payment required</a>: (0 failures, 32 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details-no-payment-required_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when no payment required</a>: (0 failures, 38 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-missing-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation - missing reconciliation details, when payment required</a>: (0 failures, 29 warnings, 18 suggestions, 7 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation-no-payment-required_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is not required</a>: (0 failures, 84 warnings, 42 suggestions, 17 passes)</li>
+<li>⚠️ <a href="payment-reconciliation-detail-validation_payment-reconciliation-detail-validation_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Payment reconciliation detail validation, where payment is required</a>: (0 failures, 69 warnings, 42 suggestions, 17 passes)</li></ul></li>
+<li>✅ Payment / prepayment optional (Implemented)<ul>
+<li>⚠️ <a href="prepayment-optional_opportunity-paid-incomplete-payment-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment <code>identifier</code> is not supplied</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_payment-mismatch_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-optional_with-payment_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Prepayment optional, with <code>payment</code> supplied, is successful</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li>
+<li>⚠️ <a href="prepayment-optional_without-payment_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Prepayment optional, without <code>payment</code> supplied, is successful</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Payment / prepayment required and unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required-unavailable_prepayment-required-unavailable-conflict-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Fail when required and unavailable OrderItems are mixed</a>: (0 failures, 120 warnings, 72 suggestions, 21 passes)</li></ul></li>
+<li>✅ Payment / prepayment required (Implemented)<ul>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-incomplete-payment-details_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">IncompletePaymentDetailsError must be returned in the case that payment details are not supplied</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid-no-payment-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Unsuccessful booking without payment property</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-required_opportunity-paid_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successful booking with payment property</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li>
+<li>⚠️ <a href="prepayment-required_payment-mismatch_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li></ul></li>
+<li>✅ Payment / prepayment unavailable (Implemented)<ul>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid-unnecessary-payment-error_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Fail on unnecessary payment property</a>: (0 failures, 48 warnings, 30 suggestions, 14 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_opportunity-paid_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Successfully book paid Opportunity</a>: (0 failures, 69 warnings, 42 suggestions, 16 passes)</li>
+<li>⚠️ <a href="prepayment-unavailable_payment-mismatch_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Expect a TotalPaymentDueMismatchError when the totalPaymentDue property does not match</a>: (0 failures, 53 warnings, 30 suggestions, 14 passes)</li></ul></li>
+<li>✅ Broker Role / ResellerBroker mode (Implemented)<ul>
+<li>⚠️ <a href="reseller-broker_broker-not-included-resellerbroker-mode_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Broker not included in Order in ResellerBroker mode</a>: (0 failures, 116 warnings, 66 suggestions, 24 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-included-resellerbroker-mode_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer included in Order in ResellerBroker mode</a>: (0 failures, 84 warnings, 42 suggestions, 13 passes)</li>
+<li>⚠️ <a href="reseller-broker_customer-not-included-resellerbroker-mode_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Customer not included in Order in ResellerBroker mode</a>: (0 failures, 69 warnings, 42 suggestions, 13 passes)</li></ul></li>
+<li>✅ Cancellation / cancellationMessage for Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation-message_seller-requested-cancellation-with-message_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Seller cancellation with message of order request.</a>: (0 failures, 100 warnings, 48 suggestions, 17 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Cancellation (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-cancellation_seller-requested-cancellation_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Seller cancellation of order request.</a>: (0 failures, 90 warnings, 48 suggestions, 17 passes)</li></ul></li>
+<li>✅ Cancellation / Seller Requested Replacement (Implemented)<ul>
+<li>⚠️ <a href="seller-requested-replacement_book-and-seller-replace-items_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Book and seller replaces order items.</a>: (0 failures, 81 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-booking-system_booking-system-terms-of-service_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Terms of service defined by bookingService in  C1, C2 and B</a>: (0 failures, 76 warnings, 42 suggestions, 16 passes)</li></ul></li>
+<li>✅ Terms / termsOfService without requiresExplicitConsent (Implemented)<ul>
+<li>⚠️ <a href="terms-of-service-for-seller_seller-terms-of-service_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Terms of service defined by seller in opportunity feed, C1, C2 and B</a>: (0 failures, 60 warnings, 36 suggestions, 15 passes)</li></ul></li>
+<li>✅ Core / Test interface (Implemented)<ul>
+<li>⚠️ <a href="test-interface_create-opportunity_OpenBookingSimpleFlow_ScheduledSession.html" rel="noopener noreferrer" target="_blank">Create opportunity</a>: (0 failures, 10 warnings, 6 suggestions, 3 passes)</li></ul></li>
+</ul>
+<hr />
+<script>
+  function collapseH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      if (nextElement.style.display !== 'none') {
+        nextElement.style.display = 'none';
+      }
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function showH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      if (nextElement.style.display !== '') {
+        nextElement.style.display = '';
+      }
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function toggleH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      // Toggle visibility
+      nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function collapseAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      collapseH2Section(nextElement);
+    });
+  }
+  function showAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      showH2Section(nextElement);
+    });
+  }
+
+  function showOnlyErrorH2() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      if (nextElement.innerHTML.includes('❌')) {
+        showH2Section(nextElement);
+      } else {
+        collapseH2Section(nextElement);
+      }
+    });
+  }
+
+
+  // Show/Hide each header section
+  document.querySelectorAll('h2').forEach(function (h2) {
+    h2.addEventListener('click', function () {
+      let nextElement = this.nextElementSibling;
+      toggleH2Section(nextElement)
+    });
+  });
+
+  // Show all header sections
+  document.getElementById('showH2Button').addEventListener('click', function () {
+    showAllH2Sections();
+  });
+
+  // Collapse all header sections
+  document.getElementById('collapseH2Button').addEventListener('click', function () {
+    collapseAllH2Sections();
+  });
+
+  // Show only error sections button
+  document.getElementById('showOnlyErrorsButton').addEventListener('click', function () {
+    showOnlyErrorH2();
+  });
+
+  // Show only errors by default
+  showOnlyErrorH2();
+</script>
+<p><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"></p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

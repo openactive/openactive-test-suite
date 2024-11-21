@@ -1,0 +1,332 @@
+{
+  "flow": {
+    "UnknownEndpoint": {
+      "events": [],
+      "request": {
+        "hi": "there"
+      },
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "UnknownOrIncorrectEndpointError",
+          "name": "The Booking System has no endpoint matching the one requested.",
+          "statusCode": 404
+        },
+        "responseTime": 16.522079,
+        "status": 404,
+        "statusMessage": "Not Found",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:38:52 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "168"
+        }
+      }
+    },
+    "Unknown Endpoint - JSON PUT": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "common-error-conditions",
+              "unknown-endpoint",
+              "_NoFlow_",
+              "_NoOpportunityType_",
+              "Unknown Endpoint - JSON PUT"
+            ],
+            "duration": 5,
+            "failureMessages": [],
+            "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - JSON PUT should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`"
+          }
+        ]
+      }
+    },
+    "Unknown Endpoint - GET": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "common-error-conditions",
+              "unknown-endpoint",
+              "_NoFlow_",
+              "_NoOpportunityType_",
+              "Unknown Endpoint - GET"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - GET should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`"
+          }
+        ]
+      }
+    },
+    "Feature Description Assertions (for OpenActive maintainers)": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "common-error-conditions",
+              "unknown-endpoint",
+              "_NoFlow_",
+              "_NoOpportunityType_",
+              "Feature Description Assertions (for OpenActive maintainers)"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+          }
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "ancestorTitles": [
+        "common-error-conditions",
+        "unknown-endpoint",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Unknown Endpoint - JSON PUT"
+      ],
+      "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - JSON PUT",
+      "type": "request",
+      "stage": "UnknownEndpoint",
+      "request": {
+        "method": "PUT",
+        "url": "https://localhost:5001/api/openbooking/ordeeeeers/abc",
+        "jsonBody": {
+          "hi": "there"
+        },
+        "requestOptions": {
+          "timeout": 20000,
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkIwNEY3QjkxREUzQjk0NzhDNjE4MzNGQjI0QUE1Q0RCIiwidHlwIjoiYXQrand0In0.eyJuYmYiOjE3MzIyMDk2NDYsImV4cCI6MTczMjIxMzI0NiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiOGE3NjY2YTEtN2ZlYi00MjVkLTk1NjktYzBmNjE1NDFkOTVjIiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiOGE3NjY2YTEtN2ZlYi00MjVkLTk1NjktYzBmNjE1NDFkOTVjIiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNzMyMjA5NjQ1LCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsImp0aSI6IjE4OEU5QzZCMzU1MzBCOTMxOTdBRUVGNTdDRTQwNjVGIiwic2lkIjoiMUJDNDAzNTU5RDNCNDZGMjMxMUVDRkFGNzgyNEFEQ0EiLCJpYXQiOjE3MzIyMDk2NDYsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtb3BlbmJvb2tpbmciLCJvcGVuYWN0aXZlLWlkZW50aXR5Iiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.XnFNCTra9y2IXi3N740CSnROyKTwVJzbtliAI5KsdLByBlyv6MUgKvGMGeVQlwLtrwQbqTfkgqvTtIim-eH4wAnQSngRxMqSX3YJCnyJeEynlqJ0Th5TNK380PhyASCysnJWu0MXePNXwI9S0pJtZaUojhHS6tCda8uP6k-5LgnaejbCXHf2YdW4vAcO7czFZ5sc-sTzlPzlsEESUNUYyttsKyOQ6uaiJqqvJ4M3GTGX0eHgLnkRdaoF5hOA341JevIWXwT__RkO-kgpvBV-yy9fzbCz197QNk7-X5fRfKP0MZRIJq9DrHyWzzB2rWZC5qLg8Lk0Skef1OghWt45xg"
+          }
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "UnknownOrIncorrectEndpointError",
+          "name": "The Booking System has no endpoint matching the one requested.",
+          "statusCode": 404
+        },
+        "responseTime": 74.7208,
+        "status": 404,
+        "statusMessage": "Not Found",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:38:52 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "168"
+        }
+      }
+    },
+    {
+      "ancestorTitles": [
+        "common-error-conditions",
+        "unknown-endpoint",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Unknown Endpoint - GET"
+      ],
+      "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+      "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - JSON PUT should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+      "type": "request",
+      "stage": "UnknownEndpoint",
+      "request": {
+        "method": "GET",
+        "url": "https://localhost:5001/api/openbooking/ordeeeeers/abc",
+        "jsonBody": null,
+        "requestOptions": {
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "UnknownOrIncorrectEndpointError",
+          "name": "The Booking System has no endpoint matching the one requested.",
+          "statusCode": 404
+        },
+        "responseTime": 16.522079,
+        "status": 404,
+        "statusMessage": "Not Found",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 21 Nov 2024 17:38:52 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "168"
+        }
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "common-error-conditions",
+        "unknown-endpoint",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Unknown Endpoint - JSON PUT"
+      ],
+      "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+      "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - JSON PUT should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+      "spec": {
+        "ancestorTitles": [
+          "common-error-conditions",
+          "unknown-endpoint",
+          "_NoFlow_",
+          "_NoOpportunityType_",
+          "Unknown Endpoint - JSON PUT"
+        ],
+        "duration": 5,
+        "failureMessages": [],
+        "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - JSON PUT should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "common-error-conditions",
+        "unknown-endpoint",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Unknown Endpoint - GET"
+      ],
+      "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+      "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - GET should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+      "spec": {
+        "ancestorTitles": [
+          "common-error-conditions",
+          "unknown-endpoint",
+          "_NoFlow_",
+          "_NoOpportunityType_",
+          "Unknown Endpoint - GET"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Unknown Endpoint - GET should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "common-error-conditions",
+        "unknown-endpoint",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Feature Description Assertions (for OpenActive maintainers)"
+      ],
+      "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "spec": {
+        "ancestorTitles": [
+          "common-error-conditions",
+          "unknown-endpoint",
+          "_NoFlow_",
+          "_NoOpportunityType_",
+          "Feature Description Assertions (for OpenActive maintainers)"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_ Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+      }
+    }
+  ],
+  "timestamp": "Thu Nov 21 2024 17:38:52 GMT+0000 (Coordinated Universal Time)",
+  "config": {
+    "testCategory": "core",
+    "testFeature": "common-error-conditions",
+    "testFeatureImplemented": true,
+    "testIdentifier": "unknown-endpoint",
+    "testName": "Expect an UnknownOrIncorrectEndpointError for requests to unknown endpoints",
+    "testDescription": "Send a request to an endpoint that does not exist, and expect an UnknownOrIncorrectEndpointError to be returned",
+    "numOpportunitiesUsedPerCriteria": 0,
+    "doesNotUseOpportunitiesMode": true
+  },
+  "implemented": true,
+  "testFileIdentifier": "common-error-conditions unknown-endpoint _NoFlow_ _NoOpportunityType_",
+  "suites": [
+    [
+      "common-error-conditions",
+      "unknown-endpoint",
+      "_NoFlow_",
+      "_NoOpportunityType_"
+    ],
+    [
+      "common-error-conditions",
+      "unknown-endpoint",
+      "_NoFlow_",
+      "_NoOpportunityType_",
+      "Unknown Endpoint - JSON PUT"
+    ],
+    [
+      "common-error-conditions",
+      "unknown-endpoint",
+      "_NoFlow_",
+      "_NoOpportunityType_",
+      "Unknown Endpoint - GET"
+    ],
+    [
+      "common-error-conditions",
+      "unknown-endpoint",
+      "_NoFlow_",
+      "_NoOpportunityType_",
+      "Feature Description Assertions (for OpenActive maintainers)"
+    ]
+  ],
+  "title": "common-error-conditions >> unknown-endpoint",
+  "workingLog": "",
+  "specs": {
+    "common-error-conditions,unknown-endpoint,_NoFlow_,_NoOpportunityType_,Unknown Endpoint - JSON PUT": [
+      "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`"
+    ],
+    "common-error-conditions,unknown-endpoint,_NoFlow_,_NoOpportunityType_,Unknown Endpoint - GET": [
+      "should return a response containing `\"@type\": \"UnknownOrIncorrectEndpointError\"` with status code `404`"
+    ],
+    "common-error-conditions,unknown-endpoint,_NoFlow_,_NoOpportunityType_,Feature Description Assertions (for OpenActive maintainers)": [
+      "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+    ]
+  },
+  "description": "Send a request to an endpoint that does not exist, and expect an UnknownOrIncorrectEndpointError to be returned",
+  "baseAncestorTitles": [
+    "common-error-conditions",
+    "unknown-endpoint",
+    "_NoFlow_",
+    "_NoOpportunityType_"
+  ]
+}
