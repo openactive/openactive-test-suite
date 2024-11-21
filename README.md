@@ -365,7 +365,7 @@ The following steps may be used within a GitHub Actions script:
 ```yaml
     steps:
       - name: Run OpenActive Test Suite
-        uses: openactive/openactive-test-suite
+        uses: openactive/openactive-test-suite@master
         with:
           config_file: ./test-suite-config.json
           NODE_CONFIG: |
