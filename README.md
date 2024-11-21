@@ -369,7 +369,7 @@ The following steps may be used within a GitHub Actions script:
         with:
           config_file: ./test-suite-config.json
           NODE_CONFIG: |
-            {"broker": {"outputPath": "/github/workspace/test-suite/output/", "datasetSiteUrl": "http://host.docker.internal/openactive"}, "integrationTests": { "outputPath": "/github/workspace/test-suite/output/", "conformanceCertificatePath": "/github/workspace/test-suite/conformance/", "conformanceCertificateId": "https://certificates.example.com/openactive/" }, "sellers": {"primary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/1","secondary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/2"}}}}
+            {"ci": true, "broker": {"outputPath": "/github/workspace/test-suite/output/", "datasetSiteUrl": "http://host.docker.internal/openactive"}, "integrationTests": { "outputPath": "/github/workspace/test-suite/output/", "conformanceCertificatePath": "/github/workspace/test-suite/conformance/", "conformanceCertificateId": "https://certificates.example.com/openactive/" }, "sellers": {"primary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/1","secondary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/2"}}}}
       - name: Upload test output as artifact
         uses: actions/upload-artifact@v2
         if: ${{ success() || failure() }}
@@ -386,9 +386,13 @@ The following steps may be used within a GitHub Actions script:
           sync: false
 ```
 
+And as in the parent section, `NODE_CONFIG` must include `"ci": true`.
+
 Note that `outputPath` and `conformanceCertificatePath` must start with `/github/workspace/` to ensure these outputs are accessible in subsequent steps.  
 
-As above, `host.docker.internal` must be the host to access your booking system locally to the GitHub action if it is not running in another Docker container. This hostname must also be used within `NODE_CONFIG` for `datasetSiteUrl` and Seller `@id`s.
+As in the previous section, `host.docker.internal` must be the host to access your booking system locally to the GitHub action if it is not running in another Docker container. This hostname must also be used within `NODE_CONFIG` for `datasetSiteUrl` and Seller `@id`s.
+
+The Test Suite Certificate should be updated upon each successfull CI run.
 
 
 ## Test Data Requirements
