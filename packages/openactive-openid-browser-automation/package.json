@@ -32,5 +32,12 @@
   },
   "engines": {
     "node": "18.17.1"
+  },
+  "config": {
+    "allowedLicenseTypes": [
+      "permissive",
+      "publicDomain",
+      "uncategorized"
+    ]
   }
 }
