@@ -356,6 +356,41 @@ Some things to note:
 - When using a hostname other than `localhost` for your booking system, it must included at least one `.` to pass the validator.
 - `host.docker.internal` must be the host to access your booking system locally if it is not running in another Docker container. This hostname must also be used within `NODE_CONFIG`.
 
+### CI - GitHub Actions
+
+This repository can also be referenced as a GitHub action, which conveniently wraps the Docker container.
+
+The following steps may be used within a GitHub Actions script:
+
+```yaml
+    steps:
+      - name: Run OpenActive Test Suite
+        uses: openactive/openactive-test-suite
+        with:
+          config_file: ./test-suite-config.json
+          NODE_CONFIG: |
+            {"broker": {"outputPath": "/github/workspace/test-suite/output/", "datasetSiteUrl": "http://host.docker.internal/openactive"}, "integrationTests": { "outputPath": "/github/workspace/test-suite/output/", "conformanceCertificatePath": "/github/workspace/test-suite/conformance/", "conformanceCertificateId": "https://certificates.example.com/openactive/" }, "sellers": {"primary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/1","secondary": {  "@id": "http://host.docker.internal/api/identifiers/sellers/2"}}}}
+      - name: Upload test output as artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ success() || failure() }}
+        with:
+          name: openactive-test-suite
+          path: ./test-suite/output/
+      - name: Deploy conformance certificate to Azure Blob Storage (master branch only)
+        uses: bacongobbler/azure-blob-storage-upload@v1.2.0
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          source_dir: ./test-suite/conformance/
+          container_name: '$web'
+          connection_string: ${{ secrets.CONFORMANCE_CERTIFICATE_BLOB_STORAGE_CONNECTION_STRING }}
+          sync: false
+```
+
+Note that `outputPath` and `conformanceCertificatePath` must start with `/github/workspace/` to ensure these outputs are accessible in subsequent steps.  
+
+As above, `host.docker.internal` must be the host to access your booking system locally to the GitHub action if it is not running in another Docker container. This hostname must also be used within `NODE_CONFIG` for `datasetSiteUrl` and Seller `@id`s.
+
+
 ## Test Data Requirements
 
 In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
