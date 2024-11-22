@@ -28,6 +28,7 @@ inputs:
 runs:
   using: 'docker'
   image: 'docker://ghcr.io/openactive/test-suite:latest'
+  options: '--add-host=host.docker.internal:host-gateway'
   args:
     - ${{ inputs.args }}
   env:
