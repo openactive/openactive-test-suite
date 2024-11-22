@@ -24,11 +24,5 @@ if [ -f "${INPUT_CONFIG_FILE}" ]; then
   export NODE_CONFIG_DIR=
 fi
 
-# Check if running inside a GitHub Action, and configure host.docker.internal if so
-if [ -n "$GITHUB_ACTIONS" ]; then
-    echo "Running inside GitHub Actions. Adding host.docker.internal to /etc/hosts."
-    echo "172.17.0.1 host.docker.internal" >> /etc/hosts
-fi
-
 # Change directory and start the app
 cd /openactive-test-suite && exec npm start -- "$@"
