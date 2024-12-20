@@ -20,7 +20,7 @@ function isOpportunityEventAttendanceModeEqualToMixedOrOffline(opportunity) {
   if (opportunity.superEvent) {
     return isEventIndependentlyOffline(opportunity.superEvent);
   }
-  if (opportunity.superEvent.superEvent) {
+  if (opportunity.superEvent?.superEvent) {
     return isEventIndependentlyOffline(opportunity.superEvent.superEvent);
   }
   return false;
