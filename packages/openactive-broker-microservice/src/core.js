@@ -1253,10 +1253,18 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     },
   });
 
-  const onFeedEnd = async () => {
+  const setFeedEnded = async () => {
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
       multibar: state.multibar,
     });
+  };
+  /**
+   * @param {string} lastPageUrl
+   */
+  const onReachedEndOfFeed = async (lastPageUrl) => {
+    if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
+      await setFeedEnded();
+    } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${lastPageUrl}"`);
   };
 
   // Harvest a parent opportunity feed
@@ -1266,14 +1274,15 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
     storeFeedContext(feedContextIdentifier, feedContext);
-    await harvestRPDELossless({
+    const harvestRpdeResponse = await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
       processPage: ingestParentOpportunityPageForThisFeed,
-      onFeedEnd,
-      onError: harvestRpdeOnError,
-      onFeedNotFoundError: createOnFeedNotFoundError(feedContextIdentifier),
+      onReachedEndOfFeed,
+      onRetryDueToHttpError: async () => { },
+      // onError: harvestRpdeOnError,
+      // onFeedNotFoundError: createOnFeedNotFoundError(setFeedEnded, feedContextIdentifier, false),
       isOrdersFeed: false,
       state: {
         context: feedContext,
@@ -1284,16 +1293,17 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       },
       config: {
         howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-        WAIT_FOR_HARVEST,
-        VALIDATE_ONLY,
-        VERBOSE,
-        ORDER_PROPOSALS_FEED_IDENTIFIER,
         REQUEST_LOGGING_ENABLED,
       },
       options: {
         multibar: state.multibar, pauseResume: state.pauseResume,
       },
     });
+    await handleHarvestRpdeErrorResponse({
+      setFeedEnded,
+      feedContextIdentifier,
+      isOrdersFeed: false,
+    }, harvestRpdeResponse);
     return;
   }
   // Harvest a child opportunity feed
@@ -1303,14 +1313,16 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
     storeFeedContext(feedContextIdentifier, feedContext);
-    await harvestRPDELossless({
+    const harvestRpdeResponse = await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
       processPage: ingestOpportunityPageForThisFeed,
-      onFeedEnd,
-      onError: harvestRpdeOnError,
-      onFeedNotFoundError: createOnFeedNotFoundError(feedContextIdentifier),
+      onReachedEndOfFeed,
+      onRetryDueToHttpError: async () => { },
+      // onFeedEnd: setFeedEnded,
+      // onError: harvestRpdeOnError,
+      // onFeedNotFoundError: createOnFeedNotFoundError(setFeedEnded, feedContextIdentifier, false),
       isOrdersFeed: false,
       state: {
         context: feedContext,
@@ -1321,16 +1333,17 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       },
       config: {
         howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-        WAIT_FOR_HARVEST,
-        VALIDATE_ONLY,
-        VERBOSE,
-        ORDER_PROPOSALS_FEED_IDENTIFIER,
         REQUEST_LOGGING_ENABLED,
       },
       options: {
         multibar: state.multibar, pauseResume: state.pauseResume,
       },
     });
+    await handleHarvestRpdeErrorResponse({
+      setFeedEnded,
+      feedContextIdentifier,
+      isOrdersFeed: false,
+    }, harvestRpdeResponse);
     return;
   }
   logError(`\nERROR: Found unsupported feed in dataset site "${datasetDistributionItem.contentUrl}" with additionalType "${datasetDistributionItem.additionalType}"`);
@@ -1346,24 +1359,39 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
  * @param {ValidatorWorkerPool} args.validatorWorkerPool
  */
 async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, feedBookingPartnerIdentifier, { validatorWorkerPool }) {
-  const onFeedEnd = async () => {
+  const feedContext = createFeedContext(feedContextIdentifier, feedUrl, state.multibar);
+
+  const setFeedEnded = async () => {
     OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
       multibar: state.multibar,
     });
   };
-  const feedContext = createFeedContext(feedContextIdentifier, feedUrl, state.multibar);
+  /**
+   * @param {string} lastPageUrl
+   */
+  const onReachedEndOfFeed = async (lastPageUrl) => {
+    if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
+      await setFeedEnded();
+    } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${lastPageUrl}"`);
+  };
 
   state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
   storeFeedContext(feedContextIdentifier, feedContext);
-  await harvestRPDELossless({
+  const harvestRpdeResponse = await harvestRPDELossless({
     baseUrl: feedUrl,
     feedContextIdentifier,
     headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
     processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
-    onFeedEnd,
-    onError: harvestRpdeOnError,
-    onFeedNotFoundError: createOnFeedNotFoundError(feedContextIdentifier),
+    onReachedEndOfFeed,
+    onRetryDueToHttpError: async () => {
+      // Do not wait for the Orders feed if failing (as it might be an auth error)
+      if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
+        await setFeedEnded();
+      }
+    },
+    // onError: harvestRpdeOnError,
+    // onFeedNotFoundError: createOnFeedNotFoundError(setFeedEnded, feedContextIdentifier, true),
     isOrdersFeed: true,
     state: {
       context: feedContext,
@@ -1374,32 +1402,57 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
     },
     config: {
       howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-      WAIT_FOR_HARVEST,
-      VALIDATE_ONLY,
-      VERBOSE,
-      ORDER_PROPOSALS_FEED_IDENTIFIER,
       REQUEST_LOGGING_ENABLED,
     },
     options: {
       multibar: state.multibar, pauseResume: state.pauseResume,
     },
   });
+  await handleHarvestRpdeErrorResponse({
+    setFeedEnded,
+    feedContextIdentifier,
+    isOrdersFeed: true,
+  }, harvestRpdeResponse);
 }
 
 /**
- * @param {string} feedContextIdentifier
+ * @param {object} config
+ * @param {() => Promise<void>} config.setFeedEnded
+ * @param {string} config.feedContextIdentifier
+ * @param {boolean} config.isOrdersFeed
+ * @param {import('@openactive/harvesting-utils/built-types/src/models/HarvestRpde').HarvestRpdeResponse} response
  */
-function createOnFeedNotFoundError(feedContextIdentifier) {
-  return (reqUrl, reqHeaders) => {
-    state.feedContextMap.delete(feedContextIdentifier);
-    // Ignore Order Proposals feed not found errors as many implementations
-    // do not support this type of feed.
-    if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) > 0) {
-      return;
+async function handleHarvestRpdeErrorResponse({
+  setFeedEnded,
+  feedContextIdentifier,
+  isOrdersFeed,
+}, response) {
+  // Do not wait for the Orders feed if failing (as it might be an auth error)
+  if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && isOrdersFeed) {
+    await setFeedEnded();
+  }
+  const { error } = response;
+  switch (error.type) {
+    case 'feed-not-found': {
+      if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && !isOrdersFeed) {
+        await setFeedEnded();
+      }
+      state.feedContextMap.delete(feedContextIdentifier);
+      // Ignore Order Proposals feed not found errors as many implementations
+      // do not support this type of feed.
+      if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) > 0) {
+        return;
+      }
+      const pageDescriptiveIdentifier = `RPDE feed ${feedContextIdentifier} page "${error.reqUrl}" (request headers: ${JSON.stringify(error.reqHeaders)})`;
+      logErrorDuringHarvest(`Not Found error for ${pageDescriptiveIdentifier}, feed will be ignored.`);
+      break;
     }
-    const pageDescriptiveIdentifier = `RPDE feed ${feedContextIdentifier} page "${reqUrl}" (request headers: ${JSON.stringify(reqHeaders)})`;
-    logErrorDuringHarvest(`Not Found error for ${pageDescriptiveIdentifier}, feed will be ignored.`);
-  };
+    // case 'unexpected-non-http-error':
+    // case 'retry-limit-exceeded-for-http-error':
+    // case 'rpde-validation-error':
+    default:
+      process.exit(1);
+  }
 }
 
 /**
@@ -1483,10 +1536,6 @@ function onValidateItems(context, numItems) {
 function harvestRpdeHowLongToSleepAtFeedEnd() {
   // Slow down sleep polling while waiting for harvesting of other feeds to complete
   return WAIT_FOR_HARVEST && state.incompleteFeeds.anyFeedsStillHarvesting() ? 5000 : 500;
-}
-
-function harvestRpdeOnError() {
-  process.exit(1);
 }
 
 module.exports = {
