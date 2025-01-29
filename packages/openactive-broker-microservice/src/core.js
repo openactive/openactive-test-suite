@@ -1265,6 +1265,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
+    storeFeedContext(feedContextIdentifier, feedContext);
     await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
@@ -1272,9 +1273,11 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       processPage: ingestParentOpportunityPageForThisFeed,
       onFeedEnd,
       onError: harvestRpdeOnError,
+      onFeedNotFoundError: createOnFeedNotFoundError(feedContextIdentifier),
       isOrdersFeed: false,
       state: {
-        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+        context: feedContext,
+        startTime: state.startTime,
       },
       loggingFns: {
         log, logError, logErrorDuringHarvest,
@@ -1299,6 +1302,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
+    storeFeedContext(feedContextIdentifier, feedContext);
     await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
@@ -1306,9 +1310,11 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       processPage: ingestOpportunityPageForThisFeed,
       onFeedEnd,
       onError: harvestRpdeOnError,
+      onFeedNotFoundError: createOnFeedNotFoundError(feedContextIdentifier),
       isOrdersFeed: false,
       state: {
-        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
+        context: feedContext,
+        startTime: state.startTime,
       },
       loggingFns: {
         log, logError, logErrorDuringHarvest,
@@ -1346,8 +1352,10 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
       multibar: state.multibar,
     });
   };
+  const feedContext = createFeedContext(feedContextIdentifier, feedUrl, state.multibar);
 
   state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
+  storeFeedContext(feedContextIdentifier, feedContext);
   await harvestRPDELossless({
     baseUrl: feedUrl,
     feedContextIdentifier,
@@ -1355,9 +1363,11 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
     processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
     onFeedEnd,
     onError: harvestRpdeOnError,
+    onFeedNotFoundError: createOnFeedNotFoundError(feedContextIdentifier),
     isOrdersFeed: true,
     state: {
-      feedContextMap: state.feedContextMap, startTime: state.startTime,
+      context: feedContext,
+      startTime: state.startTime,
     },
     loggingFns: {
       log, logError, logErrorDuringHarvest,
@@ -1374,6 +1384,33 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
       multibar: state.multibar, pauseResume: state.pauseResume,
     },
   });
+}
+
+/**
+ * @param {string} feedContextIdentifier
+ */
+function createOnFeedNotFoundError(feedContextIdentifier) {
+  return (reqUrl, reqHeaders) => {
+    state.feedContextMap.delete(feedContextIdentifier);
+    // Ignore Order Proposals feed not found errors as many implementations
+    // do not support this type of feed.
+    if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) > 0) {
+      return;
+    }
+    const pageDescriptiveIdentifier = `RPDE feed ${feedContextIdentifier} page "${reqUrl}" (request headers: ${JSON.stringify(reqHeaders)})`;
+    logErrorDuringHarvest(`Not Found error for ${pageDescriptiveIdentifier}, feed will be ignored.`);
+  };
+}
+
+/**
+ * @param {string} feedContextIdentifier
+ * @param {import('@openactive/harvesting-utils').FeedContext} feedContext
+ */
+function storeFeedContext(feedContextIdentifier, feedContext) {
+  if (state.feedContextMap.has(feedContextIdentifier)) {
+    throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
+  }
+  state.feedContextMap.set(feedContextIdentifier, feedContext);
 }
 
 /**
