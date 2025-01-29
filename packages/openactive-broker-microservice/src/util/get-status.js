@@ -56,4 +56,5 @@ function millisToMinutesAndSeconds(millis) {
 module.exports = {
   getOrphanStats,
   getStatus,
+  millisToMinutesAndSeconds,
 };

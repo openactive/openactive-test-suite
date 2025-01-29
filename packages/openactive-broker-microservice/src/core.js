@@ -51,7 +51,7 @@ const { ValidatorWorkerPool } = require('./validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./validator/validator-inputs');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
-const { getOrphanStats, getStatus } = require('./util/get-status');
+const { getOrphanStats, getStatus, millisToMinutesAndSeconds } = require('./util/get-status');
 const { getOrphanJson } = require('./util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('./util/get-opportunity-by-id-from-cache');
 const { getMergedJsonLdContext } = require('./util/jsonld-utils');
@@ -1258,14 +1258,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       multibar: state.multibar,
     });
   };
-  /**
-   * @param {string} lastPageUrl
-   */
-  const onReachedEndOfFeed = async (lastPageUrl) => {
-    if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
-      await setFeedEnded();
-    } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${lastPageUrl}"`);
-  };
+  const onReachedEndOfFeed = createOnReachedEndOfFeedFn(setFeedEnded, feedContext);
 
   // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
@@ -1286,7 +1279,6 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       isOrdersFeed: false,
       state: {
         context: feedContext,
-        startTime: state.startTime,
       },
       loggingFns: {
         log, logError, logErrorDuringHarvest,
@@ -1326,7 +1318,6 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       isOrdersFeed: false,
       state: {
         context: feedContext,
-        startTime: state.startTime,
       },
       loggingFns: {
         log, logError, logErrorDuringHarvest,
@@ -1367,14 +1358,7 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
       multibar: state.multibar,
     });
   };
-  /**
-   * @param {string} lastPageUrl
-   */
-  const onReachedEndOfFeed = async (lastPageUrl) => {
-    if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
-      await setFeedEnded();
-    } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${lastPageUrl}"`);
-  };
+  const onReachedEndOfFeed = createOnReachedEndOfFeedFn(setFeedEnded, feedContext);
 
   state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
   storeFeedContext(feedContextIdentifier, feedContext);
@@ -1395,7 +1379,6 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
     isOrdersFeed: true,
     state: {
       context: feedContext,
-      startTime: state.startTime,
     },
     loggingFns: {
       log, logError, logErrorDuringHarvest,
@@ -1413,6 +1396,29 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
     feedContextIdentifier,
     isOrdersFeed: true,
   }, harvestRpdeResponse);
+}
+
+/**
+ * @param {() => Promise<void>} setFeedEnded
+ * @param {import('@openactive/harvesting-utils').FeedContext} feedContext
+ *   ! This is mutated
+ */
+function createOnReachedEndOfFeedFn(setFeedEnded, feedContext) {
+  /**
+   * @param {string} lastPageUrl
+   */
+  return async (lastPageUrl) => {
+    if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
+      await setFeedEnded();
+    } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${lastPageUrl}"`);
+
+    // eslint-disable-next-line no-param-reassign
+    feedContext.sleepMode = true;
+    if (feedContext.timeToHarvestCompletion === undefined) {
+    // eslint-disable-next-line no-param-reassign
+      feedContext.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
+    }
+  };
 }
 
 /**
