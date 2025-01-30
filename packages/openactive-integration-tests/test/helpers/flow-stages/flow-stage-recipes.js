@@ -16,6 +16,7 @@ const { ListenerItemExpectationRecipes } = require('../listener-item-expectation
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../request-helper').BookingPartnerIdentifier} BookingPartnerIdentifier
  * @typedef {import('../../templates/c1-req').C1ReqTemplateRef} C1ReqTemplateRef
  * @typedef {import('../../templates/c2-req').C2ReqTemplateRef} C2ReqTemplateRef
  * @typedef {import('../../templates/b-req').AccessPassItem} AccessPassItem
@@ -44,6 +45,9 @@ const { ListenerItemExpectationRecipes } = require('../listener-item-expectation
  *   taxMode?: string | null,
  *   includeAllOptionalFieldsWhenGeneratingCustomer?: boolean,
  *   accessPass?: AccessPassItem[] | null,
+ *   bookingPartnerIdentifier?: BookingPartnerIdentifier | null,
+ *   uuid?: string | null,
+ *   prerequisite?: UnknownFlowStageType | null;
  *   defaultFlowStageParams?: DefaultFlowStageParams | null,
  *   c1ExpectToFail?: boolean,
  *   c2ExpectToFail?: boolean,
@@ -118,12 +122,11 @@ const FlowStageRecipes = {
       accessPass,
       brokerRole,
       firstStageReqTemplateRef: bookReqTemplateRef,
-      getFirstStageInput: () => ({
-        orderItems: fetchOpportunities.getOutput().orderItems,
-        totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
-        prepayment: c2.getStage('c2').getOutput().prepayment,
-        positionOrderIntakeFormMap: c1.getStage('c1').getOutput().positionOrderIntakeFormMap,
-      }),
+      getFirstStageInput: FlowStageRecipes.getSimpleBookFirstStageInput(
+        fetchOpportunities,
+        c1.getStage('c1'),
+        c2.getStage('c2'),
+      ),
       getAssertOpportunityCapacityInput: () => ({
         opportunityFeedExtractResponses: c2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -162,6 +165,8 @@ const FlowStageRecipes = {
     c2ReqTemplateRef = null,
     brokerRole = null,
     taxMode = null,
+    bookingPartnerIdentifier = null,
+    uuid = null,
     ...options
   } = {}) {
     const c2ExpectToFail = options.c2ExpectToFail ?? false;
@@ -173,6 +178,8 @@ const FlowStageRecipes = {
       {
         brokerRole,
         taxMode,
+        bookingPartnerIdentifier,
+        uuid,
         ...options,
       },
     );
@@ -224,6 +231,8 @@ const FlowStageRecipes = {
     c1ReqTemplateRef = null,
     taxMode = null,
     brokerRole = null,
+    bookingPartnerIdentifier = null,
+    uuid = null,
     includeAllOptionalFieldsWhenGeneratingCustomer,
     ...options
   } = {}) {
@@ -231,6 +240,8 @@ const FlowStageRecipes = {
       orderItemCriteriaList,
       logger,
       taxMode,
+      bookingPartnerIdentifier,
+      uuid,
       includeAllOptionalCustomerDetails: includeAllOptionalFieldsWhenGeneratingCustomer,
       describeFeatureRecord,
     });
@@ -514,33 +525,13 @@ const FlowStageRecipes = {
     paymentIdentifierIfPaid,
     ...args
   }) {
-    const p = new PFlowStage({
-      ...defaultFlowStageParams,
+    const { p, simulateSellerApproval, orderFeedUpdateCollector } = FlowStageRecipes.proposeAndSimulateSellerApproval(defaultFlowStageParams, {
       prerequisite,
-      templateRef: firstStageReqTemplateRef,
       brokerRole,
       accessPass,
-      getInput: getFirstStageInput,
+      firstStageReqTemplateRef,
+      getFirstStageInput,
       paymentIdentifierIfPaid,
-    });
-    const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
-      wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
-        ...defaultFlowStageParams,
-        testName: 'Simulate Seller Approval (Test Interface Action)',
-        prerequisite: orderFeedUpdateListener,
-        createActionFn: () => ({
-          type: 'test:SellerAcceptOrderProposalSimulateAction',
-          objectType: 'OrderProposal',
-          objectId: p.getOutput().orderId,
-        }),
-      })),
-      orderFeedUpdateParams: {
-        ...defaultFlowStageParams,
-        failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400,
-        prerequisite: p,
-        testName: 'OrderProposal Feed Update (after Simulate Seller Approval)',
-        orderFeedType: 'order-proposals',
-      },
     });
 
     const [b, orderFeedUpdateAfterDeleteProposal] = OrderFeedUpdateFlowStageUtils.wrap({
@@ -577,6 +568,75 @@ const FlowStageRecipes = {
       b,
       orderFeedUpdateAfterDeleteProposal,
       assertOpportunityCapacityAfterBook,
+    });
+  },
+
+  /**
+   * P -> Simulate Seller Approval -> Wait for it to appear in the OrderProposals feed.
+   *
+   * @param {DefaultFlowStageParams} defaultFlowStageParams
+   * @param {Omit<BookRecipeArgs, 'getAssertOpportunityCapacityInput'>} args
+   */
+  proposeAndSimulateSellerApproval(defaultFlowStageParams, {
+    prerequisite,
+    brokerRole = null,
+    accessPass = null,
+    firstStageReqTemplateRef = null,
+    getFirstStageInput,
+    paymentIdentifierIfPaid,
+  }) {
+    const p = new PFlowStage({
+      ...defaultFlowStageParams,
+      prerequisite,
+      templateRef: firstStageReqTemplateRef,
+      brokerRole,
+      accessPass,
+      getInput: getFirstStageInput,
+      paymentIdentifierIfPaid,
+    });
+    const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
+      wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
+        ...defaultFlowStageParams,
+        testName: 'Simulate Seller Approval (Test Interface Action)',
+        prerequisite: orderFeedUpdateListener,
+        createActionFn: () => ({
+          type: 'test:SellerAcceptOrderProposalSimulateAction',
+          objectType: 'OrderProposal',
+          objectId: p.getOutput().orderId,
+        }),
+      })),
+      orderFeedUpdateParams: {
+        ...defaultFlowStageParams,
+        failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400,
+        prerequisite: p,
+        testName: 'OrderProposal Feed Update (after Simulate Seller Approval)',
+        orderFeedType: 'order-proposals',
+      },
+    });
+    return {
+      p,
+      simulateSellerApproval,
+      orderFeedUpdateCollector,
+    };
+  },
+  /**
+   * Create a getInput function for a Book first stage (which will be either P or B).
+   *
+   * This is the simple version which just assumes piping the data directly in from previous stages.
+   *
+   * Don't use this if creating a bespoke scenario in which e.g. an erroneous totalPaymentDue is supplied.
+   *
+   * @param {FetchOpportunitiesFlowStage} fetchOpportunities
+   * @param {C1FlowStage} c1
+   * @param {C2FlowStage} c2
+   * @returns {() => import('../flow-stages/p').Input}
+   */
+  getSimpleBookFirstStageInput(fetchOpportunities, c1, c2) {
+    return () => ({
+      orderItems: fetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: c2.getOutput().totalPaymentDue,
+      prepayment: c2.getOutput().prepayment,
+      positionOrderIntakeFormMap: c1.getOutput().positionOrderIntakeFormMap,
     });
   },
 

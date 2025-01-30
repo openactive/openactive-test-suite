@@ -1,6 +1,7 @@
-const { ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../broker-config');
+const { ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../constants');
+const { error409IfListenerAlreadyExists } = require('../twoPhaseListeners/utils');
 const { TwoPhaseListeners: Listeners } = require('../twoPhaseListeners/twoPhaseListeners');
-const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
+const { orderFeedContextIdentifier } = require('../util/feed-context');
 
 /**
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType
@@ -54,6 +55,39 @@ const OrderUuidTracking = {
         Listeners.doNotifyListener(orderUuidTrackingState.isPresentListeners, listenerId, false);
       }
     }
+  },
+  /**
+   * @param {OrderUuidTrackingState} orderUuidTrackingState
+   * @param {object} args
+   * @param {OrderFeedType} args.orderFeedType
+   * @param {string} args.bookingPartnerIdentifier
+   * @param {string} args.uuid
+   * @param {import('express').Response} args.res
+   */
+  checkIfOrderUuidIsPresentAndPotentiallyListenForIt(orderUuidTrackingState, {
+    orderFeedType,
+    bookingPartnerIdentifier,
+    uuid,
+    res,
+  }) {
+    const feedIdentifier = orderFeedTypeToIdentifier(orderFeedType);
+    const feedContextIdentifier = orderFeedContextIdentifier(feedIdentifier, bookingPartnerIdentifier);
+    if (!error409IfListenerAlreadyExists(res, orderUuidTrackingState.isPresentListeners, 'Order Tracking', feedContextIdentifier)) { return; }
+    // If the UUID has been seen already, then we can answer immediately - it's present
+    const isOrderUuidPresentSoFar = orderUuidTrackingState.uuidsInOrderMap.get(feedContextIdentifier)?.has(uuid);
+    if (isOrderUuidPresentSoFar) {
+      res.json(true);
+      return;
+    }
+    // Otherwise, if the end of the feed has already been reached, we know that the UUID is NOT present
+    if (orderUuidTrackingState.hasReachedEndOfFeedMap.get(feedContextIdentifier)) {
+      res.json(false);
+      return;
+    }
+    // Otherwise, we do not yet have sufficient information. Wait until we do.
+    const listenerId = Listeners.getOrderListenerId(orderFeedType, bookingPartnerIdentifier, uuid);
+    // Since we're just tracking that its UUID has been seen, we don't have any item expectations
+    orderUuidTrackingState.isPresentListeners.set(listenerId, Listeners.createPendingListener(res, []));
   },
 };
 
