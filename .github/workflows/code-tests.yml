@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest-1
+    runs-on: ubuntu-latest-l
 
     steps:
     - name: Checkout OpenActive Test Suite
