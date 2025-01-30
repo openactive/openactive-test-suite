@@ -209,7 +209,11 @@ const state = {
   },
 
   // UI
-  // create new progress bar container
+  /**
+   * create new progress bar container
+   *
+   * @type {import('cli-progress').MultiBar | null}
+   */
   multibar: null,
   // HEALTH CHECKS
   /**
