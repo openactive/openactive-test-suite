@@ -1259,7 +1259,6 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     });
   };
   const onReachedEndOfFeed = createOnReachedEndOfFeedFn(setFeedEnded, feedContext);
-  const onProcessedPage = createOnProcessedPageFn(feedContext);
 
   // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
@@ -1272,9 +1271,8 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-      processPage: ingestParentOpportunityPageForThisFeed,
+      processPage: createOnProcessedPageFn(feedContext, ingestParentOpportunityPageForThisFeed),
       onReachedEndOfFeed,
-      onProcessedPage,
       onRetryDueToHttpError: async () => { },
       optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
       isOrdersFeed: false,
@@ -1305,9 +1303,8 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-      processPage: ingestOpportunityPageForThisFeed,
+      processPage: createOnProcessedPageFn(feedContext, ingestOpportunityPageForThisFeed),
       onReachedEndOfFeed,
-      onProcessedPage,
       onRetryDueToHttpError: async () => { },
       optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
       isOrdersFeed: false,
@@ -1349,7 +1346,6 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
     });
   };
   const onReachedEndOfFeed = createOnReachedEndOfFeedFn(setFeedEnded, feedContext);
-  const onProcessedPage = createOnProcessedPageFn(feedContext);
 
   state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
   storeFeedContext(feedContextIdentifier, feedContext);
@@ -1357,9 +1353,8 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
     baseUrl: feedUrl,
     feedContextIdentifier,
     headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-    processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
+    processPage: createOnProcessedPageFn(feedContext, monitorOrdersPage(type, feedBookingPartnerIdentifier)),
     onReachedEndOfFeed,
-    onProcessedPage,
     onRetryDueToHttpError: async () => {
       // Do not wait for the Orders feed if failing (as it might be an auth error)
       if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
@@ -1426,18 +1421,24 @@ function createOnReachedEndOfFeedFn(setFeedEnded, feedContext) {
 
 /**
  * @param {import('./util/feed-context').BrokerFeedContext} feedContext
+ * @param {(rpdePage: any,feedIdentifier: string, isInitialHarvestComplete: () => boolean) => Promise<void>} internalProcessPageFn
  */
-function createOnProcessedPageFn(feedContext) {
+function createOnProcessedPageFn(feedContext, internalProcessPageFn) {
   /**
    * @param {object} params
-   * @param {boolean} params.isInitialHarvestComplete
+   * @param {any} params.rpdePage
+   * @param {string} params.feedContextIdentifier
+   * @param {() => boolean} params.isInitialHarvestComplete
    * @param {number} params.responseTime
    */
   return async ({
+    rpdePage,
+    feedContextIdentifier,
     isInitialHarvestComplete,
     responseTime,
   }) => {
-    // TODO3 onProcessedPage(isInitialHarvestComplete, feedContext)
+    await internalProcessPageFn(rpdePage, feedContextIdentifier, isInitialHarvestComplete);
+
     if (!isInitialHarvestComplete && feedContext._progressbar) {
       feedContext._progressbar.update(feedContext.validatedItems, {
         pages: feedContext.pageIndex,
