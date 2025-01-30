@@ -1,10 +1,8 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
-  FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
   FlowStageUtils,
   OrderQuoteDeletionFlowStage,
+  FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
@@ -18,30 +16,12 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-  const fetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const c1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: fetchOpportunities,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
-  const c2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: c1,
-    getInput: () => ({
-      orderItems: fetchOpportunities.getOutput().orderItems,
-    }),
-  });
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
   const deleteOrderQuote1 = new OrderQuoteDeletionFlowStage({
     ...defaultFlowStageParams,
-    prerequisite: c2,
+    prerequisite: c2.getLastStage(),
   });
   const deleteOrderQuote2 = new OrderQuoteDeletionFlowStage({
     ...defaultFlowStageParams,

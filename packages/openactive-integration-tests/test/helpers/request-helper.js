@@ -1,11 +1,14 @@
+const querystring = require('querystring');
 const chakram = require('chakram');
 const config = require('config');
+const { isNil } = require('lodash');
 
-const { c1ReqTemplates } = require('../templates/c1-req.js');
-const { c2ReqTemplates } = require('../templates/c2-req.js');
-const { bReqTemplates } = require('../templates/b-req.js');
-const { uReqTemplates } = require('../templates/u-req.js');
-const { createTestInterfaceOpportunity } = require('./test-interface-opportunities.js');
+const { c1ReqTemplates } = require('../templates/c1-req');
+const { c2ReqTemplates } = require('../templates/c2-req');
+const { bReqTemplates } = require('../templates/b-req');
+const { cancelOrderReqTemplates } = require('../templates/cancel-order-req');
+const { rejectOrderProposalReqTemplates } = require('../templates/reject-order-proposal-req');
+const { createTestInterfaceOpportunity } = require('./test-interface-opportunities');
 
 /**
  * @typedef {import('chakram').RequestMethod} RequestMethod
@@ -41,6 +44,9 @@ const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CON
 
 const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
 const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
+const IGNORE_UNEXPECTED_FEED_UPDATES = config.has('integrationTests.ignoreUnexpectedFeedUpdates')
+  ? config.get('integrationTests.ignoreUnexpectedFeedUpdates')
+  : false;
 
 const BROKER_CHAKRAM_REQUEST_OPTIONS = {
   timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
@@ -175,12 +181,20 @@ class RequestHelper {
    *   item from its cache.
    *   Set to false if you want to wait for a new update to the feed.
    *   Default is: true.
+   * @param {object} [moreOptions]
+   * @param {number} [moreOptions.expectedCapacity]
    */
-  async getMatch(eventId, orderItemPosition, useCacheIfAvailable) {
-    const useCacheIfAvailableQuery = useCacheIfAvailable === false ? 'false' : 'true';
+  async getMatch(eventId, orderItemPosition, useCacheIfAvailable, moreOptions) {
+    const expectedCapacity = moreOptions?.expectedCapacity ?? null;
+    const qs = querystring.stringify({
+      useCacheIfAvailable: useCacheIfAvailable === false ? 'false' : 'true',
+      ...(isNil(expectedCapacity)
+        ? {}
+        : { expectedCapacity }),
+    });
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=${useCacheIfAvailableQuery}`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?${qs}`,
       BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {
@@ -228,12 +242,15 @@ class RequestHelper {
    * @param {OrderFeedType} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
+   * @param {import('./listener-item-expectations').ListenerItemExpectation[]} [listenerItemExpectations]
    */
-  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid) {
+  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, listenerItemExpectations) {
     return await this.post(
       `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
-      null,
+      {
+        itemExpectations: IGNORE_UNEXPECTED_FEED_UPDATES ? listenerItemExpectations : undefined,
+      },
       BROKER_CHAKRAM_REQUEST_OPTIONS,
     );
   }
@@ -382,12 +399,34 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/u-req.js').UReqTemplateData} params
-   * @param {import('../templates/u-req').UReqTemplateRef | null} [maybeUReqTemplateRef]
+   * @param {import('../templates/reject-order-proposal-req.js').RejectOrderProposalReqTemplateRef | null} [maybeRejectOrderProposalReqTemplateRef]
    */
-  async cancelOrder(uuid, params, maybeUReqTemplateRef) {
-    const uReqTemplateRef = maybeUReqTemplateRef || 'standard';
-    const templateFn = uReqTemplates[uReqTemplateRef];
+  async customerRejectOrderProposal(uuid, maybeRejectOrderProposalReqTemplateRef) {
+    const rejectOrderProposalReqTemplateRef = maybeRejectOrderProposalReqTemplateRef || 'standard';
+    const templateFn = rejectOrderProposalReqTemplates[rejectOrderProposalReqTemplateRef];
+    const payload = templateFn();
+
+    const uResponse = await this.patch(
+      'U Proposal',
+      `${BOOKING_API_BASE}/order-proposals/${uuid}`,
+      payload,
+      {
+        headers: this.createHeaders(),
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
+      },
+    );
+
+    return uResponse;
+  }
+
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateData} params
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateRef | null} [maybeCancelOrderReqTemplateRef]
+   */
+  async cancelOrder(uuid, params, maybeCancelOrderReqTemplateRef) {
+    const cancelOrderReqTemplateRef = maybeCancelOrderReqTemplateRef || 'standard';
+    const templateFn = cancelOrderReqTemplates[cancelOrderReqTemplateRef];
     const payload = templateFn(params);
 
     const uResponse = await this.patch(
@@ -443,8 +482,9 @@ class RequestHelper {
     sellerId,
     sellerType,
   }) {
+    const stage = `Local Microservice Test Interface for OrderItem ${orderItemPosition}`;
     const respObj = await this.post(
-      `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
+      stage,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
       createTestInterfaceOpportunity({
         opportunityType,
@@ -456,6 +496,19 @@ class RequestHelper {
         timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
+    const opportunityNotFound = (
+      respObj.response.statusCode === 404
+      && respObj.body?.type === 'OpportunityNotFound'
+    );
+    if (opportunityNotFound) {
+      this.logger.recordFlowStageEvent(stage, {
+        type: 'OpportunityNotFound',
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+      });
+    }
 
     return respObj;
   }

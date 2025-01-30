@@ -28,7 +28,7 @@ async function getEndpointUrl() {
   const response = await axios.get(`${MICROSERVICE_BASE}/config`);
 
   if (!(response && response.data && response.data.bookingApiBaseUrl)) {
-    throw new Error('Dataset Site JSON-LD does not contain an accessService.endpointURL');
+    throw new Error('Dataset Site JSON-LD does not contain an accessService.endpointUrl');
   }
 
   return response.data.bookingApiBaseUrl;
@@ -114,6 +114,7 @@ module.exports = async () => {
     try {
       console.log('Purging test dataset cache within local broker microservice...');
       await purgeCache();
+      console.log('...purged');
     } catch (error) {
       throw new Error(`The broker microservice is unreachable. This is a pre-requisite for the test suite. \n${error}`);
     }

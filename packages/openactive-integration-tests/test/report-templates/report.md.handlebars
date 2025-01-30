@@ -1,4 +1,24 @@
-[< Return to Summary](summary.md) | File Generated: {{{ timestamp }}}
+<head>
+  <style>
+h2 {
+    cursor: pointer;
+    border-top-color: #CCC;
+    border-top-width: 1px;
+    border-top-style: solid;
+    padding-top: 5px;
+}
+h2:hover {
+    color: #0056b3; /* Example color change on hover */
+}
+</style>
+</head>
+
+[< Return to Summary](summary.html) | File Generated: {{{ timestamp }}}
+
+<button id="collapseH2Button">Collapse All Sections</button>
+<button id="showH2Button">Show All Sections</button>
+<button id="collapseAllButFirstError">Show Only First Error</button>
+
 
 # {{{ title }}}
 
@@ -18,6 +38,10 @@
 npm start -- --runInBand {{{ testFileName }}}
 ```
 
+### Is this test failing?
+
+The [OpenActive Reference Implementation test result for this test]({{{ referenceImplementationResultUrl }}}) can be used as a reference to help with debugging.
+
 ---
 
 {{ validationIcon overallStatus }} {{ numPassed }} passed with {{ numFailed }} {{ pluralise "failure" numFailed }}, {{ numWarnings }} {{ pluralise "warning" numWarnings }} and {{{ numSuggestions }}} {{ pluralise "suggestion" numSuggestions }} 
@@ -26,7 +50,12 @@ npm start -- --runInBand {{{ testFileName }}}
 
 {{#each activeSuites }}
 
-## {{{ renderSuiteName . }}}
+{{#if (doRenderSuite .)}}
+
+## {{ validationIcon (statusFor . ) }} {{{ renderSuiteName . }}}
+
+{{{ maintainerInfo . }}}
+
     {{#logsFor . "information"}}
 
 ### {{title}}
@@ -126,6 +155,10 @@ Response error:
  * {{ validationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
     {{/logsFor}}
+
+{{!-- {{#if (doRenderSuite .)}} --}}
+{{/if}}
+{{!-- {{#each activeSuites }} --}}
 {{/each}}
 
 
@@ -137,3 +170,104 @@ Test could not be completed as it timed out while a request was still pending:
 
     {{/if~}}
 {{/logsFor}}
+
+<script>
+  function collapseH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+        if (nextElement.style.display !== 'none') {
+            nextElement.style.display = 'none';
+        }
+        nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function showH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+        if (nextElement.style.display !== '') {
+            nextElement.style.display = '';
+        }
+        nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function toggleH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+              // Toggle visibility
+              nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
+              nextElement = nextElement.nextElementSibling;
+          }
+  }
+
+  function collapseAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function(h2) {
+        var nextElement = h2.nextElementSibling;
+        collapseH2Section(nextElement);
+    });
+  }
+  function showAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function(h2) {
+        var nextElement = h2.nextElementSibling;
+        showH2Section(nextElement);
+    });
+  }
+
+  function collapseExceptFirstSpecialH2Section() {
+    const h2Elements = document.querySelectorAll('h2');
+    let specialSectionFound = false;
+
+    h2Elements.forEach((h2) => {
+        let nextNode = h2.nextElementSibling;
+        let sectionContainsSpecialChar = false;
+
+        // Iterate through sibling elements until the next H2 or no more siblings until the error section is found
+        while (nextNode && nextNode.tagName !== 'H2') {
+            if (!specialSectionFound && nextNode.textContent.includes('❌')) {
+                sectionContainsSpecialChar = true;
+                specialSectionFound = true; 
+                break;
+              }
+              showH2Section(nextNode);
+            nextNode = nextNode.nextElementSibling;
+        }
+
+        // If this section is not the one with the error, collapse it
+        if (!sectionContainsSpecialChar) {
+            nextNode = h2.nextElementSibling; 
+            collapseH2Section(nextNode);
+        }
+    });
+}
+
+
+  // Show/Hide each header section
+  document.querySelectorAll('h2').forEach(function(h2) {
+      h2.addEventListener('click', function() {
+          let nextElement = this.nextElementSibling;
+          toggleH2Section(nextElement)
+      });
+  });
+
+  // Show all header sections
+  document.getElementById('showH2Button').addEventListener('click', function() {
+      showAllH2Sections();
+  });
+
+  // Collapse all header sections
+  document.getElementById('collapseH2Button').addEventListener('click', function() {
+      collapseAllH2Sections();
+  });
+
+  // Collapse all but first error section button
+    document.getElementById('collapseAllButFirstError').addEventListener('click', function() {
+      collapseExceptFirstSpecialH2Section();
+  });
+
+  // Hide all header sections by default
+  collapseExceptFirstSpecialH2Section();
+  </script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>

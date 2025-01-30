@@ -14,7 +14,7 @@
       "notImplementedTestFiles": 1
     },
     "common-error-conditions": {
-      "implementedTestFiles": 6,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 1
     },
     "dataset-site": {
@@ -23,7 +23,7 @@
     },
     "order-deletion": {
       "implementedTestFiles": 4,
-      "notImplementedTestFiles": 0
+      "notImplementedTestFiles": 1
     },
     "access-channel": {
       "implementedTestFiles": 1,
@@ -62,8 +62,8 @@
       "notImplementedTestFiles": 0
     },
     "minimal-proposal": {
-      "implementedTestFiles": 3,
-      "notImplementedTestFiles": 0
+      "implementedTestFiles": 4,
+      "notImplementedTestFiles": 1
     },
     "proposal-amendment": {
       "implementedTestFiles": 1,
@@ -123,11 +123,19 @@
     },
     "multiple-sellers": {
       "implementedTestFiles": 2,
-      "notImplementedTestFiles": 0
+      "notImplementedTestFiles": 1
     },
     "opportunity-feed": {
       "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
+    },
+    "past-opportunities": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
+    },
+    "single-seller": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "test-interface": {
       "implementedTestFiles": 1,
@@ -170,11 +178,11 @@
       "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTestFiles": 5,
+      "implementedTestFiles": 6,
       "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTestFiles": 2,
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {

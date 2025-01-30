@@ -8,12 +8,12 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         mode: ['random', 'controlled']
-        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation']
+        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation', 'prepayment-always-required', 'facilityuse-has-slots']
         flow: ['simple', 'approval']
         include:
         - mode: 'random'
@@ -23,9 +23,13 @@ jobs:
           profile: 'all-features'
           flow: 'both'
 
+    concurrency: 
+      group: openactive-test-suite--${{ github.head_ref }}--${{ matrix.mode }}.${{ matrix.profile }}.${{ matrix.flow }}
+      cancel-in-progress: true
+
     steps:
     - name: Checkout OpenActive Test Suite
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: tests
     - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
@@ -33,25 +37,21 @@ jobs:
       id: refs
       run: echo "::set-output name=mirror_ref::${{ github.head_ref }}"
     - name: Checkout OpenActive.Server.NET ${{ steps.refs.outputs.mirror_ref }}
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: openactive/OpenActive.Server.NET
         ref: ${{ steps.refs.outputs.mirror_ref }}
         path: server
 
-    - name: Setup .NET Core 2.1.808 for Booking Server Reference Implementation
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET Core SDK 3.1.419
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 2.1.808
-    - name: Setup .NET Core 3.0.103 for Authentication Authority Reference Implementation
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.0.103
+        dotnet-version: 3.1.419
 
-    - name: Setup Node.js 14.x
-      uses: actions/setup-node@v1
+    - name: Setup Node.js 18.17.1
+      uses: actions/setup-node@v4
       with:
-        node-version: 14.x
+        node-version: 18.17.1
 
     - name: Install OpenActive.Server.NET dependencies
       run: dotnet restore ./server/
@@ -87,7 +87,7 @@ jobs:
     # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
     # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
     - name: Upload test output for ${{ matrix.mode }} mode as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: ${{ success() || failure() }}
       with:
         name: ${{ matrix.mode }}.${{ matrix.profile }}.${{ matrix.flow }}
@@ -98,21 +98,21 @@ jobs:
     # Master branch only
     if: ${{ github.ref == 'refs/heads/master' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     # Checkout the repo to seed the contents of ./tests/publish/
     - name: Checkout OpenActive Test Suite
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: tests
     - name: Download test output for Random Mode
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: random.all-features.both
         path: ./tests/publish/example-output/random/
     - name: Download test output for Controlled Mode
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: controlled.all-features.both
         path: ./tests/publish/example-output/controlled/

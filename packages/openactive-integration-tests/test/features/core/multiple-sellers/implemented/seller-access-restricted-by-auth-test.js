@@ -31,7 +31,7 @@ FeatureHelper.describeFeature(module, {
     sellerCriteria: 'secondary',
   }),
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /**
    * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
    */
@@ -44,20 +44,28 @@ FeatureHelper.describeFeature(module, {
     requestHelper: new RequestHelper(logger, global.SELLER_CONFIG.primary), // primary seller is used for request auth
     logger,
     sellerConfig: global.SELLER_CONFIG.secondary, // secondary seller is used to build request data.
+    orderItemCriteriaList,
+    describeFeatureRecord,
   });
   const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(
     orderItemCriteriaList,
     logger,
-    { defaultFlowStageParams },
+    describeFeatureRecord,
+    {
+      defaultFlowStageParams,
+      c1ExpectToFail: true,
+      c2ExpectToFail: true,
+      bookExpectToFail: true,
+    },
   );
 
   // TESTS
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldReturnInvalidAuthorizationDetailsError(c1);
+    itShouldReturnInvalidAuthorizationDetailsError(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldReturnInvalidAuthorizationDetailsError(c2);
+    itShouldReturnInvalidAuthorizationDetailsError(c2.getStage('c2'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
     itShouldReturnInvalidAuthorizationDetailsError(bookRecipe.firstStage);

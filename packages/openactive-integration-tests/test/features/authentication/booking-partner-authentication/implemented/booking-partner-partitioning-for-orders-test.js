@@ -12,7 +12,7 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   skipMultiple: true,
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /* TODO uncomment the below and use a single shared UUID for both primary and secondary tests once that is supported
   by the Reference Implementation */
   // const uuid = generateUuid();
@@ -44,7 +44,7 @@ FeatureHelper.describeFeature(module, {
       c2,
       bookRecipe,
       defaultFlowStageParams,
-    } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+    } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
       bookingPartnerIdentifier: 'primary',
       // uuid,
     });
@@ -65,6 +65,8 @@ FeatureHelper.describeFeature(module, {
       bookingPartnerIdentifier: 'secondary',
       // uuid,
       logger,
+      describeFeatureRecord,
+      orderItemCriteriaList,
     });
     // UUID should not be present in `secondary`s feed
     const ensureOrderIsNotPresent = new EnsureOrderIsNotPresentFlowStage({

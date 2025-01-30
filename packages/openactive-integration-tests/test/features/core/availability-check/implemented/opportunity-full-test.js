@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { Common } = require('../../../../shared-behaviours');
-const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 
 /**
@@ -21,9 +21,8 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, { c1ExpectToFail: true, c2ExpectToFail: true });
 
   // # Set up Tests
 
@@ -72,9 +71,9 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldReturnOpportunityIsFullError(c1);
+    itShouldReturnOpportunityIsFullError(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldReturnOpportunityIsFullError(c2);
+    itShouldReturnOpportunityIsFullError(c2.getStage('c2'));
   });
 });

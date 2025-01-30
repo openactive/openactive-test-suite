@@ -28,16 +28,16 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   describe('Terms of service should be part of bookingService in all stages', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldContainBookingServiceWithValidTermsOfService(() => c1.getOutput().httpResponse);
+      itShouldContainBookingServiceWithValidTermsOfService(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldContainBookingServiceWithValidTermsOfService(() => c2.getOutput().httpResponse);
+      itShouldContainBookingServiceWithValidTermsOfService(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
       itShouldContainBookingServiceWithValidTermsOfService(() => bookRecipe.b.getOutput().httpResponse);

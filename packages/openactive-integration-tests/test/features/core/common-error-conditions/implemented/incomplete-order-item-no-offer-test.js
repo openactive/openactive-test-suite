@@ -3,7 +3,7 @@ const {
   FlowStageUtils,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
-const { itShouldIncludeErrorForOnlyPrimaryOrderItems, itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
+const { itShouldIncludeErrorForOnlyPrimaryOrderItems } = require('../../../../shared-behaviours/errors');
 
 /**
  * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
@@ -22,11 +22,16 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Set up tests for noOrderedItem
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger,
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord,
     {
-      c1ReqTemplateRef: 'noAcceptedOffer', c2ReqTemplateRef: 'noAcceptedOffer', bookReqTemplateRef: 'noAcceptedOffer',
+      c1ReqTemplateRef: 'noAcceptedOffer',
+      c2ReqTemplateRef: 'noAcceptedOffer',
+      bookReqTemplateRef: 'noAcceptedOffer',
+      c1ExpectToFail: true,
+      c2ExpectToFail: true,
+      bookExpectToFail: true,
     });
 
   // # Set up Tests
@@ -43,12 +48,12 @@ FeatureHelper.describeFeature(module, {
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c1, () => {
-    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c1);
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, c2, () => {
-    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c2);
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(c2.getStage('c2'));
   });
-  FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
-    itShouldReturnAnOpenBookingError('UnableToProcessOrderItemError', 409, () => bookRecipe.firstStage.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndRunChecks({ doCheckIsValid: false, doCheckSuccess: false }, bookRecipe.firstStage, () => {
+    itShouldIncludeIncompleteOrderItemErrorWhereRelevant(bookRecipe.firstStage);
   });
 });

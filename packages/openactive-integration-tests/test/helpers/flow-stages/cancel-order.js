@@ -2,8 +2,8 @@ const { FlowStage } = require('./flow-stage');
 const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
- * @typedef {import('../../templates/u-req').UReqTemplateData} UReqTemplateData
- * @typedef {import('../../templates/u-req').UReqTemplateRef} UReqTemplateRef
+ * @typedef {import('../../templates/cancel-order-req').CancelOrderReqTemplateData} CancelOrderReqTemplateData
+ * @typedef {import('../../templates/cancel-order-req').CancelOrderReqTemplateRef} CancelOrderReqTemplateRef
  * @typedef {import('../request-helper').RequestHelperType} RequestHelperType
  * @typedef {import('./flow-stage').FlowStageOutput} FlowStageOutput
  * @typedef {import('./b').BFlowStageType} BFlowStageType
@@ -17,13 +17,13 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 
 /**
  * @param {object} args
- * @param {UReqTemplateRef} [args.templateRef]
+ * @param {CancelOrderReqTemplateRef} [args.templateRef]
  * @param {string[]} args.orderItemIdArray[]
  * @param {string} args.uuid
  * @param {RequestHelperType} args.requestHelper
  */
 async function runCancelOrder({ templateRef, orderItemIdArray, uuid, requestHelper }) {
-  /** @type {import('../../templates/u-req').UReqTemplateData} */
+  /** @type {import('../../templates/cancel-order-req').CancelOrderReqTemplateData} */
   const params = { orderItemIdArray, _uuid: uuid };
   const httpResponse = await requestHelper.cancelOrder(uuid, params, templateRef);
   return { httpResponse };
@@ -35,19 +35,19 @@ async function runCancelOrder({ templateRef, orderItemIdArray, uuid, requestHelp
 class CancelOrderFlowStage extends FlowStage {
   /**
    * @param {object} args
-   * @param {UReqTemplateRef} [args.templateRef]
+   * @param {CancelOrderReqTemplateRef} [args.templateRef]
    * @param {() => string[]} args.getOrderItemIdArray Cancellation must be run against
    *   a specific OrderItem. The function passed here should return the ID of the OrderItem
-   *   to cancel. For convenience, use the CancelOrderFlowStage.getFirstOrderItemId
+   *   to cancel. For convenience, use the CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage
    *   function for this value e.g.:
    *
    *   ```js
    *   const b = new BFlowStage({ ... });
    *   const cancelOrder = new CancelOrderFlowStage({
-   *     getOrderItemIdArray: CancelOrderFlowStage.getFirstOrderItemId(() => b.getOutput().httpResponse.body),
+   *     getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(b),
    *   ```
    *
-   *  or, for a preceding B stage, just use `CancelOrderFlowStage.getOrderItemIdForPosition0FromB(b)`
+   *  which will cancel the OrderItem at position 0.
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
    * @param {string} args.uuid
@@ -69,7 +69,7 @@ class CancelOrderFlowStage extends FlowStage {
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttpXXXSuccessChecks(204),
       // no validation tests needed for CancelOrder, as the response is empty
-      itValidationTestsFn: () => { },
+      itValidationTestsFn: FlowStageUtils.createNoOpTest(),
     });
   }
 

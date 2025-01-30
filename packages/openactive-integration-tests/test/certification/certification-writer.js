@@ -26,7 +26,7 @@ class CertificationWriter {
         datasetJson.url,
         datasetJson['@id'] || datasetJson.id,
         datasetJson.publisher && datasetJson.publisher.logo && datasetJson.publisher.logo.url,
-        datasetJson.accessService && datasetJson.accessService.endpointURL,
+        datasetJson.accessService && datasetJson.accessService.endpointUrl,
       ]
         .concat(Array.isArray(datasetJson.distribution) && datasetJson.distribution.flatMap(x => x.contentUrl))
         .filter(x => typeof x === 'string' && x !== '');
@@ -61,11 +61,16 @@ class CertificationWriter {
 
   get awardedTo() {
     if (this.datasetJson) {
-      return this.datasetJson.bookingService || this.datasetJson.publisher && {
+      return this.datasetJson.bookingService?.name ? {
+        '@type': 'Organization',
+        name: this.datasetJson.bookingService.name,
+        url: this.datasetJson.bookingService.url,
+        softwareVersion: this.datasetJson.bookingService.softwareVersion,
+      } : (this.datasetJson.publisher && {
         '@type': 'Organization',
         name: this.datasetJson.publisher.name,
         url: this.datasetJson.publisher.url,
-      };
+      });
     }
     return {};
   }
@@ -148,9 +153,9 @@ class CertificationWriter {
   async generateZip(loggers, generator) {
     const evidenceFilePaths = [].concat(
       loggers.map(logger => ({ path: logger.metaPath, zipPath: `json/${logger.metaLocalPath}` })),
-      loggers.map(logger => ({ path: logger.markdownPath, zipPath: `markdown/${logger.markdownLocalPath}` })),
+      loggers.map(logger => ({ path: logger.htmlPath, zipPath: `html/${logger.htmlLocalPath}` })),
       { path: generator.summaryMetaPath, zipPath: 'json/index.json' },
-      { path: generator.reportMarkdownPath, zipPath: 'markdown/summary.md' },
+      { path: generator.reportHtmlPath, zipPath: 'html/summary.html' },
     );
 
     const zip = new JSZip();

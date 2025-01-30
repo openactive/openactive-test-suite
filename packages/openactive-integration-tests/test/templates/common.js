@@ -1,5 +1,4 @@
 const { isNil } = require('lodash');
-const shortid = require('shortid');
 
 /**
  * @typedef {import('../helpers/flow-stages/fetch-opportunities').OrderItem} OrderItem
@@ -18,21 +17,22 @@ const shortid = require('shortid');
  */
 
 /**
- * @param {boolean} [includeIdentifier]
+ * @param {string | null | undefined} [identifier]
  * @param {boolean} [allowEmptyPaymentObject]
  * @returns {Payment}
  */
-function createPaymentPart(includeIdentifier = true, allowEmptyPaymentObject = false) {
+function createPaymentPart(identifier, allowEmptyPaymentObject = false) {
   /** @type {Payment} */
   const payment = { '@type': 'Payment' };
-  if (includeIdentifier) {
-    payment.identifier = shortid.generate();
+  const hasIdentifier = !isNil(identifier);
+  if (hasIdentifier) {
+    payment.identifier = identifier;
   }
 
   const { paymentReconciliationDetails } = global.SELLER_CONFIG.primary;
 
   if (!paymentReconciliationDetails) {
-    if (!includeIdentifier) {
+    if (!hasIdentifier) {
       if (allowEmptyPaymentObject) {
         return payment;
       }

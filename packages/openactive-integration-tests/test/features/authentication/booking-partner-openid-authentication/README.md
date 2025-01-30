@@ -10,6 +10,7 @@ Coverage Status: **complete**
 
 
 
+
 ### Running tests for only this feature
 
 ```bash
@@ -30,9 +31,9 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [authentication-authority-present](./implemented/authentication-authority-present-test.js) | authenticationAuthority present in dataset site | The authenticationAuthority must be specified within the dataset site to facilitate Open ID Connect authentication |  |
-| [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow and Access Orders Feed | ... |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [authentication-authority-present](./implemented/authentication-authority-present-test.js) | authenticationAuthority present in dataset site | The authenticationAuthority must be specified within the dataset site to facilitate Open ID Connect authentication |  |  |
+| [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow | Client Credentials Flow allows Booking Partners to access the Orders Feed |  |  |
 
 

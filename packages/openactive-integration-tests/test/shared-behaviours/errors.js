@@ -88,9 +88,11 @@ function itShouldIncludeErrorForOnlyPrimaryOrderItems(orderItemErrorType, {
 function createRunFlowStageAndExpectOpenBookingErrorFn(errorType, statusCode) {
   /**
    * @param {FlowStageWhichOutputsHttpResponse} flowStage
+   * @param {import('../helpers/flow-stages/flow-stage-run').AnyFlowStageRun} [flowStageRun]
    */
-  const runFlowStageFn = (flowStage) => {
-    FlowStageUtils.describeRunAndCheckIsValid(flowStage, () => {
+  const runFlowStageFn = (flowStage, flowStageRun) => {
+    const runnable = flowStageRun ?? flowStage;
+    FlowStageUtils.describeRunAndCheckIsValid(runnable, () => {
       itShouldReturnAnOpenBookingError(errorType, statusCode, () => flowStage.getOutput().httpResponse);
     });
   };

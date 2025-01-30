@@ -19,9 +19,12 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableOutsideValidFromBeforeStartDate',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
+    c1ExpectToFail: true,
+    c2ExpectToFail: true,
+  });
 
   /**
    * @param {C1FlowStageType | C2FlowStageType} flowStage
@@ -47,9 +50,9 @@ FeatureHelper.describeFeature(module, {
   // # Set up Tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c1);
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
-    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2);
+    itShouldIncludeOpportunityOfferPairNotBookableErrorWhereRelevant(c2.getStage('c2'));
   });
 });

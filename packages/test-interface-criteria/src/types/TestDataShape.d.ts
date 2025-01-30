@@ -45,6 +45,12 @@ export type ValueType =
   | 'schema:EventStatusType'
   | 'schema:EventAttendanceModeEnumeration';
 
+/**
+ * Specifies a value that must be one of a set of options.
+ * For example, an `eventStatus` field would be set up to only have
+ * one of the `schema:EventStatusType` options (e.g.
+ * `https://schema.org/EventCancelled`, etc)
+ */
 export interface OptionNodeConstraint<
   /** TypeScript union of the types that this option can take */
   TOptionType,
@@ -70,6 +76,10 @@ export interface OptionNodeConstraint<
   allowNull?: true;
 }
 
+/**
+ * Similar to OptionNodeConstraint, but where the value must be an
+ * array. Each item in the array must be from the same set of options.
+ */
 export interface ArrayConstraint<
   TArrayOf,
   TValueType extends ValueType
@@ -104,24 +114,35 @@ export type TestDataNodeConstraint =
   | NullNodeConstraint
   | BooleanNodeConstraint;
 
+export type TestDataShapeOpportunityConstraints = {
+  'schema:startDate'?: DateRangeNodeConstraint;
+  'schema:endDate'?: DateRangeNodeConstraint;
+  /**
+   * "placeholder:remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
+   * or remainingUses (facilities)
+   */
+  'placeholder:remainingCapacity'?: NumericNodeConstraint;
+  /**
+   * IFU slots can have a different capacity requirement to other opportunity types
+   * because the spec imposes a maximum capacity of 1 for IFU slots.
+   */
+  'placeholder:remainingCapacityIfuSlot'?: NumericNodeConstraint;
+  'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
+  'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
+  'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
+  'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
+  // note that the type isn't specified yet (it's a '@type': 'Terms' object) as
+  // we don't use includes/excludes rules for this field, so it's irrelevant.
+  'schema:termsOfService'?: ArrayConstraint<unknown, 'oa:Terms'>;
+};
+
 /**
  * For a particular criteria, test data requirements that must be met by an opportunity
  * and offer so that they meet the criteria.
  * e.g. the free criteria has the data requirement that price must be 0
  */
-export interface TestDataShape {
-  'opportunityConstraints'?: {
-    'schema:startDate'?: DateRangeNodeConstraint;
-    /**
-     * "placeholder:remainingCapacity" is a stand-in for either remainingAttendeeCapacity (sessions)
-     * or remainingUses (facilities)
-     */
-    'placeholder:remainingCapacity'?: NumericNodeConstraint;
-    'schema:eventStatus'?: OptionNodeConstraint<EventStatusType, 'schema:EventStatusType'>;
-    'oa:taxMode'?: OptionNodeConstraint<TaxMode, 'oa:TaxMode'>;
-    'oa:isOpenBookingAllowed'?: BooleanNodeConstraint;
-    'schema:eventAttendanceMode'?: OptionNodeConstraint<EventAttendanceMode, 'schema:EventAttendanceModeEnumeration'>;
-  };
+export type TestDataShape = {
+  'opportunityConstraints'?: TestDataShapeOpportunityConstraints;
   'offerConstraints'?: {
     'schema:price'?: NumericNodeConstraint;
     'oa:openBookingPrepayment'?: OptionNodeConstraint<RequiredStatusType,'oa:RequiredStatusType'>;
@@ -131,12 +152,20 @@ export interface TestDataShape {
      * can be null.
      */
     'oa:validFromBeforeStartDate'?: DateRangeNodeConstraint;
+    /**
+     * Refers to the date calculated as `startDate - validThroughBeforeStartDate`.
+     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `validThroughBeforeStartDate`
+     * can be null.
+     */
+    'oa:validThroughBeforeStartDate'?: DateRangeNodeConstraint;
     'oa:openBookingInAdvance'?: OptionNodeConstraint<RequiredStatusType, 'oa:RequiredStatusType'>;
     'oa:openBookingFlowRequirement'?: ArrayConstraint<OpenBookingFlowRequirement, 'oa:OpenBookingFlowRequirement'>;
+    /**
+     * Refers to the date calculated as `startDate - latestCancellationBeforeStartDate`.
+     * For this particular DateRangeNodeConstraint, `allowNull` refers to whether `latestCancellationBeforeStartDate`
+     * can be null.
+     */
     'oa:latestCancellationBeforeStartDate'?: NullNodeConstraint | DateRangeNodeConstraint;
     'oa:allowCustomerCancellationFullRefund'?: BooleanNodeConstraint;
-    // note that the type isn't specified yet (it's a '@type': 'Terms' object) as
-    // we don't use includes/excludes rules for this field, so it's irrelevant.
-    'schema:termsOfService'?: ArrayConstraint<unknown, 'oa:Terms'>;
   };
 }

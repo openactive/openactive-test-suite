@@ -12,14 +12,17 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellableOutsideWindow',
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   // # Initialise Flow Stages
-  const { defaultFlowStageParams, fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-  const cancelOrder = new CancelOrderFlowStage({
-    ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-    prerequisite: bookRecipe.lastStage,
-    testName: 'Attempt to Cancel OrderItem at Position 0',
+  const { defaultFlowStageParams, fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
+  const cancel = FlowStageRecipes.runs.customerCancel.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunitiesFlowStage: fetchOpportunities,
+    lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
+    cancelArgs: {
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
+      testName: 'Attempt to Cancel OrderItem at Position 0',
+    },
+    assertOpportunityCapacityArgs: {},
   });
 
   // # Set up Tests
@@ -27,7 +30,7 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  FlowStageUtils.describeRunAndCheckIsValid(cancelOrder, () => {
-    itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancelOrder.getOutput().httpResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(cancel, () => {
+    itShouldReturnAnOpenBookingError('CancellationNotPermittedError', 400, () => cancel.getStage('cancel').getOutput().httpResponse);
   });
 });

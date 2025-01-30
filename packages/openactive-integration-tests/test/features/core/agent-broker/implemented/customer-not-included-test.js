@@ -14,20 +14,22 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   describe('Booking should fail if Customer is not included in Order, because we are in AgentBroker mode', () => {
     // Note that we ignore testing at C1 because C1 has no customer anyway
     describe('at C2', () => {
-      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
         c2ReqTemplateRef: 'noCustomer',
+        c2ExpectToFail: true,
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
-      runFlowStageAndExpectIncompleteCustomerDetailsError(c2);
+      runFlowStageAndExpectIncompleteCustomerDetailsError(c2.getStage('c2'), c2);
     });
     describe('at B or P', () => {
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
         bookReqTemplateRef: 'noCustomer',
+        bookExpectToFail: true,
       });
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
       FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);

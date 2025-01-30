@@ -11,9 +11,11 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'Runs Order Deletion for a non-existent Order (with a fictional UUID), expecting an UnknownOrderError error to be returned',
   doesNotUseOpportunitiesMode: true,
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   const deleteOrder = new OrderDeletionFlowStage({
-    ...FlowStageUtils.createSimpleDefaultFlowStageParams({ logger }),
+    ...FlowStageUtils.createSimpleDefaultFlowStageParams({
+      logger, orderItemCriteriaList, describeFeatureRecord,
+    }),
     prerequisite: null,
   });
 

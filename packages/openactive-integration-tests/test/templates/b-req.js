@@ -1,12 +1,13 @@
-// TODO many of the templates in this file are used by just one test
-// It may be worth, therefore, having the templates defined in the test where they
-// are used. This would reduce the chance of issues as the template definition is
-// often heavily coupled with the test (e.g. it only works if a certain criteria)
-// is used.
-// If all the templates are stored in this file, it would be tempting to use an
-// existing one for a new test where it may give false positives as it uses the
-// wrong opportunity criteria.
-// Alternatively, could we have it so that the template only works for some criteria..?
+/* TODO many of the templates in this file are used by just one test It may be
+worth, therefore, having the templates defined in the test where they are used.
+This would reduce the chance of issues as the template definition is often
+heavily coupled with the test (e.g. it only works if a certain criteria) is
+used.
+If all the templates are stored in this file, it would be tempting to use an
+existing one for a new test where it may give false positives as it uses the
+wrong opportunity criteria.
+Alternatively, could we have it so that the template only works for some
+criteria..? */
 const { dissocPath, omit } = require('ramda');
 const shortid = require('shortid');
 const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIntakeFormResponse } = require('./common');
@@ -43,6 +44,7 @@ const { createPaymentPart, isPaidOpportunity, isPaymentAvailable, addOrderItemIn
  *   brokerRole?: string | null,
  *   positionOrderIntakeFormMap: {[k:string]: import('../helpers/flow-stages/flow-stage').OrderItemIntakeForm},
  *   customer: import('../helpers/flow-stages/flow-stage-utils').Customer,
+ *   paymentIdentifier?: string
  * }} BReqTemplateData
  *
  * @typedef {Omit<BReqTemplateData, 'orderProposalVersion'>} PReqTemplateData P accepts the same sort of requests as B.
@@ -75,7 +77,7 @@ function createAfterPBReq(data) {
     orderProposalVersion: data.orderProposalVersion,
   };
   if (isPaymentAvailable(data)) {
-    result.payment = createPaymentPart();
+    result.payment = createPaymentPart(data.paymentIdentifier);
   }
   return result;
 }
@@ -153,7 +155,7 @@ function createNonPaymentRelatedCoreBReq(data) {
   *     },
   *   },
   *   seller: string,
-  *   customer: any, // ToDo: add this?
+  *   customer: import('../helpers/flow-stages/flow-stage-utils').Customer,
   *   orderedItem: {
   *     '@type': string,
   *     position: number,
@@ -167,6 +169,12 @@ function createNonPaymentRelatedCoreBReq(data) {
  *        email: string,
  *      },
   *   }[],
+  *   totalPaymentDue?: {
+  *     '@type': 'PriceSpecification';
+  *     price: number;
+  *     priceCurrency: string;
+  *   };
+  *   payment?: import('./common').Payment;
   * }} BReq
   */
 
@@ -199,7 +207,7 @@ function createPaidWithPaymentBReq(data) {
       price: data.totalPaymentDue,
       priceCurrency: 'GBP',
     },
-    payment: createPaymentPart(),
+    payment: createPaymentPart(data.paymentIdentifier),
   };
 }
 
@@ -221,7 +229,7 @@ function createStandardPaidBReq(data) {
   if (isPaymentAvailable(data)) {
     return {
       ...reqWithoutPayment,
-      payment: createPaymentPart(),
+      payment: createPaymentPart(data.paymentIdentifier),
     };
   }
   return reqWithoutPayment;
@@ -398,19 +406,13 @@ function createMissingPaymentReconciliationDetailsBReq(data) {
  */
 function createIncorrectReconciliationDetails(data) {
   const req = createStandardPaidBReq(data);
-  // @ts-ignore // TODO: Figure out why req.payment isn't recognised here?!
   if (req.payment?.accountId) {
-    // @ts-ignore
     req.payment.accountId = `invalid-${shortid.generate()}`;
   }
-  // @ts-ignore
   if (req.payment?.name) {
-    // @ts-ignore
     req.payment.name = `invalid-${shortid.generate()}`;
   }
-  // @ts-ignore
   if (req.payment?.paymentProviderId) {
-    // @ts-ignore
     req.payment.paymentProviderId = `invalid-${shortid.generate()}`;
   }
   return req;

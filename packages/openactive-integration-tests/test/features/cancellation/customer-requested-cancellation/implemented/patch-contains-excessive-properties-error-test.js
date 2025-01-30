@@ -14,15 +14,18 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
-  const cancelOrder = new CancelOrderFlowStage({
-    ...defaultFlowStageParams,
-    getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
-    prerequisite: bookRecipe.lastStage,
-    testName: 'Attempt to Cancel OrderItem at Position 0',
-    templateRef: 'excessiveProperties',
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
+  const cancelOrder = FlowStageRecipes.runs.customerCancel.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunitiesFlowStage: fetchOpportunities,
+    lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
+    cancelArgs: {
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
+      testName: 'Attempt to Cancel OrderItem at Position 0',
+      templateRef: 'excessiveProperties',
+    },
+    assertOpportunityCapacityArgs: {},
   });
 
   // # Set up Tests
@@ -31,6 +34,6 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
   FlowStageUtils.describeRunAndCheckIsValid(cancelOrder, () => {
-    itShouldReturnAnOpenBookingError('PatchContainsExcessivePropertiesError', 400, () => cancelOrder.getOutput().httpResponse);
+    itShouldReturnAnOpenBookingError('PatchContainsExcessivePropertiesError', 400, () => cancelOrder.getStage('cancel').getOutput().httpResponse);
   });
 });

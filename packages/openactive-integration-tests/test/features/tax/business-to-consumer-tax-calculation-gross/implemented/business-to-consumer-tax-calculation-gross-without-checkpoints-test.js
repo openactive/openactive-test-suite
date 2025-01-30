@@ -1,5 +1,7 @@
+const { omit } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { Common } = require('../../../../shared-behaviours');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'tax',
@@ -13,17 +15,24 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
   // the simple tests can only work if all OrderItems have the same tax mode
   controlOpportunityCriteria: 'TestOpportunityBookableNonFreeTaxGross',
-}, (configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
-  const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
-  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, {
-    getFirstStageInput: bookRecipeGetFirstStageInput,
-  });
+}, (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
+  const {
+    fetchOpportunities,
+    bookRecipe,
+    defaultFlowStageParams,
+    bookRecipeArgs,
+  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, describeFeatureRecord);
+  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(
+    orderItemCriteriaList,
+    bookRecipe,
+    defaultFlowStageParams,
+    omit(bookRecipeArgs, ['prerequisite']),
+  );
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  // Remove this condition once https://github.com/openactive/OpenActive.Server.NET/issues/100 is fixed.
-  if (bookingFlow === 'OpenBookingApprovalFlow') {
-    describe('idempotent repeat B', () => {
-      FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
+  describe('idempotent repeat B', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB, () => {
+      Common.itIdempotentBShouldHaveOutputEqualToFirstB(bookRecipe.b, idempotentRepeatB);
     });
-  }
+  });
 });

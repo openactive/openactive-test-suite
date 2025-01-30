@@ -22,6 +22,7 @@
   "integrationTests": {
     "implementedFeatures": {
       "multiple-sellers": false,
+      "single-seller": true,
       "booking-partner-authentication": false,
       "booking-partner-openid-authentication": false,
       "booking-partner-openid-authentication-for-multiple-sellers": false,

@@ -74,6 +74,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
      *   validationMode?: string,
      * }} & typeof options
      */
+    // eslint-disable-next-line prefer-object-spread
     const optionsWithRemoteJson = Object.assign({
       loadRemoteJson: true,
       remoteJsonCachePath: './tmp',
@@ -99,9 +100,16 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
     const statusCode = response.response && response.response.statusCode;
     const statusMessage = response.response && response.response.statusMessage;
 
-    // Note C1Response and C2Response are permitted to return 409 errors of type `OrderQuote`, instead of `OpenBookingError`
-    if ((statusCode < 200 || statusCode >= 300) && !(statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response'))) {
-      optionsWithRemoteJson.validationMode = 'OpenBookingError';
+    // Note C1Response, C2Response, BResponse and PResponse are permitted to return 409 errors of type `OrderQuote`, `OrderProposal`, or `Order` instead of `OpenBookingError`
+    if (statusCode < 200 || statusCode >= 300) {
+      /* TODO: callers of this function should define whether the response is
+      expected to be an OrderItemError, rather than basing the validation
+      dynamically on the response status code */
+      if (statusCode === 409 && (options.validationMode === 'C1Response' || options.validationMode === 'C2Response' || options.validationMode === 'BResponse' || options.validationMode === 'PResponse')) {
+        optionsWithRemoteJson.validationMode = `${options.validationMode}OrderItemError`;
+      } else {
+        optionsWithRemoteJson.validationMode = 'OpenBookingError';
+      }
 
       // little nicer error message for completely failed responses.
       if (!body) {
@@ -123,6 +131,7 @@ function shouldBeValidResponse(getter, name, logger, options, opportunityCriteri
 
   describe(`validation of ${name}`, function () {
     it('passes validation checks', async function () {
+      // eslint-disable-next-line no-shadow
       const results = await doValidate();
 
       logger.recordResponseValidations(name, results);

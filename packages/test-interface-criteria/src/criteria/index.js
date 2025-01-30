@@ -26,6 +26,8 @@ const { TestOpportunityBookableSellerTermsOfService } = require('./TestOpportuni
 const { TestOpportunityOnlineBookable } = require('./TestOpportunityOnlineBookable');
 const { TestOpportunityOfflineBookable } = require('./TestOpportunityOfflineBookable');
 const { TestOpportunityBookableWithNegotiation } = require('./TestOpportunityBookableWithNegotiation');
+const { TestOpportunityBookableFreeCancellable } = require('./TestOpportunityBookableFreeCancellable');
+const { TestOpportunityBookableNonFreeCancellable } = require('./TestOpportunityBookableNonFreeCancellable');
 
 module.exports = {
   allCriteria: [
@@ -39,6 +41,8 @@ module.exports = {
     TestOpportunityBookableWithinValidFromBeforeStartDate,
     TestOpportunityBookableCancellable,
     TestOpportunityBookableNotCancellable,
+    TestOpportunityBookableFreeCancellable,
+    TestOpportunityBookableNonFreeCancellable,
     TestOpportunityBookableInPast,
     TestOpportunityBookableOutsideValidFromBeforeStartDate,
     TestOpportunityBookableCancellableNoWindow,

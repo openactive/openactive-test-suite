@@ -2,11 +2,10 @@ const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const {
   FlowStageUtils,
   FetchOpportunitiesFlowStage,
-  C1FlowStage,
-  C2FlowStage,
   FlowStageRecipes,
 } = require('../../../../helpers/flow-stages');
-const { itEachOrderItemIdShouldMatchThoseFromFeed } = require('../common');
+const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
+const { itEachOrderItemIdShouldMatchThoseFromFeed, AmendingOrderQuoteFlowStageRecipes } = require('../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -22,44 +21,46 @@ FeatureHelper.describeFeature(module, {
   // This test uses 2 opportunities, A & B
   numOpportunitiesUsedPerCriteria: 2,
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // # Initialise Flow Stages
   // Flow stages for first attempt: C1
-  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ logger });
-  const firstAttemptFetchOpportunities = new FetchOpportunitiesFlowStage({
-    ...defaultFlowStageParams,
-    orderItemCriteriaList,
-  });
-  const firstAttemptC1 = new C1FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: firstAttemptFetchOpportunities,
-    getInput: () => ({
-      orderItems: firstAttemptFetchOpportunities.getOutput().orderItems,
-    }),
-  });
+  const {
+    fetchOpportunities: firstAttemptFetchOpportunities,
+    c1: firstAttemptC1,
+    defaultFlowStageParams,
+  } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord);
   // Flow stages for second attempt: C2 -> B
   const secondAttemptFetchOpportunities = new FetchOpportunitiesFlowStage({
     /* Note that we use the same default flow stage params, which also means that the 2nd attempt
     uses the same UUID as the 1st attempt.
     This is correct as the 2nd attempt is an amendment of the 1st OrderQuote */
     ...defaultFlowStageParams,
-    prerequisite: firstAttemptC1,
+    prerequisite: firstAttemptC1.getLastStage(),
     orderItemCriteriaList,
   });
-  const secondAttemptC2 = new C2FlowStage({
-    ...defaultFlowStageParams,
-    prerequisite: secondAttemptFetchOpportunities,
-    getInput: () => ({
-      orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
-    }),
+  const secondAttemptC2 = FlowStageRecipes.runs.book.c2AssertCapacity(secondAttemptFetchOpportunities, defaultFlowStageParams, {
+    c2Args: {
+      getInput: () => ({
+        orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+      }),
+    },
+    assertOpportunityCapacityArgs: {
+      getInput: () => secondAttemptFetchOpportunities.getOutput(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC2SkippingC1(true),
+    },
   });
   const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
-    prerequisite: secondAttemptC2,
+    prerequisite: secondAttemptC2.getLastStage(),
     getFirstStageInput: () => ({
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
-      totalPaymentDue: secondAttemptC2.getOutput().totalPaymentDue,
-      prepayment: secondAttemptC2.getOutput().prepayment,
+      totalPaymentDue: secondAttemptC2.getStage('c2').getOutput().totalPaymentDue,
+      prepayment: secondAttemptC2.getStage('c2').getOutput().prepayment,
     }),
+    getAssertOpportunityCapacityInput: () => ({
+      orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+      opportunityFeedExtractResponses: secondAttemptC2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
+    }),
+    paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
   });
 
   // # Set up Tests
@@ -75,7 +76,7 @@ FeatureHelper.describeFeature(module, {
       itEachOrderItemIdShouldMatchThoseFromFeed({
         orderItemCriteriaList,
         fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
-        apiFlowStage: secondAttemptC2,
+        apiFlowStage: secondAttemptC2.getStage('c2'),
       });
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptBook, () => {
@@ -86,5 +87,17 @@ FeatureHelper.describeFeature(module, {
         bookRecipe: secondAttemptBook,
       });
     });
+  });
+
+  // Test that capacity goes back up for the Opportunities that have now been switched out from the OrderQuote
+  const assertFirstAttemptOpportunitiesHaveRegainedCapacity = AmendingOrderQuoteFlowStageRecipes.assertFirstAttemptOpportunitiesHaveRegainedCapacity(
+    'Second Attempt - B',
+    secondAttemptBook.lastStage,
+    defaultFlowStageParams,
+    firstAttemptFetchOpportunities,
+  );
+
+  describe('After Second Attempt, should restore capacity for Opportunities from First Attempt', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(assertFirstAttemptOpportunitiesHaveRegainedCapacity);
   });
 });

@@ -16,16 +16,17 @@ The results of this test suite when run against the reference implementation can
 To run `openactive-integration-tests` in separate terminal window to `openactive-broker-microservice`, from repository root:
 
 1. Ensure the [openactive-broker-microservice](../openactive-broker-microservice/) is running in another terminal window
-2. `export NODE_ENV=dev`
-3. `npm run start-tests`
+2. Specify Configuration file: `export NODE_ENV=dev`
+    * This is the command to use if using the `dev.json` config file. See [Configuration](../../README.md#configuration) for more details)
+3. Run Tests: `npm run start-tests`
 
 ### Running specific tests
 
-`npm start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
+`npm run start-tests -- test/features/core/availability-check/implemented/availability-confirmed-test.js`
 
 ### Running core tests in a single process
 
-`npm start-tests -- --runInBand test/features/core/`
+`npm run start-tests -- --runInBand test/features/core/`
 
 ## Configuration for `integrationTests` within `./config/{NODE_ENV}.json`
 
@@ -120,30 +121,33 @@ The value can be any string, such as `uat-ci`, or `alex-dev`.
 
 Test results are written to `*.md` within the directory specified by `outputPath` in Markdown format.
 
+### `useShapeExpressions`
 
-## Configuration for `sellers` within `./config/{NODE_ENV}.json`
+Whether or not to use the experimental Shape Expressions feature (introduced in this [Test Interface issue](https://github.com/openactive/test-interface/issues/1)) to improve the process of requesting data matching a specific criteria.
 
-The `primary` Seller is used for all tests, and random opportunities used when `"useRandomOpportunities": true` are selected from this Seller. The `secondary` Seller is used only for [multiple-sellers](./test/features/core/multiple-sellers/README.md) tests.
+This is off by default as it is currently an experimental feature which has not yet been included in the [Test Interface](https://openactive.io/test-interface/) specification.
 
-The `primary` Seller `requestHeaders` are used for calls to the booking system for all tests, and can be used to configure authentication specific to that Seller.
+If turned on, you may be able to build a simpler and more extensible:
+
+* [Create Opportunity API](https://openactive.io/test-interface/#post-test-interfacedatasetstestdatasetidentifieropportunities) (for [controlled mode](#userandomopportunities)).
+* Script for adding test data to your booking system's database from the output of the [test-data-generator script](./test-data-generator/) (for [random mode](#userandomopportunities)).
 
 ```json
-  "sellers": {
-    "primary": {
-      "@type": "Organization",
-      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/0",
-      "authentication": {
-        "requestHeaders": {
-          "X-OpenActive-Test-Client-Id": "test",
-          "X-OpenActive-Test-Seller-Id": "https://localhost:5001/api/identifiers/sellers/2"
-        }
-      },
-    },
-    "secondary": {
-      "@type": "Person",
-      "@id": "https://reference-implementation.openactive.io/api/identifiers/sellers/1"
-    }
-  }
+  "useShapeExpressions": false
+```
+
+### `ignoreUnexpectedFeedUpdates`
+
+Whether or not to use the experimental Listener Item Expectations feature (introduced in this [issue](https://github.com/openactive/openactive-test-suite/issues/698)). This experimental feature is not advised as 1). it is not yet fully implemented across all tests, and 2). it may lead to confusing results when a test fails (as is discussed in the issue).
+
+It is `false` by default.
+
+If turned on, [Broker Microservice](../openactive-broker-microservice/) will be more picky when listening for updates in the Orders Feeds or Opportunity Feeds. Specifically, it will ignore feed updates which it was not expecting.
+
+This is necessary if the booking system under test produces RPDE feed updates which are additional to (and irrelevant to) the updates that the tests are listening for.
+
+```json
+  "ignoreUnexpectedFeedUpdates": false
 ```
 
 ## Reading test results
@@ -151,6 +155,8 @@ The `primary` Seller `requestHeaders` are used for calls to the booking system f
 To read the markdown files that are written to the directory specified by `outputPath`, the [Markdown Viewer Chrome Extension](https://chrome.google.com/webstore/detail/markdown-viewer/ckkdlimhmcjmikdlpkmbgfkaikojcbjk) is recommended, with the following settings:
 - CONTENT -> "autoreload" on
 - ADVANCED OPTIONS -> ALLOW ACCESS TO FILE:// URLS (links to setting in Chrome Extensions settings of the same name)
+
+Use Ctrl+F within the browser and search for "❌️" to jump to the first error on the page, both within the summary.md file, and within the individual test results linked from the summary.
 
 ## Development
 

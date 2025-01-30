@@ -48,10 +48,16 @@ let microservice = null;
 let integrationTests = null;
 let prompt;
 
+// Note this is triggered in CI mode when Ctrl+C is pressed, as well as when the process receives a SIGINT signal
 nodeCleanup(function (exitCode, signal) {
+    // The first time Ctrl+C is pressed in CI mode, kill the microservice and integrationTests,
+    // and uninstall the cleanup handler, then wait for the parent process to exit naturally
+    // once both child processes have exited.
     if (microservice !== null) microservice.kill();
     microservice = null;
     if (integrationTests !== null) integrationTests.kill();
+    nodeCleanup.uninstall(); // don't call this cleanup handler again
+    return false; // don't exit yet, wait for child processes to exit
 });
 
 function setupEscapeKey()
@@ -82,7 +88,7 @@ if (!IS_RUNNING_IN_CI) {
 `);
   }
 
-  // Setup escape key to cancel running tests
+  // Setup escape key to cancel running tests, and handle Ctrl+C in interactive mode
   readline.emitKeypressEvents(process.stdin);
   process.stdin.on('keypress', (ch, key) => {
     if (!key) {
@@ -91,7 +97,10 @@ if (!IS_RUNNING_IN_CI) {
     if (key.name === 'escape') {
       if (integrationTests !== null) integrationTests.kill();
     } else if (key.ctrl && key.name === 'c') {
-      process.exit(); // eslint-disable-line unicorn/no-process-exit
+      // In interactive mode, a clean exit is achieved by killing the microservice first, which will then kill the integration tests:
+      //   microservice.kill() -> integrationTests.kill() + process.exit()
+      // This is important as it allows the microservice to reset the terminal before it loses access to stdout at process.exit()
+      if (microservice !== null) microservice.kill();
     }
   });
   setupEscapeKey();
@@ -104,7 +113,7 @@ microservice.stdout.pipe(process.stdout);
 microservice.stderr.pipe(process.stderr);
 
 // If microservice exits, kill the integration tests (as something has gone wrong somewhere)
-microservice.on('close', (code) => {
+microservice.on('exit', (code) => {
   microservice = null;
   // Close prompt if currently open
   prompt?.ui?.close();
@@ -129,13 +138,13 @@ function launchIntegrationTests(args, singleFlowPathMode) {
   integrationTests = fork('./node_modules/jest/bin/jest.js', args, { cwd: './packages/openactive-integration-tests/'} );
   if (IS_RUNNING_IN_CI) {
     // When integration tests exit, kill the microservice
-    integrationTests.on('close', (code) => {
+    integrationTests.on('exit', (code) => {
       // If exit code is not successful, use this for the result of the whole process (to ensure CI fails)
       if (code !== 0 && code !== null) process.exitCode = code;
       if (microservice !== null) microservice.kill();
     });
   } else {
-    integrationTests.on('close', async (code) => {
+    integrationTests.on('exit', async (code) => {
       if (!microservice) return;
         
       // Ensure that harvesting is paused even in the event of a fatal error within the test suite

@@ -19,15 +19,18 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       .successChecks()
       .validationTests());
 
-    it('should include accessService.endpointURL of the Open Booking API', () => {
-      chakram.expect(getDatasetSite.datasetSite).to.have.schema('accessService.endpointURL', {
+    it('should include accessService.endpointUrl of the Open Booking API', () => {
+      chakram.expect(getDatasetSite.datasetSite).to.have.schema('accessService.endpointUrl', {
         type: 'string',
       });
     });
 
-    // TODO does validator check that endpointURL does not end in a `/` (as per Open API 3 Base URL https://swagger.io/docs/specification/api-host-and-base-path/)
-    it('should include accessService.endpointURL that does not end in a trailing "/"', () => {
-      chai.expect(getDatasetSite.datasetSite.body.accessService.endpointURL).not.to.match(/\/$/g, 'a trailing /');
+    /* TODO have validator check that endpointUrl does not end in a `/` (as per
+    Open API 3 Base URL
+    https://swagger.io/docs/specification/api-host-and-base-path/). See GitHub
+    issue: https://github.com/openactive/data-model-validator/issues/450 */
+    it('should include accessService.endpointUrl that does not end in a trailing "/"', () => {
+      chai.expect(getDatasetSite.datasetSite.body.accessService.endpointUrl).not.to.match(/\/$/g, 'a trailing /');
     });
   });
 });

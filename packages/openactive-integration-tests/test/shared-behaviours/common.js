@@ -1,4 +1,7 @@
+const { utils: { getRemainingCapacity } } = require('@openactive/test-interface-criteria');
 const { expect } = require('chai');
+const { BFlowStage } = require('../helpers/flow-stages/b');
+const { expectSuccessfulIdempotentRequestResponsesToBeDeepEqual } = require('../helpers/chakram-response-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
@@ -118,6 +121,56 @@ class Common {
 
         thisCb(feedOrderItem, apiResponseOrderItem, apiResponseOrderItemErrorTypes);
       });
+    });
+  }
+
+  /**
+   * Checks that Orders API responses have, in their OrderItems, the same capacities as were initially in the feed.
+   *
+   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
+   *
+   * @param {object} args
+   * @param {OpportunityCriteria[]} args.orderItemCriteriaList List of Order Item Criteria as provided by
+   *   FeatureHelper.
+   * @param {() => OrderItem[]} args.getFeedOrderItems OrderItems as received from the feed (e.g. using the
+   *   FetchOpportunitiesFlowStage)
+   * @param {() => ChakramResponse} args.getOrdersApiResponse HTTP response from an Orders API that includes
+   *   OrderItems in the `.orderedItem` field. e.g. C1, C2 or B.
+   */
+  static itForEachOrderItemShouldHaveUnchangedCapacity({
+    orderItemCriteriaList,
+    getFeedOrderItems,
+    getOrdersApiResponse,
+  }) {
+    Common.itForEachOrderItem({
+      orderItemCriteriaList,
+      getFeedOrderItems,
+      getOrdersApiResponse,
+    },
+    'capacities should not have changed from their initial values after C1/C2 (regardless of leasing)',
+    (feedOrderItem, apiResponseOrderItem) => {
+      const feedCapacity = getRemainingCapacity(feedOrderItem.orderedItem);
+      const apiResponseCapacity = getRemainingCapacity(apiResponseOrderItem.orderedItem);
+      expect(apiResponseCapacity).to.equal(feedCapacity);
+    });
+  }
+
+  /**
+   * When an idempotent B request has been made after a successful booking, the response to both
+   * requests should be identical.
+   *
+   * @param {BFlowStage} firstB
+   * @param {BFlowStage | import('../helpers/flow-stages/book-recipe').BookRecipeType} idempotentB
+   */
+  static itIdempotentBShouldHaveOutputEqualToFirstB(firstB, idempotentB) {
+    it('should get a same response as with the first B', () => {
+      const actualIdempotentB = (idempotentB instanceof BFlowStage)
+        ? idempotentB
+        : idempotentB.b;
+      expectSuccessfulIdempotentRequestResponsesToBeDeepEqual(
+        firstB.getOutput().httpResponse,
+        actualIdempotentB.getOutput().httpResponse,
+      );
     });
   }
 }

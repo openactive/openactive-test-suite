@@ -5,6 +5,8 @@ const chakram = require('chakram');
 const { Logger } = require('./logger');
 const RequestHelper = require('./request-helper');
 const { OpportunityCriteriaRequirements, SellerCriteriaRequirements } = require('./criteria-utils');
+const { DescribeFeatureRecord } = require('./describe-feature-record');
+const { FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME } = require('./suite-name-constants');
 
 const { BOOKABLE_OPPORTUNITY_TYPES_IN_SCOPE, BOOKING_FLOWS_IN_SCOPE, IMPLEMENTED_FEATURES, AUTHENTICATION_FAILURE, DYNAMIC_REGISTRATION_FAILURE } = global;
 
@@ -42,7 +44,20 @@ const { SINGLE_FLOW_PATH_MODE } = process.env;
  *   Instead of running once for each OpportunityType and once for each BookingFlow, this test will just run once - as
  *   these combinations are irrelevant to it as it does not use opportunities.
  *   Use this for things like testing a Booking System's auth
- * @property {boolean} [skipMultiple]
+ * @property {boolean} [skipMultiple] If true, this test will not be run in
+ *   Multiple Opportunities mode i.e. with multiple Opportunities in one Order.
+ * @property {string[]} [testInterfaceActions] A list of Test Interface Action
+ *   types that are used in this test. e.g.
+ *   `['test:AccessChannelUpdateSimulateAction', 'test:ReplacementSimulateAction']`.
+ *
+ *   This is used to inform users which actions need to be implemented for which
+ *   features.
+ *
+ *   At the end of the test run, FeatureHelper will check that the test did
+ *   indeed run the exact set of actions specified here.
+ *
+ *   The order of this list is not important and it is not necessary to include
+ *   duplicates.
  * @property {boolean} [runOnlyIf]
  * @property {boolean} [surviveAuthenticationFailure]
  * @property {boolean} [surviveDynamicRegistrationFailure]
@@ -62,6 +77,7 @@ const { SINGLE_FLOW_PATH_MODE } = process.env;
  *   orderItemCriteria: OpportunityCriteria[],
  *   implemented: boolean,
  *   logger: InstanceType<typeof Logger>,
+ *   describeFeatureRecord: import('./describe-feature-record').DescribeFeatureRecord,
  *   opportunityType?: string | null,
  *   bookingFlow?: BookingFlow | null,
  * ) => void} RunTestsFn
@@ -169,6 +185,51 @@ class FeatureHelper {
     const bookingFlowsSingleSelection = (SINGLE_FLOW_PATH_MODE || '').split('/')[0];
     const opportunityTypesSingleSelection = (SINGLE_FLOW_PATH_MODE || '').split('/')[1];
 
+    /**
+     * Set up a test which checks that the Test Interface Actions used so far
+     * exactly match those specified in `.testInterfaceActions`.
+     *
+     * To be used at the end of a run of tests (e.g. the end of the
+     * ScheduledSession/ApprovalFlow tests)
+     *
+     * @param {DescribeFeatureRecord} describeFeatureRecord
+     * @param {BookingFlow} [bookingFlow]
+     */
+    const itAssertTestInterfaceActionsUsedAsSpecified = (describeFeatureRecord, bookingFlow) => {
+      const testInterfaceActions = configuration.testInterfaceActions ?? [];
+      /* This constant is also used in report generation. The results from this
+      test will only be shown in report generation if this test fails and all
+      other tests pass. This is to reduce user confusion (as this test is meant
+      to be seen by maintainers only). If other tests fail, then this test may
+      be expected to fail, because the runtime behaviour changes on failure */
+      describe(FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME, () => {
+        it('Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test', () => {
+          const expectedUsedTestInterfaceActions = [...testInterfaceActions].sort();
+          const usedTestInterfaceActions = (() => {
+            const allUsedTestInterfaceActions = [...describeFeatureRecord.getUsedTestInterfaceActions()].sort();
+            /* Approval flow tests will often implicitly use
+            test:SellerAcceptOrderProposalSimulateAction as a necessary part of
+            the booking flow. This therefore does not need to be explicitly
+            annotated */
+            if (bookingFlow === 'OpenBookingApprovalFlow'
+              && !expectedUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
+              && allUsedTestInterfaceActions.includes('test:SellerAcceptOrderProposalSimulateAction')
+            ) {
+              return allUsedTestInterfaceActions
+                .filter(x => x !== 'test:SellerAcceptOrderProposalSimulateAction');
+            }
+            return allUsedTestInterfaceActions;
+          })();
+
+          /* JSON.stringify(..) used because otherwise the test output truncates
+          to `expected [Array(2)] to equal [Array(1)]`, which is useless. The
+          arrays are sorted, so string, so string comparison is fine. */
+          expect(JSON.stringify(usedTestInterfaceActions))
+            .to.deep.equal(JSON.stringify(expectedUsedTestInterfaceActions));
+        });
+      });
+    };
+
     // Only run the test if it is for the correct implmentation status
     // Do not run tests if they are disabled for this feature (testFeatureImplemented == null)
     if (
@@ -195,7 +256,10 @@ class FeatureHelper {
                   implemented,
                 });
 
-                tests.bind(this)(configuration, null, implemented, logger);
+                const describeFeatureRecord = new DescribeFeatureRecord();
+                tests.bind(this)(configuration, null, implemented, logger, describeFeatureRecord);
+
+                itAssertTestInterfaceActionsUsedAsSpecified(describeFeatureRecord);
               });
             });
           } else {
@@ -219,7 +283,10 @@ class FeatureHelper {
                       ? null
                       : singleOpportunityCriteriaTemplate(opportunityType, bookingFlow);
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, opportunityType, bookingFlow);
+                    const describeFeatureRecord = new DescribeFeatureRecord();
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, describeFeatureRecord, opportunityType, bookingFlow);
+
+                    itAssertTestInterfaceActionsUsedAsSpecified(describeFeatureRecord, bookingFlow);
                   });
                 }
 
@@ -242,7 +309,10 @@ class FeatureHelper {
                       });
                     }
 
-                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, null, bookingFlow);
+                    const describeFeatureRecord = new DescribeFeatureRecord();
+                    tests.bind(this)(configuration, orderItemCriteria, implemented, logger, describeFeatureRecord, null, bookingFlow);
+
+                    itAssertTestInterfaceActionsUsedAsSpecified(describeFeatureRecord, bookingFlow);
                   });
                 }
               });
@@ -277,9 +347,12 @@ class FeatureHelper {
    * set of features are.
    *
    * @param {NodeModule} documentationModule
-   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+   * @param {Omit<DescribeFeatureConfiguration, 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
    *   otherFeaturesWhichImplyThisOne: string[];
    * }} configuration
+   *   - `otherFeaturesWhichImplyThisOne` is an array of feature names. If any
+   *     of these features are implemented, then the feature in focus MUST also
+   *     be implemented
    */
   static describeFeatureShouldBeImplementedIfOtherFeaturesAre(documentationModule, configuration) {
     const otherFeaturesSummary = configuration.otherFeaturesWhichImplyThisOne.map(f => `'${f}'`).join(' and ');
@@ -327,6 +400,69 @@ class FeatureHelper {
   }
 
   /**
+   * Use this for a `not-implemented` test for a feature that should be
+   * implemented if another given set of features are NOT. i.e. this feature
+   * is mutually exclusive with another set of features.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+   *   otherFeaturesWhichAreMutuallyExclusiveWithThisOne: string[];
+   * }} configuration
+   *   - `otherFeaturesWhichAreMutuallyExclusiveWithThisOne` is an array of
+   *     feature names. If all of these features are not implemented, then
+   *     the feature in focus MUST be implemented.
+   */
+  static describeFeatureShouldBeImplementedIfOtherFeaturesAreNot(documentationModule, configuration) {
+    const otherFeaturesSummary = configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne
+      .map(f => `'${f}'`)
+      .join(' and ');
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature must be implemented if features: ${otherFeaturesSummary} are NOT implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`must be implemented if other features: ${otherFeaturesSummary} are NOT`, () => {
+          expect(IMPLEMENTED_FEATURES).to.include(
+            Object.fromEntries(
+              configuration.otherFeaturesWhichAreMutuallyExclusiveWithThisOne.map(
+                f => [f, true],
+              ),
+            ),
+          );
+        });
+      });
+    });
+  }
+
+  /**
+   * Use this for a `not-implemented` test for a feature that should be implemented if a specific flow is implemented.
+   *
+   * @param {NodeModule} documentationModule
+   * @param {Omit<DescribeFeatureConfiguration, 'testDescription' | 'skipMultiple' | 'doesNotUseOpportunitiesMode'> & {
+    *   flowsThatImplyThisFeature: string[];
+    * }} configuration
+    */
+  static describeFeatureShouldBeImplementedIfFlowIsImplemented(documentationModule, configuration) {
+    const flowSummary = configuration.flowsThatImplyThisFeature.map(f => `\`${f}\``).join(' and ');
+    this.describeFeature(documentationModule, {
+      testDescription: `This feature '${configuration.testFeature}' must be implemented if ${flowSummary} is implemented`,
+      skipMultiple: true,
+      doesNotUseOpportunitiesMode: true,
+      ...configuration,
+    }, () => {
+      describe('Feature', () => {
+        it(`'${configuration.testFeature}' must be implemented if ${flowSummary} is set to \`true\` in the test suite configuration.`, () => {
+          expect(BOOKING_FLOWS_IN_SCOPE).to.not.include(
+            Object.fromEntries(configuration.flowsThatImplyThisFeature.map(f => [f, true])),
+          );
+        });
+      });
+    });
+  }
+
+  /**
    * @param {NodeModule} documentationModule
    * @param {DescribeFeatureConfiguration & {
    *   unmatchedOpportunityCriteria: string[],
@@ -338,7 +474,7 @@ class FeatureHelper {
       skipMultiple: true,
       doesNotUseOpportunitiesMode: false,
       ...configuration,
-    }, (_configuration, orderItemCriteria, _featureIsImplemented, logger, opportunityType, bookingFlow) => {
+    }, (_configuration, _orderItemCriteria, _featureIsImplemented, logger, _describeFeatureRecord, opportunityType, bookingFlow) => {
       if (opportunityType != null) {
         configuration.unmatchedOpportunityCriteria.forEach((criteria) => {
           describe(`${criteria} opportunity feed items`, () => {

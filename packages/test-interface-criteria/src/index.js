@@ -5,7 +5,7 @@
 const { memoize } = require('lodash');
 const { DateTime } = require('luxon');
 const { allCriteria } = require('./criteria');
-const { getOrganizerOrProvider, extendTestDataShape } = require('./criteria/criteriaUtils');
+const { getOrganizerOrProvider, extendTestDataShape, getRemainingCapacity } = require('./criteria/criteriaUtils');
 const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape');
 
 /**
@@ -14,6 +14,7 @@ const { openBookingFlowRequirementArrayConstraint } = require('./testDataShape')
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
+ * @typedef {import('./types/TestDataShape').TestDataShapeOpportunityConstraints} TestDataShapeOpportunityConstraints
  */
 
 /**
@@ -40,7 +41,11 @@ function getCriteriaAndAssertExists(criteriaName) {
  * @returns {Offer[]}
  */
 function getOffers(opportunity) {
-  return opportunity.offers || (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
+  // Merge Offers respecting inheritance, based on the `identifier`, to allow overrides
+  const childOffers = opportunity.offers || [];
+  const childOffersIdentifierSet = new Set(childOffers.map((x) => x?.identifier).filter((x) => x !== undefined));
+  const parentOffers = (opportunity.superEvent && opportunity.superEvent.offers) || []; // Note FacilityUse does not have bookable offers, as it does not allow inheritance
+  return childOffers.concat(parentOffers.filter((o) => !childOffersIdentifierSet.has(o.identifier)));
 }
 
 /**
@@ -130,25 +135,26 @@ function getRelevantOffers(criteriaName, opportunity, libOptions) {
 /**
  * @param {string} criteriaName
  * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
- * @param {string} remainingCapacityPredicate The ShEx predicate to use for "remaining capacity". This should be
- *   remainingUses for Slots and remainingAttendeeCapacity for Events.
+ * @param {string} opportunityType
  * @param {LibOptions} libOptions
  */
-function getTestDataShapeExpressions(criteriaName, bookingFlow, remainingCapacityPredicate, libOptions) {
+function getTestDataShapeExpressions(criteriaName, bookingFlow, opportunityType, libOptions) {
   const options = augmentLibOptions(libOptions);
   const criteria = getCriteriaAndAssertExists(criteriaName);
   const shape = criteria.testDataShape(options);
-  const contextualisePredicate = (predicate) => (predicate === 'placeholder:remainingCapacity' ? remainingCapacityPredicate : predicate);
   /**
    * @param {{[predicate: string]: import('./types/TestDataShape').TestDataNodeConstraint}} constraints
    */
-  const convertToShapeExpression = (constraints) => (
+  const convertConstraintsToShapeExpression = (constraints) => (
     Object.entries(constraints || {})
       .map(([predicate, constraint]) => ({
         '@type': 'test:TripleConstraint',
-        predicate: contextualisePredicate(predicate).replace('oa:', 'https://openactive.io/').replace('schema:', 'https://schema.org/'),
+        predicate: predicate
+          .replace('oa:', 'https://openactive.io/')
+          .replace('schema:', 'https://schema.org/'),
         valueExpr: constraint,
-      })));
+      }))
+  );
   /** @type {TestDataShape} */
   const constraintsDueToBookingFlow = {
     offerConstraints: {
@@ -160,10 +166,42 @@ function getTestDataShapeExpressions(criteriaName, bookingFlow, remainingCapacit
     },
   };
   const combinedConstraints = extendTestDataShape(shape, constraintsDueToBookingFlow, criteriaName);
+  const opportunityConstraints = replaceOpportunityConstraintsPlaceholderFields(
+    opportunityType, combinedConstraints.opportunityConstraints ?? {},
+  );
   return {
-    'test:testOpportunityDataShapeExpression': convertToShapeExpression(combinedConstraints.opportunityConstraints),
-    'test:testOfferDataShapeExpression': convertToShapeExpression(combinedConstraints.offerConstraints),
+    'test:testOpportunityDataShapeExpression': convertConstraintsToShapeExpression(opportunityConstraints),
+    'test:testOfferDataShapeExpression': convertConstraintsToShapeExpression(combinedConstraints.offerConstraints),
   };
+}
+
+/**
+ * @param {string} opportunityType e.g. IndividualFacilityUseSlot
+ * @param {TestDataShapeOpportunityConstraints} opportunityConstraints
+ */
+function replaceOpportunityConstraintsPlaceholderFields(opportunityType, opportunityConstraints) {
+  const {
+    'placeholder:remainingCapacity': placeholderRemainingCapacity,
+    'placeholder:remainingCapacityIfuSlot': placeholderRemainingCapacityIfuSlot,
+    ...remainingOpportunityConstraints
+  } = opportunityConstraints;
+  switch (opportunityType) {
+    case 'IndividualFacilityUseSlot':
+      return {
+        ...remainingOpportunityConstraints,
+        'oa:remainingUses': placeholderRemainingCapacityIfuSlot,
+      };
+    case 'FacilityUseSlot':
+      return {
+        ...remainingOpportunityConstraints,
+        'oa:remainingUses': placeholderRemainingCapacity,
+      };
+    default:
+      return {
+        ...remainingOpportunityConstraints,
+        'schema:remainingAttendeeCapacity': placeholderRemainingCapacity,
+      };
+  }
 }
 
 module.exports = {
@@ -176,5 +214,6 @@ module.exports = {
   // Utils
   utils: {
     getOrganizerOrProvider,
+    getRemainingCapacity,
   },
 };

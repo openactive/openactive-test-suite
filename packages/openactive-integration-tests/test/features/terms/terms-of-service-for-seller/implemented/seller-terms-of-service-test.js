@@ -30,8 +30,10 @@ FeatureHelper.describeFeature(module, {
   // that don't satisfy this criteria, which constraints the seller.
   controlOpportunityCriteria: 'TestOpportunityBookableSellerTermsOfService',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
-  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
+    bookExpectToFail: true,
+  });
 
   describe('Terms of service should be part of seller in all stages', () => {
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities, () => {
@@ -43,10 +45,10 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
       });
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-      itShouldContainSellerWithValidTermsOfService(() => c1.getOutput().httpResponse);
+      itShouldContainSellerWithValidTermsOfService(() => c1.getStage('c1').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-      itShouldContainSellerWithValidTermsOfService(() => c2.getOutput().httpResponse);
+      itShouldContainSellerWithValidTermsOfService(() => c2.getStage('c2').getOutput().httpResponse);
     });
     FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
       itShouldContainSellerWithValidTermsOfService(() => bookRecipe.firstStage.getOutput().httpResponse);

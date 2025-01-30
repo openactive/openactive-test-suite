@@ -12,38 +12,26 @@ export type TestMatchResult = {
      */
     unmetCriteriaDetails: string[];
 };
-export type Criteria = {
-    name: string;
-    opportunityConstraints: [string, import("./types/Criteria").OpportunityConstraint][];
-    offerConstraints: [string, import("./types/Criteria").OfferConstraint][];
-    testDataShape: import("./types/Criteria").TestDataShapeFactory;
-};
-export type Opportunity = {
-    [k: string]: any;
-};
-export type Offer = {
-    [k: string]: any;
-    '@type': string;
-    '@id': string;
-};
-export type Options = {
-    harvestStartTime: any;
-    harvestStartTimeTwoHoursLater: any;
-};
-export type TestDataShape = import("./types/TestDataShape").TestDataShape;
+export type Criteria = import('./types/Criteria').Criteria;
+export type Opportunity = import('./types/Opportunity').Opportunity;
+export type Offer = import('./types/Offer').Offer;
+export type Options = import('./types/Options').Options;
+export type TestDataShape = import('./types/TestDataShape').TestDataShape;
+export type TestDataShapeOpportunityConstraints = import('./types/TestDataShape').TestDataShapeOpportunityConstraints;
 /**
  * Options object as supplied to the test-interface-criteria library API.
  */
 export type LibOptions = {
     harvestStartTime: string;
 };
-declare const allCriteria: import("./types/Criteria").Criteria[];
+import { allCriteria } from "./criteria";
 /**
  * @typedef {import('./types/Criteria').Criteria} Criteria
  * @typedef {import('./types/Opportunity').Opportunity} Opportunity
  * @typedef {import('./types/Offer').Offer} Offer
  * @typedef {import('./types/Options').Options} Options
  * @typedef {import('./types/TestDataShape').TestDataShape} TestDataShape
+ * @typedef {import('./types/TestDataShape').TestDataShapeOpportunityConstraints} TestDataShapeOpportunityConstraints
  */
 /**
  * @typedef {{
@@ -76,24 +64,25 @@ export function getRelevantOffers(criteriaName: string, opportunity: Opportunity
 /**
  * @param {string} criteriaName
  * @param {'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow'} bookingFlow
- * @param {string} remainingCapacityPredicate The ShEx predicate to use for "remaining capacity". This should be
- *   remainingUses for Slots and remainingAttendeeCapacity for Events.
+ * @param {string} opportunityType
  * @param {LibOptions} libOptions
  */
-export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', remainingCapacityPredicate: string, libOptions: LibOptions): {
+export function getTestDataShapeExpressions(criteriaName: string, bookingFlow: 'OpenBookingSimpleFlow' | 'OpenBookingApprovalFlow', opportunityType: string, libOptions: LibOptions): {
     'test:testOpportunityDataShapeExpression': {
         '@type': string;
-        predicate: any;
+        predicate: string;
         valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
     }[];
     'test:testOfferDataShapeExpression': {
         '@type': string;
-        predicate: any;
+        predicate: string;
         valueExpr: import("./types/TestDataShape").TestDataNodeConstraint;
     }[];
 };
-declare const getOrganizerOrProvider: (opportunity: import("./types/Opportunity").Opportunity) => any;
+import { getOrganizerOrProvider } from "./criteria/criteriaUtils";
+import { getRemainingCapacity } from "./criteria/criteriaUtils";
 export declare namespace utils {
     export { getOrganizerOrProvider };
+    export { getRemainingCapacity };
 }
 export { allCriteria as criteria };

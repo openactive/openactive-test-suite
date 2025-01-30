@@ -9,6 +9,8 @@ const { itShouldReturnAnOpenBookingError } = require('../../shared-behaviours/er
  * @typedef {import('../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
  * @typedef {import('../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
  * @typedef {import('../../helpers/flow-stages/flow-stage').Prepayment} Prepayment
+ * @typedef {import('../../helpers/flow-stages/flow-stage-recipes').C1AssertCapacityRun} C1AssertCapacityRun
+ * @typedef {import('../../helpers/flow-stages/flow-stage-recipes').C2AssertCapacityRun} C2AssertCapacityRun
  */
 
 /**
@@ -45,16 +47,16 @@ function multipleOpportunityCriteriaTemplateWhichOnlyIncludesOneCriteria(testOpp
 /**
  * @param {string | null} expectedPrepayment
  * @param {FetchOpportunitiesFlowStageType} fetchOpportunities
- * @param {C1FlowStageType} c1
- * @param {C2FlowStageType} c2
+ * @param {C1AssertCapacityRun} c1
+ * @param {C2AssertCapacityRun} c2
  */
 function commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2) {
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-    itShouldHavePrepayment(expectedPrepayment, () => c1.getOutput().httpResponse.body);
+    itShouldHavePrepayment(expectedPrepayment, () => c1.getStage('c1').getOutput().httpResponse.body);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldHavePrepayment(expectedPrepayment, () => c2.getOutput().httpResponse.body);
+    itShouldHavePrepayment(expectedPrepayment, () => c2.getStage('c2').getOutput().httpResponse.body);
   });
 }
 
@@ -64,14 +66,14 @@ function commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOppor
  */
 function successTests(expectedPrepayment, bookReqTemplateRef) {
   /** @type {RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef });
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, { bookReqTemplateRef });
 
     // ## Set up tests
     commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
     FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
-      if (bookRecipe.p) {
+      if (bookRecipe.isApproval()) {
         itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.p.getOutput().httpResponse.body);
       }
       itShouldHavePrepayment(expectedPrepayment, () => bookRecipe.b.getOutput().httpResponse.body);
@@ -91,10 +93,13 @@ function errorTests(expectedPrepayment, expectedError, bookReqTemplateRef) {
     : 'Unnecessary';
 
   /** @type {RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     describe(`${missingOrUnnecessary} payment property at B`, () => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef });
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
+        bookReqTemplateRef,
+        bookExpectToFail: true,
+      });
 
       // ## Set up tests
       commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);

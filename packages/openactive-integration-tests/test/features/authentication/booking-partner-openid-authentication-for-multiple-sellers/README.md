@@ -10,6 +10,7 @@ Coverage Status: **complete**
 
 
 
+
 ### Running tests for only this feature
 
 ```bash
@@ -30,10 +31,10 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 }
 ```
 
-| Identifier | Name | Description | Prerequisites per Opportunity Type |
-|------------|------|-------------|---------------|
-| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow and Book | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |
-| [authorization-persisted](./implemented/authorization-persisted-test.js) | Authorization persists when not requesting offline access | When authorisation is requested without offline access and a user has already given permission, consent must not be required. |  |
-| [required-features](./implemented/required-features-test.js) | Can only be implemented if other features are | This feature can only be implemented if features: 'multiple-sellers' and 'booking-partner-openid-authentication' are implemented |  |
+| Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
+|------------|------|-------------|---------------|-------------------|
+| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |  |
+| [authorization-persisted](./implemented/authorization-persisted-test.js) | Authorization persists when not requesting offline access | When authorisation is requested without offline access and a user has already given permission, consent must not be required. |  |  |
+| [required-features](./implemented/required-features-test.js) | Can only be implemented if other features are | This feature can only be implemented if features: 'multiple-sellers' and 'booking-partner-openid-authentication' are implemented |  |  |
 
 

@@ -16,7 +16,7 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /* TODO uncomment the below and use a single shared UUID for both primary and secondary tests once that is supported
   by the Reference Implementation */
   // const uuid = generateUuid();
@@ -28,13 +28,19 @@ FeatureHelper.describeFeature(module, {
       c1,
       c2,
       defaultFlowStageParams,
-    } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+    } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
       bookingPartnerIdentifier: 'primary',
       // uuid,
     });
     const { p, simulateSellerApproval, orderFeedUpdateCollector } = FlowStageRecipes.proposeAndSimulateSellerApproval(defaultFlowStageParams, {
-      prerequisite: c2,
-      getFirstStageInput: FlowStageRecipes.getSimpleBookFirstStageInput(fetchOpportunities, c1, c2),
+      prerequisite: c2.getLastStage(),
+      getFirstStageInput: FlowStageRecipes.getSimpleBookFirstStageInput(
+        fetchOpportunities,
+        c1.getStage('c1'),
+        c2.getStage('c2'),
+      ),
+      // TODO2 check that this is what is expected here?
+      paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
     });
 
     // ## Tests
@@ -52,6 +58,8 @@ FeatureHelper.describeFeature(module, {
       bookingPartnerIdentifier: 'secondary',
       // uuid,
       logger,
+      describeFeatureRecord,
+      orderItemCriteriaList,
     });
     // UUID should not be present in `secondary`s feed
     const ensureOrderIsNotPresent = new EnsureOrderIsNotPresentFlowStage({

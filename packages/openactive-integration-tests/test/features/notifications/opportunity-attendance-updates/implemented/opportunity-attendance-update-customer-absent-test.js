@@ -12,6 +12,7 @@ FeatureHelper.describeFeature(module, {
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  testInterfaceActions: ['test:AttendeeAbsentSimulateAction'],
 },
 TestRecipes.simulateActionAndExpectOrderFeedUpdateAfterSimpleC1C2Book({ actionType: 'test:AttendeeAbsentSimulateAction' },
   ({ orderFeedUpdate, orderItemCriteriaList }) => {

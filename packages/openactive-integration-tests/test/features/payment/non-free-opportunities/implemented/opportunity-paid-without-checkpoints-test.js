@@ -1,5 +1,7 @@
+const { omit } = require('lodash');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { Common } = require('../../../../shared-behaviours');
 
 const { IMPLEMENTED_FEATURES } = global;
 
@@ -19,20 +21,27 @@ FeatureHelper.describeFeature(module, {
   runOnlyIf: !IMPLEMENTED_FEATURES['business-to-consumer-tax-calculation-gross']
     && !IMPLEMENTED_FEATURES['business-to-consumer-tax-calculation-net'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger, opportunityType, bookingFlow) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // Initiate Flow Stages
-  const { fetchOpportunities, bookRecipe, defaultFlowStageParams, bookRecipeGetFirstStageInput } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger);
-  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(bookRecipe, defaultFlowStageParams, {
-    getFirstStageInput: bookRecipeGetFirstStageInput,
-  });
+  const {
+    fetchOpportunities,
+    bookRecipe,
+    defaultFlowStageParams,
+    bookRecipeArgs,
+  } = FlowStageRecipes.initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, describeFeatureRecord);
+  const idempotentRepeatB = FlowStageRecipes.idempotentRepeatBAfterBook(
+    orderItemCriteriaList,
+    bookRecipe,
+    defaultFlowStageParams,
+    omit(bookRecipeArgs, ['prerequisite']),
+  );
 
   // Set up tests
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
-  // Remove this condition once https://github.com/openactive/OpenActive.Server.NET/issues/100 is fixed.
-  if (bookingFlow === 'OpenBookingApprovalFlow') {
-    describe('idempotent repeat B', () => {
-      FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB);
+  describe('idempotent repeat B', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(idempotentRepeatB, () => {
+      Common.itIdempotentBShouldHaveOutputEqualToFirstB(bookRecipe.b, idempotentRepeatB);
     });
-  }
+  });
 });

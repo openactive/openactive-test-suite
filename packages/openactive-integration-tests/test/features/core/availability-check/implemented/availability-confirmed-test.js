@@ -1,4 +1,3 @@
-const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { Common } = require('../../../../shared-behaviours');
 const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
@@ -8,6 +7,10 @@ const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-s
  * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
  */
 
+/* NOTE: These tests (Common.itForEachOrderItemShouldHaveUnchangedCapacity) are
+now automatically run whenever C1 / C2 are called, so this test is redundant,
+but it is kept for documentational purposes — it makes it clear that this is an
+important aspect that must be adhered to */
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
@@ -20,9 +23,9 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   // # Initialise Flow Stages
-  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   // # Set up Tests
 
@@ -32,30 +35,18 @@ function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
    * @param {C1FlowStageType | C2FlowStageType} flowStage
    */
   function itShouldMatchOccupancy(flowStage) {
-    Common.itForEachOrderItem({
+    Common.itForEachOrderItemShouldHaveUnchangedCapacity({
       orderItemCriteriaList,
       getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
       getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
-    },
-    'availability should match open data feed',
-    (feedOrderItem, apiResponseOrderItem) => {
-      if (feedOrderItem.orderedItem['@type'] === 'Slot') {
-        expect(apiResponseOrderItem).to.nested.include({
-          'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
-        });
-      } else {
-        expect(apiResponseOrderItem).to.nested.include({
-          'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
-        });
-      }
     });
   }
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
-    itShouldMatchOccupancy(c1);
+    itShouldMatchOccupancy(c1.getStage('c1'));
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
-    itShouldMatchOccupancy(c2);
+    itShouldMatchOccupancy(c2.getStage('c2'));
   });
 });

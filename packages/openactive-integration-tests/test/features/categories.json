@@ -10,6 +10,8 @@
       "order-deletion": true,
       "multiple-sellers": true,
       "opportunity-feed": true,
+      "past-opportunities": true,
+      "single-seller": true,
       "test-interface": true
     },
     "access": {
