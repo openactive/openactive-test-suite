@@ -1,10 +1,12 @@
 const { expect } = require('chai');
+const sinon = require('sinon');
 const { getStatus } = require('../src/util/get-status');
 const { CriteriaOrientedOpportunityIdCache } = require('../src/util/criteria-oriented-opportunity-id-cache');
 const PauseResume = require('../src/util/pause-resume');
 const { getOrphanJson } = require('../src/util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('../src/util/get-opportunity-by-id-from-cache');
 const { getSampleOpportunities } = require('../src/util/sample-opportunities');
+const { OrderUuidTracking } = require('../src/order-uuid-tracking/order-uuid-tracking');
 
 const testDataGenerators = {
   opportunityItemRowCacheStoreItems: {
@@ -110,6 +112,57 @@ describe('user-facing endpoints', () => {
         opportunityType: 'ScheduledSession',
         sellerId: 'seller1',
       });
+
+      const createExpressResStub = () => ({
+        json: sinon.stub(),
+      });
+      const res1ExpectTrue = createExpressResStub();
+      const res2ExpectFalse = createExpressResStub();
+      const res3ExpectTrue = createExpressResStub();
+      const res4ExpectNoCall = createExpressResStub();
+
+      const orderUuidTracking = OrderUuidTracking.createState();
+      // We'll then check for this
+      OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'primary', 'uuid1');
+      // We'll never check for this
+      OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'primary', 'uuid2');
+      // should immediately return true
+      OrderUuidTracking.checkIfOrderUuidIsPresentAndPotentiallyListenForIt(orderUuidTracking, {
+        orderFeedType: 'orders',
+        bookingPartnerIdentifier: 'primary',
+        uuid: 'uuid1',
+        // @ts-expect-error
+        res: res1ExpectTrue,
+      });
+      // should return false at the end of the feed
+      OrderUuidTracking.checkIfOrderUuidIsPresentAndPotentiallyListenForIt(orderUuidTracking, {
+        orderFeedType: 'orders',
+        bookingPartnerIdentifier: 'primary',
+        uuid: 'uuid3',
+        // @ts-expect-error
+        res: res2ExpectFalse,
+      });
+      // should return true later
+      OrderUuidTracking.checkIfOrderUuidIsPresentAndPotentiallyListenForIt(orderUuidTracking, {
+        orderFeedType: 'orders',
+        bookingPartnerIdentifier: 'primary',
+        uuid: 'uuid4',
+        // @ts-expect-error
+        res: res3ExpectTrue,
+      });
+      // should remain as an as-yet-unresolved listener
+      OrderUuidTracking.checkIfOrderUuidIsPresentAndPotentiallyListenForIt(orderUuidTracking, {
+        orderFeedType: 'orders',
+        bookingPartnerIdentifier: 'secondary',
+        uuid: 'uuidB1',
+        // @ts-expect-error
+        res: res4ExpectNoCall,
+      });
+      OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'primary', 'uuid4');
+      OrderUuidTracking.doTrackEndOfFeed(orderUuidTracking, 'orders', 'primary');
+      OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'secondary', 'uuidB2');
+      // TODO3 now test various things
+
       const result = getStatus({
         DO_NOT_FILL_BUCKETS: false,
       }, {
@@ -128,6 +181,7 @@ describe('user-facing endpoints', () => {
         criteriaOrientedOpportunityIdCache: cooiCache,
         feedContextMap: new Map(),
         pauseResume: new PauseResume(),
+        orderUuidTracking,
       });
       // Only two of the three opportunities are "child opportunities" i.e. have
       // a parent
@@ -146,6 +200,19 @@ describe('user-facing endpoints', () => {
           'does not have one space': 2,
         },
       });
+      expect(result.orderUuidTracking.uuidsInOrderMap).to.deep.equal({
+        'OrdersFeed (auth:primary)': 3,
+        'OrdersFeed (auth:secondary)': 1,
+      });
+      expect(result.orderUuidTracking.hasReachedEndOfFeedMap).to.deep.equal({
+        'OrdersFeed (auth:primary)': true,
+        'OrdersFeed (auth:secondary)': false,
+      });
+      expect(result.orderUuidTracking.isPresentListeners).to.have.property('orders::secondary::uuidB1');
+      expect(res1ExpectTrue.json.args).to.deep.equal([[true]]);
+      expect(res2ExpectFalse.json.args).to.deep.equal([[false]]);
+      expect(res3ExpectTrue.json.args).to.deep.equal([[true]]);
+      expect(res4ExpectNoCall.json.args).to.deep.equal([]);
     });
   });
   describe('GET /orphans', () => {
