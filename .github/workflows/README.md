@@ -39,7 +39,7 @@ This job runs Test Suite tests on this branch against Reference Implementation (
 
 - **Checkout OpenActive.Server.NET**: This step checks out the Reference Implementation in OpenActive.Server.NET and places it in a directory named "server".
 
-- **Setup .NET Core SDK and Node.js**: These steps set up the required versions of .NET Core SDK (3.1.419) and Node.js (14.x).
+- **Setup .NET Core SDK and Node.js**: These steps set up the required versions of .NET Core SDK (3.1.419) and Node.js (18.17.1).
 
 - **Install OpenActive.Server.NET dependencies**: This step installs the dependencies of the "OpenActive.Server.NET" project.
 
@@ -98,7 +98,7 @@ This workflow defines one job: **build**.
 #### Steps
 - **Checkout OpenActive Test Suite**: This step checks out the OpenActive Test Suite code repository.
 
-- **Setup Node.js 14.x**: This step sets up Node.js version 14.x in the job's environment.
+- **Setup Node.js 18.17.1**: This step sets up Node.js version 18.17.1 in the job's environment.
 
 - **Install OpenActive Test Suite**: This step runs `npm install` to install the dependencies of the OpenActive Test Suite.
 
@@ -127,7 +127,7 @@ This workflow defines one job: **generate**.
 #### Steps
 - **Checkout**: This step uses the actions/checkout action to clone the repository. It checks out the master branch and places the repository in a directory named "openactive-test-suite."
 
-- **Setup Node.js 14.x**: This step uses the actions/setup-node action to set up Node.js version 14.x in the job's environment. This is necessary because Node.js is required for managing JavaScript dependencies.
+- **Setup Node.js 18.17.1**: This step uses the actions/setup-node action to set up Node.js version 18.17.1 in the job's environment. This is necessary because Node.js is required for managing JavaScript dependencies.
 
 - **Update openactive-integration-tests with latest data-models and validators**: This step runs npm install to update the openactive-data-models and data-model-validator dependencies to their latest versions. It targets the openactive-integration-tests package within the repository.
 
