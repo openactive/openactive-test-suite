@@ -148,6 +148,19 @@
       ]
     },
     "booking-partner-authentication": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4,
+          "TestOpportunityBookableCancellable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "booking-partner-openid-authentication": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "booking-partner-openid-authentication-for-multiple-sellers": {
       "criteriaRequirements": {},
       "testInterfaceActionImplementationRequirements": []
     },

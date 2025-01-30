@@ -3,6 +3,7 @@
  */
 const path = require('path');
 const config = require('config');
+const { ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('./constants');
 
 /**
  * @typedef {typeof brokerConfig} BrokerConfig
@@ -29,10 +30,6 @@ function getBrokerConfig() {
   const USE_RANDOM_OPPORTUNITIES = config.get('integrationTests.useRandomOpportunities');
 
   const HARVEST_START_TIME = (new Date()).toISOString();
-  /** @type {import('./models/core').OrderFeedIdentifier} */
-  const ORDERS_FEED_IDENTIFIER = 'OrdersFeed';
-  /** @type {import('./models/core').OrderFeedIdentifier} */
-  const ORDER_PROPOSALS_FEED_IDENTIFIER = 'OrderProposalsFeed';
 
   const BOOKING_PARTNER_IDENTIFIERS = Object.entries(config.get('broker.bookingPartners')).map(([key, value]) => {
     if (value) return key;

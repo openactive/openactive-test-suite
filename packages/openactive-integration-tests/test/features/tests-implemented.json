@@ -70,7 +70,15 @@
       "notImplementedTestFiles": 0
     },
     "booking-partner-authentication": {
-      "implementedTestFiles": 4,
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "booking-partner-openid-authentication": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "booking-partner-openid-authentication-for-multiple-sellers": {
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 0
     },
     "dynamic-client-registration": {
