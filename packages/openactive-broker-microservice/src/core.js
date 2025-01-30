@@ -1276,19 +1276,15 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       onReachedEndOfFeed,
       onProcessedPage,
       onRetryDueToHttpError: async () => { },
+      optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
       isOrdersFeed: false,
-      state: {
-        context: feedContext,
-      },
+      overrideContext: feedContext,
       loggingFns: {
         log, logError, logErrorDuringHarvest,
       },
       config: {
         howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
         REQUEST_LOGGING_ENABLED,
-      },
-      options: {
-        pauseResume: state.pauseResume,
       },
     });
     await handleHarvestRpdeErrorResponse({
@@ -1313,19 +1309,15 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       onReachedEndOfFeed,
       onProcessedPage,
       onRetryDueToHttpError: async () => { },
+      optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
       isOrdersFeed: false,
-      state: {
-        context: feedContext,
-      },
+      overrideContext: feedContext,
       loggingFns: {
         log, logError, logErrorDuringHarvest,
       },
       config: {
         howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
         REQUEST_LOGGING_ENABLED,
-      },
-      options: {
-        pauseResume: state.pauseResume,
       },
     });
     await handleHarvestRpdeErrorResponse({
@@ -1374,19 +1366,15 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
         await setFeedEnded();
       }
     },
+    optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
     isOrdersFeed: true,
-    state: {
-      context: feedContext,
-    },
+    overrideContext: feedContext,
     loggingFns: {
       log, logError, logErrorDuringHarvest,
     },
     config: {
       howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
       REQUEST_LOGGING_ENABLED,
-    },
-    options: {
-      pauseResume: state.pauseResume,
     },
   });
   await handleHarvestRpdeErrorResponse({
@@ -1523,6 +1511,11 @@ async function handleHarvestRpdeErrorResponse({
     default:
       process.exit(1);
   }
+}
+
+async function optionallyWaitBeforeNextHarvestRpdeRequest() {
+  // If harvesting is paused, block using the mute
+  if (state.pauseResume) await state.pauseResume.waitIfPaused();
 }
 
 /**
