@@ -10,7 +10,15 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
 
 /**
  * @param {Pick<import('../broker-config').BrokerConfig, 'DO_NOT_FILL_BUCKETS'>} config
- * @param {Pick<import('../state').State, 'opportunityItemRowCache' | 'startTime' | 'pauseResume' | 'feedContextMap' | 'criteriaOrientedOpportunityIdCache'>} state
+ * @param {Pick<
+ *   import('../state').State,
+ *   'opportunityItemRowCache'
+  *    | 'startTime'
+  *    | 'pauseResume'
+  *    | 'feedContextMap'
+  *    | 'criteriaOrientedOpportunityIdCache'
+  *    | 'orderUuidTracking'
+  * >} state
  */
 function getStatus(config, state) {
   const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
@@ -23,6 +31,11 @@ function getStatus(config, state) {
     },
     totalOpportunitiesHarvested: totalOpportunities,
     buckets: config.DO_NOT_FILL_BUCKETS ? null : mapToObjectSummary(state.criteriaOrientedOpportunityIdCache),
+    orderUuidTracking: {
+      uuidsInOrderMap: mapToObjectSummary(state.orderUuidTracking.uuidsInOrderMap),
+      hasReachedEndOfFeedMap: mapToObjectSummary(state.orderUuidTracking.hasReachedEndOfFeedMap),
+      isPresentListeners: mapToObjectSummary(state.orderUuidTracking.isPresentListeners),
+    },
   };
 }
 
@@ -56,4 +69,5 @@ function millisToMinutesAndSeconds(millis) {
 module.exports = {
   getOrphanStats,
   getStatus,
+  millisToMinutesAndSeconds,
 };

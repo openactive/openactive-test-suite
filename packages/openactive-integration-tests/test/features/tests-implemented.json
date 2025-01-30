@@ -14,7 +14,7 @@
       "notImplementedTestFiles": 1
     },
     "common-error-conditions": {
-      "implementedTestFiles": 6,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 1
     },
     "dataset-site": {
@@ -70,7 +70,15 @@
       "notImplementedTestFiles": 0
     },
     "booking-partner-authentication": {
-      "implementedTestFiles": 4,
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "booking-partner-openid-authentication": {
+      "implementedTestFiles": 2,
+      "notImplementedTestFiles": 0
+    },
+    "booking-partner-openid-authentication-for-multiple-sellers": {
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 0
     },
     "dynamic-client-registration": {
@@ -120,6 +128,10 @@
     "opportunity-feed": {
       "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
+    },
+    "past-opportunities": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "single-seller": {
       "implementedTestFiles": 1,
@@ -190,7 +202,7 @@
       "notImplementedTestFiles": 1
     },
     "prepayment-unavailable": {
-      "implementedTestFiles": 3,
+      "implementedTestFiles": 4,
       "notImplementedTestFiles": 1
     },
     "booking-restrictions": {
