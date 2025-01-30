@@ -1,14 +1,8 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const chai = require('chai'); // The latest version for new features than chakram includes
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
-const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours');
-
-const { expect } = chakram;
-/* eslint-enable no-unused-vars */
+const { FlowStageRecipes, FlowStageUtils, CancelOrderFlowStage } = require('../../../../helpers/flow-stages');
+const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
+const { ListenerItemExpectationRecipes } = require('../../../../helpers/listener-item-expectations');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
@@ -16,98 +10,75 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'book-and-cancel',
   testName: 'Successful booking and cancellation.',
-  testDescription: 'A successful end to end booking including cancellation, including checking the Orders Feed.',
+  testDescription: 'A successful end to end booking including full Order cancellation, including checking the Orders Feed. Two cancellation requests are made to ensure that cancellation is atomic.',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
-  controlOpportunityCriteria: 'TestOpportunityBookable',
-  // TODO: Refactor 'Orders Feed' tests so they work with multiple OrderItems
-  skipMultiple: true,
+  controlOpportunityCriteria: 'TestOpportunityBookableCancellable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord, opportunityType, bookingFlow) {
+  // ## Initiate Flow Stages
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
 
-    return chakram.wait();
+  // Get all OrderItem IDs
+  const allOrderItemPositions = [...Array(orderItemCriteriaList.length).keys()];
+  const getArrayOfAllOrderItemIds = CancelOrderFlowStage.getOrderItemIdsByPositionFromBookStages(bookRecipe.firstStage, allOrderItemPositions);
+
+  // ### Cancel all order items
+  const cancelOrderItems = FlowStageRecipes.runs.customerCancel.successfulCancelAssertOrderUpdateAndCapacity(
+    bookRecipe.lastStage,
+    defaultFlowStageParams,
+    {
+      cancelArgs: {
+        getOrderItemIdArray: getArrayOfAllOrderItemIds,
+      },
+      assertOpportunityCapacityArgs: {
+        orderItemCriteriaList,
+        // Opportunity capacity should have incremented for all Order Items
+        getInput: () => ({
+          opportunityFeedExtractResponses: bookRecipe.getAssertOpportunityCapacityAfterBook().getOutput().opportunityFeedExtractResponses,
+          orderItems: fetchOpportunities.getOutput().orderItems,
+        }),
+        getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityCapacityIncrementedForOrderItemPositions(allOrderItemPositions),
+      },
+      listenerItemExpectations: [ListenerItemExpectationRecipes.allNonConfirmedOrderItems()],
+    },
+  );
+
+  // ### Cancel order items again to test for idempotency
+  const cancelOrderItemsAgain = FlowStageRecipes.runs.customerCancel.cancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    cancelArgs: {
+      getOrderItemIdArray: getArrayOfAllOrderItemIds,
+    },
+    assertOpportunityCapacityArgs: {
+      orderItemCriteriaList,
+      // Opportunity capacity should have not changed since the last cancel
+      getInput: () => ({
+        opportunityFeedExtractResponses: cancelOrderItems.getStage('assertOpportunityCapacityAfterCancel').getOutput().opportunityFeedExtractResponses,
+        orderItems: fetchOpportunities.getOutput().orderItems,
+      }),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityUnchangedCapacity,
+    },
   });
 
-  afterAll(async function () {
-    await state.deleteOrder();
-    return chakram.wait();
-  });
-
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', function () {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C2', function () {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('B', function () {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  // TODO Refactor: Use shared-behaviours/order-feed-update
-  describe('Orders Feed', function () {
-    beforeAll(async function () {
-      await flow.getFeedUpdateAfterU();
+  // ## Set up tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItems, () => {
+    const orderFeedUpdateAfter1stCancel = cancelOrderItems.getStage('orderFeedUpdate');
+    const orderItemsAccessor = () => orderFeedUpdateAfter1stCancel.getOutput().httpResponse.body.data.orderedItem;
+    it('should include all OrderItems', () => {
+      expect(orderItemsAccessor()).to.be.an('array').with.lengthOf(orderItemCriteriaList.length);
     });
-
-    it(`Orders feed result should have ${orderItemCriteria.length} orderedItem(s)`, function () {
-      expect(state.getOrderAfterUResponse).to.have.schema('data.orderedItem', {
-        minItems: orderItemCriteria.length,
-        maxItems: orderItemCriteria.length,
-      });
-    });
-
-    /* TODO: Map position to @id at B, then use OrderItem @id to check prices here against opportunity feed
-    Common.itForOrderItem(orderItemCriteria, state, null, () => state.ordersFeedUpdate.body.data,
-      'price should match open data feed',
-      (feedOrderItem, responseOrderItem) => {
-        chai.expect(responseOrderItem).to.nested.include({
-          'acceptedOffer.price': feedOrderItem.acceptedOffer.price,
-        });
-      });
-    */
-
-    it('Order Cancellation return 204 on success', function () {
-      expect(state.uResponse).to.have.status(204);
-    });
-
-    it('Orders feed should have CustomerCancelled as orderItemStatus', function () {
-      expect(state.getOrderAfterUResponse).to.have.json(
-        'data.orderedItem[0].orderItemStatus',
-        'https://openactive.io/CustomerCancelled',
-      );
-    });
-
-    sharedValidationTests.shouldBeValidResponse(() => state.getOrderAfterUResponse, 'Orders feed', logger, {
-      validationMode: 'OrdersFeed',
+    it(`should have orderItemStatus CustomerCancelled for each cancelled item, based on the @ids of the OrderItems at ${bookingFlow === 'OpenBookingApprovalFlow' ? 'P' : 'B'}`, () => {
+      const cancelledOrderItemIds = getArrayOfAllOrderItemIds();
+      for (const orderItem of orderItemsAccessor()) {
+        expect(orderItem['@id']).to.be.oneOf(cancelledOrderItemIds);
+        expect(orderItem).to.have.property('orderItemStatus', 'https://openactive.io/CustomerCancelled');
+      }
     });
   });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(cancelOrderItemsAgain);
 });

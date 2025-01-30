@@ -1,8 +1,16 @@
-const chakram = require('chakram');
-const chai = require('chai'); // The latest version for new features than chakram includes
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, Common } = require('../../../../shared-behaviours');
+const { Common } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
+/**
+ * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ */
+
+/* NOTE: These tests (Common.itForEachOrderItemShouldHaveUnchangedCapacity) are
+now automatically run whenever C1 / C2 are called, so this test is redundant,
+but it is kept for documentational purposes — it makes it clear that this is an
+important aspect that must be adhered to */
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'availability-check',
@@ -15,57 +23,30 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  // # Initialise Flow Stages
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
 
-    return chakram.wait();
+  // # Set up Tests
+
+  /**
+   * Occupancy in the result from calling C1 or C2 should match that found in the open data feed.
+   *
+   * @param {C1FlowStageType | C2FlowStageType} flowStage
+   */
+  function itShouldMatchOccupancy(flowStage) {
+    Common.itForEachOrderItemShouldHaveUnchangedCapacity({
+      orderItemCriteriaList,
+      getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
+      getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
+    });
+  }
+
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1, () => {
+    itShouldMatchOccupancy(c1.getStage('c1'));
   });
-
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  const shouldMatchOccupancy = (stage, responseAccessor) => {
-    Common.itForOrderItem(orderItemCriteria, state, stage, () => responseAccessor().body,
-      'availability should match open data feed',
-      (feedOrderItem, responseOrderItem) => {
-        if (feedOrderItem.orderedItem['@type'] === 'Slot') {
-          chai.expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
-          });
-        } else {
-          chai.expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
-          });
-        }
-      });
-  };
-
-  describe('C1', function () {
-    const c1 = (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    shouldMatchOccupancy(c1, () => state.c1Response);
-  });
-
-  describe('C2', function () {
-    const c2 = (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-
-    shouldMatchOccupancy(c2, () => state.c2Response);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    itShouldMatchOccupancy(c2.getStage('c2'));
   });
 });

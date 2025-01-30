@@ -1,0 +1,92 @@
+{
+  "_createdByDocumentationGeneratorScript": true,
+  "categories": {
+    "core": {
+      "agent-broker": true,
+      "amending-order-quote": true,
+      "availability-check": true,
+      "common-error-conditions": true,
+      "dataset-site": true,
+      "order-deletion": true,
+      "multiple-sellers": true,
+      "opportunity-feed": true,
+      "past-opportunities": true,
+      "single-seller": true,
+      "test-interface": true
+    },
+    "access": {
+      "access-channel": true,
+      "access-channel-update-notifications": true,
+      "access-code": true,
+      "access-code-update-notifications": true,
+      "access-pass-barcode-seller-provided": true,
+      "access-pass-image": true,
+      "access-pass-update-notifications": true
+    },
+    "advanced-payment": {
+      "dynamic-payment": true,
+      "offer-overrides": true
+    },
+    "approval": {
+      "minimal-proposal": true,
+      "proposal-amendment": true
+    },
+    "authentication": {
+      "booking-partner-authentication": true,
+      "dynamic-client-registration": true
+    },
+    "broker-role": {
+      "no-broker": true,
+      "reseller-broker": true,
+      "reseller-broker-tax-calculation": true
+    },
+    "cancellation": {
+      "cancellation-window": true,
+      "customer-requested-cancellation": true,
+      "customer-requested-cancellation-always-allowed": true,
+      "seller-requested-cancellation": true,
+      "seller-requested-cancellation-message": true,
+      "seller-requested-replacement": true
+    },
+    "details-capture": {
+      "additional-details-capture": true,
+      "attendee-details-capture": true,
+      "customer-details-capture-identifier": true,
+      "customer-details-capture-non-essential": true
+    },
+    "leasing": {
+      "anonymous-leasing": true,
+      "named-leasing": true
+    },
+    "notifications": {
+      "change-of-logistics-notifications": true,
+      "customer-notice-notifications": true,
+      "opportunity-attendance-updates": true
+    },
+    "payment": {
+      "free-opportunities": true,
+      "non-free-opportunities": true,
+      "payment-reconciliation-detail-validation": true,
+      "prepayment-optional": true,
+      "prepayment-required": true,
+      "prepayment-required-unavailable": true,
+      "prepayment-unavailable": true
+    },
+    "restrictions": {
+      "booking-restrictions": true,
+      "booking-window": true
+    },
+    "tax": {
+      "business-to-business-tax-calculation-gross": true,
+      "business-to-business-tax-calculation-net": true,
+      "business-to-consumer-tax-calculation-gross": true,
+      "business-to-consumer-tax-calculation-net": true
+    },
+    "terms": {
+      "terms-of-service-for-booking-system": true,
+      "terms-of-service-for-seller": true,
+      "terms-of-service-with-consent": true,
+      "terms-of-service-with-consent-with-date-modified": true
+    }
+  }
+}

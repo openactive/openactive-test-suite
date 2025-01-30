@@ -1,5 +1,15 @@
-const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria } = require('./criteriaUtils');
+const { shapeConstraintRecipes, NON_FREE_PRICE_QUANTITATIVE_VALUE, prepaymentOptionNodeConstraint, openBookingFlowRequirementArrayConstraint } = require('../testDataShape');
+const {
+  createCriteria,
+  remainingCapacityMustBeAtLeastTwo,
+  mustNotBeOpenBookingInAdvanceUnavailable,
+  mustBeInsideBookingWindowIfOneExists,
+  sellerMustAllowOpenBooking,
+  mustNotRequireAttendeeDetails,
+  mustNotRequireAdditionalDetails,
+  startDateMustBeOver2HrsInAdvance,
+  eventStatusMustNotBeCancelledOrPostponed,
+} = require('./criteriaUtils');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -9,7 +19,7 @@ const { createCriteria } = require('./criteriaUtils');
  * @type {OfferConstraint}
  */
 function onlyPaidBookableOffersWithPrepaymentUnavailable(offer) {
-  return offer.price > 0 && offer.prepayment === 'https://openactive.io/Unavailable';
+  return offer.price > 0 && offer.openBookingPrepayment === 'https://openactive.io/Unavailable';
 }
 
 /**
@@ -17,14 +27,69 @@ function onlyPaidBookableOffersWithPrepaymentUnavailable(offer) {
  */
 const TestOpportunityBookableNonFreePrepaymentUnavailable = createCriteria({
   name: 'TestOpportunityBookableNonFreePrepaymentUnavailable',
-  opportunityConstraints: [],
-  offerConstraints: [
+  opportunityConstraints: [
     [
-      'Only paid bookable offers with prepayment unavailable',
-      onlyPaidBookableOffersWithPrepaymentUnavailable,
+      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
+      remainingCapacityMustBeAtLeastTwo,
+    ],
+    [
+      'organizer or provider must include isOpenBookingAllowed = true',
+      sellerMustAllowOpenBooking,
+    ],
+    [
+      'startDate must be over 2hrs in advance for random tests to use',
+      startDateMustBeOver2HrsInAdvance,
+    ],
+    [
+      'eventStatus must not be Cancelled or Postponed',
+      eventStatusMustNotBeCancelledOrPostponed,
     ],
   ],
-  includeConstraintsFromCriteria: TestOpportunityBookable,
+  offerConstraints: [
+    [
+      'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
+      mustNotBeOpenBookingInAdvanceUnavailable,
+    ],
+    [
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
+    ],
+    [
+      'Only paid bookable offers with openBookingPrepayment unavailable',
+      onlyPaidBookableOffersWithPrepaymentUnavailable,
+    ],
+    [
+      'Must not require attendee details',
+      mustNotRequireAttendeeDetails,
+    ],
+    [
+      'Must not require additional details',
+      mustNotRequireAdditionalDetails,
+    ],
+  ],
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+      ...shapeConstraintRecipes.startDateMustBe2HrsInAdvance(options),
+      ...shapeConstraintRecipes.eventStatusMustNotBeCancelledOrPostponed(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+      // onlyPaidBookableOffersWithPrepaymentUnavailable
+      'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+      'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
+        allowlist: ['https://openactive.io/Unavailable'],
+      }),
+      // mustNotRequireAttendeeDetails, mustNotRequireAdditionalDetails
+      'oa:openBookingFlowRequirement': openBookingFlowRequirementArrayConstraint({
+        excludesAll: [
+          'https://openactive.io/OpenBookingAttendeeDetails',
+          'https://openactive.io/OpenBookingIntakeForm',
+        ],
+      }),
+    },
+  }),
 });
 
 module.exports = {

@@ -6,5 +6,5 @@ FeatureHelper.describeRequiredFeature(module, {
   testFeatureImplemented: false,
   testIdentifier: 'feature-required-noop',
   testName: 'Feature required',
-  runOnce: true,
+  doesNotUseOpportunitiesMode: true,
 });

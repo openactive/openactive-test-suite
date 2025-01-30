@@ -6,7 +6,7 @@ Feature Implemented: {{{ implemented }}}
 
 {{ consoleValidationIcon overallStatus }} {{ numPassed }} passed with {{ numFailed }} {{ pluralise "failure" numFailed }}, {{ numWarnings }} {{ pluralise "warning" numWarnings }} and {{{ numSuggestions }}} {{ pluralise "suggestion" numSuggestions }} 
 
-See `{{{ markdownPath }}}` for more detailed info.
+See `{{{ htmlPath }}}` for more detailed info.
 
 {{#each activeSuites }}
 {{#each . }}{{# chalk "bold" "yellow" }}>>{{/chalk}} {{# chalk "bold" "green" }}{{{ . }}}{{/chalk}} {{/each}}
@@ -14,11 +14,6 @@ See `{{{ markdownPath }}}` for more detailed info.
   {{ consoleSpecIcon spec.status }} {{{firstLine spec.title}}}
         {{#each spec.failureMessages}}
       {{{extractMessage . }}}
-        {{/each}}
-    {{/logsFor}}
-    {{#logsFor . "validations"}}
-        {{#each validations }}
-  {{ consoleValidationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
     {{/logsFor}}
 {{/each}}

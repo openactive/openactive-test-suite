@@ -1,10 +1,46 @@
-[< Return to Summary](summary.md) | File Generated: {{{ timestamp }}}
+<head>
+  <style>
+h2 {
+    cursor: pointer;
+    border-top-color: #CCC;
+    border-top-width: 1px;
+    border-top-style: solid;
+    padding-top: 5px;
+}
+h2:hover {
+    color: #0056b3; /* Example color change on hover */
+}
+</style>
+</head>
+
+[< Return to Summary](summary.html) | File Generated: {{{ timestamp }}}
+
+<button id="collapseH2Button">Collapse All Sections</button>
+<button id="showH2Button">Show All Sections</button>
+<button id="collapseAllButFirstError">Show Only First Error</button>
+
 
 # {{{ title }}}
 
-Feature Implemented: {{{ implemented }}}
+**Booking Flow:** {{{ bookingFlow }}}
+
+**Opportunity Type:** {{{ opportunityType }}}
+
+**Feature:** {{{ categoryName }}} / {{{ featureName }}} ({{implementedDisplayLabel}}) 
+
+**Test:**  {{{ suiteName }}}
 
 {{{ description }}}
+
+### Running only this test
+
+```bash
+npm start -- --runInBand {{{ testFileName }}}
+```
+
+### Is this test failing?
+
+The [OpenActive Reference Implementation test result for this test]({{{ referenceImplementationResultUrl }}}) can be used as a reference to help with debugging.
 
 ---
 
@@ -14,11 +50,24 @@ Feature Implemented: {{{ implemented }}}
 
 {{#each activeSuites }}
 
-## {{{ renderSuiteName . }}}
-    {{#logsFor . "request"}}
+{{#if (doRenderSuite .)}}
+
+## {{ validationIcon (statusFor . ) }} {{{ renderSuiteName . }}}
+
+{{{ maintainerInfo . }}}
+
+    {{#logsFor . "information"}}
+
+### {{title}}
+
+{{{message}}}
+    {{/logsFor}}
+    {{#logsFor . "request,result"}}
+{{#ifEquals type "request"}}
 
 ### {{stage}} Request
 {{{request.method}}} {{{ request.url }}}
+{{{ headers request.requestOptions }}}
     {{#if request.jsonBody}}
 ```json
 {{{ json request.jsonBody }}}
@@ -26,18 +75,46 @@ Feature Implemented: {{{ implemented }}}
     {{/if}}
         {{#if isPending}}
 **Response still pending**
+        {{#if requestMetadata.feedExtract}}
+
+> This response is still pending because the Broker Microservice at `http://localhost:3000/` is still waiting for the `@id` `{{{ requestMetadata.feedExtract.id }}}` to appear in the {{{ requestMetadata.feedExtract.type }}} feed(s).
+> 
+> To troubleshoot this, try opening the last pages of the relevant {{{ requestMetadata.feedExtract.type }}} feed(s) (which will be empty) in Postman or similar, then refreshing that page after this test has run. Check that the `@id` exactly matches `{{{ requestMetadata.feedExtract.id }}}`. If the item does not appear at the end of the feed check that the `modified` timestamp of the RPDE item is being updated.
+
+        {{/if}}
         {{/if}}
         {{#if response.status}}
 
 ---
+{{#if response.body.screenshots}}
 
-Response status code: {{{ response.status }}} {{{ response.statusMessage}}}. Responded in {{{ response.responseTime}}}ms
+{{#each response.body.screenshots}}
+
+#### Screenshot: {{{ title }}}
+```json
+{{{ json url }}}
+```
+
+![Screenshot: {{{ title }}}](data:image/png;base64,{{{ image }}})
+
+{{/each}}
+
+{{#if response.body.callbackUrl}}
+#### Callback URL
+```json
+{{{ json response.body.callbackUrl }}}
+```
+{{/if}}
+
+{{else}}
+Response status code: {{{ response.status }}}{{#if response.statusMessage}} {{{ response.statusMessage}}}{{/if}}.{{#if response.responseTime}} Responded in {{{ response.responseTime}}}ms.{{/if}}
             {{#if response.body}}
 ```json
 {{{ json response.body }}}
 ```
             {{/if}}
          {{/if}}
+{{/if}}
          {{#if response.error}}
 
 ---
@@ -47,6 +124,19 @@ Response error:
 {{{ response.error }}}
 ```
         {{/if}}
+{{/ifEquals}}
+{{#ifEquals type "result"}}
+
+### {{stage}} Result
+
+{{{description}}}
+
+{{#if jsonResult}}
+```json
+{{{ json jsonResult }}}
+```
+{{/if}}
+{{/ifEquals}}
     {{/logsFor}}
     {{#logsFor . "spec"}}
 {{~#if @first}}
@@ -65,6 +155,10 @@ Response error:
  * {{ validationIcon severity }} {{{ path }}}: {{{firstLine message}}}
         {{/each}}
     {{/logsFor}}
+
+{{!-- {{#if (doRenderSuite .)}} --}}
+{{/if}}
+{{!-- {{#each activeSuites }} --}}
 {{/each}}
 
 
@@ -76,3 +170,104 @@ Test could not be completed as it timed out while a request was still pending:
 
     {{/if~}}
 {{/logsFor}}
+
+<script>
+  function collapseH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+        if (nextElement.style.display !== 'none') {
+            nextElement.style.display = 'none';
+        }
+        nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function showH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+        if (nextElement.style.display !== '') {
+            nextElement.style.display = '';
+        }
+        nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function toggleH2Section(nextElement) {
+    while(nextElement && nextElement.tagName !== 'H2') {
+              // Toggle visibility
+              nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
+              nextElement = nextElement.nextElementSibling;
+          }
+  }
+
+  function collapseAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function(h2) {
+        var nextElement = h2.nextElementSibling;
+        collapseH2Section(nextElement);
+    });
+  }
+  function showAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function(h2) {
+        var nextElement = h2.nextElementSibling;
+        showH2Section(nextElement);
+    });
+  }
+
+  function collapseExceptFirstSpecialH2Section() {
+    const h2Elements = document.querySelectorAll('h2');
+    let specialSectionFound = false;
+
+    h2Elements.forEach((h2) => {
+        let nextNode = h2.nextElementSibling;
+        let sectionContainsSpecialChar = false;
+
+        // Iterate through sibling elements until the next H2 or no more siblings until the error section is found
+        while (nextNode && nextNode.tagName !== 'H2') {
+            if (!specialSectionFound && nextNode.textContent.includes('❌')) {
+                sectionContainsSpecialChar = true;
+                specialSectionFound = true; 
+                break;
+              }
+              showH2Section(nextNode);
+            nextNode = nextNode.nextElementSibling;
+        }
+
+        // If this section is not the one with the error, collapse it
+        if (!sectionContainsSpecialChar) {
+            nextNode = h2.nextElementSibling; 
+            collapseH2Section(nextNode);
+        }
+    });
+}
+
+
+  // Show/Hide each header section
+  document.querySelectorAll('h2').forEach(function(h2) {
+      h2.addEventListener('click', function() {
+          let nextElement = this.nextElementSibling;
+          toggleH2Section(nextElement)
+      });
+  });
+
+  // Show all header sections
+  document.getElementById('showH2Button').addEventListener('click', function() {
+      showAllH2Sections();
+  });
+
+  // Collapse all header sections
+  document.getElementById('collapseH2Button').addEventListener('click', function() {
+      collapseAllH2Sections();
+  });
+
+  // Collapse all but first error section button
+    document.getElementById('collapseAllButFirstError').addEventListener('click', function() {
+      collapseExceptFirstSpecialH2Section();
+  });
+
+  // Hide all header sections by default
+  collapseExceptFirstSpecialH2Section();
+  </script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>

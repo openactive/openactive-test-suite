@@ -1,27 +1,50 @@
-const { complement } = require('ramda');
-const { createCriteria } = require('./criteriaUtils');
-const { InternalTestOpportunityBookable } = require('./internal/InternalTestOpportunityBookable');
-const { supportsMinimalProposalFlow } = require('./sharedConstraints');
-
-const doesNotSupportMinimalProposalFlow = complement(supportsMinimalProposalFlow);
+const {
+  createCriteria,
+  remainingCapacityMustBeAtLeastTwo,
+  mustNotBeOpenBookingInAdvanceUnavailable,
+  mustBeInsideBookingWindowIfOneExists,
+  sellerMustAllowOpenBooking,
+} = require('./criteriaUtils');
+const {
+  shapeConstraintRecipes,
+} = require('../testDataShape');
+const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
  * Implements https://openactive.io/test-interface#TestOpportunityBookable.
- *
- * Note that this differs from the above by forbidding Minimal Proposal Flow
- * offers. This means that tests written for this criteria can focus on
- * Simple Booking Flow scenarios.
  */
 const TestOpportunityBookable = createCriteria({
   name: 'TestOpportunityBookable',
-  opportunityConstraints: [],
-  offerConstraints: [
+  opportunityConstraints: [
     [
-      'Does not support Minimal Proposal flow',
-      doesNotSupportMinimalProposalFlow,
+      'Remaining capacity must be at least two (or one for IndividualFacilityUse)',
+      remainingCapacityMustBeAtLeastTwo,
+    ],
+    [
+      'organizer or provider must include isOpenBookingAllowed = true',
+      sellerMustAllowOpenBooking,
     ],
   ],
-  includeConstraintsFromCriteria: InternalTestOpportunityBookable,
+  offerConstraints: [
+    [
+      'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
+      mustNotBeOpenBookingInAdvanceUnavailable,
+    ],
+    [
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
+    ],
+  ],
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      ...shapeConstraintRecipes.remainingCapacityMustBeAtLeast(2),
+      ...shapeConstraintRecipes.sellerMustAllowOpenBooking(),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+    },
+  }),
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
 });
 
 module.exports = {

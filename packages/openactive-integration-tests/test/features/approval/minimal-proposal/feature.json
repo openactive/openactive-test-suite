@@ -5,7 +5,7 @@
   "description": "Test Minimal Proposal Implementation approval flows. OrderProposal Amendments are not included here.",
   "explainer": "",
   "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#minimal-proposal-implementation",
-  "required": true,
-  "coverageStatus": "partial",
+  "required": false,
+  "coverageStatus": "complete",
   "links": []
 }

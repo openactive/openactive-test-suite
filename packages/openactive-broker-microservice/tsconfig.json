@@ -9,6 +9,10 @@
     "resolveJsonModule": true
   },
   "include": [
-    "app.js"
+    "app.js",
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "test/**/*.js",
+    "test/**/*.d.ts"
   ]
 }

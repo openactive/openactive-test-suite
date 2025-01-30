@@ -6,7 +6,7 @@ FeatureHelper.describeFeature(module, {
   testFeature: 'payment-reconciliation-detail-validation',
   testFeatureImplemented: true,
   testIdentifier: 'payment-reconciliation-detail-validation-incorrect-details',
-  testName: 'Payment reconciliation detail validation - incorrect reconciliation details',
+  testName: 'Payment reconciliation detail validation - incorrect reconciliation details, when payment required',
   testDescription: 'B should return an InvalidPaymentDetailsError due to incorrect reconciliation data',
   testOpportunityCriteria: 'TestOpportunityBookableUsingPayment',
   controlOpportunityCriteria: 'TestOpportunityBookable',

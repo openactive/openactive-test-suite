@@ -12,7 +12,7 @@ FeatureHelper.describeFeature(module, {
   testFeatureImplemented: true,
   testIdentifier: 'opportunity-paid',
   testName: 'Successfully book paid Opportunity',
-  testDescription: 'Successful booking of a paid Opportunity, where prepayment is unavailable, without `payment` property',
+  testDescription: 'Successful booking of a paid Opportunity, where openBookingPrepayment is unavailable, without `payment` property',
   testOpportunityCriteria,
   controlOpportunityCriteria,
 },

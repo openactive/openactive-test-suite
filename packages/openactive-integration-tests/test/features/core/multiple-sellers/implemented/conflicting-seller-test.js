@@ -1,14 +1,13 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const chai = require('chai'); // The latest version for new features than chakram includes
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
+const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
-const { expect } = chakram;
-/* eslint-enable no-unused-vars */
+/**
+ * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/p').PFlowStageType} PFlowStageType
+ */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -17,78 +16,46 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'conflicting-seller',
   testName: 'SellerMismatchError for inconsistent Sellers of OrderItems',
   testDescription: 'Runs C1, C2 and B where Sellers of OrderItems do not match and check SellerMismatchError is returned in all cases.',
-  singleOpportunityCriteriaTemplate: opportunityType => [
+  singleOpportunityCriteriaTemplate: (opportunityType, bookingFlow) => [
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookable',
-      seller: 'primary',
+      sellerCriteria: 'primary',
+      bookingFlow,
     },
     {
       opportunityType,
       opportunityCriteria: 'TestOpportunityBookable',
-      seller: 'secondary',
+      sellerCriteria: 'secondary',
+      bookingFlow,
     },
   ],
   skipMultiple: true,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
-
-    return chakram.wait();
-  });
-
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  const shouldReturnSellerMismatchError = (stage, responseAccessor) => {
-    it('should return 500', () => {
-      stage.expectResponseReceived();
-      expect(responseAccessor()).to.have.status(500);
-    });
-
-    it('Should return a SellerMismatchError', () => {
-      stage.expectResponseReceived();
-      expect(responseAccessor()).to.have.json(
-        '@type',
-        'SellerMismatchError',
-      );
-    });
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  /**
+   * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
+   */
+  const itShouldReturnSellerMismatchError = (flowStage) => {
+    itShouldReturnAnOpenBookingError('SellerMismatchError', 500, () => flowStage.getOutput().httpResponse);
   };
 
-  describe('C1', function () {
-    const c1 = (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    shouldReturnSellerMismatchError(c1, () => state.c1Response);
+  // # Initialise Flow Stages
+  const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
+    c1ExpectToFail: true,
+    c2ExpectToFail: true,
+    bookExpectToFail: true,
   });
 
-  describe('C2', function () {
-    const c2 = (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    shouldReturnSellerMismatchError(c2, () => state.c2Response);
+  // # Set up Tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
+    itShouldReturnSellerMismatchError(c1.getStage('c1'));
   });
-
-  describe('B', function () {
-    const b = (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    shouldReturnSellerMismatchError(b, () => state.bResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    itShouldReturnSellerMismatchError(c2.getStage('c2'));
+  });
+  FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+    itShouldReturnSellerMismatchError(bookRecipe.firstStage);
   });
 });

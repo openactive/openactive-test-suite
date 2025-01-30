@@ -1,5 +1,6 @@
 {
-  "extends": "airbnb-base",
+  "extends": ["airbnb-base"],
+  "plugins": ["jsdoc"],
   "env": {
     "node": true,
     "jasmine": true
@@ -9,7 +10,7 @@
   },
   "rules": {
     "object-curly-newline": ["error", {
-        "ObjectExpression": "always",
+        "ObjectExpression": { "multiline": true, "minProperties": 1 },
         "ObjectPattern": { "multiline": true },
         "ImportDeclaration": "never",
         "ExportDeclaration": { "multiline": true, "minProperties": 3 }
@@ -33,6 +34,15 @@
           "**/*-test.js"
         ]
       }
-    ]
+    ],
+    "no-use-before-define": ["error", { "functions": false, "classes": false }],
+    "no-underscore-dangle": "off",
+    "no-continue": 0,
+    // Ensure that all function args are typed
+    "jsdoc/require-param": "error",
+    "jsdoc/require-param-type": "error"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020
   }
 }

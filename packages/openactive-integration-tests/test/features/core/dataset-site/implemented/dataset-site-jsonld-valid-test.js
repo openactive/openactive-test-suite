@@ -1,13 +1,7 @@
-/* eslint-disable no-unused-vars */
 const chakram = require('chakram');
 const chai = require('chai');
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
 const { GetDatasetSite } = require('../../../../shared-behaviours');
-
-/* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -16,26 +10,27 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'dataset-site-jsonld-valid',
   testName: 'Dataset Site JSON-LD valid',
   testDescription: 'Validates the JSON-LD within the dataset site, using the microservice as a caching proxy. If you make changes to the dataset site, you must restart the microservice.',
-  runOnce: true,
+  doesNotUseOpportunitiesMode: true,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  describe('Get Dataset Site', function () {
-    (new GetDatasetSite({
-      state, flow, logger,
-    }))
+function (configuration, orderItemCriteria, featureIsImplemented, logger) {
+  describe('Get Dataset Site', () => {
+    const getDatasetSite = (new GetDatasetSite({ logger })
       .beforeSetup()
       .successChecks()
-      .validationTests();
+      .validationTests());
 
-    it('should include accessService.endpointURL of the Open Booking API', () => {
-      chakram.expect(state.datasetSite).to.have.schema('accessService.endpointURL', {
+    it('should include accessService.endpointUrl of the Open Booking API', () => {
+      chakram.expect(getDatasetSite.datasetSite).to.have.schema('accessService.endpointUrl', {
         type: 'string',
       });
     });
 
-    // TODO does validator check that endpointURL does not end in a `/` (as per Open API 3 Base URL https://swagger.io/docs/specification/api-host-and-base-path/)
-    it('should include accessService.endpointURL that does not end in a trailing "/"', () => {
-      chai.expect(state.datasetSite.body.accessService.endpointURL).not.to.match(/\/$/g, 'a trailing /');
+    /* TODO have validator check that endpointUrl does not end in a `/` (as per
+    Open API 3 Base URL
+    https://swagger.io/docs/specification/api-host-and-base-path/). See GitHub
+    issue: https://github.com/openactive/data-model-validator/issues/450 */
+    it('should include accessService.endpointUrl that does not end in a trailing "/"', () => {
+      chai.expect(getDatasetSite.datasetSite.body.accessService.endpointUrl).not.to.match(/\/$/g, 'a trailing /');
     });
   });
 });

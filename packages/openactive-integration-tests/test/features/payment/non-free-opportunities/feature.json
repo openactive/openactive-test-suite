@@ -6,7 +6,7 @@
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#step-by-step-process-description",
   "required": false,
-  "coverageStatus": "partial",
+  "coverageStatus": "complete",
   "links": [
     {
       "name": ".NET Tutorial",

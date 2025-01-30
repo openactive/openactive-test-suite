@@ -1,5 +1,6 @@
-const { InternalCriteriaFutureScheduledOpportunity } = require('./internal/InternalCriteriaFutureScheduledOpportunity');
-const { createCriteria, getRemainingCapacity } = require('./criteriaUtils');
+const { createCriteria, getRemainingCapacity, mustNotBeOpenBookingInAdvanceUnavailable, mustBeInsideBookingWindowIfOneExists } = require('./criteriaUtils');
+const { quantitativeValue, shapeConstraintRecipes } = require('../testDataShape');
+const { InternalCriteriaFutureScheduledAndDoesNotRequireDetails } = require('./internal/InternalCriteriaFutureScheduledAndDoesNotRequireDetails');
 
 /**
  * @typedef {import('../types/Criteria').OpportunityConstraint} OpportunityConstraint
@@ -23,8 +24,33 @@ const TestOpportunityBookableNoSpaces = createCriteria({
       remainingCapacityMustBeZero,
     ],
   ],
-  offerConstraints: [],
-  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledOpportunity,
+  offerConstraints: [
+    [
+      'openBookingInAdvance of offer must not be `https://openactive.io/Unavailable`',
+      mustNotBeOpenBookingInAdvanceUnavailable,
+    ],
+    [
+      'Must be within the booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) if one exists',
+      mustBeInsideBookingWindowIfOneExists,
+    ],
+  ],
+  testDataShape: (options) => ({
+    opportunityConstraints: {
+      // remainingCapacityMustBeZero
+      'placeholder:remainingCapacity': quantitativeValue({
+        maxinclusive: 0,
+        mininclusive: 0,
+      }),
+      'placeholder:remainingCapacityIfuSlot': quantitativeValue({
+        maxinclusive: 0,
+        mininclusive: 0,
+      }),
+    },
+    offerConstraints: {
+      ...shapeConstraintRecipes.mustHaveBookableOffer(options),
+    },
+  }),
+  includeConstraintsFromCriteria: InternalCriteriaFutureScheduledAndDoesNotRequireDetails,
 });
 
 module.exports = {

@@ -1,16 +1,16 @@
 Summary
 
-See `{{{ reportMarkdownPath }}}` for a Markdown version.
+See `{{{ reportHtmlPath }}}` for a Markdown version.
 
-{{#each opportunityTypeGroups }}
-{{# chalk "bold"}}{{ opportunityTypeName }}{{/chalk}}
+{{#eachSorted opportunityTypeGroups }}
+{{# chalk "bold"}}{{{ opportunityTypeName }}}{{/chalk}}
 ---
 
   {{#each featureGroups }}
   - {{{ consoleValidationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
     {{#each loggers}}
-    - {{{ consoleValidationIcon overallStatus }}} {{{ suiteName }}} ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes): {{{ markdownPath }}}
+    - {{{ consoleValidationIcon overallStatus }}} {{{ suiteName }}} ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes): {{{ htmlPath }}}
     {{/each}}
   {{/each}}
 
-{{/each}}
+{{/eachSorted}}

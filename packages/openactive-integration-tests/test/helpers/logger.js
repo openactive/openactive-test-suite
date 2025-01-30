@@ -1,18 +1,124 @@
+/* TODO fix this file so that it no longer needs to disable these rules:
+https://github.com/openactive/openactive-test-suite/issues/648 */
+/* eslint-disable arrow-parens */
+/* eslint-disable prefer-destructuring */
+/* eslint-disable no-var */
+/* eslint-disable semi */
+/* eslint-disable vars-on-top */
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-param-reassign */
+/* eslint-disable arrow-body-style */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable no-else-return */
+/* eslint-disable no-return-assign */
+/* eslint-disable comma-dangle */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable object-shorthand */
+/* eslint-disable getter-return */
+/* eslint-disable consistent-return */
+/* eslint-disable prefer-const */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable object-curly-spacing */
+/* eslint-disable import/no-useless-path-segments */
+/* eslint-disable quotes */
 const _ = require("lodash");
 const {promises: fs} = require("fs");
 const mapping = require('../helpers/mapping');
-const config = require('config');
+const { getConfigVarOrThrow } = require('./config-utils');
 
 /**
  * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('@openactive/openactive-openid-client/built-types/lib/request-intercept').Entry} RequestInterceptEntry
  */
 
-const OUTPUT_PATH = config.get('outputPath');
+/**
+ * @typedef {{
+ *   type: 'OpportunityNotFound';
+ *   opportunityType: string;
+ *   testOpportunityCriteria: string;
+ *   bookingFlow: string;
+ *   sellerId: string;
+ * }} OpportunityNotFoundEvent An Opportunity was requested from the
+ *   Booking System (possibly via Broker Microservice) but was not found.
+ *   At report generation, this is used to show the user if their Booking
+ *   System has run out of data in random mode.
+ *
+ * @typedef {OpportunityNotFoundEvent} FlowStageLogEvent A noteworthy event that
+ *   occurred during a flow stage.
+ *   These events can then be used by the report generator to add detail to the
+ *   flow stage or summarized for the whole test run.
+ *
+ * @typedef {{
+ *   request?: Record<string, unknown>;
+ *   response?: {
+ *     validations?: unknown;
+ *     specs?: unknown[];
+ *   };
+ *   events: FlowStageLogEvent[]
+ * }} FlowStageLog
+ *
+ * @typedef {{
+ *   ancestorTitles: string[];
+ *   title: string;
+ *   fullName: string;
+ * }} TestMeta
+ *
+ * @typedef {RequestInterceptEntry & {
+ *   requestMetadata?: any;
+ * }} RequestEntry
+ *
+ * @typedef {{
+ *   type: 'result';
+ *   stage: string;
+ *   description: string;
+ *   jsonResult: any;
+ * }} ResultEntry
+ *
+ * @typedef {{
+ *   type: 'information';
+ *   title: string;
+ *   message: string;
+ * }} InformationEntry
+ *
+ * @typedef {{
+ *   type: 'validations';
+ *   stage: string;
+ *   validations: any[];
+ * }} ValidationsEntry
+ *
+ * @typedef {{
+ *   ancestorTitles: string[];
+ *   title: string;
+ *   fullName: string;
+ *   status: number;
+ * }} SpecEntryData
+ *
+ * @typedef {{
+ *   type: 'spec';
+ *   spec: SpecEntryData;
+ * }} SpecEntry
+ *
+ * @typedef {RequestEntry | ResultEntry | InformationEntry | ValidationsEntry | SpecEntry} Entry
+ */
+/**
+ * @template {Entry} TEntry
+ * @typedef {TestMeta & TEntry} LogOf
+ */
+/**
+ * @typedef {LogOf<Entry>} Log
+ */
+
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
 
 // abstract class, implement shared methods
 class BaseLogger {
   constructor () {
+    /** @type {{[stage: string]: FlowStageLog}} */
     this.flow = {};
+    /** @type {Log[]} */
     this.logs = [];
     this.timestamp = (new Date()).toString();
     /** @type {{[k: string]: any} | null} */
@@ -21,6 +127,9 @@ class BaseLogger {
     this.implemented = null;
   }
 
+  /**
+   * @returns {TestMeta}
+   */
   get testMeta () {
     return {
       ancestorTitles: global.testState.ancestorTitles,
@@ -29,8 +138,13 @@ class BaseLogger {
     };
   }
 
-  recordLogEntry (entry) {
-    let log = {
+  /**
+   * @template {Entry} T
+   * @param {T} entry
+   * @returns {LogOf<T>}
+   */
+  recordLogEntry(entry) {
+    const log = {
       ...(this.testMeta),
       ...entry,
     };
@@ -40,15 +154,67 @@ class BaseLogger {
     return log;
   }
 
+  /**
+   * @param {string} stage
+   * @param {string} description
+   * @param {any} json
+   */
+  recordLogResult(stage, description, json) {
+    /** @type {Log} */
+    const log = {
+      ...(this.testMeta),
+      type: 'result',
+      stage,
+      description,
+      jsonResult: json,
+    };
+
+    this.logs.push(log);
+
+    return log;
+  }
+
+  /**
+   * @param {string} title
+   * @param {string} message
+   */
+  recordLogHeadlineMessage(title, message) {
+    /** @type {Log} */
+    const log = {
+      ...(this.testMeta),
+      type: 'information',
+      title,
+      message,
+    };
+
+    this.logs.push(log);
+
+    return log;
+  }
+
+  /**
+   * Ensure that there is a FlowStageLog stored for the given stage.
+   * Create one if it doesn't exist.
+   *
+   * @param {string} stage
+   */
+  _ensureFlowStage(stage) {
+    if (!this.flow[stage]) {
+      this.flow[stage] = {
+        events: [],
+      };
+    }
+  }
+
   recordRequest (stage, request) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].request) this.flow[stage].request = {};
 
     this.flow[stage].request = request;
   }
 
   recordResponse (stage, response) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     let fields = {
@@ -77,23 +243,34 @@ class BaseLogger {
 
   /**
    * @param {string} stage
+   * @param {FlowStageLogEvent} event
+   */
+  recordFlowStageEvent(stage, event) {
+    this._ensureFlowStage(stage);
+    this.flow[stage].events.push(event);
+  }
+
+  /**
+   * @param {string} stage
    * @param {{[k: string]: unknown}} request
+   * @param {any} requestMetadata
    * @param {Promise<ChakramResponse>} responsePromise
    */
-  recordRequestResponse (stage, request, responsePromise) {
-    let entry = this.recordLogEntry({
-      type: "request",
-      stage: stage,
+  recordRequestResponse(stage, request, requestMetadata, responsePromise) {
+    const entry = this.recordLogEntry(/** @type {RequestEntry} */({
+      type: 'request',
+      stage,
       request: {
         ...request,
       },
       isPending: true,
+      requestMetadata,
       duration: 0,
-    });
+    }));
 
     // manually count how long it's been waiting
     // todo: capture a timestamp and hook into test state instead
-    let responseTimer = setInterval(() => {
+    const responseTimer = setInterval(() => {
       entry.duration += 100;
     }, 100);
 
@@ -128,8 +305,12 @@ class BaseLogger {
     });
   }
 
+  /**
+   * @param {string} stage
+   * @param {any[]} data
+   */
   recordResponseValidations (stage, data) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
 
     this.flow[stage].response.validations = data;
@@ -189,6 +370,15 @@ class BaseLogger {
     ].join("|"));
   }
 
+  get testFileName () {
+    return `test/features/${this.config.testCategory}/${this.config.testFeature}/${this.config.testFeatureImplemented ? 'implemented' : 'not-implemented'}/${this.config.testIdentifier}-test.js`;
+  }
+
+  get referenceImplementationResultUrl () {
+    // @ts-ignore
+    return `https://openactive.io/openactive-test-suite/example-output/${USE_RANDOM_OPPORTUNITIES ? 'random' : 'controlled'}/${this.config.testFeature}_${this.config.testIdentifier}_${this.bookingFlow}_${this.opportunityType}.html`;
+  }
+
   get implementedDisplayLabel() {
     return this.implemented ? 'Implemented' : 'Not Implemented';
   }
@@ -205,12 +395,12 @@ class BaseLogger {
     return `${OUTPUT_PATH}json/${this.metaLocalPath}`;
   }
 
-  get markdownLocalPath () {
-    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.md`;
+  get htmlLocalPath () {
+    return `${this.uniqueSuiteName.replace(/\s+/g, '_')}.html`;
   }
 
-  get markdownPath () {
-    return `${OUTPUT_PATH}${this.markdownLocalPath}`;
+  get htmlPath () {
+    return `${OUTPUT_PATH}${this.htmlLocalPath}`;
   }
 
   get validationStatusCounts () {
@@ -218,8 +408,8 @@ class BaseLogger {
 
     let statuses = _.chain(this.logs)
       .filter(log => log.type === "validations")
-      .flatMap(log => log.validations)
-      .countBy(log => log.severity)
+      .flatMap((/** @type {LogOf<ValidationsEntry>} */ log) => log.validations)
+      .countBy((/** @type {any} */ validation) => validation.severity)
       .value();
 
     return this._validationStatusCounts = {
@@ -236,7 +426,7 @@ class BaseLogger {
     let statuses = _.chain(this.logs)
       .filter(log => log.type === "spec")
       .filter(log => log.title !== "passes validation checks")
-      .countBy(log => log.spec.status)
+      .countBy((/** @type {LogOf<SpecEntry>} */ log) => log.spec.status)
       .value();
 
     return this._specStatusCounts = {
@@ -244,6 +434,18 @@ class BaseLogger {
       failed: statuses.failed || 0,
       passed: statuses.passed || 0,
     };
+  }
+
+  get specStatusCountsForEachSuiteName() {
+    if (this._specStatusCountsBySuiteName) return this._specStatusCountsBySuiteName;
+    
+    let statusBySuiteName = _.chain(this.logs)
+      .filter(log => log.type === "spec")
+      .groupBy(log => log.ancestorTitles.join(" > "))
+      .mapValues((/** @type {LogOf<SpecEntry>[]} */ logs) => _.countBy(logs, log => log.spec.status))
+      .value();
+
+    return this._specStatusCountsBySuiteName = statusBySuiteName;
   }
 
   get overallStatus() {
@@ -260,7 +462,7 @@ class BaseLogger {
     let validations = _
       .chain(this.logs)
       .filter(item => item.type === "validations")
-      .flatMap(item => item.validations);
+      .flatMap((/** @type {LogOf<ValidationsEntry>} */ item) => item.validations);
     // .sumBy(item => item.validations.length);
 
     let result = {
@@ -289,6 +491,16 @@ class BaseLogger {
 
   get numPassed () {
     return this.specStatusCounts.passed;
+  }
+
+  get opportunityTypeName() {
+    if ('opportunityType' in this && 'bookingFlow' in this) {
+      return `${this.bookingFlow} >> ${this.opportunityType}`;
+    }
+    if ('opportunityType' in this) {
+      return this.opportunityType;
+    }
+    return 'Generic';
   }
 }
 
@@ -361,6 +573,11 @@ class ReporterLogger extends BaseLogger {
     super();
 
     this.testFileIdentifier = testFileIdentifier;
+    /**
+     * Each item is the `ancestorTitles` array for a suite
+     *
+     * @type {string[][]}
+     */
     this.suites = [];
   }
 
@@ -376,6 +593,7 @@ class ReporterLogger extends BaseLogger {
   }
 
   get activeSuites () {
+    /** @type {string[][]} */
     let activeSuites = [];
     for (let log of this.logs) {
       activeSuites.push(log.ancestorTitles);
@@ -389,8 +607,12 @@ class ReporterLogger extends BaseLogger {
     return active;
   }
 
+  /**
+   * @param {string} stage
+   * @param {SpecEntryData} data
+   */
   recordTestResult (stage, data) {
-    if (!this.flow[stage]) this.flow[stage] = {};
+    this._ensureFlowStage(stage);
     if (!this.flow[stage].response) this.flow[stage].response = {};
     if (!this.flow[stage].response.specs) this.flow[stage].response.specs = [];
 
@@ -406,17 +628,43 @@ class ReporterLogger extends BaseLogger {
   }
 
   logsFor (suite, type) {
+    const types = type.split(',');
     let result = this.logs.filter((log) => {
-      if (!suite && log.type == type) return true;
+      if (!suite && types.includes(log.type)) return true;
 
-      return _.isEqual(log.ancestorTitles, suite) && log.type == type;
+      return _.isEqual(log.ancestorTitles, suite) && types.includes(log.type);
     });
 
     return result;
   }
+
+  /**
+   * @param {string[]} suiteName
+   */
+  statusFor (suiteName) {
+    let specStatusCountsBySuiteName = this.specStatusCountsForEachSuiteName;
+    let joinedSuiteName = suiteName.join(" > ");
+    let spec = specStatusCountsBySuiteName[joinedSuiteName];
+    if (spec) {
+      if (spec.failed > 0) return "failed";
+      return "passed"
+    }
+    return "";
+  }
+
+  /**
+   * Is this suite the only one that failed in this test run?
+   *
+   * @param {string[]} suiteName
+   */
+  isSuiteTheOnlyFailure(suiteName) {
+    const status = this.statusFor(suiteName);
+    return status === 'failed' && this.numFailed === 1;
+  }
 }
 
 /**
+ * @typedef {InstanceType<typeof Logger>} LoggerType
  * @typedef {InstanceType<typeof BaseLogger>} BaseLoggerType
  */
 

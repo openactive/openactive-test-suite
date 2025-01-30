@@ -5,7 +5,7 @@
   "description": "Real-time opportunity data",
   "explainer": "",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#definition-of-a-bookable-opportunity-and-offer-pair",
-  "required": true,
+  "required": false,
   "coverageStatus": "none",
   "links": [
     {

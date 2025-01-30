@@ -1,29 +1,59 @@
+const querystring = require('querystring');
 const chakram = require('chakram');
 const config = require('config');
+const { isNil } = require('lodash');
 
-const { c1ReqTemplates } = require('../templates/c1-req.js');
-const { c2ReqTemplates } = require('../templates/c2-req.js');
-const { bReqTemplates } = require('../templates/b-req.js');
-const { pReqTemplates } = require('../templates/p-req.js');
-const { uReqTemplates } = require('../templates/u-req.js');
+const { c1ReqTemplates } = require('../templates/c1-req');
+const { c2ReqTemplates } = require('../templates/c2-req');
+const { bReqTemplates } = require('../templates/b-req');
+const { cancelOrderReqTemplates } = require('../templates/cancel-order-req');
+const { rejectOrderProposalReqTemplates } = require('../templates/reject-order-proposal-req');
+const { createTestInterfaceOpportunity } = require('./test-interface-opportunities');
 
 /**
- * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
  * @typedef {import('chakram').RequestMethod} RequestMethod
  * @typedef {import('chakram').RequestOptions} RequestOptions
+ * @typedef {import('./logger').BaseLoggerType} BaseLoggerType
+ * @typedef {import('../types/SellerConfig').SellerConfig} SellerConfig
+ * @typedef {import('../types/OpportunityCriteria').BookingFlow} BookingFlow
+ * @typedef {import('../types/TestInterfaceOpportunity').TestInterfaceOpportunity} TestInterfaceOpportunity
+ * @typedef {import('../templates/b-req').BReqTemplateData} BReqTemplateData
+ * @typedef {import('../templates/b-req').BReqTemplateRef} BReqTemplateRef
+ * @typedef {import('../templates/b-req').PReqTemplateData} PReqTemplateData
+ * @typedef {import('../templates/b-req').PReqTemplateRef} PReqTemplateRef
  */
 
-const REQUEST_HEADERS = config.get('sellers.primary.requestHeaders');
+/**
+ * @typedef {{
+ *   opportunityType: string,
+ *   testOpportunityCriteria: string,
+ *   orderItemPosition: number,
+ *   bookingFlow: BookingFlow,
+ *   sellerId?: string | null,
+ *   sellerType?: string | null,
+ * }} TestInterfaceRequestArgs
+ */
 
-const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER } = global;
+const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
+const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
+const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
+const IGNORE_UNEXPECTED_FEED_UPDATES = config.has('integrationTests.ignoreUnexpectedFeedUpdates')
+  ? config.get('integrationTests.ignoreUnexpectedFeedUpdates')
+  : false;
+
+const BROKER_CHAKRAM_REQUEST_OPTIONS = {
+  timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
+};
 
 class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
+   * @param {SellerConfig | null} [sellerConfig]
    */
-  constructor(logger) {
+  constructor(logger, sellerConfig) {
     this.logger = logger;
+    this._sellerConfig = sellerConfig ?? SELLER_CONFIG.primary;
   }
 
   /**
@@ -33,8 +63,9 @@ class RequestHelper {
    * @param {unknown | null} jsonBody Data to send - generally not applicable to
    *   GET requests. A JSON-serializable object.
    * @param {RequestOptions} requestOptions
+   * @param {any} [requestMetadata]
    */
-  async _request(stage, method, url, jsonBody, requestOptions) {
+  async _request(stage, method, url, jsonBody, requestOptions, requestMetadata) {
     const params = { ...requestOptions };
     if (jsonBody) {
       params.body = jsonBody;
@@ -47,7 +78,9 @@ class RequestHelper {
       url,
       jsonBody,
       requestOptions,
-    }, responsePromise);
+    },
+    requestMetadata,
+    responsePromise);
 
     if (jsonBody) {
       this.logger.recordRequest(stage, jsonBody);
@@ -63,9 +96,10 @@ class RequestHelper {
    * @param {string} stage
    * @param {string} url
    * @param {RequestOptions} requestOptions
+   * @param {any} [requestMetadata]
    */
-  async get(stage, url, requestOptions) {
-    return await this._request(stage, 'GET', url, null, requestOptions);
+  async get(stage, url, requestOptions, requestMetadata) {
+    return await this._request(stage, 'GET', url, null, requestOptions, requestMetadata);
   }
 
   /**
@@ -107,134 +141,128 @@ class RequestHelper {
     return await this._request(stage, 'DELETE', url, null, requestOptions);
   }
 
+  _getSellerRequestHeaders() {
+    // If broker microservice authentication fails, no accessToken will be supplied
+    const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.primary?.access_token;
+    const requestHeaders = this._sellerConfig?.authentication?.requestHeaders;
+    return {
+      ...(!accessToken ? undefined : {
+        Authorization: `Bearer ${accessToken}`,
+      }),
+      ...requestHeaders,
+    };
+    // if (this._sellerConfig) {
+    //   return this._sellerConfig.authentication.requestHeaders;
+    //   // return this._sellerConfig.requestHeaders;
+    // }
+    // return DEFAULT_REQUEST_HEADERS;
+  }
+
   createHeaders() {
-    return Object.assign({
+    return {
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
-    }, REQUEST_HEADERS);
-  }
-
-  /**
-   * @param {string} opportunityType
-   * @param {string} testOpportunityCriteria
-   * @param {string | null} [sellerId]
-   * @param {string | null} [sellerType]
-   */
-  opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId = null, sellerType = null) {
-    let template = null;
-    const seller = sellerId ? {
-      '@type': sellerType,
-      '@id': sellerId,
-    } : undefined;
-    switch (opportunityType) {
-      case 'ScheduledSession':
-        template = {
-          '@type': 'ScheduledSession',
-          superEvent: {
-            '@type': 'SessionSeries',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'FacilityUseSlot':
-        template = {
-          '@type': 'Slot',
-          facilityUse: {
-            '@type': 'FacilityUse',
-            provider: seller,
-          },
-        };
-        break;
-      case 'IndividualFacilityUseSlot':
-        template = {
-          '@type': 'Slot',
-          facilityUse: {
-            '@type': 'IndividualFacilityUse',
-            provider: seller,
-          },
-        };
-        break;
-      case 'CourseInstance':
-        template = {
-          '@type': 'CourseInstance',
-          organizer: seller,
-        };
-        break;
-      case 'CourseInstanceSubEvent':
-        template = {
-          '@type': 'Event',
-          superEvent: {
-            '@type': 'CourseInstance',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'HeadlineEvent':
-        template = {
-          '@type': 'HeadlineEvent',
-          organizer: seller,
-        };
-        break;
-      case 'HeadlineEventSubEvent':
-        template = {
-          '@type': 'Event',
-          superEvent: {
-            '@type': 'HeadlineEvent',
-            organizer: seller,
-          },
-        };
-        break;
-      case 'Event':
-        template = {
-          '@type': 'Event',
-          organizer: seller,
-        };
-        break;
-      case 'OnDemandEvent':
-        template = {
-          '@type': 'OnDemandEvent',
-          organizer: seller,
-        };
-        break;
-      default:
-        throw new Error('Unrecognised opportunity type');
-    }
-    template['@context'] = [
-      'https://openactive.io/',
-      'https://openactive.io/test-interface',
-    ];
-    template['test:testOpportunityCriteria'] = `https://openactive.io/test-interface#${testOpportunityCriteria}`;
-    return template;
-  }
-
-  /**
-   * @param {string} uuid
-   */
-  async getOrder(uuid) {
-    const ordersFeedUpdate = await this.get(
-      'get-order',
-      `${MICROSERVICE_BASE}/get-order/${uuid}`,
-      {
-        timeout: 30000,
-      },
-    );
-
-    return ordersFeedUpdate;
+      ...this._getSellerRequestHeaders(),
+    };
   }
 
   /**
    * @param {string} eventId
    * @param {unknown} orderItemPosition
+   * @param {boolean} [useCacheIfAvailable] If true, Broker will potentially return the
+   *   item from its cache.
+   *   Set to false if you want to wait for a new update to the feed.
+   *   Default is: true.
+   * @param {object} [moreOptions]
+   * @param {number} [moreOptions.expectedCapacity]
    */
-  async getMatch(eventId, orderItemPosition) {
+  async getMatch(eventId, orderItemPosition, useCacheIfAvailable, moreOptions) {
+    const expectedCapacity = moreOptions?.expectedCapacity ?? null;
+    const qs = querystring.stringify({
+      useCacheIfAvailable: useCacheIfAvailable === false ? 'false' : 'true',
+      ...(isNil(expectedCapacity)
+        ? {}
+        : { expectedCapacity }),
+    });
     const respObj = await this.get(
       `Opportunity Feed extract for OrderItem ${orderItemPosition}`,
-      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?useCacheIfAvailable=true`,
+      `${MICROSERVICE_BASE}/opportunity/${encodeURIComponent(eventId)}?${qs}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
-        timeout: 60000,
+        feedExtract: {
+          id: eventId,
+          type: 'opportunities',
+        },
       },
     );
 
     return respObj;
+  }
+
+  /**
+   * @param {string} id
+   * @param {number} orderItemPosition
+   */
+  async postOpportunityFeedChangeListener(id, orderItemPosition) {
+    return await this.post(
+      `Opportunity Feed listen for OrderItem ${orderItemPosition} (id: ${id}) change`,
+      `${MICROSERVICE_BASE}/opportunity-listeners/${encodeURIComponent(id)}`,
+      null,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+    );
+  }
+
+  /**
+   * @param {string} id
+   * @param {number} orderItemPosition
+   */
+  async getOpportunityFeedChangeCollection(id, orderItemPosition) {
+    return await this.get(
+      `Opportunity Feed collect for OrderItem ${orderItemPosition} (id: ${id}) change`,
+      `${MICROSERVICE_BASE}/opportunity-listeners/${encodeURIComponent(id)}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+      {
+        feedExtract: {
+          id,
+          type: 'opportunities',
+        },
+      },
+    );
+  }
+
+  /**
+   * @param {'orders' | 'order-proposals'} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   * @param {import('./listener-item-expectations').ListenerItemExpectation[]} [listenerItemExpectations]
+   */
+  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, listenerItemExpectations) {
+    return await this.post(
+      `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
+      `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
+      {
+        itemExpectations: IGNORE_UNEXPECTED_FEED_UPDATES ? listenerItemExpectations : undefined,
+      },
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+    );
+  }
+
+  /**
+   * @param {'orders' | 'order-proposals'} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   */
+  async getOrderFeedChangeCollection(type, bookingPartnerIdentifier, uuid) {
+    return await this.get(
+      `Orders (${type}) Feed collect for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
+      `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+      {
+        feedExtract: {
+          id: uuid,
+          type,
+        },
+      },
+    );
   }
 
   async getDatasetSite() {
@@ -242,7 +270,7 @@ class RequestHelper {
       'Dataset Site Cached Proxy',
       `${MICROSERVICE_BASE}/dataset-site`,
       {
-        timeout: 5000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -252,17 +280,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c1-req').C1ReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/c1-req').C1ReqTemplateRef | null} [maybeC1ReqTemplateRef]
    */
-  async putOrderQuoteTemplate(uuid, params, brokerRole, maybeC1ReqTemplateRef) {
+  async putOrderQuoteTemplate(uuid, params, maybeC1ReqTemplateRef) {
     const c1ReqTemplateRef = maybeC1ReqTemplateRef || 'standard';
     const templateFn = c1ReqTemplates[c1ReqTemplateRef];
     const payload = templateFn(params);
-
-    if (brokerRole) {
-      payload.brokerRole = brokerRole;
-    }
 
     const c1Response = await this.put(
       'C1',
@@ -270,7 +293,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -280,17 +303,12 @@ class RequestHelper {
   /**
    * @param {string} uuid
    * @param {import('../templates/c2-req').C2ReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
    * @param {import('../templates/c2-req').C2ReqTemplateRef | null} [maybeC2ReqTemplateRef]
    */
-  async putOrderQuote(uuid, params, brokerRole, maybeC2ReqTemplateRef) {
+  async putOrderQuote(uuid, params, maybeC2ReqTemplateRef) {
     const c2ReqTemplateRef = maybeC2ReqTemplateRef || 'standard';
     const templateFn = c2ReqTemplates[c2ReqTemplateRef];
     const payload = templateFn(params);
-
-    if (brokerRole) {
-      payload.brokerRole = brokerRole;
-    }
 
     const c2Response = await this.put(
       'C2',
@@ -298,7 +316,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -307,21 +325,13 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/b-req').BReqTemplateData} params
-   * @param {string | null} [brokerRole] If included, overwrites the template's default brokerRole
-   * @param {import('../templates/b-req').BReqTemplateRef | null} [maybeBReqTemplateRef]
+   * @param {BReqTemplateData} params
+   * @param {BReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrder(uuid, params, brokerRole, maybeBReqTemplateRef) {
+  async putOrder(uuid, params, maybeBReqTemplateRef) {
     const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
     const templateFn = bReqTemplates[bReqTemplateRef];
     const payload = templateFn(params);
-
-    // a post-proposal B request doesn't include brokerRole (which would have been
-    // set in the P request), therefore, we only update brokerRole if is already
-    // part of the request
-    if (brokerRole && 'brokerRole' in payload) {
-      payload.brokerRole = brokerRole;
-    }
 
     const bResponse = await this.put(
       'B',
@@ -329,7 +339,7 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -338,12 +348,12 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {import('../templates/p-req').PReqTemplateData} params
-   * @param {import('../templates/p-req').PReqTemplateRef | null} [maybePReqTemplateRef]
+   * @param {PReqTemplateData} params
+   * @param {PReqTemplateRef | null} [maybeBReqTemplateRef]
    */
-  async putOrderProposal(uuid, params, maybePReqTemplateRef) {
-    const pReqTemplateRef = maybePReqTemplateRef || 'standard';
-    const templateFn = pReqTemplates[pReqTemplateRef];
+  async putOrderProposal(uuid, params, maybeBReqTemplateRef) {
+    const bReqTemplateRef = maybeBReqTemplateRef || 'standard';
+    const templateFn = bReqTemplates[bReqTemplateRef];
     const requestBody = templateFn(params);
 
     const pResponse = await this.put(
@@ -352,9 +362,7 @@ class RequestHelper {
       requestBody,
       {
         headers: this.createHeaders(),
-        // allow a bit of time leeway for this request, as the P request must be
-        // processed atomically
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
@@ -363,11 +371,35 @@ class RequestHelper {
 
   /**
    * @param {string} uuid
-   * @param {{ sellerId: string }} params
+   * @param {import('../templates/reject-order-proposal-req.js').RejectOrderProposalReqTemplateRef | null} [maybeRejectOrderProposalReqTemplateRef]
    */
-  async cancelOrder(uuid, params, uReqTemplateRef = 'standard') {
-    const templateFn = uReqTemplates[uReqTemplateRef];
-    const payload = templateFn(params, uuid);
+  async customerRejectOrderProposal(uuid, maybeRejectOrderProposalReqTemplateRef) {
+    const rejectOrderProposalReqTemplateRef = maybeRejectOrderProposalReqTemplateRef || 'standard';
+    const templateFn = rejectOrderProposalReqTemplates[rejectOrderProposalReqTemplateRef];
+    const payload = templateFn();
+
+    const uResponse = await this.patch(
+      'U Proposal',
+      `${BOOKING_API_BASE}/order-proposals/${uuid}`,
+      payload,
+      {
+        headers: this.createHeaders(),
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
+      },
+    );
+
+    return uResponse;
+  }
+
+  /**
+   * @param {string} uuid
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateData} params
+   * @param {import('../templates/cancel-order-req.js').CancelOrderReqTemplateRef | null} [maybeCancelOrderReqTemplateRef]
+   */
+  async cancelOrder(uuid, params, maybeCancelOrderReqTemplateRef) {
+    const cancelOrderReqTemplateRef = maybeCancelOrderReqTemplateRef || 'standard';
+    const templateFn = cancelOrderReqTemplates[cancelOrderReqTemplateRef];
+    const payload = templateFn(params);
 
     const uResponse = await this.patch(
       'U',
@@ -375,36 +407,80 @@ class RequestHelper {
       payload,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
     return uResponse;
   }
 
-  async createOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
+  /**
+   * @param {TestInterfaceRequestArgs} args
+   */
+  async createOpportunity({
+    opportunityType,
+    testOpportunityCriteria,
+    orderItemPosition,
+    bookingFlow,
+    sellerId,
+    sellerType,
+  }) {
     const respObj = await this.post(
       `Booking System Test Interface for OrderItem ${orderItemPosition}`,
       `${BOOKING_API_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      {
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+        sellerType,
+      }), {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
 
     return respObj;
   }
 
-  async getRandomOpportunity(opportunityType, testOpportunityCriteria, orderItemPosition, sellerId, sellerType) {
+  /**
+   * @param {TestInterfaceRequestArgs} args
+   */
+  async getRandomOpportunity({
+    opportunityType,
+    testOpportunityCriteria,
+    orderItemPosition,
+    bookingFlow,
+    sellerId,
+    sellerType,
+  }) {
+    const stage = `Local Microservice Test Interface for OrderItem ${orderItemPosition}`;
     const respObj = await this.post(
-      `Local Microservice Test Interface for OrderItem ${orderItemPosition}`,
+      stage,
       `${MICROSERVICE_BASE}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}/opportunities`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria, sellerId, sellerType),
-      {
-        timeout: 10000,
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+        sellerType,
+      }), {
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
+    const opportunityNotFound = (
+      respObj.response.statusCode === 404
+      && respObj.body?.type === 'OpportunityNotFound'
+    );
+    if (opportunityNotFound) {
+      this.logger.recordFlowStageEvent(stage, {
+        type: 'OpportunityNotFound',
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+        sellerId,
+      });
+    }
 
     return respObj;
   }
@@ -433,23 +509,28 @@ class RequestHelper {
       },
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return response;
   }
 
   /**
-   * @param {string} opportunityType
-   * @param {string} testOpportunityCriteria
+   * @param {object} args
+   * @param {string} args.opportunityType
+   * @param {string} args.testOpportunityCriteria
+   * @param {BookingFlow} args.bookingFlow
    */
-  async callAssertUnmatchedCriteria(opportunityType, testOpportunityCriteria) {
+  async callAssertUnmatchedCriteria({ opportunityType, testOpportunityCriteria, bookingFlow }) {
     const response = await this.post(
       `Assert Unmatched Criteria '${testOpportunityCriteria}' for '${opportunityType}'`,
       `${MICROSERVICE_BASE}/assert-unmatched-criteria`,
-      this.opportunityCreateRequestTemplate(opportunityType, testOpportunityCriteria),
-      {
-        timeout: 10000,
+      createTestInterfaceOpportunity({
+        opportunityType,
+        testOpportunityCriteria,
+        bookingFlow,
+      }), {
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return response;
@@ -459,22 +540,46 @@ class RequestHelper {
    * @param {string} uuid
    * @param {{ sellerId: string }} params
    */
-  async deleteOrder(uuid, params) {
+  async deleteOrder(uuid, params) { // eslint-disable-line no-unused-vars
     const respObj = await this.delete(
       'delete-order',
       `${BOOKING_API_BASE}/orders/${uuid}`,
       {
         headers: this.createHeaders(),
-        timeout: 10000,
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
       },
     );
     return respObj;
   }
 
-  delay(t, v) {
-    return new Promise(function (resolve) {
-      setTimeout(resolve.bind(null, v), t);
-    });
+  /**
+   * @param {string} uuid
+   */
+  async deleteOrderQuote(uuid) {
+    const respObj = await this.delete(
+      'delete-order-quote',
+      `${BOOKING_API_BASE}/order-quotes/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
+      },
+    );
+    return respObj;
+  }
+
+  /**
+   * @param {string} uuid
+   */
+  async getOrderStatus(uuid) {
+    const respObj = await this.get(
+      'get-order-status',
+      `${BOOKING_API_BASE}/orders/${uuid}`,
+      {
+        headers: this.createHeaders(),
+        timeout: OPEN_BOOKING_API_REQUEST_TIMEOUT,
+      },
+    );
+    return respObj;
   }
 }
 

@@ -6,6 +6,8 @@ const { path, pipe } = require('ramda');
 
 /**
  * @typedef {import('./flow-stages/flow-stage').Prepayment} Prepayment
+ * @typedef {import('./flow-stages/fetch-opportunities').OrderItem} OrderItem
+ * @typedef {import('./flow-stages/flow-stage').OrderItemIntakeForm} OrderItemIntakeForm
  */
 
 /**
@@ -63,10 +65,10 @@ const getTotalPaymentDueFromOrder = pipe(
 
 /** @type {(order: unknown) => Prepayment | null | undefined} */
 const getPrepaymentFromOrder = pipe(
-  path(['totalPaymentDue', 'prepayment']),
+  path(['totalPaymentDue', 'openBookingPrepayment']),
   assertValueSatisfiesPredicateIfExists(
     isInArray(['https://openactive.io/Required', 'https://openactive.io/Optional', 'https://openactive.io/Unavailable']),
-    'totalPaymentDue.prepayment is not a valid value',
+    'totalPaymentDue.openBookingPrepayment is not a valid value',
   ),
 );
 
@@ -82,9 +84,26 @@ const getOrderId = pipe(
   assertValueSatisfiesPredicateIfExists(isString, 'orderId (@id) is not a string'),
 );
 
+/**
+ * @param {{
+ * orderedItem: OrderItem[]
+ * }} order
+ */
+function createPositionOrderIntakeFormMap(order) {
+  /** @type {{[k: string]:OrderItemIntakeForm}} */
+  const map = {};
+  for (const orderItem of (order?.orderedItem ?? [])) {
+    if (!isNil(orderItem.orderItemIntakeForm) && orderItem.orderItemIntakeForm.some(x => x.valueRequired || x['@type'] === 'BooleanFormFieldSpecification')) {
+      map[String(orderItem.position)] = orderItem.orderItemIntakeForm;
+    }
+  }
+  return map;
+}
+
 module.exports = {
   getTotalPaymentDueFromOrder,
   getPrepaymentFromOrder,
   getOrderProposalVersion,
   getOrderId,
+  createPositionOrderIntakeFormMap,
 };

@@ -1,13 +1,6 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageRecipes, CancelOrderFlowStage, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
-
-const { expect } = chakram;
-/* eslint-enable no-unused-vars */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'cancellation',
@@ -20,65 +13,27 @@ FeatureHelper.describeFeature(module, {
   testOpportunityCriteria: 'TestOpportunityBookableCancellable',
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
-  // TODO: Refactor 'Orders Feed' tests so they work with multiple OrderItems
-  skipMultiple: true,
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger) {
-  const state = new RequestState(logger, { uReqTemplateRef: 'nonCustomerCancelledOrderItemStatus' });
-  const flow = new FlowHelper(state);
-
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
-
-    return chakram.wait();
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  // # Initialise Flow Stages
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
+  const cancelOrder = FlowStageRecipes.runs.customerCancel.failedCancelAndAssertCapacity(bookRecipe.lastStage, defaultFlowStageParams, {
+    fetchOpportunitiesFlowStage: fetchOpportunities,
+    lastOpportunityFeedExtractFlowStage: bookRecipe.getAssertOpportunityCapacityAfterBook(),
+    cancelArgs: {
+      getOrderItemIdArray: CancelOrderFlowStage.getOrderItemIdForPosition0FromFirstBookStage(bookRecipe.firstStage),
+      testName: 'Attempt to Cancel OrderItem at Position 0',
+      templateRef: 'nonCustomerCancelledOrderItemStatus',
+    },
+    assertOpportunityCapacityArgs: {},
   });
 
-  afterAll(async function () {
-    await state.deleteOrder();
-    return chakram.wait();
-  });
-
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C1', function () {
-    (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('C2', function () {
-    (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('B', function () {
-    (new B({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
-
-  describe('Orders Feed', function () {
-    beforeAll(async function () {
-      await flow.U();
-    });
-
-    itShouldReturnAnOpenBookingError('PatchNotAllowedOnPropertyError', 400, () => state.uResponse);
+  // # Set up Tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe);
+  FlowStageUtils.describeRunAndCheckIsValid(cancelOrder, () => {
+    itShouldReturnAnOpenBookingError('PatchNotAllowedOnPropertyError', 400, () => cancelOrder.getStage('cancel').getOutput().httpResponse);
   });
 });

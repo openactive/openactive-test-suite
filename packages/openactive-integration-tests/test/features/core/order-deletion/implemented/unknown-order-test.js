@@ -1,6 +1,6 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
+const { OrderDeletionFlowStage, FlowStageUtils } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
-
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -9,13 +9,17 @@ FeatureHelper.describeFeature(module, {
   testIdentifier: 'unknown-order',
   testName: 'Expect a UnknownOrderError for an Order that does not exist',
   testDescription: 'Runs Order Deletion for a non-existent Order (with a fictional UUID), expecting an UnknownOrderError error to be returned',
+  doesNotUseOpportunitiesMode: true,
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger, state) => {
-  beforeAll(async () => {
-    await state.deleteOrder();
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
+  const deleteOrder = new OrderDeletionFlowStage({
+    ...FlowStageUtils.createSimpleDefaultFlowStageParams({
+      logger, orderItemCriteriaList, describeFeatureRecord,
+    }),
+    prerequisite: null,
   });
 
-  describe('Delete Order', () => {
-    itShouldReturnAnOpenBookingError('UnknownOrderError', 404, () => state.deletionResponse);
+  FlowStageUtils.describeRunAndCheckIsValid(deleteOrder, () => {
+    itShouldReturnAnOpenBookingError('UnknownOrderError', 404, () => deleteOrder.getOutput().httpResponse);
   });
 });

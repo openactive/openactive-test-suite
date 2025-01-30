@@ -1,1 +1,1 @@
-export declare const allCriteria: import("../types/Criteria").Criteria[];
+export let allCriteria: import("../types/Criteria").Criteria[];

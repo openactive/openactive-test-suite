@@ -5,7 +5,7 @@ An OpenActive Conformance Certificate offers a mechanism by which implementing s
 ## Example certificate
 
 An example conformance certificate can be found here:
-https://openactive.io/openactive-test-suite/example-output/controlled/certification/
+https://certificates.reference-implementation.openactive.io/examples/all-features/random/
 
 Note that this example is frequently generated for the OpenActive .NET Reference Implementation as part of the CI of the OpenActive Test Suite itself.
 
@@ -19,11 +19,13 @@ A Conformance Certificate is issued to cover a subset of the features of the spe
 
 Certificates are designed to be published frequently, to demonstrate continued conformance, especially as the test suite is improved to test for additional edge cases within the features selected.
 
-To obtain a certificate, simply update `default.json` within `packages/openactive-integration-tests/config/` with the following:
+To obtain a certificate, simply update your `config/dev.json` with the following:
 
 ```json
-  "generateConformanceCertificate": true,
-  "conformanceCertificateId": "https://acmebooker.example.com/openactive/certificate",
+  "integrationTests": {
+    "generateConformanceCertificate": true,
+    "conformanceCertificateId": "https://acmebooker.example.com/openactive/certificate",
+    // ...
 ```
 
 The certificate ID is the URL where the certificate will be hosted (see below section), which must match in order for the certificate to be valid.
@@ -78,3 +80,31 @@ All three of these components must be coherent and match in order for the certif
 The test suite results included as evidence are redacted to remove all domain names from URLs, to ensure the security of your UAT infrastructure.
 
 The evidence zip file can be extracted from the HTML page using the "Download Evidence" button when opening the page in a browser.
+
+## Conformance Certificate - Development
+
+Read this section if you're developing the conformance certificate functionality.
+
+### Debug Conformance Certificate Validation
+
+Use the environment variable `DEBUG_SAVE_INVALID_CONFORMANCE_CERTIFICATE=true` in order to have integration tests save the conformance certificate even if it's considered invalid. Use this like (in unix):
+
+```sh
+DEBUG_SAVE_INVALID_CONFORMANCE_CERTIFICATE=true NODE_APP_INSTANCE=dev npm run start-tests
+```
+
+After running the above, the conformance certificate will be saved locally. Check the logs to see where it has been saved.
+
+With a conformance certificate saved locally, you can run the certification-validator-microservice locally and validate your certificate. Here's an example session which does this:
+
+```sh
+# Initial Set-up. http-server allows you to run an HTTP server from a directory on your machine
+npm install --global http-server
+# Host your conformance certificate. This is the path at which it is stored by default, but it can be configured.
+(cd packages/openactive-integration-tests/conformance && http-server)
+# (In a new terminal) Run microservice
+(cd packages/openactive-integration-tests && npm run certificate-validator)
+# (In a new terminal) Query the microservice with your hosted conformance certificate
+# 3000 & 8080 are certification-validator-microservice & http-server's default respective ports
+curl 'http://localhost:3000/validate?url=http://localhost:8080'
+```

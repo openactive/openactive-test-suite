@@ -5,11 +5,28 @@ const pMemoize = require('p-memoize');
  * @typedef {import('../../types/OpportunityCriteria').OpportunityCriteria} OpportunityCriteria
  * @typedef {import('../../shared-behaviours/validation').ValidationMode} ValidationMode
  * @typedef {import('../../helpers/logger').BaseLoggerType} BaseLoggerType
- * @typedef {import('./opportunity-feed-update').OrderItem} OrderItem
+ * @typedef {import('./fetch-opportunities').OrderItem} OrderItem
  */
 
 /**
  * @typedef {'https://openactive.io/Required' | 'https://openactive.io/Optional' | 'https://openactive.io/Unavailable'} Prepayment
+ */
+
+/**
+ * @typedef {{
+ *  '@type': 'ShortAnswerFormFieldSpecification'|'DropdownFormFieldSpecification'|'ParagraphFormFieldSpecification'|'BooleanFormFieldSpecification'|'FileUploadFormFieldSpecification',
+ *  '@id': string,
+ *  valueOption? : string[],
+ *  valueRequired: boolean,
+ *  [k:string]: any
+ * }} PropertyValueSpecification
+ * @typedef {PropertyValueSpecification[]} OrderItemIntakeForm
+ * @typedef {{
+ *  '@type': 'PropertyValue',
+ *  propertyID: string,
+ *  value: string | boolean
+ * }} PropertyValue
+ * @typedef {{ [k:number]: OrderItemIntakeForm }} PositionOrderIntakeFormMap
  */
 
 /**
@@ -33,20 +50,18 @@ const pMemoize = require('p-memoize');
  *   from a Booking System Order response.
  *   Optional as a Booking System response may not include totalPaymentDue if there
  *   was an error.
- * @property {Prepayment | null | undefined} [prepayment] totalPaymentDue.prepayment
+ * @property {Prepayment | null | undefined} [prepayment] totalPaymentDue.openBookingPrepayment
  *   from a Booking System Order response.
  *   Optional as a Booking System response may not include prepayment if not supported.
  * @property {string | null | undefined} [orderProposalVersion] Optional as a Booking
  *   System response may not include orderProposalVersion if there was an error.
- * @property {Promise<ChakramResponse>} [getOrderFromOrderFeedPromise] Used for
- *   Order Feed updates.
+ * @property {PositionOrderIntakeFormMap} [positionOrderIntakeFormMap]
+ *   A map with OrderItem position and it's OrderItemIntakeForm.
+ *   If the OrderItem does not need additional details, this map will just be null.
+ *   If present, this will only be on the C1FlowStage output as that is the only
+ *   time the `orderItemIntakeForm` is defined.
+ *   Optional because OrderItems do not need to have an `orderItemIntakeForm`
  *
- *   Because an Order Feed update check must be initiated before another stage and then
- *   collected after that stage has completed (e.g. initiate before a cancellation stage
- *   and then collect the result after), this promise is persisted, so that the
- *   result can be collected by resolving it.
- *
- *   The response will be for an RPDE item with { kind, id, state, data, ...etc }.
  */
 /**
  * @template {FlowStageOutput} TOutput
@@ -88,7 +103,10 @@ class FlowStage {
    *   This input goes into `getInput`. It's a function as it will be called when
    *   the FlowStage is run (rather than when the FlowStage is set up). Therefore,
    *   it will have acccess to the output of any prerequisite stages.
-   * @param {string} args.testName
+   *
+   *   Note that this is usually used to get the output of a prerequisite stage, but
+   *   is flexible to other use cases.
+   * @param {string} args.testName Labels the jest `describe(..)` block
    * @param {(input: TInput) => Promise<TOutput>} args.runFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itSuccessChecksFn
    * @param {(flowStage: FlowStage<unknown, TOutput>) => void} args.itValidationTestsFn
@@ -97,10 +115,23 @@ class FlowStage {
    *   an Order Feed Update initiator.
    *
    *   Defaults to true.
+   * @param {boolean} [args.alwaysDoSuccessChecks] If true, this FlowStage, when run by the test runner, should
+   *   ALWAYS do success checks, regardless of any other considerations. Use this for a FlowStage whose success
+   *   checks are expected to pass regardless of whether or not the action "failed" or "succeeded".
    */
-  constructor({ prerequisite, getInput, testName, runFn, itSuccessChecksFn, itValidationTestsFn, shouldDescribeFlowStage = true }) {
+  constructor({
+    prerequisite,
+    getInput,
+    testName,
+    runFn,
+    itSuccessChecksFn,
+    itValidationTestsFn,
+    shouldDescribeFlowStage = true,
+    alwaysDoSuccessChecks = false,
+  }) {
     this.testName = testName;
-    this.shouldDescribeFlowStage = shouldDescribeFlowStage;
+    this._shouldDescribeFlowStage = shouldDescribeFlowStage;
+    this._alwaysDoSuccessChecks = alwaysDoSuccessChecks;
     this._prerequisite = prerequisite;
     this._getInput = getInput;
     this._runFn = runFn;
@@ -111,6 +142,10 @@ class FlowStage {
       status: 'no-response-yet',
     };
   }
+
+  shouldDescribeFlowStage() { return this._shouldDescribeFlowStage; }
+
+  alwaysDoSuccessChecks() { return this._alwaysDoSuccessChecks; }
 
   /**
    * Looks like `FlowStage(testName: C1)`
@@ -166,7 +201,10 @@ class FlowStage {
    *
    * If there is a prerequisite stage, it will be run first.
    *
-   * The result is cached.
+   * The result is cached. This means that FlowStages will only be run once, while
+   * allowing for some flexibility on how they are run. For example, a test could only
+   * run the `run()` method on the last FlowStage in a flow, and this would automatically
+   * run all pre-requisite stages.
    */
   run = pMemoize(async () => {
     // ## 1. Run prerequisite stage
@@ -234,6 +272,9 @@ class FlowStage {
  * @template {FlowStageOutput} TInput
  * @template {FlowStageOutput} TOutput
  * @typedef {FlowStage<TInput, TOutput>} FlowStageType
+ */
+/**
+ * @typedef {FlowStage<unknown, unknown>} UnknownFlowStageType
  */
 
 module.exports = {

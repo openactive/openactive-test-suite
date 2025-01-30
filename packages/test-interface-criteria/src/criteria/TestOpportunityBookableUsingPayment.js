@@ -1,5 +1,6 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
 const { createCriteria } = require('./criteriaUtils');
+const { NON_FREE_PRICE_QUANTITATIVE_VALUE, prepaymentOptionNodeConstraint } = require('../testDataShape');
 
 /**
  * @typedef {import('../types/Criteria').OfferConstraint} OfferConstraint
@@ -9,7 +10,7 @@ const { createCriteria } = require('./criteriaUtils');
  * @type {OfferConstraint}
  */
 function onlyPaidBookableOffers(offer) {
-  return offer.price > 0 && offer.prepayment !== 'https://openactive.io/Unavailable';
+  return offer.price > 0 && offer.openBookingPrepayment !== 'https://openactive.io/Unavailable';
 }
 
 /**
@@ -20,10 +21,19 @@ const TestOpportunityBookableUsingPayment = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Only paid bookable Offers, where prepayment is not Unavailable',
+      'Only paid bookable Offers, where openBookingPrepayment is not Unavailable',
       onlyPaidBookableOffers,
     ],
   ],
+  testDataShape: () => ({
+    offerConstraints: {
+      // onlyPaidBookableOffers
+      'schema:price': NON_FREE_PRICE_QUANTITATIVE_VALUE,
+      'oa:openBookingPrepayment': prepaymentOptionNodeConstraint({
+        blocklist: ['https://openactive.io/Unavailable'],
+      }),
+    },
+  }),
   includeConstraintsFromCriteria: TestOpportunityBookable,
 });
 

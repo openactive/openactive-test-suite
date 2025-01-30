@@ -1,11 +1,12 @@
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
 const { itShouldReturnAnOpenBookingError } = require('../../../../shared-behaviours/errors');
 
 /**
- * @typedef {import('chakram').ChakramResponse} ChakramResponse
+ * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/b').BFlowStageType} BFlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/p').PFlowStageType} PFlowStageType
  */
 
 FeatureHelper.describeFeature(module, {
@@ -21,111 +22,55 @@ FeatureHelper.describeFeature(module, {
   controlOpportunityCriteria: 'TestOpportunityBookable',
   numOpportunitiesUsedPerCriteria: 3, // one for each of the C1, C2 and B tests
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   /**
-   * Fetch some opportunities and get matching ones
-   *
-   * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
-   *
-   * @param {RequestState} state
-   * @param {FlowHelper} flow
+   * @param {C1FlowStageType | C2FlowStageType | BFlowStageType | PFlowStageType} flowStage
    */
-  function doFetchOpportunitiesAndGetMatches(state, flow) {
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
-    });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-  }
-
-  /**
-   * @param {() => ChakramResponse} getChakramResponse
-   */
-  const itShouldReturnAnIncompleteBrokerDetailsError = getChakramResponse => (
-    itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, getChakramResponse));
+  const itShouldReturnAnIncompleteBrokerDetailsError = flowStage => (
+    itShouldReturnAnOpenBookingError('IncompleteBrokerDetailsError', 400, () => flowStage.getOutput().httpResponse));
 
   describe('Incomplete Broker Details at C1', () => {
-    const state = new RequestState(logger, { c1ReqTemplateRef: 'noBrokerName' });
-    const flow = new FlowHelper(state);
+    // # Initialise Flow Stages
+    const { fetchOpportunities, c1 } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
+      c1ReqTemplateRef: 'noBrokerName',
+      c1ExpectToFail: true,
+    });
 
-    doFetchOpportunitiesAndGetMatches(state, flow);
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldReturnAnIncompleteBrokerDetailsError(() => state.c1Response);
+    // # Set up Tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
+      itShouldReturnAnIncompleteBrokerDetailsError(c1.getStage('c1'));
     });
   });
 
   describe('Incomplete Broker Details at C2', () => {
-    const state = new RequestState(logger, { c2ReqTemplateRef: 'noBrokerName' });
-    const flow = new FlowHelper(state);
-
-    doFetchOpportunitiesAndGetMatches(state, flow);
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
+    // # Initialise Flow Stages
+    const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
+      c2ReqTemplateRef: 'noBrokerName',
+      c2ExpectToFail: true,
     });
 
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldReturnAnIncompleteBrokerDetailsError(() => state.c2Response);
+    // # Set up Tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+      itShouldReturnAnIncompleteBrokerDetailsError(c2.getStage('c2'));
     });
   });
 
   describe('Incomplete Broker Details at B', () => {
-    const state = new RequestState(logger, { bReqTemplateRef: 'noBrokerName' });
-    const flow = new FlowHelper(state);
-
-    doFetchOpportunitiesAndGetMatches(state, flow);
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
+    // # Initialise Flow Stages
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
+      bookReqTemplateRef: 'noBrokerName',
+      bookExpectToFail: true,
     });
 
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('B', () => {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .validationTests();
-
-      itShouldReturnAnIncompleteBrokerDetailsError(() => state.bResponse);
+    // # Set up Tests
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2);
+    FlowStageUtils.describeRunAndCheckIsValid(bookRecipe.firstStage, () => {
+      itShouldReturnAnIncompleteBrokerDetailsError(bookRecipe.firstStage);
     });
   });
 });

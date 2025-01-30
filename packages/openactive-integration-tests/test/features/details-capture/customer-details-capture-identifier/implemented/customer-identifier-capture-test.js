@@ -1,12 +1,6 @@
-/* eslint-disable no-unused-vars */
-const chai = require('chai');
-const chakram = require('chakram');
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { GetMatch, C1, C2, B } = require('../../../../shared-behaviours');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
-
-/* eslint-enable no-unused-vars */
+const { FlowStageRecipes, FlowStageUtils } = require('../../../../helpers/flow-stages');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'details-capture',
@@ -20,62 +14,23 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  describe('Customer identifier reflected back at C2 and B', () => {
-    beforeAll(async function () {
-      await state.fetchOpportunities(orderItemCriteria);
-      return chakram.wait();
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  // # Initialise Flow Stages
+  const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
+
+  // # Set up Tests
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c1);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(c2, () => {
+    it('should include expected Customer identifier', () => {
+      // CustomerIdentifierC2 is set in the standard C2 request template.
+      expect(c2.getStage('c2').getOutput().httpResponse.body.customer.identifier).to.equal(defaultFlowStageParams.customer.identifier);
     });
-
-    afterAll(async function () {
-      await state.deleteOrder();
-      return chakram.wait();
-    });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C1', () => {
-      (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C2', function () {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-
-      it('should return 200, with an Expected customer identifier', () => {
-        chai.expect(state.c2Response.response.statusCode).to.equal(200);
-        chai.expect(state.c2Response.body.customer.identifier).to.equal('CustomerIdentifierC2');
-      });
-    });
-
-    describe('B', function () {
-      (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .itResponseReceived()
-        .validationTests();
-
-      it('should return 200, with an Expected customer identifier', () => {
-        chai.expect(state.bResponse.response.statusCode).to.equal(200);
-        chai.expect(state.bResponse.body.customer.identifier).to.equal('CustomerIdentifierB');
-      });
+  });
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(bookRecipe, () => {
+    it('should include expected Customer identifier', () => {
+      // CustomerIdentifierB is set in the standard B request template.
+      expect(bookRecipe.b.getOutput().httpResponse.body.customer.identifier).to.equal(defaultFlowStageParams.customer.identifier);
     });
   });
 });

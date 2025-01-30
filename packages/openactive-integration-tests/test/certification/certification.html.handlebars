@@ -4242,7 +4242,7 @@ content="default-src 'none';
 						conforms to the OpenActive specifications<br />
 						<a href="https://openactive.io/realtime-paged-data-exchange/1.0/">Realtime Paged Data Exchange 1.0</a>,<br />
 						<a href="https://openactive.io/modelling-opportunity-data/2.0/">Modelling Opportunity Data 2.0</a><br />
-						and <a href="https://openactive.io/open-booking-api/EditorsDraft/">Open Booking API 1.0CR2</a>.<br />
+						and <a href="https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/">Open Booking API 1.0CR3</a>.<br />
 					</p>
 					<p>
 						Issued: {{ formatDate dateCreated }}
@@ -4269,9 +4269,6 @@ content="default-src 'none';
 				</div>
 			</header>
 
-			
-
-		<!-- One -->
 			<section id="one" class="wrapper">
 				<header class="major">
 					<h2>Features Implemented</h2>
@@ -4287,7 +4284,23 @@ content="default-src 'none';
 				</div>
 			</section>
 
-		<!-- Two -->
+			<section id="one" class="wrapper">
+				<header class="major">
+					<h2>Features Not Implemented</h2>
+				</header>
+				<div class="inner alt">
+					<section class="special">
+						<ul class="icons labeled">
+							{{#each featureNotImplemented }}
+								<li><span class="icon solid fa-plug"><a href="{{ featureUrl '@id' }}" class="label">{{ prefLabel }}</a></span></li>
+							{{/each}}
+						</ul>
+					</section>
+				</div>
+			</section>
+
+		{{!-- Booking Flows should go here --}}
+
 			<section id="two" class="wrapper style2">
 				<header class="major">
 					<h2>Opportunity Types Implemented</h2>
@@ -4303,7 +4316,6 @@ content="default-src 'none';
 				</div>
 			</section>
 
-		<!-- Three -->
 			<section id="three" class="wrapper style2 special">
 				<div class="inner">
 					<header class="major">

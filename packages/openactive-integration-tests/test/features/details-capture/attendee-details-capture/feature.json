@@ -1,0 +1,10 @@
+{
+  "category": "details-capture",
+  "identifier": "attendee-details-capture",
+  "name": "Simple Book including Attendee Details capture",
+  "description": "Support for capturing attendee details",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#attendee-details-capture",
+  "required": false,
+  "coverageStatus": "complete"
+}

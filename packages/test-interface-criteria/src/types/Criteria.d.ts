@@ -1,10 +1,13 @@
 import { Opportunity } from './Opportunity';
 import { Offer } from './Offer';
 import { Options } from './Options';
+import { TestDataShape } from './TestDataShape';
 
 export type OpportunityConstraint = (opportunity: Opportunity, options?: Options) => boolean;
 
-export type OfferConstraint = (offer: Offer, opportunity: Opportunity, options?: Options) => boolean;
+export type OfferConstraint = (offer: Offer, opportunity?: Opportunity, options?: Options) => boolean;
+
+export type TestDataShapeFactory = (options: Options) => TestDataShape;
 
 export type Criteria = {
   name: string,
@@ -30,4 +33,8 @@ export type Criteria = {
   offerConstraints: (
     [string, OfferConstraint]
   )[],
+  /**
+   * Test data requirements that are applicable for this criteria.
+   */
+  testDataShape: TestDataShapeFactory,
 };

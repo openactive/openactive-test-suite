@@ -1,0 +1,11 @@
+{
+  "category": "approval",
+  "identifier": "proposal-amendment",
+  "name": "Proposal Amendment - Amend an opportunity using an OrderProposal",
+  "description": "Test approval flows with Proposal Amendment.",
+  "explainer": "",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#proposal-amendment",
+  "required": false,
+  "coverageStatus": "complete",
+  "links": []
+}

@@ -1,11 +1,11 @@
-const chai = require('chai');
-const chakram = require('chakram');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const { B, C1, Common, GetMatch } = require('../../../../shared-behaviours');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
-const { RequestState } = require('../../../../helpers/request-state');
-const { generateUuid } = require('../../../../helpers/generate-uuid');
-const { C2 } = require('../../../../shared-behaviours/c2');
+const {
+  FlowStageUtils,
+  FetchOpportunitiesFlowStage,
+  FlowStageRecipes,
+} = require('../../../../helpers/flow-stages');
+const { AssertOpportunityCapacityFlowStage } = require('../../../../helpers/flow-stages/assert-opportunity-capacity');
+const { itEachOrderItemIdShouldMatchThoseFromFeed, AmendingOrderQuoteFlowStageRecipes } = require('../common');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -21,102 +21,92 @@ FeatureHelper.describeFeature(module, {
   // This test uses 2 opportunities, A & B
   numOpportunitiesUsedPerCriteria: 2,
 },
-(configuration, orderItemCriteria, featureIsImplemented, logger) => {
-  // Both runs share the same UUID, so that the 2nd run is an amendment to the same Order
-  const uuid = generateUuid();
-
-  /**
-   * Note: This generates an it() block. Therefore, this must be run within a describe() block.
-   *
-   * @param {RequestState} state
-   * @param {C1 | B} stage
-   * @param {() => import('chakram').ChakramResponse} responseAccessorFn function that gets the stage's response (e.g. `() => state.c1Response`)
-   */
-  const itFeedItemAndResponseItemShouldMatchIds = (state, stage, responseAccessorFn) => {
-    Common.itForOrderItem(orderItemCriteria, state, stage, () => responseAccessorFn().body,
-      'ID should match the one specified in the open data feed',
-      (feedOrderItem, responseOrderItem) => {
-        chai.expect(responseOrderItem).to.nested.include({
-          'orderedItem.@id': feedOrderItem.orderedItem['@id'],
-        });
-      });
-  };
-
-  /**
-   * Create a new state and flow helper (to represent a distinct batch of opportunities)
-   * and then fetch some opportunities and run C1
-   *
-   * Note: This generates jest blocks like `beforeAll()`, `it()`, etc. Therefore, this must be run within a `describe()` block
-   */
-  function attemptC1WithNewState() {
-    // Each scenario uses a separate state and flowHelper because they fetch separate opportunities
-    const state = new RequestState(logger, {
-      uuid,
-    });
-    const flow = new FlowHelper(state);
-
-    beforeAll(async () => {
-      await state.fetchOpportunities(orderItemCriteria);
-      await chakram.wait();
-    });
-
-    describe('Get Opportunity Feed Items', () => {
-      (new GetMatch({
-        state, flow, logger, orderItemCriteria,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-    });
-
-    describe('C1', () => {
-      const c1 = (new C1({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
-      // Confirm that the booking system has the same opportunities as we gave
-      // it in our C1 request. This is especially important for the 2nd attempt,
-      // as this verifies that the order was successfully amended.
-      itFeedItemAndResponseItemShouldMatchIds(state, c1, () => state.c1Response);
-    });
-
-
-    return {
-      state, flow,
-    };
-  }
-
-  // N.B.: The following two tests must be performed sequentially - with
-  // Second Attempt occurring after First Attempt.
-  describe('First Attempt - C1', () => {
-    attemptC1WithNewState();
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
+  // # Initialise Flow Stages
+  // Flow stages for first attempt: C1
+  const {
+    fetchOpportunities: firstAttemptFetchOpportunities,
+    c1: firstAttemptC1,
+    defaultFlowStageParams,
+  } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord);
+  // Flow stages for second attempt: C1 -> B
+  const secondAttemptFetchOpportunities = new FetchOpportunitiesFlowStage({
+    /* Note that we use the same default flow stage params, which also means that the 2nd attempt
+    uses the same UUID as the 1st attempt.
+    This is correct as the 2nd attempt is an amendment of the 1st OrderQuote */
+    ...defaultFlowStageParams,
+    prerequisite: firstAttemptC1.getLastStage(),
+    orderItemCriteriaList,
   });
-  /** Fetch some new opportunities and amend the existing order at C1, and then complete it */
+  const secondAttemptC1 = FlowStageRecipes.runs.book.c1AssertCapacity(secondAttemptFetchOpportunities, defaultFlowStageParams, {
+    c1Args: {
+      getInput: () => secondAttemptFetchOpportunities.getOutput(),
+    },
+    assertOpportunityCapacityArgs: {
+      getInput: () => secondAttemptFetchOpportunities.getOutput(),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC1(true),
+    },
+  });
+  const secondAttemptC2 = FlowStageRecipes.runs.book.c2AssertCapacity(secondAttemptC1.getLastStage(), defaultFlowStageParams, {
+    c2Args: {
+      getInput: () => ({
+        orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+        positionOrderIntakeFormMap: secondAttemptC1.getStage('c1').getOutput().positionOrderIntakeFormMap,
+      }),
+    },
+    assertOpportunityCapacityArgs: {
+      getInput: () => ({
+        orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+        opportunityFeedExtractResponses: secondAttemptC1.getStage('assertOpportunityCapacityAfterC1').getOutput().opportunityFeedExtractResponses,
+      }),
+      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterC2(true),
+    },
+  });
+  const secondAttemptBook = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+    prerequisite: secondAttemptC2.getLastStage(),
+    getFirstStageInput: () => ({
+      orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+      totalPaymentDue: secondAttemptC2.getStage('c2').getOutput().totalPaymentDue,
+      prepayment: secondAttemptC2.getStage('c2').getOutput().prepayment,
+      positionOrderIntakeFormMap: secondAttemptC1.getStage('c1').getOutput().positionOrderIntakeFormMap,
+    }),
+    getAssertOpportunityCapacityInput: () => ({
+      orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
+      opportunityFeedExtractResponses: secondAttemptC2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
+    }),
+    paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
+  });
+
+  // # Set up Tests
+  // N.B.: The following two tests must be performed sequentially - with Second Attempt occurring after First Attempt.
+  describe('First Attempt - C1', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(firstAttemptFetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(firstAttemptC1);
+  });
+  // Fetch some new opportunities and amend the existing order at C1, and then complete it
   describe('Second Attempt - C1 -> B', () => {
-    const { state, flow } = attemptC1WithNewState();
-
-    describe('C2', () => {
-      (new C2({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptFetchOpportunities);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptC1);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptC2);
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(secondAttemptBook, () => {
+      itEachOrderItemIdShouldMatchThoseFromFeed({
+        orderItemCriteriaList,
+        fetchOpportunitiesFlowStage: secondAttemptFetchOpportunities,
+        apiFlowStage: secondAttemptBook.b,
+        bookRecipe: secondAttemptBook,
+      });
     });
+  });
 
-    describe('B', () => {
-      const b = (new B({
-        state, flow, logger,
-      }))
-        .beforeSetup()
-        .successChecks()
-        .validationTests();
+  // Test that capacity goes back up for the Opportunities that have now been switched out from the OrderQuote
+  const assertFirstAttemptOpportunitiesHaveRegainedCapacity = AmendingOrderQuoteFlowStageRecipes.assertFirstAttemptOpportunitiesHaveRegainedCapacity(
+    'Second Attempt - B',
+    secondAttemptBook.lastStage,
+    defaultFlowStageParams,
+    firstAttemptFetchOpportunities,
+  );
 
-      // Again, the completed order should be using our 2nd batch of order items
-      // i.e. it should have been successfully amended.
-      itFeedItemAndResponseItemShouldMatchIds(state, b, () => state.bResponse);
-    });
+  describe('After Second Attempt, should restore capacity for Opportunities from First Attempt', () => {
+    FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(assertFirstAttemptOpportunitiesHaveRegainedCapacity);
   });
 });

@@ -21,6 +21,44 @@ const TestOpportunityBookableCriteria = TestInterfaceCriteria.criteriaMap.get('T
 const { matchesCriteria, unmetCriteriaDetails } = TestInterfaceCriteria.testMatch(TestOpportunityBookableCriteria, opportunity);
 ```
 
+## Concepts
+
+### Opportunity-Offer
+
+An Opportunity-Offer is a combination of an [Opportunity](https://openactive.io/open-booking-api/EditorsDraft/#dfn-opportunity) and one of its [Offers](https://openactive.io/modelling-opportunity-data/#describing-offers-code-schema-offer-code-). This combination is selected by a customer in order to make a booking in real life. Similarly, Test Suite tests select one or more Opportunity-Offers – packaging each into an [OrderItem](https://openactive.io/open-booking-api/EditorsDraft/#schema-orderitem) – before testing a booking flow.
+
+### Criteria
+
+A Criteria is a set of Constraints that an **Opportunity-Offer** may or may not satisfy. For example, the `TestOpportunityBookableNotCancellable` criteria is only satisfied for an Opportunity-Offer that can be booked but cannot be cancelled.
+
+The Criteria are specified in the [Test Interface](https://openactive.io/test-interface) spec. Each of the "Enumeration Values" with type `test:TestOpportunityCriteriaEnumeration` is one of the supported Criteria.
+
+This package, `test-interface-criteria`, provides, for each of the Criteria specified in the spec, the logic for determining whether or not an Opportunity-Offer satisfies that Criteria. In this package, this logic is split into composable **Constraints**.
+
+### Constraints
+
+Each **Criteria** is composed of multiple Opportunity Constraints and Offer Constraints. Each of these is a predicate function that returns true if the Opportunity or Offer satisfies the Constraint, and false otherwise. Here is an example Opportunity Constraint:
+
+```js
+/**
+* @type {OpportunityConstraint}
+*/
+function endDateMustBeInThePast(opportunity) {
+  return DateTime.fromISO(opportunity.endDate) < DateTime.now();
+}
+```
+
+And, an example Offer Constraint:
+
+```js
+/**
+* @type {OfferConstraint}
+*/
+function mustNotBeOpenBookingInAdvanceUnavailable(offer) {
+  return offer.openBookingInAdvance !== 'https://openactive.io/Unavailable';
+}
+```
+
 ## Developing
 
 ### TypeScript
@@ -29,11 +67,12 @@ The code is written in native JS, but uses TypeScript to check for type errors. 
 
 In order for these types to be used by other projects, they must be saved to [TypeScript Declaration files](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html). This is enabled by our tsconfig.json, which specifies that declaration files are to be generated and saved to `built-types/` (As an aside, the reason that the package's types must be saved to .d.ts files is due to TypeScript not automatically using JS defined types from libraries. There is a good reason for this and proposals to allow it to work at least for certain packages. See some of the discussion here: https://github.com/microsoft/TypeScript/issues/33136).
 
-For this reason, TypeScript types should be generated after code changes to make sure that test-interface-criteria consumers can use the new types. The openactive-test-suite project does this automatically in its pre-commit hook, which calls `npm run gen-types`
+For this reason, TypeScript types should be generated after code changes to make sure that test-interface-criteria consumers can use the new types. The openactive-test-suite project does this automatically in its pre-commit hook, which calls `npm run gen-types`. This script also copies programmer-created `.d.ts` files from our source code (e.g. `src/types/Criteria.d.ts`) into `built-types/`. This is because our code references these types, so they must be in the `built-types/` directory so that the relative paths match (e.g. so that `import('../types/Criteria').Criteria` works).
 
-TypeScript-related scripts:
+### FAQs
 
-- `check-types`: This uses the `tsconfig.check.json` config, which does not emit any TS declaration files - all it does is check that there are no type errors. This is used for code tests.
-- `gen-types`: This uses the `tsconfig.gen.json` config, which emits TS declaration files into `built-types/`.
+#### Why Does ESLint sometimes downgrade its version?
 
-  Additionally, it copies programmer-created `.d.ts` files from our source code (e.g. `src/types/Criteria.d.ts`) into `built-types/`. This is because our code references these types, so they must be in the `built-types/` directory so that the relative paths match (e.g. so that `import('../types/Criteria').Criteria` works).
+Sometimes you'll notice ESLint erroring with "Error: invalid ecmaParser option" or changing its mind as to whether or not single-argument arrow functions should have parentheses around their arg. This is because NPM has for some reason installed an old version of ESLint. You can remedy this by running `npm install` again in the test-interface-criteria package.
+
+This seems to happen as a result of running `npm install` in the Broker or Integration Tests packages. For more info: https://github.com/openactive/openactive-test-suite/pull/366#issuecomment-825951901.

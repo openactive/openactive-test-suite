@@ -1,12 +1,61 @@
+/* TODO fix this file so that it no longer needs to disable these rules:
+https://github.com/openactive/openactive-test-suite/issues/648 */
+/* eslint-disable no-else-return */
+/* eslint-disable no-confusing-arrow */
+/* eslint-disable no-return-assign */
+/* eslint-disable no-trailing-spaces */
+/* eslint-disable operator-linebreak */
+/* eslint-disable comma-dangle */
+/* eslint-disable indent */
+/* eslint-disable no-shadow */
+/* eslint-disable implicit-arrow-linebreak */
+/* eslint-disable arrow-parens */
+/* eslint-disable no-extra-semi */
+/* eslint-disable function-paren-newline */
+/* eslint-disable prefer-template */
+/* eslint-disable no-path-concat */
+/* eslint-disable semi */
+/* eslint-disable no-throw-literal */
+/* eslint-disable operator-assignment */
+/* eslint-disable no-var */
+/* eslint-disable padded-blocks */
+/* eslint-disable prefer-const */
+/* eslint-disable eqeqeq */
+/* eslint-disable block-spacing */
+/* eslint-disable spaced-comment */
+/* eslint-disable prefer-rest-params */
+/* eslint-disable quote-props */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable object-curly-spacing */
+/* eslint-disable import/order */
+/* eslint-disable quotes */
+/* eslint-disable no-unused-vars */
+const util = require('util');
 const chalk = require("chalk");
 const Handlebars = require("handlebars");
 const fs = require("fs").promises;
 const stripAnsi = require("strip-ansi");
 const {ReporterLogger} = require("./helpers/logger");
 const _ = require("lodash");
-const config = require("config");
-const USE_RANDOM_OPPORTUNITIES = config.get("useRandomOpportunities");
-const OUTPUT_PATH = config.get('outputPath');
+const { getConfigVarOrThrow } = require('./helpers/config-utils');
+const showdown = require('showdown');
+const { FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME } = require('./helpers/suite-name-constants');
+
+/**
+ * @typedef {{
+ *   [testOpportunityCriteria: string]: {
+ *     sellerIds: string[];
+ *     opportunityTypes: string[];
+ *     bookingFlows: string[];
+ *     numTestsFailing: number;
+ *   }
+ * }} MissingOpportunityDataSummary
+ */
+
+const USE_RANDOM_OPPORTUNITIES = getConfigVarOrThrow('integrationTests', 'useRandomOpportunities');
+const OUTPUT_PATH = getConfigVarOrThrow('integrationTests', 'outputPath');
+const ENABLE_HEADER_LOGGING = getConfigVarOrThrow('integrationTests', 'requestHeaderLogging');
 
 class BaseReportGenerator {
   get templateName () {
@@ -25,10 +74,13 @@ class BaseReportGenerator {
 
         return chalkFn(options.fn(this));
       },
+      /**
+       * @param {string[]} suiteName
+       */
       "renderSuiteName": function(suiteName, options) {
         if (suiteName.length <= 2) return "Test setup";
 
-        return suiteName.slice(3).join(" >> ");
+        return suiteName.slice(4).join(" >> ");
       },
       "validationIcon": function(severity, options) {
         switch (severity) {
@@ -88,15 +140,27 @@ class BaseReportGenerator {
         const messageLineIndex = lines.indexOf('Message:') + 1;
         return messageLineIndex !== 0 ? lines[messageLineIndex] : lines[0];
       },
+      "ifEquals": function(arg1, arg2, options) {
+        return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
+      },
       "pluralise": function(str, number) {
         return str + (number == 1 ? '' : 's');
       },
       "json": function(data, options) {
         return JSON.stringify(data, null, 2);
       },
+      "headers": function(data, options) {
+        return ENABLE_HEADER_LOGGING && data && _.isObject(data.headers) ? `\n${Object.entries(data.headers).map(([k, v], i) => `* **${k}:** \`${JSON.stringify(v)}\`\n`).join('')}` : '';
+      },
+      /**
+       * @param {string[]} suite
+       * @param {string} type
+       */
       "logsFor": (suite, type, options) => {
         let first = true;
-        let logs = this.logger.logsFor(suite, type);
+        // this.logger is only defined in ReportGenerator
+        let logs = /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .logsFor(suite, type);
         let ret = "";
         for (let [i, value] of logs.entries()) {
 
@@ -117,7 +181,65 @@ class BaseReportGenerator {
         }
 
         return ret;
-      }
+      },
+      /**
+       * @param {string[]} suite
+       */
+      "statusFor": (suite) => {
+        // this.logger is only defined in ReportGenerator
+        let status = /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .statusFor(suite);
+        return status;
+      },
+      "eachSorted": (context, options) => {
+        var ret = "";
+        Object.keys(context).sort().forEach(function(key) {
+          ret = ret + options.fn(context[key]);
+        })
+        return ret;
+      },
+      /**
+       * @param {string[]} suite
+       * @returns {boolean}
+       */
+      doRenderSuite: (suite) => {
+        if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
+          return true;
+        }
+        /* This is the Feature Description Assertions meta test. Only render it
+        if it has failed but everything else has succeeded.
+
+        This is because it will confuse a normal Test Suite user to see
+        information about this test, which is actually a "meta-test" i.e. it
+        tests that the test itself was annotated in a way that matches the run
+        profile. Therefore, the meta-test may fail if other tests fail, as this
+        impacts the run profile. But this is not a useful piece of information.
+        If all tests succeed and this meta-test fails, then the test is
+        annotated incorrectly. */
+
+        // this.logger is only defined in ReportGenerator
+        return /** @type {ReporterLogger} */(/** @type {any} */(this).logger)
+          .isSuiteTheOnlyFailure(suite);
+      },
+      /**
+       * @param {string[]} suite
+       * @returns {string}
+       */
+      maintainerInfo: (suite) => {
+        if (!suite.find(name => name === FEATURE_DESCRIPTION_ASSERTIONS_META_TEST_NAME)) {
+          return '';
+        }
+        /* This is the Feature Description Assertions meta test. This test is
+        different from other tests in that it tests that the test itself was
+        annotated correctly. Therefore, we provide a bit more information to
+        either users (who should never see this error) or maintainers */
+        /* TODO: If we add different types of meta-tests, we'll need to convert
+        this to a more generic error message. Currently, we only meta-test
+        `testInterfaceActions`. */
+        return `If you are NOT a Test Suite maintainer: this failure means that the there is an issue with the Test Suite test itself. Please [raise an issue on the Test Suite repository](https://github.com/openactive/openactive-test-suite/issues), attaching this full \`.html\` file.
+
+If you ARE a Test Suite maintainer: this failure indicates that the test's \`testInterfaceActions\` param to \`FeatureHelper.describeFeature(..)\` does not match the actual Test Interface Actions that were used in the test.`;
+      },
     };
   }
 
@@ -125,7 +247,10 @@ class BaseReportGenerator {
     return {};
   }
 
-  get reportMarkdownPath () {
+  /**
+   * @returns {string}
+   */
+  get reportHtmlPath () {
     throw "Not Implemented";
   }
 
@@ -145,7 +270,7 @@ class BaseReportGenerator {
     }
   }
 
-  async writeMarkdown () {
+  async writeHtml () {
     let template = await this.getTemplate(`${this.templateName}.md`);
 
     let data = template(this.templateData, {
@@ -154,12 +279,18 @@ class BaseReportGenerator {
       helpers: this.helpers,
     });
 
-    await fs.writeFile(this.reportMarkdownPath, data);
+    const converter = new showdown.Converter();
+    converter.setOption('completeHTMLDocument', true);
+    converter.setOption('moreStyling', true)
+    converter.setOption('openLinksInNewWindow', true);
+    const html = converter.makeHtml(data);
+
+    await fs.writeFile(this.reportHtmlPath, html);
   }
 
-  async report () {
-    await this.outputConsole();
-    await this.writeMarkdown();
+  async report(silentOnConsole) {
+    if (!silentOnConsole) await this.outputConsole();
+    await this.writeHtml();
   }
 
   async getTemplate (name) {
@@ -184,17 +315,18 @@ class ReportGenerator extends BaseReportGenerator {
     return this.logger;
   }
 
-  get reportMarkdownPath () {
-    return this.logger.markdownPath;
+  get reportHtmlPath () {
+    return this.logger.htmlPath;
   }
 }
 
 class SummaryReportGenerator extends BaseReportGenerator {
-  constructor (loggers, datasetJson, conformanceCertificateId) {
+  constructor (loggers, datasetJson, results, conformanceCertificateId) {
     super();
     this.loggers = new LoggerGroup(this, loggers);
     this.datasetJson = datasetJson;
     this.conformanceCertificateId = conformanceCertificateId;
+    this.results = results;
   }
 
   static async getLoggersFromFiles () {
@@ -232,7 +364,7 @@ class SummaryReportGenerator extends BaseReportGenerator {
             numFailed
           }))
         }))
-        )
+      ),
     };
   }
 
@@ -246,16 +378,20 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return "summary";
   }
 
-  get templateData () {
+  get templateData() {
     return this;
+  }
+
+  get testResultSummary () {
+    return this.results;
   }
 
   get summaryMetaPath () {
     return `${OUTPUT_PATH}json/summary.json`;
   }
 
-  get reportMarkdownPath () {
-    return `${OUTPUT_PATH}summary.md`;
+  get reportHtmlPath () {
+    return `${OUTPUT_PATH}summary.html`;
   }
 
   get opportunityTypeGroups () {
@@ -270,9 +406,24 @@ class SummaryReportGenerator extends BaseReportGenerator {
     return (this.datasetJson.bookingService && this.datasetJson.bookingService.name) || 
     (this.datasetJson.publisher && this.datasetJson.publisher.name);
   }
+
+  get missingOpportunityDataSummary() {
+    if (this._missingOpportunityDataSummary !== undefined) {
+      return this._missingOpportunityDataSummary;
+    }
+    const { missingOpportunityDataSummary } = this.loggers;
+    if (_.isEmpty(missingOpportunityDataSummary)) {
+      return null;
+    }
+    this._missingOpportunityDataSummary = missingOpportunityDataSummary;
+    return this._missingOpportunityDataSummary;
+  }
 }
 
 class LoggerGroup {
+  /**
+   * @param {import('./helpers/logger').BaseLoggerType[]} loggers
+   */
   constructor (reporter, loggers) {
     this.reporter = reporter;
     this.loggers = loggers;
@@ -283,7 +434,8 @@ class LoggerGroup {
 
     return this._opportunityTypeGroups = _
       .chain(this.loggers)
-      .groupBy(logger => logger.opportunityType || "Generic")
+      // @ts-expect-error logger.opportunityType and logger.bookingFlow are only defined when a logger is loaded from an output JSON
+      .groupBy(logger => logger.opportunityType ? `${logger.bookingFlow} >> ${logger.opportunityType}` : "Generic")
       .mapValues(group => new LoggerGroup(this.reporter, group))
       .value();
   }
@@ -300,7 +452,7 @@ class LoggerGroup {
   }
 
   get opportunityTypeName() {
-    return this.loggers[0].opportunityType || "Generic";
+    return this.loggers[0].opportunityTypeName;
   }
 
   get featureName () {
@@ -334,7 +486,7 @@ class LoggerGroup {
           acc[key] = (acc[key] || 0) + value;
         }
         return acc;
-      }, {});
+      }, /** @type {Record<string, number>} */({}));
   }
 
   get validationStatusCounts () {
@@ -345,7 +497,7 @@ class LoggerGroup {
           acc[key] = (acc[key] || 0) + value;
         }
         return acc;
-      }, {});
+      }, /** @type {Record<string, number>} */({}));
   }
 
   get overallStatus () {
@@ -360,6 +512,83 @@ class LoggerGroup {
     else return "passed";
   }
 
+  /**
+   * Get stats about which tests have OpportunityNotFound events and thus
+   * failed due to missing required opportunity data.
+   */
+  get missingOpportunityDataStats() {
+    if (this._missingOpportunityDataStats) { return this._missingOpportunityDataStats; }
+    const allAugmentedEvents = this.loggers.flatMap((logger) => {
+      const testConfig = _.pick(logger, [
+        'opportunityTypeName',
+
+        'featureName',
+        'implementedDisplayLabel',
+        'suiteName',
+        'htmlLocalPath',
+      ]);
+      const flowStageLogs = Object.values(logger.flow);
+      return flowStageLogs.flatMap(flowStageLog => (
+        flowStageLog.events
+          .filter(event => event.type === 'OpportunityNotFound')
+          // Associate each of these events with a specific test
+          .map(event => ({ ..._.omit(event, ['type']), testConfig }))
+      ));
+    });
+    const uniqueAugmentedEvents = _.uniqWith(allAugmentedEvents, _.isEqual);
+    this._missingOpportunityDataStats = uniqueAugmentedEvents;
+    return this._missingOpportunityDataStats;
+  }
+
+  /**
+   * Groups the results from `missingOpportunityDataStats` into something
+   * that can be shown in the summary report.
+   */
+  get missingOpportunityDataSummary() {
+    if (this._missingOpportunityDataSummary) { return this._missingOpportunityDataSummary; }
+    const stats = this.missingOpportunityDataStats;
+    // So that criteria are listed alphabetically in the summary report
+    const statsSortedByCriteria = _.sortBy(stats, [
+      'testOpportunityCriteria',
+    ]);
+    this._missingOpportunityDataSummary = statsSortedByCriteria.reduce((acc, event) => {
+      if (!acc[event.testOpportunityCriteria]) {
+        acc[event.testOpportunityCriteria] = {
+          sellerIds: [],
+          opportunityTypes: [],
+          bookingFlows: [],
+          numTestsFailing: 0,
+        };
+      }
+      const summary = acc[event.testOpportunityCriteria];
+      pushToSortedUniqueArray(summary.sellerIds, event.sellerId);
+      pushToSortedUniqueArray(summary.opportunityTypes, event.opportunityType);
+      pushToSortedUniqueArray(summary.bookingFlows, event.bookingFlow);
+      summary.numTestsFailing += 1;
+      return acc;
+    }, /** @type {MissingOpportunityDataSummary} */({}));
+    return this._missingOpportunityDataSummary;
+  }
+}
+
+/**
+ * Push an item to an array that is already sorted.
+ *
+ * The item will be inserted into the array at a position which maintains sort
+ * order. If the item is already present in the array, it will not be added.
+ *
+ * ! Mutates `arr`
+ *
+ * @template T
+ * @param {T[]} arr
+ * @param {T} value
+ */
+function pushToSortedUniqueArray(arr, value) {
+  const index = _.sortedIndex(arr, value);
+  if (arr[index] === value) {
+    return;
+  }
+  arr.splice(index, 0, value);
 }
 
 module.exports = {

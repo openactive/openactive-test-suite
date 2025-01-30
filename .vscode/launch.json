@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "integration-tests - this test file",
+            "name": "integration-tests (controlled) - this test file",
             "request": "launch",
             "runtimeArgs": [
                 "run-script",
@@ -19,32 +19,157 @@
                 "<node_internals>/**"
             ],
             "type": "node",
+            "runtimeVersion": "18.17.1",
             "env": {
-              "NODE_ENV": "dev"
-            }
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": false}}"
+            },
         },
         {
-            "name": "integration-tests - all tests",
+            "name": "integration-tests (random) - this test file",
+            "request": "launch",
+            "runtimeArgs": [
+                "run-script",
+                "start-tests",
+                "--",
+                "--runInBand",
+                "${relativeFile}",
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "runtimeVersion": "18.17.1",
+            "env": {
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": true}}"
+            },
+        },
+        {
+            "name": "integration-tests (controlled) - all tests",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
             "runtimeExecutable": "npm",
+            "runtimeVersion": "18.17.1",
             "runtimeArgs": ["run-script", "debug"],
-            "port": 9229
+            "env": {
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": false}}"
+            },
+            "port": 9229,
+        },
+        {
+            "name": "integration-tests (random) - all tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "18.17.1",
+            "runtimeArgs": ["run-script", "debug"],
+            "env": {
+                "NODE_APP_INSTANCE": "dev",
+                "NODE_CONFIG": "{\"integrationTests\": {\"useRandomOpportunities\": true}}"
+            },
+            "port": 9229,
+        },
+        {
+            "name": "integration-tests (NODE_ENV=dev) - all tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "18.17.1",
+            "runtimeArgs": ["run-script", "debug"],
+            "env": {
+                "NODE_ENV": "dev",
+            },
+            "port": 9229,
         },
         {
             "name": "broker-microservice",
             "type": "node",
             "request": "launch",
+            "runtimeVersion": "18.17.1",
             "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
-            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/"
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
+            "env": {
+              "NODE_APP_INSTANCE": "dev"
+            },
+        },
+        {
+            "name": "broker-microservice - jest tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice",
+            "runtimeExecutable": "npm",
+            "runtimeVersion": "18.17.1",
+            "runtimeArgs": ["run-script", "debug-jest"],
+            "port": 9229,
+        },
+        {
+            "name": "test-interface-criteria - unit tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/packages/test-interface-criteria/",
+            "runtimeArgs": [
+              "--inspect-brk",
+              "node_modules/.bin/jest",
+              "--runInBand"
+              ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "validate-feeds",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "18.17.1",
+            "program": "${workspaceFolder}/packages/openactive-broker-microservice/app.js",
+            "cwd": "${workspaceFolder}/packages/openactive-broker-microservice/",
+            "args": [
+                "--validate-only",
+                "https://reference-implementation.openactive.io/OpenActive"
+            ],
+            "env": {
+              "NODE_APP_INSTANCE": "dev"
+            },
+        },
+        {
+            "name": "test-data-generator",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "18.17.1",
+            "program": "${workspaceFolder}/packages/openactive-integration-tests/test-data-generator/test-data-generator.js",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests/"
+        },
+        {
+            "name": "certification-validator-microservice",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "18.17.1",
+            "program": "${workspaceFolder}/packages/openactive-integration-tests/test/certification/certification-validator-microservice.js",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests/",
+        },
+        {
+            "name": "doc-gen",
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "18.17.1",
+            "program": "${workspaceFolder}/packages/openactive-integration-tests/documentation/generator.js",
+            "cwd": "${workspaceFolder}/packages/openactive-integration-tests/"
         },
         {
             "name": "combined",
             "type": "node",
             "request": "launch",
+            "runtimeVersion": "18.17.1",
             "autoAttachChildProcesses": true,
-            "program": "${workspaceFolder}/start.js"
+            "program": "${workspaceFolder}/start.js",
+            "env": {
+                "NODE_APP_INSTANCE": "dev"
+            },
         }
     ]
 }

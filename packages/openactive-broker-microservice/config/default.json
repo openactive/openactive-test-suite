@@ -1,9 +1,0 @@
-{
-  "datasetSiteUrl": "https://openactive-reference-implementation.azurewebsites.net/openactive",
-  "requestLogging": false,
-  "waitForHarvestCompletion": true,
-  "verbose": false,
-  "ordersFeedRequestHeaders": {
-    "X-OpenActive-Test-Client-Id": "test"
-  }
-}

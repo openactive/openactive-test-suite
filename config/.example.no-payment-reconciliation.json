@@ -1,0 +1,7 @@
+{
+  "integrationTests": {
+    "implementedFeatures": {
+      "payment-reconciliation-detail-validation": false
+    }
+  }
+}

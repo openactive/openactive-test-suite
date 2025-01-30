@@ -1,0 +1,20 @@
+// Defaults for running the OpenActive Reference Implementation locally for development
+// Use this via `export NODE_APP_INSTANCE=dev`
+{
+  "broker": {
+    "datasetSiteUrl": "https://localhost:5001/openactive"
+  },
+  "integrationTests": {
+    "useRandomOpportunities": false
+  },
+  "sellers": {
+    "primary": {
+      "@type": "Organization",	    
+      "@id": "https://localhost:5001/api/identifiers/sellers/1"
+    },
+    "secondary": {
+      "@type": "Organization",	    
+      "@id": "https://localhost:5001/api/identifiers/sellers/2"
+    }
+  }
+}

@@ -1,6 +1,8 @@
 # OA output
 output
+conformance
 tmp
+tmp-validator-input
 
 # Created by .ignore support plugin (hsz.mobi)
 ### macOS template
@@ -158,6 +160,8 @@ $RECYCLE.BIN/
 **/config/*
 !**/config/default.json
 !**/config/default-ci.json
+!**/config/default-dev.json
+!**/config/default-framework.json
 !**/config/.example.*.json 
 
 # JetBrains IDE files

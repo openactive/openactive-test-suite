@@ -7,87 +7,118 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
-    runs-on: ${{ matrix.os }}
+  tests:
+    runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        mode: ['random', 'controlled']
+        profile: ['all-features', 'single-seller', 'no-payment-reconciliation', 'no-auth', 'no-tax-calculation', 'prepayment-always-required', 'facilityuse-has-slots']
+        flow: ['simple', 'approval']
+        include:
+        - mode: 'random'
+          profile: 'all-features'
+          flow: 'both'
+        - mode: 'controlled'
+          profile: 'all-features'
+          flow: 'both'
+
+    concurrency: 
+      group: openactive-test-suite--${{ github.head_ref }}--${{ matrix.mode }}.${{ matrix.profile }}.${{ matrix.flow }}
+      cancel-in-progress: true
 
     steps:
     - name: Checkout OpenActive Test Suite
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: tests
     - name: Use matching coverage/* branch ${{ github.head_ref }} in OpenActive.Server.NET
       if: ${{ startsWith(github.head_ref, 'coverage/') }}
-      run: echo "::set-env name=mirror_ref::${{ github.head_ref }}"
-    - name: Checkout OpenActive.Server.NET ${{ env.mirror_ref }}
-      uses: actions/checkout@v2
+      id: refs
+      run: echo "::set-output name=mirror_ref::${{ github.head_ref }}"
+    - name: Checkout OpenActive.Server.NET ${{ steps.refs.outputs.mirror_ref }}
+      uses: actions/checkout@v4
       with:
         repository: openactive/OpenActive.Server.NET
-        ref: ${{ env.mirror_ref }}
+        ref: ${{ steps.refs.outputs.mirror_ref }}
         path: server
 
-
-    - name: Setup .NET Core 2.1.808
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET Core SDK 3.1.419
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 2.1.808
-    - name: Setup Node.js 12.x
-      uses: actions/setup-node@v1
+        dotnet-version: 3.1.419
+
+    - name: Setup Node.js 18.17.1
+      uses: actions/setup-node@v4
       with:
-        node-version: 12.x
+        node-version: 18.17.1
 
+    - name: Install OpenActive.Server.NET dependencies
+      run: dotnet restore ./server/
 
-    - name: Build OpenActive.Server.NET Reference Implementation with dependencies
-      run: dotnet build ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release
-      working-directory: server
-    - name: Start OpenActive.Server.NET Reference Implementation
+    - name: Build .NET Core Authentication Authority Reference Implementation
+      run: dotnet build ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-restore
+    - name: Start .NET Core Authentication Authority Reference Implementation
       run: |
-        dotnet run --project ./Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
-      working-directory: server
-
+        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore.IdentityServer/BookingSystem.AspNetCore.IdentityServer.csproj --configuration Release --no-build &
+    - name: Build .NET Core Booking Server Reference Implementation
+      run: dotnet build ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-restore
+    - name: Start .NET Core Booking Server Reference Implementation
+      run: |
+        dotnet run --no-launch-profile --project ./server/Examples/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj --configuration Release --no-build &
+      env:
+        ASPNETCORE_ENVIRONMENT: ${{ matrix.profile }}
 
     - name: Install OpenActive Test Suite
       run: | 
         npm install
       working-directory: tests
-    - name: Run OpenActive Integration Tests in Random Mode
-      run: npm start
-      env:
-        FORCE_COLOR: 1
-        NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/random/", "useRandomOpportunities": true, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/random/certification/" }
-        NODE_ENV: 
-        NODE_APP_INSTANCE: ci
-      working-directory: tests
-    - name: Upload test output for Random Mode as artifact
-      uses: actions/upload-artifact@v2
-      if: ${{ success() || failure() }}
-      with:
-        name: test-output-${{ matrix.os }}-random
-        path: ./tests/publish/example-output/random/
-      
-    - name: Run OpenActive Integration Tests in Controlled Mode
-      run: npm start
-      env:
-        FORCE_COLOR: 1
-        NODE_CONFIG: |
-          {"outputPath": "../../publish/example-output/controlled/", "useRandomOpportunities": false, "generateConformanceCertificate": true, "conformanceCertificateId": "https://openactive.io/openactive-test-suite/example-output/controlled/certification/" }
-        NODE_ENV: 
-        NODE_APP_INSTANCE: ci
-      working-directory: tests
-    - name: Upload test output for Controlled Mode as artifact
-      uses: actions/upload-artifact@v2
-      if: ${{ success() || failure() }}
-      with:
-        name: test-output-${{ matrix.os }}-controlled
-        path: ./tests/publish/example-output/controlled/
 
+    - name: Run OpenActive Integration Tests in ${{ matrix.mode }} mode
+      run: npm start
+      env:
+        FORCE_COLOR: 1
+        NODE_CONFIG: |
+          {"broker": {"outputPath": "../../output/"}, "integrationTests": {"outputPath": "../../output/", "useRandomOpportunities": ${{ matrix.mode == 'random' }}, "implementedFeatures": { "minimal-proposal": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }}, "proposal-amendment": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }} }, "bookingFlowsInScope": { "OpenBookingSimpleFlow": ${{ matrix.flow == 'simple' || matrix.flow == 'both' }}, "OpenBookingApprovalFlow": ${{ matrix.flow == 'approval' || matrix.flow == 'both' }} } }}
+        NODE_ENV: .example.${{ matrix.profile }}
+        NODE_APP_INSTANCE: ci
+      working-directory: tests
+    # Two purposes to uploading the output from these tests:
+    # 1. So that the `deploy-output` job can use this output in order to publish it, as examples, to gh-pages
+    # 2. Make the artifact downloadable from GitHub to a developer so that they can debug
+    - name: Upload test output for ${{ matrix.mode }} mode as artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ success() || failure() }}
+      with:
+        name: ${{ matrix.mode }}.${{ matrix.profile }}.${{ matrix.flow }}
+        path: ./tests/output/
+
+  deploy-output:
+    needs: tests
+    # Master branch only
+    if: ${{ github.ref == 'refs/heads/master' }}
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    # Checkout the repo to seed the contents of ./tests/publish/
+    - name: Checkout OpenActive Test Suite
+      uses: actions/checkout@v4
+      with:
+        path: tests
+    - name: Download test output for Random Mode
+      uses: actions/download-artifact@v4
+      with:
+        name: random.all-features.both
+        path: ./tests/publish/example-output/random/
+    - name: Download test output for Controlled Mode
+      uses: actions/download-artifact@v4
+      with:
+        name: controlled.all-features.both
+        path: ./tests/publish/example-output/controlled/
     - name: Deploy test output to GitHub Pages (master branch on ubuntu only)
       uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' }}
+      
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./tests/publish

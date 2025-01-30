@@ -1,15 +1,13 @@
-/* eslint-disable no-unused-vars */
-const chakram = require('chakram');
-const chai = require('chai'); // The latest version for new features than chakram includes
-const { RequestState } = require('../../../../helpers/request-state');
-const { FlowHelper } = require('../../../../helpers/flow-helper');
+const { expect } = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
-const sharedValidationTests = require('../../../../shared-behaviours/validation');
-const { GetMatch, C1, C2, B, Common } = require('../../../../shared-behaviours');
+const { Common } = require('../../../../shared-behaviours');
+const { FlowStageUtils, FlowStageRecipes } = require('../../../../helpers/flow-stages');
+const { itShouldReturnHttpStatus } = require('../../../../shared-behaviours/errors');
 
-const { expect } = chakram;
-/* eslint-enable no-unused-vars */
-
+/**
+ * @typedef {import('../../../../helpers/flow-stages/c1').C1FlowStageType} C1FlowStageType
+ * @typedef {import('../../../../helpers/flow-stages/c2').C2FlowStageType} C2FlowStageType
+ */
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
@@ -23,76 +21,59 @@ FeatureHelper.describeFeature(module, {
   // The secondary opportunity criteria to use for multiple OrderItem tests
   controlOpportunityCriteria: 'TestOpportunityBookable',
 },
-function (configuration, orderItemCriteria, featureIsImplemented, logger, state, flow) {
-  beforeAll(async function () {
-    await state.fetchOpportunities(orderItemCriteria);
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
+  const { fetchOpportunities, c1, c2 } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, { c1ExpectToFail: true, c2ExpectToFail: true });
 
-    return chakram.wait();
-  });
+  // # Set up Tests
 
-  describe('Get Opportunity Feed Items', function () {
-    (new GetMatch({
-      state, flow, logger, orderItemCriteria,
-    }))
-      .beforeSetup()
-      .successChecks()
-      .validationTests();
-  });
+  /**
+   * C1/C2 should have returned that the full opportunity is indeed full.
+   *
+   * @param {C1FlowStageType | C2FlowStageType} flowStage
+   */
+  function itShouldReturnOpportunityIsFullError(flowStage) {
+    itShouldReturnHttpStatus(409, () => flowStage.getOutput().httpResponse);
 
-  const shouldReturnOpportunityIsFullError = (stage, responseAccessor) => {
-    it('should return 409', () => {
-      stage.expectResponseReceived();
-      expect(responseAccessor()).to.have.status(409);
+    Common.itForEachOrderItemByControl({
+      orderItemCriteriaList,
+      getFeedOrderItems: () => fetchOpportunities.getOutput().orderItems,
+      getOrdersApiResponse: () => flowStage.getOutput().httpResponse,
+    },
+    'should include an OpportunityIsFullError',
+    (feedOrderItem, apiResponseOrderItem, apiResponseOrderItemErrorTypes) => {
+      expect(apiResponseOrderItemErrorTypes).to.include('OpportunityIsFullError');
+
+      if (apiResponseOrderItem.orderedItem['@type'] === 'Slot') {
+        expect(apiResponseOrderItem).to.nested.include({
+          'orderedItem.remainingUses': 0,
+        });
+      } else {
+        expect(apiResponseOrderItem).to.nested.include({
+          'orderedItem.remainingAttendeeCapacity': 0,
+        });
+      }
+    },
+    'should not include an OpportunityIsFullError',
+    (feedOrderItem, apiResponseOrderItem, apiResponseOrderItemErrorTypes) => {
+      expect(apiResponseOrderItemErrorTypes).not.to.include('OpportunityIsFullError');
+
+      if (apiResponseOrderItem.orderedItem['@type'] === 'Slot') {
+        expect(apiResponseOrderItem).to.nested.include({
+          'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
+        });
+      } else {
+        expect(apiResponseOrderItem).to.nested.include({
+          'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
+        });
+      }
     });
+  }
 
-    Common.itForOrderItemByControl(orderItemCriteria, state, stage, () => responseAccessor().body,
-      'should include an OpportunityIsFullError',
-      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
-        chai.expect(responseOrderItemErrorTypes).to.include('OpportunityIsFullError');
-
-        if (responseOrderItem.orderedItem['@type'] === 'Slot') {
-          chai.expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingUses': 0,
-          });
-        } else {
-          chai.expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingAttendeeCapacity': 0,
-          });
-        }
-      },
-      'should not include an OpportunityIsFullError',
-      (feedOrderItem, responseOrderItem, responseOrderItemErrorTypes) => {
-        chai.expect(responseOrderItemErrorTypes).not.to.include('OpportunityIsFullError');
-
-        if (responseOrderItem.orderedItem['@type'] === 'Slot') {
-          chai.expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingUses': feedOrderItem.orderedItem.remainingUses,
-          });
-        } else {
-          chai.expect(responseOrderItem).to.nested.include({
-            'orderedItem.remainingAttendeeCapacity': feedOrderItem.orderedItem.remainingAttendeeCapacity,
-          });
-        }
-      });
-  };
-
-  describe('C1', function () {
-    const c1 = (new C1({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    shouldReturnOpportunityIsFullError(c1, () => state.c1Response);
+  FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(fetchOpportunities);
+  FlowStageUtils.describeRunAndCheckIsValid(c1, () => {
+    itShouldReturnOpportunityIsFullError(c1.getStage('c1'));
   });
-
-  describe('C2', function () {
-    const c2 = (new C2({
-      state, flow, logger,
-    }))
-      .beforeSetup()
-      .validationTests();
-
-    shouldReturnOpportunityIsFullError(c2, () => state.c2Response);
+  FlowStageUtils.describeRunAndCheckIsValid(c2, () => {
+    itShouldReturnOpportunityIsFullError(c2.getStage('c2'));
   });
 });

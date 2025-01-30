@@ -1,16 +1,170 @@
+<head>
+<style>
+h2 {
+    cursor: pointer;
+    border-top-color: #CCC;
+    border-top-width: 1px;
+    border-top-style: solid;
+    padding-top: 5px;
+}
+h2:hover {
+    color: #0056b3; /* Example color change on hover */
+}
+</style>
+</head>
+
+<button id="collapseH2Button">Collapse All Sections</button>
+<button id="showH2Button">Show All Sections</button>
+<button id="showOnlyErrorsButton">Show All Errors</button>
+
+
 # Summary of Test Suite Results for '{{ bookingServiceName }}'
 
 Mode: **{{ useRandomOpportunitiesMode }}**
 
-{{#each opportunityTypeGroups }}
-{{ opportunityTypeName }}
----
+{{#if testResultSummary.numPassedTests}}✅ {{ testResultSummary.numPassedTests }} passing
+{{/if}}{{#if testResultSummary.numFailedTests}}❌ {{ testResultSummary.numFailedTests }} failing
+{{/if}}{{#if testResultSummary.numPendingTests}}– {{ testResultSummary.numPendingTests }} pending
+{{/if}}
+
+{{#if missingOpportunityDataSummary}}
+
+## ❌ Missing Opportunity Data
+
+Some of the tests failed because there were not enough opportunities in the booking system under test that matched the required [criteria](https://github.com/openactive/openactive-test-suite/blob/master/packages/openactive-integration-tests/test/features/README.md).
+
+This only happens when using [Random Mode](https://developer.openactive.io/open-booking-api/test-suite#random-mode) as opposed to [Controlled Mode](https://developer.openactive.io/open-booking-api/test-suite#controlled-mode).
+
+In order to pass these tests, please increase the number of opportunities in the Booking System. Make sure that there are many opportunities available that match each criteria.
+
+You can use [test-data-generator](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests/test-data-generator) to get a specification of how much of each type of opportunity you need to generate.
+
+If any of these criteria are not relevant to your Booking System, you may need to remove the relevant feature from your Test Suite configuration (See [`implementedFeatures`](https://github.com/openactive/openactive-test-suite/tree/master/packages/openactive-integration-tests#implementedfeatures)).
+
+### Results
+
+This is a list of the criteria, opportunity type, etc for which no opportunities
+were found, that also includes a list of which tests failed as a result:
+
+{{!-- This is rendered to HTML as the markdown->HTML renderer was creating <p>s
+  for each root list item, which resulted in overlarge margins --}}
+<ul>
+  {{#each missingOpportunityDataSummary}}
+
+  <li>
+    ❌️ Missing Criteria: <strong><a href="https://openactive.io/test-interface#{{@key}}">{{@key}}</a></strong>
+    <ul>
+      <li><a href="https://developer.openactive.io/publishing-data/data-feeds/types-of-feed#event-relationship-overview">Opportunity Types</a>: {{#each (lookup . "opportunityTypes")}}<strong>{{.}}</strong>{{#unless @last}}, {{/unless}}{{/each}}</li>
+      <li><a href="https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/#booking-flows">Booking Flows</a>: {{#each (lookup . "bookingFlows")}}<strong>{{.}}</strong>{{#unless @last}}, {{/unless}}{{/each}}</li>
+      <li>Sellers: {{#each (lookup . "sellerIds")}}<code>{{.}}</code>{{#unless @last}}, {{/unless}}{{/each}}</li>
+      <li>Tests failing as a result: {{lookup . "numTestsFailing"}}</li>
+    </ul>
+  </li>
+
+  {{/each}}
+</ul>
+
+{{/if}}
+
+## Tests
+
+{{#eachSorted opportunityTypeGroups }}
+
+### {{{ opportunityTypeName }}}
 
   {{#each featureGroups }}
   * {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
     {{#each loggers}}
-    - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ markdownLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
+    - {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ htmlLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
     {{/each}}
   {{/each}}
 
-{{/each}}
+{{/eachSorted}}
+
+---
+
+<script>
+  function collapseH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      if (nextElement.style.display !== 'none') {
+        nextElement.style.display = 'none';
+      }
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function showH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      if (nextElement.style.display !== '') {
+        nextElement.style.display = '';
+      }
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function toggleH2Section(nextElement) {
+    while (nextElement && nextElement.tagName !== 'H2') {
+      // Toggle visibility
+      nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
+      nextElement = nextElement.nextElementSibling;
+    }
+  }
+
+  function collapseAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      collapseH2Section(nextElement);
+    });
+  }
+  function showAllH2Sections() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      showH2Section(nextElement);
+    });
+  }
+
+  function showOnlyErrorH2() {
+    var h2Elements = document.querySelectorAll('h2');
+    h2Elements.forEach(function (h2) {
+      var nextElement = h2.nextElementSibling;
+      if (nextElement.innerHTML.includes('❌')) {
+        showH2Section(nextElement);
+      } else {
+        collapseH2Section(nextElement);
+      }
+    });
+  }
+
+
+  // Show/Hide each header section
+  document.querySelectorAll('h2').forEach(function (h2) {
+    h2.addEventListener('click', function () {
+      let nextElement = this.nextElementSibling;
+      toggleH2Section(nextElement)
+    });
+  });
+
+  // Show all header sections
+  document.getElementById('showH2Button').addEventListener('click', function () {
+    showAllH2Sections();
+  });
+
+  // Collapse all header sections
+  document.getElementById('collapseH2Button').addEventListener('click', function () {
+    collapseAllH2Sections();
+  });
+
+  // Show only error sections button
+  document.getElementById('showOnlyErrorsButton').addEventListener('click', function () {
+    showOnlyErrorH2();
+  });
+
+  // Show only errors by default
+  showOnlyErrorH2();
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>

@@ -1,0 +1,10 @@
+{
+  "category": "cancellation",
+  "identifier": "customer-requested-cancellation-always-allowed",
+  "name": "Customer Requested Cancellation is available for all opportunities",
+  "description": "This feature should be enabled if Customer Requested Cancellation cannot be disabled by the Seller",
+  "explainer": "",
+  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#customer-requested-cancellation",
+  "required": false,
+  "coverageStatus": "complete"
+}

@@ -2,9 +2,9 @@
   "category": "details-capture",
   "identifier": "additional-details-capture",
   "name": "Additional Details capture",
-  "description": "Support for capturing additional details ",
-  "explainer": "",
+  "description": "Support for capturing additional details with required set to true",
+  "explainer": "Note the test suite does not yet support testing of optional additional details",
   "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#additional-details-capture",
   "required": false,
-  "coverageStatus": "none"
+  "coverageStatus": "complete"
 }

@@ -1,0 +1,11 @@
+{
+  "category": "access",
+  "identifier": "access-channel",
+  "name": "accessChannel - Seller provided remote access",
+  "description": "For online opportunities, an accessChannel (or a customerNotice indicating that an accessChannel will be sent soon) is provided upon booking with B",
+  "explainer": "",
+  "specificationReference": "https://github.com/openactive/open-booking-api/issues/176",
+  "required": false,
+  "coverageStatus": "complete",
+  "requiredCondition": "Required if there are any online opportunities whose virtual location cannot be shared publicly (e.g. to avoid zoombombing) and must be shared privately to confirmed attendees"
+}
