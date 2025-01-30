@@ -1,21 +1,28 @@
 <head>
 <style>
 h3 {
-    cursor: pointer;
-    border-top-color: #CCC;
-    border-top-width: 1px;
-    border-top-style: solid;
-    padding-top: 5px;
+  cursor: pointer;
 }
 h3:hover {
-    color: #0056b3; /* Example color change on hover */
+  color: #0056b3; /* Example color change on hover */
+}
+
+/* New styling for collapsed sections */
+section.collapsed > *:not(h3) {
+  display: none;
+}
+
+section {
+  border: 1px solid #CCC;
+  padding: 0.5em;
+  margin-bottom: 1em;
 }
 </style>
 </head>
 
 <button id="collapseH3Button">Collapse All Sections</button>
 <button id="showH3Button">Show All Sections</button>
-<button id="showOnlyErrorsButton">Show All Errors</button>
+<label><input type="checkbox" id="hideSuccessToggle" checked> Hide successful results</label>
 
 
 # Summary of Test Suite Results for '{{ bookingServiceName }}'
@@ -70,105 +77,122 @@ were found, that also includes a list of which tests failed as a result:
 
 {{#eachSorted opportunityTypeGroups }}
 
-<h3> {{{ opportunityTypeName }}} </h3>
+<section>
+  <h3>▼ {{{ opportunityTypeName }}}</h3>  {{!-- Indicate expanded by default --}}
 
-<ul>
-  {{#each featureGroups }}
-  <li> {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
+  <ul>
+    {{#each featureGroups }}
+    <li class="feature-group" data-status="{{overallStatus}}">
+      {{{ validationIcon overallStatus }}} {{{ featureName }}} ({{implementedDisplayLabel}})
+      <ul>
+        {{#each loggers}}
+        <li class="logger" data-status="{{overallStatus}}">
+          {{{ validationIcon overallStatus }}} <a href="{{{ htmlLocalPath }}}">{{{ suiteName }}}</a>: ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)
+        </li>
+        {{/each}}
+      </ul>
+    </li>
+    {{/each}}
+  </ul>
+  <div class="all-tests-passing" style="display: none;">
     <ul>
-      {{#each loggers}}
-      <li> {{{ validationIcon overallStatus }}} [{{{ suiteName }}}]({{{ htmlLocalPath }}}): ({{{ numFailed }}} failures, {{{ numWarnings }}} warnings, {{{ numSuggestions }}} suggestions, {{{ numPassed }}} passes)</li>
-      {{/each}}
+      <li>✅ All tests passing</li>
     </ul>
-  </li>
-  {{/each}}
-</ul>
+  </div>
+</section>
 
 {{/eachSorted}}
-
----
-
-<script>
-  function collapseH3Section(nextElement) {
-    while (nextElement && nextElement.tagName !== 'H3') {
-      if (nextElement.style.display !== 'none') {
-        nextElement.style.display = 'none';
-      }
-      nextElement = nextElement.nextElementSibling;
-    }
-  }
-
-  function showH3Section(nextElement) {
-    while (nextElement && nextElement.tagName !== 'H3') {
-      // Explicitly set display to '' to revert to default
-      nextElement.style.display = ''; 
-      nextElement = nextElement.nextElementSibling;
-    }
-  }
-
-  function toggleH3Section(nextElement) {
-    while (nextElement && nextElement.tagName !== 'H3') {
-      // Toggle visibility
-      nextElement.style.display = nextElement.style.display === 'none' ? '' : 'none';
-      nextElement = nextElement.nextElementSibling;
-    }
-  }
-
-  function collapseAllH3Sections() {
-    var H3Elements = document.querySelectorAll('H3');
-    H3Elements.forEach(function (H3) {
-      var nextElement = H3.nextElementSibling;
-      collapseH3Section(nextElement);
-    });
-  }
-
-  function showH3Sections(mode) {
-    var H3Elements = document.querySelectorAll('H3');
-    H3Elements.forEach(function (H3) {
-      var nextElement = H3.nextElementSibling;
-
-      // Always show the H3 section
-      showH3Section(H3);
-      showH3Section(nextElement);
-
-      // Iterate through each li element
-      var liElements = nextElement.querySelectorAll('li');
-      liElements.forEach(function (li) {
-        if (mode === 'all' || (mode === 'error' && li.innerHTML.includes('❌'))) {
-          showH3Section(li); // Show the li element if mode is 'all' or it contains an error and mode is 'error'
-        } else {
-          collapseH3Section(li); // Collapse the li element
-        }
-      });
-    });
-  }
-  
-  // Show/Hide each header section  - toggle
-  document.querySelectorAll('H3').forEach(function (H3) {
-    H3.addEventListener('click', function () {
-      let nextElement = this.nextElementSibling;
-      toggleH3Section(nextElement)
-    });
-  });
-
-  // Collapse all header sections button
-  document.getElementById('collapseH3Button').addEventListener('click', function () {
-    collapseAllH3Sections();
-  });
-
-  // Update button event listeners to use the new function
-  document.getElementById('showH3Button').addEventListener('click', function () {
-    showH3Sections('all'); // Show all sections
-  });
-
-  document.getElementById('showOnlyErrorsButton').addEventListener('click', function () {
-    showH3Sections('error'); // Show only errors
-  });
-
-  // Show only errors by default
-  showH3Sections('error'); 
-</script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Toggle sections on H3 click
+  document.querySelectorAll("section h3").forEach(function(heading) {
+    heading.addEventListener("click", function() {
+      const section = heading.closest("section");
+      const collapsed = section.classList.toggle("collapsed");
+      // Update the emoji to reflect current state
+      heading.textContent = (collapsed ? "► " : "▼ ") + heading.textContent.slice(2);
+    });
+  });
+
+  // Collapse All Sections
+  const collapseAllBtn = document.getElementById("collapseH3Button");
+  collapseAllBtn.addEventListener("click", function() {
+    document.querySelectorAll("section").forEach(function(section) {
+      if (!section.classList.contains("collapsed")) {
+        section.classList.add("collapsed");
+        const heading = section.querySelector("h3");
+        heading.textContent = "► " + heading.textContent.slice(2);
+      }
+    });
+  });
+
+  // Show All Sections
+  const showAllBtn = document.getElementById("showH3Button");
+  showAllBtn.addEventListener("click", function() {
+    document.querySelectorAll("section").forEach(function(section) {
+      if (section.classList.contains("collapsed")) {
+        section.classList.remove("collapsed");
+        const heading = section.querySelector("h3");
+        heading.textContent = "▼ " + heading.textContent.slice(2);
+      }
+    });
+  });
+
+  // Hide successful results toggle
+  const hideSuccessToggle = document.getElementById("hideSuccessToggle");
+  const updateVisibility = function() {
+    const hideSuccess = hideSuccessToggle.checked;
+    document.querySelectorAll(".feature-group, .logger").forEach(function(el) {
+      const status = el.dataset.status || "";
+      if (hideSuccess && status !== "failed") {
+        el.style.display = "none";
+      } else {
+        el.style.display = "";
+      }
+    });
+
+    // Show or hide "✅ All tests passing" if no feature groups are visible
+    document.querySelectorAll("section").forEach(function(sec) {
+      const featureGroups = Array.from(sec.querySelectorAll(".feature-group"));
+      const message = sec.querySelector(".all-tests-passing");
+      if (message) {
+        // If any feature group is visible, hide the message
+        const anyVisible = featureGroups.some(fg => fg.style.display !== "none");
+        message.style.display = anyVisible ? "none" : "";
+      }
+    });
+  };
+  hideSuccessToggle.addEventListener("change", updateVisibility);
+
+  // Initialize visibility on page load
+  updateVisibility();
+
+  // Collapse passing sections if there is at least one failing test
+  const collapsePassingSectionsIfAnyFailing = function() {
+    // Check if there's any failing test in the entire document
+    const anyFailing = document.querySelector(".feature-group[data-status='failed'], .logger[data-status='failed']");
+
+    // If there's a failing test, collapse any section that does NOT contain a failing feature-group/logger
+    if (anyFailing) {
+      document.querySelectorAll("section").forEach(function(section) {
+        const hasFailingChild = section.querySelector(".feature-group[data-status='failed'], .logger[data-status='failed']");
+        if (!hasFailingChild && !section.classList.contains("collapsed")) {
+          section.classList.add("collapsed");
+          const heading = section.querySelector("h3");
+          if (heading && heading.textContent.startsWith("▼ ")) {
+            heading.textContent = "► " + heading.textContent.slice(2);
+          }
+        }
+      });
+    }
+  };
+
+  // Apply the collapse logic right after the first visibility update
+  collapsePassingSectionsIfAnyFailing();
+});
+</script>
