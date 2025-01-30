@@ -420,8 +420,8 @@
     "prepayment-unavailable": {
       "criteriaRequirements": {
         "primary": {
-          "TestOpportunityBookableNonFreePrepaymentUnavailable": 9,
-          "TestOpportunityBookableFree": 3
+          "TestOpportunityBookableNonFreePrepaymentUnavailable": 12,
+          "TestOpportunityBookableFree": 4
         }
       },
       "testInterfaceActionImplementationRequirements": []
