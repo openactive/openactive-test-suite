@@ -11,7 +11,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
-const { createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
+const { harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
 const nodeCleanup = require('node-cleanup');
@@ -43,7 +43,7 @@ const {
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const { state, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
-const { orderFeedContextIdentifier } = require('./util/feed-context-identifier');
+const { orderFeedContextIdentifier, createBrokerFeedContext, getMultibarProgressFromContext } = require('./util/feed-context');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./util/request-utils');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./util/api-utils');
@@ -51,7 +51,7 @@ const { ValidatorWorkerPool } = require('./validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./validator/validator-inputs');
 const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
-const { getOrphanStats, getStatus } = require('./util/get-status');
+const { getOrphanStats, getStatus, millisToMinutesAndSeconds } = require('./util/get-status');
 const { getOrphanJson } = require('./util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('./util/get-opportunity-by-id-from-cache');
 const { getMergedJsonLdContext } = require('./util/jsonld-utils');
@@ -1240,7 +1240,7 @@ const DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED = {
  */
 async function startPollingForOpportunityFeed(datasetDistributionItem, { validatorWorkerPool }) {
   const feedContextIdentifier = datasetDistributionItem.identifier || datasetDistributionItem.name || datasetDistributionItem.additionalType;
-  const feedContext = createFeedContext(feedContextIdentifier, datasetDistributionItem.contentUrl, state.multibar);
+  const feedContext = createBrokerFeedContext(feedContextIdentifier, datasetDistributionItem.contentUrl, state.multibar);
 
   // Set-up parallel validation for items in this feed
   const onValidateItemsForThisFeed = partial(onValidateItems, feedContext);
@@ -1253,11 +1253,12 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     },
   });
 
-  const onFeedEnd = async () => {
+  const setFeedEnded = async () => {
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
       multibar: state.multibar,
     });
   };
+  const onReachedEndOfFeed = createOnReachedEndOfFeedFn(setFeedEnded, feedContext);
 
   // Harvest a parent opportunity feed
   if (DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED[datasetDistributionItem.additionalType] === true) {
@@ -1265,32 +1266,30 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestParentOpportunityPageForThisFeed = partialRight(ingestParentOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    await harvestRPDELossless({
+    storeFeedContext(feedContextIdentifier, feedContext);
+    const harvestRpdeResponse = await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-      processPage: ingestParentOpportunityPageForThisFeed,
-      onFeedEnd,
-      onError: harvestRpdeOnError,
+      processPage: createOnProcessedPageFn(feedContext, ingestParentOpportunityPageForThisFeed),
+      onReachedEndOfFeed,
+      onRetryDueToHttpError: async () => { },
+      optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
       isOrdersFeed: false,
-      state: {
-        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
-      },
+      overrideContext: feedContext,
       loggingFns: {
         log, logError, logErrorDuringHarvest,
       },
       config: {
         howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-        WAIT_FOR_HARVEST,
-        VALIDATE_ONLY,
-        VERBOSE,
-        ORDER_PROPOSALS_FEED_IDENTIFIER,
         REQUEST_LOGGING_ENABLED,
       },
-      options: {
-        multibar: state.multibar, pauseResume: state.pauseResume,
-      },
     });
+    await handleHarvestRpdeErrorResponse({
+      setFeedEnded,
+      feedContextIdentifier,
+      isOrdersFeed: false,
+    }, harvestRpdeResponse);
     return;
   }
   // Harvest a child opportunity feed
@@ -1299,32 +1298,30 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
     state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
     const ingestOpportunityPageForThisFeed = partialRight(ingestChildOpportunityPage, sendItemsToValidatorWorkerPoolForThisFeed);
 
-    await harvestRPDELossless({
+    storeFeedContext(feedContextIdentifier, feedContext);
+    const harvestRpdeResponse = await harvestRPDELossless({
       baseUrl: datasetDistributionItem.contentUrl,
       feedContextIdentifier,
       headers: withOpportunityRpdeHeaders(async () => OPPORTUNITY_FEED_REQUEST_HEADERS),
-      processPage: ingestOpportunityPageForThisFeed,
-      onFeedEnd,
-      onError: harvestRpdeOnError,
+      processPage: createOnProcessedPageFn(feedContext, ingestOpportunityPageForThisFeed),
+      onReachedEndOfFeed,
+      onRetryDueToHttpError: async () => { },
+      optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
       isOrdersFeed: false,
-      state: {
-        context: feedContext, feedContextMap: state.feedContextMap, startTime: state.startTime,
-      },
+      overrideContext: feedContext,
       loggingFns: {
         log, logError, logErrorDuringHarvest,
       },
       config: {
         howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-        WAIT_FOR_HARVEST,
-        VALIDATE_ONLY,
-        VERBOSE,
-        ORDER_PROPOSALS_FEED_IDENTIFIER,
         REQUEST_LOGGING_ENABLED,
       },
-      options: {
-        multibar: state.multibar, pauseResume: state.pauseResume,
-      },
     });
+    await handleHarvestRpdeErrorResponse({
+      setFeedEnded,
+      feedContextIdentifier,
+      isOrdersFeed: false,
+    }, harvestRpdeResponse);
     return;
   }
   logError(`\nERROR: Found unsupported feed in dataset site "${datasetDistributionItem.contentUrl}" with additionalType "${datasetDistributionItem.additionalType}"`);
@@ -1340,40 +1337,206 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
  * @param {ValidatorWorkerPool} args.validatorWorkerPool
  */
 async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, feedBookingPartnerIdentifier, { validatorWorkerPool }) {
-  const onFeedEnd = async () => {
+  const feedContext = createBrokerFeedContext(feedContextIdentifier, feedUrl, state.multibar);
+
+  const setFeedEnded = async () => {
     OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
     await setFeedIsUpToDate(validatorWorkerPool, feedContextIdentifier, {
       multibar: state.multibar,
     });
   };
+  const onReachedEndOfFeed = createOnReachedEndOfFeedFn(setFeedEnded, feedContext);
 
   state.incompleteFeeds.markFeedHarvestStarted(feedContextIdentifier);
-  await harvestRPDELossless({
+  storeFeedContext(feedContextIdentifier, feedContext);
+  const harvestRpdeResponse = await harvestRPDELossless({
     baseUrl: feedUrl,
     feedContextIdentifier,
     headers: withOrdersRpdeHeaders(getOrdersFeedHeader(feedBookingPartnerIdentifier)),
-    processPage: monitorOrdersPage(type, feedBookingPartnerIdentifier),
-    onFeedEnd,
-    onError: harvestRpdeOnError,
-    isOrdersFeed: true,
-    state: {
-      feedContextMap: state.feedContextMap, startTime: state.startTime,
+    processPage: createOnProcessedPageFn(feedContext, monitorOrdersPage(type, feedBookingPartnerIdentifier)),
+    onReachedEndOfFeed,
+    onRetryDueToHttpError: async () => {
+      // Do not wait for the Orders feed if failing (as it might be an auth error)
+      if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
+        await setFeedEnded();
+      }
     },
+    optionallyWaitBeforeNextRequest: optionallyWaitBeforeNextHarvestRpdeRequest,
+    isOrdersFeed: true,
+    overrideContext: feedContext,
     loggingFns: {
       log, logError, logErrorDuringHarvest,
     },
     config: {
       howLongToSleepAtFeedEnd: harvestRpdeHowLongToSleepAtFeedEnd,
-      WAIT_FOR_HARVEST,
-      VALIDATE_ONLY,
-      VERBOSE,
-      ORDER_PROPOSALS_FEED_IDENTIFIER,
       REQUEST_LOGGING_ENABLED,
     },
-    options: {
-      multibar: state.multibar, pauseResume: state.pauseResume,
-    },
   });
+  await handleHarvestRpdeErrorResponse({
+    setFeedEnded,
+    feedContextIdentifier,
+    isOrdersFeed: true,
+  }, harvestRpdeResponse);
+}
+
+/**
+ * @param {() => Promise<void>} setFeedEnded
+ * @param {import('./util/feed-context').BrokerFeedContext} feedContext
+ *   ! This is mutated
+ */
+function createOnReachedEndOfFeedFn(setFeedEnded, feedContext) {
+  /**
+   * @param {object} params
+   * @param {string} params.lastPageUrl
+   * @param {boolean} params.isInitialHarvestComplete
+   * @param {number} params.responseTime
+   */
+  return async ({ lastPageUrl, isInitialHarvestComplete, responseTime }) => {
+    // Update progress bar to indicate that the feed has been harvested (if this
+    // is the initial harvest - subsequent harvests don't get progress bars)
+    if (!isInitialHarvestComplete) {
+      if (feedContext._progressbar) {
+        feedContext._progressbar.update(feedContext.validatedItems, {
+          pages: feedContext.pageIndex,
+          responseTime: Math.round(responseTime),
+          ...getMultibarProgressFromContext(feedContext),
+          status: feedContext.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
+        });
+        feedContext._progressbar.setTotal(feedContext.totalItemsQueuedForValidation);
+      }
+    }
+
+    if (WAIT_FOR_HARVEST || VALIDATE_ONLY) {
+      await setFeedEnded();
+    } else if (VERBOSE) log(`Sleep mode poll for RPDE feed "${lastPageUrl}"`);
+
+    // eslint-disable-next-line no-param-reassign
+    feedContext.sleepMode = true;
+    if (feedContext.timeToHarvestCompletion === undefined) {
+    // eslint-disable-next-line no-param-reassign
+      feedContext.timeToHarvestCompletion = millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime());
+    }
+  };
+}
+
+/**
+ * @param {import('./util/feed-context').BrokerFeedContext} feedContext
+ * @param {(rpdePage: any,feedIdentifier: string, isInitialHarvestComplete: () => boolean) => Promise<void>} internalProcessPageFn
+ */
+function createOnProcessedPageFn(feedContext, internalProcessPageFn) {
+  /**
+   * @param {object} params
+   * @param {any} params.rpdePage
+   * @param {string} params.feedContextIdentifier
+   * @param {() => boolean} params.isInitialHarvestComplete
+   * @param {number} params.responseTime
+   */
+  return async ({
+    rpdePage,
+    feedContextIdentifier,
+    isInitialHarvestComplete,
+    responseTime,
+  }) => {
+    await internalProcessPageFn(rpdePage, feedContextIdentifier, isInitialHarvestComplete);
+
+    if (!isInitialHarvestComplete && feedContext._progressbar) {
+      feedContext._progressbar.update(feedContext.validatedItems, {
+        pages: feedContext.pageIndex,
+        responseTime: Math.round(responseTime),
+        ...getMultibarProgressFromContext(feedContext),
+      });
+      feedContext._progressbar.setTotal(feedContext.totalItemsQueuedForValidation);
+    }
+  };
+}
+
+/**
+ * @param {object} config
+ * @param {() => Promise<void>} config.setFeedEnded
+ * @param {string} config.feedContextIdentifier
+ * @param {boolean} config.isOrdersFeed
+ * @param {import('@openactive/harvesting-utils/built-types/src/models/HarvestRpde').HarvestRpdeResponse} response
+ */
+async function handleHarvestRpdeErrorResponse({
+  setFeedEnded,
+  feedContextIdentifier,
+  isOrdersFeed,
+}, response) {
+  // Do not wait for the Orders feed if failing (as it might be an auth error)
+  if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && isOrdersFeed) {
+    await setFeedEnded();
+  }
+  const { error } = response;
+  switch (error.type) {
+    case 'feed-not-found': {
+      const feedContext = state.feedContextMap.get(feedContextIdentifier);
+      if (state.multibar) state.multibar.remove(feedContext._progressbar);
+      if ((WAIT_FOR_HARVEST || VALIDATE_ONLY) && !isOrdersFeed) {
+        await setFeedEnded();
+      }
+      state.feedContextMap.delete(feedContextIdentifier);
+      // Ignore Order Proposals feed not found errors as many implementations
+      // do not support this type of feed.
+      if (feedContextIdentifier.indexOf(ORDER_PROPOSALS_FEED_IDENTIFIER) > 0) {
+        return;
+      }
+      const pdi = pageDescriptiveIdentifier(feedContextIdentifier, error.reqUrl, error.reqHeaders);
+      logErrorDuringHarvest(`Not Found error for ${pdi}, feed will be ignored.`);
+      break;
+    }
+    case 'unexpected-non-http-error': {
+      if (state.multibar) state.multibar.stop();
+      logErrorDuringHarvest(`\nFATAL ERROR: ${error.message}`);
+      process.exit(1);
+      break;
+    }
+    case 'rpde-validation-error': {
+      if (state.multibar) state.multibar.stop();
+      const pdi = pageDescriptiveIdentifier(feedContextIdentifier, error.reqUrl, error.reqHeaders);
+      logErrorDuringHarvest(
+        `\nFATAL ERROR: RPDE Validation Error(s) found on ${pdi}:\n${error.rpdeValidationErrors
+          // @ts-expect-error This will be fixed when RPDE validation errors get types
+          .map((rpdeValidationError) => `- ${rpdeValidationError.message.split('\n')[0]}`)
+          .join('\n')}\n`,
+      );
+      process.exit(1);
+      break;
+    }
+    case 'retry-limit-exceeded-for-http-error': {
+      if (state.multibar) state.multibar.stop();
+      const pdi = pageDescriptiveIdentifier(feedContextIdentifier, error.reqUrl, error.reqHeaders);
+      logErrorDuringHarvest(`\nFATAL ERROR: Retry limit exceeded for ${pdi}\n`);
+      process.exit(1);
+      break;
+    }
+    default:
+      process.exit(1);
+  }
+}
+
+async function optionallyWaitBeforeNextHarvestRpdeRequest() {
+  // If harvesting is paused, block using the mute
+  if (state.pauseResume) await state.pauseResume.waitIfPaused();
+}
+
+/**
+ * @param {string} feedContextIdentifier
+ * @param {string} reqUrl
+ * @param {Record<string, string>} reqHeaders
+ */
+function pageDescriptiveIdentifier(feedContextIdentifier, reqUrl, reqHeaders) {
+  return `RPDE feed ${feedContextIdentifier} page "${reqUrl}" (request headers: ${JSON.stringify(reqHeaders)})`;
+}
+
+/**
+ * @param {string} feedContextIdentifier
+ * @param {import('./util/feed-context').BrokerFeedContext} feedContext
+ */
+function storeFeedContext(feedContextIdentifier, feedContext) {
+  if (state.feedContextMap.has(feedContextIdentifier)) {
+    throw new Error('Duplicate feed identifier not permitted within dataset distribution.');
+  }
+  state.feedContextMap.set(feedContextIdentifier, feedContext);
 }
 
 /**
@@ -1424,7 +1587,7 @@ async function sendItemsToValidatorWorkerPool({
  * Callback called after a batch of items is validated from an opportunity
  * feed. Updates the progress bar.
  *
- * @param {import('@openactive/harvesting-utils').FeedContext} context
+ * @param {import('./util/feed-context').BrokerFeedContext} context
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
@@ -1433,12 +1596,12 @@ function onValidateItems(context, numItems) {
     context._progressbar.setTotal(context.totalItemsQueuedForValidation);
     if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
       context._progressbar.update(context.validatedItems, {
-        ...progressFromContext(context),
+        ...getMultibarProgressFromContext(context),
         status: 'Validation Complete',
       });
       context._progressbar.stop();
     } else {
-      context._progressbar.update(context.validatedItems, progressFromContext(context));
+      context._progressbar.update(context.validatedItems, getMultibarProgressFromContext(context));
     }
   }
 }
@@ -1446,10 +1609,6 @@ function onValidateItems(context, numItems) {
 function harvestRpdeHowLongToSleepAtFeedEnd() {
   // Slow down sleep polling while waiting for harvesting of other feeds to complete
   return WAIT_FOR_HARVEST && state.incompleteFeeds.anyFeedsStillHarvesting() ? 5000 : 500;
-}
-
-function harvestRpdeOnError() {
-  process.exit(1);
 }
 
 module.exports = {

@@ -1,7 +1,7 @@
 const { ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../constants');
 const { error409IfListenerAlreadyExists } = require('../twoPhaseListeners/utils');
 const { TwoPhaseListeners: Listeners } = require('../twoPhaseListeners/twoPhaseListeners');
-const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
+const { orderFeedContextIdentifier } = require('../util/feed-context');
 
 /**
  * @typedef {import('../models/core').OrderFeedType} OrderFeedType

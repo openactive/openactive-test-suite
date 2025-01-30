@@ -161,7 +161,6 @@ describe('user-facing endpoints', () => {
       OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'primary', 'uuid4');
       OrderUuidTracking.doTrackEndOfFeed(orderUuidTracking, 'orders', 'primary');
       OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'secondary', 'uuidB2');
-      // TODO3 now test various things
 
       const result = getStatus({
         DO_NOT_FILL_BUCKETS: false,
