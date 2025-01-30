@@ -11,7 +11,7 @@ const { IncompleteFeeds } = require('./incomplete-feeds');
 
 /**
  * @typedef {import('./validator/validator-worker-pool').ValidatorWorkerPoolType} ValidatorWorkerPoolType
- * @typedef {import('@openactive/harvesting-utils').FeedContext} FeedContext
+ * @typedef {import('./util/feed-context').BrokerFeedContext} BrokerFeedContext
  */
 /**
  * @typedef {object} PendingResponse
@@ -47,7 +47,7 @@ const state = {
    *   - 'OrderProposalsFeed (auth:${bookingPartnerIdentifier})' - the OrderProposalsFeed for a given Booking Partner (e.g. `primary`)
    *   - 'ScheduledSession'|'SessionSeries'|'FacilityUseSlot'|..etc - one of the Opportunity feeds.
    *
-   * @type {Map<string, FeedContext>}
+   * @type {Map<string, BrokerFeedContext>}
    */
   feedContextMap: new Map(),
   incompleteFeeds: new IncompleteFeeds(),

@@ -11,7 +11,7 @@ const cliProgress = require('cli-progress');
 const { validate } = require('@openactive/data-model-validator');
 const { expect } = require('chai');
 const { isNil, partialRight } = require('lodash');
-const { createFeedContext, progressFromContext, harvestRPDELossless } = require('@openactive/harvesting-utils');
+const { harvestRPDELossless } = require('@openactive/harvesting-utils');
 const { partial } = require('lodash');
 const path = require('path');
 const nodeCleanup = require('node-cleanup');
@@ -43,7 +43,7 @@ const {
 } = require('./broker-config');
 const { TwoPhaseListeners } = require('./twoPhaseListeners/twoPhaseListeners');
 const { state, setGlobalValidatorWorkerPool, getGlobalValidatorWorkerPool } = require('./state');
-const { orderFeedContextIdentifier } = require('./util/feed-context-identifier');
+const { orderFeedContextIdentifier, createBrokerFeedContext, getMultibarProgressFromContext } = require('./util/feed-context');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('./util/request-utils');
 const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking');
 const { error400IfExpressParamsAreMissing } = require('./util/api-utils');
@@ -1240,7 +1240,7 @@ const DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED = {
  */
 async function startPollingForOpportunityFeed(datasetDistributionItem, { validatorWorkerPool }) {
   const feedContextIdentifier = datasetDistributionItem.identifier || datasetDistributionItem.name || datasetDistributionItem.additionalType;
-  const feedContext = createFeedContext(feedContextIdentifier, datasetDistributionItem.contentUrl, state.multibar);
+  const feedContext = createBrokerFeedContext(feedContextIdentifier, datasetDistributionItem.contentUrl, state.multibar);
 
   // Set-up parallel validation for items in this feed
   const onValidateItemsForThisFeed = partial(onValidateItems, feedContext);
@@ -1276,8 +1276,6 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       onReachedEndOfFeed,
       onProcessedPage,
       onRetryDueToHttpError: async () => { },
-      // onError: harvestRpdeOnError,
-      // onFeedNotFoundError: createOnFeedNotFoundError(setFeedEnded, feedContextIdentifier, false),
       isOrdersFeed: false,
       state: {
         context: feedContext,
@@ -1290,7 +1288,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
         REQUEST_LOGGING_ENABLED,
       },
       options: {
-        multibar: state.multibar, pauseResume: state.pauseResume,
+        pauseResume: state.pauseResume,
       },
     });
     await handleHarvestRpdeErrorResponse({
@@ -1315,9 +1313,6 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
       onReachedEndOfFeed,
       onProcessedPage,
       onRetryDueToHttpError: async () => { },
-      // onFeedEnd: setFeedEnded,
-      // onError: harvestRpdeOnError,
-      // onFeedNotFoundError: createOnFeedNotFoundError(setFeedEnded, feedContextIdentifier, false),
       isOrdersFeed: false,
       state: {
         context: feedContext,
@@ -1330,7 +1325,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
         REQUEST_LOGGING_ENABLED,
       },
       options: {
-        multibar: state.multibar, pauseResume: state.pauseResume,
+        pauseResume: state.pauseResume,
       },
     });
     await handleHarvestRpdeErrorResponse({
@@ -1353,7 +1348,7 @@ async function startPollingForOpportunityFeed(datasetDistributionItem, { validat
  * @param {ValidatorWorkerPool} args.validatorWorkerPool
  */
 async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, feedBookingPartnerIdentifier, { validatorWorkerPool }) {
-  const feedContext = createFeedContext(feedContextIdentifier, feedUrl, state.multibar);
+  const feedContext = createBrokerFeedContext(feedContextIdentifier, feedUrl, state.multibar);
 
   const setFeedEnded = async () => {
     OrderUuidTracking.doTrackEndOfFeed(state.orderUuidTracking, type, feedBookingPartnerIdentifier);
@@ -1379,8 +1374,6 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
         await setFeedEnded();
       }
     },
-    // onError: harvestRpdeOnError,
-    // onFeedNotFoundError: createOnFeedNotFoundError(setFeedEnded, feedContextIdentifier, true),
     isOrdersFeed: true,
     state: {
       context: feedContext,
@@ -1393,7 +1386,7 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
       REQUEST_LOGGING_ENABLED,
     },
     options: {
-      multibar: state.multibar, pauseResume: state.pauseResume,
+      pauseResume: state.pauseResume,
     },
   });
   await handleHarvestRpdeErrorResponse({
@@ -1405,7 +1398,7 @@ async function startPollingForOrderFeed(feedUrl, type, feedContextIdentifier, fe
 
 /**
  * @param {() => Promise<void>} setFeedEnded
- * @param {import('@openactive/harvesting-utils').FeedContext} feedContext
+ * @param {import('./util/feed-context').BrokerFeedContext} feedContext
  *   ! This is mutated
  */
 function createOnReachedEndOfFeedFn(setFeedEnded, feedContext) {
@@ -1423,7 +1416,7 @@ function createOnReachedEndOfFeedFn(setFeedEnded, feedContext) {
         feedContext._progressbar.update(feedContext.validatedItems, {
           pages: feedContext.pageIndex,
           responseTime: Math.round(responseTime),
-          ...progressFromContext(feedContext),
+          ...getMultibarProgressFromContext(feedContext),
           status: feedContext.items === 0 ? 'Harvesting Complete (No items to validate)' : 'Harvesting Complete, Validating...',
         });
         feedContext._progressbar.setTotal(feedContext.totalItemsQueuedForValidation);
@@ -1444,7 +1437,7 @@ function createOnReachedEndOfFeedFn(setFeedEnded, feedContext) {
 }
 
 /**
- * @param {import('@openactive/harvesting-utils').FeedContext} feedContext
+ * @param {import('./util/feed-context').BrokerFeedContext} feedContext
  */
 function createOnProcessedPageFn(feedContext) {
   /**
@@ -1461,7 +1454,7 @@ function createOnProcessedPageFn(feedContext) {
       feedContext._progressbar.update(feedContext.validatedItems, {
         pages: feedContext.pageIndex,
         responseTime: Math.round(responseTime),
-        ...progressFromContext(feedContext),
+        ...getMultibarProgressFromContext(feedContext),
       });
       feedContext._progressbar.setTotal(feedContext.totalItemsQueuedForValidation);
     }
@@ -1543,7 +1536,7 @@ function pageDescriptiveIdentifier(feedContextIdentifier, reqUrl, reqHeaders) {
 
 /**
  * @param {string} feedContextIdentifier
- * @param {import('@openactive/harvesting-utils').FeedContext} feedContext
+ * @param {import('./util/feed-context').BrokerFeedContext} feedContext
  */
 function storeFeedContext(feedContextIdentifier, feedContext) {
   if (state.feedContextMap.has(feedContextIdentifier)) {
@@ -1600,7 +1593,7 @@ async function sendItemsToValidatorWorkerPool({
  * Callback called after a batch of items is validated from an opportunity
  * feed. Updates the progress bar.
  *
- * @param {import('@openactive/harvesting-utils').FeedContext} context
+ * @param {import('./util/feed-context').BrokerFeedContext} context
  * @param {number} numItems
  */
 function onValidateItems(context, numItems) {
@@ -1609,12 +1602,12 @@ function onValidateItems(context, numItems) {
     context._progressbar.setTotal(context.totalItemsQueuedForValidation);
     if (context.totalItemsQueuedForValidation - context.validatedItems === 0) {
       context._progressbar.update(context.validatedItems, {
-        ...progressFromContext(context),
+        ...getMultibarProgressFromContext(context),
         status: 'Validation Complete',
       });
       context._progressbar.stop();
     } else {
-      context._progressbar.update(context.validatedItems, progressFromContext(context));
+      context._progressbar.update(context.validatedItems, getMultibarProgressFromContext(context));
     }
   }
 }

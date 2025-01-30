@@ -1,7 +1,7 @@
 const { DO_NOT_HARVEST_ORDERS_FEED, ORDERS_FEED_IDENTIFIER, ORDER_PROPOSALS_FEED_IDENTIFIER } = require('../broker-config');
 const { state } = require('../state');
 const { error400IfExpressParamsAreMissing } = require('../util/api-utils');
-const { orderFeedContextIdentifier } = require('../util/feed-context-identifier');
+const { orderFeedContextIdentifier } = require('../util/feed-context');
 const { withOrdersRpdeHeaders, getOrdersFeedHeader } = require('../util/request-utils');
 const { TwoPhaseListeners } = require('./twoPhaseListeners');
 
