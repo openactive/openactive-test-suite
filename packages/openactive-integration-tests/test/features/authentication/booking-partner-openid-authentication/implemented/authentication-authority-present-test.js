@@ -4,7 +4,7 @@ const { GetDatasetSite } = require('../../../../shared-behaviours');
 
 FeatureHelper.describeFeature(module, {
   testCategory: 'authentication',
-  testFeature: 'booking-partner-authentication',
+  testFeature: 'booking-partner-openid-authentication',
   testFeatureImplemented: true,
   testIdentifier: 'authentication-authority-present',
   testName: 'authenticationAuthority present in dataset site',

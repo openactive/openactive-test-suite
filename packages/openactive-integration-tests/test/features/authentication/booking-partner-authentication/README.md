@@ -1,13 +1,16 @@
 [< Return to Overview](../../README.md)
-# Booking Partner Authentication for Multiple Seller Systems (booking-partner-authentication)
+# Booking Partner Authentication (booking-partner-authentication)
 
-OpenID Connect based Booking Partner authentication.
+Separate Booking Partners should not be able to access/update each others' data
 
 
-https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems
+https://openactive.io/open-booking-api/EditorsDraft/#api-level-authentication-and-data-security
 
 Coverage Status: **complete**
+### Test prerequisites - Opportunities
+Opportunities that match the following criteria must exist in the booking system (for each configured `bookableOpportunityTypesInScope`) for the configured primary Seller in order to use `useRandomOpportunities: true`. Alternatively the following `testOpportunityCriteria` values must be supported by the [test interface](https://openactive.io/test-interface/) of the booking system for `useRandomOpportunities: false`.
 
+[TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4, [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1
 
 
 
@@ -33,9 +36,7 @@ Update `default.json` within `packages/openactive-integration-tests/config/` as 
 
 | Identifier | Name | Description | Prerequisites per Opportunity Type | Required Test Interface Actions |
 |------------|------|-------------|---------------|-------------------|
-| [authentication-authority-present](./implemented/authentication-authority-present-test.js) | authenticationAuthority present in dataset site | The authenticationAuthority must be specified within the dataset site to facilitate Open ID Connect authentication |  |  |
-| [authorization-code-flow](./implemented/authorization-code-flow-test.js) | Authorization Code Flow | The Authorization Code Flow allows Sellers to authenticate with Booking Partners |  |  |
-| [authorization-persisted](./implemented/authorization-persisted-test.js) | Authorization persists when not requesting offline access | When authorisation is requested without offline access and a user has already given permission, consent must not be required. |  |  |
-| [client-credentials-flow](./implemented/client-credentials-flow-test.js) | Client Credentials Flow | Client Credentials Flow allows Booking Partners to access the Orders Feed |  |  |
+| [booking-partner-partitioning-for-order-proposals](./implemented/booking-partner-partitioning-for-order-proposals-test.js) | Booking Partners' Orders are Partitioned | Order Proposals from two different bookings partners must not be visible to each other, and UUID must be unique within each booking partner | [TestOpportunityBookable](https://openactive.io/test-interface#TestOpportunityBookable) x4 |  |
+| [booking-partner-partitioning-for-orders](./implemented/booking-partner-partitioning-for-orders-test.js) | Booking Partners' Orders are Partitioned | Orders from two different bookings partners must not be visible to each other, and UUID must be unique within each booking partner | [TestOpportunityBookableCancellable](https://openactive.io/test-interface#TestOpportunityBookableCancellable) x1 |  |
 
 
