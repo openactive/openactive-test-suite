@@ -39,7 +39,6 @@ FeatureHelper.describeFeature(module, {
         c1.getStage('c1'),
         c2.getStage('c2'),
       ),
-      // TODO2 check that this is what is expected here?
       paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
     });
 
