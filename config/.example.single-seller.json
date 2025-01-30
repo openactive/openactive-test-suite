@@ -22,6 +22,7 @@
   "integrationTests": {
     "implementedFeatures": {
       "multiple-sellers": false,
+      "single-seller": true,
       "booking-partner-authentication": false,
       "dynamic-client-registration": false,
       "business-to-consumer-tax-calculation-net": false,

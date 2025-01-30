@@ -14,8 +14,9 @@ FeatureHelper.describeFeature(module, {
   testDescription: 'A successful replacement of order items by seller.',
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  testInterfaceActions: ['test:ReplacementSimulateAction'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
   const {
     fetchOpportunities,
@@ -25,13 +26,13 @@ FeatureHelper.describeFeature(module, {
     testInterfaceAction,
     orderFeedUpdate,
     // defaultFlowStageParams,
-  } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, {
+  } = FlowStageRecipes.successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, describeFeatureRecord, {
     actionType: 'test:ReplacementSimulateAction',
   });
   /* TODO in order to do proper capacity assertions for this test:
   - uncomment the below stuff, which will assert capacity for items that were in the original Order (before replacement)
   - add logic which will assert capacity for items that have newly been added to Order
-  */
+  This will resolve this issue: https://github.com/openactive/openactive-test-suite/issues/671. */
   // const assertOpportunityCapacity = new AssertOpportunityCapacityFlowStage({
   //   ...defaultFlowStageParams,
   //   prerequisite: orderFeedUpdate,

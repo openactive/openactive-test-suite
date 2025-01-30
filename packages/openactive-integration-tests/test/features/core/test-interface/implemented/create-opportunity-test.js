@@ -19,9 +19,11 @@ FeatureHelper.describeFeature(module, {
   skipMultiple: true,
   runOnlyIf: !USE_RANDOM_OPPORTUNITIES,
 },
-function (configuration, orderItemCriteriaList, featureIsImplemented, logger) {
+function (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) {
   // # Initialise Flow Stages
-  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ orderItemCriteriaList, logger });
+  const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
+    orderItemCriteriaList, logger, describeFeatureRecord,
+  });
   const fetchOpportunities = new FetchOpportunitiesFlowStage({
     ...defaultFlowStageParams,
     orderItemCriteriaList,

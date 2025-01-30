@@ -1,28 +1,15 @@
-export type Opportunity = {
-    [k: string]: any;
-};
-export type Offer = {
-    [k: string]: any;
-    '@type': string;
-    '@id': string;
-};
-export type Options = {
-    harvestStartTime: any;
-    harvestStartTimeTwoHoursLater: any;
-};
-export type OpportunityConstraint = (opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
-export type OfferConstraint = (offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options) => boolean;
-export type Criteria = {
-    name: string;
-    opportunityConstraints: [string, import("../types/Criteria").OpportunityConstraint][];
-    offerConstraints: [string, import("../types/Criteria").OfferConstraint][];
-    testDataShape: import("../types/Criteria").TestDataShapeFactory;
-};
-export type TestDataShapeFactory = (options: import("../types/Options").Options) => import("../types/TestDataShape").TestDataShape;
-export type TestDataShape = import("../types/TestDataShape").TestDataShape;
-export type TestDataNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint | import("../types/TestDataShape").NumericNodeConstraint | import("../types/TestDataShape").BooleanNodeConstraint | import("../types/TestDataShape").NullNodeConstraint | import("../types/TestDataShape").OptionNodeConstraint<any, any> | import("../types/TestDataShape").ArrayConstraint<any, any>;
-export type DateRangeNodeConstraint = import("../types/TestDataShape").DateRangeNodeConstraint;
-export type NumericNodeConstraint = import("../types/TestDataShape").NumericNodeConstraint;
+export type DateTimeType = import('luxon').DateTime;
+export type Opportunity = import('../types/Opportunity').Opportunity;
+export type Offer = import('../types/Offer').Offer;
+export type Options = import('../types/Options').Options;
+export type OpportunityConstraint = import('../types/Criteria').OpportunityConstraint;
+export type OfferConstraint = import('../types/Criteria').OfferConstraint;
+export type Criteria = import('../types/Criteria').Criteria;
+export type TestDataShapeFactory = import('../types/Criteria').TestDataShapeFactory;
+export type TestDataShape = import('../types/TestDataShape').TestDataShape;
+export type TestDataNodeConstraint = import('../types/TestDataShape').TestDataNodeConstraint;
+export type DateRangeNodeConstraint = import('../types/TestDataShape').DateRangeNodeConstraint;
+export type NumericNodeConstraint = import('../types/TestDataShape').NumericNodeConstraint;
 export type ArrayConstraint = import("../types/TestDataShape").ArrayConstraint<any, any>;
 /**
  * @param {object} args
@@ -39,7 +26,7 @@ export function createCriteria({ name, opportunityConstraints, offerConstraints,
     opportunityConstraints: Criteria['opportunityConstraints'];
     offerConstraints: Criteria['offerConstraints'];
     testDataShape: Criteria['testDataShape'];
-    includeConstraintsFromCriteria: Criteria | null;
+    includeConstraintsFromCriteria?: Criteria | null;
 }): Criteria;
 /**
 * @param {Opportunity} opportunity
@@ -63,56 +50,37 @@ export function getRemainingCapacity(opportunity: Opportunity): number | null | 
  *
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no booking window defined.
+ * @returns {DateTimeType | null} null if there is no booking window lower limit defined.
  */
-export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
+export function getDateAfterWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTimeType | null;
+/**
+ * Get the date that the startDate - validThroughBeforeStartDate window starts
+ *
+ * @param {Offer} offer
+ * @param {Opportunity} opportunity
+ * @returns {DateTimeType | null} null if there is no booking window upper limit defined.
+ */
+export function getDateBeforeWhichBookingsCanBeMade(offer: Offer, opportunity: Opportunity): DateTimeType | null;
 /**
  * @param {Offer} offer
  * @param {Opportunity} opportunity
- * @returns {DateTime | null} null if there is no cancellation window defined.
+ * @returns {DateTimeType | null} null if there is no cancellation window defined.
  */
-export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): any | null;
+export function getDateBeforeWhichCancellationsCanBeMade(offer: Offer, opportunity: Opportunity): DateTimeType | null;
 /**
 * @param {Opportunity} opportunity
 * @returns {boolean}
 */
 export function hasCapacityLimitOfOne(opportunity: Opportunity): boolean;
-/**
-* @type {OpportunityConstraint}
-*/
-export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/Opportunity").Opportunity): boolean;
-/**
-* @type {OfferConstraint}
-*/
-export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
-/**
-* @type {OfferConstraint}
-*/
-export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer): boolean;
-/**
- * @type {OfferConstraint}
- */
-export function mustAllowProposalAmendment(offer: import("../types/Offer").Offer): boolean;
-/**
-* @type {OpportunityConstraint}
-*/
-export function startDateMustBe2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
-/**
-* @type {OpportunityConstraint}
-*/
-export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity): boolean;
-/**
-* @type {OpportunityConstraint}
-*/
-export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity): boolean;
-/**
-* @type {OfferConstraint}
-*/
-export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer): boolean;
-/**
-* @type {OfferConstraint}
-*/
-export function mustHaveBeInsideValidFromBeforeStartDateWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
+export function remainingCapacityMustBeAtLeastTwo(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustRequireAttendeeDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustNotRequireAttendeeDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustAllowProposalAmendment(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function startDateMustBeOver2HrsInAdvance(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function endDateMustBeInThePast(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function eventStatusMustNotBeCancelledOrPostponed(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustNotBeOpenBookingInAdvanceUnavailable(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustBeInsideBookingWindowIfOneExists(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 /**
 * For a session, get `organizer`. For a facility, get `provider`.
 * These can be used interchangeably as `organizer` is either a Person or an Organization
@@ -121,34 +89,14 @@ export function mustHaveBeInsideValidFromBeforeStartDateWindow(offer: import("..
 * @param {Opportunity} opportunity
 */
 export function getOrganizerOrProvider(opportunity: Opportunity): any;
-/**
- * @type {OfferConstraint}
- */
-export function mustBeOutsideCancellationWindow(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
-/**
-* @type {OfferConstraint}
-*/
-export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer, opportunity: import("../types/Opportunity").Opportunity, options: import("../types/Options").Options): boolean;
-/**
-* @type {OfferConstraint}
-*/
-export function mustAllowFullRefund(offer: import("../types/Offer").Offer): boolean;
-/**
- * @type {OfferConstraint}
- */
-export function mustRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;
-/**
- * @type {OfferConstraint}
- */
-export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").Offer): boolean;
-/**
- * @type {OpportunityConstraint}
- */
-export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity): boolean;
-/**
- * @type {OfferConstraint}
- */
-export function excludePaidBookableOffersWithPrepaymentUnavailable(offer: import("../types/Offer").Offer): boolean;
+export function mustBeOutsideCancellationWindow(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustNotAllowFullRefund(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustAllowFullRefund(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export const mustAllowFullRefundOfferConstraint: [string, import("../types/Criteria").OfferConstraint];
+export function mustRequireAdditionalDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function mustNotRequireAdditionalDetails(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function sellerMustAllowOpenBooking(opportunity: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
+export function excludePaidBookableOffersWithPrepaymentUnavailable(offer: import("../types/Offer").Offer, opportunity?: import("../types/Opportunity").Opportunity, options?: import("../types/Options").Options): boolean;
 /**
  * Merge constraints so that the result has the simplest representation of the combination of all constraints.
  *
@@ -158,3 +106,9 @@ export function excludePaidBookableOffersWithPrepaymentUnavailable(offer: import
  * @return {TestDataShape}
  */
 export function extendTestDataShape(baseTestDataShape: TestDataShape, extraTestDataShape: TestDataShape, criteriaName: string): TestDataShape;
+/**
+ * @param {string} name
+ * @param {OfferConstraint} constraint
+ * @returns {Criteria['offerConstraints'][number]}
+ */
+export function createCriteriaOfferConstraint(name: string, constraint: OfferConstraint): Criteria['offerConstraints'][number];

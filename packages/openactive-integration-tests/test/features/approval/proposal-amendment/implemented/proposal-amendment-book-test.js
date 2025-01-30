@@ -37,10 +37,12 @@ FeatureHelper.describeFeature(module, {
   // even if some OrderItems don't require approval, the whole Order should
   controlOpportunityCriteria: 'TestOpportunityBookable',
   skipBookingFlows: ['OpenBookingSimpleFlow'],
+  testInterfaceActions: ['test:SellerAmendOrderProposalSimulateAction', 'test:SellerAcceptOrderProposalSimulateAction'],
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // ## Initiate Flow Stages
-  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  const { fetchOpportunities, c1, c2, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
+  const paymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
   const p = new PFlowStage({
     ...defaultFlowStageParams,
     prerequisite: c2.getLastStage(),
@@ -49,6 +51,7 @@ FeatureHelper.describeFeature(module, {
       totalPaymentDue: c2.getStage('c2').getOutput().totalPaymentDue,
       prepayment: c2.getStage('c2').getOutput().prepayment,
     }),
+    paymentIdentifierIfPaid,
   });
   const [simulateSellerAmendment, sellerAmendmentOrderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
     // FlowStage that is getting wrapped
@@ -102,6 +105,7 @@ FeatureHelper.describeFeature(module, {
         orderProposalVersion: p.getOutput().orderProposalVersion,
         prepayment: p.getOutput().prepayment,
       }),
+      paymentIdentifierIfPaid,
     },
   });
   // Using the new proposal version should fail
@@ -116,6 +120,7 @@ FeatureHelper.describeFeature(module, {
         orderProposalVersion: sellerAmendmentOrderFeedUpdate.getOutput().orderProposalVersion,
         prepayment: sellerAmendmentOrderFeedUpdate.getOutput().prepayment,
       }),
+      paymentIdentifierIfPaid,
     },
   });
 
@@ -129,13 +134,12 @@ FeatureHelper.describeFeature(module, {
     itShouldReturnOrderRequiresApprovalTrue(() => c2.getStage('c2').getOutput().httpResponse);
   });
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(p, () => {
-    // TODO does validator already check that orderProposalVersion is of form {orderId}/versions/{versionUuid}?
+    // TODO Validator should check this: https://github.com/openactive/data-model-validator/issues/449
     it('should include an orderProposalVersion, of the form {orderId}/versions/{versionUuid}', () => {
       const { uuid } = defaultFlowStageParams;
       expect(p.getOutput().httpResponse.body).to.have.property('orderProposalVersion')
         .which.matches(RegExp(`${uuid}/versions/.+`));
     });
-    // TODO does validator check that full Seller details are included in the seller response?
   });
 
   FlowStageUtils.describeRunAndCheckIsSuccessfulAndValid(simulateSellerAmendment);

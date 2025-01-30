@@ -5,7 +5,7 @@ import { TestDataShape } from './TestDataShape';
 
 export type OpportunityConstraint = (opportunity: Opportunity, options?: Options) => boolean;
 
-export type OfferConstraint = (offer: Offer, opportunity: Opportunity, options?: Options) => boolean;
+export type OfferConstraint = (offer: Offer, opportunity?: Opportunity, options?: Options) => boolean;
 
 export type TestDataShapeFactory = (options: Options) => TestDataShape;
 

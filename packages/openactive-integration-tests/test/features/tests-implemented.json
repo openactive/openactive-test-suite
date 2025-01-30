@@ -14,7 +14,7 @@
       "notImplementedTestFiles": 1
     },
     "common-error-conditions": {
-      "implementedTestFiles": 6,
+      "implementedTestFiles": 5,
       "notImplementedTestFiles": 1
     },
     "dataset-site": {
@@ -115,11 +115,19 @@
     },
     "multiple-sellers": {
       "implementedTestFiles": 2,
-      "notImplementedTestFiles": 0
+      "notImplementedTestFiles": 1
     },
     "opportunity-feed": {
       "implementedTestFiles": 0,
       "notImplementedTestFiles": 0
+    },
+    "past-opportunities": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
+    },
+    "single-seller": {
+      "implementedTestFiles": 1,
+      "notImplementedTestFiles": 1
     },
     "test-interface": {
       "implementedTestFiles": 1,
@@ -162,11 +170,11 @@
       "notImplementedTestFiles": 0
     },
     "free-opportunities": {
-      "implementedTestFiles": 5,
+      "implementedTestFiles": 6,
       "notImplementedTestFiles": 1
     },
     "non-free-opportunities": {
-      "implementedTestFiles": 2,
+      "implementedTestFiles": 3,
       "notImplementedTestFiles": 1
     },
     "payment-reconciliation-detail-validation": {

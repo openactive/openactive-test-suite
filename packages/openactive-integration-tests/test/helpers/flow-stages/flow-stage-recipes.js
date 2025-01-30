@@ -1,3 +1,4 @@
+const shortid = require('shortid');
 const { AssertOpportunityCapacityFlowStage } = require('./assert-opportunity-capacity');
 const { BFlowStage } = require('./b');
 const { BookRecipe } = require('./book-recipe');
@@ -10,6 +11,8 @@ const { FlowStageUtils } = require('./flow-stage-utils');
 const { OrderFeedUpdateFlowStageUtils } = require('./order-feed-update');
 const { PFlowStage } = require('./p');
 const { TestInterfaceActionFlowStage } = require('./test-interface-action');
+const { fixCalculatedMoneyValue } = require('../money-utils');
+const { ListenerItemExpectationRecipes } = require('../listener-item-expectations');
 
 /**
  * @typedef {import('../logger').BaseLoggerType} BaseLoggerType
@@ -39,6 +42,7 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   bookReqTemplateRef?: PReqTemplateRef | null,
  *   brokerRole?: string | null,
  *   taxMode?: string | null,
+ *   includeAllOptionalFieldsWhenGeneratingCustomer?: boolean,
  *   accessPass?: AccessPassItem[] | null,
  *   defaultFlowStageParams?: DefaultFlowStageParams | null,
  *   c1ExpectToFail?: boolean,
@@ -63,6 +67,9 @@ const { TestInterfaceActionFlowStage } = require('./test-interface-action');
  *   AssertOpportunityCapacity flow stage, which runs after the booking is complete
  * @property {GetOpportunityExpectedCapacity} [getOpportunityExpectedCapacity] If not provided, this will
  *   default to using getOpportunityExpectedCapacityAfterBook(..)
+ * @property {string} paymentIdentifierIfPaid This Payment Identifier will be used if this is a paid
+   *   booking. Otherwise, it won't be. This is specified as an arg to allow for consistency between idempotent
+   *   B/P calls.
  */
 
 const RUN_TESTS_WHICH_FAIL_REFIMPL = process.env.RUN_TESTS_WHICH_FAIL_REFIMPL === 'true';
@@ -81,9 +88,10 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {InitialiseSimpleC1C2BookFlowOptions} [options]
    */
-  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+  initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
     bookReqTemplateRef = null,
     brokerRole = null,
     accessPass = null,
@@ -98,12 +106,14 @@ const FlowStageRecipes = {
     } = FlowStageRecipes.initialiseSimpleC1C2Flow(
       orderItemCriteriaList,
       logger,
+      describeFeatureRecord,
       {
         ...options,
         brokerRole,
       },
     );
-    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+    /** @type {BookRecipeArgs} */
+    const bookRecipeArgs = {
       prerequisite: c2.getLastStage(),
       accessPass,
       brokerRole,
@@ -119,7 +129,9 @@ const FlowStageRecipes = {
         orderItems: fetchOpportunities.getOutput().orderItems,
       }),
       isExpectedToFail: bookExpectToFail,
-    });
+      paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
+    };
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
 
     return {
       fetchOpportunities,
@@ -129,6 +141,7 @@ const FlowStageRecipes = {
       // This is included in the result so that additional stages can be added using
       // these params.
       defaultFlowStageParams,
+      bookRecipeArgs,
     };
   },
   /**
@@ -142,9 +155,10 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef'>} [options]
    */
-  initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, {
+  initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
     c2ReqTemplateRef = null,
     brokerRole = null,
     taxMode = null,
@@ -152,11 +166,16 @@ const FlowStageRecipes = {
   } = {}) {
     const c2ExpectToFail = options.c2ExpectToFail ?? false;
 
-    const { fetchOpportunities, c1, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
-      brokerRole,
-      taxMode,
-      ...options,
-    });
+    const { fetchOpportunities, c1, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1Flow(
+      orderItemCriteriaList,
+      logger,
+      describeFeatureRecord,
+      {
+        brokerRole,
+        taxMode,
+        ...options,
+      },
+    );
     const c2 = FlowStageRecipes.runs.book.c2AssertCapacity(c1.getLastStage(), defaultFlowStageParams, {
       c2Args: {
         templateRef: c2ReqTemplateRef,
@@ -198,16 +217,22 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {Omit<InitialiseSimpleC1C2BookFlowOptions, 'bookReqTemplateRef' | 'c2ReqTemplateRef'>} [options]
    */
-  initialiseSimpleC1Flow(orderItemCriteriaList, logger, {
+  initialiseSimpleC1Flow(orderItemCriteriaList, logger, describeFeatureRecord, {
     c1ReqTemplateRef = null,
     taxMode = null,
     brokerRole = null,
+    includeAllOptionalFieldsWhenGeneratingCustomer,
     ...options
   } = {}) {
     const defaultFlowStageParams = options.defaultFlowStageParams ?? FlowStageUtils.createSimpleDefaultFlowStageParams({
-      orderItemCriteriaList, logger, taxMode,
+      orderItemCriteriaList,
+      logger,
+      taxMode,
+      includeAllOptionalCustomerDetails: includeAllOptionalFieldsWhenGeneratingCustomer,
+      describeFeatureRecord,
     });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
@@ -246,12 +271,17 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {object} [args]
    * @param {boolean} [args.isExpectedToSucceed]
    */
-  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, args = {}) {
+  initialiseSimpleBookOnlyFlow(orderItemCriteriaList, logger, describeFeatureRecord, args = {}) {
     const isExpectedToSucceed = args.isExpectedToSucceed ?? true;
-    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({ orderItemCriteriaList, logger });
+    const defaultFlowStageParams = FlowStageUtils.createSimpleDefaultFlowStageParams({
+      orderItemCriteriaList,
+      logger,
+      describeFeatureRecord,
+    });
     const fetchOpportunities = new FetchOpportunitiesFlowStage({
       ...defaultFlowStageParams,
     });
@@ -269,7 +299,10 @@ const FlowStageRecipes = {
           }
           result.totalPaymentDue += price;
         }
-        return result;
+        return {
+          ...result,
+          totalPaymentDue: fixCalculatedMoneyValue(result.totalPaymentDue),
+        };
       })();
       return {
         orderItems: fetchOpportunities.getOutput().orderItems,
@@ -286,13 +319,20 @@ const FlowStageRecipes = {
       opportunityFeedExtractResponses: fetchOpportunities.getOutput().opportunityFeedExtractResponses,
       orderItems: fetchOpportunities.getOutput().orderItems,
     });
-    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, {
+    const bookRecipeGetOpportunityExpectedCapacity = AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBookOnly(
+      isExpectedToSucceed,
+    );
+    const bookRecipePaymentIdentifierIfPaid = FlowStageRecipes.createRandomPaymentIdentifierIfPaid();
+    /** @type {BookRecipeArgs} */
+    const bookRecipeArgs = {
       prerequisite: fetchOpportunities,
       isExpectedToFail: !isExpectedToSucceed,
       getFirstStageInput: bookRecipeGetFirstStageInput,
       getAssertOpportunityCapacityInput: bookRecipeGetAssertOpportunityCapacityInput,
-      getOpportunityExpectedCapacity: AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBookOnly(isExpectedToSucceed),
-    });
+      getOpportunityExpectedCapacity: bookRecipeGetOpportunityExpectedCapacity,
+      paymentIdentifierIfPaid: bookRecipePaymentIdentifierIfPaid,
+    };
+    const bookRecipe = FlowStageRecipes.book(orderItemCriteriaList, defaultFlowStageParams, bookRecipeArgs);
     return {
       fetchOpportunities,
       bookRecipe,
@@ -300,8 +340,7 @@ const FlowStageRecipes = {
       // these params.
       defaultFlowStageParams,
       // These can be used to create an idempotent second B stage.
-      bookRecipeGetFirstStageInput,
-      bookRecipeGetAssertOpportunityCapacityInput,
+      bookRecipeArgs,
     };
   },
   /**
@@ -313,13 +352,14 @@ const FlowStageRecipes = {
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {BaseLoggerType} logger
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} describeFeatureRecord
    * @param {{
    *   actionType: TestInterfaceActionType,
    * }} testInterfaceActionParams
    */
-  successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, testInterfaceActionParams) {
+  successfulC1C2BookFollowedByTestInterfaceAction(orderItemCriteriaList, logger, describeFeatureRecord, testInterfaceActionParams) {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger);
+    const { fetchOpportunities, c1, c2, bookRecipe, defaultFlowStageParams } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord);
     const [testInterfaceAction, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: prerequisite => (new TestInterfaceActionFlowStage({
         ...defaultFlowStageParams,
@@ -367,6 +407,7 @@ const FlowStageRecipes = {
         bookRecipeGetFirstStageInput: bookRecipeArgs.getFirstStageInput,
         defaultFlowStageParams,
         prerequisite: bookRecipe.lastStage,
+        paymentIdentifierIfPaid: bookRecipeArgs.paymentIdentifierIfPaid,
       });
     }
     const bookRecipeArgsWithPrerequisite = { ...bookRecipeArgs, prerequisite: bookRecipe.lastStage };
@@ -385,12 +426,13 @@ const FlowStageRecipes = {
    *
    * This therefore represents the Book step of either flow.
    *
-   * It is HIGHLY recommended that you use this function rather than manually creating B or P Flow Stages unless you
-   * are explicitly writing a test that uses one flow instead of another.
+   * It is HIGHLY recommended that you use this function rather than manually
+   * creating B or P Flow Stages unless you are explicitly writing a test that
+   * uses one flow instead of another.
    *
-   * The selected flow will be found in the `orderItemCriteriaList`, which will in almost all cases be based on the
-   * Booking Flow that is currently being tested. See (TODO) for more info about how Test Suite tests both Booking
-   * Flows.
+   * The selected flow will be found in the `orderItemCriteriaList`, which will
+   * in almost all cases be based on the Booking Flow that is currently being
+   * tested.
    *
    * @param {OpportunityCriteria[]} orderItemCriteriaList
    * @param {DefaultFlowStageParams} defaultFlowStageParams
@@ -423,6 +465,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
     isExpectedToFail = null,
+    paymentIdentifierIfPaid,
     ...args
   }) {
     const b = new BFlowStage({
@@ -432,6 +475,7 @@ const FlowStageRecipes = {
       brokerRole,
       accessPass,
       getInput: getFirstStageInput,
+      paymentIdentifierIfPaid,
     });
     const getOpportunityExpectedCapacity = args.getOpportunityExpectedCapacity
       ?? AssertOpportunityCapacityFlowStage.getOpportunityExpectedCapacityAfterBook(!(isExpectedToFail ?? false));
@@ -467,6 +511,7 @@ const FlowStageRecipes = {
     getFirstStageInput,
     getAssertOpportunityCapacityInput,
     isExpectedToFail = null,
+    paymentIdentifierIfPaid,
     ...args
   }) {
     const p = new PFlowStage({
@@ -476,6 +521,7 @@ const FlowStageRecipes = {
       brokerRole,
       accessPass,
       getInput: getFirstStageInput,
+      paymentIdentifierIfPaid,
     });
     const [simulateSellerApproval, orderFeedUpdateCollector] = OrderFeedUpdateFlowStageUtils.wrap({
       wrappedStageFn: orderFeedUpdateListener => (new TestInterfaceActionFlowStage({
@@ -503,6 +549,7 @@ const FlowStageRecipes = {
         defaultFlowStageParams,
         prerequisite: orderFeedUpdateListener,
         bookRecipeGetFirstStageInput: getFirstStageInput,
+        paymentIdentifierIfPaid,
       }),
       orderFeedUpdateParams: {
         ...defaultFlowStageParams,
@@ -571,8 +618,13 @@ const FlowStageRecipes = {
        * @param {object} args
        * @param {import('utility-types').Optional<ConstructorParameters<typeof CancelOrderFlowStage>[0], 'prerequisite' | 'requestHelper' | 'uuid'>} args.cancelArgs
        * @param {import('utility-types').Optional<ConstructorParameters<typeof AssertOpportunityCapacityFlowStage>[0], 'prerequisite' | 'requestHelper' | 'logger' | 'nameOfPreviousStage' | 'orderItemCriteriaList'>} args.assertOpportunityCapacityArgs
+       * @param {import('../listener-item-expectations').ListenerItemExpectation[]} args.listenerItemExpectations
        */
-      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, { cancelArgs, assertOpportunityCapacityArgs }) {
+      successfulCancelAssertOrderUpdateAndCapacity(prerequisite, defaultFlowStageParams, {
+        cancelArgs,
+        assertOpportunityCapacityArgs,
+        listenerItemExpectations,
+      }) {
         const cancelTestName = cancelArgs.testName ?? 'Cancel';
         const [cancel, orderFeedUpdate] = OrderFeedUpdateFlowStageUtils.wrap({
           wrappedStageFn: orderFeedListener => (new CancelOrderFlowStage({
@@ -584,6 +636,9 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
+            /* This allows us to support Booking Systems which update OrderItem
+            statuses one at a time, rather than all at once. */
+            listenerItemExpectations,
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
@@ -666,6 +721,14 @@ const FlowStageRecipes = {
             ...defaultFlowStageParams,
             prerequisite,
             testName: `Orders Feed (after ${cancelTestName})`,
+            /* This allows us to support Booking Systems which update OrderItem
+            statuses one at a time, rather than all at once.
+            (The Seller Requested Cancellation action is expected to cancel all
+            OrderItems)
+            Using ListenerItemExpectations, an update which does not have all
+            OrderItem statuses changed will be ignored (if the config option is
+            enabled). */
+            listenerItemExpectations: [ListenerItemExpectationRecipes.allNonConfirmedOrderItems()],
           },
         });
         const assertOpportunityCapacityAfterCancel = new AssertOpportunityCapacityFlowStage({
@@ -766,6 +829,9 @@ const FlowStageRecipes = {
       },
     },
   },
+  createRandomPaymentIdentifierIfPaid() {
+    return shortid.generate();
+  },
 };
 
 /**
@@ -776,8 +842,9 @@ const FlowStageRecipes = {
  * @param {DefaultFlowStageParams} args.defaultFlowStageParams
  * @param {UnknownFlowStageType} args.prerequisite
  * @param {() => import('./p').Input} args.bookRecipeGetFirstStageInput
+ * @param {string} args.paymentIdentifierIfPaid
  */
-function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstStageInput }) {
+function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstStageInput, paymentIdentifierIfPaid }) {
   return new BFlowStage({
     ...defaultFlowStageParams,
     prerequisite,
@@ -793,6 +860,7 @@ function bAfterP({ p, defaultFlowStageParams, prerequisite, bookRecipeGetFirstSt
         prepayment: p.getOutput().prepayment,
       };
     },
+    paymentIdentifierIfPaid,
   });
 }
 

@@ -36,6 +36,7 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {PositionOrderIntakeFormMap} args.positionOrderIntakeFormMap
  * @param {AccessPassItem[] | null} [args.accessPass]
  * @param {string | null} args.brokerRole
+ * @param {string} args.paymentIdentifierIfPaid
  * @returns {Promise<Output>}
  */
 async function runP({
@@ -50,8 +51,9 @@ async function runP({
   accessPass,
   brokerRole,
   requestHelper,
+  paymentIdentifierIfPaid,
 }) {
-  /** @type {import('../../templates/b-req').BReqTemplateData} */
+  /** @type {import('../../templates/b-req').PReqTemplateData} */
   const params = {
     orderType: 'OrderProposal',
     sellerId: sellerConfig['@id'],
@@ -62,6 +64,7 @@ async function runP({
     brokerRole,
     positionOrderIntakeFormMap,
     customer,
+    paymentIdentifier: paymentIdentifierIfPaid,
   };
   const response = await requestHelper.putOrderProposal(uuid, params, templateRef);
   const bookingSystemOrder = response.body;
@@ -92,8 +95,23 @@ class PFlowStage extends FlowStage {
    * @param {string} args.uuid
    * @param {SellerConfig} args.sellerConfig
    * @param {Customer} [args.customer]
+   * @param {string} args.paymentIdentifierIfPaid This Payment Identifier will be used if this is a paid
+   *   booking. Otherwise, it won't be. This is specified as an arg to allow for consistency between idempotent
+   *   P calls.
    */
-  constructor({ templateRef, accessPass, brokerRole, prerequisite, getInput, logger, requestHelper, uuid, sellerConfig, customer }) {
+  constructor({
+    templateRef,
+    accessPass,
+    brokerRole,
+    prerequisite,
+    getInput,
+    logger,
+    requestHelper,
+    uuid,
+    sellerConfig,
+    customer,
+    paymentIdentifierIfPaid,
+  }) {
     super({
       prerequisite,
       getInput,
@@ -112,6 +130,7 @@ class PFlowStage extends FlowStage {
           prepayment,
           positionOrderIntakeFormMap,
           requestHelper,
+          paymentIdentifierIfPaid,
         });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttp201SuccessChecks(),

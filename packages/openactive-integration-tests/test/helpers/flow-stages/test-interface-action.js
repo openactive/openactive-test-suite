@@ -39,10 +39,12 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {object} args
  * @param {ActionSpec} args.action
  * @param {RequestHelperType} args.requestHelper
+ * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
  * @returns {Promise<Output>}
  */
-async function runTestInterfaceAction({ action, requestHelper }) {
+async function runTestInterfaceAction({ action, requestHelper, describeFeatureRecord }) {
   const response = await requestHelper.callTestInterfaceAction({ action });
+  describeFeatureRecord.recordTestInterfaceActionUse(action.type);
 
   return {
     httpResponse: response,
@@ -61,15 +63,18 @@ class TestInterfaceActionFlowStage extends FlowStage {
    *   FlowStage is run, so it has access to the output of any prerequisite stages.
    * @param {FlowStage<unknown>} args.prerequisite
    * @param {RequestHelperType} args.requestHelper
+   * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
-  constructor({ testName, createActionFn, prerequisite, requestHelper }) {
+  constructor({ testName, createActionFn, prerequisite, requestHelper, describeFeatureRecord }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
       testName,
       async runFn() {
         const action = createActionFn();
-        return await runTestInterfaceAction({ action, requestHelper });
+        return await runTestInterfaceAction({
+          action, requestHelper, describeFeatureRecord,
+        });
       },
       itSuccessChecksFn: FlowStageUtils.simpleHttpXXXSuccessChecks(204),
       itValidationTestsFn() { /* there are no validation tests - the response is empty */ },

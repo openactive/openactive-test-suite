@@ -6,11 +6,7 @@ test/certification/certification-writer.js
 test/global-setup.js
 test/helpers/flow-helper.js
 test/helpers/index.js
-test/helpers/logger.js
 test/helpers/mapping.js
-test/report-generator.js
-test/reporter.js
 test/setup.js
 test/shared-behaviours/common.js
-test/shared-behaviours/validation.js
 test/test-framework/jasmine-state-reporter.js

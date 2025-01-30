@@ -66,9 +66,9 @@ function commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOppor
  */
 function successTests(expectedPrepayment, bookReqTemplateRef) {
   /** @type {RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     // ## Initiate Flow Stages
-    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, { bookReqTemplateRef });
+    const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, { bookReqTemplateRef });
 
     // ## Set up tests
     commonTestsTestFetchOpportunitiesC1AndC2(expectedPrepayment, fetchOpportunities, c1, c2);
@@ -93,10 +93,10 @@ function errorTests(expectedPrepayment, expectedError, bookReqTemplateRef) {
     : 'Unnecessary';
 
   /** @type {RunTestsFn} */
-  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+  const runTestsFn = (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
     describe(`${missingOrUnnecessary} payment property at B`, () => {
       // ## Initiate Flow Stages
-      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, {
+      const { fetchOpportunities, c1, c2, bookRecipe } = FlowStageRecipes.initialiseSimpleC1C2BookFlow(orderItemCriteriaList, logger, describeFeatureRecord, {
         bookReqTemplateRef,
         bookExpectToFail: true,
       });

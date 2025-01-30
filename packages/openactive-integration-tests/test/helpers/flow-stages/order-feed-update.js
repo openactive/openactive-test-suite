@@ -47,15 +47,18 @@ const { FlowStageUtils } = require('./flow-stage-utils');
  * @param {RequestHelperType} args.requestHelper
  * @param {OrderFeedType} args.orderFeedType
  * @param {() => boolean} args.failEarlyIf
+ * @param {import('../listener-item-expectations').ListenerItemExpectation[]} [args.listenerItemExpectations]
  * @returns {Promise<ListenerOutput>}
  */
-async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEarlyIf }) {
+async function runOrderFeedListener({ uuid, requestHelper, orderFeedType, failEarlyIf, listenerItemExpectations }) {
   // If a previous stage has failed, don't bother listening for the expected feed update.
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
-  // TODO allow specification of bookingPartnerIdentifier
-  await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid);
+  /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
+  have any Order Feed Update tests which need to test anything other than the
+  primary bookingPartnerIdentifier so this hasn't yet been required. */
+  await requestHelper.postOrderFeedChangeListener(orderFeedType, 'primary', uuid, listenerItemExpectations);
   return {};
 }
 
@@ -71,7 +74,9 @@ async function runOrderFeedCollector({ uuid, requestHelper, orderFeedType, failE
   if (failEarlyIf()) {
     throw new Error('failing early as a previous stage failed');
   }
-  // TODO allow specification of bookingPartnerIdentifier
+  /* TODO allow specification of bookingPartnerIdentifier. Currently we don't
+  have any Order Feed Update tests which need to test anything other than the
+  primary bookingPartnerIdentifier so this hasn't yet been required. */
   const response = await requestHelper.getOrderFeedChangeCollection(orderFeedType, 'primary', uuid);
   // Response will be for an RPDE item, so the Order is at `.data`
   const bookingSystemOrder = response.body && response.body.data;
@@ -97,8 +102,9 @@ class OrderFeedUpdateListener extends FlowStage {
    * @param {string} args.uuid
    * @param {OrderFeedType} args.orderFeedType
    * @param {() => boolean} args.failEarlyIf
+   * @param {import('../listener-item-expectations').ListenerItemExpectation[]} [args.listenerItemExpectations]
    */
-  constructor({ prerequisite, uuid, requestHelper, orderFeedType, failEarlyIf }) {
+  constructor({ prerequisite, uuid, requestHelper, orderFeedType, failEarlyIf, listenerItemExpectations }) {
     super({
       prerequisite,
       getInput: FlowStageUtils.emptyGetInput,
@@ -110,6 +116,7 @@ class OrderFeedUpdateListener extends FlowStage {
           requestHelper,
           orderFeedType,
           failEarlyIf,
+          listenerItemExpectations,
         });
       },
       itSuccessChecksFn() { /* there are no success checks - these happen at the OrderFeedUpdateCollector stage */ },
@@ -210,9 +217,8 @@ const OrderFeedUpdateFlowStageUtils = {
    *   Generally, this will be something like `failEarlyIf: () => p.getOutput().httpResponse.response.statusCode >= 400`.
    *
    *   Defaults to () => false (i.e. do not fail early).
-   * @returns {[TWrappedFlowStage, OrderFeedUpdateCollector]}
-   *   TODO update return signature to `{[wrappedStage: TWrappedFlowStage, orderFeedUpdateCollector: OrderFeedUpdateCollector]}`
-   *   when project upgrades TypeScript to v4
+   * @param {import('../listener-item-expectations').ListenerItemExpectation[]} [args.orderFeedUpdateParams.listenerItemExpectations]
+   * @returns {[wrappedStage: TWrappedFlowStage, orderFeedUpdateCollector: OrderFeedUpdateCollector]}
    */
   wrap({ wrappedStageFn, orderFeedUpdateParams }) {
     const failEarlyIf = orderFeedUpdateParams.failEarlyIf ?? (() => false);
@@ -223,6 +229,7 @@ const OrderFeedUpdateFlowStageUtils = {
       prerequisite: orderFeedUpdateParams.prerequisite,
       orderFeedType,
       failEarlyIf,
+      listenerItemExpectations: orderFeedUpdateParams.listenerItemExpectations,
     });
     const wrappedStage = wrappedStageFn(listenForOrderFeedUpdate);
     const collectOrderFeedUpdate = new OrderFeedUpdateCollector({

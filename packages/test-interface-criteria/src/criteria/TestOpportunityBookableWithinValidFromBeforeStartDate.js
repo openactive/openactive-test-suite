@@ -1,5 +1,5 @@
 const { TestOpportunityBookable } = require('./TestOpportunityBookable');
-const { createCriteria, getDateAfterWhichBookingsCanBeMade } = require('./criteriaUtils');
+const { createCriteria, getDateAfterWhichBookingsCanBeMade, getDateBeforeWhichBookingsCanBeMade } = require('./criteriaUtils');
 const { dateRange } = require('../testDataShape');
 
 /**
@@ -11,10 +11,15 @@ const { dateRange } = require('../testDataShape');
  */
 function mustHaveBookingWindowAndBeWithinIt(offer, opportunity, options) {
   const dateAfterWhichBookingsCanBeMade = getDateAfterWhichBookingsCanBeMade(offer, opportunity);
-  if (dateAfterWhichBookingsCanBeMade == null) {
+  const dateBeforeWhichBookingsCanBeMade = getDateBeforeWhichBookingsCanBeMade(offer, opportunity);
+  if (dateAfterWhichBookingsCanBeMade == null && dateBeforeWhichBookingsCanBeMade == null) {
     return false; // has no booking window
   }
-  return options.harvestStartTime > dateAfterWhichBookingsCanBeMade;
+  /* If, within 2 hours, the end of the booking window would be reached, it may be possible for this to happen
+  during the test run. So, to be on the safe side, we only accept Opportunities whose booking window
+  ends at least 2 hours in the future. */
+  return (dateAfterWhichBookingsCanBeMade == null || options.harvestStartTime > dateAfterWhichBookingsCanBeMade)
+   && (dateBeforeWhichBookingsCanBeMade == null || options.harvestStartTimeTwoHoursLater < dateBeforeWhichBookingsCanBeMade);
 }
 
 const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
@@ -22,7 +27,7 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
   opportunityConstraints: [],
   offerConstraints: [
     [
-      'Must have booking window (`validFromBeforeStartDate`) and be within it',
+      'Must have a booking window (`validFromBeforeStartDate` and/or `validThroughBeforeStartDate`) and be within it',
       mustHaveBookingWindowAndBeWithinIt,
     ],
   ],
@@ -31,7 +36,13 @@ const TestOpportunityBookableWithinValidFromBeforeStartDate = createCriteria({
     offerConstraints: {
       // mustHaveBookingWindowAndBeWithinIt
       'oa:validFromBeforeStartDate': dateRange({
-        maxDate: options.harvestStartTime.toISO(),
+        // -1s to match the non-equaling comparison in the non-ShEx constraint
+        maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
+        // This differs from TestOpportunityBookable as it does not allow null values
+      }),
+      'oa:validThroughBeforeStartDate': dateRange({
+        // +1s to match the non-equaling comparison in the non-ShEx constraint
+        minDate: options.harvestStartTimeTwoHoursLater.plus({ seconds: 1 }).toISO(),
         // This differs from TestOpportunityBookable as it does not allow null values
       }),
     },

@@ -42,8 +42,8 @@
     "additionalReporters": [],
     "bookableOpportunityTypesInScope": {
       "ScheduledSession": true,
-      "FacilityUseSlot": true,
-      "IndividualFacilityUseSlot": false,
+      "IndividualFacilityUseSlot": true,
+      "FacilityUseSlot": false,
       "CourseInstance": false,
       "CourseInstanceSubEvent": false,
       "HeadlineEvent": false,
@@ -61,6 +61,7 @@
       "dataset-site": true,
       "availability-check": true,
       "common-error-conditions": true,
+      "past-opportunities": true,
       "amending-order-quote": true,
       "order-deletion": true,
       "agent-broker": true,
@@ -72,6 +73,7 @@
       "prepayment-unavailable": true,
       "minimal-proposal": true,
       "proposal-amendment": true,
+      "single-seller": false,
       "multiple-sellers": true,
       "payment-reconciliation-detail-validation": true,
       "booking-window": true,
@@ -134,7 +136,9 @@
           }
         }
       }
-    }
+    },
+    "useShapeExpressions": false,
+    "ignoreUnexpectedFeedUpdates": false
   },
   "sellers": {
     "primary": {

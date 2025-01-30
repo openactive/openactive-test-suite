@@ -22,7 +22,7 @@ FeatureHelper.describeFeature(module, {
   // This test uses 2 opportunities, A & B
   numOpportunitiesUsedPerCriteria: 2,
 },
-(configuration, orderItemCriteriaList, featureIsImplemented, logger) => {
+(configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {
   // # Initialise Flow Stages
   // Flow stages for first attempt: C1 -> C2
   const {
@@ -30,7 +30,7 @@ FeatureHelper.describeFeature(module, {
     c1: firstAttemptC1,
     c2: firstAttemptC2,
     defaultFlowStageParams: firstAttemptDefaultFlowStageParams,
-  } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger);
+  } = FlowStageRecipes.initialiseSimpleC1C2Flow(orderItemCriteriaList, logger, describeFeatureRecord);
 
   const secondAttemptCustomerDetails = FlowStageUtils.createRandomCustomerDetails();
   const secondAttemptDefaultFlowStageParams = {
@@ -69,6 +69,7 @@ FeatureHelper.describeFeature(module, {
       orderItems: secondAttemptFetchOpportunities.getOutput().orderItems,
       opportunityFeedExtractResponses: secondAttemptC2.getStage('assertOpportunityCapacityAfterC2').getOutput().opportunityFeedExtractResponses,
     }),
+    paymentIdentifierIfPaid: FlowStageRecipes.createRandomPaymentIdentifierIfPaid(),
   });
 
   // # Set up Tests

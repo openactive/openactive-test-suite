@@ -22,7 +22,8 @@ const TestOpportunityBookableCancellableOutsideWindow = createCriteria({
     offerConstraints: {
       // mustBeOutsideCancellationWindow
       'oa:latestCancellationBeforeStartDate': dateRange({
-        maxDate: options.harvestStartTime.toISO(),
+        // -1s to match the non-equaling comparison in the non-ShEx constraint
+        maxDate: options.harvestStartTime.minus({ seconds: 1 }).toISO(),
       }),
     },
   }),
