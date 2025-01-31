@@ -3,6 +3,8 @@ const chai = require('chai');
 const { FeatureHelper } = require('../../../../helpers/feature-helper');
 const { GetDatasetSite } = require('../../../../shared-behaviours');
 
+const { IMPLEMENTED_FEATURES } = global;
+
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'dataset-site',
@@ -32,5 +34,17 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
     it('should include accessService.endpointUrl that does not end in a trailing "/"', () => {
       chai.expect(getDatasetSite.datasetSite.body.accessService.endpointUrl).not.to.match(/\/$/g, 'a trailing /');
     });
+
+    if (IMPLEMENTED_FEATURES['booking-partner-openid-authentication'] === true) {
+      it('should include `accessService.authenticationAuthority`, as the "booking-partner-openid-authentication" feature is "true" in the config', () => {
+        chakram.expect(getDatasetSite.datasetSite).to.have.schema('accessService.authenticationAuthority', {
+          type: 'string',
+        });
+      });
+    } else if (IMPLEMENTED_FEATURES['booking-partner-openid-authentication'] === false) {
+      it('should not include `accessService.authenticationAuthority`, as the "booking-partner-openid-authentication" feature is "false" in the config', () => {
+        chai.expect(getDatasetSite.datasetSite.body.accessService).to.not.have.property('authenticationAuthority');
+      });
+    }
   });
 });
