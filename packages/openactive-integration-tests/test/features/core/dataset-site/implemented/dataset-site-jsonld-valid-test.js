@@ -43,9 +43,7 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       });
     } else if (IMPLEMENTED_FEATURES['booking-partner-openid-authentication'] === false) {
       it('should not include `accessService.authenticationAuthority`, as the "booking-partner-openid-authentication" feature is "false" in the config', () => {
-        chakram.expect(getDatasetSite.datasetSite).not.to.have.schema('accessService.authenticationAuthority', {
-          type: 'string',
-        });
+        chai.expect(getDatasetSite.datasetSite.body.accessService).to.not.have.property('authenticationAuthority');
       });
     }
   });
