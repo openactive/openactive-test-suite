@@ -112,6 +112,7 @@ jobs:
       working-directory: tests
 
     - name: Run Checks on the Code (Test the Tests!)
+      if: ${{ inputs.data-models_ref || inputs.data-model-validator_ref || inputs.rpde-validator_ref }}
       run: npm test
       working-directory: tests
 
