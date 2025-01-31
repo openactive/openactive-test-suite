@@ -61,6 +61,7 @@
       "dataset-site": true,
       "availability-check": true,
       "common-error-conditions": true,
+      "past-opportunities": true,
       "amending-order-quote": true,
       "order-deletion": true,
       "agent-broker": true,
@@ -111,6 +112,8 @@
       "terms-of-service-with-consent": null,
       "terms-of-service-with-consent-with-date-modified": null,
       "booking-partner-authentication": true,
+      "booking-partner-openid-authentication": true,
+      "booking-partner-openid-authentication-for-multiple-sellers": true,
       "dynamic-client-registration": true,
       "access-channel": true,
       "access-channel-update-notifications": true
@@ -136,7 +139,8 @@
         }
       }
     },
-    "useShapeExpressions": false
+    "useShapeExpressions": false,
+    "ignoreUnexpectedFeedUpdates": false
   },
   "sellers": {
     "primary": {

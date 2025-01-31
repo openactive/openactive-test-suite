@@ -141,6 +141,8 @@ const FlowStageUtils = {
    * @param {string} [args.uuid]
    * @param {SellerConfig} [args.sellerConfig]
    * @param {boolean} [args.includeAllOptionalCustomerDetails]
+   * @param {Customer} [args.customer]
+   * @param {string} [args.bookingPartnerIdentifier]
    * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
   createDefaultFlowStageParams({
@@ -150,6 +152,8 @@ const FlowStageUtils = {
     sellerConfig,
     orderItemCriteriaList,
     includeAllOptionalCustomerDetails,
+    customer,
+    bookingPartnerIdentifier,
     describeFeatureRecord,
   }) {
     return {
@@ -157,7 +161,8 @@ const FlowStageUtils = {
       logger,
       uuid: uuid || generateUuid(),
       sellerConfig: sellerConfig || SELLER_CONFIG.primary,
-      customer: this.createRandomCustomerDetails(includeAllOptionalCustomerDetails ?? false),
+      customer: customer || this.createRandomCustomerDetails(includeAllOptionalCustomerDetails ?? false),
+      bookingPartnerIdentifier: bookingPartnerIdentifier ?? 'primary',
       orderItemCriteriaList,
       describeFeatureRecord,
     };
@@ -202,12 +207,16 @@ const FlowStageUtils = {
    *   object will have all optional fields set. Otherwise, optional fields may or may not be set
    *   randomly.
    * @param {SellerConfig} [args.sellerConfig]
+   * @param {import('../request-helper').BookingPartnerIdentifier} [args.bookingPartnerIdentifier]
+   * @param {string | null} [args.uuid]
    * @param {import('../describe-feature-record').DescribeFeatureRecord} args.describeFeatureRecord
    */
   createSimpleDefaultFlowStageParams({
     logger,
     orderItemCriteriaList,
     taxMode = null,
+    bookingPartnerIdentifier = null,
+    uuid = null,
     includeAllOptionalCustomerDetails,
     describeFeatureRecord,
     ...args
@@ -216,13 +225,15 @@ const FlowStageUtils = {
       taxMode
         ? getSellerConfigWithTaxMode(taxMode)
         : SELLER_CONFIG.primary);
-    const requestHelper = new RequestHelper(logger, sellerConfig);
+    const requestHelper = new RequestHelper(logger, sellerConfig, bookingPartnerIdentifier);
     return FlowStageUtils.createDefaultFlowStageParams({
       requestHelper,
       logger,
       sellerConfig,
       orderItemCriteriaList,
       includeAllOptionalCustomerDetails,
+      uuid,
+      bookingPartnerIdentifier,
       describeFeatureRecord,
     });
   },

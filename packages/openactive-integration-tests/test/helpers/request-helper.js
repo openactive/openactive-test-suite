@@ -24,6 +24,8 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  */
 
 /**
+ * @typedef {'orders' | 'order-proposals'} OrderFeedType
+ *
  * @typedef {{
  *   opportunityType: string,
  *   testOpportunityCriteria: string,
@@ -34,10 +36,17 @@ const { createTestInterfaceOpportunity } = require('./test-interface-opportuniti
  * }} TestInterfaceRequestArgs
  */
 
+/**
+ * @typedef {'primary' | 'secondary'} BookingPartnerIdentifier
+ */
+
 const { MICROSERVICE_BASE, BOOKING_API_BASE, TEST_DATASET_IDENTIFIER, SELLER_CONFIG } = global;
 
 const OPEN_BOOKING_API_REQUEST_TIMEOUT = config.get('integrationTests.openBookingApiRequestTimeout');
 const BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT = config.get('integrationTests.waitForItemToUpdateInFeedTimeout');
+const IGNORE_UNEXPECTED_FEED_UPDATES = config.has('integrationTests.ignoreUnexpectedFeedUpdates')
+  ? config.get('integrationTests.ignoreUnexpectedFeedUpdates')
+  : false;
 
 const BROKER_CHAKRAM_REQUEST_OPTIONS = {
   timeout: BROKER_MICROSERVICE_FEED_REQUEST_TIMEOUT,
@@ -47,10 +56,12 @@ class RequestHelper {
   /**
    * @param {BaseLoggerType} logger
    * @param {SellerConfig | null} [sellerConfig]
+   * @param {BookingPartnerIdentifier} [bookingPartnerIdentifier]
    */
-  constructor(logger, sellerConfig) {
+  constructor(logger, sellerConfig, bookingPartnerIdentifier) {
     this.logger = logger;
     this._sellerConfig = sellerConfig ?? SELLER_CONFIG.primary;
+    this._bookingPartnerIdentifier = bookingPartnerIdentifier ?? 'primary';
   }
 
   /**
@@ -63,6 +74,7 @@ class RequestHelper {
    * @param {any} [requestMetadata]
    */
   async _request(stage, method, url, jsonBody, requestOptions, requestMetadata) {
+    // console.log('\nREQUEST', { method, url });
     const params = { ...requestOptions };
     if (jsonBody) {
       params.body = jsonBody;
@@ -140,7 +152,7 @@ class RequestHelper {
 
   _getSellerRequestHeaders() {
     // If broker microservice authentication fails, no accessToken will be supplied
-    const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.primary?.access_token;
+    const accessToken = this._sellerConfig?.authentication?.bookingPartnerTokenSets?.[this._bookingPartnerIdentifier]?.access_token;
     const requestHeaders = this._sellerConfig?.authentication?.requestHeaders;
     return {
       ...(!accessToken ? undefined : {
@@ -227,21 +239,24 @@ class RequestHelper {
   }
 
   /**
-   * @param {'orders' | 'order-proposals'} type
+   * @param {OrderFeedType} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
+   * @param {import('./listener-item-expectations').ListenerItemExpectation[]} [listenerItemExpectations]
    */
-  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid) {
+  async postOrderFeedChangeListener(type, bookingPartnerIdentifier, uuid, listenerItemExpectations) {
     return await this.post(
       `Orders (${type}) Feed listen for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
-      null,
+      {
+        itemExpectations: IGNORE_UNEXPECTED_FEED_UPDATES ? listenerItemExpectations : undefined,
+      },
       BROKER_CHAKRAM_REQUEST_OPTIONS,
     );
   }
 
   /**
-   * @param {'orders' | 'order-proposals'} type
+   * @param {OrderFeedType} type
    * @param {string} bookingPartnerIdentifier
    * @param {string} uuid
    */
@@ -249,6 +264,25 @@ class RequestHelper {
     return await this.get(
       `Orders (${type}) Feed collect for '${uuid}' change (auth: ${bookingPartnerIdentifier})`,
       `${MICROSERVICE_BASE}/order-listeners/${type}/${bookingPartnerIdentifier}/${uuid}`,
+      BROKER_CHAKRAM_REQUEST_OPTIONS,
+      {
+        feedExtract: {
+          id: uuid,
+          type,
+        },
+      },
+    );
+  }
+
+  /**
+   * @param {OrderFeedType} type
+   * @param {string} bookingPartnerIdentifier
+   * @param {string} uuid
+   */
+  async getIsOrderUuidPresent(type, bookingPartnerIdentifier, uuid) {
+    return await this.get(
+      `Is Order UUID '${uuid}' Present in feed: ${type} (auth: ${bookingPartnerIdentifier})?`,
+      `${MICROSERVICE_BASE}/is-order-uuid-present/${type}/${bookingPartnerIdentifier}/${uuid}`,
       BROKER_CHAKRAM_REQUEST_OPTIONS,
       {
         feedExtract: {

@@ -7,16 +7,19 @@ const {
 } = require('../../../../helpers/flow-stages');
 const { OrderDeletionFlowStage } = require('../../../../helpers/flow-stages/order-deletion');
 
+const { IMPLEMENTED_FEATURES } = global;
+
 FeatureHelper.describeFeature(module, {
   testCategory: 'core',
   testFeature: 'order-deletion',
   testFeatureImplemented: true,
   testIdentifier: 'orders-updated-then-deleted',
   testName: 'Order successfully deleted',
-  testDescription: 'Run C1, C2 and B, and then check Orders feed for Order, then cancel it, then run Order Deletion, and check Orders feed that Order has been deleted',
+  testDescription: 'Run C1, C2 and B, and then check Orders feed for Order, then cancel it, then run Order Deletion, and check Orders feed that Order has been deleted. NOTE: This test will only run if seller-requested-cancellation is enabled as this feature is utilised in the test',
   // The primary opportunity criteria to use for the primary OrderItem under test
   testOpportunityCriteria: 'TestOpportunityBookable',
   controlOpportunityCriteria: 'TestOpportunityBookable',
+  runOnlyIf: IMPLEMENTED_FEATURES['seller-requested-cancellation'],
   testInterfaceActions: ['test:SellerRequestedCancellationSimulateAction'],
 },
 (configuration, orderItemCriteriaList, featureIsImplemented, logger, describeFeatureRecord) => {

@@ -29,8 +29,7 @@
     "common-error-conditions": {
       "criteriaRequirements": {
         "primary": {
-          "TestOpportunityBookable": 29,
-          "TestOpportunityBookableInPast": 3
+          "TestOpportunityBookable": 28
         }
       },
       "testInterfaceActionImplementationRequirements": []
@@ -149,6 +148,19 @@
       ]
     },
     "booking-partner-authentication": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookable": 4,
+          "TestOpportunityBookableCancellable": 1
+        }
+      },
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "booking-partner-openid-authentication": {
+      "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "booking-partner-openid-authentication-for-multiple-sellers": {
       "criteriaRequirements": {},
       "testInterfaceActionImplementationRequirements": []
     },
@@ -243,6 +255,15 @@
     },
     "opportunity-feed": {
       "criteriaRequirements": {},
+      "testInterfaceActionImplementationRequirements": []
+    },
+    "past-opportunities": {
+      "criteriaRequirements": {
+        "primary": {
+          "TestOpportunityBookableInPast": 3,
+          "TestOpportunityBookable": 1
+        }
+      },
       "testInterfaceActionImplementationRequirements": []
     },
     "single-seller": {
@@ -399,8 +420,8 @@
     "prepayment-unavailable": {
       "criteriaRequirements": {
         "primary": {
-          "TestOpportunityBookableNonFreePrepaymentUnavailable": 9,
-          "TestOpportunityBookableFree": 3
+          "TestOpportunityBookableNonFreePrepaymentUnavailable": 12,
+          "TestOpportunityBookableFree": 4
         }
       },
       "testInterfaceActionImplementationRequirements": []

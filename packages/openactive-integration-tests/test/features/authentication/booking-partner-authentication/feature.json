@@ -1,10 +1,10 @@
 {
   "category": "authentication",
   "identifier": "booking-partner-authentication",
-  "name": "Booking Partner Authentication for Multiple Seller Systems",
-  "description": "OpenID Connect based Booking Partner authentication.",
+  "name": "Booking Partner Authentication",
+  "description": "Separate Booking Partners should not be able to access/update each others' data",
   "explainer": "",
-  "specificationReference": "https://www.openactive.io/open-booking-api/EditorsDraft/#openid-connect-booking-partner-authentication-for-multiple-seller-systems",
+  "specificationReference": "https://openactive.io/open-booking-api/EditorsDraft/#api-level-authentication-and-data-security",
   "required": false,
   "coverageStatus": "complete"
 }
