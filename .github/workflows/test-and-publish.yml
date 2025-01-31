@@ -91,26 +91,31 @@ jobs:
         npm install
       working-directory: tests
 
-    - name: Install specific version of data-models ${{ inputs.data-models_ref }}
+    - name: Broker microservice - Install specific version of data-models ${{ inputs.data-models_ref }}
       if: ${{ inputs.data-models_ref }}
-      run: |
-        cd packages/openactive-broker-microservice && npm install github:openactive/data-models#${{ inputs.data-models_ref }}
-        cd packages/openactive-integration-tests && npm install github:openactive/data-models#${{ inputs.data-models_ref }}
-      working-directory: tests
+      working-directory: tests/packages/openactive-broker-microservice
+      run: npm install github:openactive/data-models#${{ inputs.data-models_ref }}
 
-    - name: Install specific version of data-model-validator ${{ inputs.data-model-validator_ref }}
+    - name: Broker microservice - Install specific version of data-model-validator ${{ inputs.data-model-validator_ref }}
       if: ${{ inputs.data-model-validator_ref }}
-      run: |
-        cd packages/openactive-broker-microservice && npm install github:openactive/data-model-validator#${{ inputs.data-model-validator_ref }}
-        cd packages/openactive-integration-tests && npm install github:openactive/data-model-validator#${{ inputs.data-model-validator_ref }}
-      working-directory: tests
+      working-directory: tests/packages/openactive-broker-microservice
+      run: npm install github:openactive/data-model-validator#${{ inputs.data-model-validator_ref }}
 
-    - name: Install specific version of rpde-validator ${{ inputs.rpde-validator_ref }}
+    - name: Broker microservice - Install specific version of rpde-validator ${{ inputs.rpde-validator_ref }}
       if: ${{ inputs.rpde-validator_ref }}
-      run: |
-        cd packages/openactive-broker-microservice && npm install github:openactive/rpde-validator#${{ inputs.rpde-validator_ref }}
-      working-directory: tests
+      working-directory: tests/packages/openactive-broker-microservice
+      run: npm install github:openactive/rpde-validator#${{ inputs.rpde-validator_ref }}
 
+    - name: Integration tests - Install specific version of data-models ${{ inputs.data-models_ref }}
+      if: ${{ inputs.data-models_ref }}
+      working-directory: tests/packages/openactive-integration-tests  
+      run: npm install github:openactive/data-models#${{ inputs.data-models_ref }}
+  
+    - name: Integration tests - Install specific version of data-model-validator ${{ inputs.data-model-validator_ref }}
+      if: ${{ inputs.data-model-validator_ref }}
+      working-directory: tests/packages/openactive-integration-tests
+      run: npm install github:openactive/data-model-validator#${{ inputs.data-model-validator_ref }}
+  
     - name: Run Checks on the Code (Test the Tests!)
       if: ${{ inputs.data-models_ref || inputs.data-model-validator_ref || inputs.rpde-validator_ref }}
       run: npm test
