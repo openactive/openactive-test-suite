@@ -2,14 +2,14 @@ name: Code Tests
 
 on:
   # This does not run on push to master, as tests will instead be run there as
-  # part of the docker.yml workflow.
+  # part of the test-and-publish workflow.
   pull_request:
     branches: [ master ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-22.04-l
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout OpenActive Test Suite
