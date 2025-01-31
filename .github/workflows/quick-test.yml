@@ -1,8 +1,8 @@
 name: Code Tests
 
 on:
-  # This does not run on push to master, as tests will instead be run there as
-  # part of the test-and-publish workflow.
+  push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -20,5 +20,9 @@ jobs:
         node-version: 18.17.1
     - name: Install OpenActive Test Suite
       run: npm install
+    - name: Check licenses of all dependencies are at least permissive
+      run: |
+        npx npm-reflect install --test
+        for dir in ./packages/*; do (cd "$dir" && npx npm-reflect install --test); done
     - name: Run Checks on the Code (Test the Tests!)
       run: npm test
