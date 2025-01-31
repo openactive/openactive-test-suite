@@ -28,7 +28,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -140,7 +140,7 @@ jobs:
     # Master branch only
     if: ${{ github.repository == 'openactive/openactive-test-suite' && github.ref == 'refs/heads/master' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     # Checkout the repo to seed the contents of ./tests/publish/
@@ -172,7 +172,7 @@ jobs:
     # Master branch only - extra checks
     if: ${{ github.repository == 'openactive/openactive-test-suite' && github.ref == 'refs/heads/master' }}
     needs: tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
