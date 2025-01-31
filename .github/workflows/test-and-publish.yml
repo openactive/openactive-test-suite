@@ -32,10 +32,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: ${{ inputs.quick_test == 'true' && fromJson('["random"]') || fromJson('["random","controlled"]') }}
-        profile: ${{ inputs.quick_test == 'true' && fromJson('["all-features"]') || fromJson('["all-features","single-seller","no-payment-reconciliation","no-auth","no-tax-calculation","prepayment-always-required","facilityuse-has-slots"]') }}
-        flow: ${{ inputs.quick_test == 'true' && fromJson('["both"]') || fromJson('["simple","approval"]') }}
-        include: ${{ inputs.quick_test == 'true' && fromJson('[]') || fromJson('[{"mode":"random","profile":"all-features","flow":"both"},{"mode":"controlled","profile":"all-features","flow":"both"}]') }}
+        mode: ${{ inputs.quick_test == true && fromJson('["random"]') || fromJson('["random","controlled"]') }}
+        profile: ${{ inputs.quick_test == true && fromJson('["all-features"]') || fromJson('["all-features","single-seller","no-payment-reconciliation","no-auth","no-tax-calculation","prepayment-always-required","facilityuse-has-slots"]') }}
+        flow: ${{ inputs.quick_test == true && fromJson('["both"]') || fromJson('["simple","approval"]') }}
+        include: ${{ inputs.quick_test == true && fromJson('[]') || fromJson('[{"mode":"random","profile":"all-features","flow":"both"},{"mode":"controlled","profile":"all-features","flow":"both"}]') }}
 
     concurrency: 
       group: openactive-test-suite--${{ github.head_ref }}--${{ matrix.mode }}.${{ matrix.profile }}.${{ matrix.flow }}
