@@ -2,7 +2,7 @@ name: Code Tests
 
 on:
   # This does not run on push to master, as tests will instead be run there as
-  # part of the docker.yml workflow.
+  # part of the test-and-publish workflow.
   pull_request:
     branches: [ master ]
 
