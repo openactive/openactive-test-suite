@@ -10,7 +10,7 @@ jobs:
     # Master branch only - extra checks
     if: ${{ github.ref == 'refs/heads/master' }}
     needs: code-tests
-    runs-on: ubuntu-22.04-l
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -48,7 +48,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   # Copied from code-tests.yml, TODO: Remove this duplication
   code-tests:
-    runs-on: ubuntu-22.04-l
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout OpenActive Test Suite
