@@ -35,14 +35,14 @@ function (configuration, orderItemCriteria, featureIsImplemented, logger) {
       chai.expect(getDatasetSite.datasetSite.body.accessService.endpointUrl).not.to.match(/\/$/g, 'a trailing /');
     });
 
-    if (IMPLEMENTED_FEATURES['booking-partner-authentication'] === true) {
-      it('should include `accessService.authenticationAuthority`, as the "booking-partner-authentication" feature is "true" in the config', () => {
+    if (IMPLEMENTED_FEATURES['booking-partner-openid-authentication'] === true) {
+      it('should include `accessService.authenticationAuthority`, as the "booking-partner-openid-authentication" feature is "true" in the config', () => {
         chakram.expect(getDatasetSite.datasetSite).to.have.schema('accessService.authenticationAuthority', {
           type: 'string',
         });
       });
-    } else if (IMPLEMENTED_FEATURES['booking-partner-authentication'] === false) {
-      it('should not include `accessService.authenticationAuthority`, as the "booking-partner-authentication" feature is "false" in the config', () => {
+    } else if (IMPLEMENTED_FEATURES['booking-partner-openid-authentication'] === false) {
+      it('should not include `accessService.authenticationAuthority`, as the "booking-partner-openid-authentication" feature is "false" in the config', () => {
         chakram.expect(getDatasetSite.datasetSite).not.to.have.schema('accessService.authenticationAuthority', {
           type: 'string',
         });
