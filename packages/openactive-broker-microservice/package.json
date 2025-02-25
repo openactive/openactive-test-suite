@@ -17,7 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@openactive/data-model-validator": "^3.0.3",
-    "@openactive/data-models": "^3.0.8",
+    "@openactive/data-models": "^3.0.9",
     "@openactive/dataset-utils": "^1.0.1",
     "@openactive/harvesting-utils": "^0.2.2",
     "@openactive/openactive-openid-browser-automation": "file:../openactive-openid-browser-automation",
