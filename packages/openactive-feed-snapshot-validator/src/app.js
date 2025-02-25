@@ -41,7 +41,7 @@ const MAX_ERRORS_PER_CHECK = 20;
 const RpdeItem = z.object({
   kind: z.string(),
   state: z.enum(['updated', 'deleted']),
-  id: z.string(),
+  id: z.union([z.number(), z.string()]),
   modified: z.union([z.number(), z.string()]),
   data: z.string().optional(),
 });
