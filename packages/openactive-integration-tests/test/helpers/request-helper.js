@@ -169,6 +169,7 @@ class RequestHelper {
 
   createHeaders() {
     return {
+      'Accept': 'application/vnd.openactive.booking+json; version=1',
       'Content-Type': 'application/vnd.openactive.booking+json; version=1',
       ...this._getSellerRequestHeaders(),
     };
