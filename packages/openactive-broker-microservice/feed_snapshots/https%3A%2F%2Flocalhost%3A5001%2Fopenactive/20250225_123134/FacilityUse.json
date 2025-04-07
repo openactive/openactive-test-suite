@@ -1,0 +1,91 @@
+{
+  "isoTimestamp": "2025-02-25T12:31:35.696Z",
+  "pages": [
+    {
+      "url": "https://localhost:5001/feeds/facility-uses",
+      "items": [
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 1,
+          "modified": 638760825044625900,
+          "data": "b18afc0331b864b995ea84936fc504bf9912d2c0"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 2,
+          "modified": 638760825044660400,
+          "data": "f990c0befdad3d9ee3059c830473a540894e8506"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 3,
+          "modified": 638760825044660900,
+          "data": "9f64af1d4aaec835a9fd2f2a63231ce0b6bb27e6"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 4,
+          "modified": 638760825044662100,
+          "data": "215d5a5f678a12651e44a81f04f5488ee7265c4f"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 5,
+          "modified": 638760825044662700,
+          "data": "d0dda4309c24afda77a11dca204d4ddbf80d38c9"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 6,
+          "modified": 638760825044663000,
+          "data": "4a930c2eb484dedd5a5c7f14dd456e90402e5462"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 7,
+          "modified": 638760825044663400,
+          "data": "ad4ca57a81e57d51838176cf63e9066fb316acb1"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 8,
+          "modified": 638760825044663700,
+          "data": "a7e12735fe6ee042765e1a35eea80c1c684957d5"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 9,
+          "modified": 638760825044664000,
+          "data": "fb8411da17d973077a79b6eb48832ed5930364c2"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 10,
+          "modified": 638760825044664400,
+          "data": "780024b801603ba35127215a852abb9ffb1c8a91"
+        },
+        {
+          "state": "updated",
+          "kind": "FacilityUse",
+          "id": 11,
+          "modified": 638760825504805200,
+          "data": "afe87117881e1e351fc5c24d26b24596f29d6e21"
+        }
+      ]
+    },
+    {
+      "url": "https://localhost:5001/feeds/facility-uses?afterTimestamp=638760825504805280&afterId=11",
+      "items": []
+    }
+  ]
+}

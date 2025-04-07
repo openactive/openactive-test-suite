@@ -1,4 +1,3 @@
-const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 const { mapToObjectSummary } = require('./map-to-object-summary');
 const { getAllLockedOpportunityIds, getLockedOpportunityIdsInTestDataset } = require('./state-utils');
 
@@ -6,7 +5,7 @@ const { getAllLockedOpportunityIds, getLockedOpportunityIdsInTestDataset } = req
  * Get a random opportunity from Broker Microservice's cache that matches the
  * criteria.
  *
- * @param {Pick<import('../state').State, 'criteriaOrientedOpportunityIdCache' | 'lockedOpportunityIdsByTestDataset'>} state
+ * @param {Pick<import('../state').State, 'persistentStore' | 'lockedOpportunityIdsByTestDataset'>} state
  *   ! Mutates `state` by adding the selected opportunity to the test dataset's locked opportunity IDs.
  * @param {object} args
  * @param {string} args.sellerId
@@ -17,9 +16,7 @@ const { getAllLockedOpportunityIds, getLockedOpportunityIdsInTestDataset } = req
  * @returns {any}
  */
 function getRandomBookableOpportunity(state, { sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
-  const typeBucket = CriteriaOrientedOpportunityIdCache.getTypeBucket(state.criteriaOrientedOpportunityIdCache, {
-    criteriaName, bookingFlow, opportunityType,
-  });
+  const typeBucket = state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
   const sellerCompartment = typeBucket.contents.get(sellerId);
   if (!sellerCompartment || sellerCompartment.size === 0) {
     const availableSellers = mapToObjectSummary(typeBucket.contents);

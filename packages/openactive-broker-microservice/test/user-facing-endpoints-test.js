@@ -7,6 +7,7 @@ const { getOrphanJson } = require('../src/util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('../src/util/get-opportunity-by-id-from-cache');
 const { getSampleOpportunities } = require('../src/util/sample-opportunities');
 const { OrderUuidTracking } = require('../src/order-uuid-tracking/order-uuid-tracking');
+const { PersistentStore } = require('../src/util/persistent-store');
 
 const testDataGenerators = {
   opportunityItemRowCacheStoreItems: {
@@ -161,23 +162,25 @@ describe('user-facing endpoints', () => {
       OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'primary', 'uuid4');
       OrderUuidTracking.doTrackEndOfFeed(orderUuidTracking, 'orders', 'primary');
       OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'secondary', 'uuidB2');
+      const persistentStore = new PersistentStore();
+      persistentStore._opportunityItemRowCache = {
+        store: new Map([
+          // Has a parent
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
+          // Has no parent but doesn't need one either
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
+          // Has no parent and should have one
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
+        ]),
+        parentIdIndex: new Map(),
+      };
+      persistentStore._criteriaOrientedOpportunityIdCache = cooiCache;
 
       const result = getStatus({
         DO_NOT_FILL_BUCKETS: false,
       }, {
         startTime: new Date(),
-        opportunityItemRowCache: {
-          store: new Map([
-            // Has a parent
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
-            // Has no parent but doesn't need one either
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
-            // Has no parent and should have one
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
-          ]),
-          parentIdIndex: new Map(),
-        },
-        criteriaOrientedOpportunityIdCache: cooiCache,
+        persistentStore,
         feedContextMap: new Map(),
         pauseResume: new PauseResume(),
         orderUuidTracking,
@@ -216,15 +219,17 @@ describe('user-facing endpoints', () => {
   });
   describe('GET /orphans', () => {
     it('should return stats about which opportunities are orphans i.e. have no parents', () => {
+      const persistentStore = new PersistentStore();
+      persistentStore._opportunityItemRowCache = {
+        store: new Map([
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
+        ]),
+        parentIdIndex: new Map(),
+      };
       const result = getOrphanJson({
-        opportunityItemRowCache: {
-          store: new Map([
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
-          ]),
-          parentIdIndex: new Map(),
-        },
+        persistentStore,
       });
       expect(result).to.deep.equal({
         children: {
@@ -279,8 +284,10 @@ describe('user-facing endpoints', () => {
           }],
         ]),
       };
+      const persistentStore = new PersistentStore();
+      persistentStore._opportunityCache = opportunityCache;
       const slotResult = getOpportunityMergedWithParentById({
-        opportunityCache,
+        persistentStore,
       }, 'id1');
       expect(slotResult).to.deep.equal({
         '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
@@ -292,7 +299,7 @@ describe('user-facing endpoints', () => {
         startDate: '2001-01-01T00:00:00Z',
       });
       const scsResult = getOpportunityMergedWithParentById({
-        opportunityCache,
+        persistentStore,
       }, 'id2');
       expect(scsResult).to.deep.equal({
         '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
@@ -451,9 +458,11 @@ describe('user-facing endpoints', () => {
       const brokerConfig = {
         HARVEST_START_TIME: '2001-01-01T00:00:00Z',
       };
+      const persistentStore = new PersistentStore();
+      persistentStore._criteriaOrientedOpportunityIdCache = cooiCache;
+      persistentStore._opportunityCache = opportunityCache;
       const state = {
-        criteriaOrientedOpportunityIdCache: cooiCache,
-        opportunityCache,
+        persistentStore,
         lockedOpportunityIdsByTestDataset,
       };
       /**

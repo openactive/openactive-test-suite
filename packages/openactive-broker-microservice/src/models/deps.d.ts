@@ -1,0 +1,1 @@
+declare module '@openactive/data-model-validator';

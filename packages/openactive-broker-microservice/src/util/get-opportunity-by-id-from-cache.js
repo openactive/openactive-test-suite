@@ -5,19 +5,19 @@ const { jsonLdHasReferencedParent, getMergedJsonLdContext } = require('./jsonld-
  * If the opportunity has a parent, the full opportunity for the parent will be
  * fetched and merged into the `superEvent` or `facilityUse` property.
  *
- * @param {Pick<import('../state').State, 'opportunityCache'>} state
+ * @param {Pick<import('../state').State, 'persistentStore'>} state
  * @param {string} childOpportunityId
  */
 function getOpportunityMergedWithParentById(state, childOpportunityId) {
-  const opportunity = state.opportunityCache.childMap.get(childOpportunityId);
+  const opportunity = state.persistentStore.getOpportunityCacheChildItem(childOpportunityId);
   if (!opportunity) {
     return null;
   }
   if (!jsonLdHasReferencedParent(opportunity)) {
     return opportunity;
   }
-  const superEvent = state.opportunityCache.parentMap.get(/** @type {string} */(opportunity.superEvent));
-  const facilityUse = state.opportunityCache.parentMap.get(/** @type {string} */(opportunity.facilityUse));
+  const superEvent = state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.superEvent));
+  const facilityUse = state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.facilityUse));
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     delete opportunity['@context'];
