@@ -21,8 +21,8 @@ function getOpportunityMergedWithParentById(state, childOpportunityId) {
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     const returnObj = {
-      '@context': mergedContexts,
       ...opportunity,
+      '@context': mergedContexts,
     };
     if (superEvent) {
       const superEventWithoutContext = {
