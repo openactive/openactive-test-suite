@@ -100,7 +100,7 @@ state.incompleteFeeds.markFeedHarvestStarted('DatasetSite');
 const server = http.createServer(app);
 server.on('error', onHttpServerError);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   log(`Broker Microservice running on port ${PORT}
 
 Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
@@ -111,15 +111,15 @@ Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
     process.send('listening');
   }
 
+  await state.persistentStore.init();
+
   // Start polling after HTTP server starts listening
-  (async () => {
-    try {
-      await startPolling();
-    } catch (error) {
-      logError(error.stack);
-      process.exit(1);
-    }
-  })();
+  try {
+    await startPolling();
+  } catch (error) {
+    logError(error.stack);
+    process.exit(1);
+  }
 });
 
 // Ensure bucket allocation does not become stale

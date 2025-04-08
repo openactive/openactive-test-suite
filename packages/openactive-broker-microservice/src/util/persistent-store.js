@@ -138,11 +138,69 @@ class PersistentStore {
     await this._createSqliteTables();
   }
 
+  // CREATE UNIQUE INDEX ON criteria_oriented_opportunity_id_cache (
+  //   criteria_name,
+  //   booking_flow,
+  //   opportunity_type,
+  //   seller_id,
+  //   opportunity_id
+  // );
   async _createSqliteTables() {
+    // Need to add unique constraints in many places!
     await sqlite3Run(this._db, `
 
-      CREATE TABLE 
-      
+      CREATE TABLE criteria_oriented_opportunity_id_cache (
+        id INTEGER PRIMARY KEY ASC,
+        criteria_name TEXT NOT NULL,
+        booking_flow TEXT NOT NULL,
+        opportunity_type TEXT NOT NULL,
+        seller_id TEXT NOT NULL,
+        opportunity_id TEXT NOT NULL,
+
+        UNIQUE (criteria_name, booking_flow, opportunity_type, seller_id, opportunity_id)
+      );
+
+      CREATE TABLE opportunity_housekeeping_parent_opportunity_rpde_map (
+        rpde_feed_item_identifier TEXT PRIMARY KEY,
+        json_ld_id TEXT NOT NULL
+      ) WITHOUT ROWID;
+
+      CREATE TABLE opportunity_housekeeping_parent_opportunity_sub_event_map (
+        id INTEGER PRIMARY KEY ASC,
+        parent_json_ld_id TEXT NOT NULL,
+        sub_event_id TEXT NOT NULL,
+
+        UNIQUE (parent_json_ld_id, sub_event_id)
+      );
+
+      CREATE TABLE opportunity_housekeeping_child_opportunity_rpde_map (
+        rpde_feed_item_identifier TEXT PRIMARY KEY,
+        json_ld_id TEXT NOT NULL
+      ) WITHOUT ROWID;
+
+      CREATE TABLE opportunity_item_row_cache_store (
+        json_ld_id TEXT PRIMARY KEY,
+        opportunity_item_row TEXT NOT NULL
+      ) WITHOUT ROWID;
+
+      CREATE TABLE opportunity_item_row_cache_parent_child_id_map (
+        id INTEGER PRIMARY KEY ASC,
+        parent_json_ld_id TEXT NOT NULL,
+        child_json_ld_id TEXT NOT NULL,
+
+        UNIQUE (parent_json_ld_id, child_json_ld_id)
+      );
+
+      CREATE TABLE opportunity_cache_parent_map (
+        parent_json_ld_id TEXT PRIMARY KEY,
+        opportunity_data TEXT NOT NULL
+      ) WITHOUT ROWID;
+
+      CREATE TABLE opportunity_cache_child_map (
+        child_json_ld_id TEXT PRIMARY KEY,
+        opportunity_data TEXT NOT NULL
+      ) WITHOUT ROWID;
+
     `);
   }
 
@@ -503,15 +561,32 @@ class PersistentStore {
 /**
  * @param {sqlite3.Database} db
  * @param {string} sql
- * @param {Record<string, unknown> | undefined} [params]
+ * @param {unknown[] | undefined} [params]
  */
 function sqlite3Run(db, sql, params) {
   return new Promise((resolve, reject) => {
-    db.run(sql, params || {}, (err) => {
+    db.run(sql, params || [], (err) => {
       if (err) {
         reject(err);
       } else {
         resolve();
+      }
+    });
+  });
+}
+
+/**
+ * @param {sqlite3.Database} db
+ * @param {string} sql
+ * @param {unknown[] | undefined} [params]
+ */
+function sqlite3All(db, sql, params) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
       }
     });
   });
