@@ -1,6 +1,24 @@
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 const { mapToObjectSummary } = require('./map-to-object-summary');
 
+/**
+ * @typedef {Record<string, unknown>} OpportunityCacheItem
+ */
+
+/**
+ * Manages Broker Microservice data that scales with feed size, so contains
+ * caches of opportunity data.
+ *
+ * As feeds can be very large, caches which contain all feed data need to (at
+ * least optionally) be persisted to something other than memory.
+ *
+ * So this class is an abstraction over the persistence layer.
+ *
+ * Note that all get- functions return readonly data to ensure that client code
+ * does not attempt to mutate it, as this likely means that it is under the
+ * misinterpretation that this will update the data itself (as if it was
+ * in-memory).
+ */
 class PersistentStore {
   constructor() {
     /**
@@ -96,7 +114,7 @@ class PersistentStore {
        *
        * For parent opportunities (e.g. FacilityUse) only.
        *
-       * @type {Map<string, Record<string, unknown>>}
+       * @type {Map<string, OpportunityCacheItem>}
        */
       parentMap: new Map(),
       /**
@@ -104,7 +122,7 @@ class PersistentStore {
        *
        * For child opportunities (e.g. FacilityUseSlot) only.
        *
-       * @type {Map<string, Record<string, unknown>>}
+       * @type {Map<string, OpportunityCacheItem>}
        */
       childMap: new Map(),
     };
@@ -122,6 +140,7 @@ class PersistentStore {
 
   /**
    * @param {string} id
+   * @returns {Readonly<OpportunityCacheItem> | undefined}
    */
   getOpportunityCacheChildItem(id) {
     return this._opportunityCache.childMap.get(id);
@@ -129,6 +148,7 @@ class PersistentStore {
 
   /**
    * @param {string} id
+   * @returns {Readonly<OpportunityCacheItem> | undefined}
    */
   getOpportunityCacheParentItem(id) {
     return this._opportunityCache.parentMap.get(id);
@@ -136,6 +156,7 @@ class PersistentStore {
 
   /**
    * @param {string} id
+   * @returns {boolean}
    */
   hasOpportunityCacheParentItem(id) {
     return this._opportunityCache.parentMap.has(id);
@@ -259,7 +280,7 @@ class PersistentStore {
 
   /**
    * @param {string} jsonLdId
-   * @returns {import('../models/core').OpportunityItemRow | undefined}
+   * @returns {Readonly<import('../models/core').OpportunityItemRow> | undefined}
    */
   getOpportunityItemRow(jsonLdId) {
     return this._opportunityItemRowCache.store.get(jsonLdId);
@@ -272,7 +293,7 @@ class PersistentStore {
    *
    * @param {string} childJsonLdId
    * @param {string} newFeedModified
-   * @returns {import('../models/core').OpportunityItemRow | undefined}
+   * @returns {Readonly<import('../models/core').OpportunityItemRow> | undefined}
    */
   markOpportunityItemRowChildAsFoundParent(childJsonLdId, newFeedModified) {
     const row = this._opportunityItemRowCache.store.get(childJsonLdId);
@@ -323,7 +344,7 @@ class PersistentStore {
    * Get (JSON-LD) IDs of all opportunities which are children of the specified parent.
    *
    * @param {string} parentJsonLdId
-   * @returns {Set<string>}
+   * @returns {Readonly<Set<string>>}
    */
   getOpportunityItemRowCacheChildIdsFromParent(parentJsonLdId) {
     if (!this._opportunityItemRowCache.parentIdIndex.has(parentJsonLdId)) {
@@ -333,7 +354,7 @@ class PersistentStore {
   }
 
   /**
-   * @returns {{
+   * @returns {Readonly<{
    *   [criteriaName: string]: {
    *     [bookingFlow: string]: {
    *       [opportunityType: string]: {
@@ -346,7 +367,7 @@ class PersistentStore {
    *       };
    *     };
    *   };
-   * }}
+   * }>}
    */
   getCriteriaOrientedOpportunityIdCacheSummary() {
     // TODO2 this will need to be limited (e.g. first 1,000)
@@ -357,6 +378,7 @@ class PersistentStore {
    * @param {string} criteriaName
    * @param {string} bookingFlow
    * @param {string} opportunityType
+   * @returns {Readonly<import('./criteria-oriented-opportunity-id-cache').OpportunityIdCacheTypeBucket>}
    */
   getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType) {
     return CriteriaOrientedOpportunityIdCache.getTypeBucket(this._criteriaOrientedOpportunityIdCache, {
@@ -398,6 +420,22 @@ class PersistentStore {
     );
   }
 
+  /**
+   * @returns {Readonly<{
+   *   numMatched: number;
+   *   numOrphaned: number;
+   *   total: number;
+   *   orphanedList: Pick<
+   *     import('../models/core').OpportunityItemRow,
+   *     | 'jsonLdType'
+   *     | 'id'
+   *     | 'modified'
+   *     | 'jsonLd'
+   *     | 'jsonLdId'
+   *     | 'jsonLdParentId'
+   *   >[]
+   * }>}
+   */
   getOrphanData() {
     const rows = Array.from(this._opportunityItemRowCache.store.values())
       .filter((x) => x.jsonLdParentId !== null);
@@ -426,6 +464,13 @@ class PersistentStore {
     };
   }
 
+  /**
+   * @returns {Readonly<{
+   *   numChildOrphans: number;
+   *   totalNumChildren: number;
+   *   totalNumOpportunities: number;
+   * }>}
+   */
   getOrphanStats() {
     const { numOrphaned: numChildOrphans, total: totalNumChildren } = this.getOrphanData();
     const totalNumOpportunities = Array.from(this._opportunityItemRowCache.store.values())

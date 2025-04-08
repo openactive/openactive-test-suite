@@ -20,7 +20,6 @@ function getOpportunityMergedWithParentById(state, childOpportunityId) {
   const facilityUse = state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.facilityUse));
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
-    delete opportunity['@context'];
     const returnObj = {
       '@context': mergedContexts,
       ...opportunity,
