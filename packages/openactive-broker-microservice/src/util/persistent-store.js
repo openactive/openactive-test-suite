@@ -130,6 +130,18 @@ class PersistentStore {
     };
   }
 
+  async init() {
+    await this._createSqliteTables();
+  }
+
+  async _createSqliteTables() {
+    await sqlite3Run(this._db, `
+
+      CREATE TABLE 
+      
+    `);
+  }
+
   clearCaches() {
     this._opportunityCache.parentMap.clear();
     this._opportunityHousekeepingCaches.parentOpportunityRpdeMap.clear();
@@ -483,6 +495,23 @@ class PersistentStore {
       totalNumOpportunities,
     };
   }
+}
+
+/**
+ * @param {sqlite3.Database} db
+ * @param {string} sql
+ * @param {Record<string, unknown> | undefined} [params]
+ */
+function sqlite3Run(db, sql, params) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params || {}, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
 }
 
 module.exports = {
