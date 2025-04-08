@@ -1,3 +1,4 @@
+const sqlite3 = require('sqlite3');
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 const { mapToObjectSummary } = require('./map-to-object-summary');
 
@@ -21,6 +22,7 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  */
 class PersistentStore {
   constructor() {
+    this._db = new sqlite3.Database(':memory:');
     /**
      * A criteria-oriented cache for opportunity data. Used to get criteria-matching
      * opportunities for tests.
