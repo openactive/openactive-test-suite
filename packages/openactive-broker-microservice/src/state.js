@@ -101,10 +101,6 @@ const state = {
   /** @type {ValidatorWorkerPoolType} */
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
-  // We use multiple strategies to cache opportunity data for different use cases.
-  /* TODO investigate consolidation of opportunityItemRowCache and
-  opportunityCache to reduce memory usage & simplify code:
-  https://github.com/openactive/openactive-test-suite/issues/669 */
   persistentStore: new PersistentStore(),
 
   // UI
