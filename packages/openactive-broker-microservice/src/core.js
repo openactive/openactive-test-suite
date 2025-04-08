@@ -743,15 +743,10 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      const jsonLdId = state.opportunityHousekeepingCaches.opportunityRpdeMap.get(feedItemIdentifier);
-      state.opportunityCache.childMap.delete(jsonLdId);
-      state.opportunityHousekeepingCaches.opportunityRpdeMap.delete(feedItemIdentifier);
-
-      deleteChildOpportunityItem(jsonLdId);
+      state.persistentStore.deleteOpportunityCacheChildItem(feedItemIdentifier);
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
-      state.opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-      state.opportunityCache.childMap.set(jsonLdId, item.data);
+      state.persistentStore.setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, item.data);
 
       await storeChildOpportunityItem(item);
     }

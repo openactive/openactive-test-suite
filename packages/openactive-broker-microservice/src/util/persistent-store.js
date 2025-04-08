@@ -152,7 +152,8 @@ class PersistentStore {
    * Set a parent (e.g. FacilityUse or SessionSeries) opportunity in the
    * opportunity cache.
    *
-   * This also updates internal housekeeping caches.
+   * This also updates internal housekeeping caches, but does NOT update the row
+   * cache, which must be done separately.
    *
    * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    * @param {string} jsonLdId The .data['@id'] of the Opportunity
@@ -164,10 +165,26 @@ class PersistentStore {
   }
 
   /**
+   * Set a child (e.g. Slot or ScheduledSession) opportunity in the opportunity
+   * cache.
+   *
+   * This also updates internal housekeeping caches, but does NOT update the row
+   * cache, which must be done separately.
+   *
+   * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
+   * @param {string} jsonLdId The .data['@id'] of the Opportunity
+   * @param {Record<string, unknown>} itemData the Opportunity data
+   */
+  setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, itemData) {
+    this._opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
+    this._opportunityCache.childMap.set(jsonLdId, itemData);
+  }
+
+  /**
    * Delete a parent (e.g. FacilityUse or SessionSeries) opportunity from the
    * opportunity cache.
    *
-   * This also updates internal housekeeping caches.
+   * This also updates internal housekeeping caches and the row cache.
    *
    * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    */
@@ -185,6 +202,22 @@ class PersistentStore {
     this._opportunityHousekeepingCaches.parentOpportunityRpdeMap.delete(feedItemIdentifier);
     this._opportunityCache.parentMap.delete(jsonLdId);
     this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
+  }
+
+  /**
+   * Delete a child (e.g. Slot or ScheduledSession) opportunity from the
+   * opportunity cache.
+   *
+   * This also updates internal housekeeping caches and the row cache.
+   *
+   * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
+   */
+  deleteOpportunityCacheChildItem(feedItemIdentifier) {
+    const jsonLdId = this._opportunityHousekeepingCaches.opportunityRpdeMap.get(feedItemIdentifier);
+    this._opportunityCache.childMap.delete(jsonLdId);
+    this._opportunityHousekeepingCaches.opportunityRpdeMap.delete(feedItemIdentifier);
+
+    this._deleteOpportunityItemRowCacheChildItem(jsonLdId);
   }
 
   /**
