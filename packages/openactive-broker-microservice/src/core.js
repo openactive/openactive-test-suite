@@ -1034,8 +1034,8 @@ Dataset Site URL in validator.openactive.io to confirm that the content of
     remoteJsonCacheTimeToLive: 3600,
     validationMode: 'DatasetSite',
   }))
-    .filter((result) => result.severity === 'failure')
-    .map((error) => `${error.path}: ${error.message.split('\n')[0]}`);
+    .filter((/** @type {any} */ result) => result.severity === 'failure')
+    .map((/** @type {any} */ error) => `${error.path}: ${error.message.split('\n')[0]}`);
 
   if (datasetSiteErrors.length > 0) {
     logError(`
@@ -1093,10 +1093,10 @@ Validation errors found in Dataset Site JSON-LD:
     if (LOG_AUTH_CONFIG) log(`\nAugmented config supplied to Integration Tests: ${JSON.stringify(getConfig(), null, 2)}\n`);
   }
 
-  /** @type {Promise[]} Promises that resolve when the harvester has exited due to fatal error */
+  /** @type {Promise<void>[]} Promises that resolve when the harvester has exited due to fatal error */
   const harvesterExitPromises = [];
 
-  const hasTotalItems = dataset.distribution.filter((x) => x.totalItems).length > 0;
+  const hasTotalItems = dataset.distribution.filter((/** @type {any} */ x) => x.totalItems).length > 0;
   state.multibar = new cliProgress.MultiBar({
     clearOnComplete: false,
     hideCursor: false,
@@ -1110,7 +1110,7 @@ Validation errors found in Dataset Site JSON-LD:
 
   // Start polling for all Opportunity feeds concurrently
   harvesterExitPromises.push(
-    ...dataset.distribution.map((datasetDistributionItem) => (
+    ...dataset.distribution.map((/** @type {any} */ datasetDistributionItem) => (
       startPollingForOpportunityFeed(datasetDistributionItem, {
         validatorWorkerPool,
       })
@@ -1154,6 +1154,8 @@ Validation errors found in Dataset Site JSON-LD:
 
 /**
  * Maps a Dataset Distribution item's additionalType to whether or not it is a parent feed.
+ *
+ * @type {Record<string, boolean>}
  */
 const DATASET_ADDITIONAL_TYPE_TO_IS_PARENT_FEED = {
   'https://openactive.io/SessionSeries': true,
@@ -1473,8 +1475,9 @@ function storeFeedContext(feedContextIdentifier, feedContext) {
 
 /**
  * Event listener for HTTP server "error" event.
+ *
+ * @param {any} error
  */
-
 function onHttpServerError(error) {
   if (error.syscall !== 'listen') {
     throw error;
