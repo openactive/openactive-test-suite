@@ -3,13 +3,6 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
 
 class PersistentStore {
   constructor() {
-    // /**
-    //  * For each Test Dataset, a set of IDs of Opportunities which are now
-    //  * considered "locked" because they have already been used in a test.
-    //  *
-    //  * @type {Map<string, Set<string>>}
-    //  */
-    // this._lockedOpportunityIdsByTestDataset = new Map();
     /**
      * A criteria-oriented cache for opportunity data. Used to get criteria-matching
      * opportunities for tests.

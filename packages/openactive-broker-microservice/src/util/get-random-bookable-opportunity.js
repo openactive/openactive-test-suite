@@ -58,6 +58,7 @@ function getRandomBookableOpportunity(state, { sellerId, bookingFlow, opportunit
  * @param {string} opportunityType
  */
 function getTypeFromOpportunityType(opportunityType) {
+  /** @type {Record<string, string>} */
   const mapping = {
     ScheduledSession: 'ScheduledSession',
     FacilityUseSlot: 'Slot',

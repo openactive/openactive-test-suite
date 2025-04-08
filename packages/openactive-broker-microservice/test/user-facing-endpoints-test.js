@@ -255,7 +255,7 @@ describe('user-facing endpoints', () => {
   });
   describe('GET /opportunity-cache/:id', () => {
     it('should get an opportunity from the cache, merged with its parent', () => {
-      /** @type {import('../src/state').State['opportunityCache']} */
+      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityCache']} */
       const opportunityCache = {
         parentMap: new Map([
           ['parentid1', {
@@ -374,7 +374,7 @@ describe('user-facing endpoints', () => {
         opportunityType: 'ScheduledSession',
         sellerId: 'seller1',
       });
-      /** @type {import('../src/state').State['opportunityCache']} */
+      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityCache']} */
       const opportunityCache = {
         parentMap: new Map([
           ['parentid1', {
@@ -496,7 +496,7 @@ describe('user-facing endpoints', () => {
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
       );
-      const isResult1Id1 = result1.sampleOpportunities[0]['@id'] === 'id1';
+      const isResult1Id1 = /** @type {any} */(result1).sampleOpportunities[0]['@id'] === 'id1';
       testResult(
         result2,
         isResult1Id1 ? ['id2'] : ['id1'],
