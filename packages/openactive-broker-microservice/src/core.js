@@ -1545,10 +1545,6 @@ function harvestRpdeHowLongToSleepAtFeedEnd() {
   return WAIT_FOR_HARVEST && state.incompleteFeeds.anyFeedsStillHarvesting() ? 5000 : 500;
 }
 
-// TODO2
-// deleteChildOpportunityItem
-// is now in PersistentStore._deleteOpportunityItemRowCacheChildItem
-
 module.exports = {
   homepageRoute,
   healthCheckRoute,

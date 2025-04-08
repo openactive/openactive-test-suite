@@ -19,6 +19,11 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  * does not attempt to mutate it, as this likely means that it is under the
  * misinterpretation that this will update the data itself (as if it was
  * in-memory).
+ *
+ * We use multiple strategies to cache opportunity data for different use cases.
+ * TODO investigate consolidation of _opportunityItemRowCache and
+ * _opportunityCache to reduce memory usage & simplify code:
+ * https://github.com/openactive/openactive-test-suite/issues/669.
  */
 class PersistentStore {
   constructor() {
@@ -29,7 +34,6 @@ class PersistentStore {
      */
     this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
 
-    // TODO2 check for all uses of this and following fields
     /**
      * Stores mappings between IDs which allow Broker to perform various kinds of
      * housekeeping to ensure that its stored opportunity date is correct.
@@ -384,7 +388,6 @@ class PersistentStore {
    * }>}
    */
   getCriteriaOrientedOpportunityIdCacheSummary() {
-    // TODO2 this will need to be limited (e.g. first 1,000)
     return /** @type {any} */ (mapToObjectSummary(this._criteriaOrientedOpportunityIdCache));
   }
 
