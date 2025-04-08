@@ -356,6 +356,7 @@ class PersistentStore {
    * }}
    */
   getCriteriaOrientedOpportunityIdCacheSummary() {
+    // TODO2 this will need to be limited (e.g. first 1,000)
     return /** @type {any} */ (mapToObjectSummary(this._criteriaOrientedOpportunityIdCache));
   }
 
@@ -368,6 +369,40 @@ class PersistentStore {
     return CriteriaOrientedOpportunityIdCache.getTypeBucket(this._criteriaOrientedOpportunityIdCache, {
       criteriaName, bookingFlow, opportunityType,
     });
+  }
+
+  /**
+   * @param {string} opportunityId
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(this._criteriaOrientedOpportunityIdCache, opportunityId, {
+      criteriaName, bookingFlow, opportunityType, sellerId,
+    });
+  }
+
+  /**
+   * @param {string} opportunityId
+   * @param {string[]} unmetCriteriaDetails
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  setOpportunityDoesNotMatchCriteria(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
+      this._criteriaOrientedOpportunityIdCache,
+      opportunityId,
+      unmetCriteriaDetails,
+      {
+        criteriaName, bookingFlow, opportunityType, sellerId,
+      },
+    );
   }
 
   getOrphanData() {

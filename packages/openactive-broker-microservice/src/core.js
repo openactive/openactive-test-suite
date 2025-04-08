@@ -16,7 +16,6 @@ const { partial } = require('lodash');
 const path = require('path');
 const nodeCleanup = require('node-cleanup');
 
-const { CriteriaOrientedOpportunityIdCache } = require('./util/criteria-oriented-opportunity-id-cache');
 const { logError, logErrorDuringHarvest, log, logCharacter } = require('./util/log');
 const {
   PORT,
@@ -907,7 +906,9 @@ async function processOpportunityItem(item) {
   const id = item.data['@id'] || item.data.id;
 
   // Store opportunity to criteria-oriented cache
+  /** @type {string[]} */
   const matchingCriteria = [];
+  /** @type {string[]} */
   const unmetCriteriaDetails = [];
 
   if (!DO_NOT_FILL_BUCKETS) {
@@ -923,17 +924,15 @@ async function processOpportunityItem(item) {
     }))) {
       for (const bookingFlow of bookingFlows) {
         if (criteriaResult.matchesCriteria) {
-          // TODO2 gotta change these
-          CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(
-            state.criteriaOrientedOpportunityIdCache,
+          state.persistentStore.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(
             id,
             {
               criteriaName, bookingFlow, opportunityType, sellerId,
             },
           );
+          matchingCriteria.push(criteriaName);
         } else {
-          CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
-            state.criteriaOrientedOpportunityIdCache,
+          state.persistentStore.setOpportunityDoesNotMatchCriteria(
             id,
             criteriaResult.unmetCriteriaDetails,
             {
