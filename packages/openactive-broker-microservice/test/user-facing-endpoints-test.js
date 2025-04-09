@@ -75,7 +75,7 @@ const testDataGenerators = {
 
 describe('user-facing endpoints', () => {
   describe('GET /status', () => {
-    it('should include stats about orphans and criteria matches', () => {
+    it('should include stats about orphans and criteria matches', async () => {
       const cooiCache = CriteriaOrientedOpportunityIdCache.create();
       CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
         criteriaName: 'TestOpportunityBookable',
@@ -176,7 +176,7 @@ describe('user-facing endpoints', () => {
       };
       persistentStore._criteriaOrientedOpportunityIdCache = cooiCache;
 
-      const result = getStatus({
+      const result = await getStatus({
         DO_NOT_FILL_BUCKETS: false,
       }, {
         startTime: new Date(),
@@ -218,7 +218,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /orphans', () => {
-    it('should return stats about which opportunities are orphans i.e. have no parents', () => {
+    it('should return stats about which opportunities are orphans i.e. have no parents', async () => {
       const persistentStore = new PersistentStore();
       persistentStore._opportunityItemRowCache = {
         store: new Map([
@@ -228,7 +228,7 @@ describe('user-facing endpoints', () => {
         ]),
         parentIdIndex: new Map(),
       };
-      const result = getOrphanJson({
+      const result = await getOrphanJson({
         persistentStore,
       });
       expect(result).to.deep.equal({
@@ -254,7 +254,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /opportunity-cache/:id', () => {
-    it('should get an opportunity from the cache, merged with its parent', () => {
+    it('should get an opportunity from the cache, merged with its parent', async () => {
       /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityCache']} */
       const opportunityCache = {
         parentMap: new Map([
@@ -286,7 +286,7 @@ describe('user-facing endpoints', () => {
       };
       const persistentStore = new PersistentStore();
       persistentStore._opportunityCache = opportunityCache;
-      const slotResult = getOpportunityMergedWithParentById({
+      const slotResult = await getOpportunityMergedWithParentById({
         persistentStore,
       }, 'id1');
       expect(slotResult).to.deep.equal({
@@ -298,7 +298,7 @@ describe('user-facing endpoints', () => {
         },
         startDate: '2001-01-01T00:00:00Z',
       });
-      const scsResult = getOpportunityMergedWithParentById({
+      const scsResult = await getOpportunityMergedWithParentById({
         persistentStore,
       }, 'id2');
       expect(scsResult).to.deep.equal({
@@ -313,7 +313,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /sample-opportunities', () => {
-    it('should get a random opportunity matching a criteria, and then lock it', () => {
+    it('should get a random opportunity matching a criteria, and then lock it', async () => {
       /**
        * @param {any} result
        * @param {string[]} idAllowlist
@@ -484,14 +484,14 @@ describe('user-facing endpoints', () => {
         'test:testOpportunityCriteria': criteria,
         'test:testOpenBookingFlow': 'https://openactive.io/test-interface#OpenBookingSimpleFlow',
       });
-      const result1 = getSampleOpportunities(
+      const result1 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
       );
       testResult(result1, ['id1', 'id2'], ['parentid1', 'parentid2'], ['offer1', 'offer2']);
       // That item should now have been locked. So another call should get the other item
-      const result2 = getSampleOpportunities(
+      const result2 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
@@ -504,7 +504,7 @@ describe('user-facing endpoints', () => {
         ['offer1', 'offer2'],
       );
       // And then another call should get nothing
-      const result3 = getSampleOpportunities(
+      const result3 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
@@ -512,7 +512,7 @@ describe('user-facing endpoints', () => {
       expect(result3).to.have.nested.property('error.suggestion');
       // We reset by clearing the locks
       lockedOpportunityIdsByTestDataset.clear();
-      const result4 = getSampleOpportunities(
+      const result4 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookableFree'),

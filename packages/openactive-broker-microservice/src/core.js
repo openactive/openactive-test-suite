@@ -145,16 +145,16 @@ function getDatasetSiteRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function getOrphansRoute(req, res) {
-  res.send(getOrphanJson(state));
+async function getOrphansRoute(req, res) {
+  res.send(await getOrphanJson(state));
 }
 
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function getStatusRoute(req, res) {
-  res.send(getStatus({
+async function getStatusRoute(req, res) {
+  res.send(await getStatus({
     DO_NOT_FILL_BUCKETS,
   }, state));
 }
@@ -171,8 +171,8 @@ async function getValidationErrorsRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function deleteOpportunityCacheRoute(req, res) {
-  state.persistentStore.clearCaches();
+async function deleteOpportunityCacheRoute(req, res) {
+  await state.persistentStore.clearCaches();
 
   res.status(204).send();
 }
@@ -181,11 +181,11 @@ function deleteOpportunityCacheRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function getOpportunityCacheByIdRoute(req, res) {
+async function getOpportunityCacheByIdRoute(req, res) {
   if (req.params.id) {
     const { id } = req.params;
 
-    const cachedResponse = getOpportunityMergedWithParentById(state, id);
+    const cachedResponse = await getOpportunityMergedWithParentById(state, id);
 
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
@@ -212,7 +212,7 @@ function getOpportunityCacheByIdRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function getOpportunityByIdRoute(req, res) {
+async function getOpportunityByIdRoute(req, res) {
   if (!error400IfExpressParamsAreMissing(req, res, ['id'])) { return; }
   const { id } = req.params;
 
@@ -236,7 +236,7 @@ function getOpportunityByIdRoute(req, res) {
       criteriaUtils.getRemainingCapacity(rpdeItem.data) === expectedCapacity
     ));
   // If it's not in the cache already, the route will return if/when it is found
-  doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
+  await doOnePhaseListenForOpportunity(id, useCacheIfAvailable, doesItemMatchCriteria, res);
 }
 
 /**
@@ -247,7 +247,7 @@ function getOpportunityByIdRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function getRandomOpportunityRoute(req, res) {
+async function getRandomOpportunityRoute(req, res) {
   if (DO_NOT_FILL_BUCKETS) {
     res.status(403).json({
       error: 'Test interface is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
@@ -265,7 +265,7 @@ function getRandomOpportunityRoute(req, res) {
   // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
   const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const result = getRandomBookableOpportunity(state, {
+  const result = await getRandomBookableOpportunity(state, {
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
   });
   if (result && result.opportunity) {
@@ -300,7 +300,7 @@ function deleteTestDatasetRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function assertUnmatchedCriteriaRoute(req, res) {
+async function assertUnmatchedCriteriaRoute(req, res) {
   if (DO_NOT_FILL_BUCKETS) {
     res.status(403).json({
       error: 'Bucket functionality is not available as \'disableBucketAllocation\' is set to \'true\' in openactive-broker-microservice configuration.',
@@ -314,7 +314,7 @@ function assertUnmatchedCriteriaRoute(req, res) {
   // converts e.g. https://openactive.io/test-interface#OpenBookingApproval -> OpenBookingApproval.
   const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const result = assertOpportunityCriteriaNotFound({
+  const result = await assertOpportunityCriteriaNotFound({
     opportunityType, criteriaName, bookingFlow,
   });
 
@@ -341,10 +341,11 @@ function assertUnmatchedCriteriaRoute(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-function getSampleOpportunitiesRoute(req, res) {
-  res.json(getSampleOpportunities({
+async function getSampleOpportunitiesRoute(req, res) {
+  const result = await getSampleOpportunities({
     HARVEST_START_TIME,
-  }, state, req.body));
+  }, state, req.body);
+  res.json(result);
 }
 
 /**
@@ -366,8 +367,9 @@ async function renderValidationErrorsHtml(validatorWorkerPool) {
  *
  * @param {string} id The `@id` of the JSON-LD object
  */
-function renderOpenValidatorHref(id) {
-  const cachedResponse = state.persistentStore.getOpportunityCacheChildItem(id) || state.persistentStore.getOpportunityCacheParentItem(id);
+async function renderOpenValidatorHref(id) {
+  const cachedResponse = ((await state.persistentStore.getOpportunityCacheChildItem(id))
+    || (await state.persistentStore.getOpportunityCacheParentItem(id)));
   if (cachedResponse) {
     const jsonString = JSON.stringify(cachedResponse, null, 2);
     return `https://validator.openactive.io/?validationMode=${ITEM_VALIDATION_MODE}#/json/${Base64.encodeURI(jsonString)}`;
@@ -379,7 +381,15 @@ function renderOpenValidatorHref(id) {
  * Render the specified Handlebars template with the supplied data
  *
  * @param {string} templateName Filename of the Handlebars template
- * @param {any} data JSON to pass into the Handlebars template
+ * @param {{
+ *   validationErrors: {
+ *     errorKey: string;
+ *     path: string;
+ *     message: string;
+ *     occurrences: number;
+ *     examples: string[];
+ *   }[];
+ * }} data JSON to pass into the Handlebars template
  */
 async function renderTemplate(templateName, data) {
   const getTemplate = async (/** @type {string} */ name) => {
@@ -388,12 +398,34 @@ async function renderTemplate(templateName, data) {
   };
 
   const template = await getTemplate(templateName);
+  // We cannot pass in renderOpenValidatorHref directly, as it is an async
+  // function, which Handlebars does not support. So, instead we pre-calculate
+  // the result for each validation error example
+  const enhancedData = await (async () => {
+    const result = {
+      ...data,
+      validationErrors: data.validationErrors.map((validationError) => ({
+        ...validationError,
+        // Expand `examples` into objects
+        examples: validationError.examples.map((example) => ({
+          example,
+          /** @type {string} */
+          openValidatorHref: '',
+        })),
+      })),
+    };
+    for (const validationError of result.validationErrors) {
+      for (const example of validationError.examples) {
+        example.openValidatorHref = await renderOpenValidatorHref(example.example);
+      }
+    }
+    return result;
+  })();
 
-  return template(data, {
+  return template(enhancedData, {
     allowProtoMethodsByDefault: true,
     allowProtoPropertiesByDefault: true,
     helpers: {
-      renderOpenValidatorHref,
       renderMarkdown: (/** @type {string} */ text) => markdown.render(text),
     },
   });
@@ -417,8 +449,8 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
  * @param {string} args.criteriaName
  * @param {string} args.bookingFlow
  */
-function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, bookingFlow }) {
-  const typeBucket = state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
+async function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, bookingFlow }) {
+  const typeBucket = await state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
 
   // Check that all sellerCompartments are empty
   return Array.from(typeBucket.contents).every(([, items]) => (items.size === 0));
@@ -469,7 +501,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   log('Harvesting is up-to-date');
 
   // Run some assertions to ensure that feed harvesting has lead to the correct state.
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = await getOrphanStats(state);
 
   let validationPassed = true;
 
@@ -480,7 +512,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   } else if (totalChildren !== 0 && childOrphans === totalChildren) {
     logError(`\nFATAL ERROR: 100% of the ${totalChildren} harvested opportunities that reference a parent do not have a matching parent item from the parent feed, so all integration tests will fail.`);
     logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(state), null, 2));
+    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(await getOrphanJson(state), null, 2));
     if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
       logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
     } else {
@@ -490,7 +522,7 @@ async function setFeedIsUpToDate(validatorWorkerPool, feedIdentifier, { multibar
   } else if (childOrphans > 0) {
     logError(`\nFATAL ERROR: ${childOrphans} of ${totalChildren} opportunities that reference a parent (${percentageChildOrphans}%) do not have a matching parent item from the parent feed.`);
     logError('Please ensure that the value of the `subEvent` or `facilityUse` property in each opportunity exactly matches an `@id` from the parent feed.\n');
-    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(getOrphanJson(state), null, 2));
+    await fs.writeFile(`${OUTPUT_PATH}orphans.json`, JSON.stringify(await getOrphanJson(state), null, 2));
     if (!VALIDATE_ONLY && !IS_RUNNING_IN_CI) {
       logError(`See ${OUTPUT_PATH}orphans.json for more information or visit http://localhost:${PORT}/orphans for more information\n`);
     } else {
@@ -594,11 +626,11 @@ function doNotifyOrderListener(type, bookingPartnerIdentifier, uuid, item) {
  * @param {import('express').Response} res If/when Opportunity is found, it will be passed to `res`. This will happen asynchronously if
  *   the Opportunity is not found in the cache.
  */
-function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, doesItemMatchCriteria, res) {
+async function doOnePhaseListenForOpportunity(opportunityId, useCacheIfAvailable, doesItemMatchCriteria, res) {
   state.onePhaseListeners.opportunity.createListener(opportunityId, doesItemMatchCriteria, res);
 
   if (useCacheIfAvailable) {
-    const cachedResponse = getOpportunityMergedWithParentById(state, opportunityId);
+    const cachedResponse = await getOpportunityMergedWithParentById(state, opportunityId);
     if (cachedResponse) {
       if (CONSOLE_OUTPUT_LEVEL === 'dot') {
         logCharacter('.');
@@ -691,7 +723,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       // Store the parent opportunity data in the maps
       const jsonLdId = item.data['@id'] || item.data.id;
 
-      state.persistentStore.setOpportunityCacheParentItem(feedItemIdentifier, jsonLdId, item.data);
+      await state.persistentStore.setOpportunityCacheParentItem(feedItemIdentifier, jsonLdId, item.data);
 
       // If there are subEvents then we have a basic "small provider" SessionSeries feed. This is not
       // recommended, but we support it anyway here. We do this by converting each of the embedded
@@ -707,18 +739,18 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
           // user without a harsh process exit.
           if ((subEvent['@id'] || subEvent.id) && (subEvent['@type'] || subEvent.type)) {
             const opportunityItem = createItemFromSubEvent(subEvent, item);
-            storeChildOpportunityItem(opportunityItem);
+            await storeChildOpportunityItem(opportunityItem);
           }
         }
 
         // Check for and reconcile any changes to child items found in
         // `.subEvent` (rather than in a separate feed). e.g. a ScheduledSession
         // may have been implicitly deleted.
-        state.persistentStore.reconcileParentSubEventChanges(item, jsonLdId);
+        await state.persistentStore.reconcileParentSubEventChanges(item, jsonLdId);
       }
     } else {
       // State = deleted
-      state.persistentStore.deleteOpportunityCacheParentItem(feedItemIdentifier);
+      await state.persistentStore.deleteOpportunityCacheParentItem(feedItemIdentifier);
     }
   }
 
@@ -742,10 +774,10 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      state.persistentStore.deleteOpportunityCacheChildItem(feedItemIdentifier);
+      await state.persistentStore.deleteOpportunityCacheChildItem(feedItemIdentifier);
     } else {
       const jsonLdId = item.data['@id'] || item.data.id;
-      state.persistentStore.setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, item.data);
+      await state.persistentStore.setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, item.data);
 
       await storeChildOpportunityItem(item);
     }
@@ -764,17 +796,17 @@ async function touchChildOpportunityItems(parentIds) {
   const childOpportunityIdsToUpdate = new Set();
 
   // Get IDs of all opportunities which are children of the specified parents.
-  parentIds.forEach((parentId) => {
-    const childIds = state.persistentStore.getOpportunityItemRowCacheChildIdsFromParent(parentId);
-    childIds.forEach((childId) => {
+  for (const parentId of parentIds) {
+    const childIds = await state.persistentStore.getOpportunityItemRowCacheChildIdsFromParent(parentId);
+    for (const childId of childIds) {
       childOpportunityIdsToUpdate.add(childId);
-    });
-  });
+    }
+  }
 
   await Promise.all([...childOpportunityIdsToUpdate].map(async (jsonLdId) => {
     // 1 second in the future
     const newFeedModified = `${Date.now() + 1000}`;
-    const row = state.persistentStore.markOpportunityItemRowChildAsFoundParent(
+    const row = await state.persistentStore.markOpportunityItemRowChildAsFoundParent(
       jsonLdId,
       newFeedModified,
     );
@@ -794,6 +826,20 @@ async function storeChildOpportunityItem(item) {
   if (item.state === 'deleted') throw new Error('Not expected to be called for deleted items');
 
   const hasParent = jsonLdHasReferencedParent(item.data);
+  /** @type {boolean} */
+  const isParentAlreadyIngested = await (async () => {
+    if (!hasParent) {
+      return true;
+    }
+    if (item.data.superEvent) {
+      return state.persistentStore.hasOpportunityCacheParentItem(item.data.superEvent);
+    }
+    if (item.data.facilityUse) {
+      return state.persistentStore.hasOpportunityCacheParentItem(item.data.facilityUse);
+    }
+    return false;
+  })();
+
   /**
    * @type {import('./models/core').OpportunityItemRow}
    */
@@ -806,16 +852,7 @@ async function storeChildOpportunityItem(item) {
     jsonLd: item.data,
     jsonLdType: item.data['@type'] || item.data.type,
     jsonLdParentId: !hasParent ? null : item.data.superEvent || item.data.facilityUse,
-    waitingForParentToBeIngested: (
-      hasParent
-      && !((
-        item.data.superEvent
-        && state.persistentStore.hasOpportunityCacheParentItem(item.data.superEvent)
-      )
-        || (
-          item.data.facilityUse
-          && state.persistentStore.hasOpportunityCacheParentItem(item.data.facilityUse))
-      )),
+    waitingForParentToBeIngested: !isParentAlreadyIngested,
   };
 
   if (row.jsonLdId == null) {
@@ -848,7 +885,7 @@ async function processRow(row) {
       data: row.jsonLd,
     };
   } else {
-    const parentOpportunity = state.persistentStore.getOpportunityCacheParentItem(row.jsonLdParentId);
+    const parentOpportunity = await state.persistentStore.getOpportunityCacheParentItem(row.jsonLdParentId);
     const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
 
     const parentOpportunityWithoutContext = {
@@ -924,7 +961,7 @@ async function processOpportunityItem(item) {
     }))) {
       for (const bookingFlow of bookingFlows) {
         if (criteriaResult.matchesCriteria) {
-          state.persistentStore.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(
+          await state.persistentStore.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(
             id,
             {
               criteriaName, bookingFlow, opportunityType, sellerId,
@@ -932,7 +969,7 @@ async function processOpportunityItem(item) {
           );
           matchingCriteria.push(criteriaName);
         } else {
-          state.persistentStore.setOpportunityDoesNotMatchCriteria(
+          await state.persistentStore.setOpportunityDoesNotMatchCriteria(
             id,
             criteriaResult.unmetCriteriaDetails,
             {

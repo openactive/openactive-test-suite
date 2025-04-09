@@ -1,13 +1,13 @@
 /**
  * @param {Pick<import('../state').State, 'persistentStore'>} state
  */
-function getOrphanJson(state) {
+async function getOrphanJson(state) {
   const {
     numMatched: matched,
     numOrphaned: orphaned,
     total,
     orphanedList,
-  } = state.persistentStore.getOrphanData();
+  } = await state.persistentStore.getOrphanData();
   return {
     children: {
       matched,
