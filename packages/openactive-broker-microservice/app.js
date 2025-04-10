@@ -111,8 +111,6 @@ Check ${MICROSERVICE_BASE_URL}/status for current harvesting status
     process.send('listening');
   }
 
-  await state.persistentStore.init();
-
   // Start polling after HTTP server starts listening
   try {
     await startPolling();
