@@ -9,7 +9,6 @@ const { jsonLdHasReferencedParent, getMergedJsonLdContext } = require('./jsonld-
  * @param {string} childOpportunityId
  */
 async function getOpportunityMergedWithParentById(state, childOpportunityId) {
-  // const opportunity = await state.persistentStore.getOpportunityCacheChildItem(childOpportunityId);
   const opportunityItemRow = await state.persistentStore.getOpportunityItemRow(childOpportunityId);
   if (!opportunityItemRow) {
     return null;
@@ -18,8 +17,6 @@ async function getOpportunityMergedWithParentById(state, childOpportunityId) {
   if (!jsonLdHasReferencedParent(opportunity)) {
     return opportunity;
   }
-  // const superEvent = await state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.superEvent));
-  // const facilityUse = await state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.facilityUse));
   const superEvent = (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.superEvent)))?.jsonLd;
   const facilityUse = (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.facilityUse)))?.jsonLd;
   if (superEvent || facilityUse) {

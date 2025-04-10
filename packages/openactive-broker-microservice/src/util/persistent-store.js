@@ -65,9 +65,6 @@ class PersistentStore {
      * - Determine which Opportunities are "orphans"
      * - Determine which child Opportunities to re-process when a parent
      *   Opportunity is updated.
-     *
-     * Only child (e.g. Slot or ScheduledSession) opportunities are stored in
-     * this cache.
      */
     this._opportunityItemRowCache = {
       /**
