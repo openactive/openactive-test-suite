@@ -1,3 +1,4 @@
+const { FatalError } = require('@openactive/openactive-openid-client');
 const { omit, isNil, isEmpty } = require('lodash');
 
 /**
@@ -60,6 +61,38 @@ function createRpdeItemFromSubEvent(subEvent, item) {
 }
 
 /**
+ * @param {import('../models/core').RpdeItem} rpdeItem
+ * @param {boolean} isChildOpportunity
+ * @param {boolean} [waitingForParentToBeIngested]
+ *   Required if `isChildOpportunity` is true.
+ *   If `isChildOpportunity` is false, then this will be ignored and set to false.
+ */
+function createUpdatedOpportunityItemRow(rpdeItem, isChildOpportunity, waitingForParentToBeIngested) {
+  const hasParent = isChildOpportunity && jsonLdHasReferencedParent(rpdeItem.data);
+  /** @type {import('../models/core').OpportunityItemRow} */
+  const row = {
+    id: rpdeItem.id,
+    modified: rpdeItem.modified,
+    deleted: false,
+    feedModified: `${Date.now() + 1000}`, // 1 second in the future,
+    jsonLdId: rpdeItem.data['@id'] || rpdeItem.data.id || null,
+    jsonLd: rpdeItem.data,
+    jsonLdType: rpdeItem.data['@type'] || rpdeItem.data.type,
+    isParent: !isChildOpportunity,
+    jsonLdParentId: hasParent
+      ? rpdeItem.data.superEvent || rpdeItem.data.facilityUse
+      : null,
+    waitingForParentToBeIngested: isChildOpportunity
+      ? waitingForParentToBeIngested
+      : false,
+  };
+  if (row.jsonLdId == null) {
+    throw new FatalError(`RPDE item '${rpdeItem.id}' of kind '${rpdeItem.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
+  }
+  return row;
+}
+
+/**
  * @param {{superEvent?: any, facilityUse?: any}} data
  */
 function jsonLdHasReferencedParent(data) {
@@ -93,4 +126,5 @@ module.exports = {
   createRpdeItemFromSubEvent,
   jsonLdHasReferencedParent,
   getMergedJsonLdContext,
+  createUpdatedOpportunityItemRow,
 };
