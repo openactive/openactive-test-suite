@@ -257,7 +257,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /opportunity-cache/:id', () => {
-    it.only('should get an opportunity from the cache, merged with its parent', async () => {
+    it('should get an opportunity from the cache, merged with its parent', async () => {
       /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityItemRowCache']} */
       const opportunityCache = {
         parentIdIndex: new Map([
@@ -423,83 +423,129 @@ describe('user-facing endpoints', () => {
         opportunityType: 'ScheduledSession',
         sellerId: 'seller1',
       });
-      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityCache']} */
+      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityItemRowCache']} */
       const opportunityCache = {
-        parentMap: new Map([
+        parentIdIndex: new Map([
+          ['parentid1', new Set(['id1'])],
+          ['parentid2', new Set(['id2'])],
+        ]),
+        store: new Map([
           ['parentid1', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'SessionSeries',
-            '@id': 'parentid1',
-            name: 'Session 1',
-            organizer: {
-              '@type': 'Organization',
-              isOpenBookingAllowed: true,
+            id: 'parentid1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid1',
+            jsonLdType: 'SessionSeries',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'SessionSeries',
+              '@id': 'parentid1',
+              name: 'Session 1',
+              organizer: {
+                '@type': 'Organization',
+                isOpenBookingAllowed: true,
+              },
+              offers: [{
+                '@type': 'Offer',
+                '@id': 'offer1',
+                name: 'offer1',
+                price: 10,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer2',
+                name: 'offer2',
+                price: 0,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer3',
+                name: 'offer3',
+                // This one should not be bookable as "now" is Jan 1st 2001 and the
+                // session starts Jan 2nd.
+                validFromBeforeStartDate: 'PT1S',
+                price: 20,
+              }],
             },
-            offers: [{
-              '@type': 'Offer',
-              '@id': 'offer1',
-              name: 'offer1',
-              price: 10,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer2',
-              name: 'offer2',
-              price: 0,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer3',
-              name: 'offer3',
-              // This one should not be bookable as "now" is Jan 1st 2001 and the
-              // session starts Jan 2nd.
-              validFromBeforeStartDate: 'PT1S',
-              price: 20,
-            }],
           }],
           ['parentid2', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'SessionSeries',
-            '@id': 'parentid2',
-            description: 'Session 2',
-            organizer: {
-              '@type': 'Organization',
-              isOpenBookingAllowed: true,
+            id: 'parentid2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid2',
+            jsonLdType: 'SessionSeries',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'SessionSeries',
+              '@id': 'parentid2',
+              description: 'Session 2',
+              organizer: {
+                '@type': 'Organization',
+                isOpenBookingAllowed: true,
+              },
+              offers: [{
+                '@type': 'Offer',
+                '@id': 'offer1',
+                name: 'offer1',
+                price: 10,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer2',
+                name: 'offer2',
+                price: 0,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer3',
+                name: 'offer3',
+                // This one should not be bookable as "now" is Jan 1st 2001 and the
+                // session starts Jan 2nd.
+                validThroughBeforeStartDate: 'P100D',
+                price: 20,
+              }],
             },
-            offers: [{
-              '@type': 'Offer',
-              '@id': 'offer1',
-              name: 'offer1',
-              price: 10,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer2',
-              name: 'offer2',
-              price: 0,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer3',
-              name: 'offer3',
-              // This one should not be bookable as "now" is Jan 1st 2001 and the
-              // session starts Jan 2nd.
-              validThroughBeforeStartDate: 'P100D',
-              price: 20,
-            }],
           }],
-        ]),
-        childMap: new Map([
           ['id1', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'ScheduledSession',
-            '@id': 'id1',
-            superEvent: 'parentid1',
-            startDate: '2001-01-02T00:00:00Z',
+            id: 'id1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id1',
+            jsonLdType: 'ScheduledSession',
+            isParent: false,
+            jsonLdParentId: 'parentid1',
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'ScheduledSession',
+              '@id': 'id1',
+              superEvent: 'parentid1',
+              startDate: '2001-01-02T00:00:00Z',
+            },
           }],
           ['id2', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'ScheduledSession',
-            '@id': 'id2',
-            superEvent: 'parentid2',
-            name: 'ScheduledSession 2',
-            startDate: '2001-01-02T00:00:00Z',
+            id: 'id2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id2',
+            jsonLdType: 'ScheduledSession',
+            isParent: false,
+            jsonLdParentId: 'parentid2',
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'ScheduledSession',
+              '@id': 'id2',
+              superEvent: 'parentid2',
+              name: 'ScheduledSession 2',
+              startDate: '2001-01-02T00:00:00Z',
+            },
           }],
         ]),
       };
@@ -509,7 +555,7 @@ describe('user-facing endpoints', () => {
       };
       const persistentStore = new PersistentStore();
       persistentStore._criteriaOrientedOpportunityIdCache = cooiCache;
-      persistentStore._opportunityCache = opportunityCache;
+      persistentStore._opportunityItemRowCache = opportunityCache;
       const state = {
         persistentStore,
         lockedOpportunityIdsByTestDataset,
