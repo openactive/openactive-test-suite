@@ -29,6 +29,7 @@ const testDataGenerators = {
         deleted: false,
         modified: '123',
         waitingForParentToBeIngested: false,
+        isParent: false,
       },
     ],
     /**
@@ -48,6 +49,7 @@ const testDataGenerators = {
         deleted: false,
         modified: '123',
         waitingForParentToBeIngested: false,
+        isParent: false,
       },
     ],
     /**
@@ -68,6 +70,7 @@ const testDataGenerators = {
         deleted: false,
         modified: '123',
         waitingForParentToBeIngested: true,
+        isParent: false,
       },
     ],
   },
@@ -254,38 +257,84 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /opportunity-cache/:id', () => {
-    it('should get an opportunity from the cache, merged with its parent', async () => {
-      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityCache']} */
+    it.only('should get an opportunity from the cache, merged with its parent', async () => {
+      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityItemRowCache']} */
       const opportunityCache = {
-        parentMap: new Map([
+        parentIdIndex: new Map([
+          ['parentid1', new Set(['id1'])],
+          ['parentid2', new Set(['id2'])],
+        ]),
+        store: new Map([
           ['parentid1', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'FacilityUse',
-            name: 'Facility 1',
+            id: 'parentid1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid1',
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'FacilityUse',
+              name: 'Facility 1',
+            },
+            jsonLdType: 'FacilityUse',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
           }],
           ['parentid2', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'SessionSeries',
-            description: 'come have fun besties <3',
+            id: 'parentid2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid2',
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'SessionSeries',
+              description: 'come have fun besties <3',
+            },
+            jsonLdType: 'SessionSeries',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
           }],
-        ]),
-        childMap: new Map([
           ['id1', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'Slot',
-            facilityUse: 'parentid1',
-            startDate: '2001-01-01T00:00:00Z',
+            id: 'id1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id1',
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'Slot',
+              facilityUse: 'parentid1',
+              startDate: '2001-01-01T00:00:00Z',
+            },
+            jsonLdType: 'Slot',
+            isParent: false,
+            jsonLdParentId: 'parentid1',
+            waitingForParentToBeIngested: false,
           }],
           ['id2', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'ScheduledSession',
-            superEvent: 'parentid2',
-            name: 'ScheduledSession 1',
+            id: 'id2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id2',
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'ScheduledSession',
+              superEvent: 'parentid2',
+              name: 'ScheduledSession 1',
+            },
+            jsonLdType: 'ScheduledSession',
+            isParent: false,
+            jsonLdParentId: 'parentid2',
+            waitingForParentToBeIngested: false,
           }],
         ]),
       };
       const persistentStore = new PersistentStore();
-      persistentStore._opportunityCache = opportunityCache;
+      persistentStore._opportunityItemRowCache = opportunityCache;
       const slotResult = await getOpportunityMergedWithParentById({
         persistentStore,
       }, 'id1');

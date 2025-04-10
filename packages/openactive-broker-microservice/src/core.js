@@ -48,7 +48,7 @@ const { OrderUuidTracking } = require('./order-uuid-tracking/order-uuid-tracking
 const { error400IfExpressParamsAreMissing } = require('./util/api-utils');
 const { ValidatorWorkerPool } = require('./validator/validator-worker-pool');
 const { setUpValidatorInputs, cleanUpValidatorInputs, createAndSaveValidatorInputsFromRpdePage } = require('./validator/validator-inputs');
-const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createItemFromSubEvent } = require('./util/item-transforms');
+const { invertFacilityUseItem: invertFacilityUseItemIfPossible, createRpdeItemFromSubEvent } = require('./util/item-transforms');
 const { extractJSONLDfromDatasetSiteUrl } = require('./util/extract-jsonld-utils');
 const { getOrphanStats, getStatus, millisToMinutesAndSeconds } = require('./util/get-status');
 const { getOrphanJson } = require('./util/get-orphans');
@@ -368,10 +368,11 @@ async function renderValidationErrorsHtml(validatorWorkerPool) {
  * @param {string} id The `@id` of the JSON-LD object
  */
 async function renderOpenValidatorHref(id) {
-  const cachedResponse = ((await state.persistentStore.getOpportunityCacheChildItem(id))
-    || (await state.persistentStore.getOpportunityCacheParentItem(id)));
+  // const cachedResponse = ((await state.persistentStore.getOpportunityCacheChildItem(id))
+  //   || (await state.persistentStore.getOpportunityCacheParentItem(id)));
+  const cachedResponse = await state.persistentStore.getOpportunityItemRow(id);
   if (cachedResponse) {
-    const jsonString = JSON.stringify(cachedResponse, null, 2);
+    const jsonString = JSON.stringify(cachedResponse.jsonLd, null, 2);
     return `https://validator.openactive.io/?validationMode=${ITEM_VALIDATION_MODE}#/json/${Base64.encodeURI(jsonString)}`;
   }
   return '';
@@ -721,9 +722,9 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       // However the third (with subEvents) requires additional processing, which is explained below
 
       // Store the parent opportunity data in the maps
-      const jsonLdId = item.data['@id'] || item.data.id;
-
-      await state.persistentStore.setOpportunityCacheParentItem(feedItemIdentifier, jsonLdId, item.data);
+      const row = createUpdatedOpportunityItemRow(item, true);
+      await state.persistentStore.storeOpportunityItemRow(feedItemIdentifier, row);
+      // await state.persistentStore.setOpportunityCacheParentItem(feedItemIdentifier, jsonLdId, item.data);
 
       // If there are subEvents then we have a basic "small provider" SessionSeries feed. This is not
       // recommended, but we support it anyway here. We do this by converting each of the embedded
@@ -738,19 +739,20 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
           // it and move on. This issue will still be discovered later in the RPDE feed check, and alert the
           // user without a harsh process exit.
           if ((subEvent['@id'] || subEvent.id) && (subEvent['@type'] || subEvent.type)) {
-            const opportunityItem = createItemFromSubEvent(subEvent, item);
-            await storeChildOpportunityItem(opportunityItem);
+            const opportunityItem = createRpdeItemFromSubEvent(subEvent, item);
+            await storeChildOpportunityItem(feedPrefix, opportunityItem);
           }
         }
 
         // Check for and reconcile any changes to child items found in
         // `.subEvent` (rather than in a separate feed). e.g. a ScheduledSession
         // may have been implicitly deleted.
-        await state.persistentStore.reconcileParentSubEventChanges(item, jsonLdId);
+        await state.persistentStore.reconcileParentSubEventChanges(item, row.jsonLdId);
       }
     } else {
       // State = deleted
-      await state.persistentStore.deleteOpportunityCacheParentItem(feedItemIdentifier);
+      // await state.persistentStore.deleteOpportunityCacheParentItem(feedItemIdentifier);
+      await state.persistentStore.deleteParentOpportunityItemRow(feedItemIdentifier);
     }
   }
 
@@ -774,12 +776,13 @@ async function ingestChildOpportunityPage(rpdePage, feedIdentifier, isInitialHar
   for (const item of rpdePage.items) {
     const feedItemIdentifier = feedPrefix + item.id;
     if (item.state === 'deleted') {
-      await state.persistentStore.deleteOpportunityCacheChildItem(feedItemIdentifier);
+      // await state.persistentStore.deleteOpportunityCacheChildItem(feedItemIdentifier);
+      await state.persistentStore.deleteChildOpportunityItemRow(feedItemIdentifier);
     } else {
-      const jsonLdId = item.data['@id'] || item.data.id;
-      await state.persistentStore.setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, item.data);
+      // const jsonLdId = item.data['@id'] || item.data.id;
+      // await state.persistentStore.setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, item.data);
 
-      await storeChildOpportunityItem(item);
+      await storeChildOpportunityItem(feedPrefix, item);
     }
   }
   await validateItemsFn(rpdePage.items, isInitialHarvestComplete);
@@ -797,7 +800,7 @@ async function touchChildOpportunityItems(parentIds) {
 
   // Get IDs of all opportunities which are children of the specified parents.
   for (const parentId of parentIds) {
-    const childIds = await state.persistentStore.getOpportunityItemRowCacheChildIdsFromParent(parentId);
+    const childIds = await state.persistentStore.getOpportunityChildIdsFromParent(parentId);
     for (const childId of childIds) {
       childOpportunityIdsToUpdate.add(childId);
     }
@@ -820,9 +823,11 @@ async function touchChildOpportunityItems(parentIds) {
  * Store (child) Opportunity to parts of the cache. Notify any listeners if
  * the child and parent both exist.
  *
+ * @param {string} feedPrefix Used to create the feedItemIdentifier. Looks like
+ *   `{feedIdentifier}---`.
  * @param {import('./models/core').RpdeItem} item
  */
-async function storeChildOpportunityItem(item) {
+async function storeChildOpportunityItem(feedPrefix, item) {
   if (item.state === 'deleted') throw new Error('Not expected to be called for deleted items');
 
   const hasParent = jsonLdHasReferencedParent(item.data);
@@ -831,35 +836,28 @@ async function storeChildOpportunityItem(item) {
     if (!hasParent) {
       return true;
     }
-    if (item.data.superEvent) {
-      return state.persistentStore.hasOpportunityCacheParentItem(item.data.superEvent);
+    if (
+      item.data.superEvent
+      && (await state.persistentStore.hasOpportunityItemRow(item.data.superEvent))
+    ) {
+      // return state.persistentStore.hasOpportunityCacheParentItem(item.data.superEvent);
+      return true;
     }
-    if (item.data.facilityUse) {
-      return state.persistentStore.hasOpportunityCacheParentItem(item.data.facilityUse);
+    if (
+      item.data.facilityUse
+      && (await state.persistentStore.hasOpportunityItemRow(item.data.facilityUse))
+    ) {
+      // return state.persistentStore.hasOpportunityCacheParentItem(item.data.facilityUse);
+      return true;
     }
     return false;
   })();
 
-  /**
-   * @type {import('./models/core').OpportunityItemRow}
-   */
-  const row = {
-    id: item.id,
-    modified: item.modified,
-    deleted: false,
-    feedModified: `${Date.now() + 1000}`, // 1 second in the future,
-    jsonLdId: item.data['@id'] || item.data.id || null,
-    jsonLd: item.data,
-    jsonLdType: item.data['@type'] || item.data.type,
-    jsonLdParentId: !hasParent ? null : item.data.superEvent || item.data.facilityUse,
-    waitingForParentToBeIngested: !isParentAlreadyIngested,
-  };
-
-  if (row.jsonLdId == null) {
-    throw new FatalError(`RPDE item '${item.id}' of kind '${item.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
-  }
+  const row = createUpdatedOpportunityItemRow(item, true, !isParentAlreadyIngested);
   // Cache it
-  state.persistentStore.storeOpportunityItemRowCacheChildItem(row);
+  // await state.persistentStore.storeOpportunityItemRowCacheChildItem(row);
+  const feedItemIdentifier = feedPrefix + item.id;
+  await state.persistentStore.storeOpportunityItemRow(feedItemIdentifier, row);
 
   // If child and parent both exist, notify any listeners, etc
   if (!row.waitingForParentToBeIngested) {
@@ -885,7 +883,9 @@ async function processRow(row) {
       data: row.jsonLd,
     };
   } else {
-    const parentOpportunity = await state.persistentStore.getOpportunityCacheParentItem(row.jsonLdParentId);
+    // const parentOpportunity = await state.persistentStore.getOpportunityCacheParentItem(row.jsonLdParentId);
+    const parentOpportunityItemRow = await state.persistentStore.getOpportunityItemRow(row.jsonLdParentId);
+    const parentOpportunity = parentOpportunityItemRow?.jsonLd;
     const mergedContexts = getMergedJsonLdContext(row.jsonLd, parentOpportunity);
 
     const parentOpportunityWithoutContext = {
@@ -1580,6 +1580,38 @@ function onValidateItems(context, numItems) {
 function harvestRpdeHowLongToSleepAtFeedEnd() {
   // Slow down sleep polling while waiting for harvesting of other feeds to complete
   return WAIT_FOR_HARVEST && state.incompleteFeeds.anyFeedsStillHarvesting() ? 5000 : 500;
+}
+
+/**
+ * @param {import('./models/core').RpdeItem} rpdeItem
+ * @param {boolean} isChildOpportunity
+ * @param {boolean} [waitingForParentToBeIngested]
+ *   Required if `isChildOpportunity` is true.
+ *   If `isChildOpportunity` is false, then this will be ignored and set to false.
+ */
+function createUpdatedOpportunityItemRow(rpdeItem, isChildOpportunity, waitingForParentToBeIngested) {
+  const hasParent = isChildOpportunity && jsonLdHasReferencedParent(rpdeItem.data);
+  /** @type {import('./models/core').OpportunityItemRow} */
+  const row = {
+    id: rpdeItem.id,
+    modified: rpdeItem.modified,
+    deleted: false,
+    feedModified: `${Date.now() + 1000}`, // 1 second in the future,
+    jsonLdId: rpdeItem.data['@id'] || rpdeItem.data.id || null,
+    jsonLd: rpdeItem.data,
+    jsonLdType: rpdeItem.data['@type'] || rpdeItem.data.type,
+    isParent: !isChildOpportunity,
+    jsonLdParentId: hasParent
+      ? rpdeItem.data.superEvent || rpdeItem.data.facilityUse
+      : null,
+    waitingForParentToBeIngested: isChildOpportunity
+      ? waitingForParentToBeIngested
+      : false,
+  };
+  if (row.jsonLdId == null) {
+    throw new FatalError(`RPDE item '${rpdeItem.id}' of kind '${rpdeItem.kind}' does not have an @id. All items in the feeds must have an @id within the "data" property.`);
+  }
+  return row;
 }
 
 module.exports = {

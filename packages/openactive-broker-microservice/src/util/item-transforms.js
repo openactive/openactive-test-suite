@@ -41,7 +41,7 @@ function invertFacilityUseItem(item) {
  * @param {Record<string, any>} subEvent
  * @param {{modified: string, data: Record<string, any>}} item
  */
-function createItemFromSubEvent(subEvent, item) {
+function createRpdeItemFromSubEvent(subEvent, item) {
   const opportunityItemData = {
     ...subEvent,
   };
@@ -90,7 +90,7 @@ function getMergedJsonLdContext(...opportunities) {
 
 module.exports = {
   invertFacilityUseItem,
-  createItemFromSubEvent,
+  createRpdeItemFromSubEvent,
   jsonLdHasReferencedParent,
   getMergedJsonLdContext,
 };

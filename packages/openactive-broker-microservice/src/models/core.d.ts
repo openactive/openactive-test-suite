@@ -26,8 +26,7 @@ export type RpdeItem = {
 };
 
 /**
- * A type internal to Broker which contains data about a child-
- * (e.g. ScheduledSession) opportunity.
+ * An opportunity, as well as metadata about it's state and origin.
  */
 export type OpportunityItemRow = {
   id: RpdeItem['id'];
@@ -39,6 +38,13 @@ export type OpportunityItemRow = {
   jsonLd: Opportunity;
   /** e.g 'Slot' */
   jsonLdType: string;
+  /**
+   * i.e. is this a SessionSeries or FacilityUse?
+   * Note that if this is true, then the following fields should be:
+   * - jsonLdParentId: null
+   * - waitingForParentToBeIngested: false
+   */
+  isParent: boolean;
   jsonLdParentId: string | null;
   waitingForParentToBeIngested: boolean;
 };
