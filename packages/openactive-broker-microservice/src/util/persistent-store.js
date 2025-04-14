@@ -1,4 +1,4 @@
-const sqlite3 = require('sqlite3');
+const knex = require('knex');
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 const { mapToObjectSummary } = require('./map-to-object-summary');
 
@@ -23,7 +23,7 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
 class PersistentStore {
   constructor(sqliteFilename = ':memory:') {
     this._sqliteFilename = sqliteFilename;
-    /** @type {sqlite3.Database | undefined} */
+    /** @type {import('knex').Knex | undefined} */
     this._db = undefined;
 
     /**
@@ -89,7 +89,7 @@ class PersistentStore {
 
   // eslint-disable-next-line class-methods-use-this
   async init() {
-    this._db = await createSqlite3Database(this._sqliteFilename);
+    this._db = createKnexConnection(this._sqliteFilename);
     await this._createSqliteTables();
     // If running SQLite on a file, then tables may need to be cleared of data
     // from a previous run
@@ -121,7 +121,7 @@ class PersistentStore {
       - Opportunity cache
     */
 
-    await sqlite3Run(this._db, `
+    await this._db.raw(`
 
       PRAGMA foreign_keys = ON;
 
@@ -172,12 +172,10 @@ class PersistentStore {
     // this._opportunityItemRowCache.parentIdIndex.clear();
     // this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
 
-    await sqlite3Run(this._db, `
-      DELETE FROM criteria_oriented_opportunity_id_cache;
-      DELETE FROM opportunity_housekeeping_parent_opportunity_sub_event_map;
-      DELETE FROM opportunity_housekeeping_opportunity_rpde_map;
-      DELETE FROM opportunity_item_row_cache_store;
-    `);
+    await this._db('criteria_oriented_opportunity_id_cache').delete();
+    await this._db('opportunity_housekeeping_parent_opportunity_sub_event_map').delete();
+    await this._db('opportunity_housekeeping_opportunity_rpde_map').delete();
+    await this._db('opportunity_item_row_cache_store').delete();
   }
 
   /**
@@ -186,15 +184,16 @@ class PersistentStore {
    */
   async getOpportunityItemRow(jsonLdId) {
     // return this._opportunityItemRowCache.store.get(jsonLdId);
-    const res = await sqlite3All(this._db, `
-      SELECT opportunity_item_row
-      FROM opportunity_item_row_cache_store
-      WHERE json_ld_id = ?
-    `, [jsonLdId]);
-    if (res.length === 0) {
+    const result = await this._db('opportunity_item_row_cache_store')
+      .select('opportunity_item_row')
+      .where('json_ld_id', jsonLdId)
+      .first();
+
+    if (!result) {
       return undefined;
     }
-    return JSON.parse(/** @type {any} */(res[0]).opportunity_item_row);
+
+    return JSON.parse(result.opportunity_item_row);
   }
 
   /**
@@ -203,12 +202,12 @@ class PersistentStore {
    */
   async hasOpportunityItemRow(jsonLdId) {
     // return this._opportunityItemRowCache.store.has(jsonLdId);
-    const res = await sqlite3All(this._db, `
-      SELECT 1
-      FROM opportunity_item_row_cache_store
-      WHERE json_ld_id = ?
-    `, [jsonLdId]);
-    return res.length > 0;
+    const result = await this._db('opportunity_item_row_cache_store')
+      .select(this._db.raw('1'))
+      .where('json_ld_id', jsonLdId)
+      .first();
+
+    return !!result;
   }
 
   /**
@@ -237,27 +236,29 @@ class PersistentStore {
     // if (feedItemIdentifier) {
     //   this._opportunityHousekeepingCaches.rpdeMap.set(feedItemIdentifier, itemRow.jsonLdId);
     // }
-    await sqlite3Run(this._db, `
-      INSERT INTO opportunity_item_row_cache_store (
-        json_ld_id,
-        parent_json_ld_id,
-        opportunity_item_row
-      ) VALUES (?, ?, ?)
-      ON CONFLICT(json_ld_id) DO UPDATE SET
-        parent_json_ld_id = excluded.parent_json_ld_id,
-        opportunity_item_row = excluded.opportunity_item_row
-    `, [itemRow.jsonLdId, itemRow.jsonLdParentId, JSON.stringify(itemRow)]);
+
+    // Insert or update the opportunity item row
+    await this._db('opportunity_item_row_cache_store')
+      .insert({
+        json_ld_id: itemRow.jsonLdId,
+        parent_json_ld_id: itemRow.jsonLdParentId,
+        opportunity_item_row: JSON.stringify(itemRow),
+      })
+      .onConflict('json_ld_id')
+      .merge(['parent_json_ld_id', 'opportunity_item_row']);
+
     // If there is a feedItemIdentifier, then cache the mapping between it and
     // the jsonLdId so that it can be used to process RPDE deletes.
     if (feedItemIdentifier) {
-      await sqlite3Run(this._db, `
-        INSERT INTO opportunity_housekeeping_opportunity_rpde_map (
-          rpde_feed_item_identifier,
-          json_ld_id
-        ) VALUES (?, ?)
-        ON CONFLICT(rpde_feed_item_identifier) DO UPDATE SET
-          json_ld_id = excluded.json_ld_id
-      `, [feedItemIdentifier, itemRow.jsonLdId]);
+      await this._db('opportunity_housekeeping_opportunity_rpde_map')
+        .insert({
+          rpde_feed_item_identifier: feedItemIdentifier,
+          json_ld_id: itemRow.jsonLdId,
+        })
+        .onConflict('rpde_feed_item_identifier')
+        .merge({
+          json_ld_id: itemRow.jsonLdId,
+        });
     }
   }
 
@@ -287,20 +288,12 @@ class PersistentStore {
 
     // TODO optimise: by getting jsonLdId in a sub-query
     // This will also delete related rows from other tables via delete cascades.
-    await sqlite3Run(this._db, `
-      DELETE FROM opportunity_item_row_cache_store
-      WHERE json_ld_id = ?
-    `, [jsonLdId]);
-    // // If we had subEvents for this item, then we must be sure to delete the
-    // // associated opportunityItems that were made for them:
-    // await sqlite3Run(this._db, `
-    //   DELETE FROM opportunity_item_row_cache_store
-    //   WHERE json_ld_id IN (
-    //     SELECT sub_event_id
-    //     FROM opportunity_housekeeping_parent_opportunity_sub_event_map
-    //     WHERE parent_json_ld_id = ?
-    //   );
-    // `, [jsonLdId]);
+    if (jsonLdId) {
+      // This will also delete related rows from other tables via delete cascades.
+      await this._db('opportunity_item_row_cache_store')
+        .where('json_ld_id', jsonLdId)
+        .delete();
+    }
   }
 
   /**
@@ -320,26 +313,27 @@ class PersistentStore {
 
     // TODO optimise: by getting jsonLdId in a sub-query
     // This will also delete related rows from other tables via delete cascades.
-    await sqlite3Run(this._db, `
-      DELETE FROM opportunity_item_row_cache_store
-      WHERE json_ld_id = ?
-    `, [jsonLdId]);
+    if (jsonLdId) {
+      // This will also delete related rows from other tables via delete cascades.
+      await this._db('opportunity_item_row_cache_store')
+        .where('json_ld_id', jsonLdId)
+        .delete();
+    }
   }
 
+  // TODO3 find some way to test the functions so far (to verify knex) before
+  // moving onto reconcileParentSubEventChanges
   /**
    * @param {string} feedItemIdentifier
    * @returns {Promise<string | undefined>}
    */
   async _getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier) {
-    const res = await sqlite3All(this._db, `
-      SELECT json_ld_id
-      FROM opportunity_housekeeping_opportunity_rpde_map
-      WHERE rpde_feed_item_identifier = ?
-    `, [feedItemIdentifier]);
-    if (res.length === 0) {
-      return undefined;
-    }
-    return /** @type {any} */(res[0]).rpde_feed_item_identifier;
+    const result = await this._db('opportunity_housekeeping_opportunity_rpde_map')
+      .select('json_ld_id')
+      .where('rpde_feed_item_identifier', feedItemIdentifier)
+      .first();
+
+    return result ? result.json_ld_id : undefined;
   }
 
   /**
@@ -568,54 +562,25 @@ class PersistentStore {
 }
 
 /**
- * @param {string} sqliteFilename
- * @returns {Promise<sqlite3.Database>}
- */
-function createSqlite3Database(sqliteFilename) {
-  return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(sqliteFilename, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(db);
-      }
-    });
-  });
-}
-
-/**
- * @param {sqlite3.Database} db
- * @param {string} sql
- * @param {unknown[] | undefined} [params]
- */
-function sqlite3Run(db, sql, params) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params || [], (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-/**
- * @param {sqlite3.Database} db
- * @param {string} sql
- * @param {unknown[] | undefined} [params]
- * @returns {Promise<unknown[]>}
- */
-// eslint-disable-next-line no-unused-vars
-function sqlite3All(db, sql, params) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params || [], (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
-    });
+  * @param {string} sqliteFilename
+  * @returns {import('knex').Knex}
+  */
+function createKnexConnection(sqliteFilename) {
+  return knex({
+    client: 'sqlite3',
+    connection: {
+      filename: sqliteFilename,
+    },
+    useNullAsDefault: true,
+    pool: {
+      /**
+        * @param {any} conn
+        * @param {function} done
+        */
+      afterCreate: (conn, done) => {
+        conn.run('PRAGMA foreign_keys = ON', done);
+      },
+    },
   });
 }
 
