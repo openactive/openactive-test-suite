@@ -800,3 +800,9 @@ Types of Two-Phase Listeners in Broker Microservice:
 
 * **Opportunity Listeners**: Listen for updates to a given [Child Opportunity](#orphans).
 * **Order Listeners**: Listen for updates to a given Order.
+
+## Design Decisions
+
+### Persistence - SQLite
+
+TODO. Mention use of sqlite3 library and comparison to better-sqlite3 (don't want to block the event loop, to future-proof Broker a bit more). And recommend using node.js' SQLite  standard library when that is stable.

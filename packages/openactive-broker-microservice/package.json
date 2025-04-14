@@ -47,6 +47,7 @@
     "ramda": "^0.28.0",
     "remarkable": "^2.0.1",
     "request": "^2.88.0",
+    "sqlite3": "^5.1.7",
     "threads": "^1.6.3"
   },
   "devDependencies": {

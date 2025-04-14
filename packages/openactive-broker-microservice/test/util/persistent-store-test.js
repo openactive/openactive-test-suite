@@ -4,6 +4,10 @@ const { PersistentStore } = require('../../src/util/persistent-store');
 describe('test/util/persistent-store-test', () => {
   const store = new PersistentStore();
 
+  beforeEach(async () => {
+    await store.init();
+  });
+
   afterEach(async () => {
     await store.clearCaches();
   });

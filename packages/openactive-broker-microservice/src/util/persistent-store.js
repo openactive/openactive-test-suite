@@ -1,3 +1,4 @@
+const sqlite3 = require('sqlite3');
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 const { mapToObjectSummary } = require('./map-to-object-summary');
 
@@ -20,7 +21,11 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  * in-memory).
  */
 class PersistentStore {
-  constructor() {
+  constructor(sqliteFilename = ':memory:') {
+    this._sqliteFilename = sqliteFilename;
+    /** @type {sqlite3.Database | undefined} */
+    this._db = undefined;
+
     /**
      * A criteria-oriented cache for opportunity data. Used to get criteria-matching
      * opportunities for tests.
@@ -82,12 +87,97 @@ class PersistentStore {
     };
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  async init() {
+    this._db = await createSqlite3Database(this._sqliteFilename);
+    await this._createSqliteTables();
+    // If running SQLite on a file, then tables may need to be cleared of data
+    // from a previous run
+    await this.clearCaches();
+  }
+
+  async _createSqliteTables() {
+    /*
+    Possible improvements:
+
+    - opportunity_housekeeping_parent_opportunity_rpde_map & opportunity_housekeeping_opportunity_rpde_map:
+      - Combine and add an is_parent column (if even needed)
+    - Replace opportunity_item_row_cache_store, opportunity_item_row_cache_parent_child_id_map, opportunity_cache_parent_map, opportunity_cache_child_map with:
+      one table:
+        - json_ld_id: TEXT PRIMARY KEY
+        - parent_json_ld_id: TEXT (null if parent)
+        - opportunity_item_row: TEXT NOT NULL
+    - row.waitingForParentToBeIngested: Replace with join to parent
+      - It's only used in orphan stats
+
+    Results of these improvements:
+    - criteria_oriented_opportunity_id_cache
+      - Caches criteria satisfaction
+    - opportunity_housekeeping_opportunity_rpde_map
+      - Maps feed identifier to jsonLdId
+    - opportunity_housekeeping_parent_opportunity_sub_event_map
+      - Used to manage .subEvents
+    - opportunity_item_row_cache_store
+      - Opportunity cache
+    */
+
+    await sqlite3Run(this._db, `
+
+      PRAGMA foreign_keys = ON;
+
+      CREATE TABLE IF NOT EXISTS opportunity_item_row_cache_store (
+        json_ld_id TEXT PRIMARY KEY,
+        parent_json_ld_id TEXT,
+        opportunity_item_row TEXT NOT NULL
+      ) WITHOUT ROWID;
+
+      CREATE INDEX IF NOT EXISTS oircs_parent_json_ld_id_idx
+      ON opportunity_item_row_cache_store (parent_json_ld_id);
+
+      CREATE TABLE IF NOT EXISTS criteria_oriented_opportunity_id_cache (
+        id INTEGER PRIMARY KEY ASC,
+        criteria_name TEXT NOT NULL,
+        booking_flow TEXT NOT NULL,
+        opportunity_type TEXT NOT NULL,
+        seller_id TEXT NOT NULL,
+        opportunity_id TEXT NOT NULL,
+
+        UNIQUE (criteria_name, booking_flow, opportunity_type, seller_id, opportunity_id)
+
+        FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
+      );
+
+      CREATE TABLE IF NOT EXISTS opportunity_housekeeping_parent_opportunity_sub_event_map (
+        sub_event_id TEXT PRIMARY KEY,
+        parent_json_ld_id TEXT NOT NULL,
+
+        FOREIGN KEY (parent_json_ld_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
+        FOREIGN KEY (sub_event_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
+      ) WITHOUT ROWID;
+
+      CREATE TABLE IF NOT EXISTS opportunity_housekeeping_opportunity_rpde_map (
+        rpde_feed_item_identifier TEXT PRIMARY KEY,
+        json_ld_id TEXT NOT NULL,
+
+        FOREIGN KEY (json_ld_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
+      ) WITHOUT ROWID;
+
+    `);
+  }
+
   async clearCaches() {
-    this._opportunityHousekeepingCaches.rpdeMap.clear();
-    this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.clear();
-    this._opportunityItemRowCache.store.clear();
-    this._opportunityItemRowCache.parentIdIndex.clear();
-    this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
+    // this._opportunityHousekeepingCaches.rpdeMap.clear();
+    // this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.clear();
+    // this._opportunityItemRowCache.store.clear();
+    // this._opportunityItemRowCache.parentIdIndex.clear();
+    // this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
+
+    await sqlite3Run(this._db, `
+      DELETE FROM criteria_oriented_opportunity_id_cache;
+      DELETE FROM opportunity_housekeeping_parent_opportunity_sub_event_map;
+      DELETE FROM opportunity_housekeeping_opportunity_rpde_map;
+      DELETE FROM opportunity_item_row_cache_store;
+    `);
   }
 
   /**
@@ -95,7 +185,16 @@ class PersistentStore {
    * @returns {Promise<Readonly<import('../models/core').OpportunityItemRow> | undefined>}
    */
   async getOpportunityItemRow(jsonLdId) {
-    return this._opportunityItemRowCache.store.get(jsonLdId);
+    // return this._opportunityItemRowCache.store.get(jsonLdId);
+    const res = await sqlite3All(this._db, `
+      SELECT opportunity_item_row
+      FROM opportunity_item_row_cache_store
+      WHERE json_ld_id = ?
+    `, [jsonLdId]);
+    if (res.length === 0) {
+      return undefined;
+    }
+    return JSON.parse(/** @type {any} */(res[0]).opportunity_item_row);
   }
 
   /**
@@ -103,7 +202,13 @@ class PersistentStore {
    * @returns {Promise<boolean>}
    */
   async hasOpportunityItemRow(jsonLdId) {
-    return this._opportunityItemRowCache.store.has(jsonLdId);
+    // return this._opportunityItemRowCache.store.has(jsonLdId);
+    const res = await sqlite3All(this._db, `
+      SELECT 1
+      FROM opportunity_item_row_cache_store
+      WHERE json_ld_id = ?
+    `, [jsonLdId]);
+    return res.length > 0;
   }
 
   /**
@@ -120,17 +225,39 @@ class PersistentStore {
    *   like a .subEvent-derived item.
    */
   async storeOpportunityItemRow(itemRow, feedItemIdentifier) {
-    // If it has a parent, associate it with its parent
-    if (itemRow.jsonLdParentId != null) {
-      if (!this._opportunityItemRowCache.parentIdIndex.has(itemRow.jsonLdParentId)) {
-        this._opportunityItemRowCache.parentIdIndex.set(itemRow.jsonLdParentId, new Set());
-      }
-      this._opportunityItemRowCache.parentIdIndex.get(itemRow.jsonLdParentId).add(itemRow.jsonLdId);
-    }
+    // // If it has a parent, associate it with its parent
+    // if (itemRow.jsonLdParentId != null) {
+    //   if (!this._opportunityItemRowCache.parentIdIndex.has(itemRow.jsonLdParentId)) {
+    //     this._opportunityItemRowCache.parentIdIndex.set(itemRow.jsonLdParentId, new Set());
+    //   }
+    //   this._opportunityItemRowCache.parentIdIndex.get(itemRow.jsonLdParentId).add(itemRow.jsonLdId);
+    // }
 
-    this._opportunityItemRowCache.store.set(itemRow.jsonLdId, itemRow);
+    // this._opportunityItemRowCache.store.set(itemRow.jsonLdId, itemRow);
+    // if (feedItemIdentifier) {
+    //   this._opportunityHousekeepingCaches.rpdeMap.set(feedItemIdentifier, itemRow.jsonLdId);
+    // }
+    await sqlite3Run(this._db, `
+      INSERT INTO opportunity_item_row_cache_store (
+        json_ld_id,
+        parent_json_ld_id,
+        opportunity_item_row
+      ) VALUES (?, ?, ?)
+      ON CONFLICT(json_ld_id) DO UPDATE SET
+        parent_json_ld_id = excluded.parent_json_ld_id,
+        opportunity_item_row = excluded.opportunity_item_row
+    `, [itemRow.jsonLdId, itemRow.jsonLdParentId, JSON.stringify(itemRow)]);
+    // If there is a feedItemIdentifier, then cache the mapping between it and
+    // the jsonLdId so that it can be used to process RPDE deletes.
     if (feedItemIdentifier) {
-      this._opportunityHousekeepingCaches.rpdeMap.set(feedItemIdentifier, itemRow.jsonLdId);
+      await sqlite3Run(this._db, `
+        INSERT INTO opportunity_housekeeping_opportunity_rpde_map (
+          rpde_feed_item_identifier,
+          json_ld_id
+        ) VALUES (?, ?)
+        ON CONFLICT(rpde_feed_item_identifier) DO UPDATE SET
+          json_ld_id = excluded.json_ld_id
+      `, [feedItemIdentifier, itemRow.jsonLdId]);
     }
   }
 
@@ -143,19 +270,37 @@ class PersistentStore {
    * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    */
   async deleteParentOpportunityItemRow(feedItemIdentifier) {
-    const jsonLdId = this._opportunityHousekeepingCaches.rpdeMap.get(feedItemIdentifier);
+    // const jsonLdId = this._opportunityHousekeepingCaches.rpdeMap.get(feedItemIdentifier);
 
-    // If we had subEvents for this item, then we must be sure to delete the associated opportunityItems
-    // that were made for them:
-    if (this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
-      for (const subEventId of this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
-        this._deleteOpportunityItemRowCacheChildItem(subEventId);
-      }
-    }
+    // // If we had subEvents for this item, then we must be sure to delete the associated opportunityItems
+    // // that were made for them:
+    // if (this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
+    //   for (const subEventId of this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(jsonLdId)) {
+    //     this._deleteOpportunityItemRowCacheChildItem(subEventId);
+    //   }
+    // }
 
-    this._opportunityHousekeepingCaches.rpdeMap.delete(feedItemIdentifier);
-    this._opportunityItemRowCache.store.delete(jsonLdId);
-    this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
+    // this._opportunityHousekeepingCaches.rpdeMap.delete(feedItemIdentifier);
+    // this._opportunityItemRowCache.store.delete(jsonLdId);
+    // this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
+    const jsonLdId = await this._getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier);
+
+    // TODO optimise: by getting jsonLdId in a sub-query
+    // This will also delete related rows from other tables via delete cascades.
+    await sqlite3Run(this._db, `
+      DELETE FROM opportunity_item_row_cache_store
+      WHERE json_ld_id = ?
+    `, [jsonLdId]);
+    // // If we had subEvents for this item, then we must be sure to delete the
+    // // associated opportunityItems that were made for them:
+    // await sqlite3Run(this._db, `
+    //   DELETE FROM opportunity_item_row_cache_store
+    //   WHERE json_ld_id IN (
+    //     SELECT sub_event_id
+    //     FROM opportunity_housekeeping_parent_opportunity_sub_event_map
+    //     WHERE parent_json_ld_id = ?
+    //   );
+    // `, [jsonLdId]);
   }
 
   /**
@@ -167,10 +312,34 @@ class PersistentStore {
    * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    */
   async deleteChildOpportunityItemRow(feedItemIdentifier) {
-    const jsonLdId = this._opportunityHousekeepingCaches.rpdeMap.get(feedItemIdentifier);
-    this._opportunityHousekeepingCaches.rpdeMap.delete(feedItemIdentifier);
+    // const jsonLdId = this._opportunityHousekeepingCaches.rpdeMap.get(feedItemIdentifier);
+    // this._opportunityHousekeepingCaches.rpdeMap.delete(feedItemIdentifier);
 
-    this._deleteOpportunityItemRowCacheChildItem(jsonLdId);
+    // this._deleteOpportunityItemRowCacheChildItem(jsonLdId);
+    const jsonLdId = await this._getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier);
+
+    // TODO optimise: by getting jsonLdId in a sub-query
+    // This will also delete related rows from other tables via delete cascades.
+    await sqlite3Run(this._db, `
+      DELETE FROM opportunity_item_row_cache_store
+      WHERE json_ld_id = ?
+    `, [jsonLdId]);
+  }
+
+  /**
+   * @param {string} feedItemIdentifier
+   * @returns {Promise<string | undefined>}
+   */
+  async _getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier) {
+    const res = await sqlite3All(this._db, `
+      SELECT json_ld_id
+      FROM opportunity_housekeeping_opportunity_rpde_map
+      WHERE rpde_feed_item_identifier = ?
+    `, [feedItemIdentifier]);
+    if (res.length === 0) {
+      return undefined;
+    }
+    return /** @type {any} */(res[0]).rpde_feed_item_identifier;
   }
 
   /**
@@ -396,6 +565,58 @@ class PersistentStore {
       totalNumOpportunities,
     };
   }
+}
+
+/**
+ * @param {string} sqliteFilename
+ * @returns {Promise<sqlite3.Database>}
+ */
+function createSqlite3Database(sqliteFilename) {
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(sqliteFilename, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(db);
+      }
+    });
+  });
+}
+
+/**
+ * @param {sqlite3.Database} db
+ * @param {string} sql
+ * @param {unknown[] | undefined} [params]
+ */
+function sqlite3Run(db, sql, params) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params || [], (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * @param {sqlite3.Database} db
+ * @param {string} sql
+ * @param {unknown[] | undefined} [params]
+ * @returns {Promise<unknown[]>}
+ */
+// eslint-disable-next-line no-unused-vars
+function sqlite3All(db, sql, params) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params || [], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
 }
 
 module.exports = {
