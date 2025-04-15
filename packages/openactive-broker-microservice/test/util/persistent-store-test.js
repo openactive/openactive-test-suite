@@ -1,7 +1,7 @@
 const { createUpdatedOpportunityItemRow, createRpdeItemFromSubEvent } = require('../../src/util/item-transforms');
 const { PersistentStore } = require('../../src/util/persistent-store');
 
-describe.only('test/util/persistent-store-test', () => {
+describe('test/util/persistent-store-test', () => {
   const store = new PersistentStore();
 
   beforeEach(async () => {
@@ -16,7 +16,7 @@ describe.only('test/util/persistent-store-test', () => {
     await store.stop();
   });
 
-  it.only('should store/retrieve child and parent opportunities, and support marking them as related', async () => {
+  it('should store/retrieve child and parent opportunities, and support marking them as related', async () => {
     // First, children without a parent
     await store.storeOpportunityItemRow({
       ...getChildOpportunityItemRowDefaults('child1'),
@@ -112,7 +112,7 @@ describe.only('test/util/persistent-store-test', () => {
     }
   });
 
-  it('should support managing .subEvent-derived child opportunities', async () => {
+  it.only('should support managing .subEvent-derived child opportunities', async () => {
     /**
      * @param {import('../../src/models/core').RpdeItem} parentRpdeItem
      * @param {string} feedItemIdentifier

@@ -32,8 +32,8 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
 class PersistentStore {
   constructor(sqliteFilename = ':memory:') {
     this._sqliteFilename = sqliteFilename;
-    /** @type {import('knex').Knex | undefined} */
-    this._db = undefined;
+    /** @type {import('knex').Knex} */
+    this._db = createKnexConnection(this._sqliteFilename);
 
     /**
      * A criteria-oriented cache for opportunity data. Used to get criteria-matching
@@ -98,7 +98,7 @@ class PersistentStore {
 
   async init() {
     console.log('init() - call');
-    this._db = createKnexConnection(this._sqliteFilename);
+    // this._db = createKnexConnection(this._sqliteFilename);
     await this._createSqliteTables();
     console.log('init() - created tables');
     // If running SQLite on a file, then tables may need to be cleared of data
@@ -313,6 +313,15 @@ class PersistentStore {
     // this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
     const jsonLdId = await this._getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier);
 
+    // Delete all subEvent child opportunities associated with this parent
+    await this._db('opportunity_item_row_cache_store')
+      .whereIn('json_ld_id', function () {
+        this.select('sub_event_id')
+          .from('opportunity_housekeeping_parent_opportunity_sub_event_map')
+          .where('parent_json_ld_id', jsonLdId);
+      })
+      .delete();
+
     // TODO optimise: by getting jsonLdId in a sub-query
     // This will also delete related rows from other tables via delete cascades.
     if (jsonLdId) {
@@ -348,8 +357,6 @@ class PersistentStore {
     }
   }
 
-  // TODO3 find some way to test the functions so far (to verify knex) before
-  // moving onto reconcileParentSubEventChanges
   /**
    * @param {string} feedItemIdentifier
    * @returns {Promise<string | undefined>}
@@ -385,25 +392,61 @@ class PersistentStore {
    * @param {string} parentJsonLdId
    */
   async reconcileParentSubEventChanges(parentSubEvent, parentJsonLdId) {
-    const oldSubEventIds = this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId);
-    const newSubEventIds = parentSubEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
+    // const oldSubEventIds = this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId);
+    // const newSubEventIds = parentSubEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
 
-    if (!oldSubEventIds) {
-      if (newSubEventIds.length > 0) {
-        this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.set(parentJsonLdId, newSubEventIds);
-      }
-    } else {
-      for (const subEventId of oldSubEventIds) {
-        if (!newSubEventIds.includes(subEventId)) {
-          this._deleteOpportunityItemRowCacheChildItem(subEventId);
-          this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId).filter((x) => x !== subEventId);
-        }
-      }
-      for (const subEventId of newSubEventIds) {
-        if (!oldSubEventIds.includes(subEventId)) {
-          this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId).push(subEventId);
-        }
-      }
+    // if (!oldSubEventIds) {
+    //   if (newSubEventIds.length > 0) {
+    //     this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.set(parentJsonLdId, newSubEventIds);
+    //   }
+    // } else {
+    //   for (const subEventId of oldSubEventIds) {
+    //     if (!newSubEventIds.includes(subEventId)) {
+    //       this._deleteOpportunityItemRowCacheChildItem(subEventId);
+    //       this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId).filter((x) => x !== subEventId);
+    //     }
+    //   }
+    //   for (const subEventId of newSubEventIds) {
+    //     if (!oldSubEventIds.includes(subEventId)) {
+    //       this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId).push(subEventId);
+    //     }
+    //   }
+    // }
+    // Extract new subEvent IDs from the provided parent subEvent list
+    const newSubEventIds = parentSubEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter(Boolean);
+
+    // Get current subEvent IDs from the database
+    const oldSubEventRows = await this._db('opportunity_housekeeping_parent_opportunity_sub_event_map')
+      .select('sub_event_id')
+      .where('parent_json_ld_id', parentJsonLdId);
+    const oldSubEventIds = oldSubEventRows.map((row) => row.sub_event_id);
+
+    // Find subEvents to delete (in old list but not in new list)
+    const subEventIdsToDelete = oldSubEventIds.filter((id) => !newSubEventIds.includes(id));
+
+    // Find subEvents to add (in new list but not in old list)
+    const subEventIdsToAdd = newSubEventIds.filter((id) => !oldSubEventIds.includes(id));
+
+    // Delete removed subEvents
+    if (subEventIdsToDelete.length > 0) {
+      // Delete the subEvents from the opportunity_item_row_cache_store table
+      // This will cascade delete from other tables due to foreign key constraints
+      await this._db('opportunity_item_row_cache_store')
+        .whereIn('json_ld_id', subEventIdsToDelete)
+        .delete();
+    }
+
+    // Add new subEvents
+    if (subEventIdsToAdd.length > 0) {
+      const rows = subEventIdsToAdd.map((subEventId) => ({
+        sub_event_id: subEventId,
+        parent_json_ld_id: parentJsonLdId,
+      }));
+
+      await this._db('opportunity_housekeeping_parent_opportunity_sub_event_map')
+        .insert(rows)
+        .onConflict(['sub_event_id'])
+        .merge(['parent_json_ld_id']);
     }
   }
 
@@ -444,24 +487,24 @@ class PersistentStore {
     );
   }
 
-  /**
-   * Delete a child (e.g. Slot or ScheduledSession) opportunity from the
-   * opportunity item row cache.
-   *
-   * @param {string} jsonLdId
-   */
-  _deleteOpportunityItemRowCacheChildItem(jsonLdId) {
-    const row = this._opportunityItemRowCache.store.get(jsonLdId);
-    if (row) {
-      // Delete from its parent's index
-      const idx = this._opportunityItemRowCache.parentIdIndex.get(row.jsonLdParentId);
-      if (idx) {
-        idx.delete(jsonLdId);
-      }
-      // Delete from the store
-      this._opportunityItemRowCache.store.delete(jsonLdId);
-    }
-  }
+  // /**
+  //  * Delete a child (e.g. Slot or ScheduledSession) opportunity from the
+  //  * opportunity item row cache.
+  //  *
+  //  * @param {string} jsonLdId
+  //  */
+  // _deleteOpportunityItemRowCacheChildItem(jsonLdId) {
+  //   const row = this._opportunityItemRowCache.store.get(jsonLdId);
+  //   if (row) {
+  //     // Delete from its parent's index
+  //     const idx = this._opportunityItemRowCache.parentIdIndex.get(row.jsonLdParentId);
+  //     if (idx) {
+  //       idx.delete(jsonLdId);
+  //     }
+  //     // Delete from the store
+  //     this._opportunityItemRowCache.store.delete(jsonLdId);
+  //   }
+  // }
 
   /**
    * Get (JSON-LD) IDs of all opportunities which are children of the specified
