@@ -29,11 +29,18 @@ jobs:
         run: npm install @openactive/data-models@latest @openactive/data-model-validator@latest @openactive/rpde-validator@latest --save
         working-directory: ./openactive-test-suite/packages/openactive-broker-microservice/
 
+      - name: Generate GitHub App Token
+        uses: actions/create-github-app-token@v1
+        id: generate-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
           path: ./openactive-test-suite/
           commit-message: Update data model and data model validator dependencies
           committer: openactive-bot <openactive-bot@users.noreply.github.com>
@@ -52,7 +59,7 @@ jobs:
         if: steps.cpr.outputs.pull-request-operation == 'created'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
-          token: ${{ secrets.PUBLIC_REPO_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
 
