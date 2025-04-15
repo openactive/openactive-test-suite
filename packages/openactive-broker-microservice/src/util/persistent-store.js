@@ -1,9 +1,18 @@
 const knex = require('knex');
+const { omit } = require('lodash');
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 const { mapToObjectSummary } = require('./map-to-object-summary');
 
 /**
+ * @typedef {import('../models/core').OpportunityItemRow} OpportunityItemRow
+ */
+/**
  * @typedef {Record<string, unknown>} OpportunityCacheItem
+ * @typedef {Omit<
+ *   OpportunityItemRow,
+ *   | 'feedModified'
+ *   | 'waitingForParentToBeIngested'
+ * >} DbOpportunityItemRow
  */
 
 /**
@@ -87,13 +96,19 @@ class PersistentStore {
     };
   }
 
-  // eslint-disable-next-line class-methods-use-this
   async init() {
+    console.log('init() - call');
     this._db = createKnexConnection(this._sqliteFilename);
     await this._createSqliteTables();
+    console.log('init() - created tables');
     // If running SQLite on a file, then tables may need to be cleared of data
     // from a previous run
     await this.clearCaches();
+    console.log('init() - cleared caches');
+  }
+
+  async stop() {
+    await this._db.destroy();
   }
 
   async _createSqliteTables() {
@@ -121,19 +136,22 @@ class PersistentStore {
       - Opportunity cache
     */
 
+    // PRAGMA foreign_keys = ON;
+
     await this._db.raw(`
-
-      PRAGMA foreign_keys = ON;
-
       CREATE TABLE IF NOT EXISTS opportunity_item_row_cache_store (
         json_ld_id TEXT PRIMARY KEY,
         parent_json_ld_id TEXT,
+        feed_modified TEXT NOT NULL,
+        waiting_for_parent_to_be_ingested BOOLEAN NOT NULL,
         opportunity_item_row TEXT NOT NULL
-      ) WITHOUT ROWID;
-
+      ) WITHOUT ROWID
+    `);
+    await this._db.raw(`
       CREATE INDEX IF NOT EXISTS oircs_parent_json_ld_id_idx
-      ON opportunity_item_row_cache_store (parent_json_ld_id);
-
+      ON opportunity_item_row_cache_store (parent_json_ld_id)
+    `);
+    await this._db.raw(`
       CREATE TABLE IF NOT EXISTS criteria_oriented_opportunity_id_cache (
         id INTEGER PRIMARY KEY ASC,
         criteria_name TEXT NOT NULL,
@@ -144,9 +162,10 @@ class PersistentStore {
 
         UNIQUE (criteria_name, booking_flow, opportunity_type, seller_id, opportunity_id)
 
-        FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
-      );
-
+        FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
+      )
+    `);
+    await this._db.raw(`
       CREATE TABLE IF NOT EXISTS opportunity_housekeeping_parent_opportunity_sub_event_map (
         sub_event_id TEXT PRIMARY KEY,
         parent_json_ld_id TEXT NOT NULL,
@@ -154,14 +173,14 @@ class PersistentStore {
         FOREIGN KEY (parent_json_ld_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
         FOREIGN KEY (sub_event_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
       ) WITHOUT ROWID;
-
+    `);
+    await this._db.raw(`
       CREATE TABLE IF NOT EXISTS opportunity_housekeeping_opportunity_rpde_map (
         rpde_feed_item_identifier TEXT PRIMARY KEY,
         json_ld_id TEXT NOT NULL,
 
         FOREIGN KEY (json_ld_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
       ) WITHOUT ROWID;
-
     `);
   }
 
@@ -185,15 +204,17 @@ class PersistentStore {
   async getOpportunityItemRow(jsonLdId) {
     // return this._opportunityItemRowCache.store.get(jsonLdId);
     const result = await this._db('opportunity_item_row_cache_store')
-      .select('opportunity_item_row')
+      .select('opportunity_item_row', 'feed_modified', 'waiting_for_parent_to_be_ingested')
       .where('json_ld_id', jsonLdId)
       .first();
-
     if (!result) {
       return undefined;
     }
-
-    return JSON.parse(result.opportunity_item_row);
+    return convertDbOpportunityItemRowToOpportunityItemRow(
+      result.opportunity_item_row,
+      result.feed_modified,
+      result.waiting_for_parent_to_be_ingested,
+    );
   }
 
   /**
@@ -217,6 +238,9 @@ class PersistentStore {
    * jsonLdId, which is used for RPDE deletes.
    *
    * @param {import('../models/core').OpportunityItemRow} itemRow
+   * @param {object} otherData
+   * @param {string} otherData.feedModified
+   * @param {boolean} otherData.waitingForParentToBeIngested
    * @param {string | undefined} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    *   If not set, then an RPDE mapping will not be made, which means that it
    *   will not be possible to process an RPDE delete for this item. Therefore
@@ -237,15 +261,18 @@ class PersistentStore {
     //   this._opportunityHousekeepingCaches.rpdeMap.set(feedItemIdentifier, itemRow.jsonLdId);
     // }
 
+    const dbItemRow = omit(itemRow, 'feedModified', 'waitingForParentToBeIngested');
     // Insert or update the opportunity item row
     await this._db('opportunity_item_row_cache_store')
       .insert({
         json_ld_id: itemRow.jsonLdId,
         parent_json_ld_id: itemRow.jsonLdParentId,
-        opportunity_item_row: JSON.stringify(itemRow),
+        feed_modified: itemRow.feedModified,
+        waiting_for_parent_to_be_ingested: itemRow.waitingForParentToBeIngested,
+        opportunity_item_row: JSON.stringify(dbItemRow),
       })
       .onConflict('json_ld_id')
-      .merge(['parent_json_ld_id', 'opportunity_item_row']);
+      .merge(['parent_json_ld_id', 'feed_modified', 'waiting_for_parent_to_be_ingested', 'opportunity_item_row']);
 
     // If there is a feedItemIdentifier, then cache the mapping between it and
     // the jsonLdId so that it can be used to process RPDE deletes.
@@ -390,13 +417,31 @@ class PersistentStore {
    * @returns {Promise<Readonly<import('../models/core').OpportunityItemRow> | undefined>}
    */
   async markOpportunityItemRowChildAsFoundParent(childJsonLdId, newFeedModified) {
-    const row = this._opportunityItemRowCache.store.get(childJsonLdId);
-    if (row) {
-      row.feedModified = newFeedModified;
-      row.waitingForParentToBeIngested = false;
-      return row;
+    // const row = this._opportunityItemRowCache.store.get(childJsonLdId);
+    // if (row) {
+    //   row.feedModified = newFeedModified;
+    //   row.waitingForParentToBeIngested = false;
+    //   return row;
+    // }
+    // return undefined;
+    const rows = await this._db('opportunity_item_row_cache_store')
+      .where('json_ld_id', childJsonLdId)
+      .returning(['opportunity_item_row', 'feed_modified', 'waiting_for_parent_to_be_ingested'])
+      .update({
+        feed_modified: newFeedModified,
+        waiting_for_parent_to_be_ingested: false,
+      });
+    if (!rows) {
+      return undefined;
     }
-    return undefined;
+    // knex's types do not work with `.returning`, thinking this should be a
+    // number rather than an array of rows
+    const row = /** @type {any} */(rows)[0];
+    return convertDbOpportunityItemRowToOpportunityItemRow(
+      row.opportunity_item_row,
+      row.feed_modified,
+      row.waiting_for_parent_to_be_ingested,
+    );
   }
 
   /**
@@ -426,10 +471,19 @@ class PersistentStore {
    * @returns {Promise<Readonly<Set<string>>>}
    */
   async getOpportunityNonSubEventChildIdsFromParent(parentJsonLdId) {
-    if (!this._opportunityItemRowCache.parentIdIndex.has(parentJsonLdId)) {
+    // if (!this._opportunityItemRowCache.parentIdIndex.has(parentJsonLdId)) {
+    //   return new Set();
+    // }
+    // return this._opportunityItemRowCache.parentIdIndex.get(parentJsonLdId);
+    const childRows = await this._db('opportunity_item_row_cache_store')
+      .select('json_ld_id')
+      .where('parent_json_ld_id', parentJsonLdId);
+
+    if (!childRows || childRows.length === 0) {
       return new Set();
     }
-    return this._opportunityItemRowCache.parentIdIndex.get(parentJsonLdId);
+
+    return new Set(childRows.map((row) => row.json_ld_id));
   }
 
   /**
@@ -582,6 +636,23 @@ function createKnexConnection(sqliteFilename) {
       },
     },
   });
+}
+
+/**
+ * @param {string} rawDbOpportunityItemRow
+ * @param {string} feedModified
+ * @param {0 | 1} waitingForParentToBeIngested Though it is a boolean column in
+ *   SQLite, it comes back as a 0 or 1 in query results.
+ * @returns {OpportunityItemRow}
+ */
+function convertDbOpportunityItemRowToOpportunityItemRow(rawDbOpportunityItemRow, feedModified, waitingForParentToBeIngested) {
+  /** @type {DbOpportunityItemRow} */
+  const dbOpportunityItemRow = JSON.parse(rawDbOpportunityItemRow);
+  return {
+    ...dbOpportunityItemRow,
+    feedModified,
+    waitingForParentToBeIngested: Boolean(waitingForParentToBeIngested),
+  };
 }
 
 module.exports = {

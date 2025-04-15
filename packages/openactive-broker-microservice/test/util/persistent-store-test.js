@@ -1,7 +1,7 @@
 const { createUpdatedOpportunityItemRow, createRpdeItemFromSubEvent } = require('../../src/util/item-transforms');
 const { PersistentStore } = require('../../src/util/persistent-store');
 
-describe('test/util/persistent-store-test', () => {
+describe.only('test/util/persistent-store-test', () => {
   const store = new PersistentStore();
 
   beforeEach(async () => {
@@ -12,7 +12,11 @@ describe('test/util/persistent-store-test', () => {
     await store.clearCaches();
   });
 
-  it('should store/retrieve child and parent opportunities, and support marking them as related', async () => {
+  afterAll(async () => {
+    await store.stop();
+  });
+
+  it.only('should store/retrieve child and parent opportunities, and support marking them as related', async () => {
     // First, children without a parent
     await store.storeOpportunityItemRow({
       ...getChildOpportunityItemRowDefaults('child1'),
