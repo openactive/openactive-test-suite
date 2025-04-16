@@ -1,7 +1,7 @@
 const { createUpdatedOpportunityItemRow, createRpdeItemFromSubEvent } = require('../../src/util/item-transforms');
 const { PersistentStore } = require('../../src/util/persistent-store');
 
-describe('test/util/persistent-store-test', () => {
+describe.only('test/util/persistent-store-test', () => {
   const store = new PersistentStore();
 
   beforeEach(async () => {
@@ -112,7 +112,7 @@ describe('test/util/persistent-store-test', () => {
     }
   });
 
-  it.only('should support managing .subEvent-derived child opportunities', async () => {
+  it('should support managing .subEvent-derived child opportunities', async () => {
     /**
      * @param {import('../../src/models/core').RpdeItem} parentRpdeItem
      * @param {string} feedItemIdentifier
@@ -209,6 +209,140 @@ describe('test/util/persistent-store-test', () => {
       expect(child1).toBeUndefined();
       expect(child2).toBeUndefined();
       expect(child3).toBeUndefined();
+    }
+  });
+  it.only('should support caching opportunities by the criteria they do or do not satisfy', async () => {
+    await store.storeOpportunityItemRow({
+      ...getChildOpportunityItemRowDefaults('opp1'),
+      jsonLdParentId: '//parent1',
+      jsonLdType: 'Slot',
+      waitingForParentToBeIngested: false,
+      jsonLd: {
+        '@context': ['https://openactive.io/'],
+        '@type': 'Slot',
+      },
+    }, 'Slot---opp1');
+    await store.storeOpportunityItemRow({
+      ...getChildOpportunityItemRowDefaults('opp2'),
+      jsonLdParentId: '//parent1',
+      jsonLdType: 'Slot',
+      waitingForParentToBeIngested: false,
+      jsonLd: {
+        '@context': ['https://openactive.io/'],
+        '@type': 'Slot',
+      },
+    }, 'Slot---opp2');
+
+    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp1', {
+      criteriaName: 'TestOpportunityBookableFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'IndividualFacilityUseSlot',
+      sellerId: 'https://example.com/seller1',
+    });
+    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp1', {
+      criteriaName: 'TestOpportunityBookableFree',
+      bookingFlow: 'OpenBookingApprovalFlow',
+      opportunityType: 'IndividualFacilityUseSlot',
+      sellerId: 'https://example.com/seller1',
+    });
+    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp1', {
+      criteriaName: 'TestOpportunityBookableNonFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'https://example.com/seller2',
+    });
+    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp2', {
+      criteriaName: 'TestOpportunityBookableFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'IndividualFacilityUseSlot',
+      sellerId: 'https://example.com/seller1',
+    });
+    // Override an earlier match with a new failure
+    await store.setOpportunityDoesNotMatchCriteria('//opp1', ['reason1', 'reason2'], {
+      criteriaName: 'TestOpportunityBookableNonFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'https://example.com/seller2',
+    });
+    await store.setOpportunityDoesNotMatchCriteria('//opp2', ['reason2'], {
+      criteriaName: 'TestOpportunityBookableNonFree',
+      bookingFlow: 'OpenBookingSimpleFlow',
+      opportunityType: 'ScheduledSession',
+      sellerId: 'https://example.com/seller2',
+    });
+    await store.setOpportunityDoesNotMatchCriteria('//opp2', ['reason3'], {
+      criteriaName: 'TestOpportunityBookableFree',
+      bookingFlow: 'OpenBookingApprovalFlow',
+      opportunityType: 'IndividualFacilityUseSlot',
+      sellerId: 'https://example.com/seller1',
+    });
+
+    // Check each "bucket"
+    {
+      const freeSimpleSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const freeSimpleSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+      const freeApprovSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'IndividualFacilityUseSlot');
+      const freeApprovSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'ScheduledSession');
+      const nonFreeSimpleSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const nonFreeSimpleSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+
+      expect(freeSimpleSlot).toEqual({
+        contents: new Map([
+          ['https://example.com/seller1', new Set(['//opp1', '//opp2'])],
+        ]),
+        // undefined because there is at least one match
+        criteriaErrors: undefined,
+      });
+      expect(freeSimpleSes).toEqual({
+        contents: new Map(),
+        criteriaErrors: new Map(),
+        // criteriaErrors: new Map([
+        //   ['reason1', 1],
+        //   ['reason2', 2],
+        // ]),
+      });
+      expect(freeApprovSlot).toEqual({
+        contents: new Map([
+          ['https://example.com/seller1', new Set(['//opp1'])],
+        ]),
+        // Even though there was a failure, there is at least one match, so this is undefined
+        criteriaErrors: undefined,
+      });
+      expect(freeApprovSes).toEqual({
+        contents: new Map(),
+        criteriaErrors: new Map(),
+      });
+      expect(nonFreeSimpleSlot).toEqual({
+        contents: new Map(),
+        criteriaErrors: new Map(),
+      });
+      expect(nonFreeSimpleSes).toEqual({
+        contents: new Map(),
+        criteriaErrors: new Map([
+          ['reason1', 1],
+          ['reason2', 2],
+        ]),
+      });
+    }
+
+    // Delete one of the opps
+    await store.deleteChildOpportunityItemRow('Slot---opp1');
+    {
+      const freeSimpleSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const freeSimpleSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+
+      expect(freeSimpleSlot).toEqual({
+        contents: new Map([
+          ['https://example.com/seller1', new Set(['//opp2'])],
+        ]),
+        criteriaErrors: undefined,
+      });
+      expect(freeSimpleSes).toEqual({
+        contents: new Map(),
+        criteriaErrors: new Map([
+          ['reason2', 1],
+        ]),
+      });
     }
   });
 });

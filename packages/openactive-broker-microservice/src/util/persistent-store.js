@@ -1,3 +1,123 @@
+/*
+
+What are the "get" use cases for the criteria cache?
+
+- getStatusRoute() - .buckets - for users
+- assertOpportunityCriteriaNotFound() - assert that for a given
+  criteria/flow/type, there are no matching opps - for tests
+- getRandomBookableOpportunity()
+  - get a random opp which matches the criteria/flow/type/seller.
+  - If this endpoint fails, provide a summary of failed constraints
+
+hasCriteriaAnyMatches(criteria, flow, type) {
+
+SELECT 1
+FROM criteria_cache
+WHERE
+  criteria_name = :criteria
+  AND booking_flow = :flow
+  AND opportunity_type = :type
+
+}
+
+getCriteriaMatches(criteria, flow, type, seller) {
+
+SELECT opportunity_id
+FROM criteria_cache
+WHERE
+  criteria_name = :criteria
+  AND booking_flow = :flow
+  AND opportunity_type = :type
+  AND seller_id = :seller
+
+}
+
+The other thing needs this:
+
+availableSellers: { seller1: 3, seller2: 8, ... }
+criteriaErrors: { constraint1: 2, constraint2: 1, ... }
+
+Bugs currently:
+
+- If a opp fails and gets an update (and still fails), criteriaErrors increments
+- If an opp once passed and now fails, criteriaErrors is not updated
+
+# Table idea 1:
+
+- Criteria Type
+  - Criteria Name
+  - Booking Flow
+  - Opportunity Type
+  - (idx all 3)
+- Cri-Opp Mapping
+  - Seller ID (idx)
+  - Criteria Type ID
+  - Opportunity ID
+- Criteria Errors
+  - Criteria Type ID
+  - Failed Constraint Name
+  - Amount
+
+hasCriteriaAnyMatches(criteria, flow, type) {
+
+SELECT 1
+FROM
+  criteria_type
+  INNER JOIN cri_opp_mapping ON criteria_type.id = cri_opp_mapping.criteria_type_id
+WHERE
+  criteria_name = :criteria
+  AND booking_flow = :flow
+  AND opportunity_type = :type
+
+}
+
+getCriteriaMatches(criteria, flow, type, seller) {
+
+SELECT opportunity_id
+FROM
+  criteria_type
+  INNER JOIN cri_opp_mapping ON criteria_type.id = cri_opp_mapping.criteria_type_id
+WHERE
+  criteria_name = :criteria
+  AND booking_flow = :flow
+  AND opportunity_type = :type
+  AND seller_id = :seller
+
+}
+
+getCriteriaAllSellerMatchAmounts(criteria, flow, type) {
+
+SELECT
+  seller_id,
+  COUNT(*) AS match_amount
+FROM
+  criteria_type
+  INNER JOIN cri_opp_mapping ON criteria_type.id = cri_opp_mapping.criteria_type_id
+WHERE
+  criteria_name = :criteria
+  AND booking_flow = :flow
+  AND opportunity_type = :type
+GROUP BY seller_id
+
+}
+
+getCriteriaErrors(criteria, flow, type) {
+
+SELECT
+  failed_constraint_name,
+  COUNT(*) AS error_amount
+FROM
+  criteria_errors
+  INNER JOIN cri_opp_mapping ON criteria_errors.criteria_type_id = cri_opp_mapping.criteria_type_id
+WHERE
+  criteria_name = :criteria
+  AND booking_flow = :flow
+  AND opportunity_type = :type
+GROUP BY failed_constraint_name
+
+}
+
+*/
 const knex = require('knex');
 const { omit } = require('lodash');
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
@@ -13,6 +133,20 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  *   | 'feedModified'
  *   | 'waitingForParentToBeIngested'
  * >} DbOpportunityItemRow
+ * @typedef {{
+   *   [criteriaName: string]: {
+   *     [bookingFlow: string]: {
+   *       [opportunityType: string]: {
+   *         contents: {
+   *           [sellerId: string]: number;
+   *         };
+   *         criteriaErrors: {
+   *           [constraintName: string]: number;
+   *         };
+   *       };
+   *     };
+   *   };
+   * }} CriteriaOrientedOpportunityIdCacheSummary
  */
 
 /**
@@ -97,47 +231,19 @@ class PersistentStore {
   }
 
   async init() {
-    console.log('init() - call');
-    // this._db = createKnexConnection(this._sqliteFilename);
     await this._createSqliteTables();
-    console.log('init() - created tables');
     // If running SQLite on a file, then tables may need to be cleared of data
     // from a previous run
     await this.clearCaches();
-    console.log('init() - cleared caches');
   }
 
+  // TODO2 make sure this is called in Broker at exit points
   async stop() {
     await this._db.destroy();
   }
 
   async _createSqliteTables() {
-    /*
-    Possible improvements:
-
-    - opportunity_housekeeping_parent_opportunity_rpde_map & opportunity_housekeeping_opportunity_rpde_map:
-      - Combine and add an is_parent column (if even needed)
-    - Replace opportunity_item_row_cache_store, opportunity_item_row_cache_parent_child_id_map, opportunity_cache_parent_map, opportunity_cache_child_map with:
-      one table:
-        - json_ld_id: TEXT PRIMARY KEY
-        - parent_json_ld_id: TEXT (null if parent)
-        - opportunity_item_row: TEXT NOT NULL
-    - row.waitingForParentToBeIngested: Replace with join to parent
-      - It's only used in orphan stats
-
-    Results of these improvements:
-    - criteria_oriented_opportunity_id_cache
-      - Caches criteria satisfaction
-    - opportunity_housekeeping_opportunity_rpde_map
-      - Maps feed identifier to jsonLdId
-    - opportunity_housekeeping_parent_opportunity_sub_event_map
-      - Used to manage .subEvents
-    - opportunity_item_row_cache_store
-      - Opportunity cache
-    */
-
     // PRAGMA foreign_keys = ON;
-
     await this._db.raw(`
       CREATE TABLE IF NOT EXISTS opportunity_item_row_cache_store (
         json_ld_id TEXT PRIMARY KEY,
@@ -159,8 +265,9 @@ class PersistentStore {
         opportunity_type TEXT NOT NULL,
         seller_id TEXT NOT NULL,
         opportunity_id TEXT NOT NULL,
+        failed_constraint_name TEXT,
 
-        UNIQUE (criteria_name, booking_flow, opportunity_type, seller_id, opportunity_id)
+        UNIQUE (criteria_name, booking_flow, opportunity_type, seller_id, opportunity_id),
 
         FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
       )
@@ -530,23 +637,37 @@ class PersistentStore {
   }
 
   /**
-   * @returns {Promise<Readonly<{
-   *   [criteriaName: string]: {
-   *     [bookingFlow: string]: {
-   *       [opportunityType: string]: {
-   *         contents: {
-   *           [sellerId: string]: number;
-   *         };
-   *         criteriaErrors: {
-   *           [constraintName: string]: number;
-   *         };
-   *       };
-   *     };
-   *   };
-   * }>>}
+   * @returns {Promise<Readonly<CriteriaOrientedOpportunityIdCacheSummary>>}
    */
   async getCriteriaOrientedOpportunityIdCacheSummary() {
     return /** @type {any} */ (mapToObjectSummary(this._criteriaOrientedOpportunityIdCache));
+    // const rows = await this._db('criteria_oriented_opportunity_id_cache')
+    //   .select(
+    //     'criteria_name',
+    //     'booking_flow',
+    //     'opportunity_type',
+    //     'seller_id',
+    //     'failed_constraint_name'
+    //   )
+    //   .count('opportunity_id as num_matches')
+    //   .groupBy(
+    //     'criteria_name',
+    //     'booking_flow',
+    //     'opportunity_type',
+    //     'seller_id',
+    //     'failed_constraint_name',
+    //   );
+    // /** @type {CriteriaOrientedOpportunityIdCacheSummary} */
+    // const result = {};
+    // for (const row of rows) {
+    //   const isCriteriaMatch = !row.failed_constraint_name;
+    //   if (isCriteriaMatch) {
+    //     set(result, [row.criteria_name, row.booking_flow, row.opportunity_type, row.seller_id, 'contents', row.opportunity_id], row.num_matches);
+    //   } else {
+    //     set(result, [row.criteria_name, row.booking_flow, row.opportunity_type, row.seller_id, 'criteriaErrors', row.failed_constraint_name], row.num_matches);
+    //   }
+    // }
+    // return result;
   }
 
   /**
@@ -577,7 +698,20 @@ class PersistentStore {
 
   /**
    * @param {string} opportunityId
-   * @param {string[]} unmetCriteriaDetails
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria2(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    // TODO3
+  }
+
+  /**
+   * @param {string} opportunityId
+   * @param {string[]} unmetCriteriaDetails A list of constraint names which
+   *   were not met by the opportunity.
    * @param {object} args
    * @param {string} args.criteriaName
    * @param {string} args.bookingFlow

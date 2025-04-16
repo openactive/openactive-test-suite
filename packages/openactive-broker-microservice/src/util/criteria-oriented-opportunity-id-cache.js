@@ -5,7 +5,7 @@ const { criteria } = require('@openactive/test-interface-criteria');
  * @typedef {{
  *   contents: Map<string, OpportunityIdCacheSellerCompartment>,
  *   criteriaErrors: Map<string, number> | undefined
- *   }} OpportunityIdCacheTypeBucket If `criteriaErrors` is `undefined`, it
+ * }} OpportunityIdCacheTypeBucket If `criteriaErrors` is `undefined`, it
  *   means that at least one item has matched the criteria and so criteria
  *   errors are irrelevant. We only care about what types of errors are causing
  *   opportunities to not match a criteria if none of them are.
