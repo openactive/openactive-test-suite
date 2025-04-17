@@ -37,6 +37,9 @@ async function getEndpointUrl() {
 async function deleteTestDataset(testInterfaceBaseUrl) {
   const response = await axios.delete(`${testInterfaceBaseUrl}/test-interface/datasets/${TEST_DATASET_IDENTIFIER}`,
     {
+      headers: {
+        'Accept': 'application/vnd.openactive.booking+json; version=1',
+      },
       timeout: 60000,
     });
 

@@ -23,7 +23,7 @@ function getOrdersFeedHeader(bookingPartnerIdentifier) {
  */
 function withOrdersRpdeHeaders(getHeadersFn) {
   return async () => ({
-    Accept: 'application/json, application/vnd.openactive.booking+json; version=1',
+    Accept: 'application/vnd.openactive.booking+json; version=1',
     'Cache-Control': 'max-age=0',
     ...await getHeadersFn() || {},
   });
