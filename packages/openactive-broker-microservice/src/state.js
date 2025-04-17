@@ -101,7 +101,7 @@ const state = {
   /** @type {ValidatorWorkerPoolType} */
   _validatorWorkerPool: null,
   // OPPORTUNITY DATA CACHES
-  persistentStore: new PersistentStore(),
+  persistentStore: new PersistentStore('db.sqlite'),
 
   // UI
   /**

@@ -722,7 +722,7 @@ async function ingestParentOpportunityPage(rpdePage, feedIdentifier, isInitialHa
       // However the third (with subEvents) requires additional processing, which is explained below
 
       // Store the parent opportunity data in the maps
-      const row = createUpdatedOpportunityItemRow(item, true);
+      const row = createUpdatedOpportunityItemRow(item, false);
       await state.persistentStore.storeOpportunityItemRow(row, feedItemIdentifier);
 
       // If there are subEvents then we have a basic "small provider" SessionSeries feed. This is not
@@ -950,7 +950,7 @@ async function processOpportunityItem(item) {
     }))) {
       for (const bookingFlow of bookingFlows) {
         if (criteriaResult.matchesCriteria) {
-          await state.persistentStore.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(
+          await state.persistentStore.setOpportunityMatchesCriteria2(
             id,
             {
               criteriaName, bookingFlow, opportunityType, sellerId,
@@ -958,7 +958,7 @@ async function processOpportunityItem(item) {
           );
           matchingCriteria.push(criteriaName);
         } else {
-          await state.persistentStore.setOpportunityDoesNotMatchCriteria(
+          await state.persistentStore.setOpportunityDoesNotMatchCriteria2(
             id,
             criteriaResult.unmetCriteriaDetails,
             {

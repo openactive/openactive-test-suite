@@ -17,8 +17,8 @@ async function getOpportunityMergedWithParentById(state, childOpportunityId) {
   if (!jsonLdHasReferencedParent(opportunity)) {
     return opportunity;
   }
-  const superEvent = (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.superEvent)))?.jsonLd;
-  const facilityUse = (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.facilityUse)))?.jsonLd;
+  const superEvent = opportunity.superEvent && (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.superEvent)))?.jsonLd;
+  const facilityUse = opportunity.facilityUse && (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.facilityUse)))?.jsonLd;
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     const returnObj = {
