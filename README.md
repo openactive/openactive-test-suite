@@ -13,7 +13,7 @@ Running `npm start` in the root will run the OpenActive Test Suite, which is act
 
 # Usage
 
-Running `npm start` will orchestrate running the [Broker Microservice](./packages/openactive-broker-microservice/) and the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Open Booking API implementation.
+Running `npm start` will orchestrate running the [Broker Microservice](./packages/openactive-broker-microservice/) and a one-off run of the [Integration Tests](./packages/openactive-integration-tests/) in order to test your Open Booking API implementation.
 
 Note that the implementation under test will need to implement the [OpenActive Test Interface](https://openactive.io/test-interface/) to run in controlled mode, and for selected tests.
 
@@ -402,6 +402,8 @@ The Test Suite Certificate should be updated upon each successfull CI run.
 ## Test Data Requirements
 
 In order to run the tests in random mode, the target Open Booking API implementation will need to have some Opportunity data pre-loaded. Use [Test Data Generator](./packages/openactive-integration-tests/test-data-generator/) to find out how much data is needed and in what configuration.
+
+It is recommeneded that, during developement of an Open Booking API, the test data is kept to a minimum, ie what is needed to pass the features under test. This allows the [Broker Microservice](./packages/openactive-broker-microservice/README.md) to complete its [Initial Harvest](./packages/openactive-broker-microservice/README.md#initial-harvest) quicker and allows the [Integration Tests](./packages/openactive-integration-tests/README.md) to run more quickly.
 
 ## Certification
 
