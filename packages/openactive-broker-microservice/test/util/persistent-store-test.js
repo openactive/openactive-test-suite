@@ -1,7 +1,7 @@
 const { createUpdatedOpportunityItemRow, createRpdeItemFromSubEvent } = require('../../src/util/item-transforms');
 const { PersistentStore } = require('../../src/util/persistent-store');
 
-describe.only('test/util/persistent-store-test', () => {
+describe('test/util/persistent-store-test', () => {
   const store = new PersistentStore();
 
   beforeEach(async () => {

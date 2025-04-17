@@ -13,6 +13,26 @@ const testDataGenerators = {
   opportunityItemRowCacheStoreItems: {
     /**
      * @param {string} id
+     * @returns {[string, import('../src/models/core').OpportunityItemRow]}
+     */
+    parent: (id) => [
+      id, {
+        id,
+        jsonLdId: id,
+        jsonLdParentId: null,
+        jsonLdType: 'SessionSeries',
+        jsonLd: {
+          '@type': 'SessionSeries',
+        },
+        feedModified: String(Date.now()),
+        deleted: false,
+        modified: '123',
+        waitingForParentToBeIngested: false,
+        isParent: true,
+      },
+    ],
+    /**
+     * @param {string} id
      * @param {string} parentId
      * @returns {[string, import('../src/models/core').OpportunityItemRow]}
      */
@@ -77,6 +97,20 @@ const testDataGenerators = {
 };
 
 describe('user-facing endpoints', () => {
+  const store = new PersistentStore();
+
+  beforeEach(async () => {
+    await store.init();
+  });
+
+  afterEach(async () => {
+    await store.clearCaches();
+  });
+
+  afterAll(async () => {
+    await store.stop();
+  });
+
   describe('GET /status', () => {
     it('should include stats about orphans and criteria matches', async () => {
       const cooiCache = CriteriaOrientedOpportunityIdCache.create();
@@ -116,6 +150,8 @@ describe('user-facing endpoints', () => {
         opportunityType: 'ScheduledSession',
         sellerId: 'seller1',
       });
+      // const [parentId, parentOpportunityItemRow] = testDataGenerators.opportunityItemRowCacheStoreItems.parent('parent1');
+      // await store.storeOpportunityItemRow(parentOpportunityItemRow, 'SessionSeries---parent1');
 
       const createExpressResStub = () => ({
         json: sinon.stub(),
@@ -222,17 +258,18 @@ describe('user-facing endpoints', () => {
   });
   describe('GET /orphans', () => {
     it('should return stats about which opportunities are orphans i.e. have no parents', async () => {
-      const persistentStore = new PersistentStore();
-      persistentStore._opportunityItemRowCache = {
-        store: new Map([
-          testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
-          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
-          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
-        ]),
-        parentIdIndex: new Map(),
-      };
+      const [, parent1OpportunityItemRow] = testDataGenerators.opportunityItemRowCacheStoreItems.parent('parent1');
+      const [, parent3OpportunityItemRow] = testDataGenerators.opportunityItemRowCacheStoreItems.parent('parent3');
+      const [, child1OpportunityItemRow] = testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1');
+      const [, child2OpportunityItemRow] = testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2');
+      const [, child3OpportunityItemRow] = testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3');
+      await store.storeOpportunityItemRow(parent1OpportunityItemRow, 'SessionSeries---parent1');
+      await store.storeOpportunityItemRow(parent3OpportunityItemRow, 'SessionSeries---parent3');
+      await store.storeOpportunityItemRow(child1OpportunityItemRow, 'ScheduledSession---id1');
+      await store.storeOpportunityItemRow(child2OpportunityItemRow, 'ScheduledSession---id2');
+      await store.storeOpportunityItemRow(child3OpportunityItemRow, 'ScheduledSession---id3');
       const result = await getOrphanJson({
-        persistentStore,
+        persistentStore: store,
       });
       expect(result).to.deep.equal({
         children: {
@@ -258,85 +295,75 @@ describe('user-facing endpoints', () => {
   });
   describe('GET /opportunity-cache/:id', () => {
     it('should get an opportunity from the cache, merged with its parent', async () => {
-      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityItemRowCache']} */
-      const opportunityCache = {
-        parentIdIndex: new Map([
-          ['parentid1', new Set(['id1'])],
-          ['parentid2', new Set(['id2'])],
-        ]),
-        store: new Map([
-          ['parentid1', {
-            id: 'parentid1',
-            modified: '123',
-            deleted: false,
-            feedModified: '123',
-            jsonLdId: 'parentid1',
-            jsonLd: {
-              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-              '@type': 'FacilityUse',
-              name: 'Facility 1',
-            },
-            jsonLdType: 'FacilityUse',
-            isParent: true,
-            jsonLdParentId: null,
-            waitingForParentToBeIngested: false,
-          }],
-          ['parentid2', {
-            id: 'parentid2',
-            modified: '123',
-            deleted: false,
-            feedModified: '123',
-            jsonLdId: 'parentid2',
-            jsonLd: {
-              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-              '@type': 'SessionSeries',
-              description: 'come have fun besties <3',
-            },
-            jsonLdType: 'SessionSeries',
-            isParent: true,
-            jsonLdParentId: null,
-            waitingForParentToBeIngested: false,
-          }],
-          ['id1', {
-            id: 'id1',
-            modified: '123',
-            deleted: false,
-            feedModified: '123',
-            jsonLdId: 'id1',
-            jsonLd: {
-              '@context': ['https://openactive.io/'],
-              '@type': 'Slot',
-              facilityUse: 'parentid1',
-              startDate: '2001-01-01T00:00:00Z',
-            },
-            jsonLdType: 'Slot',
-            isParent: false,
-            jsonLdParentId: 'parentid1',
-            waitingForParentToBeIngested: false,
-          }],
-          ['id2', {
-            id: 'id2',
-            modified: '123',
-            deleted: false,
-            feedModified: '123',
-            jsonLdId: 'id2',
-            jsonLd: {
-              '@context': ['https://openactive.io/'],
-              '@type': 'ScheduledSession',
-              superEvent: 'parentid2',
-              name: 'ScheduledSession 1',
-            },
-            jsonLdType: 'ScheduledSession',
-            isParent: false,
-            jsonLdParentId: 'parentid2',
-            waitingForParentToBeIngested: false,
-          }],
-        ]),
-      };
-      const persistentStore = new PersistentStore();
-      persistentStore._opportunityItemRowCache = opportunityCache;
+      await store.storeOpportunityItemRow({
+        id: 'parentid1',
+        modified: '123',
+        deleted: false,
+        feedModified: '123',
+        jsonLdId: 'parentid1',
+        jsonLd: {
+          '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+          '@type': 'FacilityUse',
+          name: 'Facility 1',
+        },
+        jsonLdType: 'FacilityUse',
+        isParent: true,
+        jsonLdParentId: null,
+        waitingForParentToBeIngested: false,
+      }, 'SessionSeries---parentid1');
+      await store.storeOpportunityItemRow({
+        id: 'parentid2',
+        modified: '123',
+        deleted: false,
+        feedModified: '123',
+        jsonLdId: 'parentid2',
+        jsonLd: {
+          '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+          '@type': 'SessionSeries',
+          description: 'come have fun besties <3',
+        },
+        jsonLdType: 'SessionSeries',
+        isParent: true,
+        jsonLdParentId: null,
+        waitingForParentToBeIngested: false,
+      }, 'SessionSeries---parentid2');
+      await store.storeOpportunityItemRow({
+        id: 'id1',
+        modified: '123',
+        deleted: false,
+        feedModified: '123',
+        jsonLdId: 'id1',
+        jsonLd: {
+          '@context': ['https://openactive.io/'],
+          '@type': 'Slot',
+          facilityUse: 'parentid1',
+          startDate: '2001-01-01T00:00:00Z',
+        },
+        jsonLdType: 'Slot',
+        isParent: false,
+        jsonLdParentId: 'parentid1',
+        waitingForParentToBeIngested: false,
+      }, 'ScheduledSession---id1');
+      await store.storeOpportunityItemRow({
+        id: 'id2',
+        modified: '123',
+        deleted: false,
+        feedModified: '123',
+        jsonLdId: 'id2',
+        jsonLd: {
+          '@context': ['https://openactive.io/'],
+          '@type': 'ScheduledSession',
+          superEvent: 'parentid2',
+          name: 'ScheduledSession 1',
+        },
+        jsonLdType: 'ScheduledSession',
+        isParent: false,
+        jsonLdParentId: 'parentid2',
+        waitingForParentToBeIngested: false,
+      }, 'ScheduledSession---id2');
+
       const slotResult = await getOpportunityMergedWithParentById({
-        persistentStore,
+        persistentStore: store,
       }, 'id1');
       expect(slotResult).to.deep.equal({
         '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
@@ -348,7 +375,7 @@ describe('user-facing endpoints', () => {
         startDate: '2001-01-01T00:00:00Z',
       });
       const scsResult = await getOpportunityMergedWithParentById({
-        persistentStore,
+        persistentStore: store,
       }, 'id2');
       expect(scsResult).to.deep.equal({
         '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
