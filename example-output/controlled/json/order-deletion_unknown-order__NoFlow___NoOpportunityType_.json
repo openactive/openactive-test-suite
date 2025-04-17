@@ -1,0 +1,269 @@
+{
+  "flow": {
+    "delete-order": {
+      "events": [],
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "UnknownOrderError",
+          "name": "The Booking System has no 'Order' matching the one requested.",
+          "statusCode": 404
+        },
+        "responseTime": 53.790609,
+        "status": 404,
+        "statusMessage": "Not Found",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 17 Apr 2025 12:27:19 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "153"
+        }
+      }
+    },
+    "Order Deletion": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "order-deletion",
+              "unknown-order",
+              "_NoFlow_",
+              "_NoOpportunityType_",
+              "Order Deletion"
+            ],
+            "duration": 1,
+            "failureMessages": [],
+            "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion noop",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "noop"
+          },
+          {
+            "ancestorTitles": [
+              "order-deletion",
+              "unknown-order",
+              "_NoFlow_",
+              "_NoOpportunityType_",
+              "Order Deletion"
+            ],
+            "duration": 2,
+            "failureMessages": [],
+            "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`"
+          }
+        ]
+      }
+    },
+    "Feature Description Assertions (for OpenActive maintainers)": {
+      "events": [],
+      "response": {
+        "specs": [
+          {
+            "ancestorTitles": [
+              "order-deletion",
+              "unknown-order",
+              "_NoFlow_",
+              "_NoOpportunityType_",
+              "Feature Description Assertions (for OpenActive maintainers)"
+            ],
+            "duration": 0,
+            "failureMessages": [],
+            "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+            "location": null,
+            "numPassingAsserts": 0,
+            "status": "passed",
+            "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+          }
+        ]
+      }
+    }
+  },
+  "logs": [
+    {
+      "ancestorTitles": [
+        "order-deletion",
+        "unknown-order",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Order Deletion"
+      ],
+      "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion",
+      "type": "request",
+      "stage": "delete-order",
+      "request": {
+        "method": "DELETE",
+        "url": "https://localhost:5001/api/openbooking/orders/378ee868-f839-40ea-8f24-eb179f3c1758",
+        "jsonBody": null,
+        "requestOptions": {
+          "headers": {
+            "Content-Type": "application/vnd.openactive.booking+json; version=1",
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkIwNEY3QjkxREUzQjk0NzhDNjE4MzNGQjI0QUE1Q0RCIiwidHlwIjoiYXQrand0In0.eyJuYmYiOjE3NDQ4OTEyMjIsImV4cCI6MTc0NDg5NDgyMiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NTAwMyIsImF1ZCI6Im9wZW5ib29raW5nIiwiY2xpZW50X2lkIjoiNDI0NzRiMzUtZGI3Ni00N2MzLWI4NTMtMzI0NzFhYjhhZjk1IiwiaHR0cHM6Ly9vcGVuYWN0aXZlLmlvL2NsaWVudElkIjoiNDI0NzRiMzUtZGI3Ni00N2MzLWI4NTMtMzI0NzFhYjhhZjk1Iiwic3ViIjoiMTAwIiwiYXV0aF90aW1lIjoxNzQ0ODkxMjIxLCJpZHAiOiJsb2NhbCIsImh0dHBzOi8vb3BlbmFjdGl2ZS5pby9zZWxsZXJJZCI6Imh0dHBzOi8vbG9jYWxob3N0OjUwMDEvYXBpL2lkZW50aWZpZXJzL3NlbGxlcnMvMSIsImp0aSI6IkUyMEU5NzhENzY5RjYyQTVDOTQzNTc1NDlFNTY1OTA2Iiwic2lkIjoiMEI3MkQyMUE5OENBMkQyRTRCMzkyN0I2Q0FEQUI3MkUiLCJpYXQiOjE3NDQ4OTEyMjIsInNjb3BlIjpbIm9wZW5pZCIsIm9wZW5hY3RpdmUtb3BlbmJvb2tpbmciLCJvcGVuYWN0aXZlLWlkZW50aXR5Iiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.YotCR76yalzTKWneRbkrMSc5vo-bv0J0lVHTprT5jn8vJP68Rr7jOMswm_k_w4zUBsZoelxJ35ZwJ7uQ1UFSniKDj4eJvEV5MjCFuZnaAONS43e0ZuvqAkGFi7wKQUMT4yjEg5j4bzHAUqg9LktGzy0su61R7APsD8vhw2G0hlnePUpI1ORJ9PBKd1Cp79qllaqunRTLsxgbRAA0-PAGUVm7eWBv7F-bt75UPvsAc-ZPHyLEJE2uaeUmpozr8-ZR1e-jMkoljo7g3GUJp34xy1aOhY5FM6hHOEcJuPX_7-4hfbCUgBppqFAQcevnkYjSnrLHBIE10slDcCQ5CYdwoQ"
+          },
+          "timeout": 20000
+        }
+      },
+      "isPending": false,
+      "duration": 0,
+      "response": {
+        "body": {
+          "@context": "https://openactive.io/",
+          "@type": "UnknownOrderError",
+          "name": "The Booking System has no 'Order' matching the one requested.",
+          "statusCode": 404
+        },
+        "responseTime": 53.790609,
+        "status": 404,
+        "statusMessage": "Not Found",
+        "headers": {
+          "connection": "close",
+          "date": "Thu, 17 Apr 2025 12:27:19 GMT",
+          "content-type": "application/vnd.openactive.booking+json; version=1",
+          "server": "Kestrel",
+          "content-length": "153"
+        }
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "order-deletion",
+        "unknown-order",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Order Deletion"
+      ],
+      "title": "noop",
+      "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion noop",
+      "spec": {
+        "ancestorTitles": [
+          "order-deletion",
+          "unknown-order",
+          "_NoFlow_",
+          "_NoOpportunityType_",
+          "Order Deletion"
+        ],
+        "duration": 1,
+        "failureMessages": [],
+        "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion noop",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "noop"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "order-deletion",
+        "unknown-order",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Order Deletion"
+      ],
+      "title": "should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`",
+      "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`",
+      "spec": {
+        "ancestorTitles": [
+          "order-deletion",
+          "unknown-order",
+          "_NoFlow_",
+          "_NoOpportunityType_",
+          "Order Deletion"
+        ],
+        "duration": 2,
+        "failureMessages": [],
+        "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Order Deletion should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`"
+      }
+    },
+    {
+      "type": "spec",
+      "ancestorTitles": [
+        "order-deletion",
+        "unknown-order",
+        "_NoFlow_",
+        "_NoOpportunityType_",
+        "Feature Description Assertions (for OpenActive maintainers)"
+      ],
+      "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+      "spec": {
+        "ancestorTitles": [
+          "order-deletion",
+          "unknown-order",
+          "_NoFlow_",
+          "_NoOpportunityType_",
+          "Feature Description Assertions (for OpenActive maintainers)"
+        ],
+        "duration": 0,
+        "failureMessages": [],
+        "fullName": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_ Feature Description Assertions (for OpenActive maintainers) Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test",
+        "location": null,
+        "numPassingAsserts": 0,
+        "status": "passed",
+        "title": "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+      }
+    }
+  ],
+  "timestamp": "Thu Apr 17 2025 12:27:19 GMT+0000 (Coordinated Universal Time)",
+  "config": {
+    "testCategory": "core",
+    "testFeature": "order-deletion",
+    "testFeatureImplemented": true,
+    "testIdentifier": "unknown-order",
+    "testName": "Expect a UnknownOrderError for an Order that does not exist",
+    "testDescription": "Runs Order Deletion for a non-existent Order (with a fictional UUID), expecting an UnknownOrderError error to be returned",
+    "doesNotUseOpportunitiesMode": true
+  },
+  "implemented": true,
+  "testFileIdentifier": "order-deletion unknown-order _NoFlow_ _NoOpportunityType_",
+  "suites": [
+    [
+      "order-deletion",
+      "unknown-order",
+      "_NoFlow_",
+      "_NoOpportunityType_"
+    ],
+    [
+      "order-deletion",
+      "unknown-order",
+      "_NoFlow_",
+      "_NoOpportunityType_",
+      "Order Deletion"
+    ],
+    [
+      "order-deletion",
+      "unknown-order",
+      "_NoFlow_",
+      "_NoOpportunityType_",
+      "Feature Description Assertions (for OpenActive maintainers)"
+    ]
+  ],
+  "title": "order-deletion >> unknown-order",
+  "workingLog": "",
+  "specs": {
+    "order-deletion,unknown-order,_NoFlow_,_NoOpportunityType_,Order Deletion": [
+      "noop",
+      "should return a response containing `\"@type\": \"UnknownOrderError\"` with status code `404`"
+    ],
+    "order-deletion,unknown-order,_NoFlow_,_NoOpportunityType_,Feature Description Assertions (for OpenActive maintainers)": [
+      "Feature Description `.testInterfaceActions` should match the Test Interface Actions that were used in the test"
+    ]
+  },
+  "description": "Runs Order Deletion for a non-existent Order (with a fictional UUID), expecting an UnknownOrderError error to be returned",
+  "baseAncestorTitles": [
+    "order-deletion",
+    "unknown-order",
+    "_NoFlow_",
+    "_NoOpportunityType_"
+  ]
+}
