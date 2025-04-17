@@ -13,6 +13,8 @@ Broker Microservice sits in front of a [Booking System](#booking-system-under-te
 
 It needs to be running, against a Booking System, in order for the [openactive-integration-tests](../openactive-integration-tests/) to run.
 
+The Broker can take some time to start up as it must harvest and validate data from the Booking System's feeds. The larger the Booking System's feeds, the longer it will take and the Integration Tests will not start until the Broker has finished harvesting (unless the `waitForHarvestCompletion` config is set to `false`, see [Configuration](#configuration-for-broker-within-config-node_env-json) below).
+
 ## Usage in separate terminal windows
 
 To run `openactive-broker-microservice` in separate terminal window to `openactive-integration-tests`, from repository root:
