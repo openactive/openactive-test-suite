@@ -118,6 +118,7 @@ GROUP BY failed_constraint_name
 }
 
 */
+const { criteria: allCriteria } = require('@openactive/test-interface-criteria');
 const knex = require('knex');
 const { omit } = require('lodash');
 const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
@@ -148,6 +149,22 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
    *   };
    * }} CriteriaOrientedOpportunityIdCacheSummary
  */
+
+const ALL_BOOKING_FLOWS = [
+  'OpenBookingSimpleFlow',
+  'OpenBookingApprovalFlow',
+];
+const ALL_OPPORTUNITY_TYPES = [
+  'ScheduledSession',
+  'FacilityUseSlot',
+  'IndividualFacilityUseSlot',
+  'CourseInstance',
+  'HeadlineEvent',
+  'Event',
+  'HeadlineEventSubEvent',
+  'CourseInstanceSubEvent',
+  'OnDemandEvent',
+];
 
 /**
  * Manages Broker Microservice data that scales with feed size, so contains
@@ -235,6 +252,7 @@ class PersistentStore {
     // If running SQLite on a file, then tables may need to be cleared of data
     // from a previous run
     await this.clearCaches();
+    await this.prePropulateDb();
   }
 
   // TODO2 make sure this is called in Broker at exit points
@@ -258,18 +276,38 @@ class PersistentStore {
       ON opportunity_item_row_cache_store (parent_json_ld_id)
     `);
     await this._db.raw(`
-      CREATE TABLE IF NOT EXISTS criteria_oriented_opportunity_id_cache (
+      CREATE TABLE IF NOT EXISTS criteria_type (
         id INTEGER PRIMARY KEY ASC,
         criteria_name TEXT NOT NULL,
         booking_flow TEXT NOT NULL,
         opportunity_type TEXT NOT NULL,
+
+        UNIQUE (criteria_name, booking_flow, opportunity_type)
+      )
+    `);
+    await this._db.raw(`
+      CREATE TABLE IF NOT EXISTS criteria_type_opportunity_mapping (
+        id INTEGER PRIMARY KEY ASC,
+        criteria_type_id INTEGER NOT NULL,
         seller_id TEXT NOT NULL,
         opportunity_id TEXT NOT NULL,
-        failed_constraint_name TEXT,
 
-        UNIQUE (criteria_name, booking_flow, opportunity_type, seller_id, opportunity_id),
+        FOREIGN KEY (criteria_type_id) REFERENCES criteria_type(id) ON DELETE CASCADE,
+        FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
 
-        FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
+        UNIQUE (criteria_type_id, seller_id, opportunity_id)
+      )
+    `);
+    await this._db.raw(`
+      CREATE TABLE IF NOT EXISTS criteria_errors (
+        id INTEGER PRIMARY KEY ASC,
+        criteria_type_id INTEGER NOT NULL,
+        failed_constraint_name TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+
+        FOREIGN KEY (criteria_type_id) REFERENCES criteria_type(id) ON DELETE CASCADE,
+
+        UNIQUE (criteria_type_id, failed_constraint_name)
       )
     `);
     await this._db.raw(`
@@ -302,6 +340,20 @@ class PersistentStore {
     await this._db('opportunity_housekeeping_parent_opportunity_sub_event_map').delete();
     await this._db('opportunity_housekeeping_opportunity_rpde_map').delete();
     await this._db('opportunity_item_row_cache_store').delete();
+  }
+
+  async prePropulateDb() {
+    const criteriaTypeRows = allCriteria.flatMap((criteria) => (
+      ALL_BOOKING_FLOWS.flatMap((bookingFlow) => (
+        ALL_OPPORTUNITY_TYPES.map((opportunityType) => (
+          {
+            criteria_name: criteria.name,
+            booking_flow: bookingFlow,
+            opportunity_type: opportunityType,
+          }
+        ))
+      ))));
+    await this._db('criteria_type').insert(criteriaTypeRows);
   }
 
   /**
@@ -637,6 +689,153 @@ class PersistentStore {
   }
 
   /**
+   * @param {string} criteriaName
+   * @param {string} bookingFlow
+   * @param {string} opportunityType
+   * @returns {Promise<boolean>}
+   */
+  async hasCriteriaAnyMatches(criteriaName, bookingFlow, opportunityType) {
+    const result = await this._db('criteria_type')
+      .innerJoin('criteria_type_opportunity_mapping', 'criteria_type.id', 'criteria_type_opportunity_mapping.criteria_type_id')
+      .select(this._db.raw('1'))
+      .where('criteria_name', criteriaName)
+      .where('booking_flow', bookingFlow)
+      .where('opportunity_type', opportunityType)
+      .first();
+    return !!result;
+  }
+
+  /**
+   * @param {string} criteriaName
+   * @param {string} bookingFlow
+   * @param {string} opportunityType
+   * @param {string} sellerId
+   * @returns {Promise<Readonly<string[]>>} A list of Opportunity (JSON-LD) IDs
+   *   which match the criteria.
+   */
+  async getCriteriaMatches(criteriaName, bookingFlow, opportunityType, sellerId) {
+    const rows = await this._db('criteria_type')
+      .innerJoin('criteria_type_opportunity_mapping', 'criteria_type.id', 'criteria_type_opportunity_mapping.criteria_type_id')
+      .select('opportunity_id')
+      .where('criteria_name', criteriaName)
+      .where('booking_flow', bookingFlow)
+      .where('opportunity_type', opportunityType)
+      .where('seller_id', sellerId);
+    return rows.map((row) => row.opportunity_id);
+  }
+
+  /**
+   * @param {string} criteriaName
+   * @param {string} bookingFlow
+   * @param {string} opportunityType
+   * @returns {Promise<Readonly<{[sellerId: string]: number}>>} For each seller
+   *   ID, the number of opportunities which match the criteria.
+   */
+  async getCriteriaAllSellerMatchAmounts(criteriaName, bookingFlow, opportunityType) {
+    const rows = await this._db('criteria_type')
+      .innerJoin('criteria_type_opportunity_mapping', 'criteria_type.id', 'criteria_type_opportunity_mapping.criteria_type_id')
+      .select('seller_id', this._db.raw('COUNT(*) as match_amount'))
+      .where('criteria_name', criteriaName)
+      .where('booking_flow', bookingFlow)
+      .where('opportunity_type', opportunityType)
+      .groupBy('seller_id');
+    return rows.reduce((acc, row) => {
+      acc[row.seller_id] = row.match_amount;
+      return acc;
+    }, {});
+  }
+
+  /**
+   * @param {string} criteriaName
+   * @param {string} bookingFlow
+   * @param {string} opportunityType
+   * @returns {Promise<Readonly<{[sellerId: string]: {[failedConstraintName: string]: number}}>>} For each seller
+   *   ID, a map of failed constraint names to the number of opportunities which
+   *   failed the constraint.
+   */
+  async getCriteriaErrors(criteriaName, bookingFlow, opportunityType) {
+    const rows = await this._db('criteria_type')
+      .innerJoin('criteria_errors', 'criteria_type.id', 'criteria_errors.criteria_type_id')
+      .select('failed_constraint_name', 'amount')
+      .where('criteria_name', criteriaName)
+      .where('booking_flow', bookingFlow)
+      .where('opportunity_type', opportunityType);
+    return rows.reduce((acc, row) => {
+      acc[row.failed_constraint_name] = row.amount;
+      return acc;
+    }, {});
+  }
+
+  /**
+   * @param {string} opportunityId
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria2(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    await this._db('criteria_type_opportunity_mapping').insert({
+      criteria_type_id: this._db('criteria_type')
+        .select('id')
+        .where({
+          criteria_name: criteriaName,
+          booking_flow: bookingFlow,
+          opportunity_type: opportunityType,
+        })
+        .first(),
+      seller_id: sellerId,
+      opportunity_id: opportunityId,
+    })
+      .onConflict(['criteria_type_id', 'seller_id', 'opportunity_id'])
+      .ignore();
+  }
+
+  /**
+   * @param {string} opportunityId
+   * @param {string[]} unmetCriteriaDetails A list of constraint names which
+   *   were not met by the opportunity.
+   * @param {object} args
+   * @param {string} args.criteriaName
+   * @param {string} args.bookingFlow
+   * @param {string} args.opportunityType
+   * @param {string} args.sellerId
+   */
+  async setOpportunityDoesNotMatchCriteria2(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    const criteriaTypeId = await this._db('criteria_type')
+      .select('id')
+      .where({
+        criteria_name: criteriaName,
+        booking_flow: bookingFlow,
+        opportunity_type: opportunityType,
+      })
+      .first();
+
+    // Delete the match if there was one previously
+    await this._db('criteria_type_opportunity_mapping')
+      .where({
+        criteria_type_id: criteriaTypeId,
+        seller_id: sellerId,
+        opportunity_id: opportunityId,
+      })
+      .delete();
+
+    // Insert the new errors
+    const errorInsertRows = unmetCriteriaDetails.map((failedConstraintName) => ({
+      criteria_type_id: criteriaTypeId,
+      failed_constraint_name: failedConstraintName,
+      amount: 1,
+    }));
+    await this._db('criteria_errors')
+      .insert(errorInsertRows)
+      .onConflict(['criteria_type_id', 'failed_constraint_name'])
+      // TODO3 oh no how we do this?
+      .merge([
+        this._db.raw('amount = criteria_errors.amount + 1'),
+      ]);
+  }
+
+  /**
    * @returns {Promise<Readonly<CriteriaOrientedOpportunityIdCacheSummary>>}
    */
   async getCriteriaOrientedOpportunityIdCacheSummary() {
@@ -694,18 +893,6 @@ class PersistentStore {
     CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(this._criteriaOrientedOpportunityIdCache, opportunityId, {
       criteriaName, bookingFlow, opportunityType, sellerId,
     });
-  }
-
-  /**
-   * @param {string} opportunityId
-   * @param {object} args
-   * @param {string} args.criteriaName
-   * @param {string} args.bookingFlow
-   * @param {string} args.opportunityType
-   * @param {string} args.sellerId
-   */
-  async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria2(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
-    // TODO3
   }
 
   /**
