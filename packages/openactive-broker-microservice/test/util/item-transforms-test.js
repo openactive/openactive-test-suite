@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { invertFacilityUseItem, createItemFromSubEvent } = require('../../src/util/item-transforms');
+const { invertFacilityUseItem, createRpdeItemFromSubEvent: createItemFromSubEvent } = require('../../src/util/item-transforms');
 
 describe('test/utils/item-transforms-test', () => {
   describe('invertFacilityUseItems', () => {

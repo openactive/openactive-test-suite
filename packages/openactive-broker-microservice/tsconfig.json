@@ -6,7 +6,8 @@
     "downlevelIteration": true,
     "target": "ES2019",
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": true
   },
   "include": [
     "app.js",
