@@ -172,7 +172,7 @@ async function getValidationErrorsRoute(req, res) {
  * @param {import('express').Response} res
  */
 async function deleteOpportunityCacheRoute(req, res) {
-  await state.persistentStore.clearCaches();
+  await state.persistentStore.clearCaches(true);
 
   res.status(204).send();
 }

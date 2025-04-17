@@ -1,6 +1,6 @@
 const { criteria: allCriteria } = require('@openactive/test-interface-criteria');
 const knex = require('knex');
-const { omit } = require('lodash');
+const { omit, isNil } = require('lodash');
 // const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
 // const { mapToObjectSummary } = require('./map-to-object-summary');
 
@@ -9,26 +9,36 @@ const { omit } = require('lodash');
  */
 /**
  * @typedef {Record<string, unknown>} OpportunityCacheItem
+ *
  * @typedef {Omit<
  *   OpportunityItemRow,
  *   | 'feedModified'
  *   | 'waitingForParentToBeIngested'
  *   | 'isParent'
  * >} DbOpportunityItemRow
+ *
  * @typedef {{
-   *   [criteriaName: string]: {
-   *     [bookingFlow: string]: {
-   *       [opportunityType: string]: {
-   *         contents: {
-   *           [sellerId: string]: number;
-   *         };
-   *         criteriaErrors: {
-   *           [constraintName: string]: number;
-   *         };
-   *       };
-   *     };
-   *   };
-   * }} CriteriaOrientedOpportunityIdCacheSummary
+ *   [criteriaName: string]: {
+ *     [bookingFlow: string]: {
+ *       [opportunityType: string]: {
+ *         contents: {
+ *           [sellerId: string]: number;
+ *         };
+ *         criteriaErrors: {
+ *           [constraintName: string]: number;
+ *         };
+ *       };
+ *     };
+ *   };
+ * }} CriteriaOrientedOpportunityIdCacheSummary
+ *
+ * @typedef {{
+ *   [criteriaName: string]: {
+ *     [bookingFlow: string]: {
+ *       [opportunityType: string]: number;
+ *     };
+ *   };
+ * }} CriteriaTypeCache
  */
 
 const ALL_BOOKING_FLOWS = [
@@ -66,6 +76,26 @@ class PersistentStore {
     this._sqliteFilename = sqliteFilename;
     /** @type {import('knex').Knex} */
     this._db = createKnexConnection(this._sqliteFilename);
+
+    /**
+     * An in-memory cache of the criteria types which links criteria types to
+     * IDs. This is just an optimisation so that criteria type ID can be
+     * obtained without a DB query.
+     *
+     * @type {CriteriaTypeCache}
+     */
+    this._criteriaTypeCache = {};
+    let nextCriteriaTypeId = 0;
+    for (const criteria of allCriteria) {
+      this._criteriaTypeCache[criteria.name] = {};
+      for (const bookingFlow of ALL_BOOKING_FLOWS) {
+        this._criteriaTypeCache[criteria.name][bookingFlow] = {};
+        for (const opportunityType of ALL_OPPORTUNITY_TYPES) {
+          this._criteriaTypeCache[criteria.name][bookingFlow][opportunityType] = nextCriteriaTypeId;
+          nextCriteriaTypeId += 1;
+        }
+      }
+    }
 
     // /**
     //  * A criteria-oriented cache for opportunity data. Used to get criteria-matching
@@ -132,7 +162,7 @@ class PersistentStore {
     await this._createSqliteTables();
     // If running SQLite on a file, then tables may need to be cleared of data
     // from a previous run
-    await this.clearCaches();
+    await this.clearCaches(false);
     await this.prePropulateDb();
   }
 
@@ -160,13 +190,13 @@ class PersistentStore {
     `);
     await this._db.raw(`
       CREATE TABLE IF NOT EXISTS criteria_type (
-        id INTEGER PRIMARY KEY ASC,
+        id INTEGER PRIMARY KEY,
         criteria_name TEXT NOT NULL,
         booking_flow TEXT NOT NULL,
         opportunity_type TEXT NOT NULL,
 
         UNIQUE (criteria_name, booking_flow, opportunity_type)
-      )
+      ) WITHOUT ROWID
     `);
     await this._db.raw(`
       CREATE TABLE IF NOT EXISTS criteria_type_opportunity_mapping (
@@ -212,7 +242,13 @@ class PersistentStore {
     `);
   }
 
-  async clearCaches() {
+  /**
+   * @param {boolean} keepPrepopulatedData If true, keeps pre-populated data
+   *   (i.e. criteria_type). If false, clears everything. Note, if setting this
+   *   to false, the PersistentStore will not be functional again unless
+   *   prePopulateDb() is run again.
+   */
+  async clearCaches(keepPrepopulatedData) {
     // this._opportunityHousekeepingCaches.rpdeMap.clear();
     // this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.clear();
     // this._opportunityItemRowCache.store.clear();
@@ -221,23 +257,34 @@ class PersistentStore {
 
     await this._db('criteria_errors').delete();
     await this._db('criteria_type_opportunity_mapping').delete();
-    await this._db('criteria_type').delete();
+    if (!keepPrepopulatedData) {
+      await this._db('criteria_type').delete();
+    }
     await this._db('opportunity_housekeeping_parent_opportunity_sub_event_map').delete();
     await this._db('opportunity_housekeeping_opportunity_rpde_map').delete();
     await this._db('opportunity_cache').delete();
   }
 
   async prePropulateDb() {
-    const criteriaTypeRows = allCriteria.flatMap((criteria) => (
-      ALL_BOOKING_FLOWS.flatMap((bookingFlow) => (
-        ALL_OPPORTUNITY_TYPES.map((opportunityType) => (
-          {
-            criteria_name: criteria.name,
-            booking_flow: bookingFlow,
-            opportunity_type: opportunityType,
-          }
-        ))
-      ))));
+    const criteriaTypeRows = Object.entries(this._criteriaTypeCache).flatMap(([criteriaName, bookingFlows]) => (
+      Object.entries(bookingFlows).flatMap(([bookingFlow, types]) => (
+        Object.entries(types).map(([opportunityType, criteriaTypeId]) => ({
+          id: criteriaTypeId,
+          criteria_name: criteriaName,
+          booking_flow: bookingFlow,
+          opportunity_type: opportunityType,
+        }))
+      ))
+    ));
+      // ALL_BOOKING_FLOWS.flatMap((bookingFlow) => (
+      //   ALL_OPPORTUNITY_TYPES.map((opportunityType) => (
+      //     {
+      //       criteria_name: criteria.name,
+      //       booking_flow: bookingFlow,
+      //       opportunity_type: opportunityType,
+      //     }
+      //   ))
+      // ))));
     // Insert in batches so that we don't hit the insert limit (there're 700+ rows)
     const batchSize = 50;
     for (let i = 0; i < criteriaTypeRows.length; i += batchSize) {
@@ -361,6 +408,9 @@ class PersistentStore {
     // this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
     const jsonLdId = await this._getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier);
 
+    if (!jsonLdId) {
+      return;
+    }
     // Delete all subEvent child opportunities associated with this parent
     await this._db('opportunity_cache')
       .whereIn('json_ld_id', function () {
@@ -370,14 +420,10 @@ class PersistentStore {
       })
       .delete();
 
-    // TODO optimise: by getting jsonLdId in a sub-query
     // This will also delete related rows from other tables via delete cascades.
-    if (jsonLdId) {
-      // This will also delete related rows from other tables via delete cascades.
-      await this._db('opportunity_cache')
-        .where('json_ld_id', jsonLdId)
-        .delete();
-    }
+    await this._db('opportunity_cache')
+      .where('json_ld_id', jsonLdId)
+      .delete();
   }
 
   /**
@@ -665,15 +711,9 @@ class PersistentStore {
    * @param {string} args.sellerId
    */
   async setOpportunityMatchesCriteria2(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+    const criteriaTypeId = this._getRequiredCriteriaTypeId(criteriaName, bookingFlow, opportunityType);
     await this._db('criteria_type_opportunity_mapping').insert({
-      criteria_type_id: this._db('criteria_type')
-        .select('id')
-        .where({
-          criteria_name: criteriaName,
-          booking_flow: bookingFlow,
-          opportunity_type: opportunityType,
-        })
-        .first(),
+      criteria_type_id: criteriaTypeId,
       seller_id: sellerId,
       opportunity_id: opportunityId,
     })
@@ -692,19 +732,20 @@ class PersistentStore {
    * @param {string} args.sellerId
    */
   async setOpportunityDoesNotMatchCriteria2(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
-    const criteriaTypeIdRow = await this._db('criteria_type')
-      .select('id')
-      .where({
-        criteria_name: criteriaName,
-        booking_flow: bookingFlow,
-        opportunity_type: opportunityType,
-      })
-      .first();
+    // const criteriaTypeIdRow = await this._db('criteria_type')
+    //   .select('id')
+    //   .where({
+    //     criteria_name: criteriaName,
+    //     booking_flow: bookingFlow,
+    //     opportunity_type: opportunityType,
+    //   })
+    //   .first();
 
-    if (!criteriaTypeIdRow) {
-      throw new Error(`Criteria type not found: ${criteriaName} ${bookingFlow} ${opportunityType}`);
-    }
-    const criteriaTypeId = criteriaTypeIdRow.id;
+    // if (!criteriaTypeIdRow) {
+    //   throw new Error(`Criteria type not found: ${criteriaName} ${bookingFlow} ${opportunityType}`);
+    // }
+    // const criteriaTypeId = criteriaTypeIdRow.id;
+    const criteriaTypeId = this._getRequiredCriteriaTypeId(criteriaName, bookingFlow, opportunityType);
 
     // Delete the match if there was one previously
     await this._db('criteria_type_opportunity_mapping')
@@ -948,6 +989,20 @@ class PersistentStore {
       totalNumChildren,
       totalNumOpportunities,
     };
+  }
+
+  /**
+   * @param {string} criteriaName
+   * @param {string} bookingFlow
+   * @param {string} opportunityType
+   * @returns {number}
+   */
+  _getRequiredCriteriaTypeId(criteriaName, bookingFlow, opportunityType) {
+    const result = this._criteriaTypeCache[criteriaName]?.[bookingFlow]?.[opportunityType];
+    if (isNil(result)) {
+      throw new Error(`Criteria type not found: ${criteriaName} ${bookingFlow} ${opportunityType}`);
+    }
+    return result;
   }
 }
 

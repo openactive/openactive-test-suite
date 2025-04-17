@@ -104,7 +104,7 @@ describe('user-facing endpoints', () => {
   });
 
   afterEach(async () => {
-    await store.clearCaches();
+    await store.clearCaches(false);
   });
 
   afterAll(async () => {
