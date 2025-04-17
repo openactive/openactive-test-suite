@@ -8,16 +8,17 @@ const { jsonLdHasReferencedParent, getMergedJsonLdContext } = require('./jsonld-
  * @param {Pick<import('../state').State, 'persistentStore'>} state
  * @param {string} childOpportunityId
  */
-function getOpportunityMergedWithParentById(state, childOpportunityId) {
-  const opportunity = state.persistentStore.getOpportunityCacheChildItem(childOpportunityId);
-  if (!opportunity) {
+async function getOpportunityMergedWithParentById(state, childOpportunityId) {
+  const opportunityItemRow = await state.persistentStore.getOpportunityItemRow(childOpportunityId);
+  if (!opportunityItemRow) {
     return null;
   }
+  const opportunity = opportunityItemRow.jsonLd;
   if (!jsonLdHasReferencedParent(opportunity)) {
     return opportunity;
   }
-  const superEvent = state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.superEvent));
-  const facilityUse = state.persistentStore.getOpportunityCacheParentItem(/** @type {string} */(opportunity.facilityUse));
+  const superEvent = (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.superEvent)))?.jsonLd;
+  const facilityUse = (await state.persistentStore.getOpportunityItemRow(/** @type {string} */(opportunity.facilityUse)))?.jsonLd;
   if (superEvent || facilityUse) {
     const mergedContexts = getMergedJsonLdContext(opportunity, superEvent, facilityUse);
     const returnObj = {

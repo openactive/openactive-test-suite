@@ -8,7 +8,7 @@ const { detectOpportunityType, detectSellerId } = require('./opportunity-utils')
  * @param {Pick<import('../state').State, 'persistentStore' | 'lockedOpportunityIdsByTestDataset'>} state
  * @param {import('../models/core').Opportunity} opportunity
  */
-function getSampleOpportunities(config, state, opportunity) {
+async function getSampleOpportunities(config, state, opportunity) {
   // Get random opportunity ID
   const opportunityType = detectOpportunityType(opportunity);
   const sellerId = detectSellerId(opportunity);
@@ -17,12 +17,12 @@ function getSampleOpportunities(config, state, opportunity) {
   const criteriaName = opportunity['test:testOpportunityCriteria'].replace('https://openactive.io/test-interface#', '');
   const bookingFlow = opportunity['test:testOpenBookingFlow'].replace('https://openactive.io/test-interface#', '');
 
-  const bookableOpportunity = getRandomBookableOpportunity(state, {
+  const bookableOpportunity = await getRandomBookableOpportunity(state, {
     sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier,
   });
 
   if (bookableOpportunity.opportunity) {
-    const opportunityWithParent = getOpportunityMergedWithParentById(
+    const opportunityWithParent = await getOpportunityMergedWithParentById(
       state,
       bookableOpportunity.opportunity['@id'],
     );

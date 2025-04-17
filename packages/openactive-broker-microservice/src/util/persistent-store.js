@@ -18,11 +18,6 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  * does not attempt to mutate it, as this likely means that it is under the
  * misinterpretation that this will update the data itself (as if it was
  * in-memory).
- *
- * We use multiple strategies to cache opportunity data for different use cases.
- * TODO investigate consolidation of _opportunityItemRowCache and
- * _opportunityCache to reduce memory usage & simplify code:
- * https://github.com/openactive/openactive-test-suite/issues/669.
  */
 class PersistentStore {
   constructor() {
@@ -37,17 +32,6 @@ class PersistentStore {
      * housekeeping to ensure that its stored opportunity date is correct.
      */
     this._opportunityHousekeepingCaches = {
-      /**
-       * Map { [rpdeFeedItemIdentifier] => jsonLdId }
-       *
-       * This allows us to look up the JSON-LD ID of a deleted item in the feed,
-       * as deleted items do not contain the JSON-LD ID.
-       *
-       * For parent opportunities (e.g. FacilityUse) only.
-       *
-       * @type {Map<string, string>}
-       */
-      parentOpportunityRpdeMap: new Map(),
       /**
        * Map { [jsonLdId] => subEventIds }
        *
@@ -66,11 +50,9 @@ class PersistentStore {
        * This allows us to look up the JSON-LD ID of a deleted item in the feed,
        * as deleted items do not contain the JSON-LD ID.
        *
-       * For child opportunities (e.g. FacilityUseSlot) only.
-       *
        * @type {Map<string, string>}
        */
-      opportunityRpdeMap: new Map(),
+      rpdeMap: new Map(),
     };
     /**
      * The "row" cache stores OpportunityItemRows. These objects contain data
@@ -98,116 +80,70 @@ class PersistentStore {
        */
       parentIdIndex: new Map(),
     };
-    /**
-     * The opportunity cache stores Opportunities found in the feeds.
-     *
-     * This cache is used to:
-     * - Respond to opportunity listeners
-     * - For express routes which render opportunities found in the feed
-     * - To combine child/parent opportunity and, from there, determine which
-     *   criteria the duo match and so where to store them in the
-     *   criteria-oriented cache.
-     *
-     * This cache used to use nSQL, but this turned out to be slow, even with
-     * indexes. It's current form is an optimisation pending further
-     * investigation.
-     */
-    this._opportunityCache = {
-      /**
-       * Map { [jsonLdId] => opportunityData }
-       *
-       * For parent opportunities (e.g. FacilityUse) only.
-       *
-       * @type {Map<string, OpportunityCacheItem>}
-       */
-      parentMap: new Map(),
-      /**
-       * Map { [jsonLdId] => opportunityData }
-       *
-       * For child opportunities (e.g. FacilityUseSlot) only.
-       *
-       * @type {Map<string, OpportunityCacheItem>}
-       */
-      childMap: new Map(),
-    };
   }
 
-  clearCaches() {
-    this._opportunityCache.parentMap.clear();
-    this._opportunityHousekeepingCaches.parentOpportunityRpdeMap.clear();
-    this._opportunityCache.childMap.clear();
-    this._opportunityHousekeepingCaches.opportunityRpdeMap.clear();
+  async clearCaches() {
+    this._opportunityHousekeepingCaches.rpdeMap.clear();
+    this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.clear();
     this._opportunityItemRowCache.store.clear();
     this._opportunityItemRowCache.parentIdIndex.clear();
     this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
   }
 
   /**
-   * @param {string} id
-   * @returns {Readonly<OpportunityCacheItem> | undefined}
+   * @param {string} jsonLdId
+   * @returns {Promise<Readonly<import('../models/core').OpportunityItemRow> | undefined>}
    */
-  getOpportunityCacheChildItem(id) {
-    return this._opportunityCache.childMap.get(id);
+  async getOpportunityItemRow(jsonLdId) {
+    return this._opportunityItemRowCache.store.get(jsonLdId);
   }
 
   /**
-   * @param {string} id
-   * @returns {Readonly<OpportunityCacheItem> | undefined}
+   * @param {string} jsonLdId
+   * @returns {Promise<boolean>}
    */
-  getOpportunityCacheParentItem(id) {
-    return this._opportunityCache.parentMap.get(id);
+  async hasOpportunityItemRow(jsonLdId) {
+    return this._opportunityItemRowCache.store.has(jsonLdId);
   }
 
   /**
-   * @param {string} id
-   * @returns {boolean}
+   * Store (insert or replace) an opportunity in the opportunity cache.
+   *
+   * This also saves an internal mapping between the feedItemIdentifier and
+   * jsonLdId, which is used for RPDE deletes.
+   *
+   * @param {import('../models/core').OpportunityItemRow} itemRow
+   * @param {string | undefined} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
+   *   If not set, then an RPDE mapping will not be made, which means that it
+   *   will not be possible to process an RPDE delete for this item. Therefore
+   *   it should only be set for an item that didn't directly come from the feed
+   *   like a .subEvent-derived item.
    */
-  hasOpportunityCacheParentItem(id) {
-    return this._opportunityCache.parentMap.has(id);
-  }
+  async storeOpportunityItemRow(itemRow, feedItemIdentifier) {
+    // If it has a parent, associate it with its parent
+    if (itemRow.jsonLdParentId != null) {
+      if (!this._opportunityItemRowCache.parentIdIndex.has(itemRow.jsonLdParentId)) {
+        this._opportunityItemRowCache.parentIdIndex.set(itemRow.jsonLdParentId, new Set());
+      }
+      this._opportunityItemRowCache.parentIdIndex.get(itemRow.jsonLdParentId).add(itemRow.jsonLdId);
+    }
 
-  /**
-   * Set a parent (e.g. FacilityUse or SessionSeries) opportunity in the
-   * opportunity cache.
-   *
-   * This also updates internal housekeeping caches, but does NOT update the row
-   * cache, which must be done separately.
-   *
-   * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
-   * @param {string} jsonLdId The .data['@id'] of the Opportunity
-   * @param {Record<string, unknown>} itemData the Opportunity data
-   */
-  setOpportunityCacheParentItem(feedItemIdentifier, jsonLdId, itemData) {
-    this._opportunityHousekeepingCaches.parentOpportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-    this._opportunityCache.parentMap.set(jsonLdId, itemData);
-  }
-
-  /**
-   * Set a child (e.g. Slot or ScheduledSession) opportunity in the opportunity
-   * cache.
-   *
-   * This also updates internal housekeeping caches, but does NOT update the row
-   * cache, which must be done separately.
-   *
-   * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
-   * @param {string} jsonLdId The .data['@id'] of the Opportunity
-   * @param {Record<string, unknown>} itemData the Opportunity data
-   */
-  setOpportunityCacheChildItem(feedItemIdentifier, jsonLdId, itemData) {
-    this._opportunityHousekeepingCaches.opportunityRpdeMap.set(feedItemIdentifier, jsonLdId);
-    this._opportunityCache.childMap.set(jsonLdId, itemData);
+    this._opportunityItemRowCache.store.set(itemRow.jsonLdId, itemRow);
+    if (feedItemIdentifier) {
+      this._opportunityHousekeepingCaches.rpdeMap.set(feedItemIdentifier, itemRow.jsonLdId);
+    }
   }
 
   /**
    * Delete a parent (e.g. FacilityUse or SessionSeries) opportunity from the
-   * opportunity cache.
+   * opportunity row item cache.
    *
-   * This also updates internal housekeeping caches and the row cache.
+   * This also updates internal housekeeping caches.
    *
    * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    */
-  deleteOpportunityCacheParentItem(feedItemIdentifier) {
-    const jsonLdId = this._opportunityHousekeepingCaches.parentOpportunityRpdeMap.get(feedItemIdentifier);
+  async deleteParentOpportunityItemRow(feedItemIdentifier) {
+    const jsonLdId = this._opportunityHousekeepingCaches.rpdeMap.get(feedItemIdentifier);
 
     // If we had subEvents for this item, then we must be sure to delete the associated opportunityItems
     // that were made for them:
@@ -217,8 +153,8 @@ class PersistentStore {
       }
     }
 
-    this._opportunityHousekeepingCaches.parentOpportunityRpdeMap.delete(feedItemIdentifier);
-    this._opportunityCache.parentMap.delete(jsonLdId);
+    this._opportunityHousekeepingCaches.rpdeMap.delete(feedItemIdentifier);
+    this._opportunityItemRowCache.store.delete(jsonLdId);
     this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.delete(jsonLdId);
   }
 
@@ -230,10 +166,9 @@ class PersistentStore {
    *
    * @param {string} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    */
-  deleteOpportunityCacheChildItem(feedItemIdentifier) {
-    const jsonLdId = this._opportunityHousekeepingCaches.opportunityRpdeMap.get(feedItemIdentifier);
-    this._opportunityCache.childMap.delete(jsonLdId);
-    this._opportunityHousekeepingCaches.opportunityRpdeMap.delete(feedItemIdentifier);
+  async deleteChildOpportunityItemRow(feedItemIdentifier) {
+    const jsonLdId = this._opportunityHousekeepingCaches.rpdeMap.get(feedItemIdentifier);
+    this._opportunityHousekeepingCaches.rpdeMap.delete(feedItemIdentifier);
 
     this._deleteOpportunityItemRowCacheChildItem(jsonLdId);
   }
@@ -256,12 +191,12 @@ class PersistentStore {
    * subEvent is not present in the list of old subEvents, then we record its ID
    * in the list for the next time this check is done.
    *
-   * @param {{data: {subEvent: {'@id'?: string, id?:string}[]}}} parentRpdeItem
+   * @param {{'@id'?: string, id?:string}[]} parentSubEvent
    * @param {string} parentJsonLdId
    */
-  reconcileParentSubEventChanges(parentRpdeItem, parentJsonLdId) {
+  async reconcileParentSubEventChanges(parentSubEvent, parentJsonLdId) {
     const oldSubEventIds = this._opportunityHousekeepingCaches.parentOpportunitySubEventMap.get(parentJsonLdId);
-    const newSubEventIds = parentRpdeItem.data.subEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
+    const newSubEventIds = parentSubEvent.map((subEvent) => subEvent['@id'] || subEvent.id).filter((x) => x);
 
     if (!oldSubEventIds) {
       if (newSubEventIds.length > 0) {
@@ -283,23 +218,15 @@ class PersistentStore {
   }
 
   /**
-   * @param {string} jsonLdId
-   * @returns {Readonly<import('../models/core').OpportunityItemRow> | undefined}
-   */
-  getOpportunityItemRow(jsonLdId) {
-    return this._opportunityItemRowCache.store.get(jsonLdId);
-  }
-
-  /**
    * Mark a child opportunity (in the row cache) as having found its parent.
    *
    * It also returns the row (if there is one).
    *
    * @param {string} childJsonLdId
    * @param {string} newFeedModified
-   * @returns {Readonly<import('../models/core').OpportunityItemRow> | undefined}
+   * @returns {Promise<Readonly<import('../models/core').OpportunityItemRow> | undefined>}
    */
-  markOpportunityItemRowChildAsFoundParent(childJsonLdId, newFeedModified) {
+  async markOpportunityItemRowChildAsFoundParent(childJsonLdId, newFeedModified) {
     const row = this._opportunityItemRowCache.store.get(childJsonLdId);
     if (row) {
       row.feedModified = newFeedModified;
@@ -329,28 +256,13 @@ class PersistentStore {
   }
 
   /**
-   * @param {import('../models/core').OpportunityItemRow} row
-   */
-  storeOpportunityItemRowCacheChildItem(row) {
-    // Associate the child with its parent
-    if (row.jsonLdParentId != null) {
-      if (!this._opportunityItemRowCache.parentIdIndex.has(row.jsonLdParentId)) {
-        this._opportunityItemRowCache.parentIdIndex.set(row.jsonLdParentId, new Set());
-      }
-      this._opportunityItemRowCache.parentIdIndex.get(row.jsonLdParentId).add(row.jsonLdId);
-    }
-
-    // Cache it
-    this._opportunityItemRowCache.store.set(row.jsonLdId, row);
-  }
-
-  /**
-   * Get (JSON-LD) IDs of all opportunities which are children of the specified parent.
+   * Get (JSON-LD) IDs of all opportunities which are children of the specified
+   * parent, EXCEPT for those children which are derived from a .subEvent.
    *
    * @param {string} parentJsonLdId
-   * @returns {Readonly<Set<string>>}
+   * @returns {Promise<Readonly<Set<string>>>}
    */
-  getOpportunityItemRowCacheChildIdsFromParent(parentJsonLdId) {
+  async getOpportunityNonSubEventChildIdsFromParent(parentJsonLdId) {
     if (!this._opportunityItemRowCache.parentIdIndex.has(parentJsonLdId)) {
       return new Set();
     }
@@ -358,7 +270,7 @@ class PersistentStore {
   }
 
   /**
-   * @returns {Readonly<{
+   * @returns {Promise<Readonly<{
    *   [criteriaName: string]: {
    *     [bookingFlow: string]: {
    *       [opportunityType: string]: {
@@ -371,9 +283,9 @@ class PersistentStore {
    *       };
    *     };
    *   };
-   * }>}
+   * }>>}
    */
-  getCriteriaOrientedOpportunityIdCacheSummary() {
+  async getCriteriaOrientedOpportunityIdCacheSummary() {
     return /** @type {any} */ (mapToObjectSummary(this._criteriaOrientedOpportunityIdCache));
   }
 
@@ -381,9 +293,9 @@ class PersistentStore {
    * @param {string} criteriaName
    * @param {string} bookingFlow
    * @param {string} opportunityType
-   * @returns {Readonly<import('./criteria-oriented-opportunity-id-cache').OpportunityIdCacheTypeBucket>}
+   * @returns {Promise<Readonly<import('./criteria-oriented-opportunity-id-cache').OpportunityIdCacheTypeBucket>>}
    */
-  getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType) {
+  async getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType) {
     return CriteriaOrientedOpportunityIdCache.getTypeBucket(this._criteriaOrientedOpportunityIdCache, {
       criteriaName, bookingFlow, opportunityType,
     });
@@ -397,7 +309,7 @@ class PersistentStore {
    * @param {string} args.opportunityType
    * @param {string} args.sellerId
    */
-  setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+  async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
     CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(this._criteriaOrientedOpportunityIdCache, opportunityId, {
       criteriaName, bookingFlow, opportunityType, sellerId,
     });
@@ -412,7 +324,7 @@ class PersistentStore {
    * @param {string} args.opportunityType
    * @param {string} args.sellerId
    */
-  setOpportunityDoesNotMatchCriteria(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+  async setOpportunityDoesNotMatchCriteria(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
     CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
       this._criteriaOrientedOpportunityIdCache,
       opportunityId,
@@ -424,7 +336,7 @@ class PersistentStore {
   }
 
   /**
-   * @returns {Readonly<{
+   * @returns {Promise<Readonly<{
    *   numMatched: number;
    *   numOrphaned: number;
    *   total: number;
@@ -437,9 +349,9 @@ class PersistentStore {
    *     | 'jsonLdId'
    *     | 'jsonLdParentId'
    *   >[]
-   * }>}
+   * }>>}
    */
-  getOrphanData() {
+  async getOrphanData() {
     const rows = Array.from(this._opportunityItemRowCache.store.values())
       .filter((x) => x.jsonLdParentId !== null);
     const numMatched = rows.filter((x) => !x.waitingForParentToBeIngested).length;
@@ -468,14 +380,14 @@ class PersistentStore {
   }
 
   /**
-   * @returns {Readonly<{
+   * @returns {Promise<Readonly<{
    *   numChildOrphans: number;
    *   totalNumChildren: number;
    *   totalNumOpportunities: number;
-   * }>}
+   * }>>}
    */
-  getOrphanStats() {
-    const { numOrphaned: numChildOrphans, total: totalNumChildren } = this.getOrphanData();
+  async getOrphanStats() {
+    const { numOrphaned: numChildOrphans, total: totalNumChildren } = await this.getOrphanData();
     const totalNumOpportunities = Array.from(this._opportunityItemRowCache.store.values())
       .filter((x) => !x.waitingForParentToBeIngested).length;
     return {

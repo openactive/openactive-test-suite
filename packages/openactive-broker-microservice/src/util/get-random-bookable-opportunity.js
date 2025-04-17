@@ -13,10 +13,10 @@ const { getAllLockedOpportunityIds, getLockedOpportunityIdsInTestDataset } = req
  * @param {string} args.opportunityType
  * @param {string} args.criteriaName
  * @param {string} args.testDatasetIdentifier
- * @returns {any}
+ * @returns {Promise<any>}
  */
-function getRandomBookableOpportunity(state, { sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
-  const typeBucket = state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
+async function getRandomBookableOpportunity(state, { sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
+  const typeBucket = await state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
   const sellerCompartment = typeBucket.contents.get(sellerId);
   if (!sellerCompartment || sellerCompartment.size === 0) {
     const availableSellers = mapToObjectSummary(typeBucket.contents);

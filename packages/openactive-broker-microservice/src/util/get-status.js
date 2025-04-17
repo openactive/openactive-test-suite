@@ -19,8 +19,8 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  *    | 'orderUuidTracking'
  * >} state
  */
-function getStatus(config, state) {
-  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = getOrphanStats(state);
+async function getStatus(config, state) {
+  const { childOrphans, totalChildren, percentageChildOrphans, totalOpportunities } = await getOrphanStats(state);
   return {
     elapsedTime: millisToMinutesAndSeconds((new Date()).getTime() - state.startTime.getTime()),
     harvestingStatus: state.pauseResume.pauseHarvestingStatus,
@@ -29,7 +29,7 @@ function getStatus(config, state) {
       children: `${childOrphans} of ${totalChildren} (${percentageChildOrphans}%)`,
     },
     totalOpportunitiesHarvested: totalOpportunities,
-    buckets: config.DO_NOT_FILL_BUCKETS ? null : state.persistentStore.getCriteriaOrientedOpportunityIdCacheSummary(),
+    buckets: config.DO_NOT_FILL_BUCKETS ? null : (await state.persistentStore.getCriteriaOrientedOpportunityIdCacheSummary()),
     orderUuidTracking: {
       uuidsInOrderMap: mapToObjectSummary(state.orderUuidTracking.uuidsInOrderMap),
       hasReachedEndOfFeedMap: mapToObjectSummary(state.orderUuidTracking.hasReachedEndOfFeedMap),
@@ -40,10 +40,10 @@ function getStatus(config, state) {
 
 /**
  * @param {Pick<import('../state').State, 'persistentStore'>} state
- * @returns {OrphanStats}
+ * @returns {Promise<OrphanStats>}
  */
-function getOrphanStats(state) {
-  const { numChildOrphans, totalNumChildren, totalNumOpportunities } = state.persistentStore.getOrphanStats();
+async function getOrphanStats(state) {
+  const { numChildOrphans, totalNumChildren, totalNumOpportunities } = await state.persistentStore.getOrphanStats();
   const percentageChildOrphans = totalNumChildren > 0 ? ((numChildOrphans / totalNumChildren) * 100).toFixed(2) : '0';
   return {
     childOrphans: numChildOrphans,
