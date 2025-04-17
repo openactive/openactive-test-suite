@@ -449,10 +449,12 @@ function withOpportunityRpdeHeaders(getHeadersFn) {
  * @param {string} args.bookingFlow
  */
 async function assertOpportunityCriteriaNotFound({ opportunityType, criteriaName, bookingFlow }) {
-  const typeBucket = await state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
+  const hasAnyMatches = await state.persistentStore.hasCriteriaAnyMatches(criteriaName, bookingFlow, opportunityType);
+  return !hasAnyMatches;
+  // const typeBucket = await state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
 
-  // Check that all sellerCompartments are empty
-  return Array.from(typeBucket.contents).every(([, items]) => (items.size === 0));
+  // // Check that all sellerCompartments are empty
+  // return Array.from(typeBucket.contents).every(([, items]) => (items.size === 0));
 }
 
 /**

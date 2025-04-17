@@ -1,4 +1,4 @@
-const { mapToObjectSummary } = require('./map-to-object-summary');
+const { isEmpty } = require('lodash');
 const { getAllLockedOpportunityIds, getLockedOpportunityIdsInTestDataset } = require('./state-utils');
 
 /**
@@ -16,23 +16,59 @@ const { getAllLockedOpportunityIds, getLockedOpportunityIdsInTestDataset } = req
  * @returns {Promise<any>}
  */
 async function getRandomBookableOpportunity(state, { sellerId, bookingFlow, opportunityType, criteriaName, testDatasetIdentifier }) {
-  const typeBucket = await state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
-  const sellerCompartment = typeBucket.contents.get(sellerId);
-  if (!sellerCompartment || sellerCompartment.size === 0) {
-    const availableSellers = mapToObjectSummary(typeBucket.contents);
-    const noCriteriaErrors = bookingFlow === 'OpenBookingApprovalFlow'
-      ? "Ensure that some Offers have an 'openBookingFlowRequirement' property that includes the value 'https://openactive.io/OpenBookingApproval'"
-      : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
-    const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
+  const matchingOpportunityIds = await state.persistentStore.getCriteriaMatches(criteriaName, bookingFlow, opportunityType, sellerId);
+  // const typeBucket = await state.persistentStore.getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType);
+  // const sellerCompartment = typeBucket.contents.get(sellerId);
+  // if (!sellerCompartment || sellerCompartment.size === 0) {
+  if (matchingOpportunityIds.length === 0) {
+    // const availableSellers = mapToObjectSummary(typeBucket.contents);
+    const availableSellers = await state.persistentStore.getCriteriaAllSellerMatchAmounts(criteriaName, bookingFlow, opportunityType);
+    if (!isEmpty(availableSellers)) {
+      // We don't show any errors if there are some matches
+      return {
+        suggestion: 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.',
+        availableSellers,
+        criteriaErrors: undefined,
+      };
+    }
+    /** @type {unknown} */
+    let resultCriteriaErrors = await state.persistentStore.getCriteriaErrors(criteriaName, bookingFlow, opportunityType);
+    const noUnderlyingCriteriaErrors = isEmpty(resultCriteriaErrors);
+    if (noUnderlyingCriteriaErrors) {
+      if (bookingFlow === 'OpenBookingApprovalFlow') {
+        resultCriteriaErrors = "Ensure that some Offers have an 'openBookingFlowRequirement' property that includes the value 'https://openactive.io/OpenBookingApproval'";
+      } else {
+        resultCriteriaErrors = "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
+      }
+    }
+    const suggestionEnd = noUnderlyingCriteriaErrors
+      ? ''
+      : ' The number represents the number of items that do not match.';
     return {
-      suggestion: availableSellers ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.' : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${typeBucket.criteriaErrors?.size > 0 ? ' The number represents the number of items that do not match.' : ''}`,
+      suggestion: `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${suggestionEnd}`,
       availableSellers,
-      criteriaErrors: typeBucket.criteriaErrors ? criteriaErrors : undefined,
+      criteriaErrors: resultCriteriaErrors,
     };
+    // const criteriaErrors = await state.persistentStore.getCriteriaErrors(criteriaName, bookingFlow, opportunityType);
+    // const noCriteriaErrors = bookingFlow === 'OpenBookingApprovalFlow'
+    //   ? "Ensure that some Offers have an 'openBookingFlowRequirement' property that includes the value 'https://openactive.io/OpenBookingApproval'"
+    //   : "Ensure that some Offers have an 'openBookingFlowRequirement' property that DOES NOT include the value 'https://openactive.io/OpenBookingApproval'";
+    // const returnedCriteriaErrors = isEmpty(criteriaErrors) ? noCriteriaErrors : criteriaErrors;
+    // const criteriaErrors = !typeBucket.criteriaErrors || typeBucket.criteriaErrors?.size === 0 ? noCriteriaErrors : Object.fromEntries(typeBucket.criteriaErrors);
+    // return {
+    //   suggestion: (availableSellers
+    //     ? 'Try setting sellers.primary.@id in the JSON config to one of the availableSellers below.'
+    //     : `Check criteriaErrors below for reasons why '${opportunityType}' items in your feeds are not matching the criteria '${criteriaName}'.${
+    //       typeBucket.criteriaErrors?.size > 0
+    //       ? ' The number represents the number of items that do not match.'
+    //       : ''}`,
+    //   availableSellers,
+    //   criteriaErrors,
+    // };
   } // Seller has no items
 
   const allLockedOpportunityIds = getAllLockedOpportunityIds(state);
-  const unusedBucketItems = Array.from(sellerCompartment).filter((x) => !allLockedOpportunityIds.has(x));
+  const unusedBucketItems = matchingOpportunityIds.filter((x) => !allLockedOpportunityIds.has(x));
 
   if (unusedBucketItems.length === 0) {
     return {

@@ -211,9 +211,17 @@ describe.only('test/util/persistent-store-test', () => {
       expect(child3).toBeUndefined();
     }
   });
-  it.only('should support caching opportunities by the criteria they do or do not satisfy', async () => {
+  it('should support caching opportunities by the criteria they do or do not satisfy', async () => {
     await store.storeOpportunityItemRow({
-      ...getChildOpportunityItemRowDefaults('opp1'),
+      ...getParentOpportunityItemRowDefaults('parent1'),
+      jsonLdType: 'FacilityUse',
+      jsonLd: {
+        '@context': ['https://openactive.io/'],
+        '@type': 'FacilityUse',
+      },
+    }, 'FacilityUse---parent1');
+    await store.storeOpportunityItemRow({
+      ...getChildOpportunityItemRowDefaults('child1'),
       jsonLdParentId: '//parent1',
       jsonLdType: 'Slot',
       waitingForParentToBeIngested: false,
@@ -221,9 +229,9 @@ describe.only('test/util/persistent-store-test', () => {
         '@context': ['https://openactive.io/'],
         '@type': 'Slot',
       },
-    }, 'Slot---opp1');
+    }, 'Slot---child1');
     await store.storeOpportunityItemRow({
-      ...getChildOpportunityItemRowDefaults('opp2'),
+      ...getChildOpportunityItemRowDefaults('child2'),
       jsonLdParentId: '//parent1',
       jsonLdType: 'Slot',
       waitingForParentToBeIngested: false,
@@ -231,117 +239,133 @@ describe.only('test/util/persistent-store-test', () => {
         '@context': ['https://openactive.io/'],
         '@type': 'Slot',
       },
-    }, 'Slot---opp2');
+    }, 'Slot---child2');
 
-    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp1', {
+    await store.setOpportunityMatchesCriteria2('//child1', {
       criteriaName: 'TestOpportunityBookableFree',
       bookingFlow: 'OpenBookingSimpleFlow',
       opportunityType: 'IndividualFacilityUseSlot',
       sellerId: 'https://example.com/seller1',
     });
-    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp1', {
+    await store.setOpportunityMatchesCriteria2('//child1', {
       criteriaName: 'TestOpportunityBookableFree',
       bookingFlow: 'OpenBookingApprovalFlow',
       opportunityType: 'IndividualFacilityUseSlot',
       sellerId: 'https://example.com/seller1',
     });
-    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp1', {
+    await store.setOpportunityMatchesCriteria2('//child1', {
       criteriaName: 'TestOpportunityBookableNonFree',
       bookingFlow: 'OpenBookingSimpleFlow',
       opportunityType: 'ScheduledSession',
       sellerId: 'https://example.com/seller2',
     });
-    await store.setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria('//opp2', {
+    await store.setOpportunityMatchesCriteria2('//child2', {
       criteriaName: 'TestOpportunityBookableFree',
       bookingFlow: 'OpenBookingSimpleFlow',
       opportunityType: 'IndividualFacilityUseSlot',
       sellerId: 'https://example.com/seller1',
     });
     // Override an earlier match with a new failure
-    await store.setOpportunityDoesNotMatchCriteria('//opp1', ['reason1', 'reason2'], {
+    await store.setOpportunityDoesNotMatchCriteria2('//child1', ['reason1', 'reason2'], {
       criteriaName: 'TestOpportunityBookableNonFree',
       bookingFlow: 'OpenBookingSimpleFlow',
       opportunityType: 'ScheduledSession',
       sellerId: 'https://example.com/seller2',
     });
-    await store.setOpportunityDoesNotMatchCriteria('//opp2', ['reason2'], {
+    await store.setOpportunityDoesNotMatchCriteria2('//child2', ['reason2'], {
       criteriaName: 'TestOpportunityBookableNonFree',
       bookingFlow: 'OpenBookingSimpleFlow',
       opportunityType: 'ScheduledSession',
       sellerId: 'https://example.com/seller2',
     });
-    await store.setOpportunityDoesNotMatchCriteria('//opp2', ['reason3'], {
+    await store.setOpportunityDoesNotMatchCriteria2('//child2', ['reason3'], {
       criteriaName: 'TestOpportunityBookableFree',
       bookingFlow: 'OpenBookingApprovalFlow',
       opportunityType: 'IndividualFacilityUseSlot',
       sellerId: 'https://example.com/seller1',
     });
 
-    // Check each "bucket"
+    // getCriteriaMatches
     {
-      const freeSimpleSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
-      const freeSimpleSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
-      const freeApprovSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'IndividualFacilityUseSlot');
-      const freeApprovSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'ScheduledSession');
-      const nonFreeSimpleSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
-      const nonFreeSimpleSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+      const freeSimpleSlotSeller1Matches = await store.getCriteriaMatches('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot', 'https://example.com/seller1');
+      const freeSimpleSlotSeller2Matches = await store.getCriteriaMatches('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot', 'https://example.com/seller2');
+      const freeSimpleSesSeller1Matches = await store.getCriteriaMatches('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession', 'https://example.com/seller1');
+      const freeSimpleSesSeller2Matches = await store.getCriteriaMatches('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession', 'https://example.com/seller2');
+
+      expect(freeSimpleSlotSeller1Matches).toEqual(['//child1', '//child2']);
+      expect(freeSimpleSlotSeller2Matches).toEqual([]);
+      expect(freeSimpleSesSeller1Matches).toEqual([]);
+      expect(freeSimpleSesSeller2Matches).toEqual([]);
+    }
+
+    // hasCriteriaAnyMatches
+    {
+      const hasFreeApprovSlotAnyMatches = await store.hasCriteriaAnyMatches('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'IndividualFacilityUseSlot');
+      const hasPaidApprovSlotAnyMatches = await store.hasCriteriaAnyMatches('TestOpportunityBookableNonFree', 'OpenBookingApprovalFlow', 'IndividualFacilityUseSlot');
+
+      expect(hasFreeApprovSlotAnyMatches).toEqual(true);
+      expect(hasPaidApprovSlotAnyMatches).toEqual(false);
+    }
+
+    // getCriteriaAllSellerMatchAmounts
+    {
+      const freeSimpleSlot = await store.getCriteriaAllSellerMatchAmounts('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const freeSimpleSes = await store.getCriteriaAllSellerMatchAmounts('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+      const freeApprovSlot = await store.getCriteriaAllSellerMatchAmounts('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'IndividualFacilityUseSlot');
+      const freeApprovSes = await store.getCriteriaAllSellerMatchAmounts('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'ScheduledSession');
+      const nonFreeSimpleSlot = await store.getCriteriaAllSellerMatchAmounts('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const nonFreeSimpleSes = await store.getCriteriaAllSellerMatchAmounts('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
 
       expect(freeSimpleSlot).toEqual({
-        contents: new Map([
-          ['https://example.com/seller1', new Set(['//opp1', '//opp2'])],
-        ]),
-        // undefined because there is at least one match
-        criteriaErrors: undefined,
+        'https://example.com/seller1': 2,
       });
-      expect(freeSimpleSes).toEqual({
-        contents: new Map(),
-        criteriaErrors: new Map(),
-        // criteriaErrors: new Map([
-        //   ['reason1', 1],
-        //   ['reason2', 2],
-        // ]),
-      });
+      expect(freeSimpleSes).toEqual({});
       expect(freeApprovSlot).toEqual({
-        contents: new Map([
-          ['https://example.com/seller1', new Set(['//opp1'])],
-        ]),
-        // Even though there was a failure, there is at least one match, so this is undefined
-        criteriaErrors: undefined,
+        'https://example.com/seller1': 1,
       });
-      expect(freeApprovSes).toEqual({
-        contents: new Map(),
-        criteriaErrors: new Map(),
+      expect(freeApprovSes).toEqual({});
+      expect(nonFreeSimpleSlot).toEqual({});
+      expect(nonFreeSimpleSes).toEqual({});
+    }
+
+    // getCriteriaErrors
+    {
+      const freeSimpleSlot = await store.getCriteriaErrors('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const freeSimpleSes = await store.getCriteriaErrors('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+      const freeApprovSlot = await store.getCriteriaErrors('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'IndividualFacilityUseSlot');
+      const freeApprovSes = await store.getCriteriaErrors('TestOpportunityBookableFree', 'OpenBookingApprovalFlow', 'ScheduledSession');
+      const nonFreeSimpleSlot = await store.getCriteriaErrors('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const nonFreeSimpleSes = await store.getCriteriaErrors('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+
+      expect(freeSimpleSlot).toEqual({});
+      expect(freeSimpleSes).toEqual({});
+      expect(freeApprovSlot).toEqual({
+        reason3: 1,
       });
-      expect(nonFreeSimpleSlot).toEqual({
-        contents: new Map(),
-        criteriaErrors: new Map(),
-      });
+      expect(freeApprovSes).toEqual({});
+      expect(nonFreeSimpleSlot).toEqual({});
       expect(nonFreeSimpleSes).toEqual({
-        contents: new Map(),
-        criteriaErrors: new Map([
-          ['reason1', 1],
-          ['reason2', 2],
-        ]),
+        reason1: 1,
+        reason2: 2,
       });
     }
 
     // Delete one of the opps
-    await store.deleteChildOpportunityItemRow('Slot---opp1');
+    await store.deleteChildOpportunityItemRow('Slot---child1');
     {
-      const freeSimpleSlot = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
-      const freeSimpleSes = await store.getCriteriaOrientedOpportunityIdCacheTypeBucket('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
+      const freeSimpleSlotMatches = await store.getCriteriaMatches('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot', 'https://example.com/seller1');
+      const paidSimpleSesMatches = await store.getCriteriaMatches('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'ScheduledSession', 'https://example.com/seller1');
+      const freeSimpleSlotErrors = await store.getCriteriaErrors('TestOpportunityBookableFree', 'OpenBookingSimpleFlow', 'IndividualFacilityUseSlot');
+      const paidSimpleSesErrors = await store.getCriteriaErrors('TestOpportunityBookableNonFree', 'OpenBookingSimpleFlow', 'ScheduledSession');
 
-      expect(freeSimpleSlot).toEqual({
-        contents: new Map([
-          ['https://example.com/seller1', new Set(['//opp2'])],
-        ]),
-        criteriaErrors: undefined,
-      });
-      expect(freeSimpleSes).toEqual({
-        contents: new Map(),
-        criteriaErrors: new Map([
-          ['reason2', 1],
-        ]),
+      expect(freeSimpleSlotMatches).toEqual(['//child2']);
+      expect(paidSimpleSesMatches).toEqual([]);
+      expect(freeSimpleSlotErrors).toEqual({});
+      // This count is the same as before because this count does not track
+      // individual items. It just increments with each matching RPDE update.
+      expect(paidSimpleSesErrors).toEqual({
+        reason1: 1,
+        reason2: 2,
       });
     }
   });

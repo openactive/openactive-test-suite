@@ -121,8 +121,8 @@ GROUP BY failed_constraint_name
 const { criteria: allCriteria } = require('@openactive/test-interface-criteria');
 const knex = require('knex');
 const { omit } = require('lodash');
-const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
-const { mapToObjectSummary } = require('./map-to-object-summary');
+// const { CriteriaOrientedOpportunityIdCache } = require('./criteria-oriented-opportunity-id-cache');
+// const { mapToObjectSummary } = require('./map-to-object-summary');
 
 /**
  * @typedef {import('../models/core').OpportunityItemRow} OpportunityItemRow
@@ -133,6 +133,7 @@ const { mapToObjectSummary } = require('./map-to-object-summary');
  *   OpportunityItemRow,
  *   | 'feedModified'
  *   | 'waitingForParentToBeIngested'
+ *   | 'isParent'
  * >} DbOpportunityItemRow
  * @typedef {{
    *   [criteriaName: string]: {
@@ -186,65 +187,65 @@ class PersistentStore {
     /** @type {import('knex').Knex} */
     this._db = createKnexConnection(this._sqliteFilename);
 
-    /**
-     * A criteria-oriented cache for opportunity data. Used to get criteria-matching
-     * opportunities for tests.
-     */
-    this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
+    // /**
+    //  * A criteria-oriented cache for opportunity data. Used to get criteria-matching
+    //  * opportunities for tests.
+    //  */
+    // this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
 
-    /**
-     * Stores mappings between IDs which allow Broker to perform various kinds of
-     * housekeeping to ensure that its stored opportunity date is correct.
-     */
-    this._opportunityHousekeepingCaches = {
-      /**
-       * Map { [jsonLdId] => subEventIds }
-       *
-       * Associates a parent opportunity (jsonLdId) with a list of its child
-       * Opportunity IDs.
-       *
-       * This allows us to delete `.subEvent` Opportunities when they are no
-       * longer present in the parent Opportunity's data.
-       *
-       * @type {Map<string, string[]>}
-       */
-      parentOpportunitySubEventMap: new Map(),
-      /**
-       * Map { [rpdeFeedItemIdentifier] => jsonLdId }
-       *
-       * This allows us to look up the JSON-LD ID of a deleted item in the feed,
-       * as deleted items do not contain the JSON-LD ID.
-       *
-       * @type {Map<string, string>}
-       */
-      rpdeMap: new Map(),
-    };
-    /**
-     * The "row" cache stores OpportunityItemRows. These objects contain data
-     * about the underlying Opportunity as well as the RPDE item that it came
-     * from.
-     *
-     * The keys are the JSON-LD IDs of the Opportunities (i.e. .data['@id']).
-     *
-     * This cache is used to:
-     * - Determine which Opportunities are "orphans"
-     * - Determine which child Opportunities to re-process when a parent
-     *   Opportunity is updated.
-     */
-    this._opportunityItemRowCache = {
-      /**
-       * Map { [jsonLdId] => opportunityItemRow }
-       *
-       * @type {Map<string, import('../models/core').OpportunityItemRow>}
-       */
-      store: new Map(),
-      /**
-       * Maps each parent Opportunity ID to a set of the IDs of its children.
-       *
-       * @type {Map<string, Set<string>>}
-       */
-      parentIdIndex: new Map(),
-    };
+    // /**
+    //  * Stores mappings between IDs which allow Broker to perform various kinds of
+    //  * housekeeping to ensure that its stored opportunity date is correct.
+    //  */
+    // this._opportunityHousekeepingCaches = {
+    //   /**
+    //    * Map { [jsonLdId] => subEventIds }
+    //    *
+    //    * Associates a parent opportunity (jsonLdId) with a list of its child
+    //    * Opportunity IDs.
+    //    *
+    //    * This allows us to delete `.subEvent` Opportunities when they are no
+    //    * longer present in the parent Opportunity's data.
+    //    *
+    //    * @type {Map<string, string[]>}
+    //    */
+    //   parentOpportunitySubEventMap: new Map(),
+    //   /**
+    //    * Map { [rpdeFeedItemIdentifier] => jsonLdId }
+    //    *
+    //    * This allows us to look up the JSON-LD ID of a deleted item in the feed,
+    //    * as deleted items do not contain the JSON-LD ID.
+    //    *
+    //    * @type {Map<string, string>}
+    //    */
+    //   rpdeMap: new Map(),
+    // };
+    // /**
+    //  * The "row" cache stores OpportunityItemRows. These objects contain data
+    //  * about the underlying Opportunity as well as the RPDE item that it came
+    //  * from.
+    //  *
+    //  * The keys are the JSON-LD IDs of the Opportunities (i.e. .data['@id']).
+    //  *
+    //  * This cache is used to:
+    //  * - Determine which Opportunities are "orphans"
+    //  * - Determine which child Opportunities to re-process when a parent
+    //  *   Opportunity is updated.
+    //  */
+    // this._opportunityItemRowCache = {
+    //   /**
+    //    * Map { [jsonLdId] => opportunityItemRow }
+    //    *
+    //    * @type {Map<string, import('../models/core').OpportunityItemRow>}
+    //    */
+    //   store: new Map(),
+    //   /**
+    //    * Maps each parent Opportunity ID to a set of the IDs of its children.
+    //    *
+    //    * @type {Map<string, Set<string>>}
+    //    */
+    //   parentIdIndex: new Map(),
+    // };
   }
 
   async init() {
@@ -260,20 +261,22 @@ class PersistentStore {
     await this._db.destroy();
   }
 
+  // TODO2 doc each table with cache docs from constructor
   async _createSqliteTables() {
     // PRAGMA foreign_keys = ON;
     await this._db.raw(`
-      CREATE TABLE IF NOT EXISTS opportunity_item_row_cache_store (
+      CREATE TABLE IF NOT EXISTS opportunity_cache (
         json_ld_id TEXT PRIMARY KEY,
         parent_json_ld_id TEXT,
         feed_modified TEXT NOT NULL,
+        is_parent BOOLEAN NOT NULL,
         waiting_for_parent_to_be_ingested BOOLEAN NOT NULL,
         opportunity_item_row TEXT NOT NULL
       ) WITHOUT ROWID
     `);
     await this._db.raw(`
-      CREATE INDEX IF NOT EXISTS oircs_parent_json_ld_id_idx
-      ON opportunity_item_row_cache_store (parent_json_ld_id)
+      CREATE INDEX IF NOT EXISTS opportunity_cache_parent_json_ld_id_idx
+      ON opportunity_cache (parent_json_ld_id)
     `);
     await this._db.raw(`
       CREATE TABLE IF NOT EXISTS criteria_type (
@@ -293,7 +296,7 @@ class PersistentStore {
         opportunity_id TEXT NOT NULL,
 
         FOREIGN KEY (criteria_type_id) REFERENCES criteria_type(id) ON DELETE CASCADE,
-        FOREIGN KEY (opportunity_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
+        FOREIGN KEY (opportunity_id) REFERENCES opportunity_cache(json_ld_id) ON DELETE CASCADE,
 
         UNIQUE (criteria_type_id, seller_id, opportunity_id)
       )
@@ -315,8 +318,8 @@ class PersistentStore {
         sub_event_id TEXT PRIMARY KEY,
         parent_json_ld_id TEXT NOT NULL,
 
-        FOREIGN KEY (parent_json_ld_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE,
-        FOREIGN KEY (sub_event_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
+        FOREIGN KEY (parent_json_ld_id) REFERENCES opportunity_cache(json_ld_id) ON DELETE CASCADE,
+        FOREIGN KEY (sub_event_id) REFERENCES opportunity_cache(json_ld_id) ON DELETE CASCADE
       ) WITHOUT ROWID;
     `);
     await this._db.raw(`
@@ -324,7 +327,7 @@ class PersistentStore {
         rpde_feed_item_identifier TEXT PRIMARY KEY,
         json_ld_id TEXT NOT NULL,
 
-        FOREIGN KEY (json_ld_id) REFERENCES opportunity_item_row_cache_store(json_ld_id) ON DELETE CASCADE
+        FOREIGN KEY (json_ld_id) REFERENCES opportunity_cache(json_ld_id) ON DELETE CASCADE
       ) WITHOUT ROWID;
     `);
   }
@@ -336,10 +339,12 @@ class PersistentStore {
     // this._opportunityItemRowCache.parentIdIndex.clear();
     // this._criteriaOrientedOpportunityIdCache = CriteriaOrientedOpportunityIdCache.create();
 
-    await this._db('criteria_oriented_opportunity_id_cache').delete();
+    await this._db('criteria_errors').delete();
+    await this._db('criteria_type_opportunity_mapping').delete();
+    await this._db('criteria_type').delete();
     await this._db('opportunity_housekeeping_parent_opportunity_sub_event_map').delete();
     await this._db('opportunity_housekeeping_opportunity_rpde_map').delete();
-    await this._db('opportunity_item_row_cache_store').delete();
+    await this._db('opportunity_cache').delete();
   }
 
   async prePropulateDb() {
@@ -353,7 +358,12 @@ class PersistentStore {
           }
         ))
       ))));
-    await this._db('criteria_type').insert(criteriaTypeRows);
+    // Insert in batches so that we don't hit the insert limit (there're 700+ rows)
+    const batchSize = 50;
+    for (let i = 0; i < criteriaTypeRows.length; i += batchSize) {
+      const rows = criteriaTypeRows.slice(i, i + batchSize);
+      await this._db('criteria_type').insert(rows);
+    }
   }
 
   /**
@@ -362,8 +372,8 @@ class PersistentStore {
    */
   async getOpportunityItemRow(jsonLdId) {
     // return this._opportunityItemRowCache.store.get(jsonLdId);
-    const result = await this._db('opportunity_item_row_cache_store')
-      .select('opportunity_item_row', 'feed_modified', 'waiting_for_parent_to_be_ingested')
+    const result = await this._db('opportunity_cache')
+      .select('opportunity_item_row', 'feed_modified', 'waiting_for_parent_to_be_ingested', 'is_parent')
       .where('json_ld_id', jsonLdId)
       .first();
     if (!result) {
@@ -373,6 +383,7 @@ class PersistentStore {
       result.opportunity_item_row,
       result.feed_modified,
       result.waiting_for_parent_to_be_ingested,
+      result.is_parent,
     );
   }
 
@@ -382,7 +393,7 @@ class PersistentStore {
    */
   async hasOpportunityItemRow(jsonLdId) {
     // return this._opportunityItemRowCache.store.has(jsonLdId);
-    const result = await this._db('opportunity_item_row_cache_store')
+    const result = await this._db('opportunity_cache')
       .select(this._db.raw('1'))
       .where('json_ld_id', jsonLdId)
       .first();
@@ -397,9 +408,6 @@ class PersistentStore {
    * jsonLdId, which is used for RPDE deletes.
    *
    * @param {import('../models/core').OpportunityItemRow} itemRow
-   * @param {object} otherData
-   * @param {string} otherData.feedModified
-   * @param {boolean} otherData.waitingForParentToBeIngested
    * @param {string | undefined} feedItemIdentifier `{feedIdentifier}---{rpdeItemId}`
    *   If not set, then an RPDE mapping will not be made, which means that it
    *   will not be possible to process an RPDE delete for this item. Therefore
@@ -420,18 +428,19 @@ class PersistentStore {
     //   this._opportunityHousekeepingCaches.rpdeMap.set(feedItemIdentifier, itemRow.jsonLdId);
     // }
 
-    const dbItemRow = omit(itemRow, 'feedModified', 'waitingForParentToBeIngested');
+    const dbItemRow = omit(itemRow, 'feedModified', 'waitingForParentToBeIngested', 'isParent');
     // Insert or update the opportunity item row
-    await this._db('opportunity_item_row_cache_store')
+    await this._db('opportunity_cache')
       .insert({
         json_ld_id: itemRow.jsonLdId,
         parent_json_ld_id: itemRow.jsonLdParentId,
+        is_parent: itemRow.isParent,
         feed_modified: itemRow.feedModified,
         waiting_for_parent_to_be_ingested: itemRow.waitingForParentToBeIngested,
         opportunity_item_row: JSON.stringify(dbItemRow),
       })
       .onConflict('json_ld_id')
-      .merge(['parent_json_ld_id', 'feed_modified', 'waiting_for_parent_to_be_ingested', 'opportunity_item_row']);
+      .merge(['parent_json_ld_id', 'is_parent', 'feed_modified', 'waiting_for_parent_to_be_ingested', 'opportunity_item_row']);
 
     // If there is a feedItemIdentifier, then cache the mapping between it and
     // the jsonLdId so that it can be used to process RPDE deletes.
@@ -473,7 +482,7 @@ class PersistentStore {
     const jsonLdId = await this._getJsonLdIdFromFeedItemIdentifier(feedItemIdentifier);
 
     // Delete all subEvent child opportunities associated with this parent
-    await this._db('opportunity_item_row_cache_store')
+    await this._db('opportunity_cache')
       .whereIn('json_ld_id', function () {
         this.select('sub_event_id')
           .from('opportunity_housekeeping_parent_opportunity_sub_event_map')
@@ -485,7 +494,7 @@ class PersistentStore {
     // This will also delete related rows from other tables via delete cascades.
     if (jsonLdId) {
       // This will also delete related rows from other tables via delete cascades.
-      await this._db('opportunity_item_row_cache_store')
+      await this._db('opportunity_cache')
         .where('json_ld_id', jsonLdId)
         .delete();
     }
@@ -510,7 +519,7 @@ class PersistentStore {
     // This will also delete related rows from other tables via delete cascades.
     if (jsonLdId) {
       // This will also delete related rows from other tables via delete cascades.
-      await this._db('opportunity_item_row_cache_store')
+      await this._db('opportunity_cache')
         .where('json_ld_id', jsonLdId)
         .delete();
     }
@@ -588,9 +597,9 @@ class PersistentStore {
 
     // Delete removed subEvents
     if (subEventIdsToDelete.length > 0) {
-      // Delete the subEvents from the opportunity_item_row_cache_store table
+      // Delete the subEvents from the opportunity_cache table
       // This will cascade delete from other tables due to foreign key constraints
-      await this._db('opportunity_item_row_cache_store')
+      await this._db('opportunity_cache')
         .whereIn('json_ld_id', subEventIdsToDelete)
         .delete();
     }
@@ -626,9 +635,9 @@ class PersistentStore {
     //   return row;
     // }
     // return undefined;
-    const rows = await this._db('opportunity_item_row_cache_store')
+    const rows = await this._db('opportunity_cache')
       .where('json_ld_id', childJsonLdId)
-      .returning(['opportunity_item_row', 'feed_modified', 'waiting_for_parent_to_be_ingested'])
+      .returning(['opportunity_item_row', 'feed_modified', 'waiting_for_parent_to_be_ingested', 'is_parent'])
       .update({
         feed_modified: newFeedModified,
         waiting_for_parent_to_be_ingested: false,
@@ -643,6 +652,7 @@ class PersistentStore {
       row.opportunity_item_row,
       row.feed_modified,
       row.waiting_for_parent_to_be_ingested,
+      row.is_parent,
     );
   }
 
@@ -677,7 +687,7 @@ class PersistentStore {
     //   return new Set();
     // }
     // return this._opportunityItemRowCache.parentIdIndex.get(parentJsonLdId);
-    const childRows = await this._db('opportunity_item_row_cache_store')
+    const childRows = await this._db('opportunity_cache')
       .select('json_ld_id')
       .where('parent_json_ld_id', parentJsonLdId);
 
@@ -774,7 +784,7 @@ class PersistentStore {
    * @param {string} args.opportunityType
    * @param {string} args.sellerId
    */
-  async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria2(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+  async setOpportunityMatchesCriteria2(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
     await this._db('criteria_type_opportunity_mapping').insert({
       criteria_type_id: this._db('criteria_type')
         .select('id')
@@ -802,7 +812,7 @@ class PersistentStore {
    * @param {string} args.sellerId
    */
   async setOpportunityDoesNotMatchCriteria2(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
-    const criteriaTypeId = await this._db('criteria_type')
+    const criteriaTypeIdRow = await this._db('criteria_type')
       .select('id')
       .where({
         criteria_name: criteriaName,
@@ -810,6 +820,11 @@ class PersistentStore {
         opportunity_type: opportunityType,
       })
       .first();
+
+    if (!criteriaTypeIdRow) {
+      throw new Error(`Criteria type not found: ${criteriaName} ${bookingFlow} ${opportunityType}`);
+    }
+    const criteriaTypeId = criteriaTypeIdRow.id;
 
     // Delete the match if there was one previously
     await this._db('criteria_type_opportunity_mapping')
@@ -826,20 +841,39 @@ class PersistentStore {
       failed_constraint_name: failedConstraintName,
       amount: 1,
     }));
-    await this._db('criteria_errors')
+    const insertQuery = this._db('criteria_errors')
       .insert(errorInsertRows)
-      .onConflict(['criteria_type_id', 'failed_constraint_name'])
-      // TODO3 oh no how we do this?
-      .merge([
-        this._db.raw('amount = criteria_errors.amount + 1'),
-      ]);
+      .toSQL();
+    // const insertQuery = this._db('criteria_errors')
+    //   .insert(errorInsertRows)
+    //   .onConflict(['criteria_type_id', 'failed_constraint_name'])
+    //   .ignore();
+    // knex doesn't support a custom updater like 'amount + 1' in an onConflict
+    const rawQuery = `
+      ${insertQuery.sql}
+      ON CONFLICT (criteria_type_id, failed_constraint_name) DO UPDATE SET
+        amount = amount + 1
+    `;
+    // console.log(rawQuery);
+    // console.log(insertQuery.bindings);
+    // process.exit(0);
+    await this._db.raw(rawQuery, insertQuery.bindings);
+    // await this._db('criteria_errors')
+    //   .insert(errorInsertRows)
+    //   .onConflict(['criteria_type_id', 'failed_constraint_name'])
+    //   // TODO3 oh no how we do this?
+    //   .merge([
+    //     this._db.raw('amount = criteria_errors.amount + 1'),
+    //   ]);
   }
 
   /**
    * @returns {Promise<Readonly<CriteriaOrientedOpportunityIdCacheSummary>>}
    */
+  // eslint-disable-next-line class-methods-use-this
   async getCriteriaOrientedOpportunityIdCacheSummary() {
-    return /** @type {any} */ (mapToObjectSummary(this._criteriaOrientedOpportunityIdCache));
+    throw new Error('getCriteriaOrientedOpportunityIdCacheSummary() is not implemented');
+    // return /** @type {any} */ (mapToObjectSummary(this._criteriaOrientedOpportunityIdCache));
     // const rows = await this._db('criteria_oriented_opportunity_id_cache')
     //   .select(
     //     'criteria_name',
@@ -869,52 +903,96 @@ class PersistentStore {
     // return result;
   }
 
-  /**
-   * @param {string} criteriaName
-   * @param {string} bookingFlow
-   * @param {string} opportunityType
-   * @returns {Promise<Readonly<import('./criteria-oriented-opportunity-id-cache').OpportunityIdCacheTypeBucket>>}
-   */
-  async getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType) {
-    return CriteriaOrientedOpportunityIdCache.getTypeBucket(this._criteriaOrientedOpportunityIdCache, {
-      criteriaName, bookingFlow, opportunityType,
-    });
-  }
+  // /**
+  //  * @param {string} criteriaName
+  //  * @param {string} bookingFlow
+  //  * @param {string} opportunityType
+  //  * @returns {Promise<Readonly<import('./criteria-oriented-opportunity-id-cache').OpportunityIdCacheTypeBucket>>}
+  //  */
+  // async getCriteriaOrientedOpportunityIdCacheTypeBucket(criteriaName, bookingFlow, opportunityType) {
+  //   return CriteriaOrientedOpportunityIdCache.getTypeBucket(this._criteriaOrientedOpportunityIdCache, {
+  //     criteriaName, bookingFlow, opportunityType,
+  //   });
+  // }
 
-  /**
-   * @param {string} opportunityId
-   * @param {object} args
-   * @param {string} args.criteriaName
-   * @param {string} args.bookingFlow
-   * @param {string} args.opportunityType
-   * @param {string} args.sellerId
-   */
-  async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
-    CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(this._criteriaOrientedOpportunityIdCache, opportunityId, {
-      criteriaName, bookingFlow, opportunityType, sellerId,
-    });
-  }
+  // /**
+  //  * @param {string} opportunityId
+  //  * @param {object} args
+  //  * @param {string} args.criteriaName
+  //  * @param {string} args.bookingFlow
+  //  * @param {string} args.opportunityType
+  //  * @param {string} args.sellerId
+  //  */
+  // async setCriteriaOrientedOpportunityIdCacheOpportunityMatchesCriteria(opportunityId, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+  //   CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(this._criteriaOrientedOpportunityIdCache, opportunityId, {
+  //     criteriaName, bookingFlow, opportunityType, sellerId,
+  //   });
+  // }
 
-  /**
-   * @param {string} opportunityId
-   * @param {string[]} unmetCriteriaDetails A list of constraint names which
-   *   were not met by the opportunity.
-   * @param {object} args
-   * @param {string} args.criteriaName
-   * @param {string} args.bookingFlow
-   * @param {string} args.opportunityType
-   * @param {string} args.sellerId
-   */
-  async setOpportunityDoesNotMatchCriteria(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
-    CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
-      this._criteriaOrientedOpportunityIdCache,
-      opportunityId,
-      unmetCriteriaDetails,
-      {
-        criteriaName, bookingFlow, opportunityType, sellerId,
-      },
-    );
-  }
+  // /**
+  //  * @param {string} opportunityId
+  //  * @param {string[]} unmetCriteriaDetails A list of constraint names which
+  //  *   were not met by the opportunity.
+  //  * @param {object} args
+  //  * @param {string} args.criteriaName
+  //  * @param {string} args.bookingFlow
+  //  * @param {string} args.opportunityType
+  //  * @param {string} args.sellerId
+  //  */
+  // async setOpportunityDoesNotMatchCriteria(opportunityId, unmetCriteriaDetails, { criteriaName, bookingFlow, opportunityType, sellerId }) {
+  //   CriteriaOrientedOpportunityIdCache.setOpportunityDoesNotMatchCriteria(
+  //     this._criteriaOrientedOpportunityIdCache,
+  //     opportunityId,
+  //     unmetCriteriaDetails,
+  //     {
+  //       criteriaName, bookingFlow, opportunityType, sellerId,
+  //     },
+  //   );
+  // }
+
+  // /**
+  //  * @returns {Promise<Readonly<{
+  //  *   numMatched: number;
+  //  *   numOrphaned: number;
+  //  *   total: number;
+  //  *   orphanedList: Pick<
+  //  *     import('../models/core').OpportunityItemRow,
+  //  *     | 'jsonLdType'
+  //  *     | 'id'
+  //  *     | 'modified'
+  //  *     | 'jsonLd'
+  //  *     | 'jsonLdId'
+  //  *     | 'jsonLdParentId'
+  //  *   >[]
+  //  * }>>}
+  //  */
+  // async getOrphanData() {
+  //   const rows = Array.from(this._opportunityItemRowCache.store.values())
+  //     .filter((x) => x.jsonLdParentId !== null);
+  //   const numMatched = rows.filter((x) => !x.waitingForParentToBeIngested).length;
+  //   const numOrphaned = rows.filter((x) => x.waitingForParentToBeIngested).length;
+  //   const total = rows.length;
+  //   const orphanedList = rows.filter((x) => x.waitingForParentToBeIngested)
+  //     .slice(0, 1000)
+  //     .map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
+  //       jsonLdType,
+  //       id,
+  //       modified,
+  //       jsonLd,
+  //       jsonLdId,
+  //       jsonLdParentId,
+  //     })));
+  //   return {
+  //     /** Number of (child) opportunities which have been matched to a parent */
+  //     numMatched,
+  //     /** Number of (child) opportunities which have not been matched to a parent */
+  //     numOrphaned,
+  //     /** Total number of (child) opportunities */
+  //     total,
+  //     /** List of orphaned (child) opportunities - limited to 1000 */
+  //     orphanedList,
+  //   };
+  // }
 
   /**
    * @returns {Promise<Readonly<{
@@ -933,21 +1011,32 @@ class PersistentStore {
    * }>>}
    */
   async getOrphanData() {
-    const rows = Array.from(this._opportunityItemRowCache.store.values())
-      .filter((x) => x.jsonLdParentId !== null);
-    const numMatched = rows.filter((x) => !x.waitingForParentToBeIngested).length;
-    const numOrphaned = rows.filter((x) => x.waitingForParentToBeIngested).length;
-    const total = rows.length;
-    const orphanedList = rows.filter((x) => x.waitingForParentToBeIngested)
-      .slice(0, 1000)
-      .map((({ jsonLdType, id, modified, jsonLd, jsonLdId, jsonLdParentId }) => ({
-        jsonLdType,
-        id,
-        modified,
-        jsonLd,
-        jsonLdId,
-        jsonLdParentId,
-      })));
+    const childStatRows = await this._db('opportunity_cache')
+      .whereNotNull('parent_json_ld_id')
+      .where('is_parent', 0)
+      .select('waiting_for_parent_to_be_ingested', this._db.raw('COUNT(*) as num_matches'))
+      .groupBy('waiting_for_parent_to_be_ingested');
+    const numMatched = childStatRows.find((x) => !x.waiting_for_parent_to_be_ingested)?.num_matches ?? 0;
+    const numOrphaned = childStatRows.find((x) => x.waiting_for_parent_to_be_ingested)?.num_matches ?? 0;
+    const total = numMatched + numOrphaned;
+    const orphanedListRows = await this._db('opportunity_cache')
+      .whereNotNull('parent_json_ld_id')
+      .where('is_parent', 0)
+      .where('waiting_for_parent_to_be_ingested', 1)
+      .select('json_ld_id', 'parent_json_ld_id', 'feed_modified', 'opportunity_item_row')
+      .limit(100);
+    const orphanedList = orphanedListRows.map((row) => {
+      /** @type {DbOpportunityItemRow} */
+      const opportunityItemRow = JSON.parse(row.opportunity_item_row);
+      return {
+        jsonLdType: opportunityItemRow.jsonLdType,
+        id: opportunityItemRow.id,
+        modified: opportunityItemRow.modified,
+        jsonLd: opportunityItemRow.jsonLd,
+        jsonLdId: row.json_ld_id,
+        jsonLdParentId: row.parent_json_ld_id,
+      };
+    });
     return {
       /** Number of (child) opportunities which have been matched to a parent */
       numMatched,
@@ -955,7 +1044,7 @@ class PersistentStore {
       numOrphaned,
       /** Total number of (child) opportunities */
       total,
-      /** List of orphaned (child) opportunities - limited to 1000 */
+      /** List of orphaned (child) opportunities - limited to 100 */
       orphanedList,
     };
   }
@@ -969,8 +1058,11 @@ class PersistentStore {
    */
   async getOrphanStats() {
     const { numOrphaned: numChildOrphans, total: totalNumChildren } = await this.getOrphanData();
-    const totalNumOpportunities = Array.from(this._opportunityItemRowCache.store.values())
-      .filter((x) => !x.waitingForParentToBeIngested).length;
+    const totalNumOpportunitiesRow = await this._db('opportunity_cache')
+      .where('is_parent', 0)
+      .where('waiting_for_parent_to_be_ingested', 0)
+      .count('* as count');
+    const totalNumOpportunities = Number(totalNumOpportunitiesRow[0].count);
     return {
       numChildOrphans,
       totalNumChildren,
@@ -1005,15 +1097,16 @@ function createKnexConnection(sqliteFilename) {
 /**
  * @param {string} rawDbOpportunityItemRow
  * @param {string} feedModified
- * @param {0 | 1} waitingForParentToBeIngested Though it is a boolean column in
- *   SQLite, it comes back as a 0 or 1 in query results.
+ * @param {0 | 1} waitingForParentToBeIngested SQLite boolean
+ * @param {0 | 1} isParent SQLite boolean
  * @returns {OpportunityItemRow}
  */
-function convertDbOpportunityItemRowToOpportunityItemRow(rawDbOpportunityItemRow, feedModified, waitingForParentToBeIngested) {
+function convertDbOpportunityItemRowToOpportunityItemRow(rawDbOpportunityItemRow, feedModified, waitingForParentToBeIngested, isParent) {
   /** @type {DbOpportunityItemRow} */
   const dbOpportunityItemRow = JSON.parse(rawDbOpportunityItemRow);
   return {
     ...dbOpportunityItemRow,
+    isParent: Boolean(isParent),
     feedModified,
     waitingForParentToBeIngested: Boolean(waitingForParentToBeIngested),
   };
