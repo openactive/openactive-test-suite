@@ -39,7 +39,7 @@ async function deleteTestDataset(testInterfaceBaseUrl) {
     {
       headers: {
         'Accept': 'application/vnd.openactive.booking+json; version=1',
-      },fit
+      },
       timeout: 60000,
     });
 
