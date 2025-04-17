@@ -6,7 +6,7 @@
  * - Hide any properties which start with the character '_' in objects
  * - OpportunityIdCacheTypeBucket objects have special handling
  *
- * @param {Map | Set} map
+ * @param {Map<any, any> | Set<unknown>} map
  * @returns {{[k: string]: any} | number}
  */
 function mapToObjectSummary(map) {

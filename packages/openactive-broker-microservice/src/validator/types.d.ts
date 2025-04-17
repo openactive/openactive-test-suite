@@ -10,7 +10,10 @@ export type ValidatorWorkerResponse = {
 
 export type ValidatorWorkerRequestParsedItem = {
   validationMode: string;
-  item: unknown;
+  item: {
+    '@id': string;
+    [k: string]: unknown;
+  };
   feedContextIdentifier: string;
 };
 

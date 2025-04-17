@@ -2,8 +2,21 @@ const { omit, isNil, isEmpty } = require('lodash');
 
 /**
  * Inverts any FacilityUse items that have an `individualFacilityUse` property, so that the top-level `kind` is "IndividualFacilityUse"
- * @typedef {{'@id'?: string, id?: string}} IndividualFacilityUse
- * @param {{state: string, modified:string, kind: string, id: string, data: {id: string, individualFacilityUse?: IndividualFacilityUse[] }}} item
+ *
+ * @typedef {{
+ *   '@id'?: string;
+ *   id?: string;
+ *   '@type'?: string;
+ * }} IndividualFacilityUse
+ * @param {{
+ *   state: string;
+ *   modified:string;
+ *   kind: string;
+ *   id: string;
+ *   data: {
+ *     '@context'?: string | string[];
+ *     individualFacilityUse?: IndividualFacilityUse[];
+ *   }}} item
  */
 function invertFacilityUseItem(item) {
   if (!isNil(item.data?.individualFacilityUse) && !isEmpty(item.data.individualFacilityUse)) {
