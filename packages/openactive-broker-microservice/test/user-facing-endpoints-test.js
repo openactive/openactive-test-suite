@@ -7,6 +7,7 @@ const { getOrphanJson } = require('../src/util/get-orphans');
 const { getOpportunityMergedWithParentById } = require('../src/util/get-opportunity-by-id-from-cache');
 const { getSampleOpportunities } = require('../src/util/sample-opportunities');
 const { OrderUuidTracking } = require('../src/order-uuid-tracking/order-uuid-tracking');
+const { PersistentStore } = require('../src/util/persistent-store');
 
 const testDataGenerators = {
   opportunityItemRowCacheStoreItems: {
@@ -28,6 +29,7 @@ const testDataGenerators = {
         deleted: false,
         modified: '123',
         waitingForParentToBeIngested: false,
+        isParent: false,
       },
     ],
     /**
@@ -47,6 +49,7 @@ const testDataGenerators = {
         deleted: false,
         modified: '123',
         waitingForParentToBeIngested: false,
+        isParent: false,
       },
     ],
     /**
@@ -67,6 +70,7 @@ const testDataGenerators = {
         deleted: false,
         modified: '123',
         waitingForParentToBeIngested: true,
+        isParent: false,
       },
     ],
   },
@@ -74,7 +78,7 @@ const testDataGenerators = {
 
 describe('user-facing endpoints', () => {
   describe('GET /status', () => {
-    it('should include stats about orphans and criteria matches', () => {
+    it('should include stats about orphans and criteria matches', async () => {
       const cooiCache = CriteriaOrientedOpportunityIdCache.create();
       CriteriaOrientedOpportunityIdCache.setOpportunityMatchesCriteria(cooiCache, 'id1', {
         criteriaName: 'TestOpportunityBookable',
@@ -161,23 +165,25 @@ describe('user-facing endpoints', () => {
       OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'primary', 'uuid4');
       OrderUuidTracking.doTrackEndOfFeed(orderUuidTracking, 'orders', 'primary');
       OrderUuidTracking.doTrackOrderUuidAndUpdateListeners(orderUuidTracking, 'orders', 'secondary', 'uuidB2');
+      const persistentStore = new PersistentStore();
+      persistentStore._opportunityItemRowCache = {
+        store: new Map([
+          // Has a parent
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
+          // Has no parent but doesn't need one either
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
+          // Has no parent and should have one
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
+        ]),
+        parentIdIndex: new Map(),
+      };
+      persistentStore._criteriaOrientedOpportunityIdCache = cooiCache;
 
-      const result = getStatus({
+      const result = await getStatus({
         DO_NOT_FILL_BUCKETS: false,
       }, {
         startTime: new Date(),
-        opportunityItemRowCache: {
-          store: new Map([
-            // Has a parent
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
-            // Has no parent but doesn't need one either
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
-            // Has no parent and should have one
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
-          ]),
-          parentIdIndex: new Map(),
-        },
-        criteriaOrientedOpportunityIdCache: cooiCache,
+        persistentStore,
         feedContextMap: new Map(),
         pauseResume: new PauseResume(),
         orderUuidTracking,
@@ -215,16 +221,18 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /orphans', () => {
-    it('should return stats about which opportunities are orphans i.e. have no parents', () => {
-      const result = getOrphanJson({
-        opportunityItemRowCache: {
-          store: new Map([
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
-            testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
-          ]),
-          parentIdIndex: new Map(),
-        },
+    it('should return stats about which opportunities are orphans i.e. have no parents', async () => {
+      const persistentStore = new PersistentStore();
+      persistentStore._opportunityItemRowCache = {
+        store: new Map([
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasAParent('id1', 'parentid1'),
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentButDoesntNeedOne('id2'),
+          testDataGenerators.opportunityItemRowCacheStoreItems.hasNoParentAndShouldHaveOne('id3', 'parentid3'),
+        ]),
+        parentIdIndex: new Map(),
+      };
+      const result = await getOrphanJson({
+        persistentStore,
       });
       expect(result).to.deep.equal({
         children: {
@@ -249,38 +257,86 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /opportunity-cache/:id', () => {
-    it('should get an opportunity from the cache, merged with its parent', () => {
-      /** @type {import('../src/state').State['opportunityCache']} */
+    it('should get an opportunity from the cache, merged with its parent', async () => {
+      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityItemRowCache']} */
       const opportunityCache = {
-        parentMap: new Map([
+        parentIdIndex: new Map([
+          ['parentid1', new Set(['id1'])],
+          ['parentid2', new Set(['id2'])],
+        ]),
+        store: new Map([
           ['parentid1', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'FacilityUse',
-            name: 'Facility 1',
+            id: 'parentid1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid1',
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'FacilityUse',
+              name: 'Facility 1',
+            },
+            jsonLdType: 'FacilityUse',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
           }],
           ['parentid2', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'SessionSeries',
-            description: 'come have fun besties <3',
+            id: 'parentid2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid2',
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'SessionSeries',
+              description: 'come have fun besties <3',
+            },
+            jsonLdType: 'SessionSeries',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
           }],
-        ]),
-        childMap: new Map([
           ['id1', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'Slot',
-            facilityUse: 'parentid1',
-            startDate: '2001-01-01T00:00:00Z',
+            id: 'id1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id1',
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'Slot',
+              facilityUse: 'parentid1',
+              startDate: '2001-01-01T00:00:00Z',
+            },
+            jsonLdType: 'Slot',
+            isParent: false,
+            jsonLdParentId: 'parentid1',
+            waitingForParentToBeIngested: false,
           }],
           ['id2', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'ScheduledSession',
-            superEvent: 'parentid2',
-            name: 'ScheduledSession 1',
+            id: 'id2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id2',
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'ScheduledSession',
+              superEvent: 'parentid2',
+              name: 'ScheduledSession 1',
+            },
+            jsonLdType: 'ScheduledSession',
+            isParent: false,
+            jsonLdParentId: 'parentid2',
+            waitingForParentToBeIngested: false,
           }],
         ]),
       };
-      const slotResult = getOpportunityMergedWithParentById({
-        opportunityCache,
+      const persistentStore = new PersistentStore();
+      persistentStore._opportunityItemRowCache = opportunityCache;
+      const slotResult = await getOpportunityMergedWithParentById({
+        persistentStore,
       }, 'id1');
       expect(slotResult).to.deep.equal({
         '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
@@ -291,8 +347,8 @@ describe('user-facing endpoints', () => {
         },
         startDate: '2001-01-01T00:00:00Z',
       });
-      const scsResult = getOpportunityMergedWithParentById({
-        opportunityCache,
+      const scsResult = await getOpportunityMergedWithParentById({
+        persistentStore,
       }, 'id2');
       expect(scsResult).to.deep.equal({
         '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
@@ -306,7 +362,7 @@ describe('user-facing endpoints', () => {
     });
   });
   describe('GET /sample-opportunities', () => {
-    it('should get a random opportunity matching a criteria, and then lock it', () => {
+    it('should get a random opportunity matching a criteria, and then lock it', async () => {
       /**
        * @param {any} result
        * @param {string[]} idAllowlist
@@ -367,83 +423,129 @@ describe('user-facing endpoints', () => {
         opportunityType: 'ScheduledSession',
         sellerId: 'seller1',
       });
-      /** @type {import('../src/state').State['opportunityCache']} */
+      /** @type {import('../src/util/persistent-store').PersistentStore['_opportunityItemRowCache']} */
       const opportunityCache = {
-        parentMap: new Map([
+        parentIdIndex: new Map([
+          ['parentid1', new Set(['id1'])],
+          ['parentid2', new Set(['id2'])],
+        ]),
+        store: new Map([
           ['parentid1', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'SessionSeries',
-            '@id': 'parentid1',
-            name: 'Session 1',
-            organizer: {
-              '@type': 'Organization',
-              isOpenBookingAllowed: true,
+            id: 'parentid1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid1',
+            jsonLdType: 'SessionSeries',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'SessionSeries',
+              '@id': 'parentid1',
+              name: 'Session 1',
+              organizer: {
+                '@type': 'Organization',
+                isOpenBookingAllowed: true,
+              },
+              offers: [{
+                '@type': 'Offer',
+                '@id': 'offer1',
+                name: 'offer1',
+                price: 10,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer2',
+                name: 'offer2',
+                price: 0,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer3',
+                name: 'offer3',
+                // This one should not be bookable as "now" is Jan 1st 2001 and the
+                // session starts Jan 2nd.
+                validFromBeforeStartDate: 'PT1S',
+                price: 20,
+              }],
             },
-            offers: [{
-              '@type': 'Offer',
-              '@id': 'offer1',
-              name: 'offer1',
-              price: 10,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer2',
-              name: 'offer2',
-              price: 0,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer3',
-              name: 'offer3',
-              // This one should not be bookable as "now" is Jan 1st 2001 and the
-              // session starts Jan 2nd.
-              validFromBeforeStartDate: 'PT1S',
-              price: 20,
-            }],
           }],
           ['parentid2', {
-            '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
-            '@type': 'SessionSeries',
-            '@id': 'parentid2',
-            description: 'Session 2',
-            organizer: {
-              '@type': 'Organization',
-              isOpenBookingAllowed: true,
+            id: 'parentid2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'parentid2',
+            jsonLdType: 'SessionSeries',
+            isParent: true,
+            jsonLdParentId: null,
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/', 'https://openactive.io/ns-beta'],
+              '@type': 'SessionSeries',
+              '@id': 'parentid2',
+              description: 'Session 2',
+              organizer: {
+                '@type': 'Organization',
+                isOpenBookingAllowed: true,
+              },
+              offers: [{
+                '@type': 'Offer',
+                '@id': 'offer1',
+                name: 'offer1',
+                price: 10,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer2',
+                name: 'offer2',
+                price: 0,
+              }, {
+                '@type': 'Offer',
+                '@id': 'offer3',
+                name: 'offer3',
+                // This one should not be bookable as "now" is Jan 1st 2001 and the
+                // session starts Jan 2nd.
+                validThroughBeforeStartDate: 'P100D',
+                price: 20,
+              }],
             },
-            offers: [{
-              '@type': 'Offer',
-              '@id': 'offer1',
-              name: 'offer1',
-              price: 10,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer2',
-              name: 'offer2',
-              price: 0,
-            }, {
-              '@type': 'Offer',
-              '@id': 'offer3',
-              name: 'offer3',
-              // This one should not be bookable as "now" is Jan 1st 2001 and the
-              // session starts Jan 2nd.
-              validThroughBeforeStartDate: 'P100D',
-              price: 20,
-            }],
           }],
-        ]),
-        childMap: new Map([
           ['id1', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'ScheduledSession',
-            '@id': 'id1',
-            superEvent: 'parentid1',
-            startDate: '2001-01-02T00:00:00Z',
+            id: 'id1',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id1',
+            jsonLdType: 'ScheduledSession',
+            isParent: false,
+            jsonLdParentId: 'parentid1',
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'ScheduledSession',
+              '@id': 'id1',
+              superEvent: 'parentid1',
+              startDate: '2001-01-02T00:00:00Z',
+            },
           }],
           ['id2', {
-            '@context': ['https://openactive.io/'],
-            '@type': 'ScheduledSession',
-            '@id': 'id2',
-            superEvent: 'parentid2',
-            name: 'ScheduledSession 2',
-            startDate: '2001-01-02T00:00:00Z',
+            id: 'id2',
+            modified: '123',
+            deleted: false,
+            feedModified: '123',
+            jsonLdId: 'id2',
+            jsonLdType: 'ScheduledSession',
+            isParent: false,
+            jsonLdParentId: 'parentid2',
+            waitingForParentToBeIngested: false,
+            jsonLd: {
+              '@context': ['https://openactive.io/'],
+              '@type': 'ScheduledSession',
+              '@id': 'id2',
+              superEvent: 'parentid2',
+              name: 'ScheduledSession 2',
+              startDate: '2001-01-02T00:00:00Z',
+            },
           }],
         ]),
       };
@@ -451,9 +553,11 @@ describe('user-facing endpoints', () => {
       const brokerConfig = {
         HARVEST_START_TIME: '2001-01-01T00:00:00Z',
       };
+      const persistentStore = new PersistentStore();
+      persistentStore._criteriaOrientedOpportunityIdCache = cooiCache;
+      persistentStore._opportunityItemRowCache = opportunityCache;
       const state = {
-        criteriaOrientedOpportunityIdCache: cooiCache,
-        opportunityCache,
+        persistentStore,
         lockedOpportunityIdsByTestDataset,
       };
       /**
@@ -475,19 +579,19 @@ describe('user-facing endpoints', () => {
         'test:testOpportunityCriteria': criteria,
         'test:testOpenBookingFlow': 'https://openactive.io/test-interface#OpenBookingSimpleFlow',
       });
-      const result1 = getSampleOpportunities(
+      const result1 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
       );
       testResult(result1, ['id1', 'id2'], ['parentid1', 'parentid2'], ['offer1', 'offer2']);
       // That item should now have been locked. So another call should get the other item
-      const result2 = getSampleOpportunities(
+      const result2 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
       );
-      const isResult1Id1 = result1.sampleOpportunities[0]['@id'] === 'id1';
+      const isResult1Id1 = /** @type {any} */(result1).sampleOpportunities[0]['@id'] === 'id1';
       testResult(
         result2,
         isResult1Id1 ? ['id2'] : ['id1'],
@@ -495,7 +599,7 @@ describe('user-facing endpoints', () => {
         ['offer1', 'offer2'],
       );
       // And then another call should get nothing
-      const result3 = getSampleOpportunities(
+      const result3 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookable'),
@@ -503,7 +607,7 @@ describe('user-facing endpoints', () => {
       expect(result3).to.have.nested.property('error.suggestion');
       // We reset by clearing the locks
       lockedOpportunityIdsByTestDataset.clear();
-      const result4 = getSampleOpportunities(
+      const result4 = await getSampleOpportunities(
         brokerConfig,
         state,
         makeReqBody('https://openactive.io/test-interface#TestOpportunityBookableFree'),
