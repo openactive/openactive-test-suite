@@ -1,6 +1,8 @@
 ﻿# openactive-integration-tests
 
-This Node.js script runs tests against the specified openactive-broker-microservice instance
+The Integration Tests are a component of the OpenActive Test Suite. They contain the collection of tests that are used to validate the Open Booking API implementation of a Booking System.
+
+They cannot be run standalone, but must be run in conjunction with the [Broker Microservice](../openactive-broker-microservice/README.md).
 
 ## Test coverage
 
@@ -12,6 +14,9 @@ The results of this test suite when run against the reference implementation can
 - [Output when `"useRandomOpportunities": false`](https://openactive.io/openactive-test-suite/example-output/controlled/summary)
 
 ## Usage in separate terminal windows
+
+It is sometimes useful to run `openactive-integration-tests` in a separate terminal window to `openactive-broker-microservice`.
+When running many tests, especially against larger feeds, it can be more helpful to run the Broker Microservice in a separate terminal window and run individual tests in the separate terminal window. Keeping the Broker running in the background allows test failures to be debugged and rerun without having to restart the Broker.
 
 To run `openactive-integration-tests` in separate terminal window to `openactive-broker-microservice`, from repository root:
 
